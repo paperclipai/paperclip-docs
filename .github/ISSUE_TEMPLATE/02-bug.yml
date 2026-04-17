@@ -1,0 +1,43 @@
+name: Bug report
+description: Report a docs bug, site bug, or a product issue reproducible from the documented flow.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: input
+    id: docs_page
+    attributes:
+      label: Docs page
+      placeholder: https://aronprins.github.io/paperclip-docs/#/your-first-agent
+  - type: input
+    id: upstream_ref
+    attributes:
+      label: Upstream version / branch / commit
+      placeholder: master, a tag, or a commit SHA
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      placeholder: macOS 15.4 / Windows 11 / Ubuntu 24.04
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+

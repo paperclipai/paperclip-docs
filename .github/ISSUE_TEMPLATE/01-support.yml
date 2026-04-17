@@ -1,0 +1,46 @@
+name: Support request
+description: Ask for help using the docs, desktop flow, or documented setup.
+title: "[Support]: "
+labels: ["support"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This repository is community-maintained. Include enough detail to reproduce your setup and where the docs stopped helping.
+  - type: input
+    id: docs_page
+    attributes:
+      label: Docs page
+      description: Which page were you following?
+      placeholder: https://aronprins.github.io/paperclip-docs/#/installation
+    validations:
+      required: true
+  - type: dropdown
+    id: install_type
+    attributes:
+      label: Install path
+      options:
+        - Paperclip Desktop
+        - Terminal / local dev
+        - Docker
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: upstream_ref
+    attributes:
+      label: Upstream version / branch / commit
+      placeholder: master, a tag, or a commit SHA
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you need help with?
+      description: Include the exact step where things diverged from the docs.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error text or screenshots
+      render: shell
+

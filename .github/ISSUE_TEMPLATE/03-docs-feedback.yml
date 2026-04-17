@@ -1,0 +1,32 @@
+name: Docs feedback
+description: Suggest changes to content, structure, clarity, screenshots, or missing topics.
+title: "[Docs]: "
+labels: ["docs"]
+body:
+  - type: input
+    id: docs_page
+    attributes:
+      label: Docs page
+      placeholder: https://aronprins.github.io/paperclip-docs/#/dashboard
+    validations:
+      required: true
+  - type: dropdown
+    id: feedback_type
+    attributes:
+      label: Feedback type
+      options:
+        - Incorrect content
+        - Missing detail
+        - Broken link or image
+        - Outdated docs
+        - Structure or navigation
+        - New guide request
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: What should change?
+    validations:
+      required: true
+
