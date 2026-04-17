@@ -93,11 +93,11 @@
 
   #logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
   #logo-mark {
-    width: 26px; height: 26px; border-radius: 7px;
-    background: var(--ink); color: var(--white);
+    width: 26px; height: 26px;
     display: flex; align-items: center; justify-content: center;
-    font-family: var(--font-serif); font-size: 17px; line-height: 1;
+    color: var(--ink);
   }
+  #logo-mark svg { width: 26px; height: 26px; display: block; }
   #logo-name { font-weight: 600; font-size: 15px; }
   #logo-sub  { color: var(--ash); font-size: 13px; margin-left: 4px; }
 
@@ -700,7 +700,9 @@
 <header id="header">
   <div id="header-inner">
     <a id="logo" href="#" data-nav="home">
-      <div id="logo-mark">P</div>
+      <div id="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </div>
       <span id="logo-name">Paperclip</span>
       <span id="logo-sub">Docs</span>
     </a>

@@ -95,11 +95,11 @@
 
     #logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
     #logo-mark {
-      width: 26px; height: 26px; border-radius: 7px;
-      background: var(--ink); color: var(--white);
+      width: 26px; height: 26px;
       display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-serif); font-size: 17px; line-height: 1;
+      color: var(--ink);
     }
+    #logo-mark svg { width: 26px; height: 26px; display: block; }
     #logo-name { font-weight: 600; font-size: 15px; }
     #logo-sub  { color: var(--ash); font-size: 13px; margin-left: 4px; }
 
@@ -262,8 +262,10 @@
     .card-meta  { font-size: 11.5px; color: var(--ash); margin-top: 10px; display: flex; align-items: center; gap: 6px; }
     .card-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--stone-dark); }
 
-    #landing-foot {
-      margin-top: 56px; padding-top: 32px;
+    #site-foot {
+      max-width: var(--layout-max);
+      margin: 56px auto 0;
+      padding: 32px var(--outer-px) 64px;
       border-top: 1px solid var(--stone);
       display: flex; gap: 48px; flex-wrap: wrap;
     }
@@ -776,10 +778,10 @@
       .card-grid { grid-template-columns: 1fr; }
       #logo-sub, #logo-name { display: none; }
       #landing { padding: 48px 24px 80px; }
+      #site-foot { padding: 24px 24px 48px; gap: 24px; }
       #content { padding: 28px 0 64px; }
       #body { padding: 0 24px; }
       #header-inner { padding: 0 16px; gap: 8px; }
-      #landing-foot { gap: 24px; }
       #github-link { display: none; }
     }
   </style>
@@ -789,7 +791,9 @@
 <header id="header">
   <div id="header-inner">
     <a id="logo" href="#" data-nav="home">
-      <div id="logo-mark">P</div>
+      <div id="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </div>
       <span id="logo-name">Paperclip</span>
       <span id="logo-sub">Docs</span>
     </a>
@@ -847,23 +851,6 @@
   </div>
 
   <div class="card-grid" id="landing-cards"></div>
-
-  <div id="landing-foot">
-    <div class="foot-col">
-      <h4>Quick links</h4>
-      <div id="landing-quicklinks"></div>
-    </div>
-    <div class="foot-col">
-      <h4>Resources</h4>
-      <a href="https://github.com/paperclipai/paperclip" target="_blank" rel="noopener">GitHub</a>
-      <a href="https://github.com/paperclipai/paperclip/releases" target="_blank" rel="noopener">Changelog</a>
-    </div>
-    <div class="foot-col">
-      <h4>Community</h4>
-      <a href="https://github.com/paperclipai/paperclip/issues" target="_blank" rel="noopener">Feedback</a>
-      <a href="https://github.com/paperclipai/paperclip/discussions" target="_blank" rel="noopener">Discussions</a>
-    </div>
-  </div>
 </section>
 
 <!-- ─── Article view ─────────────────────────────────────── -->
@@ -888,6 +875,23 @@
     </main>
   </div>
 </div>
+
+<footer id="site-foot">
+  <div class="foot-col">
+    <h4>Quick links</h4>
+    <div id="landing-quicklinks"></div>
+  </div>
+  <div class="foot-col">
+    <h4>Resources</h4>
+    <a href="https://github.com/paperclipai/paperclip" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/paperclipai/paperclip/releases" target="_blank" rel="noopener">Changelog</a>
+  </div>
+  <div class="foot-col">
+    <h4>Community</h4>
+    <a href="https://github.com/paperclipai/paperclip/issues" target="_blank" rel="noopener">Feedback</a>
+    <a href="https://github.com/paperclipai/paperclip/discussions" target="_blank" rel="noopener">Discussions</a>
+  </div>
+</footer>
 
 <script>
 /* ─── Section icon mapping ──────────────────────────────────────────────── */
