@@ -278,6 +278,18 @@
       cursor: pointer;
     }
     .foot-col a:hover { color: var(--ink); }
+    .foot-colophon {
+      flex-basis: 100%;
+      margin-top: 8px; padding-top: 20px;
+      border-top: 1px solid var(--stone);
+      font-size: 12.5px; color: var(--ash);
+    }
+    .foot-colophon a {
+      color: var(--graphite); text-decoration: none;
+      border-bottom: 1px solid var(--stone);
+      transition: color var(--transition), border-color var(--transition);
+    }
+    .foot-colophon a:hover { color: var(--ink); border-bottom-color: var(--ink); }
 
     /* ─── Article view ─────────────────────────────────────── */
     #article-view { display: none; }
@@ -936,8 +948,13 @@
   </div>
   <div class="foot-col">
     <h4>Community</h4>
+    <a href="https://discord.gg/m4HZY7xNG3" target="_blank" rel="noopener">Discord</a>
     <a href="https://github.com/paperclipai/paperclip/issues" target="_blank" rel="noopener">Feedback</a>
     <a href="https://github.com/paperclipai/paperclip/discussions" target="_blank" rel="noopener">Discussions</a>
+  </div>
+  <div class="foot-colophon">
+    Paperclip by <a href="https://x.com/dotta" target="_blank" rel="noopener">@dotta</a>
+    — Docs by <a href="https://x.com/aronprins" target="_blank" rel="noopener">@aronprins</a>
   </div>
 </footer>
 
