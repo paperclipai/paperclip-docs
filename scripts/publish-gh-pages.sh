@@ -5,6 +5,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/paperclip-docs-publish.XXXXXX")"
 publish_clone="$tmp_root/publish"
 site_dir="$tmp_root/site"
+origin_url="$(git -C "$repo_root" remote get-url origin)"
 
 cleanup() {
   rm -rf "$tmp_root"
@@ -16,7 +17,7 @@ cd "$repo_root"
 node docs/docs-website/build-release.mjs --base-path /paperclip-docs/ --out-dir "$site_dir"
 touch "$site_dir/.nojekyll"
 
-git clone . "$publish_clone" >/dev/null 2>&1
+git clone "$origin_url" "$publish_clone" >/dev/null 2>&1
 cd "$publish_clone"
 
 if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
@@ -43,4 +44,3 @@ git commit -m "Publish docs site"
 git push -u origin gh-pages
 
 echo "Published docs site to origin/gh-pages."
-
