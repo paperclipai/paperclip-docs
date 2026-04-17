@@ -420,6 +420,50 @@
     }
     .meta-row .spacer { flex: 1; }
 
+    .page-feedback {
+      margin-top: 64px;
+      padding: 20px 22px;
+      background: var(--parchment);
+      border: 1px solid var(--stone);
+      border-radius: 12px;
+      display: flex; flex-wrap: wrap; align-items: center;
+      gap: 14px 20px;
+    }
+    .page-feedback .pf-label {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      color: var(--ink);
+      letter-spacing: -0.005em;
+      flex: 1 1 auto;
+    }
+    .page-feedback .pf-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .page-feedback a {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 12px;
+      background: var(--white);
+      border: 1px solid var(--stone);
+      border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+      color: var(--graphite);
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+    }
+    .page-feedback a:hover {
+      color: var(--ink);
+      border-color: var(--graphite);
+      background: var(--linen);
+      transform: translateY(-1px);
+    }
+    .page-feedback a svg {
+      width: 14px; height: 14px;
+      stroke: currentColor; stroke-width: 1.75;
+      fill: none; stroke-linecap: round; stroke-linejoin: round;
+    }
+    @media (max-width: 640px) {
+      .page-feedback { padding: 16px; }
+      .page-feedback .pf-label { flex-basis: 100%; }
+    }
+
     .toc-wrap { position: relative; }
 
     .toc-toggle {
@@ -1604,6 +1648,7 @@ async function loadPage(file, targetHeading = null, historyMode = 'push') {
   postProcessImages(article);
   postProcessInternalLinks(article);
   decorateCodeBlocks(article);
+  appendPageFeedback(article, page, file);
 
   renderPageNav(file);
   buildToc(article, file);
@@ -1628,6 +1673,36 @@ async function loadPage(file, targetHeading = null, historyMode = 'push') {
     if (historyMode === 'replace') history.replaceState(null, '', nextUrl);
     else if (historyMode === 'push') history.pushState(null, '', nextUrl);
   }
+}
+
+const DOCS_REPO_SLUG = 'aronprins/paperclip-docs';
+const DOCS_REPO_BRANCH = 'main';
+
+function appendPageFeedback(article, page, file) {
+  if (!page || !file) return;
+  const repoPath = 'docs/' + normalizeDocPath(file).replace(/^(\.\.\/)+/, '');
+  const pageTitle = page.title || (article.querySelector('h1')?.textContent.trim() ?? 'Docs');
+  const docsUrl = location.origin + getPageUrl(page);
+  const editUrl = `https://github.com/${DOCS_REPO_SLUG}/edit/${DOCS_REPO_BRANCH}/${repoPath}`;
+  const issueUrl = `https://github.com/${DOCS_REPO_SLUG}/issues/new?` + new URLSearchParams({
+    template: '03-docs-feedback.yml',
+    title: `[Docs]: ${pageTitle}`,
+    'docs_page': docsUrl,
+  }).toString();
+
+  const editIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
+  const issueIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+
+  const block = document.createElement('div');
+  block.className = 'page-feedback';
+  block.innerHTML = `
+    <span class="pf-label">Help us improve this page</span>
+    <span class="pf-actions">
+      <a href="${escapeHtml(editUrl)}" target="_blank" rel="noopener">${editIcon}Suggest an edit</a>
+      <a href="${escapeHtml(issueUrl)}" target="_blank" rel="noopener">${issueIcon}Report an issue</a>
+    </span>
+  `;
+  article.appendChild(block);
 }
 
 function insertMetaRow(article, page) {
