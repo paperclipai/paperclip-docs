@@ -725,8 +725,8 @@
     .callout-warning .callout-icon { color: #92400e; }
     .callout-danger  .callout-icon { color: #b91c1c; }
     .callout-body { flex: 1; min-width: 0; }
-    .callout-body p { color: inherit; }
-    .callout-body p:last-child { margin-bottom: 0; }
+    .callout-body p { color: inherit; margin-bottom: 0 !important; }
+    .callout-body p + p { margin-top: 12px; }
 
     .callout-note    { background: var(--parchment);         border: 1px solid var(--stone-dark); }
     .callout-info    { background: rgba(59,130,246,0.08);    border: 1px solid rgba(59,130,246,0.28); }
