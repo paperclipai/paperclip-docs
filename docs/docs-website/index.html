@@ -703,17 +703,25 @@
       font-size: 14px; line-height: 1.65;
       display: flex; gap: 11px; align-items: flex-start;
     }
-    .callout-icon { font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+    .callout-icon { flex-shrink: 0; margin-top: 3px; display: inline-flex; }
+    .callout-icon svg { width: 16px; height: 16px; }
+    .callout-note    .callout-icon { color: var(--graphite); }
+    .callout-info    .callout-icon { color: #1d4ed8; }
+    .callout-tip     .callout-icon { color: #15803d; }
+    .callout-warning .callout-icon { color: #92400e; }
+    .callout-danger  .callout-icon { color: #b91c1c; }
     .callout-body { flex: 1; min-width: 0; }
     .callout-body p { color: inherit; }
     .callout-body p:last-child { margin-bottom: 0; }
 
-    .callout-note    { background: var(--parchment);         border-left: 3px solid var(--stone-dark); }
-    .callout-tip     { background: var(--mint);              border-left: 3px solid var(--green); }
-    .callout-warning { background: rgba(245,158,11,0.1);     border-left: 3px solid var(--amber); }
-    .callout-danger  { background: rgba(239,68,68,0.08);     border-left: 3px solid var(--red); }
+    .callout-note    { background: var(--parchment);         border: 1px solid var(--stone-dark); }
+    .callout-info    { background: rgba(59,130,246,0.08);    border: 1px solid rgba(59,130,246,0.28); }
+    .callout-tip     { background: var(--mint);              border: 1px solid rgba(34,197,94,0.30); }
+    .callout-warning { background: rgba(245,158,11,0.1);     border: 1px solid rgba(245,158,11,0.30); }
+    .callout-danger  { background: rgba(239,68,68,0.08);     border: 1px solid rgba(239,68,68,0.28); }
 
     .callout-note    .callout-label { color: var(--graphite); font-weight: 600; }
+    .callout-info    .callout-label { color: #1d4ed8;         font-weight: 600; }
     .callout-tip     .callout-label { color: #15803d;         font-weight: 600; }
     .callout-warning .callout-label { color: #92400e;         font-weight: 600; }
     .callout-danger  .callout-label { color: #b91c1c;         font-weight: 600; }
@@ -1835,20 +1843,32 @@ function preprocessTabs(md) {
   return md;
 }
 
+const CALLOUT_ICONS = {
+  note:    '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  info:    '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  tip:     '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+  warning: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  danger:  '<path d="M12 16h.01"/><path d="M12 8v4"/><path d="M15.312 2a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586l-4.688-4.688A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2z"/>',
+};
+
+function buildCalloutIconSvg(type) {
+  const inner = CALLOUT_ICONS[type] || CALLOUT_ICONS.info;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+}
+
 function postProcessCallouts(root) {
   root.querySelectorAll('blockquote').forEach(bq => {
     const firstP = bq.querySelector('p');
     if (!firstP) return;
     const text  = firstP.innerHTML;
-    const match = text.match(/^<strong>(Note|Tip|Warning|Danger):<\/strong>\s*/i);
+    const match = text.match(/^<strong>(Note|Info|Tip|Warning|Danger):<\/strong>\s*/i);
     if (!match) return;
     const type  = match[1].toLowerCase();
-    const icons = { note: 'ℹ️', tip: '💡', warning: '⚠️', danger: '🚨' };
     const wrap  = document.createElement('div');
     wrap.className = `callout callout-${type}`;
     const icon = document.createElement('span');
     icon.className = 'callout-icon';
-    icon.textContent = icons[type];
+    icon.innerHTML = buildCalloutIconSvg(type);
     const body = document.createElement('div');
     body.className = 'callout-body';
     firstP.innerHTML = `<span class="callout-label">${match[1]}:</span> ` + text.slice(match[0].length);

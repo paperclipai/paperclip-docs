@@ -17,6 +17,8 @@ Without an adapter, an agent is just a record in a database. With one, it's a wo
 | `gemini_local` | Gemini users — runs Gemini CLI on your Mac | Gemini CLI installed, Google credentials |
 | `opencode_local` | Multi-provider flexibility, switchable models | OpenCode CLI installed, relevant API keys |
 | `cursor` | Users already working inside Cursor | Cursor installed and configured |
+| `pi_local` | Pi users wanting Pi's built-in tool set | Pi CLI installed, relevant API keys |
+| `hermes_local` | Persistent memory, 30+ tools, 80+ skills | Hermes Agent installed (Python 3.10+) |
 
 For most people getting started, **`claude_local`** is the right choice. It runs directly on your Mac using the same Claude that powers Anthropic's Claude.ai, and it only needs Claude Code plus an API key wired through environment variables.
 
@@ -100,18 +102,19 @@ The configuration is similar to the other local adapters, with an additional **M
 
 ## Other adapters you may see
 
-Depending on your build and installed plugins, you may also see adapters like `hermes_local` or other external integrations. Those follow the same pattern: Paperclip handles orchestration, and the adapter decides how the underlying runtime is launched.
+Three built-in adapter types are marked **"Coming soon"** in the agent-config dropdown and can't be picked directly from the UI today. They're fully functional in the runtime — you just configure them via the API or an imported company export until the UI picker lands.
 
-Two built-in adapter types are intentionally not beginner-facing:
+- `openclaw_gateway` — remote OpenClaw instances reached over the WebSocket gateway protocol. Today, the normal path is the OpenClaw invite-prompt flow on the Company Settings page. See [OpenClaw Gateway](../../adapters/openclaw-gateway.md).
+- `http` — webhook-style invocation into your own service. Aimed at developers building custom agent integrations. See [HTTP](../../adapters/http.md).
+- `process` — runs an arbitrary local command or script. See [Process](../../adapters/process.md).
 
-- `http` — for developer-built webhook integrations
-- `process` — for custom local commands and scripts
-
-You may also notice `openclaw_gateway` in the codebase; it's marked as coming soon rather than being part of the normal beginner flow.
+External adapter plugins can also be installed — they appear in the dropdown once loaded.
 
 ---
 
 ## HTTP Webhook (`http`)
+
+> **Info:** The `http` adapter is currently not selectable from the agent-config dropdown. Configure it via the API or an imported company export for now.
 
 The `http` adapter connects to a web server or cloud function that you control. When a heartbeat fires, Paperclip sends an HTTP request to your endpoint with the agent's context and tasks. Your endpoint processes the work and sends results back.
 
@@ -135,6 +138,8 @@ How long Paperclip waits for a response before treating the heartbeat as failed.
 ---
 
 ## Shell Process (`process`)
+
+> **Info:** The `process` adapter is currently not selectable from the agent-config dropdown. Configure it via the API or an imported company export for now.
 
 The `process` adapter runs a command on the same machine as Paperclip. When a heartbeat fires, Paperclip executes the command you specify, passing the agent's context as stdin or environment variables.
 

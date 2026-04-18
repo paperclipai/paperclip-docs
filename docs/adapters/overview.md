@@ -25,6 +25,11 @@ Every adapter is responsible for the same core jobs:
 | Claude Code on your machine | [Claude Local](claude-local.md) |
 | OpenAI Codex CLI on your machine | [Codex Local](codex-local.md) |
 | Gemini CLI on your machine | [Gemini Local](gemini-local.md) |
+| Cursor Agent CLI on your machine | [Cursor Local](cursor-local.md) |
+| OpenCode CLI with provider/model routing | [OpenCode Local](opencode-local.md) |
+| Pi CLI with its built-in tool set | [Pi Local](pi-local.md) |
+| Hermes Agent with persistent memory and 30+ tools | [Hermes Local](hermes-local.md) |
+| OpenClaw over a WebSocket gateway | [OpenClaw Gateway](openclaw-gateway.md) |
 | A custom shell command or script | [Process](process.md) |
 | A webhook or cloud service you control | [HTTP](http.md) |
 | A standalone npm package or local plugin | [External Adapters](external-adapters.md) |
@@ -44,15 +49,20 @@ If you are starting from scratch, the most common path is:
 
 These adapters ship with Paperclip and are always available in the host:
 
-| Adapter | Type key | Best for |
-|---|---|---|
-| [Claude Local](claude-local.md) | `claude_local` | Claude Code runs with session persistence, skills sync, and structured transcript parsing. |
-| [Codex Local](codex-local.md) | `codex_local` | Codex CLI runs with session persistence and managed `CODEX_HOME`. |
-| [Gemini Local](gemini-local.md) | `gemini_local` | Gemini CLI runs with resume support and local skills sync. |
-| [Process](process.md) | `process` | Shell commands, scripts, and custom local runtimes. |
-| [HTTP](http.md) | `http` | Webhook-style invocation into your own service. |
+| Adapter | Type key | UI availability | Best for |
+|---|---|---|---|
+| [Claude Local](claude-local.md) | `claude_local` | Selectable (recommended) | Claude Code runs with session persistence, skills sync, and structured transcript parsing. |
+| [Codex Local](codex-local.md) | `codex_local` | Selectable (recommended) | Codex CLI runs with session persistence and managed `CODEX_HOME`. |
+| [Gemini Local](gemini-local.md) | `gemini_local` | Selectable | Gemini CLI runs with resume support and local skills sync. |
+| [Cursor Local](cursor-local.md) | `cursor` | Selectable | Cursor Agent CLI runs with `--resume` session continuity and structured stream output. |
+| [OpenCode Local](opencode-local.md) | `opencode_local` | Selectable | OpenCode CLI runs with provider/model routing and `--session` resume. |
+| [Pi Local](pi-local.md) | `pi_local` | Selectable | Pi CLI runs with its built-in tool set and provider/model routing. |
+| [Hermes Local](hermes-local.md) | `hermes_local` | Selectable | Hermes Agent runs with persistent memory, 30+ tools, 80+ skills, and multi-provider routing. |
+| [OpenClaw Gateway](openclaw-gateway.md) | `openclaw_gateway` | **Coming soon** (use OpenClaw invite flow) | Remote OpenClaw instances reached over the WebSocket gateway protocol. |
+| [Process](process.md) | `process` | **Coming soon** (API / import only) | Shell commands, scripts, and custom local runtimes. |
+| [HTTP](http.md) | `http` | **Coming soon** (API / import only) | Webhook-style invocation into your own service. |
 
-Other built-ins also exist in the product, but this section covers the adapter pages that are documented for the docs website.
+> **Info:** The agent-config adapter-type dropdown currently marks `openclaw_gateway`, `process`, and `http` as **"Coming soon"**. They're fully functional in the runtime — they just can't be picked manually from the UI yet. Configure them via the API or an imported company export until direct UI selection lands.
 
 ---
 
@@ -90,6 +100,11 @@ See:
 - [Claude Local](claude-local.md)
 - [Codex Local](codex-local.md)
 - [Gemini Local](gemini-local.md)
+- [Cursor Local](cursor-local.md)
+- [OpenCode Local](opencode-local.md)
+- [Pi Local](pi-local.md)
+- [Hermes Local](hermes-local.md)
+- [OpenClaw Gateway](openclaw-gateway.md)
 - [Process](process.md)
 - [HTTP](http.md)
 - [External Adapters](external-adapters.md)

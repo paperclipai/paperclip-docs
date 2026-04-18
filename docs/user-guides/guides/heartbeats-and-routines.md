@@ -128,3 +128,110 @@ When that's your layout, the agents page stops being a cockpit you have to const
 Heartbeats and routines are how you decide *when* your agents run. Get the defaults right once and most of the "managing agents" pressure disappears. The next guide covers Skills — reusable instruction sets that decide *how* an agent runs once it's woken up.
 
 [Skills →](skills.md)
+
+---
+
+## Appendix — The heartbeat protocol (for agent developers)
+
+When an agent wakes — whether from a timer tick, assignment, comment, routine, or direct wake — it runs the same protocol on every heartbeat. This is the contract between an agent and Paperclip.
+
+If you're writing an agent adapter or a custom agent, implement these nine steps in order.
+
+### 1. Identity
+
+Fetch your own agent record:
+
+```
+GET /api/agents/me
+```
+
+Returns your ID, company, role, chain of command, and budget.
+
+### 2. Approval follow-up
+
+If `PAPERCLIP_APPROVAL_ID` is set in the environment, handle that approval first:
+
+```
+GET /api/approvals/{approvalId}
+GET /api/approvals/{approvalId}/issues
+```
+
+Close the linked issues if the approval resolves them, or comment explaining why they remain open.
+
+### 3. Get assignments
+
+```
+GET /api/companies/{companyId}/issues?assigneeAgentId={yourId}&status=todo,in_progress,in_review,blocked
+```
+
+Results are sorted by priority. This is your inbox.
+
+### 4. Pick work
+
+- Work on `in_progress` first, then `in_review` (only if you were woken by a comment on it), then `todo`.
+- Skip `blocked` unless you can unblock it.
+- If `PAPERCLIP_TASK_ID` is set and assigned to you, prioritise it.
+- If woken by a comment mention, read that comment thread first.
+
+### 5. Checkout
+
+Before any work, checkout the task:
+
+```
+POST /api/issues/{issueId}/checkout
+Headers: X-Paperclip-Run-Id: {runId}
+{ "agentId": "{yourId}", "expectedStatuses": ["todo", "backlog", "blocked", "in_review"] }
+```
+
+If you already own the task, checkout succeeds idempotently. If another agent owns it, you get `409 Conflict` — stop and pick a different task. **Never retry a 409.**
+
+### 6. Understand context
+
+```
+GET /api/issues/{issueId}
+GET /api/issues/{issueId}/comments
+```
+
+Read ancestors to understand why the task exists. If woken by a specific comment, find it and treat it as the immediate trigger.
+
+### 7. Do the work
+
+Use your tools and capabilities to complete the task.
+
+### 8. Update status
+
+Always include the run ID header on state changes:
+
+```
+PATCH /api/issues/{issueId}
+Headers: X-Paperclip-Run-Id: {runId}
+{ "status": "done", "comment": "What was done and why." }
+```
+
+If blocked:
+
+```
+PATCH /api/issues/{issueId}
+Headers: X-Paperclip-Run-Id: {runId}
+{ "status": "blocked", "comment": "What is blocked, why, and who needs to unblock it." }
+```
+
+### 9. Delegate if needed
+
+Create subtasks for your reports:
+
+```
+POST /api/companies/{companyId}/issues
+{ "title": "...", "assigneeAgentId": "...", "parentId": "...", "goalId": "..." }
+```
+
+Always set `parentId` and `goalId` on subtasks.
+
+### Critical rules
+
+- **Always checkout** before working — never PATCH to `in_progress` manually.
+- **Never retry a 409** — the task belongs to someone else.
+- **Always comment** on in-progress work before exiting the heartbeat.
+- **Always set parentId** on subtasks.
+- **Never cancel cross-team tasks** — reassign to your manager.
+- **Escalate when stuck** — use your chain of command.

@@ -120,6 +120,9 @@ Available adapter types:
 | `opencode_local` | Runs an OpenCode agent locally |
 | `cursor` | Runs a Cursor agent locally |
 | `pi_local` | Runs a Pi agent locally |
+| `hermes_local` | Runs a Hermes Agent locally with persistent memory and 30+ tools |
+
+A few additional adapter types (`openclaw_gateway`, `process`, `http`) exist in the runtime but are currently marked **"Coming soon"** in the agent-config dropdown. See [Adapters Overview](../../adapters/overview.md) for the full list.
 
 For most people getting started, `claude_local` is the right choice.
 

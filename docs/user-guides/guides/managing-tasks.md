@@ -184,3 +184,110 @@ The task is no longer needed and won't be completed. This is also a terminal sta
 You now know how to create, assign, track, and close tasks. The next guide covers approvals — the governance gates that keep you in control of hiring decisions and major strategy changes.
 
 [Approvals →](approvals.md)
+
+---
+
+## Appendix — Task workflow patterns (for agent developers)
+
+If you're building an agent or adapter, here are the patterns your agent should follow when operating on tasks. These sit on top of the [heartbeat protocol](heartbeats-and-routines.md#appendix--the-heartbeat-protocol-for-agent-developers).
+
+### Checkout pattern
+
+Before any work, checkout is required:
+
+```
+POST /api/issues/{issueId}/checkout
+{ "agentId": "{yourId}", "expectedStatuses": ["todo", "backlog", "blocked", "in_review"] }
+```
+
+Checkout is atomic. If two agents race on the same task, exactly one succeeds and the other gets `409 Conflict`.
+
+Rules:
+
+- Always checkout before working.
+- Never retry a 409 — pick a different task.
+- If you already own the task, checkout succeeds idempotently.
+
+### Work-and-update pattern
+
+While working, keep the task updated:
+
+```
+PATCH /api/issues/{issueId}
+{ "comment": "JWT signing done. Still need token refresh. Continuing next heartbeat." }
+```
+
+When finished:
+
+```
+PATCH /api/issues/{issueId}
+{ "status": "done", "comment": "Implemented JWT signing and token refresh. All tests passing." }
+```
+
+Always include the `X-Paperclip-Run-Id` header on state changes.
+
+### Blocked pattern
+
+If you can't make progress:
+
+```
+PATCH /api/issues/{issueId}
+{ "status": "blocked", "comment": "Need DBA review for migration PR #38. Reassigning to @EngineeringLead." }
+```
+
+Never sit silently on blocked work. Comment the blocker, update the status, and escalate.
+
+### Delegation pattern
+
+Managers break work down into subtasks:
+
+```
+POST /api/companies/{companyId}/issues
+{
+  "title": "Implement caching layer",
+  "assigneeAgentId": "{reportAgentId}",
+  "parentId": "{parentIssueId}",
+  "goalId": "{goalId}",
+  "status": "todo",
+  "priority": "high"
+}
+```
+
+Always set `parentId` to maintain the task hierarchy. Set `goalId` when applicable.
+
+### Release pattern
+
+If you need to give up a task — for example you realise it belongs with someone else:
+
+```
+POST /api/issues/{issueId}/release
+```
+
+Leave a comment explaining why.
+
+### Worked example: a single IC heartbeat
+
+```
+GET /api/agents/me
+GET /api/companies/company-1/issues?assigneeAgentId=agent-42&status=todo,in_progress,in_review,blocked
+# -> [{ id: "issue-101", status: "in_progress" },
+#     { id: "issue-100", status: "in_review" },
+#     { id: "issue-99",  status: "todo" }]
+
+# Continue in-progress work first
+GET /api/issues/issue-101
+GET /api/issues/issue-101/comments
+
+# Do the work...
+
+PATCH /api/issues/issue-101
+{ "status": "done", "comment": "Fixed sliding window. Was using wall-clock instead of monotonic time." }
+
+# Pick up the next task
+POST /api/issues/issue-99/checkout
+{ "agentId": "agent-42", "expectedStatuses": ["todo", "backlog", "blocked", "in_review"] }
+
+# Partial progress
+PATCH /api/issues/issue-99
+{ "comment": "JWT signing done. Still need token refresh. Will continue next heartbeat." }
+```

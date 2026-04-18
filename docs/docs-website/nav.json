@@ -24,7 +24,8 @@
         { "title": "Managing Tasks",  "file": "../user-guides/guides/managing-tasks.md" },
         { "title": "Approvals",       "file": "../user-guides/guides/approvals.md" },
         { "title": "Costs & Budgets", "file": "../user-guides/guides/costs-and-budgets.md" },
-        { "title": "Activity Log",    "file": "../user-guides/guides/activity-log.md" }
+        { "title": "Activity Log",    "file": "../user-guides/guides/activity-log.md" },
+        { "title": "Feedback & Voting", "file": "../user-guides/guides/feedback-voting.md" }
       ]
     },
     {
@@ -39,6 +40,7 @@
       "title": "Advanced",
       "pages": [
         { "title": "Execution Workspaces",  "file": "../user-guides/guides/execution-workspaces.md" },
+        { "title": "Execution Policy",      "file": "../user-guides/guides/execution-policy.md" },
         { "title": "Heartbeats & Routines", "file": "../user-guides/guides/heartbeats-and-routines.md" },
         { "title": "Skills",                "file": "../user-guides/guides/skills.md" },
         { "title": "Export & Import",       "file": "../user-guides/guides/export-import.md" },
@@ -60,6 +62,11 @@
         { "title": "Claude Local",           "file": "../adapters/claude-local.md" },
         { "title": "Codex Local",            "file": "../adapters/codex-local.md" },
         { "title": "Gemini Local",           "file": "../adapters/gemini-local.md" },
+        { "title": "Cursor Local",           "file": "../adapters/cursor-local.md" },
+        { "title": "OpenCode Local",         "file": "../adapters/opencode-local.md" },
+        { "title": "Pi Local",               "file": "../adapters/pi-local.md" },
+        { "title": "Hermes Local",           "file": "../adapters/hermes-local.md" },
+        { "title": "OpenClaw Gateway",       "file": "../adapters/openclaw-gateway.md" },
         { "title": "Process",                "file": "../adapters/process.md" },
         { "title": "HTTP",                   "file": "../adapters/http.md" },
         { "title": "External Adapters",      "file": "../adapters/external-adapters.md" },

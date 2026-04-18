@@ -25,7 +25,7 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `role` | Role label such as `ceo`, `engineer`, or `general`. |
 | `title` | Optional display title. |
 | `reportsTo` | Parent agent in the org tree. Must be in the same company and cannot create a cycle. |
-| `adapterType` | Runtime type such as `process`, `http`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `cursor`, or `openclaw_gateway`. External adapters can also be registered. |
+| `adapterType` | Runtime type such as `process`, `http`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `hermes_local`, `cursor`, or `openclaw_gateway`. External adapters can also be registered. |
 | `adapterConfig` | Adapter-specific config. Secret references are allowed inside `env`. |
 | `runtimeConfig` | Runtime settings. `heartbeat.enabled` defaults to `false` when you create an agent. |
 | `budgetMonthlyCents` | Monthly budget in cents. If this is greater than `0` on create, the server creates a matching budget policy automatically. |
