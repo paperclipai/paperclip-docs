@@ -265,33 +265,32 @@ The rest of the installation commands run as the `paperclip` user, unless marked
 
 ## Step 5 — Install Paperclip in public deployment mode
 
-From the `paperclip` user's home directory, run the onboarding command with environment variables that tell Paperclip it's an internet-facing instance:
+From the `paperclip` user's home directory, export the environment variables that tell Paperclip it's an internet-facing instance, then run onboarding:
 
 ```bash
 export PAPERCLIP_DEPLOYMENT_MODE=authenticated
 export PAPERCLIP_DEPLOYMENT_EXPOSURE=public
-export PAPERCLIP_API_URL=https://paperclip.example.com/api
-export HOST=127.0.0.1
-export PORT=3100
+export PAPERCLIP_AUTH_PUBLIC_BASE_URL=https://paperclip.example.com
+export PAPERCLIP_ALLOWED_HOSTNAMES=paperclip.example.com
 
-npx paperclipai onboard
+npx paperclipai onboard --yes
 ```
 
-Walk through the interactive prompts. The important choices:
+> **Warning:** The variable names matter. `PAPERCLIP_AUTH_PUBLIC_BASE_URL` (not `PAPERCLIP_PUBLIC_BASE_URL` or `PAPERCLIP_API_URL`) is what the CLI reads. If you set `deploymentMode=authenticated` + `exposure=public` without it, `paperclipai doctor` will fail the config with `auth.publicBaseUrl is required` and the server won't start.
 
-- **Database** — choose **embedded PostgreSQL** to get going fast. You can move to hosted PostgreSQL (Supabase, Neon, RDS, Cloud SQL) later by setting `DATABASE_URL` — see the [database deployment docs](../../deploy/database.md).
-- **Storage** — `local_disk` is fine to start. For multi-server setups or if you need object storage, pick `s3` (works with AWS S3, Cloudflare R2, and MinIO).
-- **Secrets** — accept the default; a 32-byte master key is generated at `~/.paperclip/instances/default/secrets/master.key`. Back this file up — it encrypts your API keys.
+What each variable does:
 
-Onboarding creates the config at `~/.paperclip/instances/default/config.json`, initialises the database, and prints a **board claim URL** that looks like:
+- **`PAPERCLIP_AUTH_PUBLIC_BASE_URL`** — the external URL users will hit. This becomes Better Auth's canonical base URL and sets `auth.baseUrlMode=explicit` automatically.
+- **`PAPERCLIP_ALLOWED_HOSTNAMES`** — comma-separated list of hostnames Paperclip will accept requests for. The hostname from your base URL is added automatically; include any extra aliases (e.g. `paperclip.example.com,www.paperclip.example.com`). Requests for unknown hosts are rejected.
+- The server binds to `127.0.0.1:3100` by default, which is exactly what you want behind Nginx — no `PAPERCLIP_BIND` override needed. (If you ever need to expose it on a LAN or Tailnet instead, the CLI accepts `PAPERCLIP_BIND=lan|tailnet|custom` with `PAPERCLIP_BIND_HOST` for the `custom` case.)
 
-```
-/board-claim/<token>?code=<code>
-```
+The `--yes` flag accepts Quickstart defaults: **authenticated/public** deployment, **embedded PostgreSQL** (port 54329, data in `~/.paperclip/instances/default/db`), **local disk** storage, and a fresh 32-byte secrets master key at `~/.paperclip/instances/default/secrets/master.key`.
 
-Copy that URL and keep it handy — you'll need it in Step 9 to become the owner of the instance.
+> **Warning:** Back up `secrets/master.key` somewhere safe. It encrypts every API key and secret stored in Paperclip — if you lose it, you lose access to all of them.
 
-Stop the foreground server (`Ctrl+C`). You'll bring it back up under systemd next.
+To customise any of those choices, omit `--yes` and walk through the prompts, or re-run `paperclipai configure --section <name>` later. Valid sections are: `llm`, `database`, `logging`, `server`, `storage`, `secrets`. (Auth URL settings live under the `server` section, not a separate `auth` section — the error message suggesting `--section database` is misleading.)
+
+Onboarding creates the config at `~/.paperclip/instances/default/config.json` and initialises the database. When it finishes, press `Ctrl+C` if it offered to start the server — you'll run it under systemd next. You'll generate the first-user invite link in Step 9 using `paperclipai auth bootstrap-ceo`.
 
 ---
 
@@ -303,12 +302,13 @@ As the `paperclip` user, write an environment file so systemd picks up the same 
 cat > ~/paperclip.env <<'EOF'
 PAPERCLIP_DEPLOYMENT_MODE=authenticated
 PAPERCLIP_DEPLOYMENT_EXPOSURE=public
-PAPERCLIP_API_URL=https://paperclip.example.com/api
-HOST=127.0.0.1
-PORT=3100
+PAPERCLIP_AUTH_PUBLIC_BASE_URL=https://paperclip.example.com
+PAPERCLIP_ALLOWED_HOSTNAMES=paperclip.example.com
 EOF
 chmod 600 ~/paperclip.env
 ```
+
+> **Note:** `PAPERCLIP_AGENT_JWT_SECRET` was already written to `~/.paperclip/instances/default/.env` during onboarding and is loaded automatically — don't duplicate it here.
 
 Then, switch back to your sudo user (`exit`) and create the service unit:
 
@@ -414,24 +414,58 @@ Visit `https://paperclip.example.com` in a browser — you should see Paperclip'
 
 ---
 
-## Step 9 — Claim your board
+## Step 9 — Bootstrap the CEO account
 
-Because you set `PAPERCLIP_DEPLOYMENT_MODE=authenticated`, the instance requires login. The first person to visit needs to **claim** the board using the token printed during Step 5.
+Because you set `PAPERCLIP_DEPLOYMENT_MODE=authenticated`, the instance requires login. The first user is created via a one-time invite link generated by the CLI.
 
-1. Open `https://paperclip.example.com` and create your account (email + password via Better Auth).
-2. While signed in, navigate to the claim URL from Step 5:
-   ```
-   https://paperclip.example.com/board-claim/<token>?code=<code>
-   ```
-3. Accept the claim. Your account is now the board owner.
+As the `paperclip` user, generate the invite:
 
-If you lost the claim URL, re-run onboarding in claim-only mode or check the server logs (`sudo journalctl -u paperclip | grep board-claim`) — the token is printed on startup until it's consumed.
+```bash
+sudo -iu paperclip
+npx paperclipai auth bootstrap-ceo
+```
+
+The command prints an **Invite URL** that looks like:
+
+```
+Invite URL: https://paperclip.example.com/invite/<token>
+```
+
+> **Note:** `bootstrap-ceo` only runs in authenticated mode and needs to reach the database. If you're using the embedded PostgreSQL, make sure the `paperclip` systemd service is running when you invoke it, or the DB file lock will be held elsewhere.
+
+Open the invite URL in a browser, create your account (email + password via Better Auth), and you'll land on the instance as the CEO/owner.
+
+If you lose the link, re-run the command with `--force` to rotate the token:
+
+```bash
+npx paperclipai auth bootstrap-ceo --force
+```
+
+Optional flags: `--expires-hours N` to change link lifetime, `--base-url <URL>` to override the URL used for the invite, `--db-url <URL>` if you're pointing at an external database.
 
 ---
 
 ## Step 10 — Get your API key
 
 You still need an Anthropic or OpenAI key for your agents to do any work. Follow the **Get your API key** step in the Desktop App tab — it's identical for server deployments. Paste the key into Paperclip's Secrets UI once you're signed in; it will be encrypted with the master key from Step 5 and referenced by the adapter config.
+
+---
+
+## Troubleshooting
+
+Useful diagnostic commands if anything goes wrong:
+
+- `paperclipai doctor` — validates config and environment. Run it before `run` to catch schema errors early. Pass `--repair` to auto-fix what it can.
+- `paperclipai env` — prints the env vars Paperclip is actually reading, so you can confirm your exports landed.
+- `paperclipai allowed-hostname <host>` — add a hostname to `server.allowedHostnames` after install (e.g. if you add a second domain).
+- `paperclipai configure --section server` — re-prompt for the server/auth settings (bind, exposure, public base URL, allowed hostnames) without rebuilding everything.
+- `sudo journalctl -u paperclip -f` — tail the server logs.
+
+Common errors:
+
+- **`auth.publicBaseUrl is required when deploymentMode=authenticated and exposure=public`** — you didn't export `PAPERCLIP_AUTH_PUBLIC_BASE_URL` before running `onboard`. Re-export it and run `paperclipai configure --section server` (or re-run `paperclipai onboard --yes`).
+- **Requests rejected with a host mismatch** — the hostname you're accessing isn't in `server.allowedHostnames`. Add it via `paperclipai allowed-hostname <host>` or by editing `PAPERCLIP_ALLOWED_HOSTNAMES` in `~/paperclip.env` and restarting the service.
+- **Invite link 404s** — the invite was already consumed, or the base URL on the printed link doesn't match what the browser is hitting. Re-run `paperclipai auth bootstrap-ceo --force --base-url https://paperclip.example.com`.
 
 ---
 
