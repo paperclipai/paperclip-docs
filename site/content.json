@@ -2,6 +2,8 @@
   "sections": [
     {
       "title": "Welcome",
+      "icon": "book",
+      "desc": "Learn what Paperclip is, how it thinks, and the vocabulary the rest of the docs will use.",
       "pages": [
         { "title": "What is Paperclip?", "file": "../docs/user-guides/guides/what-is-paperclip.md" },
         { "title": "Key Concepts",       "file": "../docs/user-guides/guides/key-concepts.md" },
@@ -10,6 +12,8 @@
     },
     {
       "title": "Get Started",
+      "icon": "rocket",
+      "desc": "Install Paperclip, create your first company, hire an agent, and watch it work.",
       "pages": [
         { "title": "Installation",              "file": "../docs/user-guides/guides/installation.md" },
         { "title": "Create Your First Company", "file": "../docs/user-guides/guides/your-first-company.md" },
@@ -19,6 +23,8 @@
     },
     {
       "title": "Running Your Company",
+      "icon": "layout-dashboard",
+      "desc": "Day-to-day operation: the dashboard, tasks, approvals, budgets, and the activity log.",
       "pages": [
         { "title": "The Dashboard",   "file": "../docs/user-guides/guides/dashboard.md" },
         { "title": "Managing Tasks",  "file": "../docs/user-guides/guides/managing-tasks.md" },
@@ -30,6 +36,8 @@
     },
     {
       "title": "Building Your Org",
+      "icon": "network",
+      "desc": "Shape the org chart, set up delegation paths, and pick adapters for your agents.",
       "pages": [
         { "title": "Org Structure", "file": "../docs/user-guides/guides/org-structure.md" },
         { "title": "Delegation",    "file": "../docs/user-guides/guides/delegation.md" },
@@ -38,6 +46,8 @@
     },
     {
       "title": "Advanced",
+      "icon": "settings-2",
+      "desc": "Execution workspaces, routines, skills, and import/export for power users.",
       "pages": [
         { "title": "Execution Workspaces",  "file": "../docs/user-guides/guides/execution-workspaces.md" },
         { "title": "Execution Policy",      "file": "../docs/user-guides/guides/execution-policy.md" },
@@ -49,6 +59,8 @@
     },
     {
       "title": "CLI",
+      "icon": "terminal",
+      "desc": "Command-line reference for local setup and talking to the control plane.",
       "pages": [
         { "title": "Overview",                "file": "../docs/cli/overview.md" },
         { "title": "Setup Commands",          "file": "../docs/cli/setup-commands.md" },
@@ -57,6 +69,8 @@
     },
     {
       "title": "Adapters",
+      "icon": "plug",
+      "desc": "Connect any agent runtime — Claude, Codex, Gemini, or your own HTTP service.",
       "pages": [
         { "title": "Overview",               "file": "../docs/adapters/overview.md" },
         { "title": "Claude Local",           "file": "../docs/adapters/claude-local.md" },
@@ -76,6 +90,8 @@
     },
     {
       "title": "Deployment",
+      "icon": "cloud",
+      "desc": "Run Paperclip on your laptop, in Docker, or on a server — with secrets and Tailscale.",
       "pages": [
         { "title": "Overview",                  "file": "../docs/deploy/overview.md" },
         { "title": "Deployment Modes",          "file": "../docs/deploy/deployment-modes.md" },
@@ -90,6 +106,8 @@
     },
     {
       "title": "API Reference",
+      "icon": "braces",
+      "desc": "Every endpoint on the control plane: companies, agents, issues, approvals, costs.",
       "pages": [
         { "title": "Overview",         "file": "../docs/api/overview.md" },
         { "title": "Authentication",   "file": "../docs/api/authentication.md" },

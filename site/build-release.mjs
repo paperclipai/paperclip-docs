@@ -10,7 +10,7 @@ const docsRoot = path.resolve(__dirname, "..", "docs");
 const sourceIndexPath = path.join(__dirname, "index.html");
 const sourceStylesPath = path.join(__dirname, "styles.css");
 const sourceAppJsPath = path.join(__dirname, "app.js");
-const sourceNavPath = path.join(__dirname, "nav.json");
+const sourceNavPath = path.join(__dirname, "content.json");
 const screenshotsSourceDir = path.join(docsRoot, "user-guides", "screenshots");
 
 function printUsage() {
@@ -160,7 +160,7 @@ async function fetchNavForBasePath(basePath) {
     ? "/"
     : (basePath.endsWith("/") ? basePath : \`\${basePath}/\`);
   const baseUrl = new URL(\`\${normalizedBasePath.replace(/\\/$/, "")}/\`, window.location.origin);
-  const response = await fetch(new URL("nav.json", baseUrl), {
+  const response = await fetch(new URL("content.json", baseUrl), {
     cache: "no-store",
     headers: { Accept: "application/json" },
   });
@@ -206,7 +206,7 @@ async function detectAppBasePath() {
         return;
       }
     } catch {
-      // Keep probing parent paths until a valid nav.json is found.
+      // Keep probing parent paths until a valid content.json is found.
     }
   }
 
@@ -226,34 +226,34 @@ async function detectAppBasePath() {
   }
   output = output.replace(
     `  try {
-    const res = await fetch(resolveContentUrl('nav.json'));
-    if (!res.ok) throw new Error(\`nav.json \${res.status}\`);
+    const res = await fetch(resolveContentUrl('content.json'));
+    if (!res.ok) throw new Error(\`content.json \${res.status}\`);
     navData = await res.json();
   } catch (e) {`,
     `  try {
     if (PRELOADED_NAV_DATA) {
       navData = PRELOADED_NAV_DATA;
     } else {
-      const res = await fetch(resolveContentUrl("nav.json"), {
+      const res = await fetch(resolveContentUrl("content.json"), {
         headers: { Accept: "application/json" },
       });
-      if (!res.ok) throw new Error(\`nav.json \${res.status}\`);
+      if (!res.ok) throw new Error(\`content.json \${res.status}\`);
       const text = await res.text();
       try {
         navData = JSON.parse(text);
       } catch {
-        throw new Error("nav.json did not return valid JSON. The server is likely rewriting missing JSON requests to index.html.");
+        throw new Error("content.json did not return valid JSON. The server is likely rewriting missing JSON requests to index.html.");
       }
     }
     if (!isNavPayload(navData)) {
-      throw new Error("nav.json did not match the expected Paperclip docs schema.");
+      throw new Error("content.json did not match the expected Paperclip docs schema.");
     }
   } catch (e) {`,
   );
   output = output.replace("../docs/user-guides/screenshots/", "user-guides/screenshots/");
   output = output.replace(
-    "Could not load nav.json. Check site hosting and rewrite configuration.",
-    "Could not load nav.json. Check that the release bundle was uploaded intact and the base path is correct.",
+    "Could not load content.json. Check site hosting and rewrite configuration.",
+    "Could not load content.json. Check that the release bundle was uploaded intact and the base path is correct.",
   );
   return output;
 }
@@ -390,9 +390,9 @@ ${basePathGuidance}
 - The app uses hash routing, so deep links look like \`${deploymentBasePath}#/installation\`
 - No server-side rewrite rules are required for route handling
 - Serve the bundle root at \`${deploymentBasePath}\`
-- Keep all copied files together so requests for \`nav.json\`, markdown files, images, fonts, and JS resolve normally
+- Keep all copied files together so requests for \`content.json\`, markdown files, images, fonts, and JS resolve normally
 
-If \`nav.json\` or linked markdown files are missing from the uploaded bundle, the docs app will fail to load content.
+If \`content.json\` or linked markdown files are missing from the uploaded bundle, the docs app will fail to load content.
 
 ## GitHub Pages
 
@@ -422,7 +422,7 @@ async function main() {
   await fs.writeFile(path.join(options.outDir, "index.html"), sourceIndex);
   await fs.writeFile(path.join(options.outDir, "styles.css"), sourceStyles);
   await fs.writeFile(path.join(options.outDir, "app.js"), releaseAppJs);
-  await fs.writeFile(path.join(options.outDir, "nav.json"), `${JSON.stringify(releaseNav, null, 2)}\n`);
+  await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav, null, 2)}\n`);
   await fs.writeFile(path.join(options.outDir, ".htaccess"), buildHtaccess(options.basePath));
   await fs.writeFile(path.join(options.outDir, "nginx.conf.example"), buildNginxConfig(options.basePath));
   await fs.writeFile(path.join(options.outDir, "DEPLOY.md"), buildDeployGuide(options.basePath));

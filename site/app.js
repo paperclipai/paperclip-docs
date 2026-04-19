@@ -1,39 +1,12 @@
-/* ─── Section icon mapping ──────────────────────────────────────────────── */
-// Lucide icons (https://lucide.dev, ISC License). Inlined so the site stays
-// fully static — no CDN required for GitHub Pages hosting.
-// Each entry is the inner markup of a 24x24 stroke-based icon.
-const SECTION_ICONS = {
-  book:   '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
-  rocket: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
-  chart:  '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
-  org:    '<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/>',
-  gear:   '<path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/>',
-  cli:    '<path d="M12 19h8"/><path d="m4 17 6-6-6-6"/>',
-  plug:   '<path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/>',
-  cloud:  '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
-  api:    '<path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1"/>',
-};
-
-// Map section title -> icon key + optional description (used on landing cards).
-const SECTION_META = {
-  'Welcome':               { icon: 'book',   desc: "Learn what Paperclip is, how it thinks, and the vocabulary the rest of the docs will use." },
-  'Get Started':           { icon: 'rocket', desc: "Install Paperclip, create your first company, hire an agent, and watch it work." },
-  'Running Your Company':  { icon: 'chart',  desc: "Day-to-day operation: the dashboard, tasks, approvals, budgets, and the activity log." },
-  'Building Your Org':     { icon: 'org',    desc: "Shape the org chart, set up delegation paths, and pick adapters for your agents." },
-  'Advanced':              { icon: 'gear',   desc: "Execution workspaces, routines, skills, and import/export for power users." },
-  'CLI':                   { icon: 'cli',    desc: "Command-line reference for local setup and talking to the control plane." },
-  'Adapters':              { icon: 'plug',   desc: "Connect any agent runtime — Claude, Codex, Gemini, or your own HTTP service." },
-  'Deployment':            { icon: 'cloud',  desc: "Run Paperclip on your laptop, in Docker, or on a server — with secrets and Tailscale." },
-  'API Reference':         { icon: 'api',    desc: "Every endpoint on the control plane: companies, agents, issues, approvals, costs." },
-};
-
-function getSectionIconSvg(title) {
-  const meta = SECTION_META[title];
-  const key = meta?.icon || 'book';
-  return SECTION_ICONS[key] || SECTION_ICONS.book;
+/* ─── Section icons ─────────────────────────────────────────────────────── */
+// Rendered via Lucide (https://lucide.dev). Section names reference any Lucide
+// icon by its kebab-case id; `lucide.createIcons()` replaces <i data-lucide>
+// placeholders with inline SVG after each nav render.
+function sectionIconTag(section) {
+  return `<i data-lucide="${escapeAttr(section?.icon || 'book')}"></i>`;
 }
-function getSectionDesc(title) {
-  return SECTION_META[title]?.desc || '';
+function renderLucideIcons() {
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 function getSectionKind(title) {
   return /api|cli|adapter|deploy/i.test(title) ? 'Reference' : 'Guide';
@@ -545,11 +518,11 @@ function initSearch() {
 /* ─── Boot ──────────────────────────────────────────────────────────────── */
 async function init() {
   try {
-    const res = await fetch(resolveContentUrl('nav.json'));
-    if (!res.ok) throw new Error(`nav.json ${res.status}`);
+    const res = await fetch(resolveContentUrl('content.json'));
+    if (!res.ok) throw new Error(`content.json ${res.status}`);
     navData = await res.json();
   } catch (e) {
-    showError('Could not load nav.json. Check that the release bundle was uploaded intact and the base path is correct.', e.message);
+    showError('Could not load content.json. Check that the release bundle was uploaded intact and the base path is correct.', e.message);
     return;
   }
 
@@ -583,9 +556,9 @@ function buildLanding() {
     a.className = 'card';
     a.href = section.pages[0] ? getPageUrl(section.pages[0]) : '#';
     a.dataset.navSection = i;
-    const desc = getSectionDesc(section.title) || `${section.pages.length} page${section.pages.length === 1 ? '' : 's'} in ${section.title}.`;
+    const desc = section.desc || `${section.pages.length} page${section.pages.length === 1 ? '' : 's'} in ${section.title}.`;
     a.innerHTML = `
-      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${getSectionIconSvg(section.title)}</svg></div>
+      <div class="card-icon">${sectionIconTag(section)}</div>
       <div class="card-title">${escapeHtml(section.title)}</div>
       <div class="card-desc">${escapeHtml(desc)}</div>
       <div class="card-meta"><span>${section.pages.length} page${section.pages.length === 1 ? '' : 's'}</span><span class="dot"></span><span>${getSectionKind(section.title)}</span></div>
@@ -607,6 +580,8 @@ function buildLanding() {
     a.textContent = page.title;
     ql.appendChild(a);
   });
+
+  renderLucideIcons();
 }
 
 /* ─── Sidebar (accordion) — used for desktop sidebar AND mobile drawer ──── */
@@ -622,7 +597,7 @@ function sidebarSectionsHTML() {
     return `${label}
     <div class="sb-section" data-section-idx="${si}" data-section-title="${escapeAttr(section.title)}" data-open="false">
       <button class="sb-section-btn" type="button">
-        <span class="sb-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${getSectionIconSvg(section.title)}</svg></span>
+        <span class="sb-section-icon">${sectionIconTag(section)}</span>
         <span class="sb-section-title">${escapeHtml(section.title)}</span>
         <span class="sb-section-count">${section.pages.length}</span>
         <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 2 4 4-4 4"/></svg>
@@ -655,12 +630,14 @@ function buildSidebar() {
   const container = document.getElementById('sb-sections');
   container.innerHTML = sidebarSectionsHTML();
   wireSidebarContainer(container);
+  renderLucideIcons();
 }
 
 function buildMobileDrawer() {
   const container = document.getElementById('drawer-sections');
   container.innerHTML = sidebarSectionsHTML();
   wireSidebarContainer(container);
+  renderLucideIcons();
 }
 
 /* ─── Flat list ─────────────────────────────────────────────────────────── */
