@@ -1079,12 +1079,14 @@ function buildToc(article, file) {
   const page = allPages.find(candidate => candidate.file === file);
 
   const CHEVRON_SVG = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3 4.5 3 3 3-3"/></svg>';
+  const TOC_SVG = '<svg class="toc-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10M3 8h7M3 12h9"/></svg>';
 
   const wrap = document.createElement('div');
   wrap.className = 'toc-wrap';
   wrap.innerHTML = `
-    <button type="button" class="toc-toggle" aria-expanded="false" aria-controls="toc-panel">
-      <span>On this page</span>
+    <button type="button" class="toc-toggle" aria-expanded="false" aria-controls="toc-panel" aria-label="On this page">
+      ${TOC_SVG}
+      <span class="toc-label">On this page</span>
       <span class="count">${headings.length}</span>
       ${CHEVRON_SVG}
     </button>

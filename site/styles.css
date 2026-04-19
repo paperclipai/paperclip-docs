@@ -548,8 +548,11 @@
     .toc-toggle[aria-expanded="true"] {
       color: var(--ink); background: var(--parchment); border-color: var(--stone-dark);
     }
-    .toc-toggle svg { width: 12px; height: 12px; color: var(--ash); transition: transform var(--transition); }
-    .toc-toggle[aria-expanded="true"] svg { transform: rotate(180deg); color: var(--ink); }
+    .toc-toggle > svg { width: 12px; height: 12px; color: var(--ash); transition: transform var(--transition); }
+    .toc-toggle .toc-icon { width: 13px; height: 13px; color: var(--ash); transition: none; }
+    .toc-toggle[aria-expanded="true"] .toc-icon { color: var(--ink); transform: none; }
+    .toc-toggle > svg:last-of-type { /* chevron */ }
+    .toc-toggle[aria-expanded="true"] > svg:last-of-type { transform: rotate(180deg); color: var(--ink); }
     .toc-toggle .count {
       font-size: 10px; color: var(--ash);
       background: var(--parchment); border-radius: 99px;
@@ -931,4 +934,11 @@
       #body { padding: 0 24px; }
       #header-inner { padding: 0 16px; gap: 8px; }
       #github-link { display: none; }
+
+    }
+    @media (max-width: 820px) {
+      .page-actions .pa-copy-label,
+      .toc-toggle .toc-label { display: none; }
+      .page-actions .pa-copy { padding-left: 10px; padding-right: 10px; }
+      .toc-toggle { padding: 5px 10px; }
     }
