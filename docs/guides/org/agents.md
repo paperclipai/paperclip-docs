@@ -200,6 +200,87 @@ The mode toggle and root path field sit at the top of the tab. Changing them is 
 
 Every bundle has an **entry file**, usually `AGENTS.md`. That's the file the adapter feeds to the agent on every heartbeat. Other files in the bundle are available but not automatically loaded — the entry file can link to them, reference them, or include them.
 
+### Recommended bundle structure: AGENTS / SOUL / HEARTBEAT / TOOLS
+
+A single monolithic `AGENTS.md` works for simple roles, but as soon as an agent is doing non-trivial strategic or operational work you'll want to split instructions across multiple files and let the entry file reference them. Paperclip seeds the **CEO** role with this exact pattern out of the box, and it's the pattern we recommend for any senior or long-lived agent (CTO, CMO, UX lead, department heads).
+
+The convention is four files:
+
+| File | Purpose | Answers the question |
+|------|---------|----------------------|
+| `AGENTS.md` | **What you do** — the operating manual. Responsibilities, delegation rules, what to do personally vs. delegate, escalation paths, safety rules. This is the entry file. | *"What's my job?"* |
+| `SOUL.md` | **Who you are** — the persona. Strategic posture, voice and tone, decision-making philosophy, what you care about. Durable character, not tasks. | *"How should I think and speak?"* |
+| `HEARTBEAT.md` | **How you execute** — the per-heartbeat checklist. The concrete steps to run every time the agent wakes: check identity, read today's plan, pull assignments, delegate, extract facts, exit cleanly. | *"What do I do right now, in order?"* |
+| `TOOLS.md` | **What you can use** — notes on the tools, APIs, and skills the agent has access to. Often starts empty and grows as the agent learns. | *"What's in my toolbox?"* |
+
+`AGENTS.md` ties the other three together at the bottom with a References section:
+
+```markdown
+## References
+
+These files are essential. Read them.
+
+- `./HEARTBEAT.md` — execution and extraction checklist. Run every heartbeat.
+- `./SOUL.md` — who you are and how you should act.
+- `./TOOLS.md` — tools you have access to.
+```
+
+Why split it up?
+
+- **Each file has one reason to change.** You tweak persona in `SOUL.md` without touching the operating procedure in `AGENTS.md`. You update the heartbeat flow without rewriting the persona.
+- **The model reads what matters most first.** `AGENTS.md` is short and action-oriented; the agent pulls in `SOUL.md` or `HEARTBEAT.md` as it needs them. This keeps the entry-file context lean.
+- **It mirrors how humans think about roles.** Job description, personality, daily routine, tools — four separate things, badly confused when you mash them into one file.
+
+#### Writing `SOUL.md`
+
+A good `SOUL.md` reads like a short manifesto, not a bulleted résumé. Lead with strategic posture (what this agent prioritizes and why), then voice and tone (how it writes and speaks). Keep it under ~40 short lines — any longer and the model stops treating it as identity and starts treating it as instructions it can debate.
+
+Good lines look like:
+
+- *"Default to action. Ship over deliberate, because stalling usually costs more than a bad call."*
+- *"Be direct. Lead with the point, then give context. Never bury the ask."*
+- *"In trade-offs, optimize for learning speed and reversibility. Move fast on two-way doors; slow down on one-way doors."*
+
+Bad lines look like:
+
+- *"Be helpful and professional."* (too generic — no useful constraint)
+- *"When handling a P0 incident, first check the dashboard, then…"* (that's a procedure, it belongs in `HEARTBEAT.md` or `AGENTS.md`)
+
+Think: *if we hired a new human into this role, what would we want them to internalize about how this role thinks?* That's `SOUL.md`.
+
+#### Writing `HEARTBEAT.md`
+
+`HEARTBEAT.md` is a numbered checklist the agent runs top-to-bottom every time it wakes. It should be boringly mechanical — "read this, call that, check this env var, comment, exit." The CEO's default heartbeat covers:
+
+1. Identity and context (check `PAPERCLIP_TASK_ID`, `PAPERCLIP_WAKE_REASON`, etc.)
+2. Local planning check (read today's plan from memory)
+3. Approval follow-up (if `PAPERCLIP_APPROVAL_ID` is set)
+4. Get assignments (GET issues filtered by assignee + status)
+5. Checkout and work
+6. Delegation (create subtasks with `parentId` and `goalId`)
+7. Fact extraction (extract durable facts to memory)
+8. Exit cleanly
+
+Tailor these steps to the role. A CTO's heartbeat might swap "fact extraction" for "review open PRs in the eng queue"; a CMO's might add "check content calendar." Keep each step short and include the exact API call or skill invocation the agent should make — this file is a script, not a philosophy.
+
+#### Writing `TOOLS.md`
+
+`TOOLS.md` often starts as a stub ("*Your tools will go here. Add notes about them as you acquire and use them.*") and grows organically. It's where you — or the agent itself — record quirks of specific tools, adapter-specific gotchas, or custom APIs the agent is expected to call. Don't worry about filling it in up front; treat it as a living notebook the agent maintains.
+
+#### When the simple pattern is fine
+
+Not every agent needs four files. A narrow-purpose worker — "summarize incoming support tickets," "post the weekly metrics digest" — can live happily in a single `AGENTS.md`. Use the multi-file pattern when any of these are true:
+
+- The agent has a distinct personality or voice that matters (customer-facing roles, executives).
+- The agent runs on a timer and does something on *every* heartbeat (anyone with a repeating checklist).
+- The instructions are starting to exceed one screen and blending responsibilities, persona, and procedure.
+
+You can always start with a single file and split later — moving sections out of `AGENTS.md` into `SOUL.md` or `HEARTBEAT.md` is a normal refactor.
+
+#### How Paperclip seeds these files
+
+When you create a new agent with the **CEO** role, Paperclip pre-populates the bundle with the full four-file template (you'll see all four files appear in the file tree on the Instructions tab). Agents created with any other role are seeded with a single `AGENTS.md`. You can always add `SOUL.md`, `HEARTBEAT.md`, or `TOOLS.md` to any agent manually via the "New file" control — there's nothing special about those filenames beyond the convention, and the entry file is whatever you've set it to.
+
 ### Editing files
 
 The left pane shows the file tree. Click a file to open it in the markdown editor on the right. Create a new file using the "New file" control — useful for splitting out long-form references (playbooks, example outputs, policy notes) from the short entry file. Delete a file with the trash icon. Rename is via delete + create for now.
