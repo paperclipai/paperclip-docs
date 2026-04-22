@@ -58,7 +58,7 @@ If the plan looks right, approve it. If not, click **Request Revision** and desc
 
 > **Tip:** Don't approve a strategy that feels unclear or off-track just to get things moving. A vague approval leads to vague work. It's worth a round of revisions.
 
-![Approvals page showing a pending strategy approval](../../user-guides/images/approvals/approvals-queue-strategy.png)
+![Approvals page showing a pending strategy approval](../../user-guides/screenshots/light/approvals/approvals-queue-strategy.png)
 
 ---
 

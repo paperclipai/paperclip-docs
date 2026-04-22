@@ -10,7 +10,7 @@ This guide walks through each of those surfaces in the order you typically meet 
 
 The **Company Settings** page groups the settings that apply to the whole company rather than to any one agent or project. Open it from the sidebar under the company name.
 
-![Company general settings](../user-guides/guides/screenshots/light/company/settings.png)
+![Company general settings](../user-guides/screenshots/light/company/settings.png)
 
 ### Name and description
 
@@ -61,7 +61,7 @@ At the bottom of the page is a **Danger Zone** with an **Archive company** butto
 
 The **Company Access** page is where you manage human memberships: who belongs to the company, what role they hold, and which permissions they have on top of that role. Open it from **Settings → Access**, or directly from the sidebar.
 
-![Members list](../user-guides/guides/screenshots/light/company/access.png)
+![Members list](../user-guides/screenshots/light/company/access.png)
 
 ### Roles
 
@@ -114,7 +114,7 @@ If you hold the `joins:approve` grant and there are pending human join requests,
 
 The **Company Invites** page creates invite links for new humans. Each link is single-use — the first successful use consumes the link and creates or reuses a join request before approval.
 
-![Invite link creator](../user-guides/guides/screenshots/light/company/invites.png)
+![Invite link creator](../user-guides/screenshots/light/company/invites.png)
 
 ### Creating an invite
 
@@ -155,7 +155,7 @@ When a human opens the invite URL, they land on a Paperclip join page that creat
 
 The **Join Request Queue** consolidates every join request — human and agent — that has come in against the company. Open it from `/inbox/requests`, or from the **Open join request queue** link in Invites.
 
-![Join request queue](../user-guides/guides/screenshots/light/company/join-requests.png)
+![Join request queue](../user-guides/screenshots/light/company/join-requests.png)
 
 ### Filters
 
@@ -187,7 +187,7 @@ The queue requires the `joins:approve` grant. Accounts without it see a "You do 
 
 The **Company Export** page turns the current company — its agents, projects, tasks, skills, and settings — into a portable markdown package you can download as a zip. Open it from the **Org Chart** header or from the **Export** shortcut on the Settings page.
 
-![Export dialog](../user-guides/guides/screenshots/light/company/export.png)
+![Export dialog](../user-guides/screenshots/light/company/export.png)
 
 ### What gets included
 
@@ -220,7 +220,7 @@ For a deeper description of what lives in each file, see [Export & Import](../gu
 
 The **Company Import** page is the reverse direction: it takes an exported package and loads it into Paperclip, either as a new company or on top of an existing one.
 
-![Import dialog](../user-guides/guides/screenshots/light/company/import.png)
+![Import dialog](../user-guides/screenshots/light/company/import.png)
 
 ### Choosing a source
 

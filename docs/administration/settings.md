@@ -12,7 +12,7 @@ This guide walks through both, section by section.
 
 ## Profile
 
-![Profile settings](../user-guides/guides/screenshots/light/settings/profile.png)
+![Profile settings](../user-guides/screenshots/light/settings/profile.png)
 
 Open the Profile page from the account menu in the sidebar. It's scoped to you — nobody else's profile changes when you edit yours.
 
@@ -30,7 +30,7 @@ Click **Save profile** to persist name or avatar changes. The button is disabled
 
 ## Instance: General
 
-![Instance general settings](../user-guides/guides/screenshots/light/settings/instance-general.png)
+![Instance general settings](../user-guides/screenshots/light/settings/instance-general.png)
 
 This is the top of Instance Settings. It's where you see how the instance was deployed and flip a few cross-cutting toggles.
 
@@ -86,7 +86,7 @@ A plain **Sign out** button at the bottom. It ends your session and sends you ba
 
 ## Instance: Access
 
-![Instance access](../user-guides/guides/screenshots/light/settings/instance-access.png)
+![Instance access](../user-guides/screenshots/light/settings/instance-access.png)
 
 Instance Access is where you promote users to **instance admin** and pick which companies each user can see. This is different from the roles you grant *inside* a company.
 
@@ -184,7 +184,7 @@ For the full catalog of adapters Paperclip supports out of the box, along with t
 
 ## Instance: Scheduler Heartbeats
 
-![Scheduler heartbeats](../user-guides/guides/screenshots/light/settings/scheduler-heartbeats.png)
+![Scheduler heartbeats](../user-guides/screenshots/light/settings/scheduler-heartbeats.png)
 
 The Scheduler Heartbeats page is a cross-company view of every agent on the instance that has a **timer heartbeat** enabled.
 
@@ -231,7 +231,7 @@ Reach for this page when:
 
 ## Instance: Experimental
 
-![Experimental flags](../user-guides/guides/screenshots/light/settings/experimental.png)
+![Experimental flags](../user-guides/screenshots/light/settings/experimental.png)
 
 Experimental flags opt the instance into features that aren't yet defaults. They're gated here because they may change behaviour, performance, or migrations before they graduate.
 

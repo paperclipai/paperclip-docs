@@ -4,7 +4,7 @@ The dashboard is your control centre. When your AI company is running, this is t
 
 Think of it like the cockpit instruments on a plane. You don't need to read every dial every second, but you do want a clear signal when something is off. The dashboard gives you that signal.
 
-![The Paperclip dashboard showing the current overview cards, charts, recent activity, and recent tasks](../../user-guides/images/dashboard/dashboard-overview-annotated.png)
+![The Paperclip dashboard showing the current overview cards, charts, recent activity, and recent tasks](../../user-guides/screenshots/light/dashboard/dashboard-overview-annotated.png)
 
 ---
 
@@ -12,7 +12,7 @@ Think of it like the cockpit instruments on a plane. You don't need to read ever
 
 At the top of the dashboard, Paperclip shows your live agent activity and a set of overview cards. This is the quickest way to tell whether work is moving.
 
-![Agent Status panel showing counts by state: active, running, error, and paused](../../user-guides/images/dashboard/agent-status-panel.png)
+![Agent Status panel showing counts by state: active, running, error, and paused](../../user-guides/screenshots/light/dashboard/agent-status-panel.png)
 
 Here's what each state means:
 
@@ -33,7 +33,7 @@ The most common healthy pattern early on: one agent **running** while the others
 
 The four cards across the top summarize the company at a glance:
 
-![Task Breakdown panel showing task counts by status: backlog, todo, in_progress, in_review, done, blocked](../../user-guides/images/dashboard/task-breakdown-panel.png)
+![Task Breakdown panel showing task counts by status: backlog, todo, in_progress, in_review, done, blocked](../../user-guides/screenshots/light/dashboard/task-breakdown-panel.png)
 
 - **Agents Enabled** — how many agents are available to work, plus how many are currently running, paused, or in error.
 - **Tasks In Progress** — how many issues are actively being worked, plus how many remain open or blocked.
@@ -46,7 +46,7 @@ The four cards across the top summarize the company at a glance:
 
 The Activity feed at the bottom (or side, depending on your screen size) of the dashboard shows the most recent events across your whole company — task status changes, comments, approvals, agent state changes, and budget events.
 
-![Recent Activity feed showing the latest events with timestamps, actors, and descriptions](../../user-guides/images/dashboard/activity-feed.png)
+![Recent Activity feed showing the latest events with timestamps, actors, and descriptions](../../user-guides/screenshots/light/dashboard/activity-feed.png)
 
 This feed isn't meant for deep investigation — it's a pulse check. Scan it after a few hours away and you'll quickly understand what's been happening. For detailed investigation, the full Activity page is a dedicated screen (covered in the [Activity Log guide](./activity-log.md)).
 

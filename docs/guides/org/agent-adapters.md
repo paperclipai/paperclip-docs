@@ -22,7 +22,7 @@ Without an adapter, an agent is just a record in a database. With one, it's a wo
 
 For most people getting started, **`claude_local`** is the right choice. It runs directly on your Mac using the same Claude that powers Anthropic's Claude.ai, and it only needs Claude Code plus an API key wired through environment variables.
 
-![Adapter type dropdown showing all available options](../../user-guides/images/agents/adapter-type-dropdown.png)
+![Adapter type dropdown showing all available options](../../user-guides/screenshots/light/agents/adapter-type-dropdown.png)
 
 ---
 
@@ -57,7 +57,7 @@ The agent form includes an **Environment variables** section. Add `ANTHROPIC_API
 **Timeout (seconds)**
 How long a single heartbeat run is allowed to take before Paperclip cuts it off. 300 seconds (5 minutes) is a safe default for most tasks. Complex coding tasks may need longer — you can increase it to 600 or more. Setting it too low will cause agents to time out mid-task.
 
-![Claude local adapter configuration form with all fields filled in](../../user-guides/images/agents/claude-local-config-filled.png)
+![Claude local adapter configuration form with all fields filled in](../../user-guides/screenshots/light/agents/claude-local-config-filled.png)
 
 ### Common errors
 
@@ -86,7 +86,7 @@ The fields are the same as `claude_local` — mainly model selection and environ
 - `gpt-5.3-codex` — the default and the normal starting point
 - `o4-mini` — fast and cost-effective for routine tasks
 
-![Codex local adapter configuration form](../../user-guides/images/agents/codex-local-config.png)
+![Codex local adapter configuration form](../../user-guides/screenshots/light/agents/codex-local-config.png)
 
 ---
 
@@ -131,7 +131,7 @@ A secret token that Paperclip includes in the request header, so your server can
 **Timeout**
 How long Paperclip waits for a response before treating the heartbeat as failed.
 
-![HTTP adapter configuration form](../../user-guides/images/agents/http-adapter-config.png)
+![HTTP adapter configuration form](../../user-guides/screenshots/light/agents/http-adapter-config.png)
 
 > **Note:** The HTTP adapter is aimed at developers building custom agent integrations. If you're using a standard AI provider locally, `claude_local` or `codex_local` is the simpler choice.
 

@@ -57,7 +57,7 @@ You can add a skill in one of four ways, depending on where it is coming from.
 
 Paste a GitHub URL (or a `skills.sh` install command) into the source field at the top of the Skills page and press **Add**. Paperclip clones the skill folder, detects the `SKILL.md`, and registers it in the library. GitHub-sourced skills are pinned to a specific commit — you can check for updates and upgrade the pin from the skill detail pane.
 
-![Add skill dialog with the source input, search button, and link to skills.sh](../../user-guides/screenshots/light/skills/add-github.png)
+![Add skill dialog with the source input, search button, and link to skills.sh](../../user-guides/screenshots/light/skills/add-skill-dialog.png)
 
 ### 2. Import from a gist
 
@@ -83,7 +83,7 @@ Click **Create skill** and the skill is added to the library as a Paperclip-mana
 
 The skill is now available in the company library. When creating or editing an agent, you can attach optional skills from that library.
 
-![Skills page showing available skills with their names and descriptions](../../user-guides/images/org/skills-list.png)
+![Skills page showing available skills with their names and descriptions](../../user-guides/screenshots/light/org/skills-list.png)
 
 ---
 

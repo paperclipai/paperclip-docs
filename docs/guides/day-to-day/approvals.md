@@ -4,7 +4,7 @@ Approvals are how you stay in control even as your agents work autonomously. Wit
 
 Think of it like a board seat. The agents run the day-to-day company. But the big calls — who gets hired, what the strategy is — still come to you.
 
-![Approvals list page showing pending approvals with type badges, requesting agent names, and creation timestamps](../../user-guides/images/approvals/approvals-list.png)
+![Approvals list page showing pending approvals with type badges, requesting agent names, and creation timestamps](../../user-guides/screenshots/light/approvals/approvals-list.png)
 
 ---
 
@@ -45,7 +45,7 @@ Later on, you may also see budget-related approvals when a budget policy hits a 
 
    You can open it from a direct link, from the dashboard's pending approvals card, or from an approval-related inbox item. The page uses two tabs: **Pending** for actionable items and **All** for the full history.
 
-   ![Approvals list showing a pending hire request and a pending strategy approval](../../user-guides/images/approvals/approvals-list.png)
+   ![Approvals list showing a pending hire request and a pending strategy approval](../../user-guides/screenshots/light/approvals/approvals-list.png)
 
    Pending approvals have a yellow badge. Items in `revision_requested` are still treated as actionable until the requester follows up and resubmits.
 
@@ -81,7 +81,7 @@ Clicking a hire request opens its detail view. The page is laid out in three par
 
 Below the proposal, a **Comments** section lets you leave notes or ask clarifying questions on the approval itself. Comments on an approval are visible to the requesting agent the next time it wakes.
 
-![Hire approval detail showing proposed agent name, role, capabilities description, adapter type, and budget](../../user-guides/images/approvals/hire-approval-detail.png)
+![Hire approval detail showing proposed agent name, role, capabilities description, adapter type, and budget](../../user-guides/screenshots/light/approvals/hire-approval-detail.png)
 
 ### Reviewing a hire request
 
@@ -99,7 +99,7 @@ Below the proposal, a **Comments** section lets you leave notes or ask clarifyin
 
 3. **Make your decision**
 
-   ![Approve, Reject, and Request Revision buttons at the bottom of an approval detail](../../user-guides/images/approvals/approve-reject-revision-buttons.png)
+   ![Approve, Reject, and Request Revision buttons at the bottom of an approval detail](../../user-guides/screenshots/light/approvals/approve-reject-revision-buttons.png)
 
    - **Approve** — the hire proceeds. The new agent is created, configured, and queued to wake automatically.
    - **Reject** — the hire is denied. The requesting agent is notified and will not retry unless instructed.
@@ -125,7 +125,7 @@ A strategy approval detail has the same three-part layout as a hire, but the pay
 
    The strategy detail shows the CEO's proposed plan — usually several paragraphs outlining goals, priorities, and the initial set of tasks it intends to create.
 
-   ![Strategy approval detail showing the CEO's proposed strategic plan and the tasks it intends to create](../../user-guides/images/approvals/strategy-approval-detail.png)
+   ![Strategy approval detail showing the CEO's proposed strategic plan and the tasks it intends to create](../../user-guides/screenshots/light/approvals/strategy-approval-detail.png)
 
 2. **Read the strategy with your company goal in mind**
 
@@ -141,7 +141,7 @@ A strategy approval detail has the same three-part layout as a hire, but the pay
 
    If something's off, **Request Revision**. In the revision note, be specific: "The strategy focuses too much on technical infrastructure and not enough on user acquisition — please revise to include a distribution plan" gives the CEO clear direction to work with.
 
-   ![Revision request input box with a text field for explaining what changes are needed](../../user-guides/images/approvals/revision-request-input.png)
+   ![Revision request input box with a text field for explaining what changes are needed](../../user-guides/screenshots/light/approvals/revision-request-input.png)
 
 > **Tip:** Don't worry if the first strategy isn't perfect — you can request revisions as many times as needed before approving. Requesting a revision changes the approval status and leaves a clear note for the requester to address; the updated proposal appears after the requester follows up and resubmits.
 
@@ -183,7 +183,7 @@ Every actionable approval (anything in `pending` or `revision_requested`) shows 
 - The agent revises the proposal and resubmits it on a later run. The approval moves back to "pending".
 - You'll see the updated proposal the next time you open it.
 
-![An approved approval showing the approved status badge and the timestamp of the decision](../../user-guides/images/approvals/approved-approval.png)
+![An approved approval showing the approved status badge and the timestamp of the decision](../../user-guides/screenshots/light/approvals/approved-approval.png)
 
 The full revision cycle looks like this:
 

@@ -19,7 +19,7 @@ When a task runs, Paperclip resolves which execution workspace to use for that r
 3. **The agent receives the workspace path** and works within it
 4. **The workspace persists** after the run if you're using an isolated or reusable workspace mode
 
-![Execution workspace list showing multiple isolated workspaces for a project](../../user-guides/images/org/execution-workspaces-list.png)
+![Execution workspace list showing multiple isolated workspaces for a project](../../user-guides/screenshots/light/org/execution-workspaces-list.png)
 
 ---
 
@@ -268,7 +268,7 @@ If nothing about a failure is obvious from the excerpt, remember that excerpts a
 
 The Issues tab shows every issue that has ever run against this execution workspace — not just the source issue that created it, but any follow-ups, retries, and related tasks that inherited the workspace.
 
-![Issues tab](../../user-guides/screenshots/light/workspaces/issues-tab.png)
+![Issues tab](../../user-guides/screenshots/light/workspaces/issues.png)
 
 The list uses the same components and filters as the main issues view, so you get:
 

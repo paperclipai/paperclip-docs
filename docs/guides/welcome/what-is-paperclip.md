@@ -30,7 +30,7 @@ The agents can be powered by Claude, OpenAI, or other AI systems. Paperclip itse
 
 Once your company is running, this is what you'll see:
 
-![The Paperclip dashboard showing agent status, task progress, cost summary, and recent activity](../../user-guides/images/dashboard/dashboard-overview.png)
+![The Paperclip dashboard showing agent status, task progress, cost summary, and recent activity](../../user-guides/screenshots/light/dashboard/dashboard-overview.png)
 
 The dashboard is your control centre. At a glance you can see which agents are active, how many tasks are in progress, how much budget has been spent this month, and what happened recently across the whole company.
 

@@ -317,7 +317,7 @@ Plans should live in a keyed document, not appended to the description. When an 
 
 The **Chat** tab is the default tab on every issue. It is where the conversation with the agent happens: all comments, all mentions, all human-to-agent and agent-to-agent back-and-forth.
 
-![Chat tab](../../user-guides/screenshots/light/issues/chat-tab.png)
+![Chat tab](../../user-guides/screenshots/light/issues/detail-chat.png)
 
 The Chat tab combines four data sources into a single timeline:
 
@@ -354,7 +354,7 @@ This binding is what makes the Chat tab auditable: you can always trace a statem
 
 The **Activity** tab is the chronological system log for the issue — the plain record of what happened and when. Where Chat is conversational, Activity is forensic.
 
-![Activity tab](../../user-guides/screenshots/light/issues/activity-tab.png)
+![Activity tab](../../user-guides/screenshots/light/issues/detail-activity.png)
 
 The tab assembles three streams:
 

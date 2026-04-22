@@ -14,7 +14,7 @@ This guide walks through the page itself. For the per-adapter config fields (wor
 
 The Adapter Manager lives under **Settings → Adapters**. The breadcrumb reads _Company_ → _Settings_ → _Adapters_, and the page header shows a CPU icon, the page title, and an **Alpha** badge.
 
-![Adapter Manager list](../../user-guides/screenshots/light/adapters/manager-list.png)
+![Adapter Manager list](../../user-guides/screenshots/light/adapters/list.png)
 
 Below the header there's a persistent amber notice reminding you that external adapters are alpha, and that the power icon on each row hides an adapter from the agent menus without removing it.
 
@@ -124,7 +124,7 @@ To configure a built-in adapter, open the agent you want to change and edit its 
 
 To configure an external adapter, the same pattern applies — the Agent Manager renders the form fields the external adapter's `createServerAdapter()` reports through its UI schema, including any custom widgets the adapter ships.
 
-![Adapter configuration](../../user-guides/screenshots/light/adapters/adapter-config.png)
+![Adapter configuration](../../user-guides/screenshots/light/adapters/detail.png)
 
 For field-by-field walkthroughs of the common built-ins, see [Agent Adapters](./agent-adapters.md). For the technical contract that adapters implement (including the UI parser schema), see [Adapter UI Parser](../../reference/adapters/adapter-ui-parser.md).
 

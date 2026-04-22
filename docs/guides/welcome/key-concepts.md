@@ -38,7 +38,7 @@ Every single thing in Paperclip — every agent, every task, every dollar spent 
 
 Agents are organised in a strict hierarchy. Every agent reports to exactly one manager. The CEO is the only agent with no manager — it reports directly to you, the board.
 
-![The org chart view showing agents in a hierarchy, with the CEO at the top and direct reports beneath](../../user-guides/images/org/org-chart-view.png)
+![The org chart view showing agents in a hierarchy, with the CEO at the top and direct reports beneath](../../user-guides/screenshots/light/org/org-chart-view.png)
 
 > **Note:** The CEO agent is always the first agent you create. It's the entry point — once the CEO is running, it creates tasks and can request to hire its own reports.
 
@@ -65,7 +65,7 @@ backlog → todo → in_progress → in_review → done
 
 They can also be marked `blocked` if an agent is waiting on something, or `cancelled` if the work is no longer needed.
 
-![The task inbox showing tasks in various statuses](../../user-guides/images/tasks/inbox-view.png)
+![The task inbox showing tasks in various statuses](../../user-guides/screenshots/light/tasks/inbox-view.png)
 
 > **Tip:** When an agent picks up a task, it "checks it out" — claiming exclusive ownership. This prevents two agents from working on the same thing simultaneously.
 
@@ -93,7 +93,7 @@ A heartbeat can be triggered by:
 - **Manual invoke** — you click **Run Heartbeat** on the agent detail page
 - **Approval resolution** — a pending approval the agent submitted is approved or rejected
 
-![The agent detail page showing run history with heartbeat transcripts](../../user-guides/images/agents/agent-detail-run-history.png)
+![The agent detail page showing run history with heartbeat transcripts](../../user-guides/screenshots/light/agents/agent-detail-run-history.png)
 
 ---
 
@@ -146,7 +146,7 @@ Budget behaviour:
 - At **80% utilisation**: Paperclip shows a warning so you can intervene before the hard stop
 - At **100% utilisation**: the agent is automatically paused and no more heartbeats fire
 
-![The cost summary panel showing per-agent budget bars with current spend](../../user-guides/images/costs/agent-budget-bar.png)
+![The cost summary panel showing per-agent budget bars with current spend](../../user-guides/screenshots/light/costs/agent-budget-bar.png)
 
 > **Warning:** The company budget and the per-agent budgets are separate. An agent can be paused by its own budget limit even if the company has remaining budget. Set both carefully.
 
@@ -173,7 +173,7 @@ The first two approval types most beginners encounter are:
 
 Paperclip can also surface budget override approvals when a hard stop is hit, and other board-level approval requests in more advanced flows.
 
-![The approvals list showing pending strategy and hire_agent approvals](../../user-guides/images/approvals/approvals-list.png)
+![The approvals list showing pending strategy and hire_agent approvals](../../user-guides/screenshots/light/approvals/approvals-list.png)
 
 > **Tip:** Approvals don't expire on their own. If an approval is pending, agents that are waiting on it will pause at that point until you take action. Keep an eye on your approval queue.
 

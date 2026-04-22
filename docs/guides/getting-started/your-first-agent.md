@@ -21,13 +21,13 @@ You'll need:
 
    In the sidebar, click **Agents**. If this is your first agent, you'll see an empty list with a prompt to create one. Click **New Agent**.
 
-   ![The empty agents list with a New Agent button](../../user-guides/images/agents/agents-list-empty.png)
+   ![The empty agents list with a New Agent button](../../user-guides/screenshots/light/agents/agents-list-empty.png)
 
 2. **Set the agent's name**
 
    Give the agent a name (e.g. "CEO"). If this is your first agent, Paperclip automatically makes it the **CEO**.
 
-   ![The new agent form showing the Name and Role fields filled in for a CEO agent](../../user-guides/images/agents/new-agent-name-role.png)
+   ![The new agent form showing the Name and Role fields filled in for a CEO agent](../../user-guides/screenshots/light/agents/new-agent-name-role.png)
 
    The **CEO role** is special: it has no "Reports To" field, because the CEO reports directly to the board — to you. Every other agent you hire later will have a "Reports To" field where you (or the CEO) assigns a manager.
 
@@ -35,7 +35,7 @@ You'll need:
 
    An adapter tells Paperclip how to run your agent. Click the **Adapter Type** dropdown to see your options.
 
-   ![The adapter type dropdown showing available adapter options](../../user-guides/images/agents/adapter-type-dropdown.png)
+   ![The adapter type dropdown showing available adapter options](../../user-guides/screenshots/light/agents/adapter-type-dropdown.png)
 
    <!-- tabs: Claude Local (Recommended), Codex Local -->
 
@@ -49,7 +49,7 @@ You'll need:
 
    **Configuration fields:**
 
-   ![The Claude Local adapter configuration form with all fields filled in](../../user-guides/images/agents/claude-local-config-filled.png)
+   ![The Claude Local adapter configuration form with all fields filled in](../../user-guides/screenshots/light/agents/claude-local-config-filled.png)
 
    - **Working directory** — The folder on your Mac where the agent will do its work. This is where files get created, edited, and read. If you're not sure what to use, create a folder called `paperclip-workspace` on your Desktop and paste that path here (e.g. `/Users/yourname/Desktop/paperclip-workspace`).
 
@@ -83,7 +83,7 @@ You'll need:
 
    The create form's run policy is deliberately simple: you can decide whether this agent runs on an interval, and how often.
 
-   ![The budget and heartbeat configuration fields for the new agent](../../user-guides/images/agents/budget-and-heartbeat-fields.png)
+   ![The budget and heartbeat configuration fields for the new agent](../../user-guides/screenshots/light/agents/budget-and-heartbeat-fields.png)
 
    For a CEO, once per hour is a reasonable starting cadence. You can make it faster later once the company is active and you have a feel for the cost.
 
@@ -93,7 +93,7 @@ You'll need:
 
    Click **Create agent**. Paperclip creates the agent and takes you to the agent detail page. You should see the agent with a status of **idle** — meaning it's configured and ready, but hasn't fired a heartbeat yet.
 
-   ![The agent detail page showing the CEO agent in idle status](../../user-guides/images/agents/agent-detail-idle.png)
+   ![The agent detail page showing the CEO agent in idle status](../../user-guides/screenshots/light/agents/agent-detail-idle.png)
 
    The heartbeat is disabled by default when you first create an agent. You'll enable it in the next guide, once you're ready to let the CEO start working.
 
@@ -111,11 +111,11 @@ You'll need:
 
    Paperclip will attempt to connect to the adapter — in the case of `claude_local`, it will check that Claude Code is installed and accessible, and that the environment variable binding is valid.
 
-   ![The test environment result showing a success state](../../user-guides/images/agents/test-environment-success.png)
+   ![The test environment result showing a success state](../../user-guides/screenshots/light/agents/test-environment-success.png)
 
    If the test succeeds, you're ready. If it fails:
 
-   ![The test environment result showing a failure with an error message](../../user-guides/images/agents/test-environment-fail.png)
+   ![The test environment result showing a failure with an error message](../../user-guides/screenshots/light/agents/test-environment-fail.png)
 
    See the troubleshooting section below.
 

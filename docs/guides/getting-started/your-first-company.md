@@ -18,11 +18,11 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
    When you first open Paperclip, you'll be taken into onboarding or see a start screen with a **New Company** button. Click that to begin.
 
-   ![The Paperclip sidebar with the New Company button highlighted](../../user-guides/images/onboarding/sidebar-new-company-button.png)
+   ![The Paperclip sidebar with the New Company button highlighted](../../user-guides/screenshots/light/onboarding/sidebar-new-company-button.png)
 
    Clicking it opens the company creation panel.
 
-   ![The New Company modal, empty and ready to fill in](../../user-guides/images/onboarding/new-company-modal-empty.png)
+   ![The New Company modal, empty and ready to fill in](../../user-guides/screenshots/light/onboarding/new-company-modal-empty.png)
 
 2. **Name your company**
 
@@ -39,7 +39,7 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
    If you already know what this company should achieve, add that direction now. The goal is the north star that every agent in your company can see. Every task the CEO creates, every strategy it proposes, every decision it makes — it all flows from this goal.
 
-   ![The goal field in the New Company modal with an example goal entered](../../user-guides/images/onboarding/goal-field.png)
+   ![The goal field in the New Company modal with an example goal entered](../../user-guides/screenshots/light/onboarding/goal-field.png)
 
    A good goal has two things: **a specific outcome** and **a measurable target**. Vague goals give agents nothing concrete to anchor their work to.
 
@@ -57,7 +57,7 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
    Click **Create Company**. Paperclip creates the company and takes you to its dashboard.
 
-   ![The empty company dashboard after creation, with no agents or tasks yet](../../user-guides/images/onboarding/empty-dashboard.png)
+   ![The empty company dashboard after creation, with no agents or tasks yet](../../user-guides/screenshots/light/onboarding/empty-dashboard.png)
 
    The dashboard is empty because you haven't hired any agents yet. That's exactly where you are: company created, team not yet assembled.
 

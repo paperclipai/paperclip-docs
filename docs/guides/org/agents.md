@@ -73,7 +73,7 @@ Paperclip has two paths for adding an agent to the company:
 
 This section is about the direct path — the `New Agent` form.
 
-![Hire a new agent](../../user-guides/screenshots/light/agents/new-agent.png)
+![Hire a new agent](../../user-guides/screenshots/light/agents/new.png)
 
 ### Name and title
 
@@ -146,7 +146,7 @@ When the agent is in `pending_approval` status the Run Heartbeat button is disab
 
 The Dashboard is the summary view — the one you open when you want to know "what has this agent been doing?"
 
-![Dashboard tab](../../user-guides/screenshots/light/agents/dashboard-tab.png)
+![Dashboard tab](../../user-guides/screenshots/light/agents/dashboard.png)
 
 ### Latest run card
 
@@ -185,7 +185,7 @@ At the bottom, a summary of the agent's total input tokens, output tokens, cache
 
 The Instructions tab is where you edit what the agent *is* — its system prompt, role description, and any additional instruction files it should read.
 
-![Instructions tab](../../user-guides/screenshots/light/agents/instructions-tab.png)
+![Instructions tab](../../user-guides/screenshots/light/agents/instructions.png)
 
 ### Managed vs external bundles
 
@@ -220,7 +220,7 @@ Edits are saved on **Save** (via the floating Save/Cancel bar that appears on an
 
 The Skills tab controls which company skills are attached to this specific agent. It is a per-agent view over the shared [company skill library](./skills.md) — the library is where skills are authored and imported, this tab is where you decide which agents get which skills.
 
-![Skills tab](../../user-guides/screenshots/light/agents/skills-tab.png)
+![Skills tab](../../user-guides/screenshots/light/agents/skills.png)
 
 ### Sections on the tab
 
@@ -260,7 +260,7 @@ For a deeper discussion of what skills are, how to write good ones, and how they
 
 The Configuration tab is where you change the agent's **runtime settings** — which adapter it uses, which model it runs, what heartbeat interval it has, what environment variables it needs, and a few adapter-specific knobs. It is *not* where you change what the agent *does* (that's Instructions) or what it knows (that's Skills). It's where you change how it's wired.
 
-![Configuration tab](../../user-guides/screenshots/light/agents/configuration-tab.png)
+![Configuration tab](../../user-guides/screenshots/light/agents/configuration.png)
 
 ### The shared configuration form
 
@@ -298,7 +298,7 @@ Edits are dirty-tracked. A floating Save/Cancel bar (desktop) or a fixed bottom 
 
 The Runs tab is your audit trail. Every heartbeat the agent has ever done is listed here, newest first, with filters, a detail view, and live streaming for runs in progress.
 
-![Runs tab](../../user-guides/screenshots/light/agents/runs-tab.png)
+![Runs tab](../../user-guides/screenshots/light/agents/runs.png)
 
 ### The run list
 
@@ -349,7 +349,7 @@ The list is sorted by creation time descending. There are no additional filters 
 
 Every agent can have its own budget. The Budget tab is where you set it, watch the current spend, and configure how Paperclip should react when limits are approached or breached.
 
-![Budget tab](../../user-guides/screenshots/light/agents/budget-tab.png)
+![Budget tab](../../user-guides/screenshots/light/agents/budget.png)
 
 ### Anatomy of an agent budget
 
@@ -390,9 +390,7 @@ This tab configures **this agent's** budget. Paperclip also tracks a company-lev
 
 An agent authenticates to the Paperclip API with a short-lived JWT for in-process runs. When the agent runs *outside* a managed heartbeat — for example a local CLI operator checking assignments, a CI job triggering a webhook, a remote adapter that needs a standing token — it uses a long-lived **API key** instead.
 
-The Keys panel sits on the Configuration tab (under the configuration form, above the revisions collapsible). It looks like this:
-
-![Keys tab](../../user-guides/screenshots/light/agents/keys-tab.png)
+The Keys panel sits on the Configuration tab (under the configuration form, above the revisions collapsible).
 
 ### Issuing a key
 

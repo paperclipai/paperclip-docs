@@ -70,7 +70,7 @@ For everything else — triage, configuration, workspaces, budget — use the ot
 
 The Issues tab is the project's task board. It is the same issue list you see on the global Issues page, pre-filtered to this project. For most day-to-day work this is the tab you will spend the most time on.
 
-![Issues tab](../../user-guides/screenshots/light/projects/issues-tab.png)
+![Issues tab](../../user-guides/screenshots/light/projects/issues.png)
 
 ### What is shown
 
@@ -100,7 +100,7 @@ Each issue may be tied to an execution workspace — a specific working copy of 
 
 The Workspaces tab shows the execution workspaces currently attached to the project. It only appears when the company has the **isolated workspaces** experimental setting enabled and the project has at least one non-default workspace with activity. On projects without isolated workspaces, Paperclip redirects you to the Issues tab instead.
 
-![Workspaces tab](../../user-guides/screenshots/light/projects/workspaces-tab.png)
+![Workspaces tab](../../user-guides/screenshots/light/projects/workspaces.png)
 
 ### What a workspace row represents
 

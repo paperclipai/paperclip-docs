@@ -12,7 +12,7 @@ A plugin is a self-contained package that installs into Paperclip, runs its own 
 
 The Plugin Manager lives under **Settings → Plugins**. It's the single place where you install, enable, disable, configure, and uninstall plugins.
 
-![Plugin list](../user-guides/guides/screenshots/light/plugins/list.png)
+![Plugin list](../user-guides/screenshots/light/plugins/list.png)
 
 The page has two sections:
 
@@ -50,7 +50,7 @@ An errored plugin stays installed — you don't need to uninstall and reinstall 
 
 ## Installing a plugin
 
-![Install a plugin](../user-guides/guides/screenshots/light/plugins/install.png)
+![Install a plugin](../user-guides/screenshots/light/plugins/install.png)
 
 There are two ways to get a plugin into Paperclip.
 
@@ -112,7 +112,7 @@ This gate exists so plugins can't quietly grow permissions on you between versio
 
 Clicking a plugin's name — or the **Configure** button — opens the plugin detail page. This is where a plugin gets to show you its own surface inside Paperclip.
 
-![Plugin detail page](../user-guides/guides/screenshots/light/plugins/detail.png)
+![Plugin detail page](../user-guides/screenshots/light/plugins/detail.png)
 
 The detail page has two tabs:
 
@@ -133,7 +133,7 @@ If two plugins happen to contribute a page on the same route, Paperclip refuses 
 
 Most plugins have some configuration: an API key, a base URL, a default folder, a list of watched repositories. Paperclip gives plugins two ways to expose that to you.
 
-![Plugin settings](../user-guides/guides/screenshots/light/plugins/settings.png)
+![Plugin settings](../user-guides/screenshots/light/plugins/settings.png)
 
 **Auto-generated forms.** If the plugin ships a JSON Schema describing its configuration, Paperclip renders a form automatically on the Configuration tab. You fill in the fields, click **Save Configuration**, and Paperclip stores the values securely. For plugins that support it, a **Test Configuration** button appears alongside save — it sends the current form values to the plugin's worker and reports back whether the config works, without persisting anything.
 
@@ -153,7 +153,7 @@ To the right of the settings form, the **Permissions** card lists the capabiliti
 
 Plugins don't just sit there. Many of them run scheduled jobs — a sync every 15 minutes, a nightly reconciliation, a cleanup pass every Sunday — or receive webhooks from external services. The **Status** tab on the plugin detail page is where you see that activity.
 
-![Plugin jobs log](../user-guides/guides/screenshots/light/plugins/jobs-log.png)
+![Plugin jobs log](../user-guides/screenshots/light/plugins/jobs-log.png)
 
 The tab shows:
 

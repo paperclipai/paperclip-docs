@@ -74,19 +74,19 @@ Manager-level agents (CTO, CMO, Head of Design, etc.) report directly to the CEO
 
    From your company dashboard, click **Agents** in the left sidebar, then click the **New Agent** button in the top right.
 
-   ![Agents list page showing the New Agent button](../../user-guides/images/agents/agents-list-empty.png)
+   ![Agents list page showing the New Agent button](../../user-guides/screenshots/light/agents/agents-list-empty.png)
 
 2. **Set the name, title, and role**
 
    Give the agent a clear name (e.g. "Sam"), a title (e.g. "CTO"), and choose the closest role. The role helps the CEO understand what this agent is responsible for when assigning work.
 
-   ![New agent form with name and role fields](../../user-guides/images/agents/new-agent-name-role.png)
+   ![New agent form with name and role fields](../../user-guides/screenshots/light/agents/new-agent-name-role.png)
 
 3. **Set "Reports to" to the CEO**
 
    In the **Reports to** dropdown, select your CEO agent. This places the new agent one level below the CEO in the hierarchy.
 
-   ![New agent form showing the Reports to dropdown with CEO selected](../../user-guides/images/agents/new-agent-reports-to-field.png)
+   ![New agent form showing the Reports to dropdown with CEO selected](../../user-guides/screenshots/light/agents/new-agent-reports-to-field.png)
 
 4. **Choose an adapter and save**
 
@@ -123,7 +123,7 @@ From the agent's detail page, click **Configuration**, then change the **Reports
 
 Click **Org** in the left sidebar. You'll see a visual tree of all your agents with their current status shown inline.
 
-![Org chart view showing the full reporting hierarchy with agent status indicators](../../user-guides/images/org/org-chart-small-team.png)
+![Org chart view showing the full reporting hierarchy with agent status indicators](../../user-guides/screenshots/light/org/org-chart-small-team.png)
 
 ---
 

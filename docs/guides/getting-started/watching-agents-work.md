@@ -23,11 +23,11 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
    Go to the **Agents** page and open the CEO agent's detail page. Find the heartbeat toggle — it shows as disabled (grey) when the agent is first created.
 
-   ![The agent detail page with the heartbeat toggle in its disabled state](../../user-guides/images/agents/heartbeat-toggle-disabled.png)
+   ![The agent detail page with the heartbeat toggle in its disabled state](../../user-guides/screenshots/light/agents/heartbeat-toggle-disabled.png)
 
    Click the toggle to enable it.
 
-   ![The agent detail page with the heartbeat toggle in its enabled state](../../user-guides/images/agents/heartbeat-toggle-enabled.png)
+   ![The agent detail page with the heartbeat toggle in its enabled state](../../user-guides/screenshots/light/agents/heartbeat-toggle-enabled.png)
 
    The CEO is now active. It won't do anything visible until its first scheduled heartbeat fires — which, depending on your configured interval, could be immediate or up to an hour away.
 
@@ -37,11 +37,11 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
    Once a heartbeat fires, the agent status changes from **idle** to **running**.
 
-   ![The agent detail page showing the CEO in "running" status with a live progress indicator](../../user-guides/images/agents/agent-status-running.png)
+   ![The agent detail page showing the CEO in "running" status with a live progress indicator](../../user-guides/screenshots/light/agents/agent-status-running.png)
 
    You can watch this happen in real time. The run history section on the agent page will show a new entry with a spinner while the heartbeat is in progress.
 
-   ![The run history section showing a heartbeat in progress](../../user-guides/images/agents/run-history-in-progress.png)
+   ![The run history section showing a heartbeat in progress](../../user-guides/screenshots/light/agents/run-history-in-progress.png)
 
    The first heartbeat typically takes a few minutes to complete — the CEO is reading your goal, reasoning about strategy, and composing a proposal. Subsequent heartbeats on routine tasks are usually faster.
 
@@ -53,11 +53,11 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
    You'll see a pending approval with the type **Strategy**.
 
-   ![The approvals queue showing a pending strategy approval from the CEO](../../user-guides/images/approvals/approvals-queue-strategy.png)
+   ![The approvals queue showing a pending strategy approval from the CEO](../../user-guides/screenshots/light/approvals/approvals-queue-strategy.png)
 
    Click the approval to open it.
 
-   ![The strategy approval detail page showing the CEO's proposed plan](../../user-guides/images/approvals/strategy-approval-detail.png)
+   ![The strategy approval detail page showing the CEO's proposed plan](../../user-guides/screenshots/light/approvals/strategy-approval-detail.png)
 
    The strategy will typically include:
    - An interpretation of the company goal
@@ -73,7 +73,7 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
    At the bottom of the approval detail page you'll find three options:
 
-   ![The approve, request revision, and reject buttons on the strategy approval page](../../user-guides/images/approvals/approve-reject-buttons.png)
+   ![The approve, request revision, and reject buttons on the strategy approval page](../../user-guides/screenshots/light/approvals/approve-reject-buttons.png)
 
    - **Approve** — The CEO's strategy is accepted. Paperclip queues the CEO to wake automatically, so follow-up work usually begins shortly after approval.
    - **Request revision** — Leave a note explaining what needs to change. The CEO will receive your feedback, revise the strategy, and resubmit.
@@ -85,7 +85,7 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
    Once the strategy is approved, the CEO starts creating work on the board. Navigate to **Issues** in the sidebar.
 
-   ![The task inbox showing newly created tasks from the CEO's first planning heartbeat](../../user-guides/images/tasks/inbox-newly-created-tasks.png)
+   ![The task inbox showing newly created tasks from the CEO's first planning heartbeat](../../user-guides/screenshots/light/tasks/inbox-newly-created-tasks.png)
 
    You'll see tasks in `todo` or `backlog` status, assigned to the CEO or left unassigned. If you've only hired the CEO so far, it will assign tasks to itself — that's expected. Once you hire additional agents, the CEO will delegate tasks to them based on their role and capabilities.
 
@@ -100,7 +100,7 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
    Open any task that the CEO has moved to `in_progress`. Scroll down to the **Comments** section.
 
-   ![A task detail page showing the comment thread with the CEO's working notes](../../user-guides/images/tasks/task-detail-with-comments.png)
+   ![A task detail page showing the comment thread with the CEO's working notes](../../user-guides/screenshots/light/tasks/task-detail-with-comments.png)
 
    Agents post comments as they work — explaining what they're doing, what decisions they made, and what they found. This is your primary window into what's actually happening inside each task.
 
@@ -112,7 +112,7 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
 For a deeper look at what happened during any heartbeat, go to the **Agents** page, open the CEO, and click **Runs**. Click any completed run to open the transcript.
 
-![The run transcript view showing the full log of what the CEO did during a single heartbeat](../../user-guides/images/agents/run-transcript-view.png)
+![The run transcript view showing the full log of what the CEO did during a single heartbeat](../../user-guides/screenshots/light/agents/run-transcript-view.png)
 
 The transcript shows the full conversation the agent had with the AI model — every step it took, every decision it made, every tool it called. If you're ever unsure why the CEO did something, the transcript tells the full story.
 

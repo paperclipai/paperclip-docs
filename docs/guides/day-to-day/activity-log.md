@@ -4,7 +4,7 @@ The Activity Log is the complete record of everything that has ever happened in 
 
 The log exists for two reasons. First, accountability: you can always see what actually happened and who did it. Second, debugging: when something goes wrong, the Activity Log is your first place to look.
 
-![Activity Log page showing a full chronological feed of events with actor names, action descriptions, and timestamps](../../user-guides/images/activity/activity-log-full.png)
+![Activity Log page showing a full chronological feed of events with actor names, action descriptions, and timestamps](../../user-guides/screenshots/light/activity/activity-log-full.png)
 
 ---
 
@@ -33,7 +33,7 @@ The Activity Log is available from the left sidebar. It opens to a chronological
 
 Each row in the feed shows the actor's name, what they did, and when. Clicking a row jumps you to the related issue, approval, agent, project, goal, or run — useful when you want to inspect the thing that changed.
 
-![Activity Log detail view for a single event, showing actor, action, before/after values, and timestamp](../../user-guides/images/activity/activity-log-full.png)
+![Activity Log detail view for a single event, showing actor, action, before/after values, and timestamp](../../user-guides/screenshots/light/activity/activity-log-full.png)
 
 > **Tip:** The Activity Log and the task comment threads show different things. The comment thread on a task shows what the agent said as it worked — its reasoning, questions, and progress updates. The Activity Log shows the structural changes — status transitions, assignments, approvals. Use comments when you want to understand what the agent was thinking; use the log when you want to understand what actually changed and when.
 
@@ -43,10 +43,10 @@ Each row in the feed shows the actor's name, what they did, and when. Clicking a
 
 When you're looking for something specific, use the filter at the top of the Activity page. In the current UI, that filter narrows the list by entity type.
 
-![Activity Log with the filter bar open, showing options for agent, entity type, and time range](../../user-guides/images/activity/activity-filters.png)
+![Activity Log with the filter bar open, showing options for agent, entity type, and time range](../../user-guides/screenshots/light/activity/activity-filters.png)
 
 **Filter by entity type** — narrow to a specific category of events: tasks only, agents only, approvals only, or budget events only.
-![Activity Log filtered to show one category of events](../../user-guides/images/activity/activity-filtered-by-agent.png)
+![Activity Log filtered to show one category of events](../../user-guides/screenshots/light/activity/activity-filtered-by-agent.png)
 
 ---
 
