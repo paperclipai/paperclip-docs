@@ -279,6 +279,7 @@
       transition: color var(--transition), border-color var(--transition);
     }
     .foot-colophon a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+    .foot-license { margin-top: 10px; font-size: 12px; color: var(--ash); }
 
     /* ─── Article view ─────────────────────────────────────── */
     #article-view { display: none; }
@@ -941,4 +942,42 @@
       .toc-toggle .toc-label { display: none; }
       .page-actions .pa-copy { padding-left: 10px; padding-right: 10px; }
       .toc-toggle { padding: 5px 10px; }
+    }
+
+    /* ─── IA: tier headers (sidebar) and tier groupings (landing) ──────── */
+    .sb-tier-header {
+      display: block;
+      padding: 20px 10px 8px;
+      margin-top: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ash);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .sb-tier-header:first-child { margin-top: 0; padding-top: 6px; }
+
+    .landing-tier { margin-top: 28px; }
+    .landing-tier:first-child { margin-top: 0; }
+    .landing-tier > h2 {
+      margin: 0 0 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ash);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .landing-tier-cards {
+      display: grid;
+      grid-template-columns: repeat(var(--tier-cols, 3), 1fr);
+      gap: 14px;
+    }
+    #landing-cards.card-grid {
+      display: block;
+    }
+    @media (max-width: 900px) {
+      .landing-tier-cards { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .landing-tier-cards { grid-template-columns: 1fr; }
     }

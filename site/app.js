@@ -8,9 +8,11 @@ function sectionIconTag(section) {
 function renderLucideIcons() {
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
-function getSectionKind(title) {
-  return /api|cli|adapter|deploy/i.test(title) ? 'Reference' : 'Guide';
+function getSectionKind(section) {
+  if (section && typeof section === 'object') return section.tier || 'Guides';
+  return 'Guides';
 }
+const TIER_ORDER = ['Guides', 'Administration', 'Reference'];
 
 /* ─── Theme bootstrap (before first paint of body) ──────────────────────── */
 (function() {
@@ -39,11 +41,14 @@ const APP_SHELL_URL = new URL('index.html', APP_BASE_URL);
 
 /* ─── Screenshot src resolver ───────────────────────────────────────────── */
 function resolveScreenshotSrc(src) {
-  // src may be like "../images/dashboard/foo.png" or "images/dashboard/foo.png"
-  const match = src.match(/images\/([^/]+\/[^/]+\.png)$/);
-  if (!match) return src;
   const theme = document.documentElement.dataset.theme || 'light';
-  return resolveContentUrl(`../docs/user-guides/screenshots/${theme}/${match[1]}`);
+  // New-style: screenshots/light/group/file.png or screenshots/dark/group/file.png
+  const newMatch = src.match(/screenshots\/(?:light|dark)\/([^/]+\/[^/]+\.png)$/);
+  if (newMatch) return resolveContentUrl(`../docs/user-guides/screenshots/${theme}/${newMatch[1]}`);
+  // Legacy-style: images/group/file.png
+  const legacyMatch = src.match(/images\/([^/]+\/[^/]+\.png)$/);
+  if (legacyMatch) return resolveContentUrl(`../docs/user-guides/screenshots/${theme}/${legacyMatch[1]}`);
+  return src;
 }
 
 function normalizeDocPath(path) {
@@ -516,6 +521,17 @@ function initSearch() {
 }
 
 /* ─── Boot ──────────────────────────────────────────────────────────────── */
+let redirectMap = {};
+
+function applyRedirect(route) {
+  const key = normalizeRouteKey(decodeURIComponent((route || '').trim()));
+  if (!key) return route;
+  if (Object.prototype.hasOwnProperty.call(redirectMap, key)) {
+    return redirectMap[key];
+  }
+  return route;
+}
+
 async function init() {
   try {
     const res = await fetch(resolveContentUrl('content.json'));
@@ -526,6 +542,12 @@ async function init() {
     return;
   }
 
+  // Optional: load redirect map for moved pages (old → new slug).
+  try {
+    const rRes = await fetch(resolveContentUrl('redirects.json'));
+    if (rRes.ok) redirectMap = await rRes.json();
+  } catch { /* no redirects file is fine */ }
+
   buildFlatList();
   document.getElementById('logo').href = getRouteUrl('');
   buildLanding();
@@ -535,7 +557,7 @@ async function init() {
   buildSearchIndex(); // background — no await
 
   const pathRoute = getPathRoute();
-  const rawRoute = pathRoute || getLegacyRoute();
+  const rawRoute = applyRedirect(pathRoute || getLegacyRoute());
   const initialRoute = parseRoute(rawRoute);
   const normalizedRaw = normalizeRouteKey(decodeURIComponent((rawRoute || '').trim()));
 
@@ -551,19 +573,42 @@ async function init() {
 function buildLanding() {
   const grid = document.getElementById('landing-cards');
   grid.innerHTML = '';
+
+  // Group sections by tier, preserving original indices so data-nav-section still works.
+  const byTier = new Map();
   navData.sections.forEach((section, i) => {
-    const a = document.createElement('a');
-    a.className = 'card';
-    a.href = section.pages[0] ? getPageUrl(section.pages[0]) : '#';
-    a.dataset.navSection = i;
-    const desc = section.desc || `${section.pages.length} page${section.pages.length === 1 ? '' : 's'} in ${section.title}.`;
-    a.innerHTML = `
-      <div class="card-icon">${sectionIconTag(section)}</div>
-      <div class="card-title">${escapeHtml(section.title)}</div>
-      <div class="card-desc">${escapeHtml(desc)}</div>
-      <div class="card-meta"><span>${section.pages.length} page${section.pages.length === 1 ? '' : 's'}</span><span class="dot"></span><span>${getSectionKind(section.title)}</span></div>
-    `;
-    grid.appendChild(a);
+    const tier = getSectionKind(section);
+    if (!byTier.has(tier)) byTier.set(tier, []);
+    byTier.get(tier).push({ section, i });
+  });
+  const orderedTiers = [
+    ...TIER_ORDER.filter(t => byTier.has(t)),
+    ...[...byTier.keys()].filter(t => !TIER_ORDER.includes(t)),
+  ];
+
+  orderedTiers.forEach(tier => {
+    const block = document.createElement('section');
+    block.className = 'landing-tier';
+    block.dataset.tier = tier;
+    const n = byTier.get(tier).length;
+    const cols = n <= 3 ? n : (n === 4 ? 2 : 3);
+    block.innerHTML = `<h2>${escapeHtml(tier)}</h2><div class="landing-tier-cards" style="--tier-cols:${cols}"></div>`;
+    const cardsWrap = block.querySelector('.landing-tier-cards');
+    byTier.get(tier).forEach(({ section, i }) => {
+      const a = document.createElement('a');
+      a.className = 'card';
+      a.href = section.pages[0] ? getPageUrl(section.pages[0]) : '#';
+      a.dataset.navSection = i;
+      const desc = section.desc || `${section.pages.length} page${section.pages.length === 1 ? '' : 's'} in ${section.title}.`;
+      a.innerHTML = `
+        <div class="card-icon">${sectionIconTag(section)}</div>
+        <div class="card-title">${escapeHtml(section.title)}</div>
+        <div class="card-desc">${escapeHtml(desc)}</div>
+        <div class="card-meta"><span>${section.pages.length} page${section.pages.length === 1 ? '' : 's'}</span><span class="dot"></span><span>${escapeHtml(getSectionKind(section))}</span></div>
+      `;
+      cardsWrap.appendChild(a);
+    });
+    grid.appendChild(block);
   });
 
   const ql = document.getElementById('landing-quicklinks');
@@ -586,15 +631,20 @@ function buildLanding() {
 
 /* ─── Sidebar (accordion) — used for desktop sidebar AND mobile drawer ──── */
 function sidebarSectionsHTML() {
-  let lastKind = null;
-  return navData.sections.map((section, si) => {
-    const kind = getSectionKind(section.title);
-    let label = '';
-    if (kind !== lastKind) {
-      label = `<div class="sb-group-label">${escapeHtml(kind === 'Reference' ? 'Reference' : 'Guides')}</div>`;
-      lastKind = kind;
-    }
-    return `${label}
+  const byTier = new Map();
+  navData.sections.forEach((section, si) => {
+    const tier = getSectionKind(section);
+    if (!byTier.has(tier)) byTier.set(tier, []);
+    byTier.get(tier).push({ section, si });
+  });
+  const orderedTiers = [
+    ...TIER_ORDER.filter(t => byTier.has(t)),
+    ...[...byTier.keys()].filter(t => !TIER_ORDER.includes(t)),
+  ];
+
+  return orderedTiers.map(tier => {
+    const header = `<div class="sb-tier-header">${escapeHtml(tier)}</div>`;
+    const sections = byTier.get(tier).map(({ section, si }) => `
     <div class="sb-section" data-section-idx="${si}" data-section-title="${escapeAttr(section.title)}" data-open="false">
       <button class="sb-section-btn" type="button">
         <span class="sb-section-icon">${sectionIconTag(section)}</span>
@@ -605,7 +655,8 @@ function sidebarSectionsHTML() {
       <div class="sb-pages">
         ${section.pages.map(page => `<a class="sb-link" data-file="${escapeAttr(page.file)}" href="${escapeAttr(getPageUrl(page))}">${escapeHtml(page.title)}</a>`).join('')}
       </div>
-    </div>`;
+    </div>`).join('');
+    return header + sections;
   }).join('');
 }
 
@@ -1177,7 +1228,7 @@ function escapeHtml(s) {
 function escapeAttr(s) { return String(s).replace(/"/g,'&quot;'); }
 
 window.addEventListener('hashchange', () => {
-  const route = parseRoute(location.hash.slice(1));
+  const route = parseRoute(applyRedirect(location.hash.slice(1)));
   if (route.page) {
     loadPage(route.page.file, route.headingId, 'replace');
   } else {
@@ -1187,7 +1238,7 @@ window.addEventListener('hashchange', () => {
 });
 
 window.addEventListener('popstate', () => {
-  const route = parseRoute(getCurrentRoute());
+  const route = parseRoute(applyRedirect(getCurrentRoute()));
   if (route.page) {
     loadPage(route.page.file, route.headingId, 'replace');
     return;

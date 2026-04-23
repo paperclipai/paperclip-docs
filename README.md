@@ -30,4 +30,8 @@ For larger changes, fork the repo and open a PR against `main`. Screenshots live
 
 ## License
 
-Docs content is released under the same license as the Paperclip project. See the main [paperclip](https://github.com/paperclipai/paperclip) repository for details.
+Copyright (c) 2026 Aron & Sharon ([aronandsharon.com](https://aronandsharon.com)).
+
+The Paperclip **software** is open source — see the main [paperclip](https://github.com/paperclipai/paperclip) repository for its license.
+
+The **documentation in this repository** is licensed under [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)](https://creativecommons.org/licenses/by-nc-nd/4.0/). You may read and share it for non-commercial purposes with attribution. Commercial use of any kind requires prior written permission from the copyright holders. See [`LICENSE`](LICENSE) for the full text.
