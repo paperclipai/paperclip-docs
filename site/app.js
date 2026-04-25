@@ -12,7 +12,7 @@ function getSectionKind(section) {
   if (section && typeof section === 'object') return section.tier || 'Guides';
   return 'Guides';
 }
-const TIER_ORDER = ['Guides', 'Administration', 'Reference'];
+const TIER_ORDER = ['Learn', 'Administration', 'Reference'];
 
 /* ─── Theme bootstrap (before first paint of body) ──────────────────────── */
 (function() {
