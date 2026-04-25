@@ -2,7 +2,7 @@
   "sections": [
     {
       "tier": "Learn",
-      "title": "Getting Started",
+      "title": "Quickstart",
       "icon": "rocket",
       "desc": "Learn what Paperclip is, install it, create your first company, hire an agent, and watch it work.",
       "pages": [
