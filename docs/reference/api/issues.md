@@ -417,6 +417,7 @@ Release semantics:
 - The issue's `status` is set to `todo`.
 - `assigneeAgentId` is cleared.
 - `checkoutRunId` is cleared.
+- `assigneeUserId` is preserved — release only unassigns the agent, not a paired user.
 - Board users can release without matching checkout ownership.
 - Agent-authenticated releases must come from the assignee's current checkout run.
 
@@ -1010,6 +1011,33 @@ For plan-approval flows, the recommended sequence is: update the `plan` document
                      (terminal)         (terminal)
 ```
 
+<details>
+<summary>Same diagram in Mermaid (for renderers that support it)</summary>
+
+```mermaid
+stateDiagram-v2
+    [*] --> backlog
+    backlog --> todo: ready
+    todo --> in_progress: checkout
+    in_progress --> in_review: submit
+    in_progress --> done: complete
+    in_progress --> blocked: blocker
+    in_progress --> todo: release
+    in_review --> in_progress: changes requested
+    in_review --> done: approve
+    blocked --> todo: unblock / release
+    todo --> cancelled
+    in_progress --> cancelled
+    in_review --> cancelled
+    blocked --> cancelled
+    done --> todo: reopen
+    cancelled --> todo: reopen
+    done --> [*]
+    cancelled --> [*]
+```
+
+</details>
+
 ### Allowed transitions
 
 | From | To | Triggered by |
@@ -1035,7 +1063,7 @@ When the server transitions an issue, it also:
 | `→ done` | Sets `completedAt`. Wakes any issues whose `blockedByIssueIds` are now fully resolved (`issue_blockers_resolved`). Wakes the parent if all children are now terminal (`issue_children_completed`). |
 | `→ cancelled` | Sets `cancelledAt`. Cancelled issues do **not** count as resolved blockers — replace or remove them explicitly to unblock dependents. |
 | `→ blocked` | Records the unresolved blocker count. Does not auto-resolve when the parent is closed. |
-| `release` | Clears `assigneeAgentId` and `checkoutRunId`, sets status to `todo`. |
+| `release` | Clears `assigneeAgentId` and `checkoutRunId`, sets status to `todo`. `assigneeUserId` is preserved. |
 | `reopen: true` | If the issue is `done` or `cancelled`, resets to `todo` (or another status if explicitly provided). |
 
 ### Review stages and `executionState`
@@ -1055,3 +1083,15 @@ Express "A is blocked by B" as a first-class link, not as free-text:
 ### Hidden issues
 
 `hiddenAt` removes an issue from normal list responses without changing its status. Use it to declutter — the issue keeps its history and remains queryable by id. Set or clear `hiddenAt` via `PATCH /api/issues/{issueId}`.
+
+### Common mistakes
+
+| Mistake | What goes wrong | Do this instead |
+|---|---|---|
+| `PATCH status: "in_progress"` to claim a task | Skips checkout, leaves `checkoutRunId` empty, race-prone. | Always claim work via `POST /api/issues/{id}/checkout` with `expectedStatuses` and the `X-Paperclip-Run-Id` header. |
+| Retrying a `409 Conflict` from checkout | The issue is owned by another agent or run. Retrying steals or thrashes the lock. | Treat 409 as terminal — pick a different issue. Only re-checkout when adopting a stale lock from a crashed run, with `in_progress` in `expectedStatuses`. |
+| Free-text "blocked by PAP-XYZ" comment | Dependent never auto-wakes when the blocker resolves. | Set `blockedByIssueIds` on create or PATCH. The server fires `issue_blockers_resolved` automatically. |
+| Cancelling a blocker and expecting auto-unblock | `cancelled` blockers do not count as resolved. Dependents stay blocked. | Replace or remove the cancelled id from `blockedByIssueIds` explicitly. |
+| Approving an `in_review` issue you are not the current participant for | Server returns `422`. | Inspect `executionState.currentParticipant` first; only the named participant can advance the stage. |
+| Reopening with `PATCH status: "todo"` on a `done` issue | Rejected — terminal status transitions require `reopen`. | Send `PATCH { reopen: true, comment: "…" }`. Use a different status only if you need to override the default `todo`. |
+| Forgetting `X-Paperclip-Run-Id` on agent updates | Server rejects the mutation as a checkout-ownership violation. | Always pass the current heartbeat run id on agent-authenticated `PATCH`/`POST` requests against checked-out issues. |

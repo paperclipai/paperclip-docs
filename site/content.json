@@ -73,7 +73,17 @@
       "icon": "wrench",
       "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",
       "pages": [
-        { "title": "Debug a Stuck Heartbeat", "file": "../docs/how-to/debug-stuck-heartbeat.md" }
+        { "title": "Set a Monthly Budget",               "file": "../docs/how-to/set-monthly-budget.md" },
+        { "title": "Create a Daily Routine",             "file": "../docs/how-to/create-a-daily-routine.md" },
+        { "title": "Connect an Agent to GitHub",         "file": "../docs/how-to/connect-agent-to-github.md" },
+        { "title": "Add an MCP Server to an Agent",      "file": "../docs/how-to/add-mcp-server-to-agent.md" },
+        { "title": "Write a Company Skill",              "file": "../docs/how-to/write-a-company-skill.md" },
+        { "title": "Bring Your Own Agent",               "file": "../docs/how-to/bring-your-own-agent.md" },
+        { "title": "Deploy to a VPS or Fly.io",          "file": "../docs/how-to/deploy-to-vps-or-fly.md" },
+        { "title": "Back Up and Restore a Company",     "file": "../docs/how-to/back-up-and-restore-a-company.md" },
+        { "title": "Debug a Stuck Heartbeat",            "file": "../docs/how-to/debug-stuck-heartbeat.md" },
+        { "title": "Handle Board Approvals for Hires",   "file": "../docs/how-to/handle-board-approvals-for-hires.md" },
+        { "title": "Wire Slack/Discord Notifications",   "file": "../docs/how-to/wire-slack-discord-notifications.md" }
       ]
     },
     {
