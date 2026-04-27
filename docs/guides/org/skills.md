@@ -180,6 +180,20 @@ You can also scan and import skills from project workspaces when you already hav
 
 ---
 
+## Working with skills programmatically
+
+Most of the time you will manage skills from the UI, but the same operations are available as REST endpoints when you want to script onboarding or reproduce a known agent setup from another company.
+
+- **List the skills attached to an agent**: `GET /api/agents/{agentId}/skills`
+- **Sync the attached set**: `POST /api/agents/{agentId}/skills/sync` with `{ "skillKeys": [...] }` (or `skillIds`). The server reconciles attachments to match — adding any missing and removing any not in the list.
+- **Provision skills at hire time**: pass `desiredSkills` on `POST /api/companies/{companyId}/agents` so the agent comes online with the right set already attached.
+
+The skills must already be installed at the company level before you can attach them. See the agents API reference for the full request/response shapes:
+
+[Agents API → Skills](../../reference/api/agents.md#skills)
+
+---
+
 ## You're set
 
 Skills give your agents reliable, reusable procedures that improve consistency and reduce cost. The next guide covers export and import — how to back up, share, and reuse company configurations.
