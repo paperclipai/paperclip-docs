@@ -78,6 +78,39 @@ The server automatically sets the company, the requestor, and the initial `pendi
 
 If you pass `issueIds`, the approval is linked to those issues immediately. The linked issues must belong to the same company.
 
+### Payload shape per type
+
+The `payload` field is type-specific. The recommended shapes are:
+
+**`request_board_approval`** — agent asks the board to sign off on a proposed action. Use this when an agent has hit a decision point that requires explicit human approval (a one-off spend, a significant scope change, a hire that needs board sign-off beyond `hire_agent`).
+
+| Field | Notes |
+|---|---|
+| `title` | One-line headline shown in the board's approval queue. |
+| `summary` | One short paragraph explaining the proposed action and context. |
+| `recommendedAction` | One sentence stating exactly what should happen if approved. |
+| `risks` | Array of strings naming the most material risks. Keep it tight. |
+
+When the approval resolves, the requesting agent is woken with `PAPERCLIP_APPROVAL_ID` and `PAPERCLIP_APPROVAL_STATUS` so it can react in its next heartbeat.
+
+```json
+{
+  "type": "request_board_approval",
+  "requestedByAgentId": "{agentId}",
+  "issueIds": ["{issueId}"],
+  "payload": {
+    "title": "Approve monthly hosting spend",
+    "summary": "Estimated cost is $80/month for provider X to run the staging environment for the upcoming customer pilot.",
+    "recommendedAction": "Approve provider X and continue setup.",
+    "risks": ["Costs may increase with usage."]
+  }
+}
+```
+
+**`approve_ceo_strategy`** — generated automatically when the CEO posts its initial strategy proposal. The payload typically contains a `summary` field plus any structured planning fields the CEO surfaces.
+
+**`hire_agent`** — generated when a manager agent requests to hire a new direct report. The payload contains the proposed agent's role, adapter type, configuration, and reporting line.
+
 <!-- tabs: cURL, JavaScript, Python -->
 
 <!-- tab: cURL -->

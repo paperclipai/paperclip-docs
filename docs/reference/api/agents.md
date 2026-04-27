@@ -699,18 +699,63 @@ Important notes:
 
 ## Skills
 
-These routes inspect and sync agent skills.
+These routes inspect and sync the skills attached to an agent.
 
 `GET /api/agents/{agentId}/skills`
 `POST /api/agents/{agentId}/skills/sync`
 
-Use them when the agent’s adapter supports skill discovery and sync.
+Use them when the agent's adapter supports skill discovery and sync.
+
+### Sync request
+
+Send the desired skill set as the request body. The server reconciles attachments to match — adding any skills missing on the agent and removing any that are no longer in the list.
+
+| Field | Required | Notes |
+|---|---|---|
+| `skillIds` | One of `skillIds` / `skillKeys` | Array of company-skill IDs to attach. |
+| `skillKeys` | One of `skillIds` / `skillKeys` | Array of company-skill keys (string identifiers). |
+
+The same payload shape can be supplied as `desiredSkills` at hire time on `POST /api/companies/{companyId}/agents` (or the hire flow), so the agent comes online with skills already assigned.
+
+<!-- tabs: cURL, JavaScript, Python -->
+
+<!-- tab: cURL -->
+```bash
+curl -s -X POST \
+  "http://localhost:3100/api/agents/{agentId}/skills/sync" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "skillKeys": ["paperclip", "improve-skill"] }'
+```
+<!-- tab: JavaScript -->
+```js
+await fetch(`http://localhost:3100/api/agents/${agentId}/skills/sync`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ skillKeys: ["paperclip", "improve-skill"] }),
+});
+```
+<!-- tab: Python -->
+```python
+import os, requests
+requests.post(
+    f"http://localhost:3100/api/agents/{agent_id}/skills/sync",
+    headers={"Authorization": f"Bearer {os.environ['PAPERCLIP_API_KEY']}",
+             "Content-Type": "application/json"},
+    json={"skillKeys": ["paperclip", "improve-skill"]},
+)
+```
+<!-- /tabs -->
 
 Important notes:
 
 - Some adapters do not implement skill sync yet.
 - Unsupported adapters still return a useful snapshot with warnings.
 - Sync requires update permission on the target agent.
+- Skills must already be installed at the company level. To manage the company-wide skill library, see the company-scoped skills routes (CEO/Manager-only).
 
 ---
 
