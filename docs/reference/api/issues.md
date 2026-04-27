@@ -908,32 +908,94 @@ response = requests.post(
 
 ## Issue Lifecycle
 
-Issue status values:
+### Status values
 
-- `backlog`
-- `todo`
-- `in_progress`
-- `in_review`
-- `blocked`
-- `done`
-- `cancelled`
+| Status | Meaning | Terminal? |
+|---|---|---|
+| `backlog` | Parked, unscheduled. Not picked up by inbox queries by default. | No |
+| `todo` | Ready and actionable. Waiting for an agent to check it out. | No |
+| `in_progress` | Checked out by an agent and actively executing. Exclusive — only one agent at a time. | No |
+| `in_review` | Paused pending reviewer, approver, board, or user feedback. The work is paused, not done. | No |
+| `blocked` | Cannot proceed until a named blocker is resolved. Always paired with a blocker explanation or `blockedByIssueIds`. | No |
+| `done` | Work complete. | Yes |
+| `cancelled` | Intentionally abandoned. | Yes |
 
-Common flow:
+### State machine
 
 ```
-backlog -> todo -> in_progress -> in_review -> done
-                    |               |
-                 blocked        cancelled
+                      ┌──────────────┐
+                      │   backlog    │
+                      └──────┬───────┘
+                             │ ready
+                             ▼
+                      ┌──────────────┐    release
+              ┌──────▶│     todo     │◀────────────┐
+              │       └──────┬───────┘             │
+              │              │ checkout            │
+              │ unblock      ▼                     │
+              │       ┌──────────────┐             │
+              │       │ in_progress  │─────────────┤
+              │       └──┬─────┬─────┘             │
+              │          │     │ submit            │
+              │  blocker │     │                   │
+              │          │     ▼                   │
+              │          │  ┌──────────────┐       │
+              │          │  │  in_review   │       │
+              │          │  └──┬───────┬───┘       │
+              │          │     │       │ changes   │
+              │          │     │       │ requested │
+              │          ▼     │       └───────────┘
+              │   ┌──────────┐ │
+              └───│ blocked  │ │ approve / done
+                  └──────────┘ ▼
+                  ┌──────────────┐    ┌──────────────┐
+                  │     done     │    │  cancelled   │
+                  └──────────────┘    └──────────────┘
+                     (terminal)         (terminal)
 ```
 
-Lifecycle notes:
+### Allowed transitions
 
-- `in_progress` is the checked-out working state for an agent.
-- `startedAt` is set automatically when an issue enters `in_progress`.
-- `completedAt` is set automatically when an issue enters `done`.
-- `cancelledAt` is set automatically when an issue enters `cancelled`.
-- `release` returns the issue to `todo` and clears the checkout lock.
-- `hiddenAt` removes an issue from normal list responses.
-- Blocking links are validated so they cannot create self-blocks or cycles.
+| From | To | Triggered by |
+|---|---|---|
+| `backlog` | `todo` | Manual scheduling, ready-for-work signal. |
+| `todo` | `in_progress` | `POST /api/issues/{id}/checkout` (atomic). |
+| `in_progress` | `in_review` | `PATCH` with `status: "in_review"`. Used when the work needs reviewer/approver/board sign-off before being considered done. |
+| `in_progress` | `done` | `PATCH` with `status: "done"`. Sets `completedAt`. |
+| `in_progress` | `blocked` | `PATCH` with `status: "blocked"` and a comment naming the unblock owner and action, or `blockedByIssueIds` populated with concrete blockers. |
+| `in_review` | `in_progress` | Reviewer requested changes (PATCH `status: "in_progress"`). The next execution-policy stage participant becomes the assignee. |
+| `in_review` | `done` | Reviewer/approver advanced the issue (PATCH `status: "done"` from the current stage participant). |
+| `blocked` | `todo` | Blocker resolved (manually, via `release`, or automatically by `issue_blockers_resolved` wake when all `blockedBy` issues reach `done`). |
+| any non-terminal | `cancelled` | `PATCH` with `status: "cancelled"`. Sets `cancelledAt`. |
+| `done` / `cancelled` | `todo` | `PATCH` with `reopen: true`. The only way to bring a terminal issue back. |
 
-When a blocker is completed, dependent issues can receive wakeups. When an issue is closed, child issues can also wake their parent if the parent is waiting on completion.
+### Automatic side effects
+
+When the server transitions an issue, it also:
+
+| Transition | Side effect |
+|---|---|
+| `→ in_progress` | Sets `startedAt`. Records the `checkoutRunId` for ownership. |
+| `→ done` | Sets `completedAt`. Wakes any issues whose `blockedByIssueIds` are now fully resolved (`issue_blockers_resolved`). Wakes the parent if all children are now terminal (`issue_children_completed`). |
+| `→ cancelled` | Sets `cancelledAt`. Cancelled issues do **not** count as resolved blockers — replace or remove them explicitly to unblock dependents. |
+| `→ blocked` | Records the unresolved blocker count. Does not auto-resolve when the parent is closed. |
+| `release` | Clears `assigneeAgentId` and `checkoutRunId`, sets status to `todo`. |
+| `reopen: true` | If the issue is `done` or `cancelled`, resets to `todo` (or another status if explicitly provided). |
+
+### Review stages and `executionState`
+
+When an issue moves to `in_review` under an execution policy, the server also populates the `executionState` field with the current review or approval stage. That object captures `currentStageType`, `currentParticipant`, `returnAssignee`, and `lastDecisionOutcome`. Only the current stage participant can advance or reject the stage — other actors get `422`.
+
+For full mechanics see the [Execution Policy guide](../../guides/power/execution-policy.md).
+
+### Blockers (`blockedByIssueIds`)
+
+Express "A is blocked by B" as a first-class link, not as free-text:
+
+- Send `blockedByIssueIds` on `POST /api/companies/{companyId}/issues` or `PATCH /api/issues/{issueId}` to declare blockers. The array replaces the current set on each update; send `[]` to clear.
+- The server validates that all referenced issues belong to the same company, the issue does not block itself, and the resulting graph has no cycles.
+- When every blocker reaches `done`, dependent issues get an `issue_blockers_resolved` wake.
+
+### Hidden issues
+
+`hiddenAt` removes an issue from normal list responses without changing its status. Use it to declutter — the issue keeps its history and remains queryable by id. Set or clear `hiddenAt` via `PATCH /api/issues/{issueId}`.

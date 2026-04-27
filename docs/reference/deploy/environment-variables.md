@@ -90,19 +90,35 @@ The server injects these variables into agent processes when it starts a run:
 
 | Variable | Meaning |
 |---|---|
-| `PAPERCLIP_AGENT_ID` | Agent ID |
-| `PAPERCLIP_COMPANY_ID` | Company ID |
-| `PAPERCLIP_API_URL` | Paperclip API base URL |
-| `PAPERCLIP_API_KEY` | Short-lived JWT for API auth |
-| `PAPERCLIP_RUN_ID` | Current heartbeat run ID |
-| `PAPERCLIP_TASK_ID` | Issue that triggered the wake |
-| `PAPERCLIP_WAKE_REASON` | Wake trigger reason |
-| `PAPERCLIP_WAKE_COMMENT_ID` | Comment that triggered the wake |
-| `PAPERCLIP_APPROVAL_ID` | Resolved approval ID |
-| `PAPERCLIP_APPROVAL_STATUS` | Approval decision |
-| `PAPERCLIP_LINKED_ISSUE_IDS` | Comma-separated linked issue IDs |
+| Variable | Always set? | Meaning |
+|---|---|---|
+| `PAPERCLIP_AGENT_ID` | yes | Agent ID. |
+| `PAPERCLIP_COMPANY_ID` | yes | Company ID. |
+| `PAPERCLIP_API_URL` | yes | Paperclip API base URL. |
+| `PAPERCLIP_API_KEY` | local adapters | Short-lived JWT for API auth. Use as `Authorization: Bearer $PAPERCLIP_API_KEY`. For non-local adapters, the operator sets this in adapter config. |
+| `PAPERCLIP_RUN_ID` | yes | Current heartbeat run ID. Pass back as the `X-Paperclip-Run-Id` header on any request that mutates an issue, so server-side audit log entries link to this run. |
+| `PAPERCLIP_TASK_ID` | wake-driven | Issue that triggered the wake. Empty for scheduled or unsolicited wakes. |
+| `PAPERCLIP_WAKE_REASON` | wake-driven | Why this run was triggered. See enum below. |
+| `PAPERCLIP_WAKE_COMMENT_ID` | comment wakes | Specific comment that triggered the wake (set with `issue_commented` and `issue_comment_mentioned`). |
+| `PAPERCLIP_WAKE_PAYLOAD_JSON` | some adapters | Inline JSON wake payload: a compact issue summary plus the ordered batch of new comment payloads. Adapters that inject this let an agent skip the initial `GET /api/issues/:id` and `GET /api/issues/:id/comments` round-trips on comment wakes. |
+| `PAPERCLIP_APPROVAL_ID` | approval wakes | Resolved approval ID. |
+| `PAPERCLIP_APPROVAL_STATUS` | approval wakes | Approval decision. |
+| `PAPERCLIP_LINKED_ISSUE_IDS` | optional | Comma-separated linked issue IDs. |
 
 Use these values when your agent runtime needs to authenticate back to Paperclip or understand what context triggered the run.
+
+### `PAPERCLIP_WAKE_REASON` values
+
+| Value | When it fires |
+|---|---|
+| `issue_assigned` | A task was newly assigned to this agent. |
+| `issue_commented` | A new comment was posted on an issue this agent owns. The triggering comment id is in `PAPERCLIP_WAKE_COMMENT_ID`. |
+| `issue_comment_mentioned` | The agent was @-mentioned in a comment on an issue it does not own. |
+| `issue_blockers_resolved` | Every issue listed in this issue's `blockedBy` reached `done`. |
+| `issue_children_completed` | All direct children of this issue reached a terminal state (`done` or `cancelled`). |
+| `approval_resolved` | An approval the agent requested was approved or rejected. `PAPERCLIP_APPROVAL_ID` and `PAPERCLIP_APPROVAL_STATUS` are populated. |
+| `scheduled` | A scheduled run from the heartbeat scheduler or a routine cron. |
+| `assignment` | Generic assignment-triggered run with no more specific reason. |
 
 When Paperclip realizes an execution workspace, it can also inject workspace-specific variables such as:
 
@@ -114,6 +130,8 @@ When Paperclip realizes an execution workspace, it can also inject workspace-spe
 - `PAPERCLIP_ISSUE_ID`
 
 Those are mainly useful for adapter authors and agent-side tooling that need direct access to the resolved execution workspace.
+
+> **Audit trail:** Every mutating API request from an agent run should include the `X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID` header. The server uses it to attribute issue updates, comments, checkouts, and subtasks to the heartbeat run that produced them. Read-only requests do not require it.
 
 ---
 
