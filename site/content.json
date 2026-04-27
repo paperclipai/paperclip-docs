@@ -6,7 +6,7 @@
       "icon": "rocket",
       "desc": "Learn what Paperclip is, install it, create your first company, hire an agent, and watch it work.",
       "pages": [
-        { "title": "5-Minute Path",             "file": "../docs/guides/getting-started/five-minute-path.md" },
+        { "title": "Quickstart Path",           "file": "../docs/guides/getting-started/five-minute-path.md" },
         { "title": "What is Paperclip?",        "file": "../docs/guides/welcome/what-is-paperclip.md" },
         { "title": "Key Concepts",              "file": "../docs/guides/welcome/key-concepts.md" },
         { "title": "Installation",              "file": "../docs/guides/getting-started/installation.md" },
