@@ -107,7 +107,8 @@
       "pages": [
         { "title": "Overview",               "file": "../docs/reference/cli/overview.md" },
         { "title": "Setup Commands",         "file": "../docs/reference/cli/setup-commands.md" },
-        { "title": "Control-Plane Commands", "file": "../docs/reference/cli/control-plane-commands.md" }
+        { "title": "Control-Plane Commands", "file": "../docs/reference/cli/control-plane-commands.md" },
+        { "title": "Command Reference",      "file": "../docs/reference/cli/commands.md" }
       ]
     },
     {

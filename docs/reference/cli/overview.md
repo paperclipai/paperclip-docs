@@ -18,7 +18,7 @@ The CLI is split into two practical layers:
 1. [Setup commands](./setup-commands.md) handle onboarding, diagnostics, and local instance configuration.
 2. [Control-plane commands](./control-plane-commands.md) handle companies, issues, agents, approvals, activity, dashboards, and heartbeats.
 
-> **Tip:** If you are starting from scratch, read the setup section first. If Paperclip is already running and you just want to manage work, jump straight to the control-plane section.
+> **Tip:** If you are starting from scratch, read the setup section first. If Paperclip is already running and you just want to manage work, jump straight to the control-plane section. If you already know the command and just need a flag, the [Command Reference](./commands.md) covers every subcommand and option in one searchable page.
 
 ---
 
@@ -84,4 +84,5 @@ If you already have a running instance, use the control-plane commands instead o
 
 - [Setup Commands](./setup-commands.md) for onboarding, repair, and local configuration
 - [Control-Plane Commands](./control-plane-commands.md) for company operations from the terminal
+- [Command Reference](./commands.md) for the full list of commands, flags, and environment variables
 - [Deployment Overview](../deploy/overview.md) if you need to choose between local, private, and public deployment modes
