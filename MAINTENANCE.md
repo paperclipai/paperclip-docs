@@ -7,7 +7,7 @@ Operational notes for maintainers of the Paperclip docs site. Reader-facing inst
 ```
 site/                    # Static site shell + release builder
 ├── index.html           # Main SPA (routing, rendering, TOC, search)
-├── content.json            # Section/page manifest — source of truth for sidebar & landing (titles, icons, descriptions, pages)
+├── content.json         # Section/page manifest — source of truth for sidebar & landing (titles, icons, descriptions, pages)
 └── build-release.mjs    # Produces a standalone bundle in .site/
 docs/                    # Markdown content only
 ├── user-guides/         # Guide pages + screenshots/{light,dark}
@@ -19,6 +19,7 @@ docs/                    # Markdown content only
 scripts/
 └── publish-gh-pages.sh  # Builds and pushes to the gh-pages branch
 .github/ISSUE_TEMPLATE/   # Support / bug / docs-feedback templates
+.site/                    # Generated release output (ignored by git)
 ```
 
 ## Commands
