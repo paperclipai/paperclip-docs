@@ -2,7 +2,7 @@
 
 Source for the [Paperclip](https://github.com/paperclipai/paperclip) documentation site — user guides, API and CLI reference, adapter docs, and deployment notes.
 
-**Read the docs:** https://aronprins.github.io/paperclip-docs/
+**Read the docs:** https://docs.paperclip.ing/
 
 ## What's inside
 

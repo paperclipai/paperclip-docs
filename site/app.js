@@ -770,7 +770,7 @@ async function loadPage(file, targetHeading = null, historyMode = 'push') {
   }
 }
 
-const DOCS_REPO_SLUG = 'aronprins/paperclip-docs';
+const DOCS_REPO_SLUG = 'paperclipai/paperclip-docs';
 const DOCS_REPO_BRANCH = 'main';
 
 function appendPageFeedback(article, page, file) {

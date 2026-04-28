@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "docs:build": "node site/build-release.mjs --base-path /paperclip-docs/ --out-dir .site",
+    "docs:build": "node site/build-release.mjs --base-path / --out-dir .site",
+    "docs:build:github-subpath": "node site/build-release.mjs --base-path /paperclip-docs/ --out-dir .site",
     "docs:build:auto": "node site/build-release.mjs --base-path auto --out-dir .site",
     "docs:serve": "python3 -m http.server 4321 --directory .site",
     "docs:publish": "./scripts/publish-gh-pages.sh"

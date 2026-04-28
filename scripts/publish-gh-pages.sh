@@ -6,6 +6,8 @@ tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/paperclip-docs-publish.XXXXXX")"
 publish_clone="$tmp_root/publish"
 site_dir="$tmp_root/site"
 origin_url="$(git -C "$repo_root" remote get-url origin)"
+pages_base_path="${PAGES_BASE_PATH:-/}"
+pages_custom_domain="${PAGES_CUSTOM_DOMAIN:-docs.paperclip.ing}"
 
 cleanup() {
   rm -rf "$tmp_root"
@@ -14,8 +16,11 @@ trap cleanup EXIT
 
 cd "$repo_root"
 
-node site/build-release.mjs --base-path /paperclip-docs/ --out-dir "$site_dir"
+node site/build-release.mjs --base-path "$pages_base_path" --out-dir "$site_dir"
 touch "$site_dir/.nojekyll"
+if [[ -n "$pages_custom_domain" ]]; then
+  printf '%s\n' "$pages_custom_domain" > "$site_dir/CNAME"
+fi
 
 git clone "$origin_url" "$publish_clone" >/dev/null 2>&1
 cd "$publish_clone"
@@ -38,9 +43,9 @@ if git diff --cached --quiet; then
   exit 0
 fi
 
-git config user.name "aronprins"
-git config user.email "aronprins@users.noreply.github.com"
-git commit -m "Publish docs site"
-git push -u origin gh-pages
+git config user.name "Paperclip"
+git config user.email "noreply@paperclip.ing"
+git commit -m "Publish docs site" -m "Co-Authored-By: Paperclip <noreply@paperclip.ing>"
+git -c http.version=HTTP/1.1 -c http.postBuffer=524288000 push --no-thin -u origin gh-pages
 
 echo "Published docs site to origin/gh-pages."

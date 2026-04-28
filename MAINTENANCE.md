@@ -24,7 +24,7 @@ scripts/
 ## Commands
 
 ```sh
-# Build the static site into .site/ using the GitHub Pages base path
+# Build the static site into .site/ using the production custom-domain base path
 npm run docs:build
 
 # Build with auto base-path detection (useful when serving from the repo root locally)
@@ -41,7 +41,8 @@ npm run docs:publish
 
 `build-release.mjs` accepts `--base-path <path|auto>`:
 
-- **GitHub Pages** — use `/paperclip-docs/` (the default in `docs:build`).
+- **Production custom domain** — use `/` (the default in `docs:build` and `docs:publish`) for `https://docs.paperclip.ing/`.
+- **GitHub Pages repo subpath preview** — use `/paperclip-docs/` via `npm run docs:build:github-subpath`.
 - **Local preview** — use `auto` (`docs:build:auto`). Paths resolve relative to `index.html`, so the site works under any prefix (or none).
 - **Self-hosting under a different prefix** — pass an explicit path, e.g. `--base-path /docs/`.
 
@@ -79,8 +80,8 @@ Store UI captures under `docs/user-guides/screenshots/{light,dark}/<name>.png`. 
 
 Every article ends with "Suggest an edit" and "Report an issue" links. These are generated in `loadPage()` in `site/index.html` and point at:
 
-- `github.com/aronprins/paperclip-docs/edit/main/<path>` — GitHub web editor.
-- `github.com/aronprins/paperclip-docs/issues/new?template=03-docs-feedback.yml&...` — prefilled docs-feedback issue.
+- `github.com/paperclipai/paperclip-docs/edit/main/<path>` — GitHub web editor.
+- `github.com/paperclipai/paperclip-docs/issues/new?template=03-docs-feedback.yml&...` — prefilled docs-feedback issue.
 
 If the repo is ever renamed or mirrored, update `DOCS_REPO_SLUG` / `DOCS_REPO_BRANCH` constants near the top of `appendPageFeedback()`.
 
@@ -95,3 +96,5 @@ If the repo is ever renamed or mirrored, update `DOCS_REPO_SLUG` / `DOCS_REPO_BR
 ## Publishing
 
 `scripts/publish-gh-pages.sh` clones the repo into a tempdir, checks out (or creates) `gh-pages`, replaces its contents with a fresh build, commits, and pushes. It leaves the working tree untouched, so it's safe to run with uncommitted changes. A `.nojekyll` marker is added so GitHub Pages serves files whose names start with `_`.
+
+By default, the publish script builds for `https://docs.paperclip.ing/` and writes a `CNAME` file containing `docs.paperclip.ing`. Override with `PAGES_BASE_PATH=/paperclip-docs/ PAGES_CUSTOM_DOMAIN= npm run docs:publish` only when intentionally publishing a GitHub Pages subpath preview without the custom domain.
