@@ -1,0 +1,468 @@
+{
+  "sections": [
+    {
+      "tier": "Learn",
+      "title": "Quickstart",
+      "icon": "rocket",
+      "desc": "Learn what Paperclip is, install it, create your first company, hire an agent, and watch it work.",
+      "pages": [
+        {
+          "title": "Quickstart Path",
+          "file": "guides/getting-started/five-minute-path.md"
+        },
+        {
+          "title": "What is Paperclip?",
+          "file": "guides/welcome/what-is-paperclip.md"
+        },
+        {
+          "title": "Key Concepts",
+          "file": "guides/welcome/key-concepts.md"
+        },
+        {
+          "title": "Installation",
+          "file": "guides/getting-started/installation.md"
+        },
+        {
+          "title": "Create Your First Company",
+          "file": "guides/getting-started/your-first-company.md"
+        },
+        {
+          "title": "Hire Your First Agent",
+          "file": "guides/getting-started/your-first-agent.md"
+        },
+        {
+          "title": "Watching Agents Work",
+          "file": "guides/getting-started/watching-agents-work.md"
+        },
+        {
+          "title": "Glossary",
+          "file": "guides/welcome/glossary.md"
+        }
+      ]
+    },
+    {
+      "tier": "Learn",
+      "title": "Working Day-to-day",
+      "icon": "layout-dashboard",
+      "desc": "Day-to-day operation: dashboard, tasks, approvals, budgets, and the activity log.",
+      "pages": [
+        {
+          "title": "The Dashboard",
+          "file": "guides/day-to-day/dashboard.md"
+        },
+        {
+          "title": "Issues",
+          "file": "guides/day-to-day/issues.md"
+        },
+        {
+          "title": "Approvals",
+          "file": "guides/day-to-day/approvals.md"
+        },
+        {
+          "title": "Costs & Budgets",
+          "file": "guides/day-to-day/costs.md"
+        },
+        {
+          "title": "Activity Log",
+          "file": "guides/day-to-day/activity-log.md"
+        },
+        {
+          "title": "Feedback & Voting",
+          "file": "guides/day-to-day/feedback-voting.md"
+        }
+      ]
+    },
+    {
+      "tier": "Learn",
+      "title": "Your Org & Agents",
+      "icon": "network",
+      "desc": "Shape the org chart, set up delegation paths, and pick adapters for your agents.",
+      "pages": [
+        {
+          "title": "Agents",
+          "file": "guides/org/agents.md"
+        },
+        {
+          "title": "Skills",
+          "file": "guides/org/skills.md"
+        },
+        {
+          "title": "Org Structure",
+          "file": "guides/org/org-structure.md"
+        },
+        {
+          "title": "Delegation",
+          "file": "guides/org/delegation.md"
+        },
+        {
+          "title": "Agent Adapters",
+          "file": "guides/org/agent-adapters.md"
+        },
+        {
+          "title": "Adapter Manager",
+          "file": "guides/org/adapters.md"
+        }
+      ]
+    },
+    {
+      "tier": "Learn",
+      "title": "Projects & Workflow",
+      "icon": "kanban-square",
+      "desc": "Projects, goals, routines, and execution workspaces.",
+      "pages": [
+        {
+          "title": "Projects",
+          "file": "guides/projects-workflow/projects.md"
+        },
+        {
+          "title": "Goals",
+          "file": "guides/projects-workflow/goals.md"
+        },
+        {
+          "title": "Heartbeats & Routines",
+          "file": "guides/projects-workflow/routines.md"
+        },
+        {
+          "title": "Heartbeats vs. Loops",
+          "file": "guides/projects-workflow/heartbeats-vs-loops.md"
+        },
+        {
+          "title": "Execution Workspaces",
+          "file": "guides/projects-workflow/workspaces.md"
+        }
+      ]
+    },
+    {
+      "tier": "Learn",
+      "title": "Power Features",
+      "icon": "settings-2",
+      "desc": "Execution policies, export/import, and terminal setup for power users.",
+      "pages": [
+        {
+          "title": "Execution Policy",
+          "file": "guides/power/execution-policy.md"
+        },
+        {
+          "title": "Export & Import",
+          "file": "guides/power/export-import.md"
+        },
+        {
+          "title": "Terminal Setup",
+          "file": "guides/power/terminal-setup.md"
+        }
+      ]
+    },
+    {
+      "tier": "Learn",
+      "title": "Explanations",
+      "icon": "lightbulb",
+      "desc": "Discursive deep-dives on the ideas behind Paperclip — for the curious.",
+      "pages": [
+        {
+          "title": "Org Charts as Coordination Primitives",
+          "file": "explanations/org-charts-coordination-primitives.md"
+        },
+        {
+          "title": "Multi-Company Architecture",
+          "file": "explanations/multi-company-architecture.md"
+        },
+        {
+          "title": "Governance by Default",
+          "file": "explanations/governance-by-default.md"
+        },
+        {
+          "title": "Tickets as the Universal Contract",
+          "file": "explanations/tickets-as-universal-contract.md"
+        }
+      ]
+    },
+    {
+      "tier": "Learn",
+      "title": "How-to Guides",
+      "icon": "wrench",
+      "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",
+      "pages": [
+        {
+          "title": "Set a Monthly Budget",
+          "file": "how-to/set-monthly-budget.md"
+        },
+        {
+          "title": "Require Board Approval Before Spend",
+          "file": "how-to/require-board-approval-before-spend.md"
+        },
+        {
+          "title": "Create a Daily Routine",
+          "file": "how-to/create-a-daily-routine.md"
+        },
+        {
+          "title": "Connect an Agent to GitHub",
+          "file": "how-to/connect-agent-to-github.md"
+        },
+        {
+          "title": "Add an MCP Server to an Agent",
+          "file": "how-to/add-mcp-server-to-agent.md"
+        },
+        {
+          "title": "Write a Company Skill",
+          "file": "how-to/write-a-company-skill.md"
+        },
+        {
+          "title": "Bring Your Own Agent",
+          "file": "how-to/bring-your-own-agent.md"
+        },
+        {
+          "title": "Deploy to a VPS or Fly.io",
+          "file": "how-to/deploy-to-vps-or-fly.md"
+        },
+        {
+          "title": "Back Up and Restore a Company",
+          "file": "how-to/back-up-and-restore-a-company.md"
+        },
+        {
+          "title": "Debug a Stuck Heartbeat",
+          "file": "how-to/debug-stuck-heartbeat.md"
+        },
+        {
+          "title": "Handle Board Approvals for Hires",
+          "file": "how-to/handle-board-approvals-for-hires.md"
+        },
+        {
+          "title": "Wire Slack/Discord Notifications",
+          "file": "how-to/wire-slack-discord-notifications.md"
+        }
+      ]
+    },
+    {
+      "tier": "Learn",
+      "title": "Administration",
+      "icon": "shield",
+      "desc": "Company settings, instance configuration, plugins, and CLI auth — for operators and admins.",
+      "pages": [
+        {
+          "title": "Company",
+          "file": "administration/company.md"
+        },
+        {
+          "title": "Settings",
+          "file": "administration/settings.md"
+        },
+        {
+          "title": "Plugins",
+          "file": "administration/plugins.md"
+        },
+        {
+          "title": "CLI Auth",
+          "file": "administration/cli-auth.md"
+        }
+      ]
+    },
+    {
+      "tier": "Reference",
+      "title": "API",
+      "icon": "braces",
+      "desc": "Every endpoint on the control plane: companies, agents, issues, approvals, costs.",
+      "pages": [
+        {
+          "title": "Overview",
+          "file": "reference/api/overview.md"
+        },
+        {
+          "title": "Authentication",
+          "file": "reference/api/authentication.md"
+        },
+        {
+          "title": "Companies",
+          "file": "reference/api/companies.md"
+        },
+        {
+          "title": "Agents",
+          "file": "reference/api/agents.md"
+        },
+        {
+          "title": "Issues",
+          "file": "reference/api/issues.md"
+        },
+        {
+          "title": "Approvals",
+          "file": "reference/api/approvals.md"
+        },
+        {
+          "title": "Goals & Projects",
+          "file": "reference/api/goals-and-projects.md"
+        },
+        {
+          "title": "Execution Workspaces",
+          "file": "reference/api/execution-workspaces.md"
+        },
+        {
+          "title": "Skills",
+          "file": "reference/api/skills.md"
+        },
+        {
+          "title": "Costs",
+          "file": "reference/api/costs.md"
+        },
+        {
+          "title": "Secrets",
+          "file": "reference/api/secrets.md"
+        },
+        {
+          "title": "Activity",
+          "file": "reference/api/activity.md"
+        },
+        {
+          "title": "Dashboard",
+          "file": "reference/api/dashboard.md"
+        },
+        {
+          "title": "Routines",
+          "file": "reference/api/routines.md"
+        }
+      ]
+    },
+    {
+      "tier": "Reference",
+      "title": "CLI",
+      "icon": "terminal",
+      "desc": "Command-line reference for local setup and talking to the control plane.",
+      "pages": [
+        {
+          "title": "Overview",
+          "file": "reference/cli/overview.md"
+        },
+        {
+          "title": "Setup Commands",
+          "file": "reference/cli/setup-commands.md"
+        },
+        {
+          "title": "Control-Plane Commands",
+          "file": "reference/cli/control-plane-commands.md"
+        },
+        {
+          "title": "Command Reference",
+          "file": "reference/cli/commands.md"
+        }
+      ]
+    },
+    {
+      "tier": "Reference",
+      "title": "Skills",
+      "icon": "book-open",
+      "desc": "Skill file shape, install pipeline, scoping, versioning, and troubleshooting.",
+      "pages": [
+        {
+          "title": "Skills Reference",
+          "file": "reference/skills.md"
+        }
+      ]
+    },
+    {
+      "tier": "Reference",
+      "title": "Adapters",
+      "icon": "plug",
+      "desc": "Connect any agent runtime — Claude, Codex, Gemini, or your own HTTP service.",
+      "pages": [
+        {
+          "title": "Overview",
+          "file": "reference/adapters/overview.md"
+        },
+        {
+          "title": "Claude Local",
+          "file": "reference/adapters/claude-local.md"
+        },
+        {
+          "title": "Codex Local",
+          "file": "reference/adapters/codex-local.md"
+        },
+        {
+          "title": "Gemini Local",
+          "file": "reference/adapters/gemini-local.md"
+        },
+        {
+          "title": "Cursor Local",
+          "file": "reference/adapters/cursor-local.md"
+        },
+        {
+          "title": "OpenCode Local",
+          "file": "reference/adapters/opencode-local.md"
+        },
+        {
+          "title": "Pi Local",
+          "file": "reference/adapters/pi-local.md"
+        },
+        {
+          "title": "Hermes Local",
+          "file": "reference/adapters/hermes-local.md"
+        },
+        {
+          "title": "OpenClaw Gateway",
+          "file": "reference/adapters/openclaw-gateway.md"
+        },
+        {
+          "title": "Process",
+          "file": "reference/adapters/process.md"
+        },
+        {
+          "title": "HTTP",
+          "file": "reference/adapters/http.md"
+        },
+        {
+          "title": "External Adapters",
+          "file": "reference/adapters/external-adapters.md"
+        },
+        {
+          "title": "Creating an Adapter",
+          "file": "reference/adapters/creating-an-adapter.md"
+        },
+        {
+          "title": "UI Parser Contract",
+          "file": "reference/adapters/adapter-ui-parser.md"
+        }
+      ]
+    },
+    {
+      "tier": "Reference",
+      "title": "Deployment",
+      "icon": "cloud",
+      "desc": "Run Paperclip on your laptop, in Docker, or on a server — with secrets and Tailscale.",
+      "pages": [
+        {
+          "title": "Overview",
+          "file": "reference/deploy/overview.md"
+        },
+        {
+          "title": "Deployment Modes",
+          "file": "reference/deploy/deployment-modes.md"
+        },
+        {
+          "title": "Local Development",
+          "file": "reference/deploy/local-development.md"
+        },
+        {
+          "title": "Docker",
+          "file": "reference/deploy/docker.md"
+        },
+        {
+          "title": "Database",
+          "file": "reference/deploy/database.md"
+        },
+        {
+          "title": "Storage",
+          "file": "reference/deploy/storage.md"
+        },
+        {
+          "title": "Secrets",
+          "file": "reference/deploy/secrets.md"
+        },
+        {
+          "title": "Environment Variables & Config",
+          "file": "reference/deploy/environment-variables.md"
+        },
+        {
+          "title": "Tailscale Private Access",
+          "file": "reference/deploy/tailscale-private-access.md"
+        }
+      ]
+    }
+  ]
+}

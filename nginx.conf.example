@@ -1,0 +1,9 @@
+# Paperclip docs static SPA
+# Real files must 404 if missing. Only extensionless routes should fall back to index.html.
+location ~ ^/.*\.[A-Za-z0-9]+$ {
+    try_files $uri =404;
+}
+
+location / {
+    try_files $uri $uri/ /index.html;
+}
