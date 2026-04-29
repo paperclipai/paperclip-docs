@@ -7,6 +7,8 @@
     "docs:build:github-subpath": "node site/build-release.mjs --base-path /paperclip-docs/ --out-dir .site",
     "docs:build:auto": "node site/build-release.mjs --base-path auto --out-dir .site",
     "docs:serve": "python3 -m http.server 4321 --directory .site",
-    "docs:publish": "./scripts/publish-gh-pages.sh"
+    "docs:publish": "npm run docs:publish:cloudflare",
+    "docs:publish:cloudflare": "npm run docs:build && wrangler pages deploy .site --project-name paperclip-docs --branch main",
+    "docs:publish:github": "./scripts/publish-gh-pages.sh"
   }
 }

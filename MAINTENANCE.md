@@ -17,7 +17,8 @@ docs/                    # Markdown content only
 ├── deploy/              # Self-hosting & ops docs
 └── guides/              # Misc long-form guides
 scripts/
-└── publish-gh-pages.sh  # Builds and pushes to the gh-pages branch
+└── publish-gh-pages.sh  # Builds and pushes to the gh-pages branch fallback
+wrangler.jsonc           # Cloudflare Pages project config
 .github/ISSUE_TEMPLATE/   # Support / bug / docs-feedback templates
 ```
 
@@ -33,8 +34,11 @@ npm run docs:build:auto
 # Serve .site/ on http://localhost:4321/
 npm run docs:serve
 
-# Build and push to the gh-pages branch
+# Build and deploy to Cloudflare Pages
 npm run docs:publish
+
+# Build and push to the gh-pages branch fallback
+npm run docs:publish:github
 ```
 
 ## Base paths
@@ -95,6 +99,22 @@ If the repo is ever renamed or mirrored, update `DOCS_REPO_SLUG` / `DOCS_REPO_BR
 
 ## Publishing
 
+Primary publishing uses Cloudflare Pages, matching the rest of the public Paperclip sites:
+
+```sh
+npm run docs:publish
+```
+
+That command builds `.site/` and runs:
+
+```sh
+wrangler pages deploy .site --project-name paperclip-docs --branch main
+```
+
+The Cloudflare Pages project name is `paperclip-docs`; production deploys use branch `main`.
+
+### GitHub Pages fallback
+
 `scripts/publish-gh-pages.sh` clones the repo into a tempdir, checks out (or creates) `gh-pages`, replaces its contents with a fresh build, commits, and pushes. It leaves the working tree untouched, so it's safe to run with uncommitted changes. A `.nojekyll` marker is added so GitHub Pages serves files whose names start with `_`.
 
-By default, the publish script builds for `https://docs.paperclip.ing/` and writes a `CNAME` file containing `docs.paperclip.ing`. Override with `PAGES_BASE_PATH=/paperclip-docs/ PAGES_CUSTOM_DOMAIN= npm run docs:publish` only when intentionally publishing a GitHub Pages subpath preview without the custom domain.
+By default, the publish script builds for `https://docs.paperclip.ing/` and writes a `CNAME` file containing `docs.paperclip.ing`. Override with `PAGES_BASE_PATH=/paperclip-docs/ PAGES_CUSTOM_DOMAIN= npm run docs:publish:github` only when intentionally publishing a GitHub Pages subpath preview without the custom domain.
