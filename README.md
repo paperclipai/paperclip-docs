@@ -30,7 +30,7 @@ For larger changes, fork the repo and open a PR against `main`. Screenshots live
 
 ## License
 
-Copyright (c) 2026 Aron & Sharon ([aronandsharon.com](https://aronandsharon.com)).
+Copyright (c) 2026 Paperclip Community.
 
 The Paperclip **software** is open source — see the main [paperclip](https://github.com/paperclipai/paperclip) repository for its license.
 
