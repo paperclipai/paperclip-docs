@@ -55,7 +55,7 @@ Related deployment variables:
 |---|---|
 | `PAPERCLIP_SECRETS_MASTER_KEY` | 32-byte encryption key as base64, hex, or raw |
 | `PAPERCLIP_SECRETS_MASTER_KEY_FILE` | Path to the local key file |
-| `PAPERCLIP_SECRETS_STRICT_MODE` | Require secret refs for sensitive env vars |
+| `PAPERCLIP_SECRETS_STRICT_MODE` | Require secret refs for server-side env bindings. Does not apply to `paperclipai configure --section llm` or `config.llm.apiKey`. |
 
 These values are covered in more detail in [Secrets](./secrets.md).
 

@@ -50,7 +50,7 @@ pnpm paperclipai doctor
 |---|---|
 | `PAPERCLIP_SECRETS_MASTER_KEY` | 32-byte key as base64, hex, or raw string |
 | `PAPERCLIP_SECRETS_MASTER_KEY_FILE` | Custom path to the local key file |
-| `PAPERCLIP_SECRETS_STRICT_MODE` | Require secret refs for sensitive env vars |
+| `PAPERCLIP_SECRETS_STRICT_MODE` | Require secret refs for server-side env bindings. Does not apply to `paperclipai configure --section llm` or `config.llm.apiKey`. |
 
 Enable strict mode with:
 
@@ -64,11 +64,28 @@ Use strict mode when you want to prevent new inline sensitive values from enteri
 
 ## Strict Mode
 
-When strict mode is on, sensitive env keys such as `*_API_KEY`, `*_TOKEN`, and `*_SECRET` must use secret references instead of inline plaintext.
+Strict mode is server-side enforcement for persisted environment bindings. When it is on, sensitive env keys such as `*_API_KEY`, `*_TOKEN`, and `*_SECRET` must use secret references; inline plaintext values are rejected.
+
+It applies when the server persists:
+
+- agent `adapterConfig.env`
+- project `env`
+- hire-agent approval payloads that carry adapter env
+- company imports that carry agent adapter env
 
 This is the safer choice for anything beyond a local trusted install.
 
+Strict mode does **not** apply to `paperclipai configure --section llm`. That command writes plaintext to `config.llm.apiKey` regardless of `PAPERCLIP_SECRETS_STRICT_MODE`.
+
 > **Warning:** Strict mode blocks new inline sensitive values. It does not automatically migrate what is already stored.
+
+---
+
+## Secrets At The Instance Level
+
+`config.llm.apiKey` is a plain string field. It does not support `secret_ref` today, and there is no CLI or API path that stores the instance-level key in the secret store.
+
+For end-to-end secret-ref hygiene, leave `config.llm.apiKey` empty and bind each agent adapter API key in `adapterConfig.env` using `secret_ref` as shown below.
 
 ---
 
@@ -82,6 +99,10 @@ pnpm secrets:migrate-inline-env --apply
 ```
 
 Run the command without `--apply` first if you want a dry run.
+
+> **Note:** `pnpm secrets:migrate-inline-env` is a repository-source script. It is available only from a Paperclip git checkout, not from an installed `paperclipai` CLI.
+
+The script only scans `agent.adapterConfig.env` keys matching a sensitive-keyword regex (for example `api_key`, `token`, `secret`, `password`, `credential`). It does not migrate `config.llm.apiKey`.
 
 ---
 
