@@ -171,6 +171,10 @@
           "file": "../docs/how-to/connect-agent-to-github.md"
         },
         {
+          "title": "Update or Rotate a Provider API Key",
+          "file": "../docs/how-to/rotate-provider-api-key.md"
+        },
+        {
           "title": "Add an MCP Server to an Agent",
           "file": "../docs/how-to/add-mcp-server-to-agent.md"
         },
