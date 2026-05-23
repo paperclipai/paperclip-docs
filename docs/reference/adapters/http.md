@@ -59,7 +59,40 @@ Example body shape:
 }
 ```
 
-Your service can use `PAPERCLIP_API_URL` and a Paperclip API key to call back into the control plane after it finishes.
+Your service uses the Paperclip API base URL and a long-lived agent API key to call back into the control plane after it finishes — see Authentication below.
+
+---
+
+## Authentication
+
+The HTTP adapter has two distinct authentication directions, and both matter:
+
+**1. Paperclip → your service.** Paperclip needs to prove the webhook came from you. Use a shared secret in `headers`:
+
+```json
+{
+  "headers": {
+    "Authorization": "Bearer <shared-secret>",
+    "X-Webhook-Secret": "<another-shared-secret>"
+  }
+}
+```
+
+Verify the header server-side and reject anything that doesn't match. If you want signature verification instead, sign the canonical body with HMAC-SHA256 in your `payloadTemplate` and verify on the receiver.
+
+**2. Your service → Paperclip.** After the webhook fires, your service typically needs to post comments, update the issue, or mark it `done`. That is a separate authentication step — Paperclip does not auto-inject a JWT into a remote service the way it does for local adapters.
+
+Mint a long-lived agent API key once and store it as a secret in your service:
+
+```sh
+pnpm paperclipai agent api-key create <agent-id> --company-id <company-id>
+```
+
+That signs an agent JWT with the server's `PAPERCLIP_AGENT_JWT_SECRET` and prints the bearer string. Use it as `Authorization: Bearer <token>` on every callback. Always include `X-Paperclip-Run-Id: <runId-from-webhook>` so the audit log attributes your changes to the run that triggered them.
+
+> **Note:** `PAPERCLIP_AGENT_JWT_SECRET` lives only on the Paperclip server. Your remote service never sees the secret — it receives the signed token created by `paperclipai agent api-key create`.
+
+**Idempotency.** Webhooks should be safe to retry. If your remote service accepts the request but later fails to call back, Paperclip cannot tell the difference. Make the receiver idempotent on `runId`, and prefer to acknowledge with 2xx as soon as the request is durably queued, not after all follow-up work completes.
 
 ---
 

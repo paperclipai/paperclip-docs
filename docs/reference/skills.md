@@ -28,9 +28,7 @@ my-skill/
 ```markdown
 ---
 name: code-review
-description: >
-  Use when asked to review a pull request or code diff.
-  Don't use when writing new code from scratch.
+description: Use when asked to review a pull request or code diff. Don't use when writing new code from scratch.
 ---
 
 # Code Review
@@ -38,14 +36,14 @@ description: >
 When reviewing code, check the following...
 ```
 
-The frontmatter is parsed by Paperclip's own minimal YAML reader (`parseFrontmatterMarkdown` in `server/src/services/company-skills.ts`). It supports flat scalars, nested objects, and list literals — not the full YAML grammar.
+The frontmatter is parsed by Paperclip's own minimal YAML reader (`parseFrontmatterMarkdown` in `server/src/services/company-skills.ts`). It supports flat scalars, nested objects, and list literals — not the full YAML grammar. In particular, YAML block scalars (`>` and `|`) are not folded; keep routing descriptions as plain one-line strings.
 
 ### Frontmatter fields
 
 | Field | Required | Type | Notes |
 |---|---|---|---|
 | `name` | recommended | string | Human-readable label. Falls back to the slug when missing. |
-| `description` | recommended | string | The routing logic the agent reads first. Block scalars (`>`, `|`) are supported. |
+| `description` | recommended | string | The routing logic the agent reads first. Keep it as a plain one-line string; put longer instructions in the body or `references/`. |
 | `slug` | optional | string | Stable kebab-case identifier. Derived from `name` (or the folder name) if absent, normalized via `normalizeAgentUrlKey`. |
 | `required` | optional | boolean | Most installs leave this `false`. The server itself only treats bundled Paperclip skills as required at runtime. |
 | `key` / `skillKey` | optional | string | Canonical key override. See [Naming collisions](#naming-collisions-and-resolution). |
@@ -133,7 +131,7 @@ Mutating routes require either `agents:create` permission or `permissions.canCre
 { "source": "https://skills.sh/paperclipai/paperclip/paperclip-dev" }
 { "source": "npx skills add paperclipai/paperclip --skill paperclip-dev" }
 { "source": "https://example.com/raw/SKILL.md" }
-{ "source": "/Users/me/code/my-project/skills/code-review" }
+{ "source": "/Users/me/code/my-project/skills" }
 ```
 
 Resolution rules:
@@ -141,7 +139,7 @@ Resolution rules:
 - `owner/repo` and `owner/repo/skill` are treated as GitHub references.
 - `https://skills.sh/...` URLs and `npx skills add ...` commands are unwrapped to the underlying GitHub URL — but the skill is recorded with `sourceType: skills_sh` and the original locator preserved.
 - `tree/<ref>` and `blob/<ref>` URLs pin to whatever ref you pass; bare repo URLs resolve the default branch.
-- Local paths can point at a single `SKILL.md` file, a folder containing one, or a folder containing many — every `SKILL.md` under it is imported.
+- Local paths can point at a single `SKILL.md` file, a skill folder, or a parent folder containing many skills — every `SKILL.md` under it is imported. When the skill has supporting files, prefer the parent folder that contains the skill directory so `references/`, `scripts/`, and `assets/` are preserved in the inventory.
 
 ### What happens during import
 
@@ -404,8 +402,9 @@ Walk down this list in order. The first match is usually the problem.
   - The block starts and ends with `---` on their own lines.
   - Indentation uses spaces, not tabs.
   - List items use `- ` with a space.
-  - Block scalars (`>`, `|`) are indented two spaces deeper than the key.
-- Recover by validating the YAML in a normal parser; if it parses there but not in Paperclip, file a bug — the in-house parser is documented above.
+  - Values use the supported subset: flat scalars, nested objects, and `- ` list items.
+  - Block scalars (`>` and `|`) are avoided; the current reader treats them as literal values.
+- Recover by simplifying the frontmatter to the supported subset. If it still parses incorrectly, file a bug — the in-house parser is documented above.
 
 ### "An agent gets a skill it never asked for"
 
@@ -420,6 +419,7 @@ Walk down this list in order. The first match is usually the problem.
 ## See also
 
 - [Skills guide](../guides/org/skills.md) — UI walkthrough, file inventory, trust levels, write-a-good-skill checklist.
+- [Write a company skill](../how-to/write-a-company-skill.md) — recipe-style walkthrough: author, install, assign, trigger, and version a skill end-to-end.
 - [Agents API → Skills](./api/agents.md#skills) — request/response shapes for `GET /agents/{id}/skills` and `POST /agents/{id}/skills/sync`.
 - [Adapters reference](./adapters/overview.md) — which adapters support `persistent`, `ephemeral`, or `unsupported` skill sync.
 - [Creating an Adapter](./adapters/creating-an-adapter.md) — implementing `listSkills` / `syncSkills` for a new runtime.

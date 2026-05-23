@@ -293,6 +293,8 @@ When that's your layout, the agents page stops being a cockpit you have to const
 
 Heartbeats and routines are how you decide *when* your agents run. Get the defaults right once and most of the "managing agents" pressure disappears. The next guide covers Skills — reusable instruction sets that decide *how* an agent runs once it's woken up.
 
+If you want the *why* behind running agents in heartbeats at all — the design trade-off versus a long-running daemon — read [Heartbeats vs. Loops](./heartbeats-vs-loops.md).
+
 [Skills →](../org/skills.md)
 
 ---

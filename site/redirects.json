@@ -1,4 +1,7 @@
 {
+  "how-to/github-pr-agent": "how-to/connect-agent-to-github",
+  "how-to/connect-an-agent-to-a-github-repo": "how-to/connect-agent-to-github",
+
   "user-guides/guides/what-is-paperclip": "guides/welcome/what-is-paperclip",
   "user-guides/guides/key-concepts": "guides/welcome/key-concepts",
   "user-guides/guides/glossary": "guides/welcome/glossary",

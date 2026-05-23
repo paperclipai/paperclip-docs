@@ -10,6 +10,18 @@ All three paths end up in the same place: a running Paperclip instance and the o
 
 ---
 
+## Before you start
+
+Whichever path you choose, you'll need a few things in place before your first agent can do any work. Some are covered later in this guide; others are external and worth installing now so you don't bounce out mid-onboarding.
+
+- **An Anthropic or OpenAI account and API key.** Paperclip agents shell out to an LLM provider — [Anthropic](https://console.anthropic.com) for the default `claude_local` adapter, or [OpenAI](https://platform.openai.com) for `codex_local`. The Desktop App and Terminal paths both walk you through creating a key.
+- **For the `claude_local` adapter (the default): [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed on your Mac.** Claude Code is a separate Anthropic product. Paperclip itself doesn't bundle it — `claude_local` agents launch it under the hood to read files, run commands, and call the Claude API. Install it now; you'll be blocked at agent creation otherwise.
+- **For the `codex_local` adapter:** the [OpenAI Codex CLI](https://platform.openai.com) installed on the same machine your agents will run on.
+
+> **Note:** The Claude Code and Codex CLI requirements apply to the machine that *runs the agent*, not necessarily the machine you sign in from. If you're using the Desktop app in **Local** mode, that's your Mac. If you're using **Remote** mode against a server, install Claude Code (or the Codex CLI) on the server.
+
+---
+
 <!-- tabs: Desktop App (macOS), Terminal (Developer), Server / VPS -->
 
 <!-- tab: Desktop App (macOS) -->

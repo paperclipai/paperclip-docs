@@ -59,6 +59,51 @@ If the command cannot be found, the adapter will not run.
 
 ---
 
+## Environment Variables
+
+Paperclip injects the standard agent-runtime variables into the child process before it spawns. The adapter sets nothing else on top — your script reads them directly.
+
+The most important variables for a `process` adapter:
+
+| Variable | What you do with it |
+|---|---|
+| `PAPERCLIP_API_URL` | Base URL for callbacks into the control plane. |
+| `PAPERCLIP_API_KEY` | Bearer token for `Authorization: Bearer …` on REST calls. |
+| `PAPERCLIP_AGENT_ID` | The agent identity this run belongs to. |
+| `PAPERCLIP_RUN_ID` | Send back as `X-Paperclip-Run-Id` on any mutating request. |
+| `PAPERCLIP_TASK_ID` | The issue that triggered this run, when present. |
+| `PAPERCLIP_WAKE_REASON` | Why this run woke up (`issue_assigned`, `issue_commented`, `scheduled`, etc.). |
+
+See [Environment Contract](./overview.md#environment-contract) for the full list and [Environment Variables](../deploy/environment-variables.md) for the server-side variables Paperclip itself reads.
+
+---
+
+## Authenticating Back To Paperclip
+
+The process adapter is the simplest "external" runtime: a script that wakes up, talks to the Paperclip API, and exits. Paperclip already wired the auth for you, but the details are worth understanding.
+
+**Default mode (recommended): use the injected agent JWT.**
+
+Paperclip mints a short-lived agent JWT for each run and exposes it as `PAPERCLIP_API_KEY`. The token is scoped to the agent and run, signed with the server's `PAPERCLIP_AGENT_JWT_SECRET`, and expires automatically — usually within minutes.
+
+```sh
+curl -s -X POST "$PAPERCLIP_API_URL/api/issues/$PAPERCLIP_TASK_ID/comments" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "Hello from a process adapter."}'
+```
+
+For most setups, that is the only authentication you need.
+
+**Long-lived agent keys (advanced).** If your script runs outside the lifetime of one heartbeat — for example, a background daemon you spawn from the adapter — mint a longer-lived agent token with `paperclipai agent api-key create <agent-id>`. That command signs a token with the server's `PAPERCLIP_AGENT_JWT_SECRET` and prints the bearer string. Store it in a secret ref and reference it from `adapterConfig.env`.
+
+> **Note:** `PAPERCLIP_AGENT_JWT_SECRET` lives only on the Paperclip server. Adapters and external scripts never need to see the secret itself — they receive a signed bearer token (`PAPERCLIP_API_KEY` or a manually-minted long-lived key).
+
+For a worked end-to-end script that uses these variables, see [External Adapters → End-To-End Example](./external-adapters.md#end-to-end-example).
+
+---
+
 ## Example
 
 ```json
@@ -87,6 +132,7 @@ If the command cannot be found, the adapter will not run.
 
 - Use a process adapter when you want full control over the runtime.
 - If your script needs to call back into Paperclip, use the injected `PAPERCLIP_API_URL` and `PAPERCLIP_API_KEY`.
+- Always include `X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID` on any request that mutates an issue so the audit log links back to this run.
 - Keep the command deterministic when possible so heartbeats are easier to debug.
 
 ---

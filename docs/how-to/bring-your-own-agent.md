@@ -276,5 +276,6 @@ A working version of all three paths lives at [`paperclipai/examples/byo-agent`]
 - [HTTP adapter](../reference/adapters/http.md) — full field list, payload shape, and `Test Environment` behaviour for Option B.
 - [OpenClaw Gateway](../reference/adapters/openclaw-gateway.md) — transport, device auth, and onboarding checklist for Option A.
 - [Connect an agent to a GitHub repo](./connect-agent-to-github.md) — pair this with Option A or B for a coding agent that opens PRs.
+- [Write a company skill](./write-a-company-skill.md) — give your BYO agent a reusable procedure (note the OpenClaw `unsupported` sync mode caveat).
 - [Handle board approvals for hires](./handle-board-approvals-for-hires.md) — the approval flow each invite/hire passes through.
 - [Debug a stuck heartbeat](./debug-stuck-heartbeat.md) — first stop when the wake fires but nothing happens.

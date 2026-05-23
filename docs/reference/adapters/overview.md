@@ -95,6 +95,29 @@ See:
 
 ---
 
+## Environment Contract
+
+Every adapter inherits the same agent-runtime environment from the Paperclip server. These variables are injected into the runtime process before the adapter command runs, and your agent code can read them directly:
+
+| Variable | Always set? | What it carries |
+|---|---|---|
+| `PAPERCLIP_AGENT_ID` | yes | Agent ID. |
+| `PAPERCLIP_COMPANY_ID` | yes | Company ID. |
+| `PAPERCLIP_API_URL` | yes | Paperclip API base URL. |
+| `PAPERCLIP_API_KEY` | local adapters | Short-lived JWT. Use as `Authorization: Bearer $PAPERCLIP_API_KEY`. For non-local adapters (`process`, `http`, external services), the operator sets this in adapter config. |
+| `PAPERCLIP_RUN_ID` | yes | Current heartbeat run ID. Pass back as the `X-Paperclip-Run-Id` header on any request that mutates an issue. |
+| `PAPERCLIP_TASK_ID` | wake-driven | Issue that triggered the wake. Empty for scheduled or unsolicited wakes. |
+| `PAPERCLIP_WAKE_REASON` | wake-driven | Why this run was triggered. |
+| `PAPERCLIP_WAKE_COMMENT_ID` | comment wakes | Specific comment that triggered the wake. |
+| `PAPERCLIP_WAKE_PAYLOAD_JSON` | some adapters | Inline JSON wake payload. |
+| `PAPERCLIP_APPROVAL_ID` / `PAPERCLIP_APPROVAL_STATUS` | approval wakes | Resolved approval ID and decision. |
+
+In addition, when Paperclip realizes an execution workspace, it can inject workspace-specific variables such as `PAPERCLIP_WORKSPACE_CWD`, `PAPERCLIP_WORKSPACE_PATH`, `PAPERCLIP_WORKSPACE_REPO_ROOT`, `PAPERCLIP_WORKSPACE_BRANCH`, `PAPERCLIP_PROJECT_ID`, and `PAPERCLIP_ISSUE_ID`.
+
+Each adapter page below documents any extra variables that adapter sets on top of this baseline. For the full list including server-side configuration vars, see [Environment Variables](../deploy/environment-variables.md).
+
+---
+
 ## Next Steps
 
 - [Claude Local](./claude-local.md)
