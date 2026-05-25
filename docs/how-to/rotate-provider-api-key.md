@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.525.0
+---
+
 # Update or rotate a provider API key
 
 You already have an agent running, and the API key it uses needs to change — maybe the provider rotated it, maybe it expired, maybe you moved from a subscription login (like Claude.ai) to a console-issued key and the old credential stopped working. This guide walks you through swapping the key in place, without rebuilding the agent.

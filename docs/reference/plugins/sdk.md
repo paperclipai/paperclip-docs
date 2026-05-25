@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.525.0
+---
+
 # Plugin SDK
 
 `@paperclipai/plugin-sdk` is the worker-side authoring kit for Paperclip plugins. Import it from your plugin's worker entrypoint to declare a plugin, subscribe to host events, register jobs and data feeds, run RPC against the host, and reach the managed database, secrets, state, and the rest of the Paperclip API surface.

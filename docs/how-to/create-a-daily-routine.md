@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.525.0
+---
+
 # Create a routine that runs daily
 
 A [routine](../guides/welcome/glossary.md) is a recurring task generator. You describe the work once, attach a cron trigger, and Paperclip mints a fresh execution issue on every tick — assigned to one agent, with the same parent, project, and goal each time. The agent picks the issue up through its normal heartbeat, does the work, and the run shows up in the routine's history.

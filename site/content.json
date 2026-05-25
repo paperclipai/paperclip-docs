@@ -213,6 +213,14 @@
         {
           "title": "Develop a plugin locally",
           "file": "../docs/how-to/develop-a-plugin-locally.md"
+        },
+        {
+          "title": "Sync to Cloud Upstream",
+          "file": "../docs/how-to/sync-to-cloud-upstream.md"
+        },
+        {
+          "title": "Connect an AWS Secrets Manager Vault",
+          "file": "../docs/how-to/connect-aws-secrets-vault.md"
         }
       ]
     },

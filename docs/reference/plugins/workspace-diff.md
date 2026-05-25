@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.525.0
+---
+
 # Workspace diff viewer
 
 If you want to see what your agents actually changed inside a workspace — which files moved, what got added, the staged-versus-unstaged split, the line-level patch — without leaving the Paperclip dashboard, the `@paperclipai/plugin-workspace-diff` plugin is the surface that does it. It adds a **Changes** tab to execution and project workspaces, computes the diff locally with Git on the host running Paperclip, and renders it with `@pierre/diffs`.

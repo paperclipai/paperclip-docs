@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.512.0
+paperclip_version: v2026.525.0
 ---
 
 # ACPX Local
@@ -47,7 +47,35 @@ The built-in `agent` options are `claude`, `codex`, and `custom`.
 - In `persistent` mode, Paperclip preserves session state across heartbeats and may keep a warm handle when `warmHandleIdleMs > 0`.
 - In `oneshot` mode, Paperclip starts a fresh ACPX process for each run.
 
----
+### Bare Claude model IDs just work
+
+When `agent=claude`, you can pass a bare model ID like `claude-sonnet-4-5` or `claude-opus-4-7` directly in `model` — no fully qualified provider prefix required.
+
+Under the hood, Paperclip sets `ANTHROPIC_MODEL` on the ACP server's environment at startup instead of routing the value through the ACP `set_config_option` call. Some ACP server versions validate the option's value against an internal allowlist and reject bare IDs that don't match an entry exactly. Reading `ANTHROPIC_MODEL` during initialization sidesteps that validator, so your model selection is honoured before the first turn runs.
+
+### Real diagnostics on failure
+
+When an ACPX run fails, the adapter now surfaces structured detail on the error instead of an opaque `Internal error` log line. Each failure's `errorMeta` includes:
+
+- `errorName` — the underlying error class.
+- `acpCode` — the ACP protocol code (for example `ACP_SESSION_INIT_FAILED`, `ACP_TURN_FAILED`, `ACP_BACKEND_MISSING`, `ACP_BACKEND_UNAVAILABLE`) when the runtime reports one.
+- `causeMessage` — the inner cause string when the error wraps one.
+- `retryable` — the runtime's own retryability hint when it sets one.
+- `stackPreview` — the first six lines of the stack so you can locate the failure without dumping a full trace.
+- `phase` — which phase of the run failed (`ensure_session`, `configure_session`, or `turn`).
+
+The adapter also picks a precise `errorCode` from those signals — `acpx_session_init_failed`, `acpx_session_config_failed`, `acpx_turn_failed`, `acpx_backend_missing`, `acpx_backend_unavailable`, `acpx_protocol_error`, `acpx_auth_required`, or `acpx_runtime_error` — so you can route alerts and retries against meaningful classifications.
+
+### Respects your Claude settings on first run
+
+When `agent=claude`, the adapter writes a Paperclip-managed `.claude/settings.local.json` into the working directory before launching the ACP server. The Claude Code SDK that `claude-agent-acp` runs reads settings from `user`, `project`, and `local` sources, so this local file takes precedence over your `~/.claude/settings.json`.
+
+That means a first-run Claude Local ACPX agent no longer strands on permission prompts when your user-level settings.json sets `defaultMode: "dontAsk"` — Paperclip's local file flips `defaultMode` back to `default` (recording `overrodeDontAsk` in the run's command notes), preserves any `defaultMode` you set to a non-`dontAsk` value, and merges in:
+
+- `permissions.allow` rules for the Paperclip helper scripts inside `cwd/scripts/` plus `Bash(curl:*)` and `Bash(env:*)`.
+- `permissions.additionalDirectories` entries for the adapter's `stateDir`, the agent's home directory, and the company root under your Paperclip instance directory — so Read tools can reach the paths the agent needs to talk to its own control plane.
+
+Existing entries you've added to `.claude/settings.local.json` are merged, not replaced.
 
 ---
 

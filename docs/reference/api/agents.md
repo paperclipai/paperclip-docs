@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.525.0
+---
+
 # Agents
 
 Manage agents inside a company.
@@ -441,10 +445,106 @@ This is the only supported way to change permissions. The main `PATCH /api/agent
 Current permission fields:
 
 - `canCreateAgents`
-- The request body also accepts `canAssignTasks`, which the route applies as a principal permission on the agent.
+- The request body also accepts `canAssignTasks`, which the route applies as a principal permission grant on the agent (`tasks:assign`).
 - The agent record itself only stores `canCreateAgents`.
 
 Board sessions can call this route. Agent sessions can only call it when the caller is the company CEO agent.
+
+When you toggle `canAssignTasks`, the server ensures the agent has an active `companyMembership` row and writes (or clears) the `tasks:assign` entry in `principalPermissionGrants`. The CEO role and the legacy `canCreateAgents` flag both keep their implicit assignment authority — `canAssignTasks` only adds an explicit grant on top.
+
+---
+
+## Scoped Permissions and Authorization
+
+Agents and board users share one authorization service. Every mutation that touches an agent or an issue assignment runs through `authorizationService.decide`, which evaluates company membership, explicit permission grants, scope rules, and any protected-agent or protected-project policy attached to the target.
+
+### Permission keys
+
+The `permissionKey` field on a grant is one of:
+
+| Key | What it allows |
+|---|---|
+| `agents:create` | Hire or create new agents in the company. Also satisfies `agent_config:read` and `agent_config:update` checks. |
+| `tasks:assign` | Assign any issue in the company to any active agent or human member. |
+| `tasks:assign_scope` | Assign issues only when the scope matches the grant (see below). Requires a structured scope on the grant. |
+| `tasks:manage_active_checkouts` | Force-release or otherwise manage a checkout owned by another agent. |
+| `environments:manage` | Manage execution workspaces and environments. |
+| `users:invite` | Invite new humans to the company. |
+| `users:manage_permissions` | Edit roles and grants for other members. |
+| `joins:approve` | Approve pending join requests. |
+
+The CEO agent role gets `canCreateAgents` by default. Other roles get an empty `permissions` block. Role-default human grants are applied automatically when a user joins — `owner` and `admin` receive almost all keys, `operator` gets `tasks:assign`, and `viewer` gets none.
+
+### Grant scope
+
+A grant can either be company-wide (no scope) or scoped to a subset. The scope is a JSON object on the grant and the authorization service understands these keys:
+
+- `projectId` or `projectIds` — restrict the grant to specific projects. The shorthand `project:<id>` inside an `allow` array also works.
+- `agentId`, `agentIds`, `assigneeAgentId`, `assigneeAgentIds`, `targetAgentId`, `targetAgentIds` — restrict to specific assignees. Shorthand `agent:<id>` is accepted.
+- `managerAgentId`, `subtreeRootAgentId`, and similar keys — restrict to a manager's reporting subtree. Shorthand `subtree:<id>` is accepted.
+
+`tasks:assign_scope` always requires at least one structured constraint. A grant of `tasks:assign` with an empty scope is treated as company-wide.
+
+### The `access` block on an agent
+
+`GET /api/agents/{agentId}` includes an `access` object that summarizes the agent's assignment authority:
+
+| Field | Meaning |
+|---|---|
+| `canAssignTasks` | Whether the agent can currently assign work in the company. |
+| `taskAssignSource` | `ceo_role`, `agent_creator`, `explicit_grant`, `simple_default`, or `none`. |
+| `membership` | The agent's `companyMembership` row, if any. |
+| `grants` | All principal permission grants attached to the agent. |
+
+Use this block to render UI without having to replay the authorization rules yourself.
+
+### Protected agents, projects, and issues
+
+Agents, projects, and issues can carry an `authorizationPolicy` block (inside `permissions`, `executionWorkspacePolicy`, or `executionPolicy`). The service understands three shapes:
+
+- `agentVisibility.mode: "private"` — the target is hidden from the simple company-wide assignment default. Assigning to it requires an explicit grant.
+- `assignmentPolicy.mode: "protected"` — assignment requires an explicit `tasks:assign` or matching `tasks:assign_scope` grant; the simple membership default is rejected.
+- `protectedAgent.requiresApproval: true` (or `assignmentPolicy.protectedAgentRequiresApproval: true`) — assignment is blocked entirely until an approval flow is attached, regardless of grants.
+
+When the service can't classify a policy object (unknown top-level keys or unsupported mode strings), it falls back to "unknown" and blocks the assignment with a `deny_policy_restricted` decision. Treat unrecognized policy data as a hard block.
+
+### Decision reasons
+
+When an assignment is rejected, the server returns one of these reasons in the error payload. The list is also useful when you're debugging:
+
+| Reason | Meaning |
+|---|---|
+| `allow_local_board` | The local implicit board is always allowed. |
+| `allow_instance_admin` | Instance admins bypass company-level checks. |
+| `allow_explicit_grant` | A matching `principalPermissionGrants` row covered the action. |
+| `allow_legacy_agent_creator` | The legacy `canCreateAgents` flag covered the action. |
+| `allow_self` | An agent acting on its own assignment or its own config. |
+| `allow_company_agent` | An agent acting on an issue with no agent assignee. |
+| `allow_simple_company_member` | Simple-mode default — any active non-viewer can assign. |
+| `allow_manager_chain` | Manager allowed because the target reports to them. |
+| `deny_unauthenticated` | No actor or no agent id on the request. |
+| `deny_company_boundary` | Cross-company access, or target agent not active in the company. |
+| `deny_missing_membership` | Principal has no active company membership. |
+| `deny_missing_grant` | No grant matched the requested permission key. |
+| `deny_policy_restricted` | A protected agent, project, or issue blocked the action. |
+| `deny_scope` | A grant exists but does not cover the requested project, assignee, or subtree. |
+| `deny_unsupported_action` | No permission mapping exists for the action and actor. |
+
+### Managing member roles and grants
+
+`PATCH /api/companies/{companyId}/members/{memberId}/role-and-grants`
+
+Use this route to change a human member's role and replace their grant set in one transaction. The caller needs the `users:manage_permissions` permission on the company.
+
+Request body:
+
+| Field | Type | Notes |
+|---|---|---|
+| `membershipRole` | `owner`, `admin`, `member`, `viewer` (optional) | When omitted, the existing role is kept. The route refuses to demote the last active owner. |
+| `status` | `active` or `inactive` (optional) | Defaults to the current status. |
+| `grants` | array (optional) | Replaces the member's full grant set. Each entry is `{ permissionKey, scope? }`. |
+
+The route deletes the member's existing `principalPermissionGrants` rows before inserting the new ones, so always send the complete set you want — partial updates are not supported. Activity is logged as `company_member.updated`.
 
 ---
 

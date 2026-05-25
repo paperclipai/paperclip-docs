@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.525.0
+---
+
 # Modal
 
 `modal` provisions [Modal](https://modal.com/) sandboxes as the execution environment for Paperclip agent runs. Pick it when you want a managed cloud sandbox with first-class container images, configurable network policy, and a 24-hour ceiling on per-sandbox lifetime — without running your own infrastructure.

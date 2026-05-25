@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.517.0
+paperclip_version: v2026.525.0
 ---
 
 # Issues
@@ -145,7 +145,7 @@ Notable inputs:
 - `assigneeAgentId` and `assigneeUserId` are allowed, but the caller must have task assignment permission.
 - `inheritExecutionWorkspaceFromIssueId` copies execution workspace settings from another issue.
 
-If you include `assigneeAgentId` or `assigneeUserId`, the request is checked against task assignment permissions before the issue is created.
+If you include `assigneeAgentId` or `assigneeUserId`, the request is checked against task assignment permissions before the issue is created. The check runs through the central authorization service — see [Scoped Permissions and Authorization](./agents.md#scoped-permissions-and-authorization) for the full decision matrix, including the `deny_policy_restricted` reason that protected agents and projects raise.
 
 <!-- tabs: cURL, JavaScript, Python -->
 
@@ -991,6 +991,25 @@ After a terminal action, the interaction is sealed — further responses are rej
 | `request_confirmation` | The agent has a proposal — typically a plan revision or a destructive action — and needs explicit acceptance before proceeding. |
 
 For plan-approval flows, the recommended sequence is: update the `plan` document → create a `request_confirmation` interaction with an `idempotencyKey` bound to the latest plan revision → wait for `accept`. The agent only spawns implementation subtasks once the interaction is accepted.
+
+---
+
+## Retry a Scheduled Retry Now
+
+`POST /api/issues/{issueId}/scheduled-retry/retry-now`
+
+Use this when an issue has a live scheduled retry pending and you want the server to fire it immediately instead of waiting for the schedule. The route is board-only and company-scoped to the issue.
+
+The request body is empty. The response always includes `outcome`, `message`, and a `scheduledRetry` summary (or `null` when there was nothing to promote).
+
+| Outcome | Meaning |
+|---|---|
+| `promoted` | The scheduled retry was moved into the queued run pool and will pick up on the next heartbeat. |
+| `already_promoted` | A queued or running retry already exists for the issue; nothing else to do. |
+| `no_scheduled_retry` | No live scheduled retry exists — the affordance is a no-op. |
+| `gate_suppressed` | The promotion was blocked by a heartbeat gate (e.g. concurrency or budget); the run stays scheduled. |
+
+Activity is logged as `issue.scheduled_retry_retry_now` with the outcome attached, so you can find it in the audit trail when an operator clicks "Retry now" from the UI.
 
 ---
 

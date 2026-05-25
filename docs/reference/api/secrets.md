@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.525.0
+---
+
 # Secrets
 
 Secrets are how Paperclip keeps sensitive values out of agent configs while still letting agents use them at runtime. The API is board-only and company-scoped.
