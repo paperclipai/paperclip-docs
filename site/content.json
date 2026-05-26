@@ -179,6 +179,10 @@
           "file": "../docs/how-to/rotate-provider-api-key.md"
         },
         {
+          "title": "Update Paperclip to the Latest Version",
+          "file": "../docs/how-to/update-paperclip.md"
+        },
+        {
           "title": "Add an MCP Server to an Agent",
           "file": "../docs/how-to/add-mcp-server-to-agent.md"
         },
