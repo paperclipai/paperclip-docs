@@ -52,7 +52,7 @@
       --stone-dark: #3a3836;            /* border hover */
       --ink:        #f3e6c4;            /* manila — primary text */
       --graphite:   #9a958a;            /* secondary text (brand --text-2 dark) */
-      --ash:        #6e6960;            /* muted text (brand --text-muted dark) */
+      --ash:        #8a8579;            /* muted text — raised from brand #6E6960 for WCAG AA (~5:1) since --ash is reused for normal-size text */
       --void:       #0d0d0d;
       --mint:       rgba(34,197,94,0.12);
     }
