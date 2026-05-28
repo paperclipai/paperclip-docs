@@ -1156,6 +1156,11 @@
       .theme-toggle { bottom: 14px; right: 14px; }
       #search-input { font-size: 16px; }
     }
+    @media (max-width: 360px) {
+      /* Very narrow phones: drop the "Docs" suffix so hamburger+search | logo | GitHub+Star
+         fits without the header overflowing (min content width is ~352px otherwise). */
+      .navbar-logo-sub { display: none; }
+    }
     @media (max-width: 820px) {
       .page-actions .pa-copy-label,
       .toc-toggle .toc-label { display: none; }
