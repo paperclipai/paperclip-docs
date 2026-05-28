@@ -141,6 +141,12 @@
       align-items: center;
       gap: 0.35rem;
     }
+    /* GitHub icon shown next to Star on mobile only (desktop uses the left nav link) */
+    .navbar-github-mobile { display: none; }
+    .navbar-github-mobile svg { width: 18px; height: 18px; }
+    /* Search trigger duplicated on the left for mobile; hidden on desktop.
+       Scoped to .navbar-left so it beats the base .navbar-search-btn display. */
+    .navbar-left .navbar-search-mobile { display: none; }
     .navbar-cta {
       display: inline-flex;
       align-items: center;
@@ -1138,11 +1144,15 @@
       #content { padding: 28px 0 64px; }
       #body { padding: 0 24px; }
       .navbar-inner { padding: 0 16px; }
-      .navbar-left .navbar-link:not(.navbar-link--icon) { display: none; }
-      .navbar-link--icon span { display: none; }
-      .navbar-logo-sub { display: none; }
+      .navbar-left .navbar-link { display: none; }   /* hide Blog, Docs, desktop GitHub */
+      .navbar-github-mobile { display: inline-flex; } /* GitHub icon left of Star */
+      .navbar-right .navbar-search-btn { display: none; } /* desktop search hidden... */
+      .navbar-left .navbar-search-mobile { display: inline-flex; } /* ...moved left, next to hamburger */
       .navbar-search-label, .navbar-search-kbd { display: none; }
       .navbar-search-btn { padding: 0 9px; width: 32px; }
+      /* Balanced sides (hamburger+search | logo | GitHub+Star) let the logo centre on its own */
+      .navbar-cta-count { display: none; }            /* drop star count to balance the bar */
+      .navbar-cta { padding: 0.35rem 0.7rem; }
       .theme-toggle { bottom: 14px; right: 14px; }
       #search-input { font-size: 16px; }
     }
