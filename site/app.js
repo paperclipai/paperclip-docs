@@ -16,8 +16,7 @@ const TIER_ORDER = ['Learn', 'Administration', 'Reference'];
 
 /* ─── Theme bootstrap (before first paint of body) ──────────────────────── */
 (function() {
-  const saved = localStorage.getItem('pc-guides-theme')
-    || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const saved = localStorage.getItem('pc-guides-theme') || 'dark';
   if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
   else document.documentElement.removeAttribute('data-theme');
 })();

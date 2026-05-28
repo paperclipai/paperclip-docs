@@ -11,13 +11,18 @@
       --graphite:   #52585d;            /* secondary text */
       --ash:        #9a958a;            /* muted text */
       --void:       #141413;            /* charcoal */
-      --green:      #22c55e;            /* accent */
-      --mint:       #dcfce7;            /* accent tint */
-      --amber:      #f59e0b;
-      --red:        #b23030;
+      --green:      #22c55e;            /* signal / success */
+      --green-deep: #188a3c;            /* success deep */
+      --mint:       #dcfce7;            /* success soft tint */
+      --amber:      #f59e0b;            /* warning */
+      --amber-deep: #b45309;            /* warning deep */
+      --blue:       #2563eb;            /* info */
+      --blue-deep:  #1d4ed8;            /* info deep */
+      --red:        #dc2626;            /* error */
+      --red-deep:   #991b1b;            /* error deep */
 
       --sidebar-w:   272px;
-      --content-max: 760px;
+      --content-max: 920px;   /* fills the 1280 layout (1232 inner − 272 sidebar − 40 gap) so the doc body lines up with header/footer */
       --outer-px:    24px;
       --layout-max:  1280px;
 
@@ -29,8 +34,12 @@
       --font-body:  'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono:  'JetBrains Mono', 'Fira Code', monospace;
 
-      --radius-sm:  8px;
-      --radius:     12px;
+      /* Brand radius scale — "each radius signals meaning" */
+      --radius-xs:  4px;                 /* status pills, code chips, table cells */
+      --radius-sm:  10px;                /* inputs, small cards, buttons, menus */
+      --radius:     16px;                /* default card / panel / feature block (md) */
+      --radius-lg:  24px;                /* large surfaces */
+      --radius-pill: 9999px;            /* PRIMARY CTA ONLY */
       --transition: 0.2s ease;
     }
 
@@ -42,8 +51,8 @@
       --stone:      #2f2c28;            /* rule / border */
       --stone-dark: #3a3836;            /* border hover */
       --ink:        #f3e6c4;            /* manila — primary text */
-      --graphite:   #b5b0a8;            /* secondary text */
-      --ash:        #9a958a;            /* muted text */
+      --graphite:   #9a958a;            /* secondary text (brand --text-2 dark) */
+      --ash:        #6e6960;            /* muted text (brand --text-muted dark) */
       --void:       #0d0d0d;
       --mint:       rgba(34,197,94,0.12);
     }
@@ -59,6 +68,7 @@
     body {
       background: var(--linen); color: var(--ink);
       font-family: var(--font-body); line-height: 1.65;
+      font-feature-settings: 'ss01' 1, 'cv11' 1;
       min-height: 100vh;
       transition: background 0.25s, color 0.25s;
     }
@@ -159,7 +169,7 @@
       padding: 0 10px 0 10px;
       background: transparent;
       border: 1px solid var(--stone);
-      border-radius: 9999px;
+      border-radius: var(--radius-sm);
       color: var(--graphite);
       font-family: var(--font-body);
       font-size: 0.85rem;
@@ -178,7 +188,7 @@
       color: var(--ash);
       background: var(--linen);
       border: 1px solid var(--stone);
-      border-radius: 5px;
+      border-radius: var(--radius-xs);
       padding: 1px 5px;
       pointer-events: none;
     }
@@ -223,7 +233,7 @@
       max-width: 600px;
       background: var(--white);
       border: 1px solid var(--stone);
-      border-radius: var(--radius);
+      border-radius: var(--radius-lg);
       box-shadow: 0 20px 60px rgba(0,0,0,0.16), 0 4px 12px rgba(0,0,0,0.08);
       overflow: hidden;
       animation: search-pop 0.16s var(--transition) both;
@@ -252,7 +262,7 @@
       position: absolute; right: 16px; top: 28px; transform: translateY(-50%);
       font-size: 11px; color: var(--ash);
       background: var(--linen); border: 1px solid var(--stone);
-      border-radius: 5px; padding: 1px 6px;
+      border-radius: var(--radius-xs); padding: 1px 6px;
       font-family: var(--font-mono);
       pointer-events: none;
     }
@@ -349,7 +359,7 @@
     #landing-title {
       font-family: var(--font-serif);
       font-size: clamp(40px, 6vw, 64px);
-      font-weight: 600; line-height: 1.05; letter-spacing: -0.03em;
+      font-weight: 600; line-height: 1.05; letter-spacing: -0.04em;
       color: var(--ink); margin-bottom: 20px;
     }
     #landing-title em { font-style: italic; color: inherit; }
@@ -372,7 +382,7 @@
     .card:hover { border-color: var(--stone-dark); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,26,26,0.04); }
 
     .card-icon {
-      width: 36px; height: 36px; border-radius: 9px;
+      width: 36px; height: 36px; border-radius: var(--radius-sm);
       background: var(--parchment); border: 1px solid var(--stone);
       display: flex; align-items: center; justify-content: center;
       color: var(--graphite); margin-bottom: 4px;
@@ -508,6 +518,9 @@
     }
     .sb-back:hover { color: var(--ink); background: var(--parchment); }
     .sb-back svg { width: 12px; height: 12px; }
+    /* Desktop sidebar has no horizontal padding + overflow-y forces overflow-x:auto,
+       which clips a negative margin. Align flush instead so the chevron isn't cut off. */
+    #sidebar .sb-back { margin-left: 0; padding-left: 10px; }
 
     .sb-section { margin-bottom: 4px; }
 
@@ -616,7 +629,7 @@
       background: var(--linen);
     }
     .meta-row .chip {
-      padding: 2px 8px; border-radius: 99px;
+      padding: 2px 8px; border-radius: var(--radius-xs);
       background: var(--parchment); border: 1px solid var(--stone);
       font-size: 11px; color: var(--graphite);
     }
@@ -634,9 +647,9 @@
       transition: border-color var(--transition), color var(--transition), background var(--transition);
     }
     .page-actions .pa-btn:hover { border-color: var(--stone-dark); color: var(--ink); }
-    .page-actions .pa-copy { border-radius: 99px 0 0 99px; padding-left: 12px; }
+    .page-actions .pa-copy { border-radius: var(--radius-sm) 0 0 var(--radius-sm); padding-left: 12px; }
     .page-actions .pa-caret {
-      border-radius: 0 99px 99px 0;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
       border-left: none;
       padding: 5px 8px;
     }
@@ -683,7 +696,7 @@
       padding: 20px 22px;
       background: var(--parchment);
       border: 1px solid var(--stone);
-      border-radius: 12px;
+      border-radius: var(--radius);
       display: flex; flex-wrap: wrap; align-items: center;
       gap: 14px 20px;
     }
@@ -700,7 +713,7 @@
       padding: 7px 12px;
       background: var(--white);
       border: 1px solid var(--stone);
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       font-size: 13px; font-weight: 500;
       color: var(--graphite);
       text-decoration: none;
@@ -729,7 +742,7 @@
       padding: 5px 10px 5px 12px;
       background: var(--white);
       border: 1px solid var(--stone);
-      border-radius: 99px;
+      border-radius: var(--radius-sm);
       font-family: var(--font-body);
       font-size: 11.5px; font-weight: 500;
       color: var(--graphite); cursor: pointer;
@@ -746,7 +759,7 @@
     .toc-toggle[aria-expanded="true"] > svg:last-of-type { transform: rotate(180deg); color: var(--ink); }
     .toc-toggle .count {
       font-size: 10px; color: var(--ash);
-      background: var(--parchment); border-radius: 99px;
+      background: var(--parchment); border-radius: var(--radius-xs);
       padding: 1px 6px; font-variant-numeric: tabular-nums;
     }
     .toc-toggle[aria-expanded="true"] .count { background: var(--white); }
@@ -867,14 +880,16 @@
 
     #article code {
       font-family: var(--font-mono); font-size: 0.87rem;
+      font-variant-numeric: tabular-nums;
       background: var(--parchment); border: 1px solid var(--stone);
-      border-radius: 5px; padding: 1px 6px; color: var(--ink);
+      border-radius: var(--radius-xs); padding: 1px 6px; color: var(--ink);
     }
     #article pre {
       background: var(--void); color: #d4d4d4;
       border-radius: var(--radius-sm); padding: 18px 20px;
       overflow-x: auto; margin-bottom: 20px;
       font-family: var(--font-mono); font-size: 0.87rem; line-height: 1.6;
+      font-variant-numeric: tabular-nums;
     }
     #article pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
 
@@ -957,24 +972,24 @@
     .callout-icon svg { width: 16px; height: 16px; }
     .callout-note    .callout-icon { color: var(--graphite); }
     .callout-info    .callout-icon { color: #1d4ed8; }
-    .callout-tip     .callout-icon { color: #15803d; }
-    .callout-warning .callout-icon { color: #92400e; }
-    .callout-danger  .callout-icon { color: #b91c1c; }
+    .callout-tip     .callout-icon { color: #188a3c; }
+    .callout-warning .callout-icon { color: #b45309; }
+    .callout-danger  .callout-icon { color: #991b1b; }
     .callout-body { flex: 1; min-width: 0; }
     .callout-body p { color: inherit; margin-bottom: 0 !important; }
     .callout-body p + p { margin-top: 12px; }
 
     .callout-note    { background: var(--parchment);         border: 1px solid var(--stone-dark); }
-    .callout-info    { background: rgba(59,130,246,0.08);    border: 1px solid rgba(59,130,246,0.28); }
+    .callout-info    { background: rgba(37,99,235,0.08);     border: 1px solid rgba(37,99,235,0.28); }
     .callout-tip     { background: var(--mint);              border: 1px solid rgba(34,197,94,0.30); }
     .callout-warning { background: rgba(245,158,11,0.1);     border: 1px solid rgba(245,158,11,0.30); }
-    .callout-danger  { background: rgba(239,68,68,0.08);     border: 1px solid rgba(239,68,68,0.28); }
+    .callout-danger  { background: rgba(220,38,38,0.08);     border: 1px solid rgba(220,38,38,0.28); }
 
     .callout-note    .callout-label { color: var(--graphite); font-weight: 600; }
     .callout-info    .callout-label { color: #1d4ed8;         font-weight: 600; }
-    .callout-tip     .callout-label { color: #15803d;         font-weight: 600; }
-    .callout-warning .callout-label { color: #92400e;         font-weight: 600; }
-    .callout-danger  .callout-label { color: #b91c1c;         font-weight: 600; }
+    .callout-tip     .callout-label { color: #188a3c;         font-weight: 600; }
+    .callout-warning .callout-label { color: #b45309;         font-weight: 600; }
+    .callout-danger  .callout-label { color: #991b1b;         font-weight: 600; }
 
     /* Tabs */
     .tabs-container { margin-bottom: 24px; }
