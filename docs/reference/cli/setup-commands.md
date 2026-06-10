@@ -117,11 +117,13 @@ It loads the config's `.env`, then runs these checks in order, stopping early on
 
 Each line reports `✓ pass`, `! warn`, or `✗ fail` with a repair hint. The summary counts passed/warned/failed, and a clear "fix and re-run" message is printed when anything fails.
 
+> **Note for scripts:** a standalone `doctor` exits `0` even when checks fail — failure is reported in the printed summary, not the exit code. Don't gate a CI step on `doctor`'s exit status; parse the output instead. (`run` behaves differently: when its built-in doctor pass fails, it stops without starting the server.)
+
 | Flag | Use |
 |---|---|
 | `-c, --config <path>` | Path to the config file. |
 | `-d, --data-dir <path>` | Isolate all local state from `~/.paperclip`. |
-| `--repair` (alias `--fix`) | Attempt to repair fixable issues. |
+| `--repair` | Attempt to repair fixable issues. |
 | `-y, --yes` | Skip the per-repair confirmation prompts. |
 
 > **Warning:** `--repair` can create or update local files (the JWT `.env`, the secrets key, the log directory) when a check knows how to fix the problem. Review the output before running it against a shared or production-like instance, and pair it with `--yes` only when you trust the repairs.

@@ -18,7 +18,7 @@ paperclipai dashboard get --company-id <company-id>
 
 `dashboard get` issues a single `GET /api/companies/<company-id>/dashboard` and prints the summary. It does not change any state, trigger any runs, or wake any agents — it only reports. This makes it the cheapest way to answer "what is the state of this company right now?" without paging through `issue list`, `agent list`, `approval list`, and `cost summary` separately.
 
-This command is company-scoped, so it needs a company. It does not accept a positional company argument — pass the company with `-C` / `--company-id`, or let it resolve from your environment or profile (see [Resolving the company](#resolving-the-company)).
+This command is company-scoped, and the company must be passed explicitly: `-C` / `--company-id` is a required flag on `dashboard get`, and the usual `PAPERCLIP_COMPANY_ID` / profile fallback does not apply (see [Resolving the company](#resolving-the-company)).
 
 ---
 
@@ -34,7 +34,7 @@ paperclipai dashboard get --company-id <company-id>
 
 | Flag | Use |
 |---|---|
-| `-C, --company-id <id>` | The company to summarize. Required unless resolved from `PAPERCLIP_COMPANY_ID` or your context profile. |
+| `-C, --company-id <id>` | The company to summarize. **Required** — this command does not fall back to `PAPERCLIP_COMPANY_ID` or your context profile. |
 | `--json` | Emit the raw summary object as JSON instead of the formatted read. Use this when scripting. |
 | `--api-base <url>` | Override the API base URL for this call. |
 | `--api-key <token>` | Bearer token for agent-authenticated calls. |
@@ -45,27 +45,21 @@ paperclipai dashboard get --company-id <company-id>
 
 These are the standard client flags shared by every company-scoped CLI command. For the full explanation of how authentication, context, and the API base are resolved, see [Common options](./common-options.md).
 
-> **Note:** `dashboard get` is one of the few commands where `--company-id` is genuinely required by the command definition itself. Even with a default company in your profile, it is worth passing `-C` explicitly in scripts so the target is unambiguous.
+> **Note:** `dashboard get` is one of the few commands where `--company-id` is genuinely required by the command definition itself. Even with a default company in your profile, you must pass `-C` explicitly.
 
 ---
 
 ## Resolving the company
 
-The company is resolved in this order, first match wins:
+Unlike most company-scoped commands, `dashboard get` registers `--company-id` as a **required option**. The general resolution chain described in [Common options](./common-options.md#how-company-scope-is-resolved) — flag, then `PAPERCLIP_COMPANY_ID`, then the profile's `companyId` — never gets a chance to run: if the flag is missing, the command fails immediately with a missing-option error, regardless of what your environment or profile says.
 
-1. `-C` / `--company-id` on the command line
-2. the `PAPERCLIP_COMPANY_ID` environment variable
-3. the `companyId` recorded in the selected context profile
-
-If none of those produce a company, the command fails with a clear error telling you to pass `--company-id`, set `PAPERCLIP_COMPANY_ID`, or set a profile default with `paperclipai context set`.
-
-For an agent persona whose profile is already pinned to one company, the bare command works without any flag:
+So this fails even with `PAPERCLIP_COMPANY_ID` exported or a profile default set:
 
 ```sh
-paperclipai dashboard get
+paperclipai dashboard get            # error: required option '-C, --company-id <id>' not specified
 ```
 
-For a board operator who works across several companies, name the target explicitly each time:
+Always name the target explicitly:
 
 ```sh
 paperclipai dashboard get --company-id <company-id>

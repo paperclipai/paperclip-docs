@@ -121,7 +121,7 @@ Most control-plane commands share the same flags. Learn them once.
 | `--profile <name>` | Select which context profile to use. |
 | `--json` | Emit machine-readable output for scripting. |
 
-Company-scoped commands additionally take `--company-id <id>` (with a short `-C` alias on some, like `run`). For scripting and `--json` patterns, see [Output and scripting](output-and-scripting.md).
+Company-scoped commands additionally take `-C, --company-id <id>` — the short `-C` alias is registered wherever the flag exists. A handful of commands (such as `dashboard get` and `agent local-cli`) declare it as a required option, so the usual env/profile fallback does not apply there. For scripting and `--json` patterns, see [Output and scripting](output-and-scripting.md).
 
 ---
 

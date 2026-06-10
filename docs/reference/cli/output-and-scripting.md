@@ -84,6 +84,8 @@ paperclipai issue list --company-id <company-id> --json 2>/tmp/pc-errors.log
 
 > **Note:** A non-zero exit always means the command did not complete. Check it. In a pipeline like `paperclipai ... --json | jq ...`, the exit status you see is `jq`'s, not the CLI's — set `set -o pipefail` (bash) so an upstream failure fails the whole pipeline.
 
+> **Note:** The inverse does not hold for diagnostics: a standalone [`doctor`](./setup-commands.md#paperclipai-doctor) run that *completes* exits `0` even when individual checks fail. Failed checks are reported in the printed summary, not the exit code — parse the output if a script needs to react to them.
+
 ### Connection errors
 
 If the CLI cannot reach the API, the error message includes the URL it tried and a hint to check `GET /api/health` at that base. When you see this, the fix is almost always the API base resolution (below) pointing somewhere the server is not listening. See [Common Options](common-options.md) for the full resolution order.
