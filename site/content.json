@@ -164,7 +164,7 @@
       "tier": "Learn",
       "title": "How-to Guides",
       "icon": "wrench",
-      "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",
+      "desc": "Field-tested recipes for specific problems \u2014 short, copy-pasteable, current.",
       "pages": [
         {
           "title": "Set a Monthly Budget",
@@ -233,6 +233,10 @@
         {
           "title": "Connect an AWS Secrets Manager Vault",
           "file": "../docs/how-to/connect-aws-secrets-vault.md"
+        },
+        {
+          "title": "Build a BuyWhere Shopping Agent",
+          "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
         }
       ]
     },
@@ -240,7 +244,7 @@
       "tier": "Learn",
       "title": "Administration",
       "icon": "shield",
-      "desc": "Company settings, instance configuration, plugins, and CLI auth — for operators and admins.",
+      "desc": "Company settings, instance configuration, plugins, and CLI auth \u2014 for operators and admins.",
       "pages": [
         {
           "title": "Company",
@@ -488,7 +492,7 @@
       "tier": "Reference",
       "title": "Adapters",
       "icon": "plug",
-      "desc": "Connect any agent runtime — Claude, Codex, Gemini, or your own HTTP service.",
+      "desc": "Connect any agent runtime \u2014 Claude, Codex, Gemini, or your own HTTP service.",
       "pages": [
         {
           "title": "Overview",
@@ -592,7 +596,7 @@
       "tier": "Reference",
       "title": "Deployment",
       "icon": "cloud",
-      "desc": "Run Paperclip on your laptop, in Docker, or on a server — with secrets and Tailscale.",
+      "desc": "Run Paperclip on your laptop, in Docker, or on a server \u2014 with secrets and Tailscale.",
       "pages": [
         {
           "title": "Overview",
