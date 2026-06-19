@@ -86,6 +86,7 @@
         { "title": "Set a Monthly Budget",               "file": "../docs/how-to/set-monthly-budget.md" },
         { "title": "Create a Daily Routine",             "file": "../docs/how-to/create-a-daily-routine.md" },
         { "title": "Connect an Agent to GitHub",         "file": "../docs/how-to/connect-agent-to-github.md" },
+        { "title": "Ask for Structured Interactions",    "file": "../docs/how-to/ask-for-structured-interactions.md" },
         { "title": "Add an MCP Server to an Agent",      "file": "../docs/how-to/add-mcp-server-to-agent.md" },
         { "title": "Write a Company Skill",              "file": "../docs/how-to/write-a-company-skill.md" },
         { "title": "Bring Your Own Agent",               "file": "../docs/how-to/bring-your-own-agent.md" },
