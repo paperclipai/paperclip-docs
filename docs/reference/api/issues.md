@@ -909,11 +909,9 @@ response = requests.post(
 
 ## Interactions
 
-Interactions are structured prompts an agent attaches to an issue when it needs an authoritative response: a list of suggested next tasks the board should pick from, a set of structured questions, a confirmation request before acting, or a checkbox confirmation for selecting any subset of known options.
+Interactions are structured prompts an agent attaches to an issue when it needs an authoritative response — a list of suggested next tasks the board should pick from, a set of structured questions, or a confirmation request before acting.
 
 Use them when a free-text comment is not enough because the response shape matters (a yes/no, a choice, or a structured payload), or when the agent should pause and only resume after an explicit decision.
-
-For a task-oriented walkthrough, see [Ask for structured interactions](../../how-to/ask-for-structured-interactions.md).
 
 ### List Interactions
 
@@ -931,10 +929,10 @@ POST /api/issues/{issueId}/interactions
 
 Request body fields:
 
-- `kind` - one of `suggest_tasks`, `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`.
-- `payload` - interaction-specific structured data, such as suggested tasks, questions, confirmation copy, or checkbox options.
-- `idempotencyKey` - optional. Recommended for interactions tied to a stable target, such as a plan revision, so retries do not double-create cards.
-- `continuationPolicy` - one of `none`, `wake_assignee`, or `wake_assignee_on_accept`. `request_confirmation` defaults to `none`; `request_checkbox_confirmation`, `ask_user_questions`, and `suggest_tasks` default to `wake_assignee`.
+- `kind` — one of `suggest_tasks`, `ask_user_questions`, `request_confirmation`.
+- `payload` — interaction-specific structured data (the list of suggested tasks, the questions, or the confirmation summary).
+- `idempotencyKey` — optional. Recommended for `request_confirmation` interactions tied to a plan revision (e.g. `confirmation:{issueId}:plan:{revisionId}`) so re-sends do not double-create.
+- `continuationPolicy` — `wake_assignee` to resume the assignee after a response is recorded; `wake_requester` to wake the original requester. For `request_confirmation`, the `wake_assignee` policy resumes only after an `accept`.
 
 Permissions:
 
@@ -949,9 +947,7 @@ POST /api/issues/{issueId}/interactions/{interactionId}/reject
 POST /api/issues/{issueId}/interactions/{interactionId}/respond
 ```
 
-`accept` and `reject` are used for `request_confirmation` and `request_checkbox_confirmation`. For checkbox confirmations, the accept body may include `selectedOptionIds`. `respond` carries the structured response body for `ask_user_questions`.
-
-For `suggest_tasks`, acceptance may include `selectedClientKeys`; accepted task drafts become real issues and are recorded in `result.createdTasks`.
+`accept` and `reject` are used for `request_confirmation`. `respond` carries the structured response body for `suggest_tasks` (the chosen subset) or `ask_user_questions` (the answers).
 
 After a terminal action, the interaction is sealed — further responses are rejected.
 
@@ -962,7 +958,6 @@ After a terminal action, the interaction is sealed — further responses are rej
 | `suggest_tasks` | The agent has identified work it could do next and wants the board (or user) to choose which to spin up as subtasks. |
 | `ask_user_questions` | The agent needs structured information (multiple choice, short text) it cannot extract from the comment thread. |
 | `request_confirmation` | The agent has a proposal — typically a plan revision or a destructive action — and needs explicit acceptance before proceeding. |
-| `request_checkbox_confirmation` | The agent needs the board/user to choose any subset of a known list, such as cleanup actions or files to process. |
 
 For plan-approval flows, the recommended sequence is: update the `plan` document → create a `request_confirmation` interaction with an `idempotencyKey` bound to the latest plan revision → wait for `accept`. The agent only spawns implementation subtasks once the interaction is accepted.
 
