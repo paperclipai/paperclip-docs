@@ -9,6 +9,24 @@
     "docs:serve": "python3 -m http.server 4321 --directory .site",
     "docs:publish": "npm run docs:publish:cloudflare",
     "docs:publish:cloudflare": "npm run docs:build && wrangler pages deploy .site --project-name paperclip-docs --branch main",
-    "docs:publish:github": "./scripts/publish-gh-pages.sh"
+    "docs:publish:github": "./scripts/publish-gh-pages.sh",
+    "sync:lint-links": "node scripts/sync/lint-links.mjs",
+    "sync:verify-nav": "node scripts/sync/verify-nav.mjs",
+    "sync:backfill-screenshots": "node scripts/sync/backfill-screenshots.mjs",
+    "sync:compare-window": "node scripts/sync/compare-window.mjs",
+    "sync:check-drift": "node scripts/sync/check-drift.mjs",
+    "sync:detect-renames": "node scripts/sync/detect-renames.mjs",
+    "sync:verify-edit": "node scripts/sync/verify-edit.mjs",
+    "sync:verify-screenshots": "node scripts/sync/verify-screenshots.mjs",
+    "sync:check": "npm run sync:lint-links && npm run sync:verify-nav && npm run sync:verify-screenshots && npm run sync:check-drift",
+    "sync:test": "node scripts/sync/test.mjs",
+    "screenshots:seed": "node scripts/screenshots/seed.mjs",
+    "screenshots:capture": "node scripts/screenshots/capture.mjs",
+    "screenshots:sync-registry": "node scripts/screenshots/sync-registry.mjs",
+    "screenshots:refresh": "node scripts/screenshots/run.mjs",
+    "screenshots:refresh:all": "node scripts/screenshots/run.mjs --all"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
   }
 }

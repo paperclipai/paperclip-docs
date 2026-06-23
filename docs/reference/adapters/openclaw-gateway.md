@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.618.0
+---
+
 # OpenClaw Gateway
 
 `openclaw_gateway` connects Paperclip to an OpenClaw instance over the OpenClaw Gateway WebSocket protocol. Use it when OpenClaw is running on another machine, inside Docker, or behind a shared gateway and you want Paperclip agents to delegate work to it.
@@ -45,6 +49,10 @@ The adapter always uses WebSocket gateway transport. The URL must start with `ws
 | `sessionKeyStrategy` | no | `issue`, `fixed`, or `run`. Determines how `agent.sessionKey` is derived. |
 | `sessionKey` | no | Used when `sessionKeyStrategy` is `fixed`. |
 | `agentId` | no | Optional OpenClaw agent ID to target. |
+| `role` | no | Gateway identity role sent to OpenClaw. Default `operator`. |
+| `scopes` | no | Gateway capability scopes (an array, e.g. `["operator.admin"]`). In the create UI you enter a comma-separated string that's split into an array. Default `["operator.admin"]`. |
+| `paperclipApiUrl` | no | Optional override for the Paperclip API base URL the gateway/agent calls back into. No default. |
+| `workspaceRuntime` | no | Optional workspace runtime services definition (a `{ services: [...] }` object). In the create UI you enter it as `runtimeServicesJson`; it's applied only when it parses to an object with a `services` array. |
 | `payloadTemplate` | no | Fields merged into the agent request. `message`/`text` prefix the wake text. |
 | `timeoutSec` | no | Adapter-level request budget. |
 | `waitTimeoutMs` | no | `agent.wait.timeoutMs` for a single wait call. |
@@ -204,7 +212,7 @@ When you add OpenClaw to a Paperclip company:
         "version": "latest"
       }
     },
-    "devicePrivateKeyPem": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----",
+    "devicePrivateKeyPem": "<PEM private key stored as a secret reference in production>",
     "autoPairOnFirstConnect": true,
     "sessionKeyStrategy": "issue",
     "timeoutSec": 300,

@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.609.0
+---
+
 # Companies
 
 Companies are the top-level tenant boundary in Paperclip. Every agent, project, issue, approval, cost event, and asset belongs to exactly one company, and the API enforces that boundary on every company-scoped route.
@@ -48,6 +52,77 @@ GET /api/companies/{companyId}
 ```
 
 Returns one company object if the caller has access to that company.
+
+---
+
+## List company artifacts
+
+```
+GET /api/companies/{companyId}/artifacts
+```
+
+Returns a company-wide projection of the outputs agents produced while working. It flattens three sources — agent-authored issue documents, direct issue attachments, and `artifact` work products — into one card-ready list, so callers do not have to stitch per-issue endpoints together. Company access is checked before the projection runs.
+
+### Query parameters
+
+| Parameter | Values | Description |
+|---|---|---|
+| `kind` | `image`, `video`, `text`, `document`, `file`, `all` | Filter by media kind. Defaults to `all`. |
+| `projectId` | UUID | Restrict to artifacts from issues in one project. |
+| `q` | string (max 160 chars) | Free-text search over artifact title/summary and originating issue identifier/title. |
+| `groupBy` | `none`, `task`, `parent_task` | Grouping mode. `none` (default) returns a flat artifact list; `task` groups by the originating issue; `parent_task` rolls sub-issue artifacts up under their root issue. |
+| `groupIssueId` | UUID | When grouping, expand a single group (stack) into its own artifacts. |
+| `limit` | integer 1–100 | Page size. Defaults to `30`. |
+| `cursor` | string | Opaque pagination cursor from a prior response's `nextCursor`. |
+
+### Response
+
+The response is an envelope. In the ungrouped case it returns the flat `artifacts` list; when `groupBy` is `task` or `parent_task` it returns `groups` instead (or, when `groupIssueId` is supplied, the expanded group's `artifacts` plus `selectedGroup`). `nextCursor` is `null` when there are no further pages.
+
+```json
+{
+  "artifacts": [
+    {
+      "id": "work_product:...",
+      "source": "work_product",
+      "mediaKind": "video",
+      "title": "Launch teaser render",
+      "previewText": null,
+      "contentType": "video/mp4",
+      "contentPath": "/api/attachments/.../content",
+      "openPath": "/api/attachments/.../content",
+      "downloadPath": "/api/attachments/.../content?download=1",
+      "issue": { "id": "...", "identifier": "PAP-123", "title": "Produce launch teaser" },
+      "project": { "id": "...", "name": "Launch" },
+      "createdByAgent": { "id": "...", "name": "Video Agent" },
+      "updatedAt": "2026-06-01T12:00:00.000Z",
+      "href": "/PAP/issues/PAP-123#work-product-..."
+    }
+  ],
+  "nextCursor": null
+}
+```
+
+Each artifact carries:
+
+| Field | Meaning |
+|---|---|
+| `id` | Stable artifact id, prefixed by source (`document:`, `attachment:`, or `work_product:`) |
+| `source` | `document`, `attachment`, or `work_product` |
+| `mediaKind` | `image`, `video`, `text`, `document`, `file`, or `empty` |
+| `title` | Display title |
+| `previewText` | Short plain-text preview, or `null` |
+| `contentType` | MIME type of the underlying content, or `null` |
+| `contentPath` | Path to the raw content, or `null` |
+| `openPath` | Path for inline open, or `null` |
+| `downloadPath` | Path for download, or `null` |
+| `issue` | `{ id, identifier, title }` of the originating issue |
+| `project` | `{ id, name }` of the issue's project, or `null` |
+| `createdByAgent` | `{ id, name }` of the producing agent, or `null` |
+| `updatedAt` | Last-updated timestamp |
+| `href` | Deep link to the artifact on its originating issue |
+
+A group object (returned under `groups` / `selectedGroup`) carries `id`, `groupBy`, `issue`, `title`, `count`, `mediaKinds`, `previewArtifacts`, `updatedAt`, and `href`.
 
 ---
 
@@ -325,7 +400,6 @@ Paperclip exposes both broad and company-scoped portability routes:
 | `POST /api/companies/{companyId}/exports/preview` | Preview a company export | Board or CEO of that company |
 | `POST /api/companies/{companyId}/exports` | Export a company bundle with the stricter portability flow | Board or CEO of that company |
 | `POST /api/companies/import/preview` | Preview an import into a new or existing company | Board only |
-| `POST /api/companies/import` | Apply a board-level import | Board only |
 | `POST /api/companies/{companyId}/imports/preview` | Preview an import into the same company | Board or CEO of that company |
 | `POST /api/companies/{companyId}/imports/apply` | Apply an import into the same company | Board or CEO of that company |
 
@@ -334,7 +408,7 @@ The company-scoped `imports/*` routes are intentionally safer:
 - they can only target the route company
 - they reject the `replace` collision strategy
 
-Use the board-level `import` routes when you are creating a brand-new company or moving data into a different target.
+Use the board-level preview route when you need to inspect an import that would create a brand-new company or target a different company.
 
 ---
 
@@ -345,7 +419,7 @@ POST /api/companies/{companyId}/archive
 DELETE /api/companies/{companyId}
 ```
 
-Archiving changes the company status to `archived` and removes it from default listings. Deleting removes the company and its related data. Deletion is destructive and should be treated as irreversible.
+Archiving changes the company status to `archived` and removes it from default listings. It also runs a cascade that pauses every active agent in the company (pause reason `company_archived`) and cancels their queued or in-flight wake-up requests, so an archived company stops doing background work. Deleting removes the company and its related data. Deletion is destructive and should be treated as irreversible.
 
 ---
 

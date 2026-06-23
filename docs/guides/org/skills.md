@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.609.0
+---
+
 # Skills
 
 When you want an agent to follow a specific procedure — a code review checklist, a deployment runbook, a customer response template — you could put those instructions in the agent's main configuration. But if you want multiple agents to use the same procedure, or want to keep agent configurations lean and focused, that's where skills come in.
@@ -82,6 +86,23 @@ Click **Create skill** and the skill is added to the library as a Paperclip-mana
 The skill is now available in the company library. When creating or editing an agent, you can attach optional skills from that library.
 
 ![Skills page showing available skills with their names and descriptions](../../user-guides/screenshots/light/org/skills-list.png)
+
+### Install a ready-made skill from the built-in catalog
+
+You don't have to write every skill from scratch. Paperclip ships with a built-in **catalog** of ready-made skills you can browse and install with a click — a head start for common procedures.
+
+The catalog comes in two flavours:
+
+- **Bundled** skills are the everyday kit — things like keeping docs maintained, triaging issues, planning tasks, running QA acceptance, managing a GitHub PR workflow, and sketching low-fidelity UI **wireframes**.
+- **Optional** skills are extras you add when you need them — for example, browser-driving an agent, drafting a release announcement, running a design critique, or researching what people have said about a topic in the last 30 days.
+
+The catalog isn't only for engineers. Design, product, and research roles get a head start too: the `wireframe` skill, for instance, lets an agent draft black-and-white, low-fidelity screen layouts as SVG files before anyone commits to building the real thing — handy for a designer or product agent who wants to show structure first — and the `last30days` skill pulls recent posts and engagement from across the web so a researcher or marketer can see what people are actually saying about a topic right now. "Bundled" doesn't mean "forced on everyone": you still browse, pick, and install the ones you want.
+
+A few catalog skills aren't shipped inside the app at all — they're pulled from an external repository pinned to a specific version. You install and update them the same way; Paperclip just fetches the files on your behalf. Either way the app knows the exact version you have, so the keep-it-current, audit, and reset features below work for every catalog skill.
+
+Browse the catalog, pick a skill, and install it into your company library. Installing puts the skill in the library only — it doesn't attach it to any agent, so you stay in control of who uses it. From there it behaves like any other installed skill: open it, read its `SKILL.md`, and assign it to the agents that need it.
+
+Because these skills come from Paperclip, the app knows exactly which version you installed. That means a catalog skill can be **kept up to date**: Paperclip can check whether a newer version shipped and install the update, audit the skill's contents for safety before you trust it, and reset the skill back to its original shipped version if it was edited locally. For the mechanics of installing, updating, auditing, and resetting catalog skills, see the [Skills reference](../../reference/skills.md#3-app-shipped-catalog).
 
 ---
 

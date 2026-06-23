@@ -5,12 +5,10 @@
   "user-guides/guides/what-is-paperclip": "guides/welcome/what-is-paperclip",
   "user-guides/guides/key-concepts": "guides/welcome/key-concepts",
   "user-guides/guides/glossary": "guides/welcome/glossary",
-
   "user-guides/guides/installation": "guides/getting-started/installation",
   "user-guides/guides/your-first-company": "guides/getting-started/your-first-company",
   "user-guides/guides/your-first-agent": "guides/getting-started/your-first-agent",
   "user-guides/guides/watching-agents-work": "guides/getting-started/watching-agents-work",
-
   "user-guides/guides/dashboard": "guides/day-to-day/dashboard",
   "user-guides/guides/managing-tasks": "guides/day-to-day/issues",
   "guides/day-to-day/managing-tasks": "guides/day-to-day/issues",
@@ -19,26 +17,21 @@
   "guides/day-to-day/costs-and-budgets": "guides/day-to-day/costs",
   "user-guides/guides/activity-log": "guides/day-to-day/activity-log",
   "user-guides/guides/feedback-voting": "guides/day-to-day/feedback-voting",
-
   "guides/agent-developer/how-agents-work": "guides/org/how-agents-work",
   "user-guides/guides/skills": "guides/org/skills",
   "user-guides/guides/org-structure": "guides/org/org-structure",
   "user-guides/guides/delegation": "guides/org/delegation",
   "user-guides/guides/agent-adapters": "guides/org/agent-adapters",
-
   "user-guides/guides/heartbeats-and-routines": "guides/projects-workflow/routines",
   "guides/projects-workflow/heartbeats-and-routines": "guides/projects-workflow/routines",
   "user-guides/guides/execution-workspaces": "guides/projects-workflow/workspaces",
   "guides/projects-workflow/execution-workspaces": "guides/projects-workflow/workspaces",
-
   "user-guides/guides/execution-policy": "guides/power/execution-policy",
   "user-guides/guides/export-import": "guides/power/export-import",
   "user-guides/guides/terminal-setup": "guides/power/terminal-setup",
-
   "user-guides/guides/administration/company": "administration/company",
   "user-guides/guides/administration/settings": "administration/settings",
   "user-guides/guides/administration/plugins": "administration/plugins",
-
   "api/overview": "reference/api/overview",
   "api/authentication": "reference/api/authentication",
   "api/companies": "reference/api/companies",
@@ -51,11 +44,9 @@
   "api/activity": "reference/api/activity",
   "api/dashboard": "reference/api/dashboard",
   "api/routines": "reference/api/routines",
-
   "cli/overview": "reference/cli/overview",
   "cli/setup-commands": "reference/cli/setup-commands",
   "cli/control-plane-commands": "reference/cli/control-plane-commands",
-
   "adapters/overview": "reference/adapters/overview",
   "adapters/claude-local": "reference/adapters/claude-local",
   "adapters/codex-local": "reference/adapters/codex-local",
@@ -70,7 +61,6 @@
   "adapters/external-adapters": "reference/adapters/external-adapters",
   "adapters/creating-an-adapter": "reference/adapters/creating-an-adapter",
   "adapters/adapter-ui-parser": "reference/adapters/adapter-ui-parser",
-
   "deploy/overview": "reference/deploy/overview",
   "deploy/deployment-modes": "reference/deploy/deployment-modes",
   "deploy/local-development": "reference/deploy/local-development",
@@ -79,5 +69,7 @@
   "deploy/storage": "reference/deploy/storage",
   "deploy/secrets": "reference/deploy/secrets",
   "deploy/environment-variables": "reference/deploy/environment-variables",
-  "deploy/tailscale-private-access": "reference/deploy/tailscale-private-access"
+  "deploy/tailscale-private-access": "reference/deploy/tailscale-private-access",
+  "reference/cli/commands": "reference/cli/overview",
+  "reference/cli/control-plane-commands": "reference/cli/overview"
 }

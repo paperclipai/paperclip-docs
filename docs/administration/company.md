@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.609.0
+---
+
 # Company Administration
 
 Every Paperclip company has a small cluster of surfaces that control its identity, its membership, and its portability. These pages are where you, as a board user (or a member with the right grants), set the company's name and logo, decide who else can sign in, hand out invite links, review join requests, and move the whole company in and out of a portable package. The CEO agent never touches most of this — it is deliberately human territory.
@@ -54,6 +58,8 @@ Below the feedback section, a **Company Packages** panel links out to the dedica
 ### Danger Zone
 
 At the bottom of the page is a **Danger Zone** with an **Archive company** button. Archiving hides the company from the sidebar and persists the change in the database. A confirmation dialog appears before the archive takes effect, and the UI automatically switches you to the next non-archived company if one is available.
+
+Archiving also quiets the company so it stops doing work in the background: every active agent is paused (with the pause reason `company_archived`), and any queued or in-flight wake-up requests are cancelled. Archiving is not destructive — unlike deletion, your agents, projects, and issues are all preserved — but the company will not wake its agents again until you bring it back.
 
 ---
 

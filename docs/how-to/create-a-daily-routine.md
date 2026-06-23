@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.525.0
+---
+
 # Create a routine that runs daily
 
 A [routine](../guides/welcome/glossary.md) is a recurring task generator. You describe the work once, attach a cron trigger, and Paperclip mints a fresh execution issue on every tick — assigned to one agent, with the same parent, project, and goal each time. The agent picks the issue up through its normal heartbeat, does the work, and the run shows up in the routine's history.
@@ -93,6 +97,32 @@ The defaults work for most routines, but the wrong pair will either drown the ag
 | `enqueue_missed_with_cap` | Missed ticks are enqueued, capped at 25. Use only when each run is independently valuable and you'd rather catch up than skip. A weekend outage with a one-minute schedule will hit the cap immediately and drop the rest — that's intentional. |
 
 Set both at create time (the example in step 1 picks `skip_if_active` + `skip_missed`) or change them later with `PATCH /api/routines/{routineId}`.
+
+---
+
+## 4. (Optional) Give the routine an `env` map
+
+Routines carry a `routines.env` map, the same shape as agent adapter env. Each value is either a literal string or a `secret_ref` to a company secret — handy when the routine shells out to a tool that needs an API key, or when you want to flip a flag between staging and prod without editing the agent.
+
+```bash
+curl -X PATCH "$PAPERCLIP_API_URL/api/routines/$ROUTINE_ID" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "env": {
+      "DEPLOY_TARGET": "staging",
+      "GITHUB_TOKEN": {
+        "type": "secret_ref",
+        "secretId": "'$GITHUB_SECRET_ID'",
+        "version": "latest"
+      }
+    }
+  }'
+```
+
+In the UI, any `env` value with `type: "secret_ref"` is rendered through a secret binding picker — same widget you see on agent configs — so you pick from existing company secrets instead of pasting plaintext. See [`secret-ref` form fields](../reference/api/secrets.md#secret-ref-form-fields) for the JSON schema flag that powers the picker.
+
+**Each run is pinned to its routine revision.** When the routine fires, the run records `routine_runs.routine_revision_id` pointing at the `routine_revisions` row that was current at dispatch time. Editing the routine later mints a new revision; in-flight and historical runs keep the env (and the rest of the snapshot) they originally executed under. That means rotating a secret value flows to future runs automatically via `version: "latest"`, but renaming an env key or removing a binding only affects runs created after the edit — the run history stays honest about what each tick actually saw.
 
 ---
 

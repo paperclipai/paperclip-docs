@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.618.0
+---
+
 # Environment Variables & Config
 
 This is the canonical reference for every `PAPERCLIP_*` environment variable Paperclip reads or injects, every related env var (provider keys, auth, database), and every field of the `config.json` file.
@@ -133,9 +137,25 @@ These pair with `server.*` in `config.json`. See [Deployment Modes](./deployment
 | `PAPERCLIP_DEPLOYMENT_MODE` | `local_trusted` | One of `local_trusted`, `authenticated`. |
 | `PAPERCLIP_DEPLOYMENT_EXPOSURE` | `private` | One of `private`, `public`. Validated against `PAPERCLIP_DEPLOYMENT_MODE`. |
 | `PAPERCLIP_ALLOWED_HOSTNAMES` | unset | Comma-separated allowlist of hostnames the server will accept. |
+| `TRUST_PROXY` | unset | How much to trust `X-Forwarded-For` when the server sits behind a reverse proxy or load balancer. |
 | `PAPERCLIP_ENABLE_COMPANY_DELETION` | `true` in `local_trusted`, else `false` | Whether the dashboard exposes company deletion. |
 | `SERVE_UI` | `true` | Serve the bundled web UI from the API server. |
 | `PAPERCLIP_UI_DEV_MIDDLEWARE` | `false` | Enable the Vite dev middleware for in-place UI development. |
+
+#### Trusting a reverse proxy (`TRUST_PROXY`)
+
+When you run Paperclip behind a load balancer or reverse proxy, the real client IP arrives in the `X-Forwarded-For` header rather than on the socket. `TRUST_PROXY` tells the server how far to trust that header so `req.ip` and rate-limiting see the actual client instead of your proxy.
+
+The default is unset, which trusts nothing. Only opt in when there really is a proxy in front of the server.
+
+| Value | Meaning |
+|---|---|
+| unset, `""`, `false`, `0` | Trust nothing. |
+| `true` | Trust the header unconditionally. Only use this when the server is unreachable except through your proxy. |
+| a positive integer, such as `1` | Trust that many proxy hops. Use `1` for a single load balancer in front of the server. |
+| a comma-separated list | Trust specific sources by named subnet (`loopback`, `linklocal`, `uniquelocal`) or CIDR, such as `10.0.0.0/8`. |
+
+A malformed value makes the server refuse to start with an explanatory error, so a typo fails loudly rather than silently disabling proxy trust.
 
 ### 4.3 Authentication
 
@@ -186,7 +206,7 @@ These pair with `server.*` in `config.json`. See [Deployment Modes](./deployment
 | `PAPERCLIP_SECRETS_PROVIDER` | `local_encrypted` | no | Backend used by the secret store. |
 | `PAPERCLIP_SECRETS_MASTER_KEY` | unset | yes | 32-byte master key as base64, hex, or raw. Wins over the key file when both are set. |
 | `PAPERCLIP_SECRETS_MASTER_KEY_FILE` | `$PAPERCLIP_INSTANCE_ROOT/secrets/master.key` | yes | Path to the master key file. |
-| `PAPERCLIP_SECRETS_STRICT_MODE` | `false` | no | When `true`, sensitive env vars must be referenced through the secret store. |
+| `PAPERCLIP_SECRETS_STRICT_MODE` | `false` | no | When `true`, server-side sensitive env vars must be referenced through the secret store. Does not apply to `paperclipai configure --section llm` or `config.llm.apiKey`. |
 
 See [Secrets](./secrets.md) for the full lifecycle.
 
@@ -206,7 +226,22 @@ See [Secrets](./secrets.md) for the full lifecycle.
 | `PAPERCLIP_TELEMETRY_BACKEND_URL` | unset | no | Legacy alias for the export URL. |
 | `PAPERCLIP_TELEMETRY_BACKEND_TOKEN` | unset | yes | Legacy alias for the export token. |
 
-### 4.9 Worktrees & runtime
+### 4.9 Observability (OpenTelemetry)
+
+Paperclip can emit distributed traces over OpenTelemetry (OTLP). It is opt-in and off by default. Nothing is loaded until you point it at a collector.
+
+To turn it on, set `OTEL_EXPORTER_OTLP_ENDPOINT` and install the OpenTelemetry packages the server needs: `@opentelemetry/sdk-node`, `@opentelemetry/auto-instrumentations-node`, the exporter for your protocol, `@opentelemetry/resources`, and `@opentelemetry/semantic-conventions`. If the endpoint is set but the packages are missing, the server logs a one-line hint and keeps running without tracing.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | unset | OTLP collector endpoint. Setting it enables tracing. |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | `grpc` | Exporter protocol: `grpc`, `http/protobuf`, or `http/json`. Unknown values log a warning and fall back to `grpc`. |
+| `OTEL_SERVICE_NAME` | `paperclip` | Service name reported on spans. |
+| `OTEL_SERVICE_VERSION` | `unknown` | Service version reported on spans. |
+
+A bad endpoint or unreachable collector never takes the server down. The SDK logs the failure and tracing stays off. On shutdown the server flushes buffered spans with a short timeout before exiting.
+
+### 4.10 Worktrees & runtime
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -218,7 +253,7 @@ See [Secrets](./secrets.md) for the full lifecycle.
 | `RUN_LOG_BASE_PATH` | unset | Override the base path for run logs. |
 | `WORKSPACE_OPERATION_LOG_BASE_PATH` | unset | Override the base path for workspace operation logs. |
 
-### 4.10 Live SSH environment (advanced)
+### 4.11 Live SSH environment (advanced)
 
 Used by the `live_ssh` execution environment to provision and run agents inside a remote SSH host. Skip this section unless you are deliberately using remote execution.
 
@@ -393,7 +428,18 @@ Each adapter receives the [heartbeat-injected vars](#2-heartbeat-injected-env-va
 
 > **Tip:** If an adapter test fails, start by checking whether the expected provider key is present in the process environment.
 
-### 7.2 Per-agent `adapter_config.env`
+### 7.2 Adapter provider overrides
+
+The local CLI adapters can be pointed at custom or remote OpenAI-compatible gateways through server-read variables. Each value is JSON that Paperclip writes into the adapter's runtime config before a run, so operators can route an adapter to another provider without editing the agent machine by hand. Values support `{env:VAR}` placeholders, which are expanded server-side so secrets stay out of the stored JSON.
+
+| Variable | Adapter | Meaning |
+|---|---|---|
+| `PAPERCLIP_CODEX_PROVIDERS` | `codex_local` | JSON of custom providers and an optional `model_provider` written into Codex's managed `config.toml`. See [Codex Local](../adapters/codex-local.md). |
+| `PAPERCLIP_PI_PROVIDERS` | `pi_local` | JSON of custom providers written into Pi's managed `models.json`. See [Pi Local](../adapters/pi-local.md). |
+| `PAPERCLIP_OPENCODE_PROVIDERS` | `opencode_local` | JSON merged into OpenCode's provider config. See [OpenCode Local](../adapters/opencode-local.md). |
+| `PAPERCLIP_OPENCODE_SMALL_MODEL` | `opencode_local` | Sets OpenCode's auxiliary small model. See [OpenCode Local](../adapters/opencode-local.md). |
+
+### 7.3 Per-agent `adapter_config.env`
 
 The `process` and `http` adapters expose an `env` field (`adapterConfig.env`) on the agent record. Anything you set there is merged into the agent's process environment alongside the `PAPERCLIP_*` injections.
 
@@ -412,7 +458,7 @@ The `process` and `http` adapters expose an `env` field (`adapterConfig.env`) on
 
 Values starting with `${secret:...}` are resolved through the secret store ([Secrets](./secrets.md)) at run time.
 
-### 7.3 Hermes auth-token injection
+### 7.4 Hermes auth-token injection
 
 When `hermes_local` is configured with an `authToken`, the server also injects:
 

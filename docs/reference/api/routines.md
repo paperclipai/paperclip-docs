@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.609.0
+---
+
 # Routines
 
 Routines are Paperclip's recurring execution layer. Use them when you want an agent to run on a schedule, respond to a webhook, or be kicked off manually through the API.
@@ -668,7 +672,7 @@ Routine runs use these statuses:
 |---|---|
 | `received` | The run was accepted and is being processed. |
 | `coalesced` | A live execution already existed, so this run linked to it. |
-| `skipped` | A live execution already existed, and the concurrency policy chose to skip. |
+| `skipped` | The run did not create work. Either a live execution already existed and the concurrency policy chose to skip, or the routine's project was paused at tick time. Read `failureReason` to tell them apart — a paused project records `failureReason: "paused"` (the trigger's last result spells it out as `Skipped because the project is paused`). |
 | `issue_created` | A new execution issue was created. |
 | `completed` | The execution issue later moved to `done`. |
 | `failed` | The execution issue failed, was cancelled, or the dispatch failed. |
@@ -705,6 +709,7 @@ Board operators need `tasks:assign` permission for actions that assign work to a
 - Webhook triggers mint a company secret behind the scenes.
 - The public webhook URL does not change when you rotate the secret.
 - If a routine is archived, it will not fire again.
+- If the routine's project is paused, scheduled ticks are suppressed: the firing is recorded as a `skipped` run and the schedule advances to the next tick, but no execution issue is created and the missed tick is **not** backfilled when the project resumes.
 - If a run finds an active live execution issue and the concurrency policy is not `always_enqueue`, the run is linked or skipped instead of creating new work.
 
 If you are wiring this from code, the common path is:

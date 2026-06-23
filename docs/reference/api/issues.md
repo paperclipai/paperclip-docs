@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.609.0
+---
+
 # Issues
 
 Issues are the core work objects in Paperclip. They can be organized in a hierarchy, linked to blockers and approvals, checked out by agents, annotated with comments, and extended with keyed markdown documents and file attachments.
@@ -13,7 +17,7 @@ Issue APIs are company-aware. In practice that means:
 - List and create operations are scoped to `/api/companies/{companyId}/issues`.
 - Single-issue routes use `/api/issues/{issueId}`.
 - Attachment uploads use `/api/companies/{companyId}/issues/{issueId}/attachments`.
-- Attachment downloads use `/api/attachments/{attachmentId}/content`.
+- Attachment downloads use `/api/attachments/{attachmentId}/content`, which supports inline preview, forced download (`?download=1`), and HTTP Range requests.
 
 On issue-scoped routes, `{issueId}` can be either:
 
@@ -141,7 +145,7 @@ Notable inputs:
 - `assigneeAgentId` and `assigneeUserId` are allowed, but the caller must have task assignment permission.
 - `inheritExecutionWorkspaceFromIssueId` copies execution workspace settings from another issue.
 
-If you include `assigneeAgentId` or `assigneeUserId`, the request is checked against task assignment permissions before the issue is created.
+If you include `assigneeAgentId` or `assigneeUserId`, the request is checked against task assignment permissions before the issue is created. The check runs through the central authorization service — see [Scoped Permissions and Authorization](./agents.md#scoped-permissions-and-authorization) for the full decision matrix, including the `deny_policy_restricted` reason that protected agents and projects raise.
 
 <!-- tabs: cURL, JavaScript, Python -->
 
@@ -617,6 +621,33 @@ Concurrency rules:
 - A stale `baseRevisionId` returns `409 Conflict` with the current revision id.
 - If the key already exists and `baseRevisionId` is omitted, the server rejects the update.
 
+#### Writing to a locked document
+
+If the target document is locked, the behavior depends on who is writing:
+
+- **User callers** receive `409 Conflict` with `{ "error": "Document is locked", "key": "...", "lockedAt": "..." }`.
+- **Agent callers** are routed to a derived document instead. The server creates a new document at a related key (for example `plan-2` if `plan` is taken), applies the write there, and returns the response with a `redirectedFromLockedDocument` field describing the source key and the new key. This keeps the approved snapshot intact while letting the agent continue its work.
+
+Delete also refuses to operate on a locked document and returns `409 Conflict`.
+
+### Lock A Document
+
+```
+POST /api/issues/{issueId}/documents/{key}/lock
+```
+
+Lock an existing document. Subsequent writes from agents are redirected to a new derived document; user writes get a `409 Conflict`. The response includes the updated `lockedAt`, `lockedByAgentId`, and `lockedByUserId` fields.
+
+Locking emits an `issue.document_locked` activity entry.
+
+### Unlock A Document
+
+```
+POST /api/issues/{issueId}/documents/{key}/unlock
+```
+
+Clear the lock. Writes resume normally and an `issue.document_unlocked` activity entry is recorded.
+
 ### Revision History
 
 ```
@@ -709,6 +740,99 @@ response = requests.put(
 
 ---
 
+## Document Annotations
+
+Annotations let you attach comment threads to a specific passage of an issue document — the same way you'd leave a margin note on a shared doc. Each thread is anchored to a selected range of text, carries one or more comments, and can be resolved once the conversation is settled. Both users and agents can create and reply to annotation threads.
+
+Annotations live under a single document, addressed by the issue id and the document key.
+
+### Anchors and revisions
+
+A thread is pinned to the document text it was created against, using a combination of the quoted text (with surrounding context) and its character positions. Because of this, creating a thread requires you to send the document's current revision — if the document has moved on, the server rejects the request so the anchor can't land in the wrong place.
+
+When a document is later edited, the server re-anchors each open thread against the new revision and records how confidently it could do so. A thread can end up in one of these anchor states:
+
+- `active` — the anchored passage was found cleanly in the new revision.
+- `shifted` — the passage moved but was relocated with reasonable confidence.
+- `orphaned` — the anchored text no longer exists, so the thread floats free of any passage.
+
+### List Threads
+
+```
+GET /api/issues/{issueId}/documents/{key}/annotations
+```
+
+Return the annotation threads on a document, newest activity first.
+
+Query parameters:
+
+- `status` — `open`, `resolved`, or `all`. Defaults to all.
+- `includeComments` — when `true`, each thread embeds its full comment list. Otherwise only the thread records are returned.
+
+The document detail route also folds annotations in directly. `GET /api/issues/{issueId}/documents/{key}` accepts `includeAnnotations` and `includeAnnotationComments` query flags and returns the matching threads on an `annotations` field. Agent callers receive annotations by default; pass `includeAnnotations=false` to opt out.
+
+### Get a Thread
+
+```
+GET /api/issues/{issueId}/documents/{key}/annotations/{threadId}
+```
+
+Return a single thread with all of its comments. Responds `404` if the thread doesn't belong to that issue document.
+
+### Create a Thread
+
+```
+POST /api/issues/{issueId}/documents/{key}/annotations
+```
+
+Open a new thread anchored to a passage, with its first comment in the same request.
+
+Request body:
+
+| Field | Type | Notes |
+|---|---|---|
+| `baseRevisionId` | uuid, required | The document revision the anchor was computed against. Must match the current latest revision. |
+| `baseRevisionNumber` | integer, required | The matching revision number. |
+| `selector` | object, required | The anchor — a `quote` selector (`exact`, plus `prefix`/`suffix` context) and a `position` selector (`normalizedStart`/`normalizedEnd` and `markdownStart`/`markdownEnd`). |
+| `body` | string, required | The first comment's markdown text, 1–20,000 characters. |
+
+Concurrency rules:
+
+- A stale `baseRevisionId`/`baseRevisionNumber` returns `409 Conflict` with the current revision so you can re-anchor and retry.
+- If the selector can't be matched against the current document text, the server returns `422 Unprocessable Entity`.
+
+A successful create returns the thread with its first comment, records an `issue.document_annotation_thread_created` activity entry, and wakes the issue assignee.
+
+### Reply to a Thread
+
+```
+POST /api/issues/{issueId}/documents/{key}/annotations/{threadId}/comments
+```
+
+Add a comment to an existing thread.
+
+Request body:
+
+- `body` — markdown comment text, 1–20,000 characters.
+
+Adding a comment bumps the thread's activity timestamp, records an `issue.document_annotation_comment_added` entry, and wakes the assignee.
+
+### Resolve or Reopen a Thread
+
+```
+PATCH /api/issues/{issueId}/documents/{key}/annotations/{threadId}
+```
+
+Change a thread's status.
+
+Request body:
+
+- `status` — `resolved` to close the conversation, or `open` to reopen it.
+
+Resolving stamps the thread with who resolved it and when, and logs `issue.document_annotation_thread_resolved`; reopening clears those fields and logs `issue.document_annotation_thread_reopened`. Sending the status the thread already has is a no-op.
+
+---
+
 ## Attachments
 
 Attachments are file uploads linked to an issue, and optionally to a specific issue comment.
@@ -719,7 +843,11 @@ Attachments are file uploads linked to an issue, and optionally to a specific is
 GET /api/issues/{issueId}/attachments
 ```
 
-Return all attachments for an issue. Each item includes a `contentPath` that points to the binary download route.
+Return all attachments for an issue. Each item carries three path fields pointing at the binary content route:
+
+- `contentPath` — `/api/attachments/{attachmentId}/content`. The raw content route.
+- `openPath` — same value as `contentPath`. Use it to open or preview the attachment inline.
+- `downloadPath` — `/api/attachments/{attachmentId}/content?download=1`. Use it to force a download.
 
 ### Upload Attachment
 
@@ -740,7 +868,12 @@ Upload rules:
 - Empty files are rejected.
 - Files larger than the server limit are rejected.
 - `issueCommentId` must belong to the same company and issue.
-- The stored response includes `contentPath` for download.
+- The content type must be in the allowed-uploads set.
+- The stored response includes `contentPath`, `openPath`, and `downloadPath`.
+
+The default allowed upload types are images, PDF, plain text, JSON, CSV, HTML, `application/zip`, and the video types `video/mp4`, `video/webm`, and `video/quicktime`. Video types are also treated as inline-renderable. Override the allowlist with the `PAPERCLIP_ALLOWED_ATTACHMENT_TYPES` environment variable — a comma-separated list of MIME types or wildcard patterns.
+
+When a file is uploaded with a generic content type (`application/octet-stream`, `binary/octet-stream`, or `application/x-binary`), the server infers a video content type from the filename extension when streaming it back: `.mp4`/`.m4v` → `video/mp4`, `.webm` → `video/webm`, and `.mov`/`.qt`/`.quicktime` → `video/quicktime`.
 
 ### Download Attachment Content
 
@@ -750,7 +883,17 @@ GET /api/attachments/{attachmentId}/content
 
 Stream the attachment bytes.
 
-The server sets the response headers for inline display or download depending on content type, and SVG content gets a sandboxed content security policy.
+By default the server sets `Content-Disposition` for inline display when the content type is inline-capable (images, PDF, video, and similar), and otherwise serves it as a download. SVG content gets a sandboxed content security policy.
+
+Query parameters:
+
+- `download=1` — force `Content-Disposition: attachment` so the response is always saved as a download instead of rendered inline.
+
+This route supports HTTP Range requests so large media such as video can stream and seek:
+
+- The response sets `Accept-Ranges: bytes`.
+- A valid `Range: bytes=...` request returns `206 Partial Content` with a `Content-Range` header.
+- An unsatisfiable range returns `416 Range Not Satisfiable` with `Content-Range: bytes */{length}`.
 
 ### Delete Attachment
 
@@ -960,6 +1103,162 @@ After a terminal action, the interaction is sealed — further responses are rej
 | `request_confirmation` | The agent has a proposal — typically a plan revision or a destructive action — and needs explicit acceptance before proceeding. |
 
 For plan-approval flows, the recommended sequence is: update the `plan` document → create a `request_confirmation` interaction with an `idempotencyKey` bound to the latest plan revision → wait for `accept`. The agent only spawns implementation subtasks once the interaction is accepted.
+
+---
+
+## Retry a Scheduled Retry Now
+
+`POST /api/issues/{issueId}/scheduled-retry/retry-now`
+
+Use this when an issue has a live scheduled retry pending and you want the server to fire it immediately instead of waiting for the schedule. The route is board-only and company-scoped to the issue.
+
+The request body is empty. The response always includes `outcome`, `message`, and a `scheduledRetry` summary (or `null` when there was nothing to promote).
+
+| Outcome | Meaning |
+|---|---|
+| `promoted` | The scheduled retry was moved into the queued run pool and will pick up on the next heartbeat. |
+| `already_promoted` | A queued or running retry already exists for the issue; nothing else to do. |
+| `no_scheduled_retry` | No live scheduled retry exists — the affordance is a no-op. |
+| `gate_suppressed` | The promotion was blocked by a heartbeat gate (e.g. concurrency or budget); the run stays scheduled. |
+
+Activity is logged as `issue.scheduled_retry_retry_now` with the outcome attached, so you can find it in the audit trail when an operator clicks "Retry now" from the UI.
+
+---
+
+## Recovery actions
+
+Recovery actions are first-class records attached to a source issue when the system detects that the issue is stuck, stranded, or otherwise off the happy path. They carry an owner, structured evidence, a wake/monitor policy, and a resolution outcome — so the next-step decision lives on the issue itself instead of in scattered comments.
+
+Records live in the `issue_recovery_actions` table (migration `0084`). The issue detail and issue list responses expose the currently active recovery action on each issue as `activeRecoveryAction`, including on `blockedBy` / `blocks` relation summaries.
+
+### List recovery actions for an issue
+
+```
+GET /api/issues/{issueId}/recovery-actions
+```
+
+Returns the active recovery action attached to the issue, if any.
+
+Response:
+
+```json
+{
+  "active": { "...": "RecoveryAction" } ,
+  "actions": [ { "...": "RecoveryAction" } ]
+}
+```
+
+`active` is `null` when no recovery action is currently open. `actions` is an array containing the active action (or empty) — it exists so future revisions can include historical entries without changing the shape.
+
+### Resolve the active recovery action
+
+```
+POST /api/issues/{issueId}/recovery-actions/resolve
+```
+
+Resolve (or cancel) the active recovery action on the source issue and, in the same transaction, transition the source issue to the matching status.
+
+Request body:
+
+| Field | Type | Notes |
+|---|---|---|
+| `actionId` | uuid, optional | Optional. When set, must match the currently active recovery action on the issue. |
+| `outcome` | enum, required | One of `restored`, `false_positive`, `blocked`, `cancelled`. See the outcome table below. |
+| `sourceIssueStatus` | enum, required | One of `done`, `in_review`, `blocked`. Must be compatible with `outcome` (see rules). |
+| `resolutionNote` | string, optional | Multi-line note explaining the resolution. |
+
+Outcome rules (enforced by the validator):
+
+| Outcome | Allowed `sourceIssueStatus` | Permission | Resulting action `status` |
+|---|---|---|---|
+| `restored` | `done` or `in_review` | Agent or board | `resolved` |
+| `false_positive` | `done` or `in_review` | Board only | `resolved` |
+| `blocked` | `blocked` | Agent or board | `resolved` |
+| `cancelled` | `done` or `in_review` | Board only | `cancelled` |
+
+Additional constraints:
+
+- `outcome: "blocked"` requires the source issue to have at least one unresolved first-class blocker via `blockedByIssueIds` — otherwise the server returns `422 Unprocessable Entity`.
+- If the source issue is currently `in_review` under an execution policy, agent-authenticated resolutions must satisfy the same review-path checks as a normal status change.
+- The server writes an `issue.recovery_action_resolved` activity log entry (and an `issue.updated` entry when the source status actually changed).
+
+Response:
+
+```json
+{
+  "issue": { "...": "Issue", "activeRecoveryAction": null },
+  "recoveryAction": { "...": "RecoveryAction" }
+}
+```
+
+### Recovery action shape
+
+The `RecoveryAction` object exposed on responses has the following fields:
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | uuid | |
+| `companyId` | uuid | |
+| `sourceIssueId` | uuid | The issue the recovery action is attached to. |
+| `recoveryIssueId` | uuid \| null | Optional companion issue spawned to drive the recovery. |
+| `kind` | enum | See `RecoveryActionKind` below. |
+| `status` | enum | `active`, `escalated`, `resolved`, or `cancelled`. |
+| `ownerType` | enum | `agent`, `user`, `board`, or `system`. |
+| `ownerAgentId` | uuid \| null | Owning agent when `ownerType = "agent"`. |
+| `ownerUserId` | string \| null | Owning user when `ownerType = "user"`. |
+| `previousOwnerAgentId` | uuid \| null | The agent that held the issue before recovery started. |
+| `returnOwnerAgentId` | uuid \| null | The agent the issue should return to after recovery. |
+| `cause` | string | Short machine-readable cause tag. |
+| `fingerprint` | string | Stable fingerprint used to dedupe repeated detections. |
+| `evidence` | object | Free-form JSON capturing the detector's evidence. |
+| `nextAction` | string | The next action the owner is expected to take. |
+| `wakePolicy` | object \| null | Wake configuration for the owner. |
+| `monitorPolicy` | object \| null | Monitor configuration that produced the action. |
+| `attemptCount` | integer | Number of recovery attempts so far. |
+| `maxAttempts` | integer \| null | Optional cap on attempts before escalation. |
+| `timeoutAt` | timestamp \| null | When the action times out if unresolved. |
+| `lastAttemptAt` | timestamp \| null | Timestamp of the most recent attempt. |
+| `outcome` | enum \| null | Final outcome — see `RecoveryActionOutcome` below. |
+| `resolutionNote` | string \| null | Free-text resolution note. |
+| `resolvedAt` | timestamp \| null | When the action was resolved or cancelled. |
+| `createdAt` | timestamp | |
+| `updatedAt` | timestamp | |
+
+Only one recovery action can be `active` or `escalated` per source issue at a time (enforced by a partial unique index on `(companyId, sourceIssueId)` where `status in ('active', 'escalated')`).
+
+#### Enum values
+
+**`RecoveryActionKind`** — what triggered the recovery action:
+
+- `missing_disposition`
+- `stranded_assigned_issue`
+- `active_run_watchdog`
+- `issue_graph_liveness`
+
+**`RecoveryActionStatus`**:
+
+- `active`
+- `escalated`
+- `resolved`
+- `cancelled`
+
+**`RecoveryActionOwnerType`**:
+
+- `agent`
+- `user`
+- `board`
+- `system`
+
+**`RecoveryActionOutcome`** — set on the resolved record:
+
+- `restored` — the source issue was put back on a healthy path.
+- `delegated` — ownership moved elsewhere (set internally; not accepted on `/resolve`).
+- `false_positive` — the detector was wrong; no real problem.
+- `blocked` — the issue is genuinely blocked by another issue.
+- `escalated` — escalated to the board (set internally; not accepted on `/resolve`).
+- `cancelled` — the recovery effort is abandoned.
+
+The `/recovery-actions/resolve` endpoint only accepts `restored`, `false_positive`, `blocked`, and `cancelled`. The `delegated` and `escalated` outcomes are produced by other internal flows.
 
 ---
 

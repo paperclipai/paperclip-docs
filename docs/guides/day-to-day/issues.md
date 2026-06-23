@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.618.0
+---
+
 # Issues
 
 Issues are how work gets done in Paperclip. Each issue is a discrete unit of work — something an agent picks up, executes, and completes. Every issue traces back to the company goal, so agents always know why they're doing what they're doing.
@@ -211,6 +215,9 @@ Recently touched issues, including ones you're not directly assigned to but have
 **Unread**
 The subset of Recent that has new activity you haven't seen yet. Each unread item carries a blue dot in the leading slot; marking an item read fades the dot and eventually hides the slot. The unread tab is the fastest way to catch up after being away.
 
+**Blocked**
+Stopped work that needs triage — issues waiting on a decision, recovery, external action, or a paused owner. Each row carries a blocked-reason chip and a severity dot so you can see at a glance what's jammed and how urgent it is. See [Blocked Inbox](./blocked-inbox.md) for the full breakdown of chip variants, sort options, and what to do with each blocker type.
+
 **All**
 The firehose. Shows every inbox-eligible item in the company, with a **Category** selector that lets you narrow to `All categories`, `My recent issues`, `Join requests`, `Approvals`, `Failed runs`, or `Alerts`. When Approvals are visible, a second `Approval status` selector filters by `All approval statuses`, `Needs action`, or `Resolved`.
 
@@ -231,6 +238,16 @@ The Inbox toolbar mirrors the Issues page:
 - A group-by control (`None`, `Type`, or `Workspace`).
 - A column picker for the trailing columns (the default set is stored in `DEFAULT_INBOX_INBOX_ISSUE_COLUMNS` and can be reset).
 - A nesting toggle to collapse parent/child issue groups.
+
+### Board view for high-volume columns
+
+When you switch the Issues page to **Board** view, three controls in the toolbar keep large columns readable instead of letting one runaway status drown out the rest:
+
+- **Card density** (`auto`, `comfortable`, or `compact`) — compact cards pack more rows into the same vertical space. `auto` flips to compact automatically once a column is past the column page-size threshold.
+- **Cold-lane mode** (`auto`, `expanded`, or `collapsed`) — collapse statuses you don't actively work in (typically `done` and `cancelled`) into a one-line header instead of rendering every card. `auto` collapses them once they grow past the threshold.
+- **Column page size** — the initial number of cards shown per column. Anything beyond that is hidden behind a **Show more** button that reveals one increment at a time, so opening a 500-issue `done` column doesn't lock up the browser.
+
+All three controls persist per browser, so the view you set up stays the way you left it on the next visit.
 
 ### Unread states and the archive slot
 
@@ -301,7 +318,16 @@ The sidebar exposes the following fields, in order:
 Above the tabs, separately from the Properties panel, the detail view also renders:
 
 - An **Issue Workspace card** that summarises the issue's project and its execution workspace binding — the same underlying concept the Workspace / Branch / Folder rows describe, but surfaced as a single card so it is visible even when the sidebar is collapsed.
-- An **Attachments** section. Images appear as thumbnails that open in a gallery modal; non-image attachments render as file rows with their content type and size. You can upload from the detail view when no attachments exist yet, and from an inline button otherwise.
+- An **Attachments** section. Images appear as thumbnails that open in a gallery modal; video attachments play back inline in a built-in player; non-image attachments render as file rows with their content type and size. Each attachment offers two actions: **open** previews it inline (images in the gallery, video in the player), while **download** saves the file to disk. Supported media includes images, PDF, text, CSV, JSON, video (mp4, webm, mov/quicktime), and zip archives. You can upload from the detail view when no attachments exist yet, and from an inline button otherwise.
+
+### Output
+
+When an agent finishes a piece of work, it can hand back the result directly on the issue. The **Output** section surfaces those deliverables — the work products the agent produced — so you can inspect them right on the board without ever opening the agent's workspace.
+
+- **Video deliverables play inline.** A recorded result plays back in a built-in player; you can play and seek without downloading anything first.
+- **File deliverables show as preview cards.** Each one renders as a rich preview, with the primary deliverable highlighted when the agent flags one as the main result.
+
+This is what makes review possible from anywhere — including for cloud reviewers who have no access to the agent's workspace. You watch or inspect the deliverable in the Output section, then comment or approve from the same issue, without leaving the board.
 
 ### Keyed documents
 
@@ -310,8 +336,30 @@ An issue can carry **keyed documents** alongside its description. The most commo
 - Addressable by a stable key (`plan`, or any other key the agent picks).
 - Versioned — every save creates a revision, and revisions can be listed and diffed.
 - Deep-linkable via `#document-<key>` on the issue URL, so you can link straight to the plan without the reader having to hunt for it.
+- Live — when an agent creates, updates, restores, or deletes a document, the open board refreshes the list, the active document, and the revision view automatically. You no longer need to reload the issue page to see what the agent just produced.
 
 Plans should live in a keyed document, not appended to the description. When an agent updates a plan it leaves a comment saying "I updated the plan" with a link to `#document-plan` on the issue.
+
+#### Locking a document
+
+Once you're happy with a document — typically right after you approve a plan — you can **lock** it from the document header. Locking freezes that snapshot so it stays as the reviewed-and-approved version of record:
+
+- Users who try to edit a locked document get a clear "this document is locked" message and the editor stays read-only.
+- Agents that try to write to a locked document are routed into a **new derived document** at a related key (for example, `plan-2` if `plan` is locked) instead of having their work refused. The original snapshot is preserved, and the agent's continuation is captured next to it. Both documents stay visible in the issue.
+- Locking and unlocking are recorded in the issue's activity log, so you can see who froze the document and when.
+
+Unlock the document from the same header control when you want writes to resume on the original key.
+
+#### Annotating a document
+
+Sometimes a comment in the Chat tab is too blunt — you want to point at one sentence in the plan, not the whole thing. For that, you can **annotate** a document: select a passage and leave a comment thread anchored right there, like a margin note.
+
+- **Select and comment.** Highlight any run of text in a document and a comment affordance appears. Your note opens a thread pinned to that exact passage, and the highlighted span stays marked so anyone reading the document can see there's a conversation attached.
+- **Threads and replies.** Each annotation is a thread. You and the agent can go back and forth on it — replies stack under the original note, separate from the main issue comment thread.
+- **Resolve when settled.** Once a thread's point has been addressed, mark it **resolved** to tuck it away. You can reopen it later if the topic comes back. Filter between open and resolved threads from the annotations panel.
+- **Anchors survive edits.** When the agent revises the document, Paperclip re-attaches each open thread to the new version. If the exact text it was pinned to has changed, the thread is re-anchored as best it can — and if the passage is gone entirely, the thread is flagged so you know its context moved out from under it.
+
+Annotations are a two-way channel: agents can open threads on documents too, so an agent reviewing a plan can flag a specific line for your attention instead of burying it in a long comment. Opening or replying to an annotation wakes the issue's assignee, the same way a normal comment does.
 
 ---
 
@@ -341,6 +389,18 @@ At the bottom of the Chat tab sits the composer. It supports:
 - **Draft persistence** — unsent text is saved to local storage under `paperclip:issue-comment-draft:<issueId>`, so you never lose a half-written comment to a refresh.
 - **Disabled reasons** — when commenting is not allowed (for example, the issue is in a terminal state or the composer's workspace is unavailable), the composer displays the specific reason instead of silently failing.
 
+### Interrupts, handoffs, and scoped wakes
+
+A single comment can do up to three different things, and Paperclip keeps them separate so the result is never a surprise. The composer shows you a one-line preview of exactly what submitting will do, so you can read the consequence before you send.
+
+**Interrupting a run.** If an agent is mid-run on this issue and you change the assignee (or reassign along with your comment), Paperclip interrupts the in-flight run. The picker warns you first — "*\<agent\> is running — changing the assignee will interrupt this run*" — and asks you to confirm with **Interrupt & assign**. The interrupted run ends with a `cancelled` status, but it's labelled **interrupted** in amber so you can tell an intentional board interrupt apart from an adapter failure. Interrupting on its own only stops the current work; it does not pick who works next.
+
+**Handing off.** Choosing a new owner is a separate decision from interrupting. Assign to an agent and that agent becomes the owner; hand off to a board user (or clear the assignee) and the issue is now waiting on a human — no agent is notified. The composer preview says so plainly ("*Hand off to \<user\> — no agent will be notified*"), so a handoff to a person never looks like it dispatched an agent.
+
+**Scoped wakes.** When your comment hands the issue to an agent, Paperclip enqueues a single wake for that new owner rather than triggering a broad re-scan. The wake carries the specific thing it's about — your interrupting comment and, when there was one, the id of the run you interrupted — so the agent picks up exactly where you redirected it. In the activity log this shows up as a **Wake** sub-row: "*queued for \<agent\> (interrupted run attached)*" for an agent handoff, or "*not created*" when the issue went to a person or has no agent owner.
+
+**Plain text is not a handoff.** Typing an agent's name, role, or team label in the comment body does not reassign the issue or wake anyone. To route to an agent you need a structured `@`-mention (which resolves to `agent://<id>`) or an explicit assignee change. If you type a bare agent name, the composer nudges you: "*No agent will be notified. Use @ to mention an agent.*"
+
 ### Run-id binding
 
 Every comment an agent posts is bound to the heartbeat run that produced it (the `X-Paperclip-Run-Id` header is required on mutating requests). In the Chat tab this shows up as two affordances:
@@ -365,6 +425,51 @@ The tab assembles three streams:
 - **Linked approvals** — any approval that was requested against this issue is rendered as an approval card at the top of the tab. The card shows the requesting agent and exposes **Approve** and **Reject** buttons inline when the current viewer has permission. Approving or rejecting from here has the same effect as going to `/approvals/<id>` and deciding there.
 
 The Activity tab does not accept input — it is read-only. Use Chat for anything you want the agent to see.
+
+---
+
+## Recovery actions
+
+Sometimes an issue's run finishes without choosing a next step, or an assigned issue gets stranded with no live execution path. When that happens, Paperclip creates a **recovery action** as a first-class record on the **source issue itself** — not as a free-floating comment. This is what lets the system retry, escalate, and resolve the situation while keeping a clear audit trail.
+
+A recovery action carries:
+
+- A **kind** — one of `missing_disposition`, `stranded_assigned_issue`, `active_run_watchdog`, or `issue_graph_liveness`.
+- An **owner** — the agent (or board) responsible for acting on it.
+- **Evidence** — the JSON the recovery engine collected to justify the action (the last run's status, the missing disposition, error codes, and so on).
+- A **wake policy** that decides when the owner is nudged again.
+- A **resolution outcome** when the action is closed.
+
+You'll see recovery indicators surface in four places: on rows in the **Issues** list, on the issue **detail surface**, on **active run** panels in the Chat tab, and inside **blocker notices** on issues that escalated.
+
+### Resolution outcomes
+
+When a recovery action is resolved, it is stamped with one of these outcomes (the exact values stored in the `outcome` column of `issue_recovery_actions`):
+
+- **`restored`** — the source issue is back on a healthy execution path.
+- **`blocked`** — recovery determined the issue is genuinely blocked. Closing with `blocked` requires a real first-class blocker on the issue; a plain comment is no longer enough.
+- **`cancelled`** — recovery is no longer applicable (for example the source issue was cancelled or superseded).
+- **`false_positive`** — the recovery action was triggered in error and the issue never needed intervention.
+
+> **Tip:** If a recovery card invites you to resolve as `blocked`, add the blocking issue via the **Blocked by** field on the sidebar first. The resolution will refuse to close until a structured blocker exists.
+
+---
+
+## Walking through sub-issues
+
+Issue detail footers now expose a **previous / next** navigator so you can walk an ordered tree of sub-issues without bouncing back to the parent.
+
+The navigator (`IssueSiblingNavigation`) walks two relationships in order:
+
+1. **Siblings first** — previous and next move through the current issue's siblings under the same `parentId`, sorted by the same workflow ordering you see in the sub-issues list.
+2. **Then descend** — when you reach the last sibling, **next** continues into the **first ordered child** of the current issue, so a parent flows naturally into its children rather than dead-ending.
+
+Two caveats are baked into the ordering:
+
+- **Hidden issues are filtered.** Any sibling or child with a `hiddenAt` timestamp is skipped, and the navigator is not rendered at all when the current issue itself is hidden.
+- **Dependency-aware ordering is preserved.** Siblings and children both flow through `workflowSort`, so the previous/next sequence respects the same blocker- and status-aware order used elsewhere in the UI.
+
+The footer also fixes a long-standing race in **issue link quicklooks**: hovering a link no longer cancels the click on the underlying portaled link, so opening previous/next (or any inline issue link) is reliable.
 
 ---
 

@@ -37,8 +37,6 @@ The `token` is 48 hex characters; the `code` is 24 hex characters. Together they
 
 Open the URL in your browser. If you aren't signed in yet, the page will ask you to sign in or create an account first and bounce you back to the same URL after authentication.
 
-![CLI auth prompt](../user-guides/screenshots/light/auth/board-claim.png)
-
 Once you're signed in, the page shows a panel titled **Claim Board ownership** with a short explanation ("This will promote your user to instance admin and migrate company ownership access from local trusted mode.") and a single **Claim ownership** button.
 
 Click it and the server does three things in a single transaction:
@@ -88,8 +86,6 @@ paperclipai auth login --api-base https://paperclip.example.com
 ### Approving the challenge in the browser
 
 Your browser lands on a page titled **Approve Paperclip CLI access**:
-
-![Device code approval](../user-guides/screenshots/light/auth/device-code.png)
 
 The panel shows what the CLI is asking for:
 

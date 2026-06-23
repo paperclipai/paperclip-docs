@@ -6,14 +6,38 @@
       "icon": "rocket",
       "desc": "Learn what Paperclip is, install it, create your first company, hire an agent, and watch it work.",
       "pages": [
-        { "title": "Quickstart Path",           "file": "../docs/guides/getting-started/five-minute-path.md" },
-        { "title": "What is Paperclip?",        "file": "../docs/guides/welcome/what-is-paperclip.md" },
-        { "title": "Key Concepts",              "file": "../docs/guides/welcome/key-concepts.md" },
-        { "title": "Installation",              "file": "../docs/guides/getting-started/installation.md" },
-        { "title": "Create Your First Company", "file": "../docs/guides/getting-started/your-first-company.md" },
-        { "title": "Hire Your First Agent",     "file": "../docs/guides/getting-started/your-first-agent.md" },
-        { "title": "Watching Agents Work",      "file": "../docs/guides/getting-started/watching-agents-work.md" },
-        { "title": "Glossary",                  "file": "../docs/guides/welcome/glossary.md" }
+        {
+          "title": "Quickstart Path",
+          "file": "../docs/guides/getting-started/five-minute-path.md"
+        },
+        {
+          "title": "What is Paperclip?",
+          "file": "../docs/guides/welcome/what-is-paperclip.md"
+        },
+        {
+          "title": "Key Concepts",
+          "file": "../docs/guides/welcome/key-concepts.md"
+        },
+        {
+          "title": "Installation",
+          "file": "../docs/guides/getting-started/installation.md"
+        },
+        {
+          "title": "Create Your First Company",
+          "file": "../docs/guides/getting-started/your-first-company.md"
+        },
+        {
+          "title": "Hire Your First Agent",
+          "file": "../docs/guides/getting-started/your-first-agent.md"
+        },
+        {
+          "title": "Watching Agents Work",
+          "file": "../docs/guides/getting-started/watching-agents-work.md"
+        },
+        {
+          "title": "Glossary",
+          "file": "../docs/guides/welcome/glossary.md"
+        }
       ]
     },
     {
@@ -22,12 +46,38 @@
       "icon": "layout-dashboard",
       "desc": "Day-to-day operation: dashboard, tasks, approvals, budgets, and the activity log.",
       "pages": [
-        { "title": "The Dashboard",     "file": "../docs/guides/day-to-day/dashboard.md" },
-        { "title": "Issues",            "file": "../docs/guides/day-to-day/issues.md" },
-        { "title": "Approvals",         "file": "../docs/guides/day-to-day/approvals.md" },
-        { "title": "Costs & Budgets",   "file": "../docs/guides/day-to-day/costs.md" },
-        { "title": "Activity Log",      "file": "../docs/guides/day-to-day/activity-log.md" },
-        { "title": "Feedback & Voting", "file": "../docs/guides/day-to-day/feedback-voting.md" }
+        {
+          "title": "The Dashboard",
+          "file": "../docs/guides/day-to-day/dashboard.md"
+        },
+        {
+          "title": "Issues",
+          "file": "../docs/guides/day-to-day/issues.md"
+        },
+        {
+          "title": "Artifacts",
+          "file": "../docs/guides/day-to-day/artifacts.md"
+        },
+        {
+          "title": "Blocked Inbox",
+          "file": "../docs/guides/day-to-day/blocked-inbox.md"
+        },
+        {
+          "title": "Approvals",
+          "file": "../docs/guides/day-to-day/approvals.md"
+        },
+        {
+          "title": "Costs & Budgets",
+          "file": "../docs/guides/day-to-day/costs.md"
+        },
+        {
+          "title": "Activity Log",
+          "file": "../docs/guides/day-to-day/activity-log.md"
+        },
+        {
+          "title": "Feedback & Voting",
+          "file": "../docs/guides/day-to-day/feedback-voting.md"
+        }
       ]
     },
     {
@@ -36,12 +86,34 @@
       "icon": "network",
       "desc": "Shape the org chart, set up delegation paths, and pick adapters for your agents.",
       "pages": [
-        { "title": "Agents",          "file": "../docs/guides/org/agents.md" },
-        { "title": "Skills",          "file": "../docs/guides/org/skills.md" },
-        { "title": "Org Structure",   "file": "../docs/guides/org/org-structure.md" },
-        { "title": "Delegation",      "file": "../docs/guides/org/delegation.md" },
-        { "title": "Agent Adapters",  "file": "../docs/guides/org/agent-adapters.md" },
-        { "title": "Adapter Manager", "file": "../docs/guides/org/adapters.md" }
+        {
+          "title": "Agents",
+          "file": "../docs/guides/org/agents.md"
+        },
+        {
+          "title": "Skills",
+          "file": "../docs/guides/org/skills.md"
+        },
+        {
+          "title": "Team Catalog",
+          "file": "../docs/guides/org/team-catalog.md"
+        },
+        {
+          "title": "Org Structure",
+          "file": "../docs/guides/org/org-structure.md"
+        },
+        {
+          "title": "Delegation",
+          "file": "../docs/guides/org/delegation.md"
+        },
+        {
+          "title": "Agent Adapters",
+          "file": "../docs/guides/org/agent-adapters.md"
+        },
+        {
+          "title": "Adapter Manager",
+          "file": "../docs/guides/org/adapters.md"
+        }
       ]
     },
     {
@@ -50,10 +122,22 @@
       "icon": "kanban-square",
       "desc": "Projects, goals, routines, and execution workspaces.",
       "pages": [
-        { "title": "Projects",              "file": "../docs/guides/projects-workflow/projects.md" },
-        { "title": "Goals",                 "file": "../docs/guides/projects-workflow/goals.md" },
-        { "title": "Heartbeats & Routines", "file": "../docs/guides/projects-workflow/routines.md" },
-        { "title": "Execution Workspaces",  "file": "../docs/guides/projects-workflow/workspaces.md" }
+        {
+          "title": "Projects",
+          "file": "../docs/guides/projects-workflow/projects.md"
+        },
+        {
+          "title": "Goals",
+          "file": "../docs/guides/projects-workflow/goals.md"
+        },
+        {
+          "title": "Heartbeats & Routines",
+          "file": "../docs/guides/projects-workflow/routines.md"
+        },
+        {
+          "title": "Execution Workspaces",
+          "file": "../docs/guides/projects-workflow/workspaces.md"
+        }
       ]
     },
     {
@@ -62,9 +146,18 @@
       "icon": "settings-2",
       "desc": "Execution policies, export/import, and terminal setup for power users.",
       "pages": [
-        { "title": "Execution Policy", "file": "../docs/guides/power/execution-policy.md" },
-        { "title": "Export & Import",  "file": "../docs/guides/power/export-import.md" },
-        { "title": "Terminal Setup",   "file": "../docs/guides/power/terminal-setup.md" }
+        {
+          "title": "Execution Policy",
+          "file": "../docs/guides/power/execution-policy.md"
+        },
+        {
+          "title": "Export & Import",
+          "file": "../docs/guides/power/export-import.md"
+        },
+        {
+          "title": "Terminal Setup",
+          "file": "../docs/guides/power/terminal-setup.md"
+        }
       ]
     },
     {
@@ -73,8 +166,14 @@
       "icon": "package",
       "desc": "Publish reusable teams, agents, skills, and routines as clips, and import them safely from the community catalog.",
       "pages": [
-        { "title": "Clips Overview",      "file": "../docs/guides/clips/overview.md" },
-        { "title": "Publish and Import",  "file": "../docs/guides/clips/publish-and-import.md" }
+        {
+          "title": "Clips Overview",
+          "file": "../docs/guides/clips/overview.md"
+        },
+        {
+          "title": "Publish and Import",
+          "file": "../docs/guides/clips/publish-and-import.md"
+        }
       ]
     },
     {
@@ -83,18 +182,78 @@
       "icon": "wrench",
       "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",
       "pages": [
-        { "title": "Set a Monthly Budget",               "file": "../docs/how-to/set-monthly-budget.md" },
-        { "title": "Create a Daily Routine",             "file": "../docs/how-to/create-a-daily-routine.md" },
-        { "title": "Connect an Agent to GitHub",         "file": "../docs/how-to/connect-agent-to-github.md" },
-        { "title": "Add an MCP Server to an Agent",      "file": "../docs/how-to/add-mcp-server-to-agent.md" },
-        { "title": "Write a Company Skill",              "file": "../docs/how-to/write-a-company-skill.md" },
-        { "title": "Bring Your Own Agent",               "file": "../docs/how-to/bring-your-own-agent.md" },
-        { "title": "Deploy to a VPS or Fly.io",          "file": "../docs/how-to/deploy-to-vps-or-fly.md" },
-        { "title": "Back Up and Restore a Company",     "file": "../docs/how-to/back-up-and-restore-a-company.md" },
-        { "title": "Debug a Stuck Heartbeat",            "file": "../docs/how-to/debug-stuck-heartbeat.md" },
-        { "title": "Handle Board Approvals for Hires",   "file": "../docs/how-to/handle-board-approvals-for-hires.md" },
-        { "title": "Wire Slack/Discord Notifications",   "file": "../docs/how-to/wire-slack-discord-notifications.md" },
-        { "title": "Review a Clip Before Importing",     "file": "../docs/how-to/review-clip-before-import.md" }
+        {
+          "title": "Set a Monthly Budget",
+          "file": "../docs/how-to/set-monthly-budget.md"
+        },
+        {
+          "title": "Require Approval Before Spend",
+          "file": "../docs/how-to/require-board-approval-before-spend.md"
+        },
+        {
+          "title": "Create a Daily Routine",
+          "file": "../docs/how-to/create-a-daily-routine.md"
+        },
+        {
+          "title": "Connect an Agent to GitHub",
+          "file": "../docs/how-to/connect-agent-to-github.md"
+        },
+        {
+          "title": "Update or Rotate a Provider API Key",
+          "file": "../docs/how-to/rotate-provider-api-key.md"
+        },
+        {
+          "title": "Update Paperclip to the Latest Version",
+          "file": "../docs/how-to/update-paperclip.md"
+        },
+        {
+          "title": "Add an MCP Server to an Agent",
+          "file": "../docs/how-to/add-mcp-server-to-agent.md"
+        },
+        {
+          "title": "Write a Company Skill",
+          "file": "../docs/how-to/write-a-company-skill.md"
+        },
+        {
+          "title": "Bring Your Own Agent",
+          "file": "../docs/how-to/bring-your-own-agent.md"
+        },
+        {
+          "title": "Deploy to a VPS or Fly.io",
+          "file": "../docs/how-to/deploy-to-vps-or-fly.md"
+        },
+        {
+          "title": "Back Up and Restore a Company",
+          "file": "../docs/how-to/back-up-and-restore-a-company.md"
+        },
+        {
+          "title": "Debug a Stuck Heartbeat",
+          "file": "../docs/how-to/debug-stuck-heartbeat.md"
+        },
+        {
+          "title": "Handle Board Approvals for Hires",
+          "file": "../docs/how-to/handle-board-approvals-for-hires.md"
+        },
+        {
+          "title": "Wire Slack/Discord Notifications",
+          "file": "../docs/how-to/wire-slack-discord-notifications.md"
+        },
+        {
+          "title": "Review a Clip Before Importing",
+          "file": "../docs/how-to/review-clip-before-import.md"
+        },
+        {
+          "title": "Develop a plugin locally",
+          "file": "../docs/how-to/develop-a-plugin-locally.md"
+        },
+        {
+          "title": "Sync to Cloud Upstream",
+          "file": "../docs/how-to/sync-to-cloud-upstream.md"
+        },
+        {
+          "title": "Connect an AWS Secrets Manager Vault",
+          "file": "../docs/how-to/connect-aws-secrets-vault.md"
+        }
       ]
     },
     {
@@ -103,10 +262,26 @@
       "icon": "shield",
       "desc": "Company settings, instance configuration, plugins, and CLI auth — for operators and admins.",
       "pages": [
-        { "title": "Company",  "file": "../docs/administration/company.md" },
-        { "title": "Settings", "file": "../docs/administration/settings.md" },
-        { "title": "Plugins",  "file": "../docs/administration/plugins.md" },
-        { "title": "CLI Auth", "file": "../docs/administration/cli-auth.md" }
+        {
+          "title": "Company",
+          "file": "../docs/administration/company.md"
+        },
+        {
+          "title": "Settings",
+          "file": "../docs/administration/settings.md"
+        },
+        {
+          "title": "Trust & Low-Trust Review",
+          "file": "../docs/administration/trust-and-low-trust-review.md"
+        },
+        {
+          "title": "Plugins",
+          "file": "../docs/administration/plugins.md"
+        },
+        {
+          "title": "CLI Auth",
+          "file": "../docs/administration/cli-auth.md"
+        }
       ]
     },
     {
@@ -115,30 +290,206 @@
       "icon": "braces",
       "desc": "Every endpoint on the control plane: companies, agents, issues, approvals, costs.",
       "pages": [
-        { "title": "Overview",         "file": "../docs/reference/api/overview.md" },
-        { "title": "Authentication",   "file": "../docs/reference/api/authentication.md" },
-        { "title": "Companies",        "file": "../docs/reference/api/companies.md" },
-        { "title": "Agents",           "file": "../docs/reference/api/agents.md" },
-        { "title": "Issues",           "file": "../docs/reference/api/issues.md" },
-        { "title": "Approvals",        "file": "../docs/reference/api/approvals.md" },
-        { "title": "Goals & Projects", "file": "../docs/reference/api/goals-and-projects.md" },
-        { "title": "Costs",            "file": "../docs/reference/api/costs.md" },
-        { "title": "Secrets",          "file": "../docs/reference/api/secrets.md" },
-        { "title": "Activity",         "file": "../docs/reference/api/activity.md" },
-        { "title": "Dashboard",        "file": "../docs/reference/api/dashboard.md" },
-        { "title": "Routines",         "file": "../docs/reference/api/routines.md" }
+        {
+          "title": "Overview",
+          "file": "../docs/reference/api/overview.md"
+        },
+        {
+          "title": "Authentication",
+          "file": "../docs/reference/api/authentication.md"
+        },
+        {
+          "title": "Companies",
+          "file": "../docs/reference/api/companies.md"
+        },
+        {
+          "title": "Agents",
+          "file": "../docs/reference/api/agents.md"
+        },
+        {
+          "title": "Issues",
+          "file": "../docs/reference/api/issues.md"
+        },
+        {
+          "title": "Approvals",
+          "file": "../docs/reference/api/approvals.md"
+        },
+        {
+          "title": "Goals & Projects",
+          "file": "../docs/reference/api/goals-and-projects.md"
+        },
+        {
+          "title": "Resource Memberships",
+          "file": "../docs/reference/api/resource-memberships.md"
+        },
+        {
+          "title": "Costs",
+          "file": "../docs/reference/api/costs.md"
+        },
+        {
+          "title": "Secrets",
+          "file": "../docs/reference/api/secrets.md"
+        },
+        {
+          "title": "Activity",
+          "file": "../docs/reference/api/activity.md"
+        },
+        {
+          "title": "Dashboard",
+          "file": "../docs/reference/api/dashboard.md"
+        },
+        {
+          "title": "Routines",
+          "file": "../docs/reference/api/routines.md"
+        },
+        {
+          "title": "Adapters",
+          "file": "../docs/reference/api/adapters.md"
+        },
+        {
+          "title": "Teams Catalog",
+          "file": "../docs/reference/api/teams-catalog.md"
+        },
+        {
+          "title": "Plugins",
+          "file": "../docs/reference/api/plugins.md"
+        },
+        {
+          "title": "Instance Admin",
+          "file": "../docs/reference/api/instance-admin.md"
+        }
       ]
     },
     {
       "tier": "Reference",
       "title": "CLI",
       "icon": "terminal",
-      "desc": "Command-line reference for local setup and talking to the control plane.",
+      "desc": "Complete command-line reference: local setup, identity, and every control-plane command family.",
       "pages": [
-        { "title": "Overview",               "file": "../docs/reference/cli/overview.md" },
-        { "title": "Setup Commands",         "file": "../docs/reference/cli/setup-commands.md" },
-        { "title": "Control-Plane Commands", "file": "../docs/reference/cli/control-plane-commands.md" },
-        { "title": "Command Reference",      "file": "../docs/reference/cli/commands.md" }
+        {
+          "title": "Overview",
+          "file": "../docs/reference/cli/overview.md"
+        },
+        {
+          "title": "Installing the CLI",
+          "file": "../docs/reference/cli/installation.md"
+        },
+        {
+          "title": "Common Options",
+          "file": "../docs/reference/cli/common-options.md"
+        },
+        {
+          "title": "Output & Scripting",
+          "file": "../docs/reference/cli/output-and-scripting.md"
+        },
+        {
+          "title": "Setup Commands",
+          "file": "../docs/reference/cli/setup-commands.md"
+        },
+        {
+          "title": "Dev Environments",
+          "file": "../docs/reference/cli/dev-environments.md"
+        },
+        {
+          "title": "Authentication & Tokens",
+          "file": "../docs/reference/cli/authentication.md"
+        },
+        {
+          "title": "Connect",
+          "file": "../docs/reference/cli/connect.md"
+        },
+        {
+          "title": "Token",
+          "file": "../docs/reference/cli/token.md"
+        },
+        {
+          "title": "Company",
+          "file": "../docs/reference/cli/company.md"
+        },
+        {
+          "title": "Project",
+          "file": "../docs/reference/cli/project.md"
+        },
+        {
+          "title": "Goal",
+          "file": "../docs/reference/cli/goal.md"
+        },
+        {
+          "title": "Issue",
+          "file": "../docs/reference/cli/issue.md"
+        },
+        {
+          "title": "Agent",
+          "file": "../docs/reference/cli/agent.md"
+        },
+        {
+          "title": "Prompt",
+          "file": "../docs/reference/cli/prompt.md"
+        },
+        {
+          "title": "Run (Heartbeat)",
+          "file": "../docs/reference/cli/run.md"
+        },
+        {
+          "title": "Routine",
+          "file": "../docs/reference/cli/routine.md"
+        },
+        {
+          "title": "Adapter",
+          "file": "../docs/reference/cli/adapter.md"
+        },
+        {
+          "title": "Approval",
+          "file": "../docs/reference/cli/approval.md"
+        },
+        {
+          "title": "Activity",
+          "file": "../docs/reference/cli/activity.md"
+        },
+        {
+          "title": "Dashboard",
+          "file": "../docs/reference/cli/dashboard.md"
+        },
+        {
+          "title": "Cost & Budget",
+          "file": "../docs/reference/cli/cost.md"
+        },
+        {
+          "title": "Workspace",
+          "file": "../docs/reference/cli/workspace.md"
+        },
+        {
+          "title": "Access & Admin",
+          "file": "../docs/reference/cli/access.md"
+        },
+        {
+          "title": "Skills",
+          "file": "../docs/reference/cli/skills.md"
+        },
+        {
+          "title": "Teams",
+          "file": "../docs/reference/cli/teams.md"
+        },
+        {
+          "title": "Secrets",
+          "file": "../docs/reference/cli/secrets.md"
+        },
+        {
+          "title": "Cloud",
+          "file": "../docs/reference/cli/cloud.md"
+        },
+        {
+          "title": "Plugin",
+          "file": "../docs/reference/cli/plugin.md"
+        },
+        {
+          "title": "Asset",
+          "file": "../docs/reference/cli/asset.md"
+        },
+        {
+          "title": "Feedback",
+          "file": "../docs/reference/cli/feedback.md"
+        }
       ]
     },
     {
@@ -147,7 +498,10 @@
       "icon": "book-open",
       "desc": "Skill file shape, install pipeline, scoping, versioning, and troubleshooting.",
       "pages": [
-        { "title": "Skills Reference", "file": "../docs/reference/skills.md" }
+        {
+          "title": "Skills Reference",
+          "file": "../docs/reference/skills.md"
+        }
       ]
     },
     {
@@ -156,20 +510,102 @@
       "icon": "plug",
       "desc": "Connect any agent runtime — Claude, Codex, Gemini, or your own HTTP service.",
       "pages": [
-        { "title": "Overview",            "file": "../docs/reference/adapters/overview.md" },
-        { "title": "Claude Local",        "file": "../docs/reference/adapters/claude-local.md" },
-        { "title": "Codex Local",         "file": "../docs/reference/adapters/codex-local.md" },
-        { "title": "Gemini Local",        "file": "../docs/reference/adapters/gemini-local.md" },
-        { "title": "Cursor Local",        "file": "../docs/reference/adapters/cursor-local.md" },
-        { "title": "OpenCode Local",      "file": "../docs/reference/adapters/opencode-local.md" },
-        { "title": "Pi Local",            "file": "../docs/reference/adapters/pi-local.md" },
-        { "title": "Hermes Local",        "file": "../docs/reference/adapters/hermes-local.md" },
-        { "title": "OpenClaw Gateway",    "file": "../docs/reference/adapters/openclaw-gateway.md" },
-        { "title": "Process",             "file": "../docs/reference/adapters/process.md" },
-        { "title": "HTTP",                "file": "../docs/reference/adapters/http.md" },
-        { "title": "External Adapters",   "file": "../docs/reference/adapters/external-adapters.md" },
-        { "title": "Creating an Adapter", "file": "../docs/reference/adapters/creating-an-adapter.md" },
-        { "title": "UI Parser Contract",  "file": "../docs/reference/adapters/adapter-ui-parser.md" }
+        {
+          "title": "Overview",
+          "file": "../docs/reference/adapters/overview.md"
+        },
+        {
+          "title": "Claude Local",
+          "file": "../docs/reference/adapters/claude-local.md"
+        },
+        {
+          "title": "Codex Local",
+          "file": "../docs/reference/adapters/codex-local.md"
+        },
+        {
+          "title": "Gemini Local",
+          "file": "../docs/reference/adapters/gemini-local.md"
+        },
+        {
+          "title": "Cursor Local",
+          "file": "../docs/reference/adapters/cursor-local.md"
+        },
+        {
+          "title": "Cursor Cloud",
+          "file": "../docs/reference/adapters/cursor-cloud.md"
+        },
+        {
+          "title": "ACPX Local",
+          "file": "../docs/reference/adapters/acpx-local.md"
+        },
+        {
+          "title": "OpenCode Local",
+          "file": "../docs/reference/adapters/opencode-local.md"
+        },
+        {
+          "title": "Pi Local",
+          "file": "../docs/reference/adapters/pi-local.md"
+        },
+        {
+          "title": "Hermes Local",
+          "file": "../docs/reference/adapters/hermes-local.md"
+        },
+        {
+          "title": "Grok Local",
+          "file": "../docs/reference/adapters/grok-local.md"
+        },
+        {
+          "title": "OpenClaw Gateway",
+          "file": "../docs/reference/adapters/openclaw-gateway.md"
+        },
+        {
+          "title": "Process",
+          "file": "../docs/reference/adapters/process.md"
+        },
+        {
+          "title": "HTTP",
+          "file": "../docs/reference/adapters/http.md"
+        },
+        {
+          "title": "Sandbox Providers",
+          "file": "../docs/reference/adapters/sandbox-providers.md"
+        },
+        {
+          "title": "Modal",
+          "file": "../docs/reference/adapters/modal.md"
+        },
+        {
+          "title": "External Adapters",
+          "file": "../docs/reference/adapters/external-adapters.md"
+        },
+        {
+          "title": "Creating an Adapter",
+          "file": "../docs/reference/adapters/creating-an-adapter.md"
+        },
+        {
+          "title": "UI Parser Contract",
+          "file": "../docs/reference/adapters/adapter-ui-parser.md"
+        }
+      ]
+    },
+    {
+      "tier": "Reference",
+      "title": "Plugins",
+      "icon": "puzzle",
+      "desc": "Plugin SDK reference for authors building Paperclip plugins.",
+      "pages": [
+        {
+          "title": "Plugin SDK",
+          "file": "../docs/reference/plugins/sdk.md"
+        },
+        {
+          "title": "LLM Wiki",
+          "file": "../docs/reference/plugins/llm-wiki.md"
+        },
+        {
+          "title": "Workspace Diff Viewer",
+          "file": "../docs/reference/plugins/workspace-diff.md"
+        }
       ]
     },
     {
@@ -178,15 +614,42 @@
       "icon": "cloud",
       "desc": "Run Paperclip on your laptop, in Docker, or on a server — with secrets and Tailscale.",
       "pages": [
-        { "title": "Overview",                 "file": "../docs/reference/deploy/overview.md" },
-        { "title": "Deployment Modes",         "file": "../docs/reference/deploy/deployment-modes.md" },
-        { "title": "Local Development",        "file": "../docs/reference/deploy/local-development.md" },
-        { "title": "Docker",                   "file": "../docs/reference/deploy/docker.md" },
-        { "title": "Database",                 "file": "../docs/reference/deploy/database.md" },
-        { "title": "Storage",                  "file": "../docs/reference/deploy/storage.md" },
-        { "title": "Secrets",                  "file": "../docs/reference/deploy/secrets.md" },
-        { "title": "Environment Variables",    "file": "../docs/reference/deploy/environment-variables.md" },
-        { "title": "Tailscale Private Access", "file": "../docs/reference/deploy/tailscale-private-access.md" }
+        {
+          "title": "Overview",
+          "file": "../docs/reference/deploy/overview.md"
+        },
+        {
+          "title": "Deployment Modes",
+          "file": "../docs/reference/deploy/deployment-modes.md"
+        },
+        {
+          "title": "Local Development",
+          "file": "../docs/reference/deploy/local-development.md"
+        },
+        {
+          "title": "Docker",
+          "file": "../docs/reference/deploy/docker.md"
+        },
+        {
+          "title": "Database",
+          "file": "../docs/reference/deploy/database.md"
+        },
+        {
+          "title": "Storage",
+          "file": "../docs/reference/deploy/storage.md"
+        },
+        {
+          "title": "Secrets",
+          "file": "../docs/reference/deploy/secrets.md"
+        },
+        {
+          "title": "Environment Variables",
+          "file": "../docs/reference/deploy/environment-variables.md"
+        },
+        {
+          "title": "Tailscale Private Access",
+          "file": "../docs/reference/deploy/tailscale-private-access.md"
+        }
       ]
     }
   ]

@@ -1,3 +1,9 @@
 .site/
 node_modules/
 .DS_Store
+.codex/config.toml
+.claude/skills/sync-docs
+.claude/settings.local.json
+
+# Screenshot pipeline — ephemeral seed state and scratch outputs
+scripts/screenshots/.seed-ids.json

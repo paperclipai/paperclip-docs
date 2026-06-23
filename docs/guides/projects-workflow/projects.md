@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.529.0
+---
+
 # Projects
 
 A project is the container Paperclip uses to group related work. If goals answer "why are we doing this?" and issues answer "what exactly needs doing?", projects sit in between: they bind a body of work to a concrete place — a repository, a working directory, a budget envelope, a set of execution workspaces — where agents can actually pick up tasks and make progress.
@@ -33,6 +37,16 @@ The list itself does not expose filter controls; it simply shows every active pr
 The top-right **Add Project** button opens the New Project dialog, where you can set the name, description, target date, initial status, and color. The Configuration tab is where you come back later to change repository bindings, environment variables, and execution workspace behaviour — the create dialog only covers the minimum a project needs to exist.
 
 If the company has no projects yet, the list is replaced with an empty state prompting you to add the first one.
+
+### Keeping projects (and agents) in your sidebar
+
+As a company grows, the **Projects** and **Agents** groups in the left sidebar can get crowded. To keep yours focused, you can **join** or **leave** individual projects and agents — a personal setting that only affects your own navigation.
+
+- Hover a project or agent in the sidebar and use the **Join** / **Leave** control. Leaving hides it from your sidebar; joining brings it back.
+- Everything is **joined by default**, so a brand-new project shows up for everyone until they choose to leave it.
+- This is purely cosmetic and per-user. Leaving a project doesn't pause it, archive it, or change anything for your teammates — it still runs, and it's still reachable from the Projects and Agents pages. You're just tidying your own view.
+
+Each join or leave is recorded in the company activity log, so the change is auditable even though it only affects one person's sidebar.
 
 ---
 

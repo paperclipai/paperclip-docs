@@ -1,0 +1,174 @@
+{
+  "$schema_version": 1,
+  "parent_repo": "paperclipai/paperclip",
+  "watchers": [
+    {
+      "name": "cli-commands",
+      "parent_paths": [
+        "cli/src/commands/**/*.ts",
+        "cli/src/index.ts"
+      ],
+      "docs_paths": [
+        "docs/reference/cli/**"
+      ],
+      "tier": "pr",
+      "detect": "New or renamed command names from `program.command()` / Commander definitions. New or removed flags from `.option()`. Argument signature changes. Help-text changes."
+    },
+    {
+      "name": "env-vars",
+      "parent_paths": [
+        ".env.example",
+        "server/src/config.ts",
+        "packages/**/env.ts",
+        "packages/**/config.ts"
+      ],
+      "docs_paths": [
+        "docs/reference/deploy/environment-variables.md"
+      ],
+      "tier": "auto-merge",
+      "detect": "Lines matching `^[A-Z_][A-Z0-9_]*=` in .env.example; `process.env.X` reads; zod env schema fields. Append-only edits are auto-merge; renames/removals escalate to PR tier."
+    },
+    {
+      "name": "rest-routes",
+      "parent_paths": [
+        "server/src/routes/**/*.ts"
+      ],
+      "docs_paths": [
+        "docs/reference/api/**"
+      ],
+      "tier": "pr",
+      "detect": "Route registrations (`app.get/post/put/delete`, fastify `route({...})`). New route file = new doc page; signature/payload changes = update existing page."
+    },
+    {
+      "name": "adapters",
+      "parent_paths": [
+        "packages/adapters/**",
+        "packages/plugins/sandbox-providers/**"
+      ],
+      "docs_paths": [
+        "docs/reference/adapters/**"
+      ],
+      "tier": "pr",
+      "detect": "Files under packages/adapters/<name>/** or packages/plugins/sandbox-providers/<name>/** signal adapter changes. The <name> at depth 1 identifies the adapter. New top-level <name> dir = candidate new adapter — but first consult scripts/sync/detect-renames.mjs to confirm it's not a directory rename. Rename = update existing doc page in place with change_kind: renamed; genuinely-new = create a new page mirroring the neighbour pattern. Manifest (`package.json`, `adapter.json`) changes = update existing page."
+    },
+    {
+      "name": "plugin-sdk",
+      "parent_paths": [
+        "packages/plugins/sdk/src/index.ts",
+        "packages/plugins/sdk/src/**/*.ts"
+      ],
+      "docs_paths": [
+        "docs/reference/plugins/sdk.md",
+        "docs/administration/plugins.md"
+      ],
+      "tier": "pr",
+      "detect": "Public API surface of the plugin SDK — exported types/functions from src/index.ts. The reference page (docs/reference/plugins/sdk.md) is the canonical home; docs/administration/plugins.md may need touch-ups when the operator-facing usage flow changes. (If the SDK package dir itself is renamed, consult scripts/sync/detect-renames.mjs before treating the new path as a fresh surface.)"
+    },
+    {
+      "name": "agent-skills",
+      "parent_paths": [
+        "skills/**"
+      ],
+      "docs_paths": [
+        "docs/reference/skills.md",
+        "docs/how-to/write-a-company-skill.md"
+      ],
+      "tier": "pr",
+      "detect": "Any file under skills/** in parent — these are canonical skill bundles. New top-level dir under skills/ = candidate new skill bundle (consult scripts/sync/detect-renames.mjs to confirm it's not a rename of an existing bundle before creating a new doc entry); mention in the skills reference. Changes inside an existing bundle = update the tutorial or reference as appropriate. The plugin SDK is a separate concern — see the plugin-sdk watcher. The app-shipped skills catalog is a separate concern — see the skills-catalog watcher."
+    },
+    {
+      "name": "skills-catalog",
+      "parent_paths": [
+        "packages/skills-catalog/catalog/**/SKILL.md",
+        "packages/skills-catalog/generated/catalog.json"
+      ],
+      "docs_paths": [
+        "docs/reference/skills.md",
+        "docs/guides/org/skills.md"
+      ],
+      "tier": "pr",
+      "detect": "The app-shipped skills catalog — installable bundled/optional skills, distinct from the server-forced bundled skills under skills/** (covered by the agent-skills watcher). Skill bundles live at packages/skills-catalog/catalog/{bundled,optional}/<category>/<skill>/SKILL.md; packages/skills-catalog/generated/catalog.json is the generated manifest of catalog membership and metadata. A new SKILL.md under catalog/ = candidate new catalog skill — consult scripts/sync/detect-renames.mjs before treating a moved bundle as brand-new. Document new or changed catalog skills in the Skills reference (app-shipped catalog section) and the org Skills guide. catalog.json churn alone (reorder/regen) without a SKILL.md change is usually context-only."
+    },
+    {
+      "name": "schemas",
+      "parent_paths": [
+        "packages/**/schema/*.ts",
+        "packages/**/*.schema.ts"
+      ],
+      "docs_paths": [
+        "docs/reference/**",
+        "docs/administration/**"
+      ],
+      "tier": "pr",
+      "detect": "Zod / drizzle schema field additions, removals, or type changes on entities surfaced in docs (companies, agents, issues, routines, approvals, secrets)."
+    },
+    {
+      "name": "web-ui",
+      "parent_paths": [
+        "ui/src/**"
+      ],
+      "docs_paths": [
+        "docs/user-guides/**",
+        "docs/guides/**"
+      ],
+      "tier": "pr",
+      "detect": "UI component changes that may invalidate screenshots or end-user-facing guide flows. Cross-reference with screenshot registry depends_on entries before writing doc edits."
+    },
+    {
+      "name": "server-services",
+      "parent_paths": [
+        "server/src/services/**"
+      ],
+      "docs_paths": [
+        "docs/administration/**",
+        "docs/reference/api/**"
+      ],
+      "tier": "pr",
+      "detect": "Business logic changes that surface behavioural shifts users will notice (e.g. how agents interact, how approvals flow). Only produce doc edits when the change has user-visible effects, not pure refactors."
+    },
+    {
+      "name": "server-adapters",
+      "parent_paths": [
+        "server/src/adapters/**"
+      ],
+      "docs_paths": [
+        "docs/reference/adapters/**"
+      ],
+      "tier": "pr",
+      "detect": "Server-side adapter integrations (distinct from packages/adapters/*, which are the standalone adapter packages). Often relates to how the server hosts/proxies adapter capabilities. New top-level <name> dir under server/src/adapters/ = candidate new integration — consult scripts/sync/detect-renames.mjs before creating a new doc page."
+    },
+    {
+      "name": "db-migrations",
+      "parent_paths": [
+        "packages/db/migrations/**"
+      ],
+      "docs_paths": [
+        "docs/administration/**",
+        "docs/reference/deploy/database.md"
+      ],
+      "tier": "context-only",
+      "detect": "Migrations themselves rarely need user-facing docs, but a sudden burst of migrations often correlates with a schema change watched elsewhere. Use this watcher's hits as context only — never produce edits directly."
+    },
+    {
+      "name": "release-notes",
+      "source": "github-releases",
+      "parent_paths": [],
+      "docs_paths": ["docs/**"],
+      "tier": "context-only",
+      "detect": "Fetched via `gh release view <tag>` to give other watchers framing/intent. Never produces edits directly — release notes are reference data, not source."
+    }
+  ],
+  "screenshot_registry": "docs/user-guides/screenshots/registry.json",
+  "quarantine_hours": 24,
+  "auto_merge_safety": {
+    "max_files_changed": 1,
+    "max_lines_changed": 50,
+    "require_tier": "auto-merge",
+    "forbid_kinds": ["removed", "renamed"],
+    "$comment": "forbid_kinds blocks auto-merge for destructive changes regardless of size. A 1-line rename is still a breaking change and demands human review. max_lines_changed=50 accommodates real-world env-vars batch additions (e.g. a new feature shipping with 10–20 related env vars and their inline comments in .env.example)."
+  },
+  "$notes": {
+    "no_skip_patterns": "We deliberately do NOT filter commits by message regex (e.g. ^revert, ^[codex]). The diff window is cumulative (last_release_tag → HEAD) so reverts are already net-zero in the manifest. Filtering by message would HIDE the undo signal — if we processed an original commit and then skipped its revert, docs would stay wrong forever. The proper filter is surface impact via watcher path globs.",
+    "quarantine_still_needed": "Quarantine handles the race where a feature lands but its revert hasn't yet. Without it, we'd churn doc edits that get undone the next day."
+  }
+}

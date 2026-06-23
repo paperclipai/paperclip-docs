@@ -1,0 +1,7 @@
+{
+  "branch_mode": "release",
+  "base_release_tag": "v2026.618.0",
+  "base_release_sha": "83a293b16155efed5aa002071c4f4b7007add400",
+  "last_seen_parent_sha": "83a293b16155efed5aa002071c4f4b7007add400",
+  "last_run_outcome": "applied"
+}

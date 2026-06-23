@@ -73,6 +73,71 @@ function toPosixPath(value) {
   return value.split(path.sep).join("/");
 }
 
+export function isPathInside(parentPath, targetPath) {
+  const rel = path.relative(parentPath, targetPath);
+  return rel === "" || (rel && !rel.startsWith("..") && !path.isAbsolute(rel));
+}
+
+function releaseTargetPathForDoc(sourcePath, releaseRoot) {
+  if (!isPathInside(docsRoot, sourcePath)) {
+    throw new Error(`Refusing to copy a file outside docs/: ${path.relative(process.cwd(), sourcePath)}`);
+  }
+  const relativeFromDocsRoot = path.relative(docsRoot, sourcePath);
+  const targetPath = path.join(releaseRoot, relativeFromDocsRoot);
+  if (!isPathInside(releaseRoot, targetPath)) {
+    throw new Error(`Refusing to write outside release directory: ${path.relative(process.cwd(), targetPath)}`);
+  }
+  return targetPath;
+}
+
+/**
+ * Parse YAML frontmatter from the head of a markdown string.
+ *
+ * Supports only the simple `key: value` shape (one per line). Values may be
+ * optionally wrapped in single or double quotes; quotes are stripped. The
+ * frontmatter must start at byte 0 with `---` followed by a newline, and end
+ * with another `---` on its own line. Malformed or missing frontmatter is
+ * treated as "no frontmatter" — the original body is returned and the parsed
+ * object is empty.
+ *
+ * Returns `{ body, frontmatter }`.
+ */
+export function parseFrontmatter(source) {
+  if (typeof source !== "string") return { body: source, frontmatter: {} };
+  if (!source.startsWith("---\n") && !source.startsWith("---\r\n")) {
+    return { body: source, frontmatter: {} };
+  }
+  // Find the closing fence: a line containing only `---`.
+  const closeRegex = /\r?\n---[ \t]*(\r?\n|$)/;
+  const afterOpen = source.indexOf("\n") + 1;
+  const rest = source.slice(afterOpen);
+  const closeMatch = rest.match(closeRegex);
+  if (!closeMatch) {
+    return { body: source, frontmatter: {} };
+  }
+  const yamlBlock = rest.slice(0, closeMatch.index);
+  let body = rest.slice(closeMatch.index + closeMatch[0].length);
+  // Consume a single blank line that authors typically leave between the
+  // closing fence and the first line of real content. Keeps headings flush.
+  body = body.replace(/^\r?\n/, "");
+  const frontmatter = {};
+  for (const rawLine of yamlBlock.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const match = line.match(/^([A-Za-z_][\w.-]*)\s*:\s*(.*)$/);
+    if (!match) continue;
+    let value = match[2].trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    frontmatter[match[1]] = value;
+  }
+  return { body, frontmatter };
+}
+
 function isLocalDocHref(href) {
   return !/^(?:[a-z]+:)?\/\//i.test(href) && !href.startsWith("#");
 }
@@ -91,10 +156,20 @@ async function ensureDir(targetPath) {
 }
 
 async function copyFileIntoRelease(sourcePath, releaseRoot) {
-  const relativeFromDocsRoot = path.relative(docsRoot, sourcePath);
-  const targetPath = path.join(releaseRoot, relativeFromDocsRoot);
+  const targetPath = releaseTargetPathForDoc(sourcePath, releaseRoot);
   await ensureDir(path.dirname(targetPath));
   await fs.copyFile(sourcePath, targetPath);
+}
+
+// Copy a markdown file into the release bundle while stripping any YAML
+// frontmatter. Returns the parsed frontmatter object (empty if none).
+async function copyMarkdownIntoRelease(sourcePath, releaseRoot) {
+  const targetPath = releaseTargetPathForDoc(sourcePath, releaseRoot);
+  await ensureDir(path.dirname(targetPath));
+  const source = await fs.readFile(sourcePath, "utf8");
+  const { body, frontmatter } = parseFrontmatter(source);
+  await fs.writeFile(targetPath, body);
+  return frontmatter;
 }
 
 async function copyDirRecursive(sourceDir, targetDir) {
@@ -309,7 +384,7 @@ async function collectReleaseFiles(nav) {
       if (!href || !isLocalDocHref(href)) continue;
 
       const resolvedPath = path.resolve(baseDir, href);
-      if (!resolvedPath.startsWith(docsRoot)) continue;
+      if (!isPathInside(docsRoot, resolvedPath)) continue;
 
       if (href.endsWith(".md")) {
         if (await pathExists(resolvedPath)) {
@@ -422,15 +497,31 @@ async function main() {
   await fs.writeFile(path.join(options.outDir, "index.html"), sourceIndex);
   await fs.writeFile(path.join(options.outDir, "styles.css"), sourceStyles);
   await fs.writeFile(path.join(options.outDir, "app.js"), releaseAppJs);
-  await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav, null, 2)}\n`);
   await fs.writeFile(path.join(options.outDir, ".htaccess"), buildHtaccess(options.basePath));
   await fs.writeFile(path.join(options.outDir, "nginx.conf.example"), buildNginxConfig(options.basePath));
   await fs.writeFile(path.join(options.outDir, "DEPLOY.md"), buildDeployGuide(options.basePath));
 
+  // Copy markdown files, stripping YAML frontmatter, and collect per-file
+  // frontmatter to surface via content.json (keyed by repo-relative path).
   const sortedMarkdownFiles = [...markdownFiles].sort((left, right) => left.localeCompare(right));
+  const frontmatterByFile = new Map();
   for (const markdownPath of sortedMarkdownFiles) {
-    await copyFileIntoRelease(markdownPath, options.outDir);
+    const frontmatter = await copyMarkdownIntoRelease(markdownPath, options.outDir);
+    const relativeFromDocsRoot = toPosixPath(path.relative(docsRoot, markdownPath));
+    if (Object.keys(frontmatter).length > 0) {
+      frontmatterByFile.set(relativeFromDocsRoot, frontmatter);
+    }
   }
+
+  // Attach parsed frontmatter onto matching nav page entries so the SPA can
+  // surface fields like `paperclip_version` per page.
+  for (const section of releaseNav.sections) {
+    for (const page of section.pages) {
+      const fm = frontmatterByFile.get(page.file);
+      if (fm) page.frontmatter = fm;
+    }
+  }
+  await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav, null, 2)}\n`);
 
   if (await pathExists(screenshotsSourceDir)) {
     const screenshotTargetDir = path.join(options.outDir, "user-guides", "screenshots");
@@ -468,7 +559,20 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+// Only run the build when this file is executed directly. Importing it as a
+// module (e.g. from the sync test suite) must not trigger a build.
+const invokedDirectly = (() => {
+  if (!process.argv[1]) return false;
+  try {
+    return fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+  } catch {
+    return false;
+  }
+})();
+
+if (invokedDirectly) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
+}

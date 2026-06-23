@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.618.0
+---
+
 # Heartbeats & Routines
 
 When you first hire a few agents, it's tempting to give each one a timer — "wake up every few minutes and see if there's anything to do." It feels proactive. In practice, it's the fastest way to end up with a sidebar full of paused agents, surprise token bills, and a dashboard you have to fight with just to keep things quiet.
@@ -142,34 +146,54 @@ The Recent Runs view is the fastest way to answer "did all my morning routines r
 
 ![Routine detail](../../user-guides/screenshots/light/routines/detail.png)
 
-Opening a routine drops you on the detail page. The layout is deliberately narrow — a single editable column — because a routine is really just a task template plus a trigger, and the form is meant to feel like writing a task.
+Opening a routine drops you on the detail page. A slim header runs across the top, and a **sub-sidebar** down the left splits the routine into focused sections so you edit one thing at a time instead of scrolling one long form.
 
 ### Header
 
-The header packs a lot into one row:
+The header packs the always-available controls into one row:
 
-- **Editable title** — click the title to edit inline. Enter jumps to the description; Tab walks through the selectors.
+- **Editable title** — the title is an inline text field. Press Enter to jump to the Overview section (and into the description when you're already there).
 - **Run button** — opens the same "run now" dialog as the list row. This is the manual override for any routine.
-- **Automation toggle** — the large switch. On = `active`, off = `paused`. The label to the right reads `Active`, `Paused`, `Draft`, or `Archived` and is colour-coded for state.
-- **Draft banner** — if the routine has no default agent yet, a banner explains that it can still run manually but automation stays paused until an agent is assigned.
+- **Automation toggle** — the large switch. On = `active`, off = `paused`. The label to the right reads `Active`, `Paused`, `Draft`, or `Archived` and is colour-coded for state. Flipping it on while no default agent is set is refused with a "Default agent required" prompt.
+- **Plugin badge** — when a routine is managed by a plugin, a badge shows the plugin's name and resource key so you know not to hand-edit it.
 
-Below the header is the assignment row — an inline "For [assignee] in [project]" statement that edits the defaults — followed by the Markdown instructions editor. Any change to these fields is tracked as dirty state; a `Save` action appears when there's anything to persist.
+### The sub-sidebar: sections, not tabs
 
-### Tabs: Triggers, Runs, Activity
+The left sub-sidebar lists the routine's sections in two groups, and each section is its own sub-route (`/routines/:id/<section>`) so you can deep-link and use the browser's back button. Older `?tab=` links still resolve — they redirect to the matching section.
 
-The detail page has three tabs, selected via `?tab=` in the URL so you can deep-link:
+**Routine** (the editable parts of the template):
 
-- **Triggers** — the default. Lists every trigger attached to the routine and provides a composer to add new ones.
+- **Overview** — the assignment row ("For [assignee] in [project]"), priority, and the Markdown instructions editor.
+- **Triggers** — every trigger attached to the routine, each as its own card, plus a composer to add new ones.
+- **Variables** — the `{{name}}` placeholders detected in the title and instructions.
+- **Secrets** — environment values the routine's task can reference.
+- **Delivery** — the concurrency and catch-up policies.
+
+**Operate** (the read-only history):
+
 - **Runs** — the execution history for this specific routine.
-- **Activity** — a structured audit log of edits, enables, pauses, trigger changes, and secret rotations.
+- **Activity** — a structured audit log of edits, enables, pauses, trigger changes, and secret rotations, grouped by day.
+- **History** — the routine's revision history, with the ability to restore an earlier revision.
 
-### Run history and the next-run countdown
+A small amber dot appears next to any section with unsaved edits, and a blue pulsing dot appears on **Runs** when a run is live. On narrow screens the sidebar collapses into a single grouped section picker at the top.
+
+### Saving edits
+
+Each editable section has its own sticky **save bar** that stays hidden until you change something. When the section is dirty it slides up from the bottom showing how many unsaved changes you have (click the count to see exactly which fields), with **Discard** and **Save changes** buttons — `⌘S` / `Ctrl+S` saves, `Esc` opens a discard confirmation. If someone else edited the routine while you were working, the bar switches to a conflict surface offering **Reload latest** or **Overwrite anyway**. Non-owners see a read-only strip instead of the save bar.
+
+### Trigger cards and human-readable schedules
+
+On the **Triggers** section, each trigger is a card headed by its kind icon and label. For a schedule trigger, Paperclip shows the cron in **plain English** right under the label — "Every weekday at 09:00", "Every day at 10:00", "Every 15 minutes", "Day 1 of every month at 09:00" — translated from the raw expression as you edit it. (Shapes the translator doesn't recognise simply omit the plain-English line and keep the raw cron.) The card's top-right corner shows a `Next:` line with the resolved local timestamp of the next fire for schedule triggers, a `Webhook` label for webhook triggers, or `API` for manual ones. If a trigger has fired before, its last result also shows there as a badge — green for success, red otherwise — so you can spot a misfiring webhook without leaving the page.
+
+Each card carries its own **Delete**, **Save trigger**, and — for webhook triggers — **Rotate secret** buttons.
+
+### Run history
 
 ![Run history](../../user-guides/screenshots/light/routines/run-history.png)
 
-The Runs tab lists every execution the routine has produced, newest first. Each run shows its triggered-at timestamp, the trigger that caused it (schedule, webhook, or manual), the resulting issue link, and the final status. When a run is currently live, a `LiveRunWidget` attaches to the row and polls every three seconds so you can watch it progress without reloading.
+The **Runs** section lists every execution the routine has produced, newest first. Above the list, three filter dropdowns — **Source**, **Status**, and **Date** (Any time, Last 24h, Last 7d, Last 30d) — narrow the view, and the active filters show as removable chips. When a run is live, a `LiveRunWidget` pins to the top and polls every three seconds so you can watch it progress without reloading.
 
-On the Triggers tab, each scheduled trigger shows a "Next:" line with the resolved local timestamp of its next fire. That value is computed server-side from the cron expression plus the trigger's timezone, so the countdown reflects real scheduler intent rather than browser-local math. Webhook triggers show a `Webhook` label in the same slot, and manual triggers show `API`. Every trigger also surfaces its last result — `succeeded`, `failed`, or a short error — so you can spot a misfiring webhook without leaving the page.
+Each row leads with two badges — the run's **source** and its **status** — then the linked issue's identifier and title (or the trigger label when there's no issue yet), with a relative "time ago" on the right. The subtitle line does double duty: a **failed** run shows its failure reason inline, while a successful run shows the resolved variable values it ran with (for example `customer="Acme"`). Rows link straight to the execution issue they produced.
 
 ---
 

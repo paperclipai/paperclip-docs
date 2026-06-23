@@ -1,0 +1,17 @@
+{
+  "$comment": "Template for .sync-state.json at the repo root. Committed per-branch. Edit the real file, not this one.",
+  "branch_mode": "release",
+  "base_release_tag": "v2026.318.0",
+  "base_release_sha": "REPLACE_WITH_PARENT_COMMIT_SHA_AT_TAG",
+  "last_seen_parent_sha": null,
+  "last_applied_manifest_hash": null,
+  "last_run_at": null,
+  "last_run_outcome": null,
+  "$field_notes": {
+    "branch_mode": "release on `main` branch, nightly on `nightly` branch.",
+    "base_release_tag": "The parent release tag this branch builds atop. Same on both branches — main has shipped this version live, nightly is accumulating drafts on top of it.",
+    "base_release_sha": "Parent commit SHA at base_release_tag. Used as the diff base for ALL runs (cumulative diff). Both modes diff `base_release_sha → target`.",
+    "last_seen_parent_sha": "Informational only — the parent main HEAD at the last nightly run. Lets us tell the user how many new commits exist. NOT used as a diff base.",
+    "last_applied_manifest_hash": "Hash of the manifest from the last applied run. Lets us detect when entries have DISAPPEARED from the cumulative diff (i.e. a revert landed) so we can flag previously-applied doc edits for reconciliation."
+  }
+}

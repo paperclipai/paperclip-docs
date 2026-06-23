@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.529.0
+---
+
 # Claude Local
 
 `claude_local` runs Anthropic's Claude Code CLI on the same machine as Paperclip. Use it when you want a local coding agent with session persistence, skills injection, and full access to the configured working directory.
@@ -42,6 +46,22 @@
 
 ---
 
+## Model Discovery
+
+When you pick a model in the agent config form, Claude Local fills the model dropdown from a live query to Anthropic's API instead of a hard-coded list — so a Claude model that shipped after your last Paperclip update still shows up without waiting for a new release.
+
+Here's how the list is built:
+
+- **With an API key.** If `ANTHROPIC_API_KEY` is set, the adapter calls the Anthropic models endpoint (`/v1/models`) — at `ANTHROPIC_BASE_URL` if you've set one, otherwise `https://api.anthropic.com` — and offers everything it returns. The live results are merged with Paperclip's built-in list and de-duplicated, so you always see at least the known-good models, plus anything new from your account.
+- **On Bedrock.** If the adapter detects AWS Bedrock (for example `CLAUDE_CODE_USE_BEDROCK=1`), it offers the region-qualified Bedrock model IDs instead.
+- **No key, or the lookup fails.** If there's no API key, or the request times out or comes back empty, you simply get Paperclip's built-in fallback list. Discovery never blocks you from saving an adapter.
+
+Discovered models are cached for about a minute (keyed to the API key and base URL in use), so reopening the form is instant. When you want the freshest list — say you've just been granted access to a new model — use the model field's **refresh** control to force a new lookup that bypasses the cache.
+
+> **Tip:** The `model` field still accepts any model id you type in. Discovery is there to save you from remembering exact identifiers, not to restrict you to the listed choices.
+
+---
+
 ## Session Persistence
 
 Claude Local stores the Claude Code session id and resumes it on the next heartbeat when the working directory still matches.
@@ -56,6 +76,16 @@ The session codec also preserves the important location hints from Claude's own 
 - `repoRef`
 
 > **Tip:** If you move the working directory between heartbeats, expect Claude Local to start a new session instead of trying to reuse the old one.
+
+### Resuming a session's workspace
+
+When Paperclip resumes a `claude_local` session, the saved `cwd` is the **host workspace cwd** — the path on the machine where Paperclip runs — not whatever cwd a remote sandbox happened to report. That keeps resume paths stable when the agent executes against a remote sandbox.
+
+Before the heartbeat trusts a saved cwd, `isUnsafeSessionWorkspaceCwd` checks it against a small set of system roots (`/`, `/tmp`, `/var`, `/var/tmp`, `/var/run`, `/usr`, `/etc`, `/proc`, `/sys`, `/dev`, `/run`, `/private`, `/private/tmp`). If the saved cwd resolves to one of those, Paperclip rejects it and falls back to the agent home workspace instead of letting the agent loose on a system directory.
+
+Workspace restore also gets stricter about what it copies. During `captureDirectorySnapshot`, anything that is not a directory, symlink, or regular file — sockets, FIFOs, character or block devices, and other non-file entries — is skipped, so restoring a workspace can no longer trip over a stray device node.
+
+Finally, plugins that declare the `environment.drivers.register` capability now receive only a small allowlist of model-provider API keys from the adapter environment, rather than the full env. Driver plugins still get what they need to talk to providers like Anthropic, but unrelated secrets stay with the host.
 
 ---
 

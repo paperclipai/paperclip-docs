@@ -88,7 +88,8 @@ Placeholders used below:
 - `{goalId}` → Launch v1 goal id
 - `{routineId}` → demo routine id
 - `{issueId}` → demo issue id with chat content
-- `{workspaceId}` → execution workspace id bound to that issue
+- `{workspaceId}` → project primary workspace id
+- `{executionWorkspaceId}` → isolated execution workspace id (DB-seeded for detail-page shots)
 - `{cliAuthId}` → code id from `/cli-auth`
 - `{boardClaimToken}` → token from board claim link
 
@@ -165,9 +166,10 @@ Costs tabs live in React state (not URL/hash). Capture each tab by clicking its 
 
 | Filename | URL | Notes |
 |---|---|---|
-| `configuration.png` | `/{slug}/execution-workspaces/{workspaceId}/configuration` | Default tab. Shows cwd / repo fields. |
-| `runtime-logs.png` | `/{slug}/execution-workspaces/{workspaceId}/runtime-logs` | At least one log entry from a recent run. |
-| `issues.png` | `/{slug}/execution-workspaces/{workspaceId}/issues` | Issues linked to this workspace. |
+| `configuration.png` | `/{slug}/execution-workspaces/{executionWorkspaceId}/configuration` | Workspace settings, context, concrete location. |
+| `services.png` | `/{slug}/execution-workspaces/{executionWorkspaceId}/services` | Runtime services + jobs with controls. |
+| `runtime-logs.png` | `/{slug}/execution-workspaces/{executionWorkspaceId}/runtime-logs` | Operation log rows (provision, service start, failed job). |
+| `issues.png` | `/{slug}/execution-workspaces/{executionWorkspaceId}/issues` | The Tasks tab — issues linked to this workspace. |
 
 ### Adapters — user (`screenshots/light/adapters/`)
 

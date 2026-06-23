@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.609.0
+---
+
 # API Overview
 
 Paperclip exposes a JSON API for company control-plane work: companies, agents, issues, approvals, costs, routines, secrets, activity, and dashboard state. This page is the shared reference for how the API is structured before you jump into a specific resource.
@@ -167,6 +171,16 @@ health = requests.get("http://localhost:3100/api/health").json()
 ```
 
 <!-- /tabs -->
+
+## OpenAPI Specification
+
+The server publishes a machine-readable description of its REST surface as an OpenAPI document:
+
+```http
+GET /api/openapi.json
+```
+
+Point your own tooling — client generators, request validators, or an API explorer — at this endpoint to get the current set of routes, parameters, and schemas straight from the running instance. From the terminal, `paperclipai access openapi` fetches the same document for you. This reference is written for people; the OpenAPI document is the same surface in a form built for machines.
 
 ## A Good First API Call
 

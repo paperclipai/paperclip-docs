@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.609.0
+---
+
 # External Adapters
 
 External adapters let you ship a Paperclip adapter as its own npm package or local directory. Use them when you want independent versioning, separate distribution, or a runtime that should not live inside the Paperclip repo.
@@ -159,7 +163,21 @@ Useful management endpoints:
 - `POST /api/adapters/:type/reinstall`
 - `DELETE /api/adapters/:type`
 
-> **Note:** Built-in adapters cannot be removed or overwritten by external installs.
+> **Note:** Built-in adapters are protected from deletion. You can still install an external adapter that *overrides* a built-in type (see below), but the built-in itself stays in place as a fallback and can't be removed unless an external override exists for it.
+
+---
+
+## Overriding A Built-In
+
+You can install an external adapter whose `type` matches a built-in — for example, ship your own `hermes_local` to pick up a newer or organization-specific implementation. `POST /api/adapters/install` accepts the override, and the external adapter takes precedence while the built-in stays available as a fallback.
+
+A few things to know:
+
+- A first-time override of a built-in type installs without requiring a restart. Reinstalling an override you already have (an existing external plugin record for that type) is the only case that reports `requiresRestart`.
+- Pausing the override from the Adapter Manager snaps every agent of that type back to the built-in implementation on their next run; resuming restores the external adapter.
+- Removing the override unregisters the external adapter and falls back to the built-in. The built-in itself is never deleted.
+
+The operator-facing walkthrough of pausing, resuming, and removing overrides lives in [Settings → Instance: Adapters](../../administration/settings.md).
 
 ---
 

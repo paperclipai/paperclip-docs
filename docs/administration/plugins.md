@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.529.0
+---
+
 # Plugins
 
 Some things Paperclip does out of the box — run agents, manage tasks, call adapters. Plenty of other things it does not, because they're too specific to your setup: a Hello World widget on the dashboard, a file browser for your project workspaces, a smoke-test runner for a third-party service you happen to use. Plugins are how you add those.
@@ -16,7 +20,7 @@ The Plugin Manager lives under **Settings → Plugins**. It's the single place w
 
 The page has two sections:
 
-- **Available Plugins** — bundled examples shipped with your Paperclip checkout. Useful for seeing what plugins can do and for smoke-testing the plugin runtime on a fresh instance.
+- **Available Plugins** — the plugins bundled with your Paperclip checkout, discovered automatically from the packages on disk. This includes the reference example plugins *and* first-party plugins like the LLM Wiki when they're part of your checkout. Each is labelled **Bundled**, and ones that aren't production-ready yet carry an **Experimental** badge. Useful for seeing what plugins can do and for smoke-testing the plugin runtime on a fresh instance.
 - **Installed Plugins** — everything you've installed on this Paperclip instance. Each row shows the plugin name, its package and version, a short description, a status badge, and quick actions.
 
 ### Status badges
@@ -54,14 +58,22 @@ An errored plugin stays installed — you don't need to uninstall and reinstall 
 
 There are two ways to get a plugin into Paperclip.
 
-**From the Available Plugins list.** Bundled example plugins ship inside the Paperclip repository. On the Plugin Manager page, scroll to the **Available Plugins** section and click **Install Example** next to the one you want. Paperclip installs it straight from the local checkout — no registry round trip.
+**From the Available Plugins list.** Bundled plugins ship inside the Paperclip repository. On the Plugin Manager page, scroll to the **Available Plugins** section and click **Install** next to the one you want. Paperclip installs it straight from the local checkout — no registry round trip.
 
-The examples that ship today:
+Paperclip builds this list by scanning the plugin packages in your checkout, so what you see depends on what's bundled. Two kinds of plugin show up here:
+
+- **Reference examples** — small, self-contained plugins that exist to demonstrate the runtime.
+- **First-party plugins** — real plugins like the [LLM Wiki](../reference/plugins/llm-wiki.md) when they're vendored into your checkout. These are also published to npm, so on instances that don't bundle them you'd install by full package name instead; see *By npm package name* below.
+
+First-party plugins that are still maturing carry an **Experimental** badge in this list — they work, but their behaviour or configuration may change between releases, so pin versions where you can.
+
+The reference examples that ship today:
 
 - **plugin-hello-world-example** — adds a Hello World widget to the dashboard. The minimum-viable plugin, useful as a reference.
 - **plugin-file-browser-example** — adds a Files link to project sidebars and a file-browser tab to the project detail page, scoped to the project's workspace.
 - **plugin-kitchen-sink-example** — demonstrates the full plugin surface in one package: pages, widgets, settings forms, scheduled jobs, webhooks. Good for exploring what a plugin can do.
 - **plugin-authoring-smoke-example** — a thin smoke test for the plugin authoring workflow. Useful if you're working on a plugin of your own and want to confirm the runtime picks it up.
+- **plugin-orchestration-smoke-example** — a smoke plugin that exercises Paperclip's orchestration-grade plugin APIs (scheduled jobs, webhooks, plugin-driven agent interactions). Useful as a reference when you're building a plugin that needs to coordinate work over time, not just render a widget.
 
 **By npm package name.** Click the **Install Plugin** button at the top right of the Plugin Manager. Paperclip asks for an npm package name (for example, `@paperclipai/plugin-example`). Submit it and Paperclip fetches, installs, and loads the package. Success or failure appears as a toast, and the plugin shows up in the installed list with its current status.
 
@@ -188,7 +200,13 @@ The full authoring path lives outside this guide:
 - The `paperclip-create-plugin` skill scaffolds a new plugin package, including the manifest, worker, and a minimal UI surface.
 - The Paperclip CLI (`paperclipai`) wraps common authoring tasks — scaffolding, dev serving, building, and publishing. See the [CLI overview](../guides/getting-started/your-first-agent.md) and the plugin adapter documentation in the main Paperclip repository for details.
 
-Once your plugin builds, install it with **Install Plugin** on the Plugin Manager page the same way you'd install anything else. During development you can also point the installer at a local path — the **Install Example** flow is the same mechanism, just targeted at `packages/plugins/examples/`.
+Once your plugin builds, install it with **Install Plugin** on the Plugin Manager page the same way you'd install anything else. During development you can also point the installer at a local path — the bundled **Install** flow is the same mechanism, just targeted at a package inside your checkout.
+
+### Developing plugins locally
+
+If you're iterating on your own plugin rather than running a published one, the friendliest loop is the CLI-driven local-path install: `paperclipai plugin init` scaffolds the package, `pnpm dev` runs a watch build, and `paperclipai plugin install <path>` points Paperclip at the folder so the worker reloads each time `dist/` is rewritten.
+
+See **[Develop a plugin locally](../how-to/develop-a-plugin-locally.md)** for the full walkthrough — scaffolding flags, the reload semantics, when to switch back to an npm install, and the troubleshooting checklist for the moments edits stop reaching Paperclip.
 
 ---
 
@@ -206,7 +224,7 @@ A cheat sheet for operating the Plugin Manager day-to-day:
 
 | Goal | Action |
 |---|---|
-| Try a bundled example | Plugin Manager → Available Plugins → **Install Example** |
+| Try a bundled plugin | Plugin Manager → Available Plugins → **Install** |
 | Install a third-party plugin | Plugin Manager → **Install Plugin** → enter npm package name |
 | Temporarily stop a plugin's jobs | Click the power button on the plugin row (green to grey) |
 | Bring a plugin back online | Click the power button again, or **Enable** from the detail page |
