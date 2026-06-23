@@ -57,6 +57,14 @@ try {
   const robots = read("robots.txt");
   assert(robots.includes("Sitemap: https://docs.paperclip.ing/sitemap.xml"), "robots.txt is missing sitemap reference");
 
+  const deployGuide = read("DEPLOY.md");
+  assert(deployGuide.includes("Cloudflare Pages"), "deploy guide is missing Cloudflare Pages guidance");
+  assert(deployGuide.includes("Pushing `main` triggers the production deployment"), "deploy guide is missing production deploy guidance");
+  assert(deployGuide.includes("preview/canary deployment"), "deploy guide is missing branch preview guidance");
+  assert(!deployGuide.includes("wrangler pages deploy"), "deploy guide should not include a Wrangler publish command");
+  assert(!deployGuide.includes("## GitHub Pages"), "deploy guide should not recommend GitHub Pages publishing");
+  assert(!deployGuide.includes("gh-pages"), "deploy guide should not mention gh-pages publishing");
+
   console.log("Static route verification passed.");
 } finally {
   rmSync(outDir, { recursive: true, force: true });
