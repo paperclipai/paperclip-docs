@@ -486,6 +486,18 @@
     },
     {
       "tier": "Reference",
+      "title": "Trust & Authority",
+      "icon": "shield",
+      "desc": "Trust preset definitions, boundary fields, source-trust metadata, and error codes.",
+      "pages": [
+        {
+          "title": "Trust Presets",
+          "file": "../docs/reference/trust-presets.md"
+        }
+      ]
+    },
+    {
+      "tier": "Reference",
       "title": "Adapters",
       "icon": "plug",
       "desc": "Connect any agent runtime — Claude, Codex, Gemini, or your own HTTP service.",

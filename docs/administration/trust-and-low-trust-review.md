@@ -8,7 +8,7 @@ Some work in a Paperclip company is born from input you cannot vouch for: an unt
 
 This page explains the two trust presets Paperclip ships with, what actually changes when an agent or its work is treated as low-trust, and how that work gets reviewed and promoted before it counts as accepted.
 
-It helps to read [Execution Policy](../guides/power/execution-policy.md) first — trust presets layer on top of the same execution-policy plumbing, and a low-trust run leans on the isolated workspace and sandbox mechanics described there.
+It helps to read [Execution Policy](../guides/power/execution-policy.md) first — trust presets layer on top of the same execution-policy plumbing, and a low-trust run leans on the isolated workspace and sandbox mechanics described there. For the exact field, status-code, and metadata tables — what to copy when wiring up an Untrusted agent — see [Trust Presets Reference](../reference/trust-presets.md).
 
 > **This is containment, not privacy.** Standard work in a Paperclip company stays company-visible by default — board users and in-company actors can still inspect company work objects. Low-trust containment is narrower: it limits what a low-trust agent can read or change through the Paperclip API, and it stops raw untrusted output from being automatically promoted into higher-trust agent context. It is not a general project, issue, or human privacy system.
 
