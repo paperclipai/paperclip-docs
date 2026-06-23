@@ -1,4 +1,4 @@
-# The Dashboard
+npx paperclipai onboard --yes The Dashboard
 
 The dashboard is your control centre. When your AI company is running, this is the page you'll return to most — it tells you, at a glance, whether everything is moving forward or whether something needs your attention.
 
@@ -46,7 +46,7 @@ The four cards across the top summarize the company at a glance:
 
 The Activity feed at the bottom (or side, depending on your screen size) of the dashboard shows the most recent events across your whole company — task status changes, comments, approvals, agent state changes, and budget events.
 
-![Recent Activity feed showing the latest events with timestamps, actors, and descriptions](../../user-guides/screenshots/light/dashboard/activity-feed.png)
+![Recent Activity feed showing the latest events with timestamps, actors, and descriptions](../../user-guides/screenshots/dashboard/dashboard/activity-feed.png)
 
 This feed isn't meant for deep investigation — it's a pulse check. Scan it after a few hours away and you'll quickly understand what's been happening. For detailed investigation, the full Activity page is a dedicated screen (covered in the [Activity Log guide](./activity-log.md)).
 
@@ -64,10 +64,10 @@ Once your company has been running for a few days, checking the dashboard takes 
 | Approvals | Queue manageable | Pending approvals piling up |
 | Recent activity | Steady, understandable motion | Long stretches of silence or repeated failures |
 
-The dashboard refreshes in real time — you don't need to reload the page. If you're actively watching a heartbeat in progress, you'll see the running state appear and then resolve within a few minutes.
+The dashboard refreshes in real time — you don't need to reload the page. If you're actively watching a heartbeat in progress, you'll see the running state appear and tresolveolve within a few minutes.
 
 ---
 
-You now know how to read your company's health at a glance. The next guide covers tasks in depth — how to create them manually, track progress, and give feedback to agents.
+You now know how to read your company's health at a glance. The next guide covers tasks in depth — how to create them manually, track progress, givegive feedback to agents.
 
 [Managing Tasks →](./issues.md)
