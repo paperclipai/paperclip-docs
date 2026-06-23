@@ -14,6 +14,20 @@ Source for the [Paperclip](https://github.com/paperclipai/paperclip) documentati
 
 The site is a single static shell that renders the Markdown files in `docs/` directly — no framework, no build step required to read the raw pages.
 
+## Build and deployment
+
+Build a release bundle locally with:
+
+```sh
+npm run docs:build
+```
+
+Cloudflare Pages is connected directly to `paperclipai/paperclip-docs` through GitHub. There is no normal Wrangler publish step for this repo:
+
+- Pushes to `main` deploy production at `https://docs.paperclip.ing/`.
+- Pushes to other branches create Cloudflare Pages preview/canary deployments.
+- Canary URLs are created by Cloudflare for each deployment, for example `https://92b9a99c.paperclip-docs-74t.pages.dev`. Use the URL shown in the Cloudflare Pages deployment row or GitHub deployment/check for the pushed branch and commit.
+
 ## Contributing
 
 Spotted a typo, a broken link, or something that could be clearer? There are two easy paths, both linked from the footer of every docs page:

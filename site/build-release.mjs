@@ -626,7 +626,7 @@ function buildDeployGuide(basePath) {
   const basePathGuidance = basePath === "auto"
     ? `This bundle was built with \`--base-path auto\`.
 
-That mode is a fallback. For GitHub Pages or any subdirectory deployment, rebuild with an explicit path, for example:
+That mode is a fallback. For production or a Cloudflare Pages preview, rebuild with an explicit path, for example:
 
 \`\`\`sh
 node site/build-release.mjs --base-path ${deploymentBasePath}
@@ -648,11 +648,13 @@ ${basePathGuidance}
 
 If \`content.json\` or linked markdown files are missing from the uploaded bundle, the docs app will fail to load content.
 
-## GitHub Pages
+## Cloudflare Pages
 
-- Publish the built bundle from a branch such as \`gh-pages\`
-- Include a \`.nojekyll\` file in the published output
-- Configure the Pages source branch in repository settings, or through the Pages REST API
+- The \`paperclipai/paperclip-docs\` repository is connected to Cloudflare Pages; do not deploy this bundle with Wrangler for normal docs releases.
+- Pushing \`main\` triggers the production deployment. Cloudflare serves it on \`docs.paperclip.ing\`, the project domain, and a deployment-specific \`https://<hash>.paperclip-docs-74t.pages.dev\` URL.
+- Pushing any other branch triggers a preview/canary deployment. In the Cloudflare Pages dashboard, open **Workers & Pages -> paperclip-docs -> Deployments** and use the row whose source branch and commit match your push.
+- Canary URLs are Cloudflare-generated deployment URLs, for example \`https://92b9a99c.paperclip-docs-74t.pages.dev\`; do not derive them from the branch name by hand.
+- If GitHub shows a Cloudflare Pages check or deployment link on the commit/PR, that URL should match the Cloudflare dashboard deployment row.
 
 ## Other static hosts
 
