@@ -611,7 +611,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    #article { font-size: 15.5px; line-height: 1.75; color: var(--graphite); }
+    #article { font-size: 15.5px; line-height: 1.75; color: var(--graphite); overflow-wrap: break-word; }
     #article h1 {
       font-family: var(--font-serif);
       font-size: clamp(28px, 4vw, 38px);
@@ -874,6 +874,7 @@
     #article a {
       color: var(--ink); text-decoration: none;
       transition: color var(--transition);
+      overflow-wrap: anywhere;
     }
     #article a:hover { color: var(--graphite); }
     #article strong { color: var(--ink); font-weight: 600; }
@@ -889,6 +890,9 @@
       font-variant-numeric: tabular-nums;
       background: var(--parchment); border: 1px solid var(--stone);
       border-radius: var(--radius-xs); padding: 1px 6px; color: var(--ink);
+      /* Long unbreakable tokens (paths, keys, identifiers) must wrap so they
+         don't force the whole page wider than the viewport on mobile. */
+      overflow-wrap: anywhere; word-break: break-word;
     }
     #article pre {
       background: var(--void); color: #d4d4d4;
@@ -897,7 +901,9 @@
       font-family: var(--font-mono); font-size: 0.87rem; line-height: 1.6;
       font-variant-numeric: tabular-nums;
     }
-    #article pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+    #article pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit;
+      /* Block code keeps its own horizontal scroll (pre is overflow-x:auto); don't force-wrap it. */
+      overflow-wrap: normal; word-break: normal; }
 
     /* Tables */
     .table-wrap {
@@ -999,7 +1005,13 @@
 
     /* Tabs */
     .tabs-container { margin-bottom: 24px; }
-    .tabs-bar { display: flex; border-bottom: 1px solid var(--stone); }
+    .tabs-bar {
+      display: flex; border-bottom: 1px solid var(--stone);
+      /* Many tabs (e.g. one per provider) must scroll horizontally rather than
+         widen the page past the viewport on mobile. */
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .tabs-bar::-webkit-scrollbar { display: none; }
     .tab-btn {
       padding: 7px 18px;
       font-size: 13px;
@@ -1009,6 +1021,7 @@
       color: var(--ash); cursor: pointer;
       transition: color var(--transition), border-color var(--transition);
       margin-bottom: -1px;
+      white-space: nowrap; flex-shrink: 0;
     }
     .tab-btn:hover { color: var(--graphite); }
     .tab-btn.active { color: var(--ink); border-bottom-color: var(--green); }
