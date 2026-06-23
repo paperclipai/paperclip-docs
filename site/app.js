@@ -91,7 +91,7 @@ function buildRouteValue(page, headingId = null) {
 function getRouteUrl(routeValue) {
   const normalized = normalizeRouteKey(routeValue);
   const basePath = APP_BASE_URL.pathname.replace(/\/$/, '');
-  return normalized ? `${basePath}/#/${normalized}` : `${basePath}/#/`;
+  return normalized ? `${basePath}/${normalized}` : `${basePath}/`;
 }
 
 function getPageUrl(page) {
@@ -360,7 +360,7 @@ function showLanding() {
   document.getElementById('article-view').classList.remove('is-active');
   document.getElementById('breadcrumb').innerHTML = '';
   const basePath = APP_BASE_URL.pathname.replace(/\/$/, '');
-  history.replaceState(null, '', `${basePath}/#/`);
+  history.replaceState(null, '', `${basePath}/`);
 }
 function showArticleView() {
   document.getElementById('landing').classList.remove('is-active');
@@ -392,6 +392,14 @@ document.addEventListener('click', e => {
     e.preventDefault();
     loadPage(qlink.dataset.navFile);
     return;
+  }
+  const routeLink = e.target.closest('[data-nav="link"]');
+  if (routeLink) {
+    const route = parseRoute(applyRedirect(routeLink.getAttribute('href')));
+    if (route.page) {
+      e.preventDefault();
+      loadPage(route.page.file, route.headingId);
+    }
   }
 });
 
@@ -1224,14 +1232,32 @@ function postProcessInternalLinks(root) {
       return;
     }
 
-    if (href.startsWith('#')) return;
+    if (href.startsWith('#')) {
+      const page = allPages.find(candidate => candidate.file === currentFile);
+      const headingId = normalizeRouteKey(href.slice(1));
+      if (page && headingId) {
+        a.href = getPageHeadingUrl(page, headingId);
+        a.addEventListener('click', e => {
+          e.preventDefault();
+          const heading = document.getElementById(headingId);
+          history.pushState(null, '', getPageHeadingUrl(page, headingId));
+          if (heading) focusHeading(heading);
+        });
+      }
+      return;
+    }
 
     const [docHref, headingHref] = href.split('#');
     if (docHref && docHref.endsWith('.md')) {
+      const baseDir = currentFile.replace(/\/[^/]+$/, '/');
+      const targetFile = normalizeDocPath(baseDir + docHref);
+      const targetPage = allPages.find(candidate => candidate.file === targetFile);
+      if (targetPage) {
+        a.href = headingHref ? getPageHeadingUrl(targetPage, headingHref) : getPageUrl(targetPage);
+      }
       a.addEventListener('click', e => {
         e.preventDefault();
-        const baseDir = currentFile.replace(/\/[^/]+$/, '/');
-        loadPage(normalizeDocPath(baseDir + docHref), headingHref || null);
+        loadPage(targetFile, headingHref || null);
       });
     }
   });
