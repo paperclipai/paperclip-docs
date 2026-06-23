@@ -55,6 +55,8 @@ Below the feedback section, a **Company Packages** panel links out to the dedica
 
 At the bottom of the page is a **Danger Zone** with an **Archive company** button. Archiving hides the company from the sidebar and persists the change in the database. A confirmation dialog appears before the archive takes effect, and the UI automatically switches you to the next non-archived company if one is available.
 
+Archiving also quiets the company so it stops doing work in the background: every active agent is paused (with the pause reason `company_archived`), and any queued or in-flight wake-up requests are cancelled. Archiving is not destructive — unlike deletion, your agents, projects, and issues are all preserved — but the company will not wake its agents again until you bring it back.
+
 ---
 
 ## Access & Members

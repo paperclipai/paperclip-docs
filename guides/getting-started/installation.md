@@ -10,18 +10,6 @@ All three paths end up in the same place: a running Paperclip instance and the o
 
 ---
 
-## Before you start
-
-Whichever path you choose, you'll need a few things in place before your first agent can do any work. Some are covered later in this guide; others are external and worth installing now so you don't bounce out mid-onboarding.
-
-- **An Anthropic or OpenAI account and API key.** Paperclip agents shell out to an LLM provider — [Anthropic](https://console.anthropic.com) for the default `claude_local` adapter, or [OpenAI](https://platform.openai.com) for `codex_local`. The Desktop App and Terminal paths both walk you through creating a key.
-- **For the `claude_local` adapter (the default): [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed on your Mac.** Claude Code is a separate Anthropic product. Paperclip itself doesn't bundle it — `claude_local` agents launch it under the hood to read files, run commands, and call the Claude API. Install it now; you'll be blocked at agent creation otherwise.
-- **For the `codex_local` adapter:** the [OpenAI Codex CLI](https://platform.openai.com) installed on the same machine your agents will run on.
-
-> **Note:** The Claude Code and Codex CLI requirements apply to the machine that *runs the agent*, not necessarily the machine you sign in from. If you're using the Desktop app in **Local** mode, that's your Mac. If you're using **Remote** mode against a server, install Claude Code (or the Codex CLI) on the server.
-
----
-
 <!-- tabs: Desktop App (macOS), Terminal (Developer), Server / VPS -->
 
 <!-- tab: Desktop App (macOS) -->
@@ -156,6 +144,8 @@ corepack prepare pnpm@latest --activate
 ---
 
 ## Step 3 — Run the onboarding command
+
+> **Warning:** Do not run this command with `sudo` or from a root/admin shell. The default setup starts embedded PostgreSQL, and PostgreSQL refuses to run as an administrative user. Run it as your normal user on a local machine. On a server, first switch to the dedicated `paperclip` user with `sudo -iu paperclip`, then run the command.
 
 ```bash
 npx paperclipai onboard --yes
@@ -475,6 +465,7 @@ Useful diagnostic commands if anything goes wrong:
 
 Common errors:
 
+- **`Embedded PostgreSQL failed` with `Execution of PostgreSQL by a user with administrative permissions is not permitted`** — Paperclip was started as root or with elevated privileges. Stop it, switch to a normal non-root user, and run `npx paperclipai run` again. On a VPS, make sure you have run `sudo -iu paperclip` before onboarding or starting Paperclip. If you accidentally created files under the wrong account, remove the root-owned instance or fix ownership before retrying.
 - **`auth.publicBaseUrl is required when deploymentMode=authenticated and exposure=public`** — you didn't export `PAPERCLIP_AUTH_PUBLIC_BASE_URL` before running `onboard`. Re-export it and run `paperclipai configure --section server` (or re-run `paperclipai onboard --yes`).
 - **Requests rejected with a host mismatch** — the hostname you're accessing isn't in `server.allowedHostnames`. Add it via `paperclipai allowed-hostname <host>` or by editing `PAPERCLIP_ALLOWED_HOSTNAMES` in `~/paperclip.env` and restarting the service.
 - **Invite link 404s** — the invite was already consumed, or the base URL on the printed link doesn't match what the browser is hitting. Re-run `paperclipai auth bootstrap-ceo --force --base-url https://paperclip.example.com`.
@@ -485,7 +476,7 @@ Common errors:
 
 - **Hosted PostgreSQL** — set `DATABASE_URL=postgres://...` in `~/paperclip.env` before onboarding. Use the pooled connection (port 6543 on Supabase) for the app and the direct connection for migrations. See [Database deployment](../../reference/deploy/database.md).
 - **Object storage** — set `PAPERCLIP_STORAGE_MODE=s3` plus the relevant S3 env vars. See [Storage deployment](../../reference/deploy/storage.md).
-- **Private team server over Tailscale** instead of a public domain — skip Nginx/Certbot and use `PAPERCLIP_DEPLOYMENT_EXPOSURE=private` with `PAPERCLIP_BIND=tailnet`. See [Tailscale private access](../../reference/deploy/tailscale-private-access.md).
+- **Private team server over Tailscale** instead of a public domain — skip Nginx/Certbot and use `PAPERCLIP_DEPLOYMENT_EXPOSURE=private` with `PAPERCLIP_BIND=tailnet`. See [Tailscale private access](../../reference/deploy/tailscale-private-access.md). On a private, authenticated instance you can also skip the CLI invite for the first user: the very first person to sign in from a browser can claim themselves as the instance admin straight from the UI — whoever clicks first wins, and everyone else is locked out of the claim. See [Claim first instance admin](../../reference/api/instance-admin.md#claim-first-instance-admin) for the details.
 - **Docker instead of bare metal** — a production-ready image and Compose file ship in the repo. See [Docker deployment](../../reference/deploy/docker.md).
 
 ---

@@ -547,6 +547,35 @@ requests.post(
 
 ---
 
+## `secret-ref` form fields
+
+Some configs aren't typed by hand — they're driven by a JSON schema the server publishes, and the UI renders the form from that schema. Whenever a string field in such a schema declares `"format": "secret-ref"`, the UI swaps the plain text input for a secret binding picker.
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "githubToken": {
+      "type": "string",
+      "format": "secret-ref",
+      "title": "GitHub token"
+    }
+  }
+}
+```
+
+What you get on screen:
+
+- a dropdown listing the active secrets for the current company
+- a "paste a raw value" fallback for cases where you don't have a secret stored yet
+- the picker recognises a UUID-shaped value as a bound secret reference; anything else is a raw value that Paperclip stores as a new secret on save
+
+This is the same picker used by routine `env` values, agent adapter env, and any other config surface that opts in via `format: "secret-ref"`. If you're authoring a plugin or adapter schema, mark the sensitive fields with that format and the binding UI comes along for free.
+
+See [Routine env map](../../how-to/create-a-daily-routine.md#4-optional-give-the-routine-an-env-map) for the routine-side example.
+
+---
+
 ## Practical Notes
 
 - The secret name must be unique within the company.

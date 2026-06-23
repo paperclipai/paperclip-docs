@@ -16,8 +16,7 @@ const TIER_ORDER = ['Learn', 'Administration', 'Reference'];
 
 /* ─── Theme bootstrap (before first paint of body) ──────────────────────── */
 (function() {
-  const saved = localStorage.getItem('pc-guides-theme')
-    || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const saved = localStorage.getItem('pc-guides-theme') || 'dark';
   if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
   else document.documentElement.removeAttribute('data-theme');
 })();
@@ -350,6 +349,45 @@ function decorateCodeBlocks(article) {
   });
 }
 
+/* ─── GitHub star count (mirrors paperclip.ing) ────────────────────────── */
+(function () {
+  const REPO = 'paperclipai/paperclip';
+  const TTL_MS = 6 * 60 * 60 * 1000; // 6h
+  const CACHE_KEY = 'pc-docs-star-count';
+  const els = document.querySelectorAll('[data-star-count]');
+  if (!els.length) return;
+
+  function format(n) {
+    if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'k';
+    return String(n);
+  }
+  function render(text) {
+    els.forEach(el => { el.textContent = text; el.hidden = false; });
+  }
+
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { count, ts } = JSON.parse(cached);
+      if (typeof count === 'number') {
+        render(format(count));
+        if (Date.now() - ts < TTL_MS) return;
+      }
+    }
+  } catch (_) {}
+
+  fetch('https://api.github.com/repos/' + REPO, {
+    headers: { 'Accept': 'application/vnd.github.v3+json' },
+  })
+    .then(res => (res.ok ? res.json() : null))
+    .then(data => {
+      if (!data || typeof data.stargazers_count !== 'number') return;
+      render(format(data.stargazers_count));
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ count: data.stargazers_count, ts: Date.now() })); } catch (_) {}
+    })
+    .catch(() => {});
+})();
+
 /* ─── Theme toggle wiring ───────────────────────────────────────────────── */
 document.getElementById('theme-toggle').addEventListener('click', () => {
   const html = document.documentElement;
@@ -542,13 +580,24 @@ function renderSearchResults(query) {
   box.classList.add('is-open');
 }
 
+function openSearchModal() {
+  const modal = document.getElementById('search-modal');
+  const input = document.getElementById('search-input');
+  if (!modal || !input) return;
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+  // focus next tick so modal animates in cleanly
+  requestAnimationFrame(() => { input.focus(); input.select(); });
+}
+
 function closeSearch() {
+  const modal = document.getElementById('search-modal');
   const input = document.getElementById('search-input');
   const box   = document.getElementById('search-results');
-  const kbd   = document.getElementById('search-kbd');
   if (input) input.value = '';
   if (box)   box.classList.remove('is-open');
-  if (kbd)   kbd.style.display = '';
+  if (modal) modal.hidden = true;
+  document.body.style.overflow = '';
   searchFocusedIdx = -1;
 }
 
@@ -587,14 +636,22 @@ function initSearch() {
   });
 
   input.addEventListener('focus', () => { if (input.value.trim()) renderSearchResults(input.value); });
-  input.addEventListener('blur',  () => { setTimeout(() => { box.classList.remove('is-open'); searchFocusedIdx = -1; }, 150); });
 
-  // ⌘K / Ctrl+K
+  // Open modal from any navbar trigger button (desktop right + mobile left)
+  document.querySelectorAll('.js-search-open').forEach(btn => btn.addEventListener('click', openSearchModal));
+
+  // Click backdrop to close
+  const backdrop = document.getElementById('search-modal-backdrop');
+  if (backdrop) backdrop.addEventListener('click', closeSearch);
+
+  // ⌘K / Ctrl+K opens; Esc closes (handled in input keydown above)
   document.addEventListener('keydown', e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault();
-      input.focus();
-      input.select();
+      openSearchModal();
+    } else if (e.key === 'Escape') {
+      const modal = document.getElementById('search-modal');
+      if (modal && !modal.hidden) closeSearch();
     }
   });
 }
@@ -643,7 +700,6 @@ async function init() {
   } catch { /* no redirects file is fine */ }
 
   buildFlatList();
-  document.getElementById('logo').href = getRouteUrl('');
   buildLanding();
   buildSidebar();
   buildMobileDrawer();
@@ -703,21 +759,6 @@ function buildLanding() {
       cardsWrap.appendChild(a);
     });
     grid.appendChild(block);
-  });
-
-  const ql = document.getElementById('landing-quicklinks');
-  ql.innerHTML = '';
-  const candidates = [
-    allPages.find(p => /what-is-paperclip/i.test(p.file)),
-    allPages.find(p => /installation/i.test(p.file)),
-    allPages.find(p => /first-company|your-first-company/i.test(p.file)),
-  ].filter(Boolean);
-  candidates.forEach(page => {
-    const a = document.createElement('a');
-    a.href = getPageUrl(page);
-    a.dataset.navFile = page.file;
-    a.textContent = page.title;
-    ql.appendChild(a);
   });
 
   renderLucideIcons();
@@ -908,6 +949,7 @@ function insertMetaRow(article, page) {
 
 function buildPageActions(page) {
   const COPY_SVG   = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-5A1.5 1.5 0 0 0 3 3.5v5A1.5 1.5 0 0 0 4.5 10H6"/></svg>';
+  const LINK_SVG   = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9a3 3 0 0 0 4.5.3l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M9 7a3 3 0 0 0-4.5-.3l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>';
   const CHECK_SVG  = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 8.5 3 3 6-7"/></svg>';
   const CARET_SVG  = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3 4.5 3 3 3-3"/></svg>';
   const MD_SVG     = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M4.5 10V6l1.5 2L7.5 6v4M10 6v4M10 10l1.5-1.5L13 10"/></svg>';
@@ -916,14 +958,14 @@ function buildPageActions(page) {
   const wrap = document.createElement('div');
   wrap.className = 'page-actions';
   wrap.innerHTML = `
-    <button type="button" class="pa-btn pa-copy" aria-label="Copy page as Markdown">
-      ${COPY_SVG}<span class="pa-copy-label">Copy Page</span>
+    <button type="button" class="pa-btn pa-copy" aria-label="Copy link to this page">
+      ${LINK_SVG}<span class="pa-copy-label">Copy Link</span>
     </button>
     <button type="button" class="pa-btn pa-caret" aria-expanded="false" aria-label="More page actions">
       ${CARET_SVG}
     </button>
     <div class="pa-menu" role="menu">
-      <button type="button" data-action="copy" role="menuitem">${COPY_SVG}<span>Copy Page</span></button>
+      <button type="button" data-action="copy-page" role="menuitem">${COPY_SVG}<span>Copy Page</span></button>
       <button type="button" data-action="view-md" role="menuitem">${MD_SVG}<span>View as Markdown</span></button>
       <button type="button" data-action="open-claude" role="menuitem">${EXT_SVG}<span>Open in Claude</span></button>
       <button type="button" data-action="open-chatgpt" role="menuitem">${EXT_SVG}<span>Open in ChatGPT</span></button>
@@ -933,24 +975,32 @@ function buildPageActions(page) {
   const copyBtn  = wrap.querySelector('.pa-copy');
   const caret    = wrap.querySelector('.pa-caret');
   const menu     = wrap.querySelector('.pa-menu');
-  const label    = copyBtn.querySelector('.pa-copy-label');
 
   const closeMenu = () => { menu.classList.remove('is-open'); caret.setAttribute('aria-expanded', 'false'); };
   const openMenu  = () => { menu.classList.add('is-open'); caret.setAttribute('aria-expanded', 'true'); };
 
-  const flashCopied = () => {
+  const flashCopied = (text) => {
     copyBtn.classList.add('is-copied');
-    copyBtn.innerHTML = `${CHECK_SVG}<span class="pa-copy-label">Copied</span>`;
+    copyBtn.innerHTML = `${CHECK_SVG}<span class="pa-copy-label">${text}</span>`;
     setTimeout(() => {
       copyBtn.classList.remove('is-copied');
-      copyBtn.innerHTML = `${COPY_SVG}<span class="pa-copy-label">Copy Page</span>`;
+      copyBtn.innerHTML = `${LINK_SVG}<span class="pa-copy-label">Copy Link</span>`;
     }, 1600);
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      flashCopied('Copied');
+    } catch (e) {
+      console.error('Copy failed', e);
+    }
   };
 
   const copyMarkdown = async () => {
     try {
       await navigator.clipboard.writeText(currentMarkdown || '');
-      flashCopied();
+      flashCopied('Page copied');
     } catch (e) {
       console.error('Copy failed', e);
     }
@@ -959,7 +1009,7 @@ function buildPageActions(page) {
   const mdUrl = () => new URL(resolveContentUrl(page.file), location.href).href;
   const llmPrompt = () => `Read ${location.href} so I can ask questions about it.`;
 
-  copyBtn.addEventListener('click', copyMarkdown);
+  copyBtn.addEventListener('click', copyLink);
   caret.addEventListener('click', e => {
     e.stopPropagation();
     menu.classList.contains('is-open') ? closeMenu() : openMenu();
@@ -969,7 +1019,7 @@ function buildPageActions(page) {
     if (!btn) return;
     closeMenu();
     switch (btn.dataset.action) {
-      case 'copy':         copyMarkdown(); break;
+      case 'copy-page':    copyMarkdown(); break;
       case 'view-md':      window.open(mdUrl(), '_blank', 'noopener'); break;
       case 'open-claude':  window.open(`https://claude.ai/new?q=${encodeURIComponent(llmPrompt())}`, '_blank', 'noopener'); break;
       case 'open-chatgpt': window.open(`https://chatgpt.com/?hints=search&q=${encodeURIComponent(llmPrompt())}`, '_blank', 'noopener'); break;
@@ -1014,10 +1064,106 @@ function setActiveState(file) {
 }
 
 /* ─── Markdown ──────────────────────────────────────────────────────────── */
+function stripFrontmatter(md) {
+  // Strip a leading YAML frontmatter block (---\n...\n---\n). The release
+  // build strips this server-side, but in dev mode markdown is fetched
+  // directly from disk and a leftover `---` would render as a horizontal
+  // rule. Keep this tolerant: a malformed block (no closing fence) is left
+  // alone so the author can see the broken markdown.
+  if (typeof md !== 'string') return md;
+  if (!md.startsWith('---\n') && !md.startsWith('---\r\n')) return md;
+  const afterOpen = md.indexOf('\n') + 1;
+  const rest = md.slice(afterOpen);
+  const closeMatch = rest.match(/\r?\n---[ \t]*(\r?\n|$)/);
+  if (!closeMatch) return md;
+  return rest.slice(closeMatch.index + closeMatch[0].length).replace(/^\r?\n/, '');
+}
+
 function renderMarkdown(md) {
+  md = stripFrontmatter(md);
   md = preprocessTabs(md);
   marked.setOptions({ gfm: true, breaks: false });
-  return marked.parse(md);
+  return sanitizeMarkdownHtml(marked.parse(md));
+}
+
+const ALLOWED_MARKDOWN_TAGS = new Set([
+  'A', 'BLOCKQUOTE', 'BR', 'BUTTON', 'CODE', 'DEL', 'DIV', 'EM', 'H1', 'H2',
+  'H3', 'H4', 'H5', 'H6', 'HR', 'IMG', 'LI', 'OL', 'P', 'PRE', 'SPAN',
+  'STRONG', 'TABLE', 'TBODY', 'TD', 'TH', 'THEAD', 'TR', 'UL',
+]);
+const DROP_MARKDOWN_TAGS = new Set([
+  'IFRAME', 'MATH', 'META', 'OBJECT', 'SCRIPT', 'STYLE', 'SVG', 'TEMPLATE',
+]);
+const GLOBAL_MARKDOWN_ATTRS = new Set([
+  'aria-label', 'aria-selected', 'class', 'colspan', 'data-panel', 'data-tab',
+  'id', 'role', 'rowspan', 'title',
+]);
+const TAG_MARKDOWN_ATTRS = {
+  A: new Set(['href']),
+  BUTTON: new Set(['type']),
+  CODE: new Set(['class']),
+  IMG: new Set(['alt', 'height', 'loading', 'src', 'title', 'width']),
+};
+const SAFE_URL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);
+const SAFE_IMAGE_DATA_URL = /^data:image\/(?:gif|jpe?g|png|webp);base64,[a-z0-9+/=]+$/i;
+
+function isSafeUrl(value, { image = false } = {}) {
+  const normalized = String(value).replace(/[\u0000-\u001f\u007f\s]+/g, '');
+  if (!normalized) return false;
+  if (image && SAFE_IMAGE_DATA_URL.test(normalized)) return true;
+  if (normalized.startsWith('#')) return true;
+  try {
+    const parsed = new URL(normalized, window.location.href);
+    return SAFE_URL_PROTOCOLS.has(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function sanitizeMarkdownElement(element) {
+  if (!ALLOWED_MARKDOWN_TAGS.has(element.tagName)) {
+    if (DROP_MARKDOWN_TAGS.has(element.tagName)) {
+      element.remove();
+      return;
+    }
+    element.replaceWith(...element.childNodes);
+    return;
+  }
+
+  for (const attr of [...element.attributes]) {
+    const name = attr.name.toLowerCase();
+    const allowedForTag = TAG_MARKDOWN_ATTRS[element.tagName]?.has(name);
+    if (name.startsWith('on') || (!GLOBAL_MARKDOWN_ATTRS.has(name) && !allowedForTag)) {
+      element.removeAttribute(attr.name);
+      continue;
+    }
+    if (name === 'href' && !isSafeUrl(attr.value)) {
+      element.removeAttribute(attr.name);
+    }
+    if (name === 'src' && !isSafeUrl(attr.value, { image: element.tagName === 'IMG' })) {
+      element.removeAttribute(attr.name);
+    }
+  }
+
+  if (element.tagName === 'A' && element.hasAttribute('href')) {
+    const href = element.getAttribute('href') || '';
+    if (/^(?:[a-z]+:)?\/\//i.test(href)) {
+      element.setAttribute('target', '_blank');
+      element.setAttribute('rel', 'noopener noreferrer');
+    }
+  }
+  if (element.tagName === 'BUTTON') {
+    element.setAttribute('type', 'button');
+  }
+}
+
+function sanitizeMarkdownHtml(html) {
+  const document = new DOMParser().parseFromString(html, 'text/html');
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
+  const elements = [];
+  while (walker.nextNode()) elements.push(walker.currentNode);
+  elements.forEach(sanitizeMarkdownElement);
+  return document.body.innerHTML;
 }
 
 function renderTabsBlock(labels, body) {
@@ -1319,7 +1465,14 @@ function escapeHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function escapeAttr(s) { return String(s).replace(/"/g,'&quot;'); }
+function escapeAttr(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 window.addEventListener('hashchange', () => {
   const route = parseRoute(applyRedirect(location.hash.slice(1)));

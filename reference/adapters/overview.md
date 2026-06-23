@@ -29,6 +29,7 @@ Every adapter is responsible for the same core jobs:
 | OpenCode CLI with provider/model routing | [OpenCode Local](./opencode-local.md) |
 | Pi CLI with its built-in tool set | [Pi Local](./pi-local.md) |
 | Hermes Agent with persistent memory and 30+ tools | [Hermes Local](./hermes-local.md) |
+| Grok Build CLI on your machine | [Grok Local](./grok-local.md) |
 | OpenClaw over a WebSocket gateway | [OpenClaw Gateway](./openclaw-gateway.md) |
 | A custom shell command or script | [Process](./process.md) |
 | A webhook or cloud service you control | [HTTP](./http.md) |
@@ -58,6 +59,7 @@ These adapters ship with Paperclip and are always available in the host:
 | [OpenCode Local](./opencode-local.md) | `opencode_local` | Selectable | OpenCode CLI runs with provider/model routing and `--session` resume. |
 | [Pi Local](./pi-local.md) | `pi_local` | Selectable | Pi CLI runs with its built-in tool set and provider/model routing. |
 | [Hermes Local](./hermes-local.md) | `hermes_local` | Selectable | Hermes Agent runs with persistent memory, 30+ tools, 80+ skills, and multi-provider routing. |
+| [Grok Local](./grok-local.md) | `grok_local` | Selectable | Grok Build CLI runs with `--resume` session continuity, streaming reasoning output, and skills staged into `.claude/skills`. |
 | [OpenClaw Gateway](./openclaw-gateway.md) | `openclaw_gateway` | **Coming soon** (use OpenClaw invite flow) | Remote OpenClaw instances reached over the WebSocket gateway protocol. |
 | [Process](./process.md) | `process` | **Coming soon** (API / import only) | Shell commands, scripts, and custom local runtimes. |
 | [HTTP](./http.md) | `http` | **Coming soon** (API / import only) | Webhook-style invocation into your own service. |
@@ -95,29 +97,6 @@ See:
 
 ---
 
-## Environment Contract
-
-Every adapter inherits the same agent-runtime environment from the Paperclip server. These variables are injected into the runtime process before the adapter command runs, and your agent code can read them directly:
-
-| Variable | Always set? | What it carries |
-|---|---|---|
-| `PAPERCLIP_AGENT_ID` | yes | Agent ID. |
-| `PAPERCLIP_COMPANY_ID` | yes | Company ID. |
-| `PAPERCLIP_API_URL` | yes | Paperclip API base URL. |
-| `PAPERCLIP_API_KEY` | local adapters | Short-lived JWT. Use as `Authorization: Bearer $PAPERCLIP_API_KEY`. For non-local adapters (`process`, `http`, external services), the operator sets this in adapter config. |
-| `PAPERCLIP_RUN_ID` | yes | Current heartbeat run ID. Pass back as the `X-Paperclip-Run-Id` header on any request that mutates an issue. |
-| `PAPERCLIP_TASK_ID` | wake-driven | Issue that triggered the wake. Empty for scheduled or unsolicited wakes. |
-| `PAPERCLIP_WAKE_REASON` | wake-driven | Why this run was triggered. |
-| `PAPERCLIP_WAKE_COMMENT_ID` | comment wakes | Specific comment that triggered the wake. |
-| `PAPERCLIP_WAKE_PAYLOAD_JSON` | some adapters | Inline JSON wake payload. |
-| `PAPERCLIP_APPROVAL_ID` / `PAPERCLIP_APPROVAL_STATUS` | approval wakes | Resolved approval ID and decision. |
-
-In addition, when Paperclip realizes an execution workspace, it can inject workspace-specific variables such as `PAPERCLIP_WORKSPACE_CWD`, `PAPERCLIP_WORKSPACE_PATH`, `PAPERCLIP_WORKSPACE_REPO_ROOT`, `PAPERCLIP_WORKSPACE_BRANCH`, `PAPERCLIP_PROJECT_ID`, and `PAPERCLIP_ISSUE_ID`.
-
-Each adapter page below documents any extra variables that adapter sets on top of this baseline. For the full list including server-side configuration vars, see [Environment Variables](../deploy/environment-variables.md).
-
----
-
 ## Next Steps
 
 - [Claude Local](./claude-local.md)
@@ -127,6 +106,7 @@ Each adapter page below documents any extra variables that adapter sets on top o
 - [OpenCode Local](./opencode-local.md)
 - [Pi Local](./pi-local.md)
 - [Hermes Local](./hermes-local.md)
+- [Grok Local](./grok-local.md)
 - [OpenClaw Gateway](./openclaw-gateway.md)
 - [Process](./process.md)
 - [HTTP](./http.md)

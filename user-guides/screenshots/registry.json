@@ -1,0 +1,3023 @@
+{
+  "$schema_version": 1,
+  "description": "Registry of UI screenshots — what each captures, what code it depends on, and when it was last verified. Maintained by the /sync-docs skill (staleness detection) and humans (capture).",
+  "viewports": {
+    "default": "1440x900"
+  },
+  "entries": [
+    {
+      "file": "dark/activity/activity-filtered-by-agent.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/activity",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Activity.tsx"
+      ]
+    },
+    {
+      "file": "dark/activity/activity-filters.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/activity",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Activity.tsx"
+      ]
+    },
+    {
+      "file": "dark/activity/activity-log-full.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/activity",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Activity.tsx"
+      ]
+    },
+    {
+      "file": "dark/adapters/detail.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/adapters",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AdapterManager.tsx"
+      ]
+    },
+    {
+      "file": "dark/adapters/health.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/adapters",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AdapterManager.tsx"
+      ]
+    },
+    {
+      "file": "dark/adapters/install.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/adapters",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AdapterManager.tsx"
+      ]
+    },
+    {
+      "file": "dark/adapters/list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/adapters",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AdapterManager.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/adapter-type-dropdown.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/agent-detail-idle.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/agent-detail-run-history.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/runs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/agent-status-running.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{longRunnerAgentId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/agents-list-empty.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/{emptyPrefix}/agents/all",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Agents.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/budget-and-heartbeat-fields.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/budget.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/claude-local-config-filled.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/codex-local-config.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/configuration.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/dashboard.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/heartbeat-toggle-disabled.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/heartbeat-toggle-enabled.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/http-adapter-config.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{httpAgentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/instructions.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/instructions",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/all",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Agents.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/new-agent-name-role.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/NewAgent.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/new-agent-reports-to-field.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/NewAgent.tsx",
+        "ui/src/components/ReportsToPicker.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/new.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Agents.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/run-history-in-progress.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{longRunnerAgentId}/runs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/run-transcript-view.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{runnerAgentId}/runs/{runnerRunId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/transcript/RunTranscriptView.tsx",
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/runs.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/runs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/skills.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/test-environment-fail.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "dark/agents/test-environment-success.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{runnerAgentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "dark/approvals/approvals-list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/pending",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Approvals.tsx",
+        "ui/src/components/ApprovalCard.tsx"
+      ]
+    },
+    {
+      "file": "dark/approvals/approvals-queue-strategy.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/pending",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Approvals.tsx",
+        "ui/src/components/ApprovalPayload.tsx"
+      ]
+    },
+    {
+      "file": "dark/approvals/approve-reject-buttons.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{hireApprovalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/approvals/approve-reject-revision-buttons.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{hireApprovalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/approvals/approved-approval.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{approvedApprovalId}?resolved=approved",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/approvals/hire-approval-detail.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{hireApprovalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/ApprovalPayload.tsx",
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/approvals/queue-filters.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/pending",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Approvals.tsx"
+      ]
+    },
+    {
+      "file": "dark/approvals/revision-request-input.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{strategyApprovalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/approvals/strategy-approval-detail.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{strategyApprovalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/ApprovalPayload.tsx",
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/company/access.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/access",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanyAccess.tsx"
+      ]
+    },
+    {
+      "file": "dark/company/company-budget-setting.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/company/company-goal-field.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/company/company-saved.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/company/export.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/company/export",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanyExport.tsx"
+      ]
+    },
+    {
+      "file": "dark/company/import.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/company/import",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanyImport.tsx"
+      ]
+    },
+    {
+      "file": "dark/company/invites.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/invites",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanyInvites.tsx"
+      ]
+    },
+    {
+      "file": "dark/company/join-requests.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/requests",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "dark/company/new-company-form.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/company/settings.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySettings.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/agent-budget-100pct-paused.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{budgetMaxAgentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/agent-budget-50pct.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{budgetHalfAgentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/agent-budget-80pct-warning.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{budgetWarnAgentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/agent-budget-bar.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{budgetHalfAgentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/agent-budget-field.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx",
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/billers.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/budgets.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/company-budget-field.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx",
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/costs-dashboard-overview.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/finance.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/overview.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/per-run-cost-detail.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "dark/costs/providers.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "dark/dashboard/activity-feed.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "file": "dark/dashboard/agent-status-panel.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "file": "dark/dashboard/cost-summary-panel.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/dashboard/dashboard-overview-annotated.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/dashboard/dashboard-overview.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "file": "dark/dashboard/stale-tasks-panel.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/dashboard/task-breakdown-panel.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "file": "dark/export-import/export-dialog.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/export-import/import-dialog.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/goals/detail.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/goals/{goalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/GoalDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/goals/list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/goals",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Goals.tsx"
+      ]
+    },
+    {
+      "file": "dark/issues/detail-activity.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/issues/detail-chat.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/issues/detail-sidebar.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/issues/inbox-requests.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/requests",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "dark/issues/inbox-unread.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/unread",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "dark/issues/inbox.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/mine",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "dark/issues/list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/issues/my-issues.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/mine",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "dark/onboarding/budget-field.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/onboarding/empty-dashboard.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/{emptyPrefix}/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "file": "dark/onboarding/goal-field.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx"
+      ]
+    },
+    {
+      "file": "dark/onboarding/new-company-modal-empty.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx",
+        "ui/src/components/SidebarCompanyMenu.tsx"
+      ]
+    },
+    {
+      "file": "dark/onboarding/sidebar-new-company-button.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/SidebarCompanyMenu.tsx"
+      ]
+    },
+    {
+      "file": "dark/org/chart.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/org",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/OrgChart.tsx"
+      ]
+    },
+    {
+      "file": "dark/org/org-chart-add-agent.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/org/org-chart-manager-assigned.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/org/org-chart-small-team.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/org",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/OrgChart.tsx"
+      ]
+    },
+    {
+      "file": "dark/org/org-chart-view.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/org",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/OrgChart.tsx"
+      ]
+    },
+    {
+      "file": "dark/org/reassign.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "dark/org/skills-list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "dark/org/workspace-modes.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/plugins/detail.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/plugins",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/PluginPage.tsx"
+      ]
+    },
+    {
+      "file": "dark/plugins/install.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/plugins",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/PluginManager.tsx"
+      ]
+    },
+    {
+      "file": "dark/plugins/jobs-log.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/plugins",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/PluginSettings.tsx"
+      ]
+    },
+    {
+      "file": "dark/plugins/list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/plugins",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/PluginManager.tsx"
+      ]
+    },
+    {
+      "file": "dark/plugins/settings.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/plugins",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/PluginSettings.tsx"
+      ]
+    },
+    {
+      "file": "dark/projects/budget.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/projects/{projectId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProjectDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/projects/configuration.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/projects/{projectId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProjectDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/projects/issues.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/projects/{projectId}/issues",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProjectDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/projects/list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/projects",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Projects.tsx"
+      ]
+    },
+    {
+      "file": "dark/projects/overview.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/projects/{projectId}/overview",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProjectDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/projects/workspaces.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/projects/{projectId}/workspaces",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProjectDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/routines/cron-picker.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/routines/{routineId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/RoutineDetail.tsx",
+        "ui/src/components/ScheduleEditor.tsx"
+      ]
+    },
+    {
+      "file": "dark/routines/detail.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/routines/{routineId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/RoutineDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/routines/list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/routines",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Routines.tsx"
+      ]
+    },
+    {
+      "file": "dark/routines/run-history.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/routines/{routineId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/RoutineDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/settings/experimental.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/experimental",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/InstanceExperimentalSettings.tsx"
+      ]
+    },
+    {
+      "file": "dark/settings/instance-access.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/access",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/InstanceAccess.tsx"
+      ]
+    },
+    {
+      "file": "dark/settings/instance-adapters.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/adapters",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AdapterManager.tsx"
+      ]
+    },
+    {
+      "file": "dark/settings/instance-general.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/general",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/InstanceGeneralSettings.tsx"
+      ]
+    },
+    {
+      "file": "dark/settings/profile.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/profile",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProfileSettings.tsx"
+      ]
+    },
+    {
+      "file": "dark/settings/scheduler-heartbeats.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/heartbeats",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/InstanceSettings.tsx"
+      ]
+    },
+    {
+      "file": "dark/skills/add-skill-dialog-confirm.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "dark/skills/add-skill-dialog.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "dark/skills/assign-to-agent.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/skills/{skillId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "dark/skills/file-inventory.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "dark/skills/list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "dark/skills/skill-detail.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/skills/skills-list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/tasks/comment-input-box.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/tasks/inbox-newly-created-tasks.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/recent",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "dark/tasks/inbox-view-with-filters.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/tasks/inbox-view.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/mine",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "dark/tasks/new-task-form-empty.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/tasks/new-task-form-filled.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/tasks/task-detail-in-progress.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/tasks/task-detail-with-comments.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/tasks/task-done-status.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "dark/workspaces/configuration.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/execution-workspaces/{executionWorkspaceId}/configuration",
+      "captured_against": "master",
+      "captured_sha": "058381349ec72d5bbffbb0c227d9fe576d3ce996",
+      "depends_on": [
+        "ui/src/pages/ExecutionWorkspaceDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/workspaces/issues.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/execution-workspaces/{executionWorkspaceId}/issues",
+      "captured_against": "master",
+      "captured_sha": "058381349ec72d5bbffbb0c227d9fe576d3ce996",
+      "depends_on": [
+        "ui/src/pages/ExecutionWorkspaceDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/workspaces/list.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/workspaces",
+      "captured_against": "master",
+      "captured_sha": "058381349ec72d5bbffbb0c227d9fe576d3ce996",
+      "depends_on": [
+        "ui/src/pages/Workspaces.tsx"
+      ]
+    },
+    {
+      "file": "dark/workspaces/runtime-logs.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/execution-workspaces/{executionWorkspaceId}/runtime-logs",
+      "captured_against": "master",
+      "captured_sha": "058381349ec72d5bbffbb0c227d9fe576d3ce996",
+      "depends_on": [
+        "ui/src/pages/ExecutionWorkspaceDetail.tsx"
+      ]
+    },
+    {
+      "file": "dark/workspaces/services.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/execution-workspaces/{executionWorkspaceId}/services",
+      "captured_against": "master",
+      "captured_sha": "058381349ec72d5bbffbb0c227d9fe576d3ce996",
+      "depends_on": [
+        "ui/src/pages/ExecutionWorkspaceDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/activity/activity-filtered-by-agent.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/activity",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Activity.tsx"
+      ]
+    },
+    {
+      "file": "light/activity/activity-filters.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/activity",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Activity.tsx"
+      ]
+    },
+    {
+      "file": "light/activity/activity-log-full.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/activity",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Activity.tsx"
+      ]
+    },
+    {
+      "file": "light/adapters/detail.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/adapters",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AdapterManager.tsx"
+      ]
+    },
+    {
+      "file": "light/adapters/health.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/adapters",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AdapterManager.tsx"
+      ]
+    },
+    {
+      "file": "light/adapters/install.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/adapters",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AdapterManager.tsx"
+      ]
+    },
+    {
+      "file": "light/adapters/list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/adapters",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AdapterManager.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/adapter-type-dropdown.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/agent-detail-idle.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/agent-detail-run-history.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/runs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/agent-status-running.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{longRunnerAgentId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/agents-list-empty.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/{emptyPrefix}/agents/all",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Agents.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/budget-and-heartbeat-fields.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/budget.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/claude-local-config-filled.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/codex-local-config.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/configuration.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/dashboard.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/heartbeat-toggle-disabled.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/heartbeat-toggle-enabled.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/http-adapter-config.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{httpAgentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/instructions.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/instructions",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/all",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Agents.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/new-agent-name-role.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/NewAgent.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/new-agent-reports-to-field.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/NewAgent.tsx",
+        "ui/src/components/ReportsToPicker.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/new.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Agents.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/run-history-in-progress.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{longRunnerAgentId}/runs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/run-transcript-view.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{runnerAgentId}/runs/{runnerRunId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/transcript/RunTranscriptView.tsx",
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/runs.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/runs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/skills.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/test-environment-fail.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/new",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "light/agents/test-environment-success.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{runnerAgentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "light/approvals/approvals-list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/pending",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Approvals.tsx",
+        "ui/src/components/ApprovalCard.tsx"
+      ]
+    },
+    {
+      "file": "light/approvals/approvals-queue-strategy.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/pending",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Approvals.tsx",
+        "ui/src/components/ApprovalPayload.tsx"
+      ]
+    },
+    {
+      "file": "light/approvals/approve-reject-buttons.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{hireApprovalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/approvals/approve-reject-revision-buttons.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{hireApprovalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/approvals/approved-approval.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{approvedApprovalId}?resolved=approved",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/approvals/hire-approval-detail.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{hireApprovalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/ApprovalPayload.tsx",
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/approvals/queue-filters.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/pending",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Approvals.tsx"
+      ]
+    },
+    {
+      "file": "light/approvals/revision-request-input.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{strategyApprovalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/approvals/strategy-approval-detail.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/approvals/{strategyApprovalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/ApprovalPayload.tsx",
+        "ui/src/pages/ApprovalDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/company/access.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/access",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanyAccess.tsx"
+      ]
+    },
+    {
+      "file": "light/company/company-budget-setting.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/company/company-goal-field.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/company/company-saved.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/company/export.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/company/export",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanyExport.tsx"
+      ]
+    },
+    {
+      "file": "light/company/import.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/company/import",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanyImport.tsx"
+      ]
+    },
+    {
+      "file": "light/company/invites.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/invites",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanyInvites.tsx"
+      ]
+    },
+    {
+      "file": "light/company/join-requests.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/requests",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "light/company/new-company-form.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/company/settings.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySettings.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/agent-budget-100pct-paused.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{budgetMaxAgentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/agent-budget-50pct.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{budgetHalfAgentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/agent-budget-80pct-warning.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{budgetWarnAgentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/agent-budget-bar.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{budgetHalfAgentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/agent-budget-field.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AgentDetail.tsx",
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/billers.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/budgets.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/company-budget-field.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx",
+        "ui/src/components/BudgetPolicyCard.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/costs-dashboard-overview.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/finance.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/overview.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/per-run-cost-detail.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "light/costs/providers.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/costs",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Costs.tsx"
+      ]
+    },
+    {
+      "file": "light/dashboard/activity-feed.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "file": "light/dashboard/agent-status-panel.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "file": "light/dashboard/cost-summary-panel.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/dashboard/dashboard-overview-annotated.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/dashboard/dashboard-overview.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "file": "light/dashboard/stale-tasks-panel.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/dashboard/task-breakdown-panel.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "file": "light/export-import/export-dialog.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/export-import/import-dialog.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/goals/detail.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/goals/{goalId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/GoalDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/goals/list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/goals",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Goals.tsx"
+      ]
+    },
+    {
+      "file": "light/issues/detail-activity.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/issues/detail-chat.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/issues/detail-sidebar.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/issues/inbox-requests.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/requests",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "light/issues/inbox-unread.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/unread",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "light/issues/inbox.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/mine",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "light/issues/list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/issues/my-issues.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/mine",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "light/onboarding/budget-field.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/onboarding/empty-dashboard.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/{emptyPrefix}/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "file": "light/onboarding/goal-field.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx"
+      ]
+    },
+    {
+      "file": "light/onboarding/new-company-modal-empty.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx",
+        "ui/src/components/SidebarCompanyMenu.tsx"
+      ]
+    },
+    {
+      "file": "light/onboarding/sidebar-new-company-button.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/SidebarCompanyMenu.tsx"
+      ]
+    },
+    {
+      "file": "light/org/chart.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/org",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/OrgChart.tsx"
+      ]
+    },
+    {
+      "file": "light/org/org-chart-add-agent.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/org/org-chart-manager-assigned.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/org/org-chart-small-team.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/org",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/OrgChart.tsx"
+      ]
+    },
+    {
+      "file": "light/org/org-chart-view.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/org",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/OrgChart.tsx"
+      ]
+    },
+    {
+      "file": "light/org/reassign.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/agents/{agentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/components/AgentConfigForm.tsx"
+      ]
+    },
+    {
+      "file": "light/org/skills-list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "light/org/workspace-modes.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/plugins/detail.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/plugins",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/PluginPage.tsx"
+      ]
+    },
+    {
+      "file": "light/plugins/install.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/plugins",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/PluginManager.tsx"
+      ]
+    },
+    {
+      "file": "light/plugins/jobs-log.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/plugins",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/PluginSettings.tsx"
+      ]
+    },
+    {
+      "file": "light/plugins/list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/plugins",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/PluginManager.tsx"
+      ]
+    },
+    {
+      "file": "light/plugins/settings.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/plugins",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/PluginSettings.tsx"
+      ]
+    },
+    {
+      "file": "light/projects/budget.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/projects/{projectId}/budget",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProjectDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/projects/configuration.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/projects/{projectId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProjectDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/projects/issues.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/projects/{projectId}/issues",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProjectDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/projects/list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/projects",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Projects.tsx"
+      ]
+    },
+    {
+      "file": "light/projects/overview.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/projects/{projectId}/overview",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProjectDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/projects/workspaces.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/projects/{projectId}/workspaces",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProjectDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/routines/cron-picker.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/routines/{routineId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/RoutineDetail.tsx",
+        "ui/src/components/ScheduleEditor.tsx"
+      ]
+    },
+    {
+      "file": "light/routines/detail.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/routines/{routineId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/RoutineDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/routines/list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/routines",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Routines.tsx"
+      ]
+    },
+    {
+      "file": "light/routines/run-history.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/routines/{routineId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/RoutineDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/settings/experimental.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/experimental",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/InstanceExperimentalSettings.tsx"
+      ]
+    },
+    {
+      "file": "light/settings/instance-access.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/access",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/InstanceAccess.tsx"
+      ]
+    },
+    {
+      "file": "light/settings/instance-adapters.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/adapters",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/AdapterManager.tsx"
+      ]
+    },
+    {
+      "file": "light/settings/instance-general.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/general",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/InstanceGeneralSettings.tsx"
+      ]
+    },
+    {
+      "file": "light/settings/profile.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/profile",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/ProfileSettings.tsx"
+      ]
+    },
+    {
+      "file": "light/settings/scheduler-heartbeats.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/heartbeats",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/InstanceSettings.tsx"
+      ]
+    },
+    {
+      "file": "light/skills/add-skill-dialog-confirm.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "light/skills/add-skill-dialog.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "light/skills/assign-to-agent.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/skills/{skillId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "light/skills/file-inventory.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "light/skills/list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/skills",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
+    },
+    {
+      "file": "light/skills/skill-detail.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/skills/skills-list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/tasks/comment-input-box.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/tasks/inbox-newly-created-tasks.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/recent",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "light/tasks/inbox-view-with-filters.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/tasks/inbox-view.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/mine",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
+    },
+    {
+      "file": "light/tasks/new-task-form-empty.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/tasks/new-task-form-filled.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/tasks/task-detail-in-progress.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/tasks/task-detail-with-comments.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": "HEAD",
+      "captured_sha": "911a1e8b0d24205acd5006e837a5c5e8c4bfb447",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/tasks/task-done-status.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": null,
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [],
+      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/workspaces/configuration.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/execution-workspaces/{executionWorkspaceId}/configuration",
+      "captured_against": "master",
+      "captured_sha": "058381349ec72d5bbffbb0c227d9fe576d3ce996",
+      "depends_on": [
+        "ui/src/pages/ExecutionWorkspaceDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/workspaces/issues.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/execution-workspaces/{executionWorkspaceId}/issues",
+      "captured_against": "master",
+      "captured_sha": "058381349ec72d5bbffbb0c227d9fe576d3ce996",
+      "depends_on": [
+        "ui/src/pages/ExecutionWorkspaceDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/workspaces/list.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/workspaces",
+      "captured_against": "master",
+      "captured_sha": "058381349ec72d5bbffbb0c227d9fe576d3ce996",
+      "depends_on": [
+        "ui/src/pages/Workspaces.tsx"
+      ]
+    },
+    {
+      "file": "light/workspaces/runtime-logs.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/execution-workspaces/{executionWorkspaceId}/runtime-logs",
+      "captured_against": "master",
+      "captured_sha": "058381349ec72d5bbffbb0c227d9fe576d3ce996",
+      "depends_on": [
+        "ui/src/pages/ExecutionWorkspaceDetail.tsx"
+      ]
+    },
+    {
+      "file": "light/workspaces/services.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/execution-workspaces/{executionWorkspaceId}/services",
+      "captured_against": "master",
+      "captured_sha": "058381349ec72d5bbffbb0c227d9fe576d3ce996",
+      "depends_on": [
+        "ui/src/pages/ExecutionWorkspaceDetail.tsx"
+      ]
+    }
+  ]
+}

@@ -24,7 +24,7 @@
 | Field | Required | Notes |
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
-| `model` | no | Codex model id. Common choices include `gpt-5.4`, `gpt-5.3-codex`, and `o4-mini`. |
+| `model` | no | Codex model id. See [Models](#models). If you leave it unset, the adapter omits `--model` so the Codex CLI uses its own default. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `instructionsFilePath` | no | Markdown file prepended to the stdin prompt sent to `codex exec`. |
 | `modelReasoningEffort` | no | Reasoning effort override passed through Codex config. |
@@ -39,6 +39,28 @@
 | `workspaceRuntime` | no | Reserved workspace runtime metadata. |
 
 > **Note:** Codex Local sends the prompt through stdin and uses `codex exec --json`. The adapter's environment test checks both the command and the auth path before you try to run a real heartbeat.
+
+---
+
+## Models
+
+Pick any of the known Codex model ids in the `model` field. The current options are:
+
+- `gpt-5.5`
+- `gpt-5.4`
+- `gpt-5.3-codex` (the adapter default)
+- `gpt-5.3-codex-spark`
+- `gpt-5`
+- `o3`
+- `o4-mini`
+- `gpt-5-mini`
+- `gpt-5-nano`
+- `o3-mini`
+- `codex-mini-latest`
+
+You can also type a model id that is not in this list. Anything Paperclip does not recognize is treated as a manual model id and passed straight through to the Codex CLI.
+
+> **Tip:** Leave `model` empty to let Codex choose. When no model is set, the adapter omits the `--model` flag entirely so the Codex CLI falls back to its own default model.
 
 ---
 
@@ -95,6 +117,36 @@ The `Test Environment` button checks:
 - The hello probe can run `codex exec --json -` with the prompt `Respond with hello.`
 
 If the probe fails, fix the command or auth path before saving the adapter.
+
+---
+
+## Custom Providers And Gateways
+
+Codex has no CLI flag or env var for pointing at a custom OpenAI-compatible endpoint. Custom endpoints live as `[model_providers.<id>]` tables in `$CODEX_HOME/config.toml`. To route Codex Local at your own gateway or provider without hand-editing that file, set the `PAPERCLIP_CODEX_PROVIDERS` environment variable on the Paperclip host.
+
+`PAPERCLIP_CODEX_PROVIDERS` is a JSON object that maps onto Codex's `config.toml` schema:
+
+```json
+{
+  "providers": {
+    "my-gateway": {
+      "name": "My gateway",
+      "base_url": "https://gateway.example.com/v1",
+      "env_key": "OPENAI_API_KEY",
+      "wire_api": "responses"
+    }
+  },
+  "model_provider": "my-gateway"
+}
+```
+
+- Each key under `providers` becomes a `[model_providers.<id>]` table. Common fields are `name` (optional display name), `base_url` (the OpenAI-compatible endpoint), `env_key` (the env var Codex reads the bearer key from at request time), and `wire_api` (the protocol Codex speaks to the provider). Any other field Codex supports is passed through too, including `query_params`, `http_headers`, `env_http_headers`, and `request_max_retries`.
+- `model_provider` is optional. When set, it selects the top-level provider and must match one of your `providers` entries. The `model` field then picks the model *within* that provider.
+- String values may use `{env:VAR}` placeholders. Paperclip expands them server-side against the run env and `process.env`, which is handy for fields that must carry a literal value such as `http_headers`. Prefer Codex's own `env_key` indirection for the bearer key. Unresolvable placeholders are left intact.
+
+Paperclip writes these definitions into a managed region of the per-company managed Codex home's `config.toml`, delimited by `# >>> paperclip codex providers ... managed, do not edit >>>` marker comments. Your existing config is preserved, conflicting definitions are excised so the managed ones win, and the original file is restored after the run.
+
+> **Note:** This merge only happens for the managed Codex home. If your adapter config explicitly sets `env.CODEX_HOME`, Paperclip leaves that user-managed home untouched and surfaces a note instead of merging.
 
 ---
 

@@ -20,7 +20,10 @@
         },
         {
           "title": "Installation",
-          "file": "guides/getting-started/installation.md"
+          "file": "guides/getting-started/installation.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.529.0"
+          }
         },
         {
           "title": "Create Your First Company",
@@ -52,7 +55,24 @@
         },
         {
           "title": "Issues",
-          "file": "guides/day-to-day/issues.md"
+          "file": "guides/day-to-day/issues.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
+        },
+        {
+          "title": "Artifacts",
+          "file": "guides/day-to-day/artifacts.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
+        },
+        {
+          "title": "Blocked Inbox",
+          "file": "guides/day-to-day/blocked-inbox.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.513.0"
+          }
         },
         {
           "title": "Approvals",
@@ -84,7 +104,17 @@
         },
         {
           "title": "Skills",
-          "file": "guides/org/skills.md"
+          "file": "guides/org/skills.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Team Catalog",
+          "file": "guides/org/team-catalog.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
         },
         {
           "title": "Org Structure",
@@ -112,7 +142,10 @@
       "pages": [
         {
           "title": "Projects",
-          "file": "guides/projects-workflow/projects.md"
+          "file": "guides/projects-workflow/projects.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.529.0"
+          }
         },
         {
           "title": "Goals",
@@ -120,15 +153,17 @@
         },
         {
           "title": "Heartbeats & Routines",
-          "file": "guides/projects-workflow/routines.md"
-        },
-        {
-          "title": "Heartbeats vs. Loops",
-          "file": "guides/projects-workflow/heartbeats-vs-loops.md"
+          "file": "guides/projects-workflow/routines.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
         },
         {
           "title": "Execution Workspaces",
-          "file": "guides/projects-workflow/workspaces.md"
+          "file": "guides/projects-workflow/workspaces.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.529.0"
+          }
         }
       ]
     },
@@ -154,30 +189,6 @@
     },
     {
       "tier": "Learn",
-      "title": "Explanations",
-      "icon": "lightbulb",
-      "desc": "Discursive deep-dives on the ideas behind Paperclip — for the curious.",
-      "pages": [
-        {
-          "title": "Org Charts as Coordination Primitives",
-          "file": "explanations/org-charts-coordination-primitives.md"
-        },
-        {
-          "title": "Multi-Company Architecture",
-          "file": "explanations/multi-company-architecture.md"
-        },
-        {
-          "title": "Governance by Default",
-          "file": "explanations/governance-by-default.md"
-        },
-        {
-          "title": "Tickets as the Universal Contract",
-          "file": "explanations/tickets-as-universal-contract.md"
-        }
-      ]
-    },
-    {
-      "tier": "Learn",
       "title": "How-to Guides",
       "icon": "wrench",
       "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",
@@ -187,16 +198,33 @@
           "file": "how-to/set-monthly-budget.md"
         },
         {
-          "title": "Require Board Approval Before Spend",
+          "title": "Require Approval Before Spend",
           "file": "how-to/require-board-approval-before-spend.md"
         },
         {
           "title": "Create a Daily Routine",
-          "file": "how-to/create-a-daily-routine.md"
+          "file": "how-to/create-a-daily-routine.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.525.0"
+          }
         },
         {
           "title": "Connect an Agent to GitHub",
           "file": "how-to/connect-agent-to-github.md"
+        },
+        {
+          "title": "Update or Rotate a Provider API Key",
+          "file": "how-to/rotate-provider-api-key.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.525.0"
+          }
+        },
+        {
+          "title": "Update Paperclip to the Latest Version",
+          "file": "how-to/update-paperclip.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.525.0"
+          }
         },
         {
           "title": "Add an MCP Server to an Agent",
@@ -208,7 +236,10 @@
         },
         {
           "title": "Bring Your Own Agent",
-          "file": "how-to/bring-your-own-agent.md"
+          "file": "how-to/bring-your-own-agent.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.525.0"
+          }
         },
         {
           "title": "Deploy to a VPS or Fly.io",
@@ -229,6 +260,27 @@
         {
           "title": "Wire Slack/Discord Notifications",
           "file": "how-to/wire-slack-discord-notifications.md"
+        },
+        {
+          "title": "Develop a plugin locally",
+          "file": "how-to/develop-a-plugin-locally.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.513.0"
+          }
+        },
+        {
+          "title": "Sync to Cloud Upstream",
+          "file": "how-to/sync-to-cloud-upstream.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Connect an AWS Secrets Manager Vault",
+          "file": "how-to/connect-aws-secrets-vault.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.525.0"
+          }
         }
       ]
     },
@@ -240,15 +292,28 @@
       "pages": [
         {
           "title": "Company",
-          "file": "administration/company.md"
+          "file": "administration/company.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
         },
         {
           "title": "Settings",
           "file": "administration/settings.md"
         },
         {
+          "title": "Trust & Low-Trust Review",
+          "file": "administration/trust-and-low-trust-review.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
           "title": "Plugins",
-          "file": "administration/plugins.md"
+          "file": "administration/plugins.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.529.0"
+          }
         },
         {
           "title": "CLI Auth",
@@ -264,7 +329,10 @@
       "pages": [
         {
           "title": "Overview",
-          "file": "reference/api/overview.md"
+          "file": "reference/api/overview.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
         },
         {
           "title": "Authentication",
@@ -272,15 +340,24 @@
         },
         {
           "title": "Companies",
-          "file": "reference/api/companies.md"
+          "file": "reference/api/companies.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
         },
         {
           "title": "Agents",
-          "file": "reference/api/agents.md"
+          "file": "reference/api/agents.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
         },
         {
           "title": "Issues",
-          "file": "reference/api/issues.md"
+          "file": "reference/api/issues.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
         },
         {
           "title": "Approvals",
@@ -291,12 +368,11 @@
           "file": "reference/api/goals-and-projects.md"
         },
         {
-          "title": "Execution Workspaces",
-          "file": "reference/api/execution-workspaces.md"
-        },
-        {
-          "title": "Skills",
-          "file": "reference/api/skills.md"
+          "title": "Resource Memberships",
+          "file": "reference/api/resource-memberships.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.529.0"
+          }
         },
         {
           "title": "Costs",
@@ -304,7 +380,10 @@
         },
         {
           "title": "Secrets",
-          "file": "reference/api/secrets.md"
+          "file": "reference/api/secrets.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.525.0"
+          }
         },
         {
           "title": "Activity",
@@ -316,7 +395,38 @@
         },
         {
           "title": "Routines",
-          "file": "reference/api/routines.md"
+          "file": "reference/api/routines.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Adapters",
+          "file": "reference/api/adapters.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.512.0"
+          }
+        },
+        {
+          "title": "Teams Catalog",
+          "file": "reference/api/teams-catalog.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Plugins",
+          "file": "reference/api/plugins.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.529.0"
+          }
+        },
+        {
+          "title": "Instance Admin",
+          "file": "reference/api/instance-admin.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.529.0"
+          }
         }
       ]
     },
@@ -324,23 +434,224 @@
       "tier": "Reference",
       "title": "CLI",
       "icon": "terminal",
-      "desc": "Command-line reference for local setup and talking to the control plane.",
+      "desc": "Complete command-line reference: local setup, identity, and every control-plane command family.",
       "pages": [
         {
           "title": "Overview",
-          "file": "reference/cli/overview.md"
+          "file": "reference/cli/overview.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Installing the CLI",
+          "file": "reference/cli/installation.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Common Options",
+          "file": "reference/cli/common-options.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Output & Scripting",
+          "file": "reference/cli/output-and-scripting.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
         },
         {
           "title": "Setup Commands",
-          "file": "reference/cli/setup-commands.md"
+          "file": "reference/cli/setup-commands.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
         },
         {
-          "title": "Control-Plane Commands",
-          "file": "reference/cli/control-plane-commands.md"
+          "title": "Dev Environments",
+          "file": "reference/cli/dev-environments.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
         },
         {
-          "title": "Command Reference",
-          "file": "reference/cli/commands.md"
+          "title": "Authentication & Tokens",
+          "file": "reference/cli/authentication.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Connect",
+          "file": "reference/cli/connect.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Token",
+          "file": "reference/cli/token.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Company",
+          "file": "reference/cli/company.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Project",
+          "file": "reference/cli/project.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Goal",
+          "file": "reference/cli/goal.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Issue",
+          "file": "reference/cli/issue.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Agent",
+          "file": "reference/cli/agent.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Prompt",
+          "file": "reference/cli/prompt.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Run (Heartbeat)",
+          "file": "reference/cli/run.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Routine",
+          "file": "reference/cli/routine.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Adapter",
+          "file": "reference/cli/adapter.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Approval",
+          "file": "reference/cli/approval.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Activity",
+          "file": "reference/cli/activity.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Dashboard",
+          "file": "reference/cli/dashboard.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Cost & Budget",
+          "file": "reference/cli/cost.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Workspace",
+          "file": "reference/cli/workspace.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Access & Admin",
+          "file": "reference/cli/access.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Skills",
+          "file": "reference/cli/skills.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Teams",
+          "file": "reference/cli/teams.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Secrets",
+          "file": "reference/cli/secrets.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Cloud",
+          "file": "reference/cli/cloud.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Plugin",
+          "file": "reference/cli/plugin.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Asset",
+          "file": "reference/cli/asset.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
+        },
+        {
+          "title": "Feedback",
+          "file": "reference/cli/feedback.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
         }
       ]
     },
@@ -352,7 +663,10 @@
       "pages": [
         {
           "title": "Skills Reference",
-          "file": "reference/skills.md"
+          "file": "reference/skills.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
         }
       ]
     },
@@ -368,35 +682,74 @@
         },
         {
           "title": "Claude Local",
-          "file": "reference/adapters/claude-local.md"
+          "file": "reference/adapters/claude-local.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.529.0"
+          }
         },
         {
           "title": "Codex Local",
-          "file": "reference/adapters/codex-local.md"
+          "file": "reference/adapters/codex-local.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
         },
         {
           "title": "Gemini Local",
-          "file": "reference/adapters/gemini-local.md"
+          "file": "reference/adapters/gemini-local.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
         },
         {
           "title": "Cursor Local",
           "file": "reference/adapters/cursor-local.md"
         },
         {
+          "title": "Cursor Cloud",
+          "file": "reference/adapters/cursor-cloud.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.512.0"
+          }
+        },
+        {
+          "title": "ACPX Local",
+          "file": "reference/adapters/acpx-local.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.525.0"
+          }
+        },
+        {
           "title": "OpenCode Local",
-          "file": "reference/adapters/opencode-local.md"
+          "file": "reference/adapters/opencode-local.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
         },
         {
           "title": "Pi Local",
-          "file": "reference/adapters/pi-local.md"
+          "file": "reference/adapters/pi-local.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
         },
         {
           "title": "Hermes Local",
           "file": "reference/adapters/hermes-local.md"
         },
         {
+          "title": "Grok Local",
+          "file": "reference/adapters/grok-local.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.517.0"
+          }
+        },
+        {
           "title": "OpenClaw Gateway",
-          "file": "reference/adapters/openclaw-gateway.md"
+          "file": "reference/adapters/openclaw-gateway.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
         },
         {
           "title": "Process",
@@ -407,8 +760,25 @@
           "file": "reference/adapters/http.md"
         },
         {
+          "title": "Sandbox Providers",
+          "file": "reference/adapters/sandbox-providers.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
+        },
+        {
+          "title": "Modal",
+          "file": "reference/adapters/modal.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.525.0"
+          }
+        },
+        {
           "title": "External Adapters",
-          "file": "reference/adapters/external-adapters.md"
+          "file": "reference/adapters/external-adapters.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
         },
         {
           "title": "Creating an Adapter",
@@ -417,6 +787,35 @@
         {
           "title": "UI Parser Contract",
           "file": "reference/adapters/adapter-ui-parser.md"
+        }
+      ]
+    },
+    {
+      "tier": "Reference",
+      "title": "Plugins",
+      "icon": "puzzle",
+      "desc": "Plugin SDK reference for authors building Paperclip plugins.",
+      "pages": [
+        {
+          "title": "Plugin SDK",
+          "file": "reference/plugins/sdk.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
+        },
+        {
+          "title": "LLM Wiki",
+          "file": "reference/plugins/llm-wiki.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.517.0"
+          }
+        },
+        {
+          "title": "Workspace Diff Viewer",
+          "file": "reference/plugins/workspace-diff.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.525.0"
+          }
         }
       ]
     },
@@ -440,7 +839,10 @@
         },
         {
           "title": "Docker",
-          "file": "reference/deploy/docker.md"
+          "file": "reference/deploy/docker.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.609.0"
+          }
         },
         {
           "title": "Database",
@@ -452,11 +854,17 @@
         },
         {
           "title": "Secrets",
-          "file": "reference/deploy/secrets.md"
+          "file": "reference/deploy/secrets.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.525.0"
+          }
         },
         {
-          "title": "Environment Variables & Config",
-          "file": "reference/deploy/environment-variables.md"
+          "title": "Environment Variables",
+          "file": "reference/deploy/environment-variables.md",
+          "frontmatter": {
+            "paperclip_version": "v2026.618.0"
+          }
         },
         {
           "title": "Tailscale Private Access",

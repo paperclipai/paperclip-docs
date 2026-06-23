@@ -69,10 +69,14 @@ If the bind mount is removed, the instance starts fresh on the next run.
 
 ## LLM Adapter Support
 
-The Docker image pre-installs the local CLI tools used by the built-in local adapters:
+The Docker image pre-installs the local CLI tools used by the built-in local adapters, so they work inside the container out of the box:
 
 - `claude` for `claude_local`
 - `codex` for `codex_local`
+- `opencode` for `opencode_local`
+- `gemini` for `gemini_local`
+
+The image sets `GEMINI_SANDBOX=false` so the Gemini CLI runs safely inside the container without its own sandbox layer.
 
 If you want those adapters to run inside the container, pass the relevant API keys:
 
@@ -83,6 +87,7 @@ docker run --name paperclip \
   -e PAPERCLIP_HOME=/paperclip \
   -e OPENAI_API_KEY=sk-... \
   -e ANTHROPIC_API_KEY=sk-... \
+  -e GEMINI_API_KEY=... \
   -v "$(pwd)/data/docker-paperclip:/paperclip" \
   paperclip-local
 ```

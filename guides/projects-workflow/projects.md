@@ -34,6 +34,16 @@ The top-right **Add Project** button opens the New Project dialog, where you can
 
 If the company has no projects yet, the list is replaced with an empty state prompting you to add the first one.
 
+### Keeping projects (and agents) in your sidebar
+
+As a company grows, the **Projects** and **Agents** groups in the left sidebar can get crowded. To keep yours focused, you can **join** or **leave** individual projects and agents — a personal setting that only affects your own navigation.
+
+- Hover a project or agent in the sidebar and use the **Join** / **Leave** control. Leaving hides it from your sidebar; joining brings it back.
+- Everything is **joined by default**, so a brand-new project shows up for everyone until they choose to leave it.
+- This is purely cosmetic and per-user. Leaving a project doesn't pause it, archive it, or change anything for your teammates — it still runs, and it's still reachable from the Projects and Agents pages. You're just tidying your own view.
+
+Each join or leave is recorded in the company activity log, so the change is auditable even though it only affects one person's sidebar.
+
 ---
 
 ## Overview Tab

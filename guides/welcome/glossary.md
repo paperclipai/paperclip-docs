@@ -72,12 +72,6 @@ For deeper explanations of the core concepts, see [Key Concepts](./key-concepts.
 
 ---
 
-## M
-
-**MCP (Model Context Protocol)** — An [open standard](https://modelcontextprotocol.io) for connecting AI runtimes to external tools and data sources over a small JSON-RPC contract. An MCP *server* exposes tools (and optionally resources and prompts) over `stdio` (local) or HTTP/SSE (remote); an MCP-aware *runtime* — like Claude Code or Hermes Agent — lists those tools and lets the agent call them mid-run. In Paperclip, MCP is the recommended way to give an agent a capability that doesn't fit a skill and that you don't want to teach the agent to call as raw HTTP. See [Add an MCP server to an agent's toolkit](../../how-to/add-mcp-server-to-agent.md).
-
----
-
 ## O
 
 **Org chart** — The visual representation of your agent hierarchy. The CEO is at the top; direct reports sit below; their reports sit below that. The org chart is automatically maintained by Paperclip — every agent you hire is placed in the correct position based on who it reports to.

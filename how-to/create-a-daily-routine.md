@@ -96,6 +96,32 @@ Set both at create time (the example in step 1 picks `skip_if_active` + `skip_mi
 
 ---
 
+## 4. (Optional) Give the routine an `env` map
+
+Routines carry a `routines.env` map, the same shape as agent adapter env. Each value is either a literal string or a `secret_ref` to a company secret — handy when the routine shells out to a tool that needs an API key, or when you want to flip a flag between staging and prod without editing the agent.
+
+```bash
+curl -X PATCH "$PAPERCLIP_API_URL/api/routines/$ROUTINE_ID" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "env": {
+      "DEPLOY_TARGET": "staging",
+      "GITHUB_TOKEN": {
+        "type": "secret_ref",
+        "secretId": "'$GITHUB_SECRET_ID'",
+        "version": "latest"
+      }
+    }
+  }'
+```
+
+In the UI, any `env` value with `type: "secret_ref"` is rendered through a secret binding picker — same widget you see on agent configs — so you pick from existing company secrets instead of pasting plaintext. See [`secret-ref` form fields](../reference/api/secrets.md#secret-ref-form-fields) for the JSON schema flag that powers the picker.
+
+**Each run is pinned to its routine revision.** When the routine fires, the run records `routine_runs.routine_revision_id` pointing at the `routine_revisions` row that was current at dispatch time. Editing the routine later mints a new revision; in-flight and historical runs keep the env (and the rest of the snapshot) they originally executed under. That means rotating a secret value flows to future runs automatically via `version: "latest"`, but renaming an env key or removing a binding only affects runs created after the edit — the run history stays honest about what each tick actually saw.
+
+---
+
 ## Pattern 1 — Daily standup
 
 The agent reads what changed since the previous standup and comments on a parent project issue with a short summary. Use `coalesce_if_active`: if the agent is still writing yesterday's standup when today's tick lands, merge the work — there's no value in two standup issues for the same morning.

@@ -51,6 +51,45 @@ Pi sessions are stored under `~/.pi/paperclips/` and resumed with `--session` on
 
 ---
 
+## Custom Providers / Gateway Routing
+
+Pi has no base-URL flag or env var, so the only way to point it at a custom or remote OpenAI- or Anthropic-compatible endpoint is a `models.json` file in its agent-config directory. Paperclip wires this up for you through the `PAPERCLIP_PI_PROVIDERS` environment variable.
+
+Set `PAPERCLIP_PI_PROVIDERS` to a JSON object in Pi's `models.json` `providers` shape — keyed by provider name, with each entry describing how to reach the endpoint and which models it serves. Paperclip reads it server-side, writes `{"providers": ...}` to a managed `models.json` in a temporary agent-config dir, and points `PI_CODING_AGENT_DIR` at that dir for the run. (For remote execution targets, the dir is shipped to the sandbox and `PI_CODING_AGENT_DIR` is repointed at the in-sandbox copy.)
+
+Because Pi resolves `--provider <name> --model <id>` by an exact `(provider, model id)` match against that registry, each provider must enumerate its models explicitly.
+
+```json
+{
+  "tensorix": {
+    "baseUrl": "http://gateway.example.svc.cluster.local:8080/anthropic",
+    "apiKey": "{env:ANTHROPIC_API_KEY}",
+    "api": "anthropic-messages",
+    "models": [
+      {
+        "id": "deepseek/deepseek-chat-v3.1",
+        "name": "DeepSeek v3.1",
+        "reasoning": false,
+        "input": ["text"],
+        "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+        "contextWindow": 128000,
+        "maxTokens": 32000
+      }
+    ]
+  }
+}
+```
+
+Notes on behavior:
+
+- **Secrets stay declarative.** An `apiKey` may be a literal value or an `{env:VAR}` placeholder. Placeholders are expanded server-side against the run `env` and the Paperclip process env, so gateway keys are baked into `models.json` where the value is reliably present. An unresolvable placeholder (unset, or set to an empty string) is left intact for Pi to try itself.
+- **The managed dir replaces the host agent dir.** Credentials travel inside the providers config (via the literal or expanded `apiKey`), not from the host's `~/.pi/agent`.
+- **Misconfiguration is surfaced, not silent.** Invalid JSON, a non-object value, or provider entries that are not themselves objects are ignored with a diagnostic note rather than failing later with an opaque model-not-found error. Leaving the variable unset (or empty) is the normal "feature off" case.
+
+Pi then routes `--provider <name> --model <id>` by matching the provider key (e.g. `tensorix`) and a model `id` you listed (e.g. `deepseek/deepseek-chat-v3.1`) against this registry.
+
+---
+
 ## Example
 
 ```json

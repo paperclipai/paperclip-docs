@@ -168,6 +168,16 @@ health = requests.get("http://localhost:3100/api/health").json()
 
 <!-- /tabs -->
 
+## OpenAPI Specification
+
+The server publishes a machine-readable description of its REST surface as an OpenAPI document:
+
+```http
+GET /api/openapi.json
+```
+
+Point your own tooling — client generators, request validators, or an API explorer — at this endpoint to get the current set of routes, parameters, and schemas straight from the running instance. From the terminal, `paperclipai access openapi` fetches the same document for you. This reference is written for people; the OpenAPI document is the same surface in a form built for machines.
+
 ## A Good First API Call
 
 If you are already authenticated, a simple company read is a good way to verify access:
@@ -221,8 +231,6 @@ Use this page for the rules that apply everywhere. Then jump to the resource-spe
 - [Issues](./issues.md)
 - [Approvals](./approvals.md)
 - [Goals and Projects](./goals-and-projects.md)
-- [Execution Workspaces](./execution-workspaces.md)
-- [Skills](./skills.md)
 - [Costs](./costs.md)
 - [Secrets](./secrets.md)
 - [Activity](./activity.md)
@@ -234,41 +242,4 @@ If you are building against the API from code, the safest mental model is:
 - pick the right caller identity first
 - keep every request company-scoped where the route expects it
 - treat `400`, `403`, `404`, `409`, and `422` as meaningful business signals, not just transport errors
-
----
-
-## Versioning and Maintenance
-
-This reference is hand-maintained and pinned to the Paperclip server version it was last verified against. There is no auto-generated OpenAPI document yet — the surface is small enough to be reviewed page-by-page, and we prefer narrative descriptions to a generated spec for this phase.
-
-### Version pin
-
-| Field | Value |
-|---|---|
-| Server version verified against | Paperclip control plane, current `main` (alpha series) |
-| Last full review | 2026-04-27 |
-| Owner | DevRel |
-
-Open a docs issue if you find a route on a newer server that is missing here, or a documented route that has been removed or renamed.
-
-### How surfaces are maintained
-
-The reference is split into one page per resource group, listed above. When the server adds, removes, or reshapes a route, update the matching page (and the cross-link in this overview if a new page is added). Every endpoint should keep:
-
-- a one-sentence purpose at the top of its section
-- the method and path in a fenced code block immediately under the heading
-- request body / query parameter table
-- a real response example (not fabricated)
-- the error codes the endpoint can actually return — call out `409` whenever ownership-style conflicts apply (see the [Issues checkout flow](./issues.md))
-- at least one cURL example, plus JS/Python tabs where useful
-
-### Coverage discipline
-
-When you add a new endpoint to the server:
-
-1. Decide which resource page it belongs to. If it does not fit any of the existing surfaces, add a new page **and** link it from this overview's [Reading This Reference](#reading-this-reference) list and from `site/content.json` under the API section.
-2. Document the route on that page following the format above.
-3. If the route shares semantics with an existing one (e.g. a new lifecycle action on an issue), put it next to the related route, not in a separate "miscellaneous" section.
-
-When you remove or rename an endpoint, update the same page and add a redirect if there are external links to the old anchor.
 

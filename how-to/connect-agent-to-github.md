@@ -205,8 +205,6 @@ Within a heartbeat or two:
 - The agent calls `gh pr create --fill --base main` and pastes the resulting `https://github.com/acme/api/pull/142` into the Paperclip issue thread.
 - The issue moves to `in_review`.
 
-![GitHub PR opened by the Paperclip coder agent next to the same Paperclip issue in `in_review`](../user-guides/screenshots/light/workspaces/github-pr-issue-side-by-side.png)
-
 If you see the worktree path on disk but no commits, that's almost always a missing `GITHUB_TOKEN` — see [Troubleshooting](#troubleshooting) below.
 
 ---

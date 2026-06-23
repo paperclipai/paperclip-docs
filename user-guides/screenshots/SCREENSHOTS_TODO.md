@@ -88,7 +88,8 @@ Placeholders used below:
 - `{goalId}` → Launch v1 goal id
 - `{routineId}` → demo routine id
 - `{issueId}` → demo issue id with chat content
-- `{workspaceId}` → execution workspace id bound to that issue
+- `{workspaceId}` → project primary workspace id
+- `{executionWorkspaceId}` → isolated execution workspace id (DB-seeded for detail-page shots)
 - `{cliAuthId}` → code id from `/cli-auth`
 - `{boardClaimToken}` → token from board claim link
 
@@ -165,9 +166,10 @@ Costs tabs live in React state (not URL/hash). Capture each tab by clicking its 
 
 | Filename | URL | Notes |
 |---|---|---|
-| `configuration.png` | `/{slug}/execution-workspaces/{workspaceId}/configuration` | Default tab. Shows cwd / repo fields. |
-| `runtime-logs.png` | `/{slug}/execution-workspaces/{workspaceId}/runtime-logs` | At least one log entry from a recent run. |
-| `issues.png` | `/{slug}/execution-workspaces/{workspaceId}/issues` | Issues linked to this workspace. |
+| `configuration.png` | `/{slug}/execution-workspaces/{executionWorkspaceId}/configuration` | Workspace settings, context, concrete location. |
+| `services.png` | `/{slug}/execution-workspaces/{executionWorkspaceId}/services` | Runtime services + jobs with controls. |
+| `runtime-logs.png` | `/{slug}/execution-workspaces/{executionWorkspaceId}/runtime-logs` | Operation log rows (provision, service start, failed job). |
+| `issues.png` | `/{slug}/execution-workspaces/{executionWorkspaceId}/issues` | The Tasks tab — issues linked to this workspace. |
 
 ### Adapters — user (`screenshots/light/adapters/`)
 
@@ -198,41 +200,6 @@ Costs tabs live in React state (not URL/hash). Capture each tab by clicking its 
 |---|---|---|
 | `cli-auth.png` | `/cli-auth/{cliAuthId}` | Pending CLI auth code screen. Capture before approving. |
 | `board-claim.png` | `/board-claim/{boardClaimToken}` | Board claim landing page, pre-claim state. |
-
-### Notifications (`screenshots/light/notifications/`)
-
-These are **external client captures**, not Paperclip routes — neither capture script below applies. The PNGs render the rendered output of the webhook payloads in [`docs/how-to/wire-slack-discord-notifications.md`](../../how-to/wire-slack-discord-notifications.md), captured from a real Slack workspace and Discord server after the `curl` snippets in that doc's **Testing the loop** section have been fired. Tracked in [PAP-1810](/PAP/issues/PAP-1810).
-
-| Filename | Source | Notes |
-|---|---|---|
-| `slack-approval.png` | Slack desktop client, `#paperclip-board` (or staging equivalent) | Capture the rendered Block Kit message after the `curl` from **Testing the loop** lands. Light theme client, 1440-px-wide window, crop to the message body + a sliver of channel chrome above so it reads as Slack. Used inline twice: under **Slack webhook setup** ("what success looks like") and under **Message format → Slack (Block Kit)**. |
-| `discord-approval.png` | Discord desktop client, `#paperclip-board` (or staging equivalent) | Same capture rules as Slack. Used inline once under **Message format → Discord (embeds)**. |
-
-> **No real user data.** The channel sidebar must show only staging/demo avatars, the channel name must read `#paperclip-board` (or another permanent docs-safe name) — never `#test-junk` or anything ephemeral. Same warning as the rest of the library: real avatars, real company names, real DMs in the sidebar are all disqualifying.
->
-> **Embed color before the curl fires.** The Discord embed in the source doc uses `"color": 2278750` (`#22c55e`, Paperclip docs accent green); confirm the rendered green appears in the captured embed before saving the PNG.
->
-> **Dark variants are nice-to-have.** Slack and Discord both have first-class dark themes; if the human-operator pass captures dark variants too, drop them at `docs/user-guides/screenshots/dark/notifications/{slack,discord}-approval.png`. Light is required, dark is optional.
-
-### Spend approvals (`screenshots/light/approvals/`)
-
-The spend-approval how-to ([`docs/how-to/require-board-approval-before-spend.md`](../../how-to/require-board-approval-before-spend.md)) currently reuses `approvals-list.png` and `approve-reject-revision-buttons.png`, but it ideally needs a detail-view capture of a `request_board_approval` so the title / summary / recommendedAction / risks layout is visible the way `hire-approval-detail.png` shows the hire layout.
-
-| Filename | Source | Notes |
-|---|---|---|
-| `request-approval-detail.png` | `/{slug}/approvals/{approvalId}` for a `request_board_approval` row | Submit a `request_board_approval` against the demo company (the `curl` snippet from Section 3 of the source how-to works — use the Vercel Pro proposal verbatim). Capture the full detail card with the structured fields, the **See full request** expander collapsed, and the Approve / Reject / Request Revision buttons in frame. Used inline under **Section 4 — Board-side experience** to replace the current `approvals-list.png` reuse. |
-
-Capture after the round-trip in **Section 6 — Verify the round-trip** has fired at least once on the demo instance.
-
-### Tools / MCP (`screenshots/light/agents/`)
-
-The MCP how-to ([`docs/how-to/add-mcp-server-to-agent.md`](../../how-to/add-mcp-server-to-agent.md)) needs a screenshot showing an agent's MCP tools listed in the run viewer (e.g. a `mcp__github__create_issue` tool call expanded in the transcript). Today the run-detail page shows tool *calls* but not the available-tool list at run start. Capture either:
-
-| Filename | Source | Notes |
-|---|---|---|
-| `mcp-tool-call.png` | `/{slug}/agents/{agentId}/runs/{runId}` — open a run that called an MCP tool | Expand the MCP tool entry (e.g. `mcp__github__create_issue`) so the request and response JSON are visible. Run the worked example in the how-to ("File a Github issue on acme/api") to produce a clean transcript. |
-
-Capture only after the demo instance has executed at least one task that called an MCP tool — otherwise the transcript is empty. Used inline in the how-to under **Debugging: which tools does the agent actually have?**.
 
 ---
 

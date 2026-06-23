@@ -47,9 +47,52 @@ OpenCode sessions are resumed with `--session` when the stored session `cwd` mat
 ## Execution Details
 
 - Runs are invoked as `opencode run --format json ...`.
-- Model selection is passed via the `--model` CLI flag — Paperclip does not write an `opencode.json`.
+- Model selection is passed via the `--model` CLI flag.
 - `OPENCODE_DISABLE_PROJECT_CONFIG=true` is set automatically to prevent OpenCode from writing config into the project directory.
-- When `dangerouslySkipPermissions` is enabled, a temporary runtime config is injected with `permission.external_directory=allow` so unattended runs don't stall on approval prompts.
+- When `dangerouslySkipPermissions` is enabled (the default for unattended runs), Paperclip copies your existing `opencode` config into a temporary `XDG_CONFIG_HOME`, merges `permission.external_directory=allow` into that copy's `opencode.json`, and points the run at it. This keeps unattended runs from stalling on approval prompts and never mutates your real config. The env overrides below (`PAPERCLIP_OPENCODE_PROVIDERS`, `PAPERCLIP_OPENCODE_SMALL_MODEL`) are written into this same temporary file, so they apply only when `dangerouslySkipPermissions` is on and the target runs locally.
+
+---
+
+## Custom Providers And Gateways
+
+Set these environment variables on the Paperclip server (process env, or the agent's `env`) to route OpenCode through your own OpenAI-compatible provider or LLM gateway. Paperclip reads them server-side and writes them into the temporary `opencode.json` described above, so they take effect only when `dangerouslySkipPermissions` is enabled and the target runs locally.
+
+### `PAPERCLIP_OPENCODE_PROVIDERS`
+
+A JSON object in OpenCode's `provider` shape — a map of provider id to provider definition. Paperclip merges these entries into the `provider` block of the temporary `opencode.json` (your existing providers are preserved; same-named keys are overwritten). Entries whose value is not an object are skipped, and invalid JSON is ignored — both cases surface as a run note rather than failing silently.
+
+This lets you expose a custom or remote OpenAI-compatible provider (for example an EU LLM gateway that serves `/v1`) and then reference its models in `model` using the usual `provider/model` format. Because OpenCode only resolves a `--model provider/model` when that model exists in the provider's `models` map, give each provider an explicit `models` map listing the ids you intend to use.
+
+You can keep secrets out of the JSON with OpenCode's `{env:VAR}` placeholders. Paperclip expands them server-side from the run env (then the process env) before writing the file; any placeholder it cannot resolve is left intact for OpenCode to resolve itself.
+
+```json
+{
+  "my-gateway": {
+    "npm": "@ai-sdk/openai-compatible",
+    "name": "My EU Gateway",
+    "options": {
+      "baseURL": "https://gateway.example.com/v1",
+      "apiKey": "{env:MY_GATEWAY_KEY}"
+    },
+    "models": {
+      "gpt-5.2-codex": {},
+      "gpt-5.2-codex-small": {}
+    }
+  }
+}
+```
+
+With the above set, an agent can use `"model": "my-gateway/gpt-5.2-codex"`.
+
+> **Tip:** OpenCode validates configured models against `opencode models` by default. For gateway-routed models that never appear in that listing, set `OPENCODE_ALLOW_ALL_MODELS=true` so Paperclip skips the availability probe (the `provider/model` format is still enforced).
+
+### `PAPERCLIP_OPENCODE_SMALL_MODEL`
+
+Pins OpenCode's auxiliary "small" model — used for helper tasks such as session-title generation — by writing `small_model` into the temporary `opencode.json`. OpenCode otherwise falls back to a built-in per-provider default; when you repoint a provider at a gateway that does not serve that exact default, the helper call fails and aborts the run. Set this to a model your gateway actually serves to keep every call on a supported model.
+
+```bash
+PAPERCLIP_OPENCODE_SMALL_MODEL=my-gateway/gpt-5.2-codex-small
+```
 
 ---
 

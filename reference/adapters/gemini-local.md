@@ -17,6 +17,8 @@
 - You only need a command runner or script. Use [Process](./process.md).
 - Gemini CLI is not installed or cannot reach the target working directory.
 
+> **Running in Docker?** The official Paperclip image pre-bundles the Gemini CLI alongside the other local CLIs, so `gemini_local` works in-container without a manual install. The image also sets `GEMINI_SANDBOX=false` for safe in-container use. You still need to supply credentials — see [Docker](../deploy/docker.md).
+
 ---
 
 ## Common Fields
@@ -49,7 +51,15 @@ If the working directory changed, the adapter starts a fresh session instead of 
 
 If Gemini reports an unknown session error, Paperclip retries with a new session automatically.
 
+If a resumed session grows past the model's token budget — Gemini reports that the input exceeds the maximum number of tokens — the adapter treats the old session as unrecoverable and retries once with a fresh session instead of failing the run. Expect this on long-running agents whose conversation history eventually outgrows the context window.
+
 ---
+
+## Headless Auth
+
+Gemini CLI refuses non-interactive runs unless an auth method is persisted in `~/.gemini/settings.json`, and the `GEMINI_DEFAULT_AUTH_TYPE` environment variable alone does not satisfy this. To keep headless runs from stalling on the interactive auth-method prompt, the adapter pre-selects the API-key auth method for you when it manages the run's home directory and an API key (`GEMINI_API_KEY` or `GOOGLE_API_KEY`) is present. It writes `selectedAuthType: "gemini-api-key"` to that `settings.json` and leaves any existing `settings.json` untouched.
+
+This pre-selection only applies to runs where Paperclip provisions a managed home directory (remote execution targets). For ordinary local runs the adapter uses your real home directory, where your existing Gemini auth is already in place.
 
 ## Skills Injection
 

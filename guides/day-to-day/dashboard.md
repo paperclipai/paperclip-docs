@@ -4,7 +4,7 @@ The dashboard is your control centre. When your AI company is running, this is t
 
 Think of it like the cockpit instruments on a plane. You don't need to read every dial every second, but you do want a clear signal when something is off. The dashboard gives you that signal.
 
-![The Paperclip dashboard showing the current overview cards, charts, recent activity, and recent tasks](../../user-guides/screenshots/light/dashboard/dashboard-overview-annotated.png)
+![The Paperclip dashboard showing the current overview cards, charts, recent activity, and recent tasks](../../user-guides/screenshots/light/dashboard/dashboard-overview.png)
 
 ---
 

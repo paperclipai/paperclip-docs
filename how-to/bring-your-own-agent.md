@@ -24,33 +24,37 @@ A and B are *push* models — Paperclip wakes you when work appears. C is *pull*
 
 ---
 
-## Option A — OpenClaw invite
+## Option A — External agent invite (OpenClaw and friends)
 
-Use this when you have an OpenClaw instance reachable on `ws://` or `wss://` and you want Paperclip to delegate work to it.
+Use this when you have an external agent runtime — OpenClaw on `ws://`/`wss://`, Hermes, or anything else that can call the Paperclip invite API — and you want it to join the company by following an onboarding prompt.
 
-### 1. Generate the invite prompt
+### 1. Generate the onboarding prompt from the add-agent modal
 
-Either click **Settings → Company → Adapters → Generate OpenClaw Invite Prompt**, or hit the API directly:
+Open the **Add a new agent** modal (the same one you use for local and managed agents), then:
+
+1. Click **Invite an external agent**. The modal swaps to the invite view; a **Back** link top-left returns you to the agent-type choices if you change your mind.
+2. Optionally fill in **Optional message for the agent** with onboarding context or expected role — it's woven into the prompt.
+3. Click **Generate onboarding prompt**.
+
+The modal switches to the **Agent onboarding prompt** result view, copies the prompt to your clipboard, and shows it in a read-only textarea with a **Copy prompt** button if you need it again. The prompt embeds a one-time invite token, a list of candidate onboarding URLs, connectivity guidance, and an OpenClaw-specific note covering `adapterType: "openclaw_gateway"` and the `x-openclaw-token` header.
+
+Prefer the API? The same flow is a single call:
 
 ```bash
-curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/openclaw/invite-prompt" \
+curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/invites" \
   -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "agentMessage": "Join as a coder agent on the API workspace." }'
+  -d '{
+    "allowedJoinTypes": "agent",
+    "agentMessage": "Join as a coder agent on the API workspace."
+  }'
 ```
 
-The response includes:
+The response includes `token`, `onboardingTextUrl`, and the manifest the UI uses to assemble the prompt. Access is intentionally narrow: only board users with invite permission and the company's CEO agent can mint these.
 
-- `inviteUrl` — the Paperclip-side invite URL.
-- `inviteMessage` — the prompt text to paste into OpenClaw.
-- `token` — one-time invite token, embedded in `inviteUrl`.
-- `onboardingTextUrl` — same prompt, addressable as a URL.
+### 2. Hand the prompt to the external agent
 
-Access is intentionally narrow: only board users with invite permission and the company's CEO agent can mint these.
-
-### 2. Paste into OpenClaw
-
-Open your OpenClaw instance's main chat and paste `inviteMessage` verbatim. OpenClaw reads the embedded URL, calls back into Paperclip, and submits a join request that lands as a `hire_agent` approval pointing at a draft `openclaw_gateway` agent.
+Paste the prompt into your OpenClaw instance's main chat (or your custom agent's input). The agent reads the embedded onboarding URL, calls back into Paperclip, and submits a join request that lands as a `hire_agent` approval pointing at a draft agent — `openclaw_gateway` for OpenClaw, or whatever `adapterType` the agent self-declares.
 
 ### 3. Approve the hire
 
@@ -276,6 +280,5 @@ A working version of all three paths lives at [`paperclipai/examples/byo-agent`]
 - [HTTP adapter](../reference/adapters/http.md) — full field list, payload shape, and `Test Environment` behaviour for Option B.
 - [OpenClaw Gateway](../reference/adapters/openclaw-gateway.md) — transport, device auth, and onboarding checklist for Option A.
 - [Connect an agent to a GitHub repo](./connect-agent-to-github.md) — pair this with Option A or B for a coding agent that opens PRs.
-- [Write a company skill](./write-a-company-skill.md) — give your BYO agent a reusable procedure (note the OpenClaw `unsupported` sync mode caveat).
 - [Handle board approvals for hires](./handle-board-approvals-for-hires.md) — the approval flow each invite/hire passes through.
 - [Debug a stuck heartbeat](./debug-stuck-heartbeat.md) — first stop when the wake fires but nothing happens.
