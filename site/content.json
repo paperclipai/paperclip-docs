@@ -481,6 +481,109 @@
         {
           "title": "Skills Reference",
           "file": "../docs/reference/skills.md"
+        },
+        {
+          "title": "Bundled",
+          "pages": [
+            {
+              "title": "Overview",
+              "file": "../docs/reference/skills/bundled.md"
+            },
+            {
+              "title": "Docs",
+              "pages": [
+                {
+                  "title": "Doc Maintenance",
+                  "file": "../docs/reference/skills/bundled/docs/doc-maintenance.md"
+                }
+              ]
+            },
+            {
+              "title": "Paperclip Operations",
+              "pages": [
+                {
+                  "title": "Issue Triage",
+                  "file": "../docs/reference/skills/bundled/paperclip-operations/issue-triage.md"
+                },
+                {
+                  "title": "Task Planning",
+                  "file": "../docs/reference/skills/bundled/paperclip-operations/task-planning.md"
+                }
+              ]
+            },
+            {
+              "title": "Product",
+              "pages": [
+                {
+                  "title": "Wireframe",
+                  "file": "../docs/reference/skills/bundled/product/wireframe.md"
+                }
+              ]
+            },
+            {
+              "title": "Quality",
+              "pages": [
+                {
+                  "title": "QA Acceptance",
+                  "file": "../docs/reference/skills/bundled/quality/qa-acceptance.md"
+                }
+              ]
+            },
+            {
+              "title": "Software Development",
+              "pages": [
+                {
+                  "title": "GitHub PR Workflow",
+                  "file": "../docs/reference/skills/bundled/software-development/github-pr-workflow.md"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Optional",
+          "pages": [
+            {
+              "title": "Overview",
+              "file": "../docs/reference/skills/optional.md"
+            },
+            {
+              "title": "Browser",
+              "pages": [
+                {
+                  "title": "Agent Browser",
+                  "file": "../docs/reference/skills/optional/browser/agent-browser.md"
+                }
+              ]
+            },
+            {
+              "title": "Content",
+              "pages": [
+                {
+                  "title": "Release Announcement",
+                  "file": "../docs/reference/skills/optional/content/release-announcement.md"
+                }
+              ]
+            },
+            {
+              "title": "Product",
+              "pages": [
+                {
+                  "title": "Design Critique",
+                  "file": "../docs/reference/skills/optional/product/design-critique.md"
+                }
+              ]
+            },
+            {
+              "title": "Research",
+              "pages": [
+                {
+                  "title": "Last30Days",
+                  "file": "../docs/reference/skills/optional/research/last30days.md"
+                }
+              ]
+            }
+          ]
         }
       ]
     },

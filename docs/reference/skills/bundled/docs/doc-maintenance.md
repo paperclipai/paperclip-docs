@@ -133,6 +133,7 @@ When you find drift, fix it in the same pass and note it in the release note's `
 
 ## See also
 
+- [Bundled skills](../../bundled.md) — all bundled catalog skills grouped by category.
 - [Skills reference](../../../skills.md) — file shape, install pipeline, catalog browse/install/audit/update/reset, assignment, and troubleshooting.
 - [App-shipped catalog](../../../skills.md#3-app-shipped-catalog) — how bundled and optional catalog skills are versioned and kept current.
 - [Skills guide](../../../../guides/org/skills.md) — the UI walkthrough and built-in catalog overview.

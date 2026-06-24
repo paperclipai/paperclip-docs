@@ -53,6 +53,22 @@ try {
 
   const sitemap = read("sitemap.xml");
   assert(sitemap.includes("https://docs.paperclip.ing/reference/skills"), "sitemap is missing reference/skills");
+  assert(
+    existsSync(join(outDir, "reference/skills/bundled/index.html")),
+    "missing reference/skills/bundled/index.html",
+  );
+  assert(
+    existsSync(join(outDir, "reference/skills/optional/index.html")),
+    "missing reference/skills/optional/index.html",
+  );
+  assert(
+    sitemap.includes("https://docs.paperclip.ing/reference/skills/bundled"),
+    "sitemap is missing reference/skills/bundled",
+  );
+  assert(
+    sitemap.includes("https://docs.paperclip.ing/reference/skills/optional"),
+    "sitemap is missing reference/skills/optional",
+  );
 
   const robots = read("robots.txt");
   assert(robots.includes("Sitemap: https://docs.paperclip.ing/sitemap.xml"), "robots.txt is missing sitemap reference");

@@ -8,6 +8,8 @@ This is the reference for company skills: the file shape on disk, the install pi
 
 For the conceptual introduction and the UI walkthrough, read the [Skills guide](../guides/org/skills.md). For the REST surface specifically, see [Agents API → Skills](./api/agents.md#skills).
 
+If you want to browse Paperclip's shipped skill catalog, start with the [Bundled skills](./skills/bundled.md) and [Optional skills](./skills/optional.md) indexes. Those pages group every shipped catalog skill by category and link to the full per-skill reference pages.
+
 > **Adapter caveat.** Some adapters (notably `openclaw_gateway`) cannot push skill files into the runtime. Assignment is still recorded, but the actual sync mode is reported as `unsupported`. This is covered under [Scoping rules](#scoping-rules) below.
 
 ---

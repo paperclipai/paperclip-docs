@@ -24,9 +24,36 @@ function walk(dir, acc = []) {
   return acc;
 }
 
+function stripFencedCodeBlocks(src) {
+  const output = [];
+  let fence = null;
+
+  for (const line of src.split(/\r?\n/)) {
+    const match = line.match(/^([`~]{3,})/);
+    if (fence) {
+      if (match && match[1][0] === fence.char && match[1].length >= fence.length) {
+        fence = null;
+      }
+      output.push("");
+      continue;
+    }
+    if (match) {
+      fence = {
+        char: match[1][0],
+        length: match[1].length,
+      };
+      output.push("");
+      continue;
+    }
+    output.push(line);
+  }
+
+  return output.join("\n");
+}
+
 function checkFile(file) {
   const issues = [];
-  const src = readFileSync(file, "utf8");
+  const src = stripFencedCodeBlocks(readFileSync(file, "utf8"));
   const seen = new Set();
   for (const re of [LINK_RE, IMAGE_RE]) {
     re.lastIndex = 0;
