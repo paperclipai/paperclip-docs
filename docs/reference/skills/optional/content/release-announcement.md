@@ -50,24 +50,22 @@ This is an **optional** catalog skill — opt-in (install when you need it). For
 
 ## Full skill definition
 
-The complete current `SKILL.md`, reproduced verbatim from catalog version `@paperclipai/skills-catalog@0.3.1` (content hash `sha256:f22a9ed696e6614c6db2757a149f48b3295e81f78c27d065d9cb164cf4f8a9bd`):
+### Skill frontmatter
 
-````markdown
----
-name: release-announcement
-description: Write a release announcement — changelog, blog post, in-app note, or social post — that leads with user impact, names the audience, and includes upgrade/migration steps without filler.
-key: paperclipai/optional/content/release-announcement
-recommendedForRoles:
+- **name:** release-announcement
+- **description:** Write a release announcement — changelog, blog post, in-app note, or social post — that leads with user impact, names the audience, and includes upgrade/migration steps without filler.
+- **key:** paperclipai/optional/content/release-announcement
+- **recommendedForRoles:**
   - devrel
   - product
   - writer
-tags:
+- **tags:**
   - release
   - changelog
   - announcement
   - communication
----
 
+### Skill instructions
 # Release Announcement
 
 Write the channel-appropriate announcement for a release without churn. Different surfaces need different shapes: a changelog entry is not a blog post is not a social card. The bar is: a reader of the chosen surface can decide in under 30 seconds whether this release affects them, and if so what to do.
@@ -181,7 +179,6 @@ Same as changelog, plus:
 - All links work (release tag, PRs, docs sections).
 - Breaking changes are also in the upgrade guide, not only the post.
 - Internal team is notified before the public post goes live, not after.
-````
 
 ## See also
 

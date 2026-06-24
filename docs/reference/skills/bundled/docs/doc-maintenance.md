@@ -51,23 +51,21 @@ This is a **bundled** catalog skill — part of the bundled baseline kit. For ho
 
 ## Full skill definition
 
-The complete current `SKILL.md`, reproduced verbatim from catalog version `@paperclipai/skills-catalog@0.3.1` (content hash `sha256:2e02299210fd17c1fe1867b4ee8c144a11b6fe1fe481f83b8268cfbaaf10f9aa`):
+### Skill frontmatter
 
-````markdown
----
-name: doc-maintenance
-description: Keep project docs aligned with recent code and feature changes — detect drift, update affected pages, and add release-relevant notes without rewriting unchanged sections.
-key: paperclipai/bundled/docs/doc-maintenance
-recommendedForRoles:
+- **name:** doc-maintenance
+- **description:** Keep project docs aligned with recent code and feature changes — detect drift, update affected pages, and add release-relevant notes without rewriting unchanged sections.
+- **key:** paperclipai/bundled/docs/doc-maintenance
+- **recommendedForRoles:**
   - engineer
   - product
   - devrel
-tags:
+- **tags:**
   - docs
   - documentation
   - release-notes
----
 
+### Skill instructions
 # Doc Maintenance
 
 Keep the documentation honest with minimum churn. The goal is alignment between docs and behavior, not stylistic rewrites or cosmetic re-organization. Reviewers should be able to read a diff and see "this updates docs to match recent behavior changes".
@@ -129,7 +127,6 @@ When you find drift, fix it in the same pass and note it in the release note's `
 - "Updated docs" commit messages with no detail. Make the commit say what changed and why.
 - Adding to the changelog without updating the reference docs the changelog points to.
 - Marking a feature as available before its code lands. Documentation must follow behavior, not promise it.
-````
 
 ## See also
 

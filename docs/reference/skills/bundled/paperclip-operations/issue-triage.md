@@ -51,24 +51,22 @@ This is a **bundled** catalog skill — part of the bundled baseline kit. For ho
 
 ## Full skill definition
 
-The complete current `SKILL.md`, reproduced verbatim from catalog version `@paperclipai/skills-catalog@0.3.1` (content hash `sha256:88dc13560371fb364963782cb4f6eeb4090fcde92ee3774479428ed6b90e11c1`):
+### Skill frontmatter
 
-````markdown
----
-name: issue-triage
-description: Triage Paperclip inbox issues that are stale, blocked, in-review, or assigned-but-not-progressing, and decide a single next action per issue (resume, reassign, unblock, escalate, or close).
-key: paperclipai/bundled/paperclip-operations/issue-triage
-recommendedForRoles:
+- **name:** issue-triage
+- **description:** Triage Paperclip inbox issues that are stale, blocked, in-review, or assigned-but-not-progressing, and decide a single next action per issue (resume, reassign, unblock, escalate, or close).
+- **key:** paperclipai/bundled/paperclip-operations/issue-triage
+- **recommendedForRoles:**
   - manager
   - ceo
   - engineer
-tags:
+- **tags:**
   - paperclip
   - triage
   - inbox
   - workflow
----
 
+### Skill instructions
 # Issue Triage
 
 Convert a noisy inbox into a small set of clear next actions. Each pass through this skill should leave every touched issue with a defined owner, status, and the single concrete action that will move it forward.
@@ -128,7 +126,6 @@ A short comment chain or summary message that lists, per issue touched:
 - The one action you took or asked for.
 
 This is the bar for "the triage is done."
-````
 
 ## See also
 

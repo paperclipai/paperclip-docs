@@ -53,26 +53,24 @@ Only `SKILL.md` is reproduced below. The supporting scripts, library modules, an
 
 ## Full skill definition
 
-The complete current `SKILL.md`, reproduced verbatim from catalog version `@paperclipai/skills-catalog@0.3.1` (content hash `sha256:9e11e9d2ed3d2062273d131a826cdeedea39bdd269063e2f73ca7f218770c769`):
+### Skill frontmatter
 
-````markdown
----
-name: last30days
-version: "3.3.0"
-description: "Research what people actually say about any topic in the last 30 days. Pulls posts and engagement from Reddit, X, YouTube, TikTok, Hacker News, Polymarket, GitHub, and the web."
-argument-hint: 'last30days nvidia earnings reaction | last30days AI video tools | last30days what users want in react'
-allowed-tools: Bash, Read, Write, AskUserQuestion, WebSearch
-homepage: https://github.com/mvanhorn/last30days-skill
-repository: https://github.com/mvanhorn/last30days-skill
-author: mvanhorn
-license: MIT
-user-invocable: true
-metadata:
-  openclaw:
-    emoji: "📰"
-    requires:
-      env: []
-      optionalEnv:
+- **name:** last30days
+- **version:** "3.3.0"
+- **description:** "Research what people actually say about any topic in the last 30 days. Pulls posts and engagement from Reddit, X, YouTube, TikTok, Hacker News, Polymarket, GitHub, and the web."
+- **argument-hint:** 'last30days nvidia earnings reaction | last30days AI video tools | last30days what users want in react'
+- **allowed-tools:** Bash, Read, Write, AskUserQuestion, WebSearch
+- **homepage:** https://github.com/mvanhorn/last30days-skill
+- **repository:** https://github.com/mvanhorn/last30days-skill
+- **author:** mvanhorn
+- **license:** MIT
+- **user-invocable:** true
+- **metadata:**
+  - **openclaw:**
+    - **emoji:** "📰"
+    - **requires:**
+      - **env:** []
+      - **optionalEnv:**
         - SCRAPECREATORS_API_KEY
         - OPENAI_API_KEY
         - XAI_API_KEY
@@ -85,14 +83,14 @@ metadata:
         - BSKY_HANDLE
         - BSKY_APP_PASSWORD
         - TRUTHSOCIAL_TOKEN
-      bins:
+      - **bins:**
         - node
         - python3
-    primaryEnv: SCRAPECREATORS_API_KEY
-    files:
+    - **primaryEnv:** SCRAPECREATORS_API_KEY
+    - **files:**
       - "scripts/*"
-    homepage: https://github.com/mvanhorn/last30days-skill
-    tags:
+    - **homepage:** https://github.com/mvanhorn/last30days-skill
+    - **tags:**
       - research
       - deep-research
       - reddit
@@ -116,8 +114,8 @@ metadata:
       - web-search
       - ai-skill
       - clawhub
----
 
+### Skill instructions
 # STEP 0: STALE-CLONE SELF-CHECK — RUN BEFORE READING BELOW
 
 Before reading anything else in this file, check whether you loaded SKILL.md from the one known stale-clone location: Claude Code's marketplaces directory.
@@ -1765,7 +1763,6 @@ Want another prompt? Just tell me what you're creating next.
 **Bundled scripts:** `scripts/last30days.py` (main research engine), `scripts/lib/` (search, enrichment, rendering modules), `scripts/lib/vendor/bird-search/` (vendored X search client, MIT licensed)
 
 Review scripts before first use to verify behavior.
-````
 
 ## See also
 

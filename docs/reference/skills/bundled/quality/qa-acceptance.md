@@ -51,24 +51,22 @@ This is a **bundled** catalog skill — part of the bundled baseline kit. For ho
 
 ## Full skill definition
 
-The complete current `SKILL.md`, reproduced verbatim from catalog version `@paperclipai/skills-catalog@0.3.1` (content hash `sha256:32372dacaf62e93454b9855968c4eec96456ba78b509f450b3dfaa48e31ef356`):
+### Skill frontmatter
 
-````markdown
----
-name: qa-acceptance
-description: Produce QA acceptance criteria and a manual validation plan for a feature change — golden path, edge cases, error states, performance limits, and explicit pass/fail evidence.
-key: paperclipai/bundled/quality/qa-acceptance
-recommendedForRoles:
+- **name:** qa-acceptance
+- **description:** Produce QA acceptance criteria and a manual validation plan for a feature change — golden path, edge cases, error states, performance limits, and explicit pass/fail evidence.
+- **key:** paperclipai/bundled/quality/qa-acceptance
+- **recommendedForRoles:**
   - qa
   - engineer
   - product
-tags:
+- **tags:**
   - qa
   - acceptance
   - validation
   - testing
----
 
+### Skill instructions
 # QA Acceptance
 
 Write acceptance criteria that a reviewer can run against the running app and decide pass or fail without asking the author. The criteria are the contract — automated tests cover correctness, QA covers feature-level behavior.
@@ -147,7 +145,6 @@ The author owns turning failures into either fixes or accepted deferrals.
 - Criteria that depend on inspecting implementation details (selectors, query plans). Stay observable.
 - Long checklists with no priority. Mark must-pass criteria distinctly from nice-to-have.
 - Validation reports that say "passed" with no evidence. Reviewers cannot audit those.
-````
 
 ## See also
 
