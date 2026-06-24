@@ -105,16 +105,45 @@ function derivePageSlug(file) {
   return withoutExtension;
 }
 
-function attachSlugs(nav) {
+function isNavPage(node) {
+  return Boolean(node && typeof node === "object" && typeof node.file === "string");
+}
+
+function getNavChildren(node) {
+  return Array.isArray(node?.pages) ? node.pages : [];
+}
+
+export function flattenNavPages(nav) {
+  const pages = [];
+  for (const section of nav.sections || []) {
+    const visit = (nodes, groupTrail = []) => {
+      for (const node of getNavChildren({ pages: nodes })) {
+        if (isNavPage(node)) {
+          pages.push({
+            page: node,
+            section,
+            navTrail: [section.title, ...groupTrail, node.title],
+          });
+          continue;
+        }
+        const children = getNavChildren(node);
+        if (children.length) visit(children, [...groupTrail, node.title].filter(Boolean));
+      }
+    };
+    visit(section.pages || []);
+  }
+  return pages;
+}
+
+export function attachSlugs(nav) {
   const slugCounts = new Map();
-  for (const section of nav.sections) {
-    for (const page of section.pages) {
-      const baseSlug = normalizeRouteKey(page.slug || derivePageSlug(page.file));
-      const seenCount = slugCounts.get(baseSlug) || 0;
-      page.slug = seenCount === 0 ? baseSlug : `${baseSlug}-${seenCount + 1}`;
-      slugCounts.set(baseSlug, seenCount + 1);
-      page.sectionTitle = section.title;
-    }
+  for (const { page, section, navTrail } of flattenNavPages(nav)) {
+    const baseSlug = normalizeRouteKey(page.slug || derivePageSlug(page.file));
+    const seenCount = slugCounts.get(baseSlug) || 0;
+    page.slug = seenCount === 0 ? baseSlug : `${baseSlug}-${seenCount + 1}`;
+    slugCounts.set(baseSlug, seenCount + 1);
+    page.sectionTitle = section.title;
+    page.navTrail = navTrail;
   }
   return nav;
 }
@@ -257,6 +286,15 @@ function applyAppBasePath(basePath) {
 }
 
 function isNavPayload(value) {
+  const isNavPageNode = (node) => Boolean(
+    node &&
+    typeof node === "object" &&
+    typeof node.title === "string" &&
+    (
+      typeof node.file === "string" ||
+      (Array.isArray(node.pages) && node.pages.every(isNavPageNode))
+    )
+  );
   return Boolean(
     value &&
     typeof value === "object" &&
@@ -266,12 +304,7 @@ function isNavPayload(value) {
       typeof section === "object" &&
       typeof section.title === "string" &&
       Array.isArray(section.pages) &&
-      section.pages.every((page) =>
-        page &&
-        typeof page === "object" &&
-        typeof page.title === "string" &&
-        typeof page.file === "string"
-      )
+      section.pages.every(isNavPageNode)
     )
   );
 }
@@ -405,11 +438,9 @@ async function collectReleaseFiles(nav) {
   const queue = [];
   const warnings = [];
 
-  for (const section of nav.sections) {
-    for (const page of section.pages) {
-      const absolutePath = path.resolve(__dirname, page.file);
-      queue.push(absolutePath);
-    }
+  for (const { page } of flattenNavPages(nav)) {
+    const absolutePath = path.resolve(__dirname, page.file);
+    queue.push(absolutePath);
   }
 
   while (queue.length > 0) {
@@ -445,19 +476,28 @@ async function collectReleaseFiles(nav) {
   return { markdownFiles, warnings };
 }
 
-function rewriteNav(nav) {
+export function rewriteNav(nav) {
+  const rewriteNodes = (nodes) => getNavChildren({ pages: nodes }).map((node) => {
+    if (!isNavPage(node)) {
+      return {
+        ...node,
+        pages: rewriteNodes(getNavChildren(node)),
+      };
+    }
+
+    const absolutePath = path.resolve(__dirname, node.file);
+    const relativeFromDocsRoot = toPosixPath(path.relative(docsRoot, absolutePath));
+    return {
+      ...node,
+      file: relativeFromDocsRoot,
+    };
+  });
+
   return {
     ...nav,
     sections: nav.sections.map((section) => ({
       ...section,
-      pages: section.pages.map((page) => {
-        const absolutePath = path.resolve(__dirname, page.file);
-        const relativeFromDocsRoot = toPosixPath(path.relative(docsRoot, absolutePath));
-        return {
-          ...page,
-          file: relativeFromDocsRoot,
-        };
-      }),
+      pages: rewriteNodes(section.pages),
     })),
   };
 }
@@ -585,26 +625,22 @@ function buildStaticPageHtml(sourceIndex, page, markdown, basePath) {
 }
 
 async function writeStaticRoutePages({ outDir, sourceIndex, releaseNav, markdownBodiesByFile, basePath }) {
-  for (const section of releaseNav.sections) {
-    for (const page of section.pages) {
-      const markdown = markdownBodiesByFile.get(page.file);
-      if (!markdown) continue;
-      const routePath = path.join(outDir, ...page.slug.split("/"), "index.html");
-      if (!isPathInside(outDir, routePath)) {
-        throw new Error(`Refusing to write route outside release directory: ${page.slug}`);
-      }
-      await ensureDir(path.dirname(routePath));
-      await fs.writeFile(routePath, buildStaticPageHtml(sourceIndex, page, markdown, basePath));
+  for (const { page } of flattenNavPages(releaseNav)) {
+    const markdown = markdownBodiesByFile.get(page.file);
+    if (!markdown) continue;
+    const routePath = path.join(outDir, ...page.slug.split("/"), "index.html");
+    if (!isPathInside(outDir, routePath)) {
+      throw new Error(`Refusing to write route outside release directory: ${page.slug}`);
     }
+    await ensureDir(path.dirname(routePath));
+    await fs.writeFile(routePath, buildStaticPageHtml(sourceIndex, page, markdown, basePath));
   }
 }
 
 function buildSitemap(releaseNav, basePath) {
   const urls = [getCanonicalUrl(basePath)];
-  for (const section of releaseNav.sections) {
-    for (const page of section.pages) {
-      urls.push(getCanonicalUrl(basePath, page.slug));
-    }
+  for (const { page } of flattenNavPages(releaseNav)) {
+    urls.push(getCanonicalUrl(basePath, page.slug));
   }
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -703,11 +739,9 @@ async function main() {
 
   // Attach parsed frontmatter onto matching nav page entries so the SPA can
   // surface fields like `paperclip_version` per page.
-  for (const section of releaseNav.sections) {
-    for (const page of section.pages) {
-      const fm = frontmatterByFile.get(page.file);
-      if (fm) page.frontmatter = fm;
-    }
+  for (const { page } of flattenNavPages(releaseNav)) {
+    const fm = frontmatterByFile.get(page.file);
+    if (fm) page.frontmatter = fm;
   }
   await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav, null, 2)}\n`);
   await writeStaticRoutePages({
@@ -724,12 +758,10 @@ async function main() {
   }
 
   const missingNavTargets = [];
-  for (const section of releaseNav.sections) {
-    for (const page of section.pages) {
-      const targetPath = path.join(options.outDir, page.file);
-      if (!(await pathExists(targetPath))) {
-        missingNavTargets.push(page.file);
-      }
+  for (const { page } of flattenNavPages(releaseNav)) {
+    const targetPath = path.join(options.outDir, page.file);
+    if (!(await pathExists(targetPath))) {
+      missingNavTargets.push(page.file);
     }
   }
 

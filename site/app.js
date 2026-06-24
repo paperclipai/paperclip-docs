@@ -80,6 +80,41 @@ function derivePageSlug(file) {
   return withoutExtension;
 }
 
+function isNavPage(node) {
+  return Boolean(node && typeof node === 'object' && typeof node.file === 'string');
+}
+
+function getNavChildren(node) {
+  return Array.isArray(node?.pages) ? node.pages : [];
+}
+
+function countNavPages(nodes) {
+  return getNavChildren({ pages: nodes }).reduce((count, node) => {
+    if (isNavPage(node)) return count + 1;
+    return count + countNavPages(getNavChildren(node));
+  }, 0);
+}
+
+function getFirstNavPage(nodes) {
+  for (const node of getNavChildren({ pages: nodes })) {
+    if (isNavPage(node)) return node;
+    const firstChild = getFirstNavPage(getNavChildren(node));
+    if (firstChild) return firstChild;
+  }
+  return null;
+}
+
+function pageTrail(page) {
+  return Array.isArray(page?.navTrail) && page.navTrail.length
+    ? page.navTrail
+    : [page?.sectionTitle, page?.title].filter(Boolean);
+}
+
+function pageGroupLabel(page) {
+  const trail = pageTrail(page);
+  return trail.slice(0, -1).join(' / ') || page?.sectionTitle || '';
+}
+
 function resolveContentUrl(path) {
   return new URL(path, APP_SHELL_URL).toString();
 }
@@ -383,7 +418,8 @@ document.addEventListener('click', e => {
   if (card) {
     e.preventDefault();
     const section = navData?.sections?.[Number(card.dataset.navSection)];
-    if (section?.pages?.length) loadPage(section.pages[0].file);
+    const firstPage = getFirstNavPage(section?.pages || []);
+    if (firstPage) loadPage(firstPage.file);
     return;
   }
   // Landing quick link -> specific page
@@ -427,7 +463,7 @@ async function buildSearchIndex() {
         .replace(/https?:\S+/g, '')
         .replace(/\s+/g, ' ')
         .trim();
-      return { file: page.file, sectionTitle: page.sectionTitle, pageTitle: page.title, headings, text };
+      return { file: page.file, sectionTitle: pageGroupLabel(page), pageTitle: page.title, headings, text };
     } catch { return null; }
   });
   searchIndex = (await Promise.all(tasks)).filter(Boolean);
@@ -659,16 +695,18 @@ function buildLanding() {
     block.innerHTML = `<h2>${escapeHtml(tier)}</h2><div class="landing-tier-cards" style="--tier-cols:${cols}"></div>`;
     const cardsWrap = block.querySelector('.landing-tier-cards');
     byTier.get(tier).forEach(({ section, i }) => {
+      const firstPage = getFirstNavPage(section.pages);
+      const pageCount = countNavPages(section.pages);
       const a = document.createElement('a');
       a.className = 'card';
-      a.href = section.pages[0] ? getPageUrl(section.pages[0]) : '#';
+      a.href = firstPage ? getPageUrl(firstPage) : '#';
       a.dataset.navSection = i;
-      const desc = section.desc || `${section.pages.length} page${section.pages.length === 1 ? '' : 's'} in ${section.title}.`;
+      const desc = section.desc || `${pageCount} page${pageCount === 1 ? '' : 's'} in ${section.title}.`;
       a.innerHTML = `
         <div class="card-icon">${sectionIconTag(section)}</div>
         <div class="card-title">${escapeHtml(section.title)}</div>
         <div class="card-desc">${escapeHtml(desc)}</div>
-        <div class="card-meta"><span>${section.pages.length} page${section.pages.length === 1 ? '' : 's'}</span><span class="dot"></span><span>${escapeHtml(getSectionKind(section))}</span></div>
+        <div class="card-meta"><span>${pageCount} page${pageCount === 1 ? '' : 's'}</span><span class="dot"></span><span>${escapeHtml(getSectionKind(section))}</span></div>
       `;
       cardsWrap.appendChild(a);
     });
@@ -676,6 +714,29 @@ function buildLanding() {
   });
 
   renderLucideIcons();
+}
+
+function sidebarPagesHTML(nodes, level = 0) {
+  return getNavChildren({ pages: nodes }).map(node => {
+    if (isNavPage(node)) {
+      return `<a class="sb-link" data-file="${escapeAttr(node.file)}" href="${escapeAttr(getPageUrl(node))}">${escapeHtml(node.title)}</a>`;
+    }
+
+    const children = getNavChildren(node);
+    const pageCount = countNavPages(children);
+    if (!children.length) return '';
+    return `
+      <div class="sb-group" data-open="false" data-depth="${level}">
+        <button class="sb-group-btn" type="button">
+          <span class="sb-group-title">${escapeHtml(node.title || 'Group')}</span>
+          <span class="sb-group-count">${pageCount}</span>
+          <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 2 4 4-4 4"/></svg>
+        </button>
+        <div class="sb-group-pages">
+          ${sidebarPagesHTML(children, level + 1)}
+        </div>
+      </div>`;
+  }).join('');
 }
 
 /* ─── Sidebar (accordion) — used for desktop sidebar AND mobile drawer ──── */
@@ -693,18 +754,21 @@ function sidebarSectionsHTML() {
 
   return orderedTiers.map(tier => {
     const header = `<div class="sb-tier-header">${escapeHtml(tier)}</div>`;
-    const sections = byTier.get(tier).map(({ section, si }) => `
+    const sections = byTier.get(tier).map(({ section, si }) => {
+      const pageCount = countNavPages(section.pages);
+      return `
     <div class="sb-section" data-section-idx="${si}" data-section-title="${escapeAttr(section.title)}" data-open="false">
       <button class="sb-section-btn" type="button">
         <span class="sb-section-icon">${sectionIconTag(section)}</span>
         <span class="sb-section-title">${escapeHtml(section.title)}</span>
-        <span class="sb-section-count">${section.pages.length}</span>
+        <span class="sb-section-count">${pageCount}</span>
         <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 2 4 4-4 4"/></svg>
       </button>
       <div class="sb-pages">
-        ${section.pages.map(page => `<a class="sb-link" data-file="${escapeAttr(page.file)}" href="${escapeAttr(getPageUrl(page))}">${escapeHtml(page.title)}</a>`).join('')}
+        ${sidebarPagesHTML(section.pages)}
       </div>
-    </div>`).join('');
+    </div>`;
+    }).join('');
     return header + sections;
   }).join('');
 }
@@ -715,6 +779,12 @@ function wireSidebarContainer(container) {
     if (secBtn) {
       const sec = secBtn.parentElement;
       sec.dataset.open = sec.dataset.open === 'true' ? 'false' : 'true';
+      return;
+    }
+    const groupBtn = e.target.closest('.sb-group-btn');
+    if (groupBtn) {
+      const group = groupBtn.parentElement;
+      group.dataset.open = group.dataset.open === 'true' ? 'false' : 'true';
       return;
     }
     const link = e.target.closest('.sb-link');
@@ -744,17 +814,29 @@ function buildMobileDrawer() {
 function buildFlatList() {
   allPages = [];
   const slugCounts = new Map();
-  navData.sections.forEach(section => {
-    section.pages.forEach(page => {
-      const baseSlug = normalizeRouteKey(page.slug || derivePageSlug(page.file));
-      const seenCount = slugCounts.get(baseSlug) || 0;
-      page.slug = seenCount === 0 ? baseSlug : `${baseSlug}-${seenCount + 1}`;
-      slugCounts.set(baseSlug, seenCount + 1);
-      allPages.push({
-        ...page,
-        sectionTitle: section.title,
-      });
+
+  function visitNodes(nodes, section, groupTrail = []) {
+    getNavChildren({ pages: nodes }).forEach(node => {
+      if (isNavPage(node)) {
+        const baseSlug = normalizeRouteKey(node.slug || derivePageSlug(node.file));
+        const seenCount = slugCounts.get(baseSlug) || 0;
+        node.slug = seenCount === 0 ? baseSlug : `${baseSlug}-${seenCount + 1}`;
+        slugCounts.set(baseSlug, seenCount + 1);
+        allPages.push({
+          ...node,
+          sectionTitle: section.title,
+          navTrail: [section.title, ...groupTrail, node.title],
+        });
+        return;
+      }
+
+      const children = getNavChildren(node);
+      if (children.length) visitNodes(children, section, [...groupTrail, node.title].filter(Boolean));
     });
+  }
+
+  navData.sections.forEach(section => {
+    visitNodes(section.pages, section);
   });
 }
 
@@ -856,7 +938,7 @@ function insertMetaRow(article, page) {
   if (article.querySelector('.meta-row')) return;
   const row = document.createElement('div');
   row.className = 'meta-row';
-  row.innerHTML = `<span class="chip">${escapeHtml(page.sectionTitle)}</span><span class="spacer"></span>`;
+  row.innerHTML = `<span class="chip">${escapeHtml(pageGroupLabel(page))}</span><span class="spacer"></span>`;
   h1.after(row);
   row.appendChild(buildPageActions(page));
 }
@@ -953,11 +1035,12 @@ function updateBreadcrumb(page) {
   const bc = document.getElementById('breadcrumb');
   if (!bc) return;
   if (!page) { bc.innerHTML = ''; return; }
-  bc.innerHTML = `
-    <span>${escapeHtml(page.sectionTitle)}</span>
-    <span class="sep">/</span>
-    <span class="crumb-current">${escapeHtml(page.title)}</span>
-  `;
+  const trail = pageTrail(page);
+  bc.innerHTML = trail.map((crumb, index) => {
+    const isCurrent = index === trail.length - 1;
+    const crumbHtml = `<span${isCurrent ? ' class="crumb-current"' : ''}>${escapeHtml(crumb)}</span>`;
+    return index === 0 ? crumbHtml : `<span class="sep">/</span>${crumbHtml}`;
+  }).join('');
 }
 
 /* ─── Active state ──────────────────────────────────────────────────────── */
@@ -972,7 +1055,15 @@ function setActiveState(file) {
       if (isActive) sec.dataset.open = 'true';
     });
     container.querySelectorAll('.sb-link').forEach(link => {
-      link.classList.toggle('active', link.dataset.file === file);
+      const isActive = link.dataset.file === file;
+      link.classList.toggle('active', isActive);
+      if (isActive) {
+        for (let parent = link.parentElement; parent; parent = parent.parentElement) {
+          if (parent.classList?.contains('sb-section') || parent.classList?.contains('sb-group')) {
+            parent.dataset.open = 'true';
+          }
+        }
+      }
     });
   });
 }

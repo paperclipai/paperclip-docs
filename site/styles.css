@@ -577,6 +577,36 @@
     }
     .sb-section[data-open="true"] .sb-pages { display: block; }
 
+    .sb-group { margin: 2px 0; }
+    .sb-group-btn {
+      width: 100%;
+      display: flex; align-items: center; gap: 7px;
+      padding: 5px 10px;
+      border: none; background: none; cursor: pointer;
+      border-radius: 6px;
+      font-family: var(--font-body);
+      font-size: 12px; font-weight: 600;
+      color: var(--graphite);
+      text-align: left;
+      transition: background var(--transition), color var(--transition);
+    }
+    .sb-group-btn:hover { color: var(--ink); background: var(--parchment); }
+    .sb-group-btn .chev {
+      width: 10px; height: 10px; color: var(--ash);
+      transition: transform var(--transition);
+      flex-shrink: 0;
+    }
+    .sb-group[data-open="true"] > .sb-group-btn .chev { transform: rotate(90deg); }
+    .sb-group-title { flex: 1; }
+    .sb-group-count { font-size: 10px; color: var(--ash); font-weight: 500; }
+    .sb-group-pages {
+      display: none;
+      padding: 1px 0 3px 12px;
+      margin-left: 5px;
+      border-left: 1px solid var(--stone);
+    }
+    .sb-group[data-open="true"] > .sb-group-pages { display: block; }
+
     .sb-link {
       display: block; padding: 5px 10px;
       margin-bottom: 2px;
