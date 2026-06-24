@@ -27,6 +27,10 @@ let allPages    = [];
 let currentFile = null;
 let currentMarkdown = '';
 let tocObserver = null;
+let tocScrollHandler = null;
+let tocResizeHandler = null;
+let tocDocumentClickHandler = null;
+let tocKeydownHandler = null;
 const APP_DIR_NAME = 'site';
 const APP_BASE_PATH = (() => {
   const marker = `/${APP_DIR_NAME}`;
@@ -1263,15 +1267,49 @@ function postProcessInternalLinks(root) {
   });
 }
 
-/* ─── Table of contents (pill toggle + floating dropdown) ───────────────── */
+/* ─── Table of contents (desktop rail + compact dropdown) ───────────────── */
+function resetToc() {
+  if (tocObserver) {
+    tocObserver.disconnect();
+    tocObserver = null;
+  }
+  if (tocScrollHandler) {
+    window.removeEventListener('scroll', tocScrollHandler);
+    tocScrollHandler = null;
+  }
+  if (tocResizeHandler) {
+    window.removeEventListener('resize', tocResizeHandler);
+    tocResizeHandler = null;
+  }
+  if (tocDocumentClickHandler) {
+    document.removeEventListener('click', tocDocumentClickHandler);
+    tocDocumentClickHandler = null;
+  }
+  if (tocKeydownHandler) {
+    document.removeEventListener('keydown', tocKeydownHandler);
+    tocKeydownHandler = null;
+  }
+
+  document.querySelectorAll('.toc-wrap').forEach(el => el.remove());
+  const rail = document.getElementById('toc-rail');
+  const railLinks = document.getElementById('toc-rail-links');
+  if (railLinks) railLinks.innerHTML = '';
+  if (rail) rail.classList.add('is-empty');
+}
+
+function headingLabel(heading) {
+  const clone = heading.cloneNode(true);
+  clone.querySelectorAll('.heading-anchor').forEach(anchor => anchor.remove());
+  return clone.textContent.trim();
+}
+
 function buildToc(article, file) {
-  if (tocObserver) { tocObserver.disconnect(); tocObserver = null; }
+  resetToc();
 
   const metaRow = article.querySelector('.meta-row');
-  if (!metaRow) return;
-
-  // Clear previous (defensive)
-  metaRow.querySelector('.toc-wrap')?.remove();
+  const rail = document.getElementById('toc-rail');
+  const railLinks = document.getElementById('toc-rail-links');
+  if (!metaRow || !rail || !railLinks) return;
 
   const headings = [...article.querySelectorAll('h2, h3')];
   if (headings.length < 2) return;
@@ -1280,6 +1318,21 @@ function buildToc(article, file) {
 
   const CHEVRON_SVG = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3 4.5 3 3 3-3"/></svg>';
   const TOC_SVG = '<svg class="toc-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h10M3 8h7M3 12h9"/></svg>';
+
+  function makeTocLink(heading, onClick) {
+    const a = document.createElement('a');
+    a.className = `toc-link ${heading.tagName === 'H3' ? 'level-3' : 'level-2'}`;
+    a.dataset.headingId = heading.id;
+    a.textContent = headingLabel(heading);
+    a.href = page ? getPageHeadingUrl(page, heading.id) : `#${heading.id}`;
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      if (page) history.pushState(null, '', getPageHeadingUrl(page, heading.id));
+      focusHeading(heading);
+      if (onClick) onClick();
+    });
+    return a;
+  }
 
   const wrap = document.createElement('div');
   wrap.className = 'toc-wrap';
@@ -1300,46 +1353,64 @@ function buildToc(article, file) {
   const openPanel = () => { panel.classList.add('is-open'); toggle.setAttribute('aria-expanded', 'true'); };
 
   headings.forEach(h => {
-    const a = document.createElement('a');
-    a.className = `toc-link ${h.tagName === 'H3' ? 'level-3' : 'level-2'}`;
-    a.dataset.headingId = h.id;
-    // Use textContent minus the trailing heading-anchor (the anchor was appended after text, so textContent
-    // after decorateHeadings still has the svg text — but textContent on an <a> with svg is empty. Safe to use h.textContent which
-    // includes only text nodes and keyboard chars from svg text (none). In practice this works.
-    a.textContent = h.textContent.trim();
-    a.href = page ? getPageHeadingUrl(page, h.id) : `#${h.id}`;
-    a.addEventListener('click', e => {
-      e.preventDefault();
-      if (page) history.pushState(null, '', getPageHeadingUrl(page, h.id));
-      focusHeading(h);
-      closePanel();
-    });
-    panel.appendChild(a);
+    panel.appendChild(makeTocLink(h, closePanel));
+    railLinks.appendChild(makeTocLink(h));
   });
   metaRow.appendChild(wrap);
+  rail.classList.remove('is-empty');
 
   toggle.addEventListener('click', e => {
     e.stopPropagation();
     panel.classList.contains('is-open') ? closePanel() : openPanel();
   });
-  document.addEventListener('click', e => {
+  tocDocumentClickHandler = e => {
     if (panel.classList.contains('is-open') && !wrap.contains(e.target)) closePanel();
-  });
-  document.addEventListener('keydown', e => {
+  };
+  tocKeydownHandler = e => {
     if (e.key === 'Escape' && panel.classList.contains('is-open')) closePanel();
-  });
+  };
+  document.addEventListener('click', tocDocumentClickHandler);
+  document.addEventListener('keydown', tocKeydownHandler);
 
-  const links = panel.querySelectorAll('.toc-link');
-  tocObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.id;
-        links.forEach(l => l.classList.toggle('active', l.dataset.headingId === id));
-      }
-    });
-  }, { rootMargin: `-${56 + 40 + 20}px 0px -68% 0px`, threshold: 0 });
+  const links = [...document.querySelectorAll('.toc-link')];
+  const setActiveLink = id => {
+    links.forEach(link => link.classList.toggle('active', link.dataset.headingId === id));
+  };
+  const getActiveHeading = () => {
+    const offset = 136;
+    const bottomSlack = 4;
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - bottomSlack) {
+      return headings[headings.length - 1];
+    }
+
+    let active = headings[0];
+    for (const heading of headings) {
+      if (heading.getBoundingClientRect().top <= offset) active = heading;
+      else break;
+    }
+    return active;
+  };
+  let tocFrame = 0;
+  const updateActive = () => {
+    tocFrame = 0;
+    setActiveLink(getActiveHeading().id);
+  };
+  const scheduleActiveUpdate = () => {
+    if (tocFrame) return;
+    tocFrame = window.requestAnimationFrame(updateActive);
+  };
+
+  tocScrollHandler = scheduleActiveUpdate;
+  tocResizeHandler = scheduleActiveUpdate;
+  window.addEventListener('scroll', tocScrollHandler, { passive: true });
+  window.addEventListener('resize', tocResizeHandler);
+  tocObserver = new IntersectionObserver(scheduleActiveUpdate, {
+    rootMargin: '-136px 0px -62% 0px',
+    threshold: [0, 1],
+  });
 
   headings.forEach(h => tocObserver.observe(h));
+  updateActive();
 }
 
 /* ─── Prev/next ─────────────────────────────────────────────────────────── */
@@ -1374,6 +1445,7 @@ function renderPageNav(file) {
 
 /* ─── Helpers ───────────────────────────────────────────────────────────── */
 function showLoading() {
+  resetToc();
   document.getElementById('loading').style.display     = 'flex';
   document.getElementById('error-state').style.display = 'none';
   document.getElementById('article').style.display     = 'none';
@@ -1385,6 +1457,7 @@ function hideLoading() { document.getElementById('loading').style.display = 'non
 function showError(msg, detail = '') {
   // Error state lives inside article-view; make sure the right view is showing.
   showArticleView();
+  resetToc();
   document.getElementById('loading').style.display     = 'none';
   document.getElementById('article').style.display     = 'none';
   document.getElementById('page-nav').style.display    = 'none';
