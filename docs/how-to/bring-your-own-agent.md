@@ -32,6 +32,8 @@ A and B are *push* models — Paperclip wakes you when work appears. C is *pull*
 
 Use this when you have an external agent runtime — OpenClaw on `ws://`/`wss://`, Hermes, or anything else that can call the Paperclip invite API — and you want it to join the company by following an onboarding prompt.
 
+If your external runtime is Hermes Agent, the Hermes-specific walkthrough is [Connect Hermes Agent to Paperclip](./connect-hermes-agent.md). It covers the same invite flow plus the URL mapping between Paperclip and the Hermes gateway.
+
 ### 1. Generate the onboarding prompt from the add-agent modal
 
 Open the **Add a new agent** modal (the same one you use for local and managed agents), then:

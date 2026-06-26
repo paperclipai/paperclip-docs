@@ -183,6 +183,10 @@
           "file": "../docs/how-to/connect-agent-to-github.md"
         },
         {
+          "title": "Connect Hermes Agent to Paperclip",
+          "file": "../docs/how-to/connect-hermes-agent.md"
+        },
+        {
           "title": "Update or Rotate a Provider API Key",
           "file": "../docs/how-to/rotate-provider-api-key.md"
         },
