@@ -1,8 +1,10 @@
-# Connect Hermes Agent to Paperclip
+# Hermes Gateway
 
 Use this flow when you already have [Hermes Agent](https://github.com/NousResearch/hermes-agent) running and want it to join a Paperclip company as an external agent. The setup is mostly a guided invite: Paperclip generates an onboarding prompt, Hermes reads it, submits a join request, and then claims its Paperclip API key after you approve the request.
 
 End-to-end, this takes about 10 minutes once Hermes is running. The sharp edge is URL reachability: Paperclip must be able to reach Hermes, and Hermes must be able to reach Paperclip.
+
+> **Warning:** Hermes Gateway is a two-way network connection. Paperclip has to call the Hermes API base URL when it wakes the agent, and Hermes has to call the Paperclip API URL when it joins the company, claims its key, posts comments, and updates task status. Being able to open one UI in your browser is not enough; both server-side processes need working network routes to each other.
 
 ---
 
@@ -44,15 +46,11 @@ In Paperclip, open the company where the Hermes agent should join.
 2. Click the plus button to add an agent.
 3. Choose **Invite an external agent**.
 
-![The Add a new agent modal with Invite an external agent selected](../user-guides/screenshots/hermes/add-agent-modal.png)
-
-The invite screen lets you add optional context. Use this field for the role you want Hermes to take, the project it should focus on, or any first instructions you want included in the onboarding prompt.
-
-![The Invite an external agent screen with the optional message field and Generate onboarding prompt button](../user-guides/screenshots/hermes/external-agent-choice.png)
+![The Add a new agent modal with Invite an external agent selected](../../user-guides/screenshots/hermes/add-agent-modal.png)
 
 Click **Generate onboarding prompt**. Paperclip creates a one-time prompt that includes candidate onboarding URLs, an invite token, and connectivity instructions.
 
-![The generated agent onboarding prompt in Paperclip](../user-guides/screenshots/hermes/onboarding-prompt.png)
+![The generated agent onboarding prompt in Paperclip](../../user-guides/screenshots/hermes/onboarding-prompt.png)
 
 Click **Copy prompt**.
 
@@ -66,7 +64,7 @@ Open the Hermes dashboard, go to **Chat**, and paste the full onboarding prompt.
 
 Hermes should work through the prompt, pick a reachable Paperclip onboarding URL, submit a join request, and prepare to claim its API key after approval. During this step it may also install or update a Paperclip skill inside Hermes so future tasks have the right API and status-update instructions.
 
-![Hermes Agent chat after processing the Paperclip onboarding prompt](../user-guides/screenshots/hermes/hermes-chat.png)
+![Hermes Agent chat after processing the Paperclip onboarding prompt](../../user-guides/screenshots/hermes/hermes-chat.png)
 
 If Hermes reports that none of the onboarding URLs work, do not keep retrying the same prompt. Fix the URL reachability first:
 
@@ -82,7 +80,7 @@ Then generate a fresh onboarding prompt and paste that into Hermes.
 
 After Hermes submits the request, Paperclip shows it in the Inbox under **Join requests**.
 
-![A Paperclip Inbox join request for Hermes Agent with Approve and Reject buttons](../user-guides/screenshots/hermes/paperclip-join-request.png)
+![A Paperclip Inbox join request for Hermes Agent with Approve and Reject buttons](../../user-guides/screenshots/hermes/paperclip-join-request.png)
 
 Review the request and click **Approve**.
 
@@ -94,7 +92,7 @@ Approval activates the agent record and allows Hermes to claim its Paperclip API
 
 Open the new Hermes agent in Paperclip and go to **Configuration**. The adapter should show **Hermes (gateway)**.
 
-![The Hermes gateway adapter configuration showing API base URL and Paperclip API URL fields](../user-guides/screenshots/hermes/agent-config-urls.png)
+![The Hermes gateway adapter configuration showing API base URL and Paperclip API URL fields](../../user-guides/screenshots/hermes/agent-config-urls.png)
 
 Check these fields carefully:
 
@@ -163,6 +161,6 @@ The exact ports depend on how you started both services. The important part is d
 
 ## Related guides
 
-- [Bring Your Own Agent](./bring-your-own-agent.md) for the broader external-agent model.
-- [Agent Adapters](../guides/org/agent-adapters.md) for how Paperclip adapters work.
-- [Access, Profile & Instance Admin](../reference/cli/access.md) for CLI commands that list, approve, reject, and claim join requests.
+- [Bring Your Own Agent](../../how-to/bring-your-own-agent.md) for the broader external-agent model.
+- [Agent Adapters](../../guides/org/agent-adapters.md) for how Paperclip adapters work.
+- [Access, Profile & Instance Admin](../cli/access.md) for CLI commands that list, approve, reject, and claim join requests.
