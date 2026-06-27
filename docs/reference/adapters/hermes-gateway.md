@@ -4,6 +4,11 @@ Use this flow when you already have [Hermes Agent](https://github.com/NousResear
 
 End-to-end, this takes about 10 minutes once Hermes is running. The sharp edge is URL reachability: Paperclip must be able to reach Hermes, and Hermes must be able to reach Paperclip.
 
+When setup is complete, you get bidirectional communication:
+
+1. From Hermes, you can create Paperclip tasks and use the rest of the Paperclip API.
+2. From Paperclip, you can assign tasks to the Hermes agent and receive its comments, status updates, and run results back in Paperclip.
+
 > **Warning:** Hermes Gateway is a two-way network connection. Paperclip has to call the Hermes API base URL when it wakes the agent, and Hermes has to call the Paperclip API URL when it joins the company, claims its key, posts comments, and updates task status. Being able to open one UI in your browser is not enough; both server-side processes need working network routes to each other.
 
 ---
@@ -61,6 +66,8 @@ Click **Copy prompt**.
 ## 3. Paste the prompt into Hermes
 
 Open the Hermes dashboard, go to **Chat**, and paste the full onboarding prompt.
+
+> **Warning:** Model setup runs are non-deterministic. If Hermes misses a step, fails to pick the reachable URL, or stops before submitting the join request, paste the onboarding prompt again. A stronger model is better for this setup flow than a weak one; use something like Opus, GPT-5.5, or GLM-5.2 when you can.
 
 Hermes should work through the prompt, pick a reachable Paperclip onboarding URL, submit a join request, and prepare to claim its API key after approval. During this step it may also install or update a Paperclip skill inside Hermes so future tasks have the right API and status-update instructions.
 
