@@ -651,6 +651,18 @@
           "file": "../docs/reference/deploy/tailscale-private-access.md"
         }
       ]
+    },
+    {
+      "tier": "Reference",
+      "title": "Releases",
+      "icon": "rocket",
+      "desc": "Changelogs and release notes for Paperclip.",
+      "pages": [
+        {
+          "title": "v2026.618.0",
+          "file": "../docs/reference/releases/v2026-618-0.md"
+        }
+      ]
     }
   ]
 }
