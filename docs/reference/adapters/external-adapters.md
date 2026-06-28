@@ -201,6 +201,91 @@ The operator-facing walkthrough of pausing, resuming, and removing overrides liv
 
 ---
 
+## End-To-End Example
+
+You don't need a full plugin package to build something that behaves like an external agent. The [`process`](./process.md) adapter spawns any command with the standard Paperclip environment injected — the script below is the minimum viable agent loop:
+
+1. Read the wake context from environment variables.
+2. Authenticate to Paperclip with the injected JWT.
+3. Post a comment on the triggering issue.
+4. Mark the issue `done`.
+5. Exit cleanly so the heartbeat finishes.
+
+Save this as `agent.py` and configure a `process` adapter that points to `python3 agent.py`:
+
+```python
+#!/usr/bin/env python3
+"""Minimal Paperclip agent. Reads wake context, posts a comment, marks done."""
+import os
+import sys
+import json
+import urllib.request
+
+API_URL = os.environ["PAPERCLIP_API_URL"].rstrip("/")
+API_KEY = os.environ["PAPERCLIP_API_KEY"]
+RUN_ID = os.environ["PAPERCLIP_RUN_ID"]
+TASK_ID = os.environ.get("PAPERCLIP_TASK_ID")
+WAKE_REASON = os.environ.get("PAPERCLIP_WAKE_REASON", "scheduled")
+
+if not TASK_ID:
+    print(f"No task to work on (wake_reason={WAKE_REASON}). Exiting.")
+    sys.exit(0)
+
+
+def call(method: str, path: str, body: dict | None = None) -> dict:
+    req = urllib.request.Request(
+        f"{API_URL}{path}",
+        method=method,
+        headers={
+            "Authorization": f"Bearer {API_KEY}",
+            "X-Paperclip-Run-Id": RUN_ID,
+            "Content-Type": "application/json",
+        },
+        data=json.dumps(body).encode() if body else None,
+    )
+    with urllib.request.urlopen(req) as resp:
+        return json.loads(resp.read() or b"{}")
+
+
+# 1. Post progress comment.
+call("POST", f"/api/issues/{TASK_ID}/comments", {
+    "body": "Picked up by the example process adapter.",
+})
+
+# 2. Do whatever the agent actually does here.
+#    (For this example, that's nothing.)
+
+# 3. Mark the issue done with a closing comment.
+call("PATCH", f"/api/issues/{TASK_ID}", {
+    "status": "done",
+    "comment": "Done — example adapter completed without errors.",
+})
+
+print(f"Run {RUN_ID} finished cleanly for issue {TASK_ID}.")
+```
+
+The script uses `PAPERCLIP_API_KEY` (the injected short-lived JWT) for auth and includes `X-Paperclip-Run-Id` on every mutating request so the audit log attributes the changes to this run. No platform-side secret (`PAPERCLIP_AGENT_JWT_SECRET`) is touched — the script only ever holds the bearer token Paperclip handed it.
+
+To run this as a real agent:
+
+```json
+{
+  "adapterType": "process",
+  "adapterConfig": {
+    "command": "python3",
+    "args": ["agent.py"],
+    "cwd": "/path/to/agent",
+    "timeoutSec": 60
+  }
+}
+```
+
+Assign an issue to the agent. On the next heartbeat, Paperclip spawns `python3 agent.py`, the script comments on the issue, marks it `done`, and the run window closes.
+
+Promote this into a real external adapter package by moving the loop into `createServerAdapter().execute()` and exposing the package via the [Server Contract](#server-contract).
+
+---
+
 ## Next Steps
 
 - [Creating an Adapter](./creating-an-adapter.md)

@@ -2,221 +2,504 @@
 paperclip_version: v2026.618.0
 ---
 
-# Environment Variables
+# Environment Variables & Config
 
-This page lists the environment variables Paperclip reads for server configuration and the variables it injects into agent processes at runtime.
+This is the canonical reference for every `PAPERCLIP_*` environment variable Paperclip reads or injects, every related env var (provider keys, auth, database), and every field of the `config.json` file.
 
-Use it when you are wiring a deployment, debugging a startup issue, or checking what an adapter can see inside its process environment.
+Use it when you are wiring a deployment, debugging a startup issue, writing an adapter, or trying to understand what an agent process can see in its environment.
 
----
-
-## Server Configuration
-
-| Variable | Default | Meaning |
-|---|---|---|
-| `PORT` | `3100` | Server port |
-| `HOST` | `127.0.0.1` | Server host binding |
-| `DATABASE_URL` | embedded PostgreSQL | PostgreSQL connection string |
-| `DATABASE_MIGRATION_URL` | falls back to `DATABASE_URL` | Optional PostgreSQL URL used only when running migrations — useful when your runtime user lacks DDL rights and a separate role applies schema changes. |
-| `PAPERCLIP_HOME` | `~/.paperclip` | Base directory for all Paperclip data |
-| `PAPERCLIP_INSTANCE_ID` | `default` | Instance identifier for multiple local instances |
-| `PAPERCLIP_DEPLOYMENT_MODE` | `local_trusted` | Runtime mode override |
-| `SERVE_UI` | `true` (from `server.serveUi` in `config.json`) | When set, overrides the file-config flag that controls whether the server serves the bundled UI. `SERVE_UI=true` enables it; `SERVE_UI=false` disables it. |
-| `PAPERCLIP_BIND` | inferred from `HOST` | Bind mode for the server socket. One of the values in `BIND_MODES` (see `packages/shared`); overrides `server.bind` in `config.json`. |
-| `PAPERCLIP_BIND_HOST` | inferred | Custom host when `PAPERCLIP_BIND` is set to a custom mode; overrides `server.customBindHost`. |
-| `PAPERCLIP_TAILNET_BIND_HOST` | auto-detected via `tailscale ip -4` | Tailnet IPv4 address the server binds to when bind mode is `tailnet`. Set explicitly to skip the `tailscale` CLI probe. |
-
-> **Note:** `DATABASE_URL` is the main switch between the embedded database and external PostgreSQL.
+> **Secret values are flagged with a `Secret` column.** Treat anything marked `yes` as sensitive — never commit it to git, never log it, and prefer the secrets store ([Secrets](./secrets.md)) over flat env vars in production.
 
 ---
 
-## Deployment And Auth
+## 1. Where settings come from
 
-These variables matter most once you move beyond a default local install.
+Paperclip resolves configuration in this precedence order, highest first:
+
+1. **Process environment** — env vars set in the shell or process manager.
+2. **`.paperclip/.env`** — a dotenv file next to the active `config.json`. Loaded before the server reads its own config.
+3. **`config.json`** — the structured JSON config file (see [§5](#5-config-file-paperclipinstancesidconfigjson)).
+4. **Built-in defaults** — the Zod schema in `packages/shared/src/config-schema.ts`.
+
+Locations:
+
+- `PAPERCLIP_HOME` (default `~/.paperclip`) is the root of all Paperclip data.
+- `PAPERCLIP_INSTANCE_ID` (default `default`) selects an instance under that root.
+- `PAPERCLIP_CONFIG` overrides the config path explicitly. Otherwise the resolved path is `$PAPERCLIP_HOME/instances/$PAPERCLIP_INSTANCE_ID/config.json`.
+- The `paperclipai doctor` and `paperclipai onboard` commands write to that same file.
+
+> **Note:** There is no `paperclip.config.ts`. The config file is always JSON, validated by the Zod schema. CLI commands edit it; you can hand-edit it as long as it stays valid.
+
+---
+
+## 2. Heartbeat-injected env vars
+
+These variables are injected by the Paperclip server when it launches an agent run. They are visible inside any spawned adapter process — Claude Code, Codex CLI, Gemini, OpenClaw, custom HTTP webhooks, anything wired through the [Process](../adapters/process.md) or [HTTP](../adapters/http.md) adapter.
+
+If you are writing an agent runtime or skill, read these to understand the context the run is about.
+
+### Always set
 
 | Variable | Meaning |
 |---|---|
-| `PAPERCLIP_PUBLIC_URL` | Canonical public URL for invites, redirects, and auth origin wiring. |
-| `PAPERCLIP_AUTH_PUBLIC_BASE_URL` | Explicit auth base URL when you want Better Auth to use a fixed public origin. |
-| `BETTER_AUTH_URL` | Alternate Better Auth base URL input. |
-| `BETTER_AUTH_SECRET` | Signing secret for Better Auth sessions and tokens. Falls back to `PAPERCLIP_AGENT_JWT_SECRET` when unset; the server refuses to start if neither is configured. For local development the `.env.example` ships `paperclip-dev-secret`. |
-| `BETTER_AUTH_BASE_URL` | Alternate Better Auth base URL input used by some deployments. |
-| `BETTER_AUTH_TRUSTED_ORIGINS` | Comma-separated allowlist of trusted auth origins. |
-| `PAPERCLIP_AGENT_JWT_SECRET` | Secret used to mint agent API JWTs. Required for local adapter auth. |
-| `PAPERCLIP_AGENT_JWT_TTL_SECONDS` | Agent JWT lifetime in seconds. |
-| `PAPERCLIP_AGENT_JWT_ISSUER` | Agent JWT issuer. |
-| `PAPERCLIP_AGENT_JWT_AUDIENCE` | Agent JWT audience. |
+| `PAPERCLIP_AGENT_ID` | UUID of the agent this run is for. |
+| `PAPERCLIP_AGENT_NAME` | Human-readable agent name (e.g. `cto`). |
+| `PAPERCLIP_COMPANY_ID` | Company UUID the agent belongs to. |
+| `PAPERCLIP_API_URL` | Base URL of the Paperclip control plane. Built from `PAPERCLIP_LISTEN_HOST`/`PAPERCLIP_LISTEN_PORT` (default `http://127.0.0.1:3100`). |
+| `PAPERCLIP_RUN_ID` | UUID of the current heartbeat run. **Pass back as `X-Paperclip-Run-Id` on every mutating API request** so audit log entries link to this run. |
 
-Related deployment variables:
+### Authentication
 
-| Variable | Meaning |
-|---|---|
-| `PAPERCLIP_DEPLOYMENT_EXPOSURE` | Exposure policy override, typically `private` or `public` in authenticated mode. |
-| `PAPERCLIP_AUTH_BASE_URL_MODE` | Base URL handling mode, such as `auto` or `explicit`. |
-| `PAPERCLIP_ALLOWED_HOSTNAMES` | Comma-separated allowlist for authenticated/private host validation. |
-| `TRUST_PROXY` | How much to trust the `X-Forwarded-For` header when the server sits behind a reverse proxy or load balancer. Defaults to unset (trust nothing). See below. |
+| Variable | Always set? | Secret | Meaning |
+|---|---|---|---|
+| `PAPERCLIP_API_KEY` | local adapters | yes | Short-lived JWT minted from `PAPERCLIP_AGENT_JWT_SECRET` (default TTL 48 h). Use as `Authorization: Bearer $PAPERCLIP_API_KEY`. For non-local adapters (HTTP, OpenClaw), the operator sets a long-lived key in adapter config. |
 
-> **Tip:** If `paperclipai doctor` is failing on hostnames, redirects, or auth origins, inspect this group first.
+### Wake context (set when the wake reason fits)
 
-### Trusting a reverse proxy (`TRUST_PROXY`)
-
-When you run Paperclip behind a load balancer or reverse proxy (nginx, Caddy, a cloud LB), the real client IP arrives in the `X-Forwarded-For` header rather than on the socket. `TRUST_PROXY` tells the server how far to trust that header so `req.ip` and rate-limiting see the actual client instead of your proxy.
-
-The default is **unset**, which trusts nothing — the safe choice, because an untrusted client can otherwise spoof its address by sending its own `X-Forwarded-For`. Only opt in when there really is a proxy in front of the server.
-
-Accepted values:
-
-| Value | Meaning |
-|---|---|
-| unset, `""`, `false`, `0` | Trust nothing. The default. |
-| `true` | Trust the header unconditionally. **Unsafe** unless the server is unreachable except through your proxy. |
-| a positive integer (e.g. `1`) | Trust that many proxy hops. Use `1` for a single LB in front of the server. |
-| a comma-separated list | Trust specific sources by named subnet (`loopback`, `linklocal`, `uniquelocal`) or CIDR (e.g. `10.0.0.0/8`, `fd00::/8`). |
-
-A malformed value (a stray sign, leading zeros, or an unrecognised token) makes the server **refuse to start** with an explanatory error, so a typo fails loudly rather than silently disabling proxy trust. After setting it, confirm `req.ip` in the request log matches the real client IP through your proxy.
-
----
-
-## Secrets
-
-| Variable | Meaning |
-|---|---|
-| `PAPERCLIP_SECRETS_MASTER_KEY` | 32-byte encryption key as base64, hex, or raw |
-| `PAPERCLIP_SECRETS_MASTER_KEY_FILE` | Path to the local key file |
-| `PAPERCLIP_SECRETS_STRICT_MODE` | Require secret refs for server-side env bindings. Does not apply to `paperclipai configure --section llm` or `config.llm.apiKey`. |
-
-These values are covered in more detail in [Secrets](./secrets.md).
-
----
-
-## Storage
-
-| Variable | Meaning |
-|---|---|
-| `PAPERCLIP_STORAGE_PROVIDER` | Storage backend, usually `local_disk` or `s3`. |
-| `PAPERCLIP_STORAGE_LOCAL_DIR` | Base directory for local-disk storage. |
-| `PAPERCLIP_STORAGE_S3_BUCKET` | S3 bucket name. |
-| `PAPERCLIP_STORAGE_S3_REGION` | S3 region. |
-| `PAPERCLIP_STORAGE_S3_ENDPOINT` | Custom S3-compatible endpoint for MinIO, R2, and similar providers. |
-| `PAPERCLIP_STORAGE_S3_PREFIX` | Optional object key prefix. |
-| `PAPERCLIP_STORAGE_S3_FORCE_PATH_STYLE` | Enable path-style S3 requests when the provider needs them. |
-
----
-
-## Scheduler
-
-| Variable | Default | Meaning |
+| Variable | When set | Meaning |
 |---|---|---|
-| `HEARTBEAT_SCHEDULER_ENABLED` | `true` | Enables or disables timer-based scheduling. |
-| `HEARTBEAT_SCHEDULER_INTERVAL_MS` | `30000` | Scheduler poll interval in milliseconds. |
+| `PAPERCLIP_TASK_ID` | issue-driven wakes | Issue UUID that triggered this run. Empty for purely scheduled wakes. |
+| `PAPERCLIP_WAKE_REASON` | always (when known) | One of the reasons enumerated in [§2.1](#21-paperclip_wake_reason-values). |
+| `PAPERCLIP_WAKE_COMMENT_ID` | comment wakes | UUID of the comment that triggered the wake (`issue_commented`, `issue_comment_mentioned`). |
+| `PAPERCLIP_WAKE_PAYLOAD_JSON` | some adapters | Inline JSON payload: compact issue summary plus the ordered batch of new comment payloads. Lets the agent skip the initial `GET /api/issues/:id` round-trip. |
+| `PAPERCLIP_APPROVAL_ID` | approval wakes | UUID of the approval that resolved. |
+| `PAPERCLIP_APPROVAL_STATUS` | approval wakes | Approval decision (`approved`, `rejected`). |
+| `PAPERCLIP_LINKED_ISSUE_IDS` | optional | Comma-separated list of issue IDs related to this wake. |
 
----
-
-## Telemetry & Feedback Export
-
-These variables control where the server forwards operator-submitted feedback (and the deprecated telemetry channel that backs the same export pipeline). They are read by `server/src/config.ts` and are only consulted when you want to ship feedback events off your instance to a separate collector.
-
-| Variable | Default | Meaning |
-|---|---|---|
-| `PAPERCLIP_FEEDBACK_EXPORT_BACKEND_URL` | unset | URL of the external feedback collector. When set, the server forwards `paperclipai feedback` submissions to this endpoint. |
-| `PAPERCLIP_FEEDBACK_EXPORT_BACKEND_TOKEN` | unset | Bearer token used to authenticate the forwarding request. |
-| `PAPERCLIP_TELEMETRY_BACKEND_URL` | unset | Legacy alias for `PAPERCLIP_FEEDBACK_EXPORT_BACKEND_URL`. Honoured for backwards compatibility — set the feedback variant in new deployments. |
-| `PAPERCLIP_TELEMETRY_BACKEND_TOKEN` | unset | Legacy alias for `PAPERCLIP_FEEDBACK_EXPORT_BACKEND_TOKEN`. |
-
-If neither variable is set, feedback submissions are stored locally and never leave the instance.
-
----
-
-## Observability (OpenTelemetry)
-
-Paperclip can emit distributed traces over OpenTelemetry (OTLP) so you can watch requests flow through the server in a tracing backend like Jaeger, Tempo, or Honeycomb. It is **opt-in and off by default** — nothing is loaded until you point it at a collector.
-
-To turn it on, set `OTEL_EXPORTER_OTLP_ENDPOINT` and install the OpenTelemetry packages the server needs (`@opentelemetry/sdk-node`, `@opentelemetry/auto-instrumentations-node`, the exporter for your protocol, `@opentelemetry/resources`, and `@opentelemetry/semantic-conventions`). If the endpoint is set but the packages are missing, the server logs a one-line hint and keeps running without tracing.
-
-| Variable | Default | Meaning |
-|---|---|---|
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | unset | OTLP collector endpoint. Setting it is the master switch that enables tracing. |
-| `OTEL_EXPORTER_OTLP_PROTOCOL` | `grpc` | Exporter protocol: `grpc`, `http/protobuf`, or `http/json`. An unknown value logs a warning and falls back to `grpc`. |
-| `OTEL_SERVICE_NAME` | `paperclip` | Service name reported on spans. |
-| `OTEL_SERVICE_VERSION` | `unknown` | Service version reported on spans. |
-
-A bad endpoint or an unreachable collector never takes the server down — the SDK logs the failure and tracing simply stays off. On shutdown the server flushes buffered spans (with a short timeout) before exiting.
-
----
-
-## Agent Runtime
-
-The server injects these variables into agent processes when it starts a run:
-
-| Variable | Meaning |
-|---|---|
-| Variable | Always set? | Meaning |
-|---|---|---|
-| `PAPERCLIP_AGENT_ID` | yes | Agent ID. |
-| `PAPERCLIP_COMPANY_ID` | yes | Company ID. |
-| `PAPERCLIP_API_URL` | yes | Paperclip API base URL. |
-| `PAPERCLIP_API_KEY` | local adapters | Short-lived JWT for API auth. Use as `Authorization: Bearer $PAPERCLIP_API_KEY`. For non-local adapters, the operator sets this in adapter config. |
-| `PAPERCLIP_RUN_ID` | yes | Current heartbeat run ID. Pass back as the `X-Paperclip-Run-Id` header on any request that mutates an issue, so server-side audit log entries link to this run. |
-| `PAPERCLIP_TASK_ID` | wake-driven | Issue that triggered the wake. Empty for scheduled or unsolicited wakes. |
-| `PAPERCLIP_WAKE_REASON` | wake-driven | Why this run was triggered. See enum below. |
-| `PAPERCLIP_WAKE_COMMENT_ID` | comment wakes | Specific comment that triggered the wake (set with `issue_commented` and `issue_comment_mentioned`). |
-| `PAPERCLIP_WAKE_PAYLOAD_JSON` | some adapters | Inline JSON wake payload: a compact issue summary plus the ordered batch of new comment payloads. Adapters that inject this let an agent skip the initial `GET /api/issues/:id` and `GET /api/issues/:id/comments` round-trips on comment wakes. |
-| `PAPERCLIP_APPROVAL_ID` | approval wakes | Resolved approval ID. |
-| `PAPERCLIP_APPROVAL_STATUS` | approval wakes | Approval decision. |
-| `PAPERCLIP_LINKED_ISSUE_IDS` | optional | Comma-separated linked issue IDs. |
-
-Use these values when your agent runtime needs to authenticate back to Paperclip or understand what context triggered the run.
-
-### `PAPERCLIP_WAKE_REASON` values
+### 2.1 `PAPERCLIP_WAKE_REASON` values
 
 | Value | When it fires |
 |---|---|
 | `issue_assigned` | A task was newly assigned to this agent. |
-| `issue_commented` | A new comment was posted on an issue this agent owns. The triggering comment id is in `PAPERCLIP_WAKE_COMMENT_ID`. |
+| `issue_commented` | A new comment was posted on an issue this agent owns. |
 | `issue_comment_mentioned` | The agent was @-mentioned in a comment on an issue it does not own. |
-| `issue_blockers_resolved` | Every issue listed in this issue's `blockedBy` reached `done`. |
-| `issue_children_completed` | All direct children of this issue reached a terminal state (`done` or `cancelled`). |
-| `approval_resolved` | An approval the agent requested was approved or rejected. `PAPERCLIP_APPROVAL_ID` and `PAPERCLIP_APPROVAL_STATUS` are populated. |
+| `issue_blockers_resolved` | All issues listed in this issue's `blockedBy` reached `done`. |
+| `issue_children_completed` | All direct children of this issue reached a terminal state. |
+| `approval_resolved` | An approval the agent requested was approved or rejected. |
 | `scheduled` | A scheduled run from the heartbeat scheduler or a routine cron. |
 | `assignment` | Generic assignment-triggered run with no more specific reason. |
 
-When Paperclip realizes an execution workspace, it can also inject workspace-specific variables such as:
-
-- `PAPERCLIP_WORKSPACE_CWD`
-- `PAPERCLIP_WORKSPACE_PATH`
-- `PAPERCLIP_WORKSPACE_REPO_ROOT`
-- `PAPERCLIP_WORKSPACE_BRANCH`
-- `PAPERCLIP_PROJECT_ID`
-- `PAPERCLIP_ISSUE_ID`
-
-Those are mainly useful for adapter authors and agent-side tooling that need direct access to the resolved execution workspace.
-
-> **Audit trail:** Every mutating API request from an agent run should include the `X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID` header. The server uses it to attribute issue updates, comments, checkouts, and subtasks to the heartbeat run that produced them. Read-only requests do not require it.
-
 ---
 
-## LLM Provider Keys
+## 3. Workspace-injected env vars
+
+Set by the server when an [execution workspace](../../guides/projects-workflow/workspaces.md) is realized for the run. Useful when the adapter needs to operate on the resolved repo or worktree.
 
 | Variable | Meaning |
 |---|---|
-| `ANTHROPIC_API_KEY` | Anthropic API key for `claude_local` |
-| `OPENAI_API_KEY` | OpenAI API key for `codex_local` |
-| `GEMINI_API_KEY` | Gemini API key for `gemini_local` |
-| `GOOGLE_API_KEY` | Alternate Google API key path for `gemini_local` |
-
-> **Tip:** If an adapter test is failing, start by checking whether the expected provider key is present in the process environment.
+| `PAPERCLIP_WORKSPACE_CWD` | Working directory the runtime should `cd` into. |
+| `PAPERCLIP_WORKSPACE_PATH` | Alias of `PAPERCLIP_WORKSPACE_CWD`. |
+| `PAPERCLIP_WORKSPACE_WORKTREE_PATH` | Full path to the git worktree for this run, when worktrees are in use. |
+| `PAPERCLIP_WORKSPACE_BASE_CWD` | Base project workspace root (set when the worktree differs from the project default). |
+| `PAPERCLIP_WORKSPACE_REPO_ROOT` | Git repository root inside the workspace. |
+| `PAPERCLIP_WORKSPACE_BRANCH` | Git branch the worktree is on. |
+| `PAPERCLIP_WORKSPACE_REPO_URL` | Clone URL of the repository (may be empty for local-only workspaces). |
+| `PAPERCLIP_WORKSPACE_REPO_REF` | Git ref the workspace was checked out from. |
+| `PAPERCLIP_WORKSPACE_SOURCE` | Workspace strategy (`project_primary`, `dedicated_worktree`, etc.). |
+| `PAPERCLIP_WORKSPACE_CREATED` | `"true"` if the workspace was newly created by this run, `"false"` otherwise. |
+| `PAPERCLIP_PROJECT_ID` | Project UUID the workspace is bound to. |
+| `PAPERCLIP_PROJECT_WORKSPACE_ID` | Project-workspace binding UUID. |
+| `PAPERCLIP_ISSUE_ID` | Issue UUID the workspace is currently realized for. |
+| `PAPERCLIP_ISSUE_IDENTIFIER` | Human-readable issue id (e.g. `PAP-1820`). |
+| `PAPERCLIP_ISSUE_TITLE` | Issue title. |
 
 ---
 
-## Adapter Provider Overrides
+## 4. Server config env vars
 
-The local CLI adapters can be pointed at a custom or remote OpenAI-compatible gateway through these server-read variables. Each takes a JSON value that Paperclip writes into the adapter's own runtime config before a run, so you can route an adapter at your own provider without editing the agent's machine by hand. The full JSON shape and behaviour for each live on the adapter's reference page.
+Read by the Paperclip server (and the CLI when running `onboard`/`doctor`/`configure`). Most map directly to fields in the [config file](#5-config-file-paperclipinstancesidconfigjson) — env vars override file values when both are set.
+
+### 4.1 Instance & paths
+
+| Variable | Default | Secret | Meaning |
+|---|---|---|---|
+| `PAPERCLIP_HOME` | `~/.paperclip` | no | Root data directory for all instances. |
+| `PAPERCLIP_INSTANCE_ID` | `default` | no | Instance identifier. Lets you run multiple isolated Paperclip instances on one host. |
+| `PAPERCLIP_INSTANCE_ROOT` | `$PAPERCLIP_HOME/instances/$PAPERCLIP_INSTANCE_ID` | no | Resolved per-instance root. |
+| `PAPERCLIP_CONFIG` | `$PAPERCLIP_INSTANCE_ROOT/config.json` | no | Override path to `config.json`. |
+| `PAPERCLIP_CONTEXT` | `~/.paperclip/context.json` | no | CLI context file (last-used company, board session). |
+| `PAPERCLIP_LOG_DIR` | `$PAPERCLIP_INSTANCE_ROOT/logs` | no | Server log directory. |
+| `PAPERCLIP_OPEN_ON_LISTEN` | unset | no | When set, the CLI opens the dashboard in a browser once the server is up. |
+
+### 4.2 Server binding & exposure
+
+These pair with `server.*` in `config.json`. See [Deployment Modes](./deployment-modes.md) for what each mode means in practice.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `HOST` | `127.0.0.1` | Bind address. |
+| `PORT` | `3100` | Bind port. |
+| `PAPERCLIP_LISTEN_HOST` | falls back to `HOST` | Host used when minting `PAPERCLIP_API_URL` for agents. |
+| `PAPERCLIP_LISTEN_PORT` | falls back to `PORT` | Port used when minting `PAPERCLIP_API_URL` for agents. |
+| `PAPERCLIP_BIND` | inferred from `HOST` | Bind mode: `localhost`, `tailscale`, `lan`, or `explicit`. |
+| `PAPERCLIP_BIND_HOST` | unset | Custom bind hostname when `PAPERCLIP_BIND=explicit`. |
+| `PAPERCLIP_TAILNET_BIND_HOST` | auto-detected via `tailscale ip` | Explicit Tailscale IP to bind to. |
+| `PAPERCLIP_DEPLOYMENT_MODE` | `local_trusted` | One of `local_trusted`, `authenticated`. |
+| `PAPERCLIP_DEPLOYMENT_EXPOSURE` | `private` | One of `private`, `public`. Validated against `PAPERCLIP_DEPLOYMENT_MODE`. |
+| `PAPERCLIP_ALLOWED_HOSTNAMES` | unset | Comma-separated allowlist of hostnames the server will accept. |
+| `TRUST_PROXY` | unset | How much to trust `X-Forwarded-For` when the server sits behind a reverse proxy or load balancer. |
+| `PAPERCLIP_ENABLE_COMPANY_DELETION` | `true` in `local_trusted`, else `false` | Whether the dashboard exposes company deletion. |
+| `SERVE_UI` | `true` | Serve the bundled web UI from the API server. |
+| `PAPERCLIP_UI_DEV_MIDDLEWARE` | `false` | Enable the Vite dev middleware for in-place UI development. |
+
+#### Trusting a reverse proxy (`TRUST_PROXY`)
+
+When you run Paperclip behind a load balancer or reverse proxy, the real client IP arrives in the `X-Forwarded-For` header rather than on the socket. `TRUST_PROXY` tells the server how far to trust that header so `req.ip` and rate-limiting see the actual client instead of your proxy.
+
+The default is unset, which trusts nothing. Only opt in when there really is a proxy in front of the server.
+
+| Value | Meaning |
+|---|---|
+| unset, `""`, `false`, `0` | Trust nothing. |
+| `true` | Trust the header unconditionally. Only use this when the server is unreachable except through your proxy. |
+| a positive integer, such as `1` | Trust that many proxy hops. Use `1` for a single load balancer in front of the server. |
+| a comma-separated list | Trust specific sources by named subnet (`loopback`, `linklocal`, `uniquelocal`) or CIDR, such as `10.0.0.0/8`. |
+
+A malformed value makes the server refuse to start with an explanatory error, so a typo fails loudly rather than silently disabling proxy trust.
+
+### 4.3 Authentication
+
+| Variable | Default | Secret | Meaning |
+|---|---|---|---|
+| `PAPERCLIP_PUBLIC_URL` | unset | no | Public URL used in invites, redirects, and as a fallback Better Auth origin. |
+| `PAPERCLIP_AUTH_PUBLIC_BASE_URL` | unset | no | Explicit public base URL for the auth service. Required when `PAPERCLIP_AUTH_BASE_URL_MODE=explicit`. |
+| `PAPERCLIP_AUTH_BASE_URL_MODE` | `auto` | no | One of `auto` or `explicit`. |
+| `PAPERCLIP_AUTH_DISABLE_SIGN_UP` | `false` | no | When `true`, the server rejects new account sign-ups. |
+| `BETTER_AUTH_URL` | unset | no | Alternate Better Auth base URL input. |
+| `BETTER_AUTH_BASE_URL` | unset | no | Alternate Better Auth base URL input used by some deployments. |
+| `BETTER_AUTH_TRUSTED_ORIGINS` | derived from config | no | Comma-separated allowlist of trusted auth origins. |
+| `BETTER_AUTH_SECRET` | falls back to `PAPERCLIP_AGENT_JWT_SECRET` | yes | Session-signing secret for Better Auth. |
+| `PAPERCLIP_AGENT_JWT_SECRET` | unset (required for authenticated mode) | yes | HS256 signing secret used to mint local-agent JWTs. |
+| `PAPERCLIP_AGENT_JWT_TTL_SECONDS` | `172800` (48 h) | no | Lifetime of a minted agent JWT. |
+| `PAPERCLIP_AGENT_JWT_ISSUER` | `paperclip` | no | `iss` claim on minted JWTs. |
+| `PAPERCLIP_AGENT_JWT_AUDIENCE` | `paperclip-api` | no | `aud` claim on minted JWTs. |
+
+> **Tip:** When `paperclipai doctor` flags hostnames, redirects, or auth origins, inspect this group first.
+
+### 4.4 Database
+
+| Variable | Default | Secret | Meaning |
+|---|---|---|---|
+| `DATABASE_URL` | embedded PostgreSQL | yes | External Postgres connection string. Setting it switches off the embedded database. |
+| `DATABASE_MIGRATION_URL` | falls back to `DATABASE_URL` | yes | Separate connection string used for running migrations (useful for managed services with a privileged migration role). |
+| `PAPERCLIP_DB_BACKUP_ENABLED` | `true` | no | Toggle automatic database backups. |
+| `PAPERCLIP_DB_BACKUP_INTERVAL_MINUTES` | `60` | no | Interval between snapshots. |
+| `PAPERCLIP_DB_BACKUP_RETENTION_DAYS` | `7` | no | How long to keep snapshots. |
+| `PAPERCLIP_DB_BACKUP_DIR` | `$PAPERCLIP_INSTANCE_ROOT/data/backups` | no | Backup destination. |
+
+### 4.5 Storage
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PAPERCLIP_STORAGE_PROVIDER` | `local_disk` | Storage backend, `local_disk` or `s3`. |
+| `PAPERCLIP_STORAGE_LOCAL_DIR` | `$PAPERCLIP_INSTANCE_ROOT/data/storage` | Base directory for local-disk storage. |
+| `PAPERCLIP_STORAGE_S3_BUCKET` | `paperclip` | S3 bucket name. |
+| `PAPERCLIP_STORAGE_S3_REGION` | `us-east-1` | S3 region. |
+| `PAPERCLIP_STORAGE_S3_ENDPOINT` | unset | Custom S3-compatible endpoint (MinIO, R2, etc.). |
+| `PAPERCLIP_STORAGE_S3_PREFIX` | `""` | Optional object key prefix. |
+| `PAPERCLIP_STORAGE_S3_FORCE_PATH_STYLE` | `false` | Use path-style requests for providers that need them. |
+
+### 4.6 Secrets
+
+| Variable | Default | Secret | Meaning |
+|---|---|---|---|
+| `PAPERCLIP_SECRETS_PROVIDER` | `local_encrypted` | no | Backend used by the secret store. |
+| `PAPERCLIP_SECRETS_MASTER_KEY` | unset | yes | 32-byte master key as base64, hex, or raw. Wins over the key file when both are set. |
+| `PAPERCLIP_SECRETS_MASTER_KEY_FILE` | `$PAPERCLIP_INSTANCE_ROOT/secrets/master.key` | yes | Path to the master key file. |
+| `PAPERCLIP_SECRETS_STRICT_MODE` | `false` | no | When `true`, server-side sensitive env vars must be referenced through the secret store. Does not apply to `paperclipai configure --section llm` or `config.llm.apiKey`. |
+
+See [Secrets](./secrets.md) for the full lifecycle.
+
+### 4.7 Scheduler
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `HEARTBEAT_SCHEDULER_ENABLED` | `true` | Enable the timer that fires scheduled wakes and routines. |
+| `HEARTBEAT_SCHEDULER_INTERVAL_MS` | `30000` | Poll interval. Minimum is enforced server-side. |
+
+### 4.8 Telemetry & feedback export
+
+| Variable | Default | Secret | Meaning |
+|---|---|---|---|
+| `PAPERCLIP_FEEDBACK_EXPORT_BACKEND_URL` | unset | no | URL the server exports anonymized feedback events to. |
+| `PAPERCLIP_FEEDBACK_EXPORT_BACKEND_TOKEN` | unset | yes | Auth token for the export backend. |
+| `PAPERCLIP_TELEMETRY_BACKEND_URL` | unset | no | Legacy alias for the export URL. |
+| `PAPERCLIP_TELEMETRY_BACKEND_TOKEN` | unset | yes | Legacy alias for the export token. |
+
+### 4.9 Observability (OpenTelemetry)
+
+Paperclip can emit distributed traces over OpenTelemetry (OTLP). It is opt-in and off by default. Nothing is loaded until you point it at a collector.
+
+To turn it on, set `OTEL_EXPORTER_OTLP_ENDPOINT` and install the OpenTelemetry packages the server needs: `@opentelemetry/sdk-node`, `@opentelemetry/auto-instrumentations-node`, the exporter for your protocol, `@opentelemetry/resources`, and `@opentelemetry/semantic-conventions`. If the endpoint is set but the packages are missing, the server logs a one-line hint and keeps running without tracing.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | unset | OTLP collector endpoint. Setting it enables tracing. |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | `grpc` | Exporter protocol: `grpc`, `http/protobuf`, or `http/json`. Unknown values log a warning and fall back to `grpc`. |
+| `OTEL_SERVICE_NAME` | `paperclip` | Service name reported on spans. |
+| `OTEL_SERVICE_VERSION` | `unknown` | Service version reported on spans. |
+
+A bad endpoint or unreachable collector never takes the server down. The SDK logs the failure and tracing stays off. On shutdown the server flushes buffered spans with a short timeout before exiting.
+
+### 4.10 Worktrees & runtime
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PAPERCLIP_WORKTREES_DIR` | `~/.paperclip-worktrees` | Base directory where Paperclip creates per-issue git worktrees. |
+| `PAPERCLIP_WORKTREE_NAME` | unset | Name of the active worktree (set automatically inside a worktree shell). |
+| `PAPERCLIP_IN_WORKTREE` | `false` | Set to `true` inside a launched worktree shell. |
+| `PAPERCLIP_RUNTIME_API_URL` | derived | Explicit runtime API URL the server gives agents. |
+| `PAPERCLIP_RUNTIME_API_CANDIDATES_JSON` | `[$PAPERCLIP_RUNTIME_API_URL]` | JSON array of candidate URLs the agent may use to reach the API. |
+| `RUN_LOG_BASE_PATH` | unset | Override the base path for run logs. |
+| `WORKSPACE_OPERATION_LOG_BASE_PATH` | unset | Override the base path for workspace operation logs. |
+
+### 4.11 Live SSH environment (advanced)
+
+Used by the `live_ssh` execution environment to provision and run agents inside a remote SSH host. Skip this section unless you are deliberately using remote execution.
+
+| Variable | Secret | Meaning |
+|---|---|---|
+| `PAPERCLIP_ENV_LIVE_SSH_HOST` | no | SSH hostname. |
+| `PAPERCLIP_ENV_LIVE_SSH_PORT` | no | SSH port (`22` if unset). |
+| `PAPERCLIP_ENV_LIVE_SSH_USERNAME` | no | SSH username. |
+| `PAPERCLIP_ENV_LIVE_SSH_PRIVATE_KEY` | yes | Private key value (inline). |
+| `PAPERCLIP_ENV_LIVE_SSH_PRIVATE_KEY_PATH` | yes | Path to a private key file. |
+| `PAPERCLIP_ENV_LIVE_SSH_KNOWN_HOSTS` | no | Inline `known_hosts` entries. |
+| `PAPERCLIP_ENV_LIVE_SSH_KNOWN_HOSTS_PATH` | no | Path to a `known_hosts` file. |
+| `PAPERCLIP_ENV_LIVE_SSH_REMOTE_WORKSPACE_PATH` | no | Workspace path on the remote host. |
+| `PAPERCLIP_ENV_LIVE_SSH_STRICT_HOST_KEY_CHECKING` | no | Defaults to strict checking; set to `false` to disable. |
+| `PAPERCLIP_ENV_LIVE_SSH_NO_AUTO_FIXTURE` | no | Disable the auto-provisioned test fixture. |
+
+---
+
+## 5. Config file: `$PAPERCLIP_INSTANCE_ROOT/config.json`
+
+Validated by the Zod schema in `packages/shared/src/config-schema.ts`. Every field has a default; you only need to write fields you want to override. The file also tracks `$meta` so the CLI can detect what wrote it last.
+
+A reasonable `config.json` for an authenticated, public deployment looks like this:
+
+```json
+{
+  "$meta": { "version": 1, "updatedAt": "2026-04-27T00:00:00Z", "source": "configure" },
+  "llm": { "provider": "claude" },
+  "database": {
+    "mode": "postgres",
+    "connectionString": "postgres://paperclip:secret@db:5432/paperclip"
+  },
+  "logging": { "mode": "file" },
+  "server": {
+    "deploymentMode": "authenticated",
+    "exposure": "public",
+    "bind": "explicit",
+    "host": "0.0.0.0",
+    "port": 3100,
+    "allowedHostnames": ["paperclip.example.com"]
+  },
+  "auth": {
+    "baseUrlMode": "explicit",
+    "publicBaseUrl": "https://paperclip.example.com"
+  },
+  "storage": {
+    "provider": "s3",
+    "s3": { "bucket": "my-paperclip-bucket", "region": "us-west-2" }
+  },
+  "secrets": { "provider": "local_encrypted", "strictMode": true }
+}
+```
+
+### 5.1 Top-level fields
+
+| Path | Type | Default | Notes |
+|---|---|---|---|
+| `$meta.version` | literal `1` | required | Schema version. |
+| `$meta.updatedAt` | ISO-8601 string | required | Set by the writer. |
+| `$meta.source` | `onboard` \| `configure` \| `doctor` | required | Which CLI command last wrote the file. |
+| `llm.provider` | `claude` \| `openai` | none | Default LLM provider for company hires. Optional. |
+| `llm.apiKey` | string | none | Optional API key persisted in config (prefer secret store). |
+
+### 5.2 `database`
+
+| Path | Type | Default | Notes |
+|---|---|---|---|
+| `database.mode` | `embedded-postgres` \| `postgres` | `embedded-postgres` | Switches between bundled and external Postgres. |
+| `database.connectionString` | string | none | Required when `mode=postgres`. |
+| `database.embeddedPostgresDataDir` | path | `~/.paperclip/instances/default/db` | Data dir for the embedded server. |
+| `database.embeddedPostgresPort` | int 1–65535 | `54329` | Embedded Postgres port. |
+| `database.backup.enabled` | bool | `true` | Enable automatic backups. |
+| `database.backup.intervalMinutes` | int 1–10080 | `60` | Snapshot interval. |
+| `database.backup.retentionDays` | int 1–3650 | `7` | Retention window. |
+| `database.backup.dir` | path | `~/.paperclip/instances/default/data/backups` | Backup destination. |
+
+### 5.3 `server`
+
+| Path | Type | Default | Notes |
+|---|---|---|---|
+| `server.deploymentMode` | `local_trusted` \| `authenticated` | `local_trusted` | High-level mode. |
+| `server.exposure` | `private` \| `public` | `private` | Must be `private` when `deploymentMode=local_trusted`. |
+| `server.bind` | `localhost` \| `tailscale` \| `lan` \| `explicit` | inferred | Bind strategy; validated against `host` and `customBindHost`. |
+| `server.customBindHost` | string | none | Required when `bind=explicit`. |
+| `server.host` | string | `127.0.0.1` | Network bind address. |
+| `server.port` | int 1–65535 | `3100` | API server port. |
+| `server.allowedHostnames` | string[] | `[]` | Hostnames the server will accept. |
+| `server.serveUi` | bool | `true` | Serve the dashboard from the API server. |
+
+### 5.4 `auth`
+
+| Path | Type | Default | Notes |
+|---|---|---|---|
+| `auth.baseUrlMode` | `auto` \| `explicit` | `auto` | When `explicit`, `publicBaseUrl` is required. |
+| `auth.publicBaseUrl` | URL | none | Required when running with `exposure=public`. |
+| `auth.disableSignUp` | bool | `false` | Block new account creation. |
+
+### 5.5 `storage`
+
+| Path | Type | Default | Notes |
+|---|---|---|---|
+| `storage.provider` | `local_disk` \| `s3` | `local_disk` | Storage backend. |
+| `storage.localDisk.baseDir` | path | `~/.paperclip/instances/default/data/storage` | Used when provider is `local_disk`. |
+| `storage.s3.bucket` | string | `paperclip` | S3 bucket. |
+| `storage.s3.region` | string | `us-east-1` | S3 region. |
+| `storage.s3.endpoint` | URL | none | Custom S3-compatible endpoint. |
+| `storage.s3.prefix` | string | `""` | Object key prefix. |
+| `storage.s3.forcePathStyle` | bool | `false` | Use path-style addressing. |
+
+### 5.6 `secrets`
+
+| Path | Type | Default | Notes |
+|---|---|---|---|
+| `secrets.provider` | `local_encrypted` \| `external_stub` | `local_encrypted` | Secret store backend. |
+| `secrets.strictMode` | bool | `false` | Require secret refs for sensitive env vars. |
+| `secrets.localEncrypted.keyFilePath` | path | `~/.paperclip/instances/default/secrets/master.key` | Master key file path. |
+
+### 5.7 `logging` & `telemetry`
+
+| Path | Type | Default | Notes |
+|---|---|---|---|
+| `logging.mode` | `file` \| `cloud` | `file` | Where structured logs go. |
+| `logging.logDir` | path | `~/.paperclip/instances/default/logs` | Log directory when `mode=file`. |
+| `telemetry.enabled` | bool | `true` | Toggle anonymized usage telemetry. |
+
+### 5.8 Cross-field validation
+
+The schema rejects combinations that don't make sense:
+
+- `server.exposure` must be `private` when `server.deploymentMode=local_trusted`.
+- `auth.baseUrlMode` must be `explicit` when `server.exposure=public`.
+- `auth.publicBaseUrl` is required when `auth.baseUrlMode=explicit`.
+- `bind=explicit` requires `customBindHost`.
+- `bind=tailscale` requires the host to be a Tailscale IP (auto-detected unless `PAPERCLIP_TAILNET_BIND_HOST` is set).
+
+If any rule fails, `paperclipai doctor` and the server boot will report the specific path that's invalid.
+
+---
+
+## 6. CLI env vars
+
+The `paperclipai` binary reads almost the same set as the server, plus a couple of CLI-only paths:
+
+| Variable | Default | Secret | Meaning |
+|---|---|---|---|
+| `PAPERCLIP_AUTH_STORE` | `~/.paperclip/auth.json` | yes | Path to the local auth store (board sessions, JWTs). |
+| `PAPERCLIP_API_URL` | `http://127.0.0.1:3100` | no | API endpoint the CLI talks to. |
+| `PAPERCLIP_API_KEY` | from auth store | yes | API token used by the CLI. |
+| `PAPERCLIP_COMPANY_ID` | from CLI context | no | Default company for non-`--company-id` commands. |
+
+All of `PAPERCLIP_HOME`, `PAPERCLIP_INSTANCE_ID`, `PAPERCLIP_CONFIG`, `PAPERCLIP_CONTEXT`, the deployment/binding/storage/secrets/database vars, and the `BETTER_AUTH_*` and `PAPERCLIP_AGENT_JWT_*` group are read by the CLI at the same precedence as the server, mainly during `paperclipai onboard`, `paperclipai configure`, and `paperclipai doctor`.
+
+---
+
+## 7. Adapter env vars
+
+Each adapter receives the [heartbeat-injected vars](#2-heartbeat-injected-env-vars) plus anything declared on the agent itself (`adapter_config.env`). On top of that, individual adapters read provider keys.
+
+### 7.1 Provider keys
+
+| Variable | Adapter(s) | Secret | Meaning |
+|---|---|---|---|
+| `ANTHROPIC_API_KEY` | `claude_local`, `hermes_local` (Claude mode) | yes | Anthropic API key. |
+| `OPENAI_API_KEY` | `codex_local`, `hermes_local` (OpenAI mode) | yes | OpenAI API key. |
+| `GEMINI_API_KEY` | `gemini_local` | yes | Google Gemini API key. |
+| `GOOGLE_API_KEY` | `gemini_local` | yes | Alternate Google API key path. |
+| `CLAUDE_CODE_USE_BEDROCK` | `claude_local` | no | Set to `true` to route Claude requests through AWS Bedrock. |
+| `ANTHROPIC_BEDROCK_BASE_URL` | `claude_local` | no | Bedrock endpoint URL (used when Bedrock mode is on). |
+| `CODEX_HOME` | `codex_local` | no | Override the Codex CLI home directory. |
+| `PAPERCLIP_OPENCODE_COMMAND` | `opencode_local` | no | Override the path to the OpenCode binary. |
+| `PAPERCLIP_OPENCODE_STORAGE_DIR` | `opencode_local` | no | Override OpenCode's storage directory. |
+
+> **Tip:** If an adapter test fails, start by checking whether the expected provider key is present in the process environment.
+
+### 7.2 Adapter provider overrides
+
+The local CLI adapters can be pointed at custom or remote OpenAI-compatible gateways through server-read variables. Each value is JSON that Paperclip writes into the adapter's runtime config before a run, so operators can route an adapter to another provider without editing the agent machine by hand. Values support `{env:VAR}` placeholders, which are expanded server-side so secrets stay out of the stored JSON.
 
 | Variable | Adapter | Meaning |
 |---|---|---|
-| `PAPERCLIP_CODEX_PROVIDERS` | `codex_local` | JSON of custom providers (and an optional `model_provider`) written into Codex's managed `config.toml`. See [Codex Local](../adapters/codex-local.md). |
+| `PAPERCLIP_CODEX_PROVIDERS` | `codex_local` | JSON of custom providers and an optional `model_provider` written into Codex's managed `config.toml`. See [Codex Local](../adapters/codex-local.md). |
 | `PAPERCLIP_PI_PROVIDERS` | `pi_local` | JSON of custom providers written into Pi's managed `models.json`. See [Pi Local](../adapters/pi-local.md). |
-| `PAPERCLIP_OPENCODE_PROVIDERS` | `opencode_local` | JSON merged into OpenCode's `provider` config. See [OpenCode Local](../adapters/opencode-local.md). |
-| `PAPERCLIP_OPENCODE_SMALL_MODEL` | `opencode_local` | Sets OpenCode's `small_model` (the auxiliary/helper model). See [OpenCode Local](../adapters/opencode-local.md). |
+| `PAPERCLIP_OPENCODE_PROVIDERS` | `opencode_local` | JSON merged into OpenCode's provider config. See [OpenCode Local](../adapters/opencode-local.md). |
+| `PAPERCLIP_OPENCODE_SMALL_MODEL` | `opencode_local` | Sets OpenCode's auxiliary small model. See [OpenCode Local](../adapters/opencode-local.md). |
 
-Values support `{env:VAR}` placeholders, which are expanded server-side so secrets stay out of the stored JSON.
+### 7.3 Per-agent `adapter_config.env`
+
+The `process` and `http` adapters expose an `env` field (`adapterConfig.env`) on the agent record. Anything you set there is merged into the agent's process environment alongside the `PAPERCLIP_*` injections.
+
+```jsonc
+{
+  "adapter": "process",
+  "adapterConfig": {
+    "command": "/usr/local/bin/my-agent",
+    "env": {
+      "MY_AGENT_LOG_LEVEL": "debug",
+      "OPENAI_API_KEY": "${secret:openai-key}"   // secret-store reference
+    }
+  }
+}
+```
+
+Values starting with `${secret:...}` are resolved through the secret store ([Secrets](./secrets.md)) at run time.
+
+### 7.4 Hermes auth-token injection
+
+When `hermes_local` is configured with an `authToken`, the server also injects:
+
+| Variable | Meaning |
+|---|---|
+| `PAPERCLIP_API_KEY` | The supplied auth token (when not already set in `adapterConfig.env`). |
+| `PAPERCLIP_RUN_ID` | The current run ID (mirrored into `adapterConfig.env`). |
+
+This is what lets a Hermes runtime call back into the Paperclip API without an explicit operator-supplied API key in the agent config.
+
+---
+
+## 8. Quick reference: secret variables
+
+Every variable below contains material that should never be committed or logged. Prefer the [secret store](./secrets.md) for production deployments.
+
+- `DATABASE_URL`, `DATABASE_MIGRATION_URL`
+- `PAPERCLIP_AGENT_JWT_SECRET`
+- `BETTER_AUTH_SECRET`
+- `PAPERCLIP_SECRETS_MASTER_KEY`, `PAPERCLIP_SECRETS_MASTER_KEY_FILE`
+- `PAPERCLIP_FEEDBACK_EXPORT_BACKEND_TOKEN`, `PAPERCLIP_TELEMETRY_BACKEND_TOKEN`
+- `PAPERCLIP_API_KEY` (heartbeat-injected JWT or operator-supplied long-lived key)
+- `PAPERCLIP_AUTH_STORE` (path to a file that contains tokens)
+- `PAPERCLIP_ENV_LIVE_SSH_PRIVATE_KEY`, `PAPERCLIP_ENV_LIVE_SSH_PRIVATE_KEY_PATH`
+- `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`
+
+---
+
+## 9. Common pitfalls
+
+- **`PAPERCLIP_API_URL` differs in agent processes.** The server may bind to `0.0.0.0` but advertises `PAPERCLIP_LISTEN_HOST` (or `HOST`) to agents. If your agent process can't reach the API, check what the server resolved that to at boot.
+- **Missing `X-Paperclip-Run-Id` header.** Mutating API requests without this header are still accepted but won't link to the run in the audit log. Always include it from heartbeat-driven processes.
+- **`PAPERCLIP_AGENT_JWT_SECRET` not set in authenticated mode.** The server falls back to `BETTER_AUTH_SECRET`; if neither is set, agent auth fails closed and you get `401`s on every adapter call.
+- **Worktree env vars only set in worktrees.** `PAPERCLIP_WORKSPACE_*` is empty for runs that don't realize a workspace (e.g. pure scheduler wakes on a no-repo agent).
+- **`config.json` validation errors block startup.** `paperclipai doctor` prints the offending path; fix the field rather than deleting the file.
+
+For the human-readable explanation of each setting, see the related guides:
+
+- [Deployment Modes](./deployment-modes.md)
+- [Database](./database.md)
+- [Storage](./storage.md)
+- [Secrets](./secrets.md)
+- [Tailscale Private Access](./tailscale-private-access.md)
+- [Adapters Overview](../adapters/overview.md)

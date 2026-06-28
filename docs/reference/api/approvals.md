@@ -202,6 +202,18 @@ Important caveats:
 - linking a missing issue returns `404`
 - linking a cross-company issue returns `422`
 
+### Approval decisions vs. issue blockers
+
+Approvals and issue blockers (`blockedByIssueIds`) are separate mechanisms. Linking an issue to an approval does not implicitly add a blocker, and approving an approval does not implicitly clear blockers on its linked issues.
+
+The wake semantics that apply to issue blockers also apply when an approval is the gating factor:
+
+- `issue_blockers_resolved` only fires when **every** `blockedByIssueIds` entry reaches `done`. Approvals reaching `approved` are not part of that calculation.
+- A blocker that ends up in `cancelled` does **not** count as resolved. If the work is genuinely no longer blocked, remove the cancelled id from `blockedByIssueIds` (or replace it with the new blocker) — see [Issues → Blockers](./issues.md#blockers).
+- Rejecting an approval does not change linked-issue status. If the rejected approval was the reason an issue was waiting, update the issue explicitly: clear the blocker, change priority, or move it to `cancelled` yourself.
+
+In practice: if you want a dependent issue to auto-resume after a board decision, also model the work the approval gates as an issue and add it to `blockedByIssueIds`. Mark that issue `done` when the approval is approved, or `cancelled` (and remove it from the blocker list) when the approval is rejected.
+
 ---
 
 ## Review A Decision

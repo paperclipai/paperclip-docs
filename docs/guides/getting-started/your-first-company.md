@@ -4,7 +4,7 @@ A Company in Paperclip is the container for everything: your goal, your team of 
 
 Think of it like setting up a new startup. You open a workspace, write down what you're trying to build, decide how much runway you're working with, and then you can start hiring. Creating a company in Paperclip is that first step.
 
-This guide walks you through creating a company from scratch. The whole process takes about three minutes.
+This guide walks you through creating a company from scratch. The whole process takes a minute or two if you already know your goal — longer if you want to spend time wording it.
 
 ---
 

@@ -166,6 +166,22 @@
     },
     {
       "tier": "Learn",
+      "title": "Clips",
+      "icon": "package",
+      "desc": "Publish reusable teams, agents, skills, and routines as clips, and import them safely from the community catalog.",
+      "pages": [
+        {
+          "title": "Clips Overview",
+          "file": "../docs/guides/clips/overview.md"
+        },
+        {
+          "title": "Publish and Import",
+          "file": "../docs/guides/clips/publish-and-import.md"
+        }
+      ]
+    },
+    {
+      "tier": "Learn",
       "title": "How-to Guides",
       "icon": "wrench",
       "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",
@@ -225,6 +241,10 @@
         {
           "title": "Wire Slack/Discord Notifications",
           "file": "../docs/how-to/wire-slack-discord-notifications.md"
+        },
+        {
+          "title": "Review a Clip Before Importing",
+          "file": "../docs/how-to/review-clip-before-import.md"
         },
         {
           "title": "Develop a plugin locally",

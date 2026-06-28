@@ -27,9 +27,7 @@ The frontmatter description is what the agent reads first — it's written as de
 ```markdown
 ---
 name: code-review
-description: >
-  Use when asked to review a pull request or code diff.
-  Don't use when writing new code from scratch.
+description: Use when asked to review a pull request or code diff. Don't use when writing new code from scratch.
 ---
 
 # Code Review
@@ -211,6 +209,7 @@ Most of the time you will manage skills from the UI, but the same operations are
 
 The skills must already be installed at the company level before you can attach them. For the full reference — file shape, install pipeline, canonical keys, versioning, and troubleshooting — see:
 
+- [Write a company skill](../../how-to/write-a-company-skill.md) — end-to-end recipe: author the file, install via the API, sync to specific agents, trigger in a test run.
 - [Skills reference](../../reference/skills.md) — everything about how skills work on disk and over the wire.
 - [Agents API → Skills](../../reference/api/agents.md#skills) — request/response shapes for the agent-level routes.
 
