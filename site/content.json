@@ -311,6 +311,10 @@
           "file": "../docs/reference/api/issues.md"
         },
         {
+          "title": "Task Watchdogs",
+          "file": "../docs/reference/api/task-watchdogs.md"
+        },
+        {
           "title": "Approvals",
           "file": "../docs/reference/api/approvals.md"
         },
