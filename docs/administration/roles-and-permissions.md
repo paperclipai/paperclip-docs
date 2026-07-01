@@ -15,6 +15,8 @@ There is also one layer that sits *above* the company: the **instance admin**, c
 
 > **Note:** Humans and agents run through the *same* permission engine — a grant is resolved against `(company, principal type, principal id, permission key)` whether the principal is a person or an agent. This page describes the human side. The agent reporting tree (CEO, managers, reports) is a separate concept; see [Org Structure](../guides/org/org-structure.md).
 
+![The Access & Members page, where roles and grants are managed](../user-guides/screenshots/light/company/access.png)
+
 ---
 
 ## The four company roles

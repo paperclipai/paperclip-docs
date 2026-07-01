@@ -23,6 +23,8 @@ You can always change this after they're in (step 5), so don't overthink it. The
 
 ## 2. Create the invite link
 
+![Company Invites page](../user-guides/screenshots/light/company/invites.png)
+
 Open **Settings → Invites**. In the **Create invite** card, pick the default role from step 1 — each option shows a short description of what that role gets — and click **Create invite**. Paperclip does three things at once:
 
 1. generates a fresh, single-use invite link against your current Paperclip domain;
@@ -53,6 +55,8 @@ There are two places in the app to approve, both showing the requester and the i
 
 - **Settings → Access** — when there are pending human joins, a **Pending human joins** card sits above the members list with **Approve human** / **Reject human** buttons on each entry. This is the quickest path.
 - **Join Request Queue** (`/inbox/requests`) — the full queue for both human and agent requests, with **Status** and **Request type** filters. Each card carries the requester, the invite context, and the submission details.
+
+![Join request queue](../user-guides/screenshots/light/company/join-requests.png)
 
 Click **Approve human** and the person becomes an **active** member with the invite's default role. To adjust their role or hand out extra permissions, stay on **Settings → Access**, click **Edit** on their row, and set the role, status, and any explicit grants in the grants grid, then save. (Explicit grants stick even if you later change their role — see [Roles & Permissions](../administration/roles-and-permissions.md#how-grants-combine-precedence).)
 

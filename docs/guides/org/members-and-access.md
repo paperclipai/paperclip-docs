@@ -19,6 +19,8 @@ That's why the same surfaces keep showing up for both:
 
 You mostly deal with the human side, but knowing it's one system explains why the invite and approval flows feel symmetrical.
 
+![The Access & Members page lists human and agent principals together](../../user-guides/screenshots/light/company/access.png)
+
 ---
 
 ## Roles vs. grants
@@ -64,6 +66,8 @@ Each human member has a **profile page**, reachable at `/u/<user-slug>` in the a
 It's a useful lens when you want to see what a teammate has actually been doing, or attribute cost to a person. You can pull the same data from the CLI with `paperclipai profile company-user <user-slug> --company-id <company-id>` (see the [CLI reference](../../reference/cli/access.md#profile)).
 
 Members edit their *own* display name and avatar from **Settings → Profile**. The account email is not editable from the profile page.
+
+![The profile settings page, where you edit your own name and avatar](../../user-guides/screenshots/light/settings/profile.png)
 
 ---
 

@@ -19,6 +19,8 @@ You can suspend first and archive later; there's no rule that says you must jump
 
 ## 2. Suspend a member (reversible)
 
+![Access & Members page](../user-guides/screenshots/light/company/access.png)
+
 Open **Settings → Access** and click **Edit** on the member's row. In the **Edit member** dialog, set **Membership status** to **Suspended** and save. The row stays visible with a `suspended` badge — the history is preserved — and their access to the company is cut immediately.
 
 To bring them back later, repeat the steps and set the status back to **Active**.
@@ -50,6 +52,8 @@ So suspending or archiving the membership is the durable control. Their personal
 ## 5. If they had instance-level access, remove that too
 
 Company offboarding does **not** touch instance admin. If the person was an instance admin, or you granted them company access at the instance level, clean that up separately on **Settings → Instance: Access** (instance admin required):
+
+![Instance Access page](../user-guides/screenshots/light/settings/instance-access.png)
 
 1. Search for the user in the left pane and click them to open their detail view.
 2. If they carry the green instance-admin shield, click **Remove instance admin**.
