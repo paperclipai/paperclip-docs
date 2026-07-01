@@ -1,6 +1,6 @@
 # Add a human teammate
 
-Paperclip companies aren't single-player. You can bring other people in as board members — a co-founder who watches the same agents, an operator who triages the inbox, a viewer who just wants read access to the dashboard. This is the end-to-end flow: you create an invite link, they open it and ask to join, and you approve them.
+Paperclip companies aren't single-player. You can bring other people in as board members — a co-founder who watches the same agents, an operator who triages the inbox, a viewer who just wants read access to the dashboard. This is the end-to-end flow, done from the app: you create an invite link, they open it and ask to join, and you approve them.
 
 The whole round-trip takes a couple of minutes. Invites are **copy-link only** — Paperclip doesn't email anyone, so you share the link yourself.
 
@@ -23,61 +23,64 @@ You can always change this after they're in (step 5), so don't overthink it. The
 
 ## 2. Create the invite link
 
-**In the app:** open **Settings → Invites**, choose the default role in the **Create invite** card, and click **Create invite**. Paperclip generates a single-use link, copies it to your clipboard, and drops it into the **Latest invite link** panel. The link shows up in the **Invite history** table below with an **Active** badge.
+Open **Settings → Invites**. In the **Create invite** card, pick the default role from step 1 — each option shows a short description of what that role gets — and click **Create invite**. Paperclip does three things at once:
 
-**From the CLI:**
+1. generates a fresh, single-use invite link against your current Paperclip domain;
+2. copies the URL to your clipboard (if the browser allows it — otherwise a toast tells you to copy it manually);
+3. drops the link into the **Latest invite link** panel, and adds a row to the **Invite history** table below with an **Active** badge.
 
-```sh
-paperclipai invite create --company-id <company-id> --payload-json '{"role":"operator"}'
-```
-
-The response includes the invite URL. See [the CLI reference](../reference/cli/access.md#invites) for the exact payload fields.
-
-Either way, the link is **single-use** and expires after 72 hours. If it goes stale, just make another one.
+The **Open invite** button next to the link lets you preview the join page in another tab. The link is **single-use** and expires after 72 hours — if it goes stale, just create another. For the full page tour, see [Company Administration → Invites](../administration/company.md#invites).
 
 ---
 
 ## 3. Share the link
 
-Send the URL however you normally share a secret — a DM, your password manager, a private channel. Anyone who opens an active link can file a join request against your company, so treat it like a short-lived password and don't post it anywhere public. If you created one you no longer want outstanding, hit **Revoke** on its row in the Invite history (or `paperclipai invite revoke <invite-id>`).
+Send the URL however you normally share a secret — a DM, your password manager, a private channel. Anyone who opens an active link can file a join request against your company, so treat it like a short-lived password and don't post it anywhere public. Changed your mind about one that's still outstanding? Hit **Revoke** on its row in the **Invite history** table.
 
 ---
 
 ## 4. Your teammate opens the link and requests to join
 
-When they open the URL they land on a Paperclip join page branded with your company's name and logo. If they don't have an account yet, the page walks them through sign-up first, then returns them to the invite. Accepting **does not** grant access immediately — it creates a **pending join request** tied to the invite, with their name, email, and source IP captured for you to review.
+When they open the URL they land on a Paperclip join page branded with your company's name and logo. If they don't have an account yet, the page walks them through sign-up first, then returns them to the invite. Accepting **does not** grant access immediately — it creates a **pending join request** tied to the invite, capturing their name, email, and source IP for you to review.
 
-They'll see a "waiting for approval" state. Nothing they can do from here touches your company data until you approve them.
+On their side they see a "waiting for approval" state. Nothing they do from here touches your company data until you approve them.
 
 ---
 
 ## 5. Approve them (and fine-tune access)
 
-You have two places to approve:
+There are two places in the app to approve, both showing the requester and the invite context before you decide:
 
-- **Access & Members page** — if there are pending human joins, a **Pending human joins** card appears above the members list with **Approve human** / **Reject human** buttons.
-- **Join Request Queue** (`/inbox/requests`) — the full queue for both human and agent requests, with status and request-type filters. Each card shows the requester, the invite context, and the submission details before you decide.
+- **Settings → Access** — when there are pending human joins, a **Pending human joins** card sits above the members list with **Approve human** / **Reject human** buttons on each entry. This is the quickest path.
+- **Join Request Queue** (`/inbox/requests`) — the full queue for both human and agent requests, with **Status** and **Request type** filters. Each card carries the requester, the invite context, and the submission details.
 
-**From the CLI:**
-
-```sh
-paperclipai join list --company-id <company-id> --status pending
-paperclipai join approve <request-id> --company-id <company-id>
-```
-
-On approval, the person becomes an **active** member with the invite's default role. If you want to adjust their role or hand out extra permissions, open **Settings → Access**, click **Edit** on their row, and set the role and any explicit grants. (Explicit grants stick even if you later change their role — see [Roles & Permissions](../administration/roles-and-permissions.md#how-grants-combine-precedence).)
+Click **Approve human** and the person becomes an **active** member with the invite's default role. To adjust their role or hand out extra permissions, stay on **Settings → Access**, click **Edit** on their row, and set the role, status, and any explicit grants in the grants grid, then save. (Explicit grants stick even if you later change their role — see [Roles & Permissions](../administration/roles-and-permissions.md#how-grants-combine-precedence).)
 
 ---
 
 ## 6. Verify
 
-They should now appear in **Settings → Access** with an `active` status badge and the role you gave them. Confirm from the CLI if you like:
+They now appear in **Settings → Access** with an `active` status badge and the role you gave them. That's it — they can sign in and see the company. Every step above (invite created, join requested, approved, membership activated) is written to the [activity log](../guides/day-to-day/activity-log.md), so the whole onboarding is auditable after the fact.
+
+---
+
+## Prefer the terminal? CLI equivalents
+
+Every step above has a CLI counterpart, handy for scripting onboarding. They map one-to-one onto the same API the UI uses. See the [Access CLI reference](../reference/cli/access.md#invites) for exact payloads.
 
 ```sh
+# Create the invite (returns the invite URL)
+paperclipai invite create --company-id <company-id> --payload-json '{"role":"operator"}'
+
+# See who's waiting, then approve
+paperclipai join list --company-id <company-id> --status pending
+paperclipai join approve <request-id> --company-id <company-id>
+
+# Confirm they're in
 paperclipai member list --company-id <company-id>
 ```
 
-That's it — they can sign in and see the company. Every step above (invite created, join requested, approved, membership activated) is written to the activity log, so the whole onboarding is auditable after the fact.
+Revoke an outstanding invite with `paperclipai invite revoke <invite-id>` (note: that takes the invite **ID**, not the token).
 
 ---
 

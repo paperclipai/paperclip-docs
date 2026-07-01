@@ -1,10 +1,10 @@
 # Enable multi-user login
 
-Out of the box, Paperclip runs in **local trusted** mode: no login, loopback-only, one implicitly-trusted operator. That's perfect for a personal install and terrible the moment a second person needs in. To let teammates sign in, you switch the instance to **authenticated** mode, claim ownership once, and then invite people.
+Out of the box, Paperclip runs in **local trusted** mode: no login, loopback-only, one implicitly-trusted operator. That's perfect for a personal install and terrible the moment a second person needs in. To let teammates sign in, you switch the instance to **authenticated** mode, claim ownership once in the browser, and then invite people from the app.
 
-This is the connective guide for that journey. Each step hands off to the reference that covers it in depth.
+**Where each step happens:** the one-time mode switch is a host/config change — there's deliberately no in-app toggle to turn an instance authenticated, since it's a deployment decision. Everything *after* that — claiming ownership, inviting teammates, managing roles and access — happens in the browser and the Paperclip UI.
 
-**Before you start:** you need shell access to the machine running the instance (the mode switch and the first ownership claim are deliberately not remote operations).
+**Before you start:** you need shell access to the machine running the instance (the mode switch and the first ownership claim are deliberately not remote-triggerable).
 
 ---
 
@@ -19,7 +19,7 @@ The full comparison, including when to pick each, is in [Deployment Modes](../re
 
 ---
 
-## 2. Switch the mode
+## 2. Switch the mode (on the host)
 
 If you're setting up a fresh instance, the onboarding wizard offers the authenticated options directly:
 
@@ -49,40 +49,42 @@ See [Tailscale Private Access](../reference/deploy/tailscale-private-access.md) 
 
 ---
 
-## 3. Restart and claim ownership
+## 3. Claim ownership in the browser
 
-When the instance restarts in authenticated mode, the loopback "local board" placeholder is still holding ownership. The server prints a **one-time board-claim URL** to its log:
+When the instance restarts in authenticated mode, the loopback "local board" placeholder is still holding ownership, and the server prints a **one-time board-claim URL** to its log:
 
 ```
 http://localhost:3000/board-claim/<token>?code=<code>
 ```
 
-Open it in your browser, sign in (or create your account), and click **Claim ownership**. In one transaction Paperclip promotes you to instance admin, retires the placeholder, and makes you an `owner` on every existing company.
+Open that URL in your browser. Sign in or create your account if prompted (the page bounces you back afterward), then click **Claim ownership** on the **Claim Board ownership** panel. In one transaction Paperclip promotes you to instance admin, retires the placeholder, and makes you an `owner` on every existing company. The page confirms with **Board ownership claimed** and a link into the board.
 
 > **Warning:** Treat the claim URL as sensitive — it's a one-time ownership transfer, not something to share. If it expires before you use it, restart the server to mint a fresh one.
 
-The full walkthrough, including the CLI device-code login you'll use afterward, is in [CLI Auth & Board Claim](../administration/cli-auth.md).
+The full walkthrough of this page is in [CLI Auth & Board Claim](../administration/cli-auth.md).
 
 ---
 
-## 4. Pair your CLI (optional but recommended)
+## 4. Pair your CLI (optional)
 
-Once ownership is claimed, pair your `paperclipai` CLI with your signed-in user so you can run commands without pasting tokens:
+If you plan to run `paperclipai` commands against the instance, pair the CLI with your signed-in user so you don't paste tokens. This is a browser-approved device-code flow:
 
 ```sh
-paperclipai auth login
-paperclipai auth whoami
+paperclipai auth login     # opens an approval page in your browser
+paperclipai auth whoami    # confirms the resolved identity
 ```
 
-This is the same device-code flow documented in [CLI Auth & Board Claim](../administration/cli-auth.md#device-code-flow-paperclipai-auth-login).
+Details in [CLI Auth & Board Claim → Device-code flow](../administration/cli-auth.md#device-code-flow-paperclipai-auth-login).
 
 ---
 
-## 5. Invite your teammates
+## 5. Invite your teammates (in the app)
 
-With the instance authenticated and ownership yours, adding people is the normal invite flow: create a link, share it, approve their join request. That's its own guide:
+With the instance authenticated and ownership yours, adding people is the normal in-app invite flow: **Settings → Invites**, create a link, share it, then approve their join request from **Settings → Access**. That's its own guide:
 
 **→ [Add a human teammate](./add-a-human-teammate.md)**
+
+If you're hosting several companies on one instance, you can also grant people access centrally from **Settings → Instance: Access** — see [Settings](../administration/settings.md#instance-access).
 
 ---
 
@@ -101,6 +103,6 @@ A lot of "why won't it start" problems in authenticated mode are really mode-vs-
 ## Related
 
 - [Deployment Modes](../reference/deploy/deployment-modes.md) — the authoritative reference for modes and exposure.
-- [CLI Auth & Board Claim](../administration/cli-auth.md) — board claim and CLI login in detail.
+- [CLI Auth & Board Claim](../administration/cli-auth.md) — the board-claim page and CLI login in detail.
 - [Add a human teammate](./add-a-human-teammate.md) — onboarding people once login is on.
 - [Roles & Permissions](../administration/roles-and-permissions.md) — what those teammates can do once they're in.
