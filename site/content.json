@@ -103,6 +103,10 @@
           "file": "../docs/guides/org/org-structure.md"
         },
         {
+          "title": "Members & Access",
+          "file": "../docs/guides/org/members-and-access.md"
+        },
+        {
           "title": "Delegation",
           "file": "../docs/guides/org/delegation.md"
         },
@@ -219,6 +223,18 @@
           "file": "../docs/how-to/debug-stuck-heartbeat.md"
         },
         {
+          "title": "Enable Multi-User Login",
+          "file": "../docs/how-to/enable-multi-user-login.md"
+        },
+        {
+          "title": "Add a Human Teammate",
+          "file": "../docs/how-to/add-a-human-teammate.md"
+        },
+        {
+          "title": "Offboard a Member",
+          "file": "../docs/how-to/offboard-a-member.md"
+        },
+        {
           "title": "Handle Board Approvals for Hires",
           "file": "../docs/how-to/handle-board-approvals-for-hires.md"
         },
@@ -249,6 +265,10 @@
         {
           "title": "Company",
           "file": "../docs/administration/company.md"
+        },
+        {
+          "title": "Roles & Permissions",
+          "file": "../docs/administration/roles-and-permissions.md"
         },
         {
           "title": "Settings",
