@@ -39,14 +39,15 @@ try {
     "skills route did not get a route-specific title",
   );
   assert(
-    skillsHtml.includes('<link rel="canonical" href="https://docs.paperclip.ing/reference/skills" />'),
+    skillsHtml.includes('<link rel="canonical" data-seo-managed href="https://docs.paperclip.ing/reference/skills/" />'),
     "skills route canonical URL is missing or incorrect",
   );
   assert(!skillsHtml.match(/rel="canonical"[^>]+#/), "canonical URL contains a hash");
   assert(skillsHtml.includes("<h1>Skills Reference</h1>"), "skills route is missing crawler-visible page content");
   assert(skillsHtml.includes("the file shape on disk"), "skills route body is missing expected docs copy");
-  assert(skillsHtml.includes('href="/styles.css"'), "nested route does not load stylesheet from the release base path");
-  assert(skillsHtml.includes('src="/app.js"'), "nested route does not load app JS from the release base path");
+  assert(skillsHtml.includes('<base data-seo-base href="/" />'), "nested route is missing the release base path");
+  assert(skillsHtml.includes('href="styles.css"'), "nested route does not load stylesheet from the release base path");
+  assert(skillsHtml.includes('src="app.js"'), "nested route does not load app JS from the release base path");
 
   const appJs = read("app.js");
   assert(!appJs.includes("/#/"), "generated app JS still contains primary hash route URLs");
@@ -72,6 +73,17 @@ try {
 
   const robots = read("robots.txt");
   assert(robots.includes("Sitemap: https://docs.paperclip.ing/sitemap.xml"), "robots.txt is missing sitemap reference");
+
+  const redirects = read("_redirects");
+  const canonicalRedirect = "/guides/getting-started/five-minute-path /guides/getting-started/five-minute-path/ 301";
+  assert(
+    redirects.includes(canonicalRedirect),
+    "Cloudflare redirects are missing the no-slash canonical redirect for the quickstart path",
+  );
+  assert(
+    redirects.indexOf(canonicalRedirect) < redirects.indexOf("/* /index.html 200"),
+    "canonical route redirects must appear before the SPA fallback rewrite",
+  );
 
   const deployGuide = read("DEPLOY.md");
   assert(deployGuide.includes("Cloudflare Pages"), "deploy guide is missing Cloudflare Pages guidance");

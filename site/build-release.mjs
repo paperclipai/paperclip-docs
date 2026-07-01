@@ -598,8 +598,27 @@ Sitemap: ${siteUrlForPath(siteUrl, basePath, "sitemap.xml")}
 `;
 }
 
-function buildCloudflareRedirects() {
-  return `# Serve generated files first; fall back to the SPA shell for client routes.
+function cloudflarePathForRoute(basePath, routePath, { trailingSlash = false } = {}) {
+  const baseKey = normalizeRouteKey(getDeploymentBasePath(basePath));
+  const routeKey = normalizeRouteKey(routePath);
+  const key = [baseKey, routeKey].filter(Boolean).join("/");
+  return `/${key}${trailingSlash ? "/" : ""}`;
+}
+
+function buildCloudflareRedirects({ basePath, pages }) {
+  const routeRedirects = pages
+    .map(({ page }) => {
+      const sourcePath = cloudflarePathForRoute(basePath, page.slug);
+      const destinationPath = cloudflarePathForRoute(basePath, page.slug, { trailingSlash: true });
+      return `${sourcePath} ${destinationPath} 301`;
+    })
+    .join("\n");
+
+  return `# Canonical docs URLs include trailing slashes. Keep no-slash requests
+# on a normal one-hop 301 instead of Cloudflare Pages' implicit directory 308.
+${routeRedirects}
+
+# Serve generated files first; fall back to the SPA shell for client routes.
 /* /index.html 200
 `;
 }
@@ -819,7 +838,6 @@ async function main() {
   await fs.writeFile(path.join(options.outDir, ".htaccess"), buildHtaccess(options.basePath));
   await fs.writeFile(path.join(options.outDir, "nginx.conf.example"), buildNginxConfig(options.basePath));
   await fs.writeFile(path.join(options.outDir, "DEPLOY.md"), buildDeployGuide(options.basePath));
-  await fs.writeFile(path.join(options.outDir, "_redirects"), buildCloudflareRedirects());
   await fs.writeFile(path.join(options.outDir, "_headers"), buildCloudflareHeaders());
 
   // Copy markdown files, stripping YAML frontmatter, and collect per-file
@@ -847,6 +865,10 @@ async function main() {
   await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav, null, 2)}\n`);
 
   const pageMetadata = await pageMetadataForNav(releaseNav, options.outDir, options.siteUrl, options.basePath);
+  await fs.writeFile(path.join(options.outDir, "_redirects"), buildCloudflareRedirects({
+    basePath: options.basePath,
+    pages: pageMetadata,
+  }));
   const rootMetadata = {
     title: "Paperclip Docs",
     description: defaultSeoDescription,
