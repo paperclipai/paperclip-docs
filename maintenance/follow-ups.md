@@ -26,6 +26,17 @@ The /sync-docs Phase 1.5 drift check reports ~41 candidates against parent `mast
 
 The v2026.512.0 coverage audit triaged the seven previously-flagged route files. All seven turned out to be public/admin-facing and were documented in this release (see `docs/reference/api/adapters.md`, `docs/reference/api/plugins.md`, `docs/reference/api/instance-admin.md`). No routes from that batch were classified as internal-only. This section is the reserved home for future triage outcomes when an undocumented route turns out to be private bridge plumbing rather than a public surface.
 
+## Drift-checker: permission catalog & role defaults — DONE
+
+The human permission model in `docs/administration/roles-and-permissions.md` (canonical tables) and `docs/administration/company.md` is hand-mirrored from two source-of-truth locations in parent:
+
+- `packages/shared/src/constants.ts` → `PERMISSION_KEYS` (the key catalog).
+- `server/src/services/company-member-roles.ts` → `grantsForHumanRole()` (which keys each role grants by default).
+
+`check-drift.mjs` now has a `permission-catalog-drift` class (Class 5) that fetches both parent files, parses `PERMISSION_KEYS` and the `grantsForHumanRole` switch, and diffs them against the two tables in `roles-and-permissions.md` — flagging keys added/removed upstream and per-role grant mismatches. It skips gracefully when the doc or either parent file is absent (so fixture-driven tests are unaffected). Covered by two unit tests in `test.mjs`.
+
+It earned its keep immediately: the first live run flagged `skills:create` and `pipelines:write` (added upstream, released in v2026.626.0) as undocumented, plus `owner`/`admin` missing `skills:create` in their default grants — all fixed in the same pass. Earlier the model had also drifted on `environments:manage` and `tasks:manage_active_checkouts`.
+
 ## Screenshot anchors
 
 `docs/user-guides/screenshots/registry.json` was scaffolded with 274 empty entries. The `depends_on` arrays need to be populated by hand for staleness detection to fire. Pick high-traffic screenshots first (issues, dashboard, costs, onboarding) and trace them to the relevant `ui/src/**` paths.

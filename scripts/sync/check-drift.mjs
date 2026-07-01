@@ -637,6 +637,66 @@ function candidateToPattern(v) {
 
 // --- argparse --------------------------------------------------------------
 
+// --- permission catalog & role-default grants ------------------------------
+//
+// The human permission model is documented in two mirrored tables in
+// docs/administration/roles-and-permissions.md. Their source of truth is:
+//   - packages/shared/src/constants.ts        → PERMISSION_KEYS (the catalog)
+//   - server/src/services/company-member-roles.ts → grantsForHumanRole() (role defaults)
+// This class parses both sides and flags keys/role-grants that drifted apart.
+
+const PERMISSION_CONSTANTS_PATH = "packages/shared/src/constants.ts";
+const ROLE_GRANTS_PATH = "server/src/services/company-member-roles.ts";
+const PERMISSION_DOC_REL = "administration/roles-and-permissions.md";
+const KEY_RE = "[a-z0-9_]+:[a-z0-9_]+";
+const HUMAN_ROLES = ["owner", "admin", "operator", "viewer"];
+
+/** Extract the PERMISSION_KEYS string-literal array from constants.ts. */
+function parseParentPermissionKeys(content) {
+  const m = content.match(/PERMISSION_KEYS\s*=\s*\[([\s\S]*?)\]/);
+  if (!m) return [];
+  const re = new RegExp(`["'](${KEY_RE})["']`, "g");
+  return [...m[1].matchAll(re)].map((x) => x[1]);
+}
+
+/** Extract role → Set(permissionKey) from grantsForHumanRole()'s switch. */
+function parseParentRoleGrants(content) {
+  const map = new Map();
+  const startIdx = content.indexOf("grantsForHumanRole");
+  if (startIdx === -1) return map;
+  let endIdx = content.indexOf("\nexport ", startIdx + 1);
+  if (endIdx === -1) endIdx = Math.min(content.length, startIdx + 4000);
+  const body = content.slice(startIdx, endIdx);
+  const keyRe = new RegExp(`permissionKey\\s*:\\s*["'](${KEY_RE})["']`, "g");
+  // split() drops the delimiter, so each chunk holds exactly one case's body.
+  for (const chunk of body.split(/case\s+["']/).slice(1)) {
+    const rm = chunk.match(/^([a-z_]+)["']/);
+    if (!rm) continue;
+    map.set(rm[1], new Set([...chunk.matchAll(keyRe)].map((x) => x[1])));
+  }
+  return map;
+}
+
+/** Keys documented in the "permission keys" table (rows whose 1st cell is a key). */
+function parseDocPermissionKeys(md) {
+  const re = new RegExp("^\\|\\s*`(" + KEY_RE + ")`\\s*\\|", "gm");
+  return new Set([...md.matchAll(re)].map((x) => x[1]));
+}
+
+/** Role → Set(key) from the four-roles table (rows whose 1st cell is **Role**). */
+function parseDocRoleGrants(md) {
+  const map = new Map();
+  const rowRe = /^\|\s*\*\*([A-Za-z]+)\*\*\s*\|(.*)$/gm;
+  const keyRe = new RegExp("`(" + KEY_RE + ")`", "g");
+  let m;
+  while ((m = rowRe.exec(md))) {
+    const role = m[1].toLowerCase();
+    if (!HUMAN_ROLES.includes(role)) continue;
+    map.set(role, new Set([...m[2].matchAll(keyRe)].map((x) => x[1])));
+  }
+  return map;
+}
+
 function parseArgs(argv) {
   const out = { json: false, repo: null, against: null, help: false };
   for (let i = 0; i < argv.length; i++) {
@@ -682,6 +742,8 @@ function main() {
     cli_commands_checked: 0,
     env_vars_checked: 0,
     rest_routes_checked: 0,
+    permission_keys_checked: 0,
+    permission_roles_checked: 0,
   };
 
   // Class 1: parent paths.
@@ -810,6 +872,75 @@ function main() {
     }
   }
 
+  // Class 5: permission catalog & role-default grants.
+  const permDocPath = join(DOCS, PERMISSION_DOC_REL);
+  if (existsSync(permDocPath)) {
+    const md = readFileSync(permDocPath, "utf8");
+    const docRel = relative(ROOT, permDocPath);
+
+    // 5a. Permission-key catalog: PERMISSION_KEYS vs the doc's key table.
+    const constRes = cachedContents(repo, PERMISSION_CONSTANTS_PATH, against, refSlug);
+    if (constRes.status === 200 && typeof constRes.content === "string") {
+      const parentKeys = parseParentPermissionKeys(constRes.content);
+      if (parentKeys.length > 0) {
+        stats.permission_keys_checked = parentKeys.length;
+        const parentSet = new Set(parentKeys);
+        const docKeys = parseDocPermissionKeys(md);
+        for (const k of parentKeys) {
+          if (!docKeys.has(k)) {
+            drift.push({
+              kind: "permission-catalog-drift",
+              doc: docRel,
+              documented: `permission key \`${k}\` — in parent, undocumented`,
+              parent_searched: `PERMISSION_KEYS in ${PERMISSION_CONSTANTS_PATH}@${against}`,
+              confidence: "high",
+              suggest: "Add the new key to the permission-keys table in roles-and-permissions.md and the grant list in company.md.",
+            });
+          }
+        }
+        for (const k of docKeys) {
+          if (!parentSet.has(k)) {
+            drift.push({
+              kind: "permission-catalog-drift",
+              doc: docRel,
+              documented: `permission key \`${k}\` — documented, absent from parent`,
+              parent_searched: `PERMISSION_KEYS in ${PERMISSION_CONSTANTS_PATH}@${against}`,
+              confidence: "high",
+              suggest: "The key was removed or renamed upstream. Update or drop its rows in roles-and-permissions.md and company.md.",
+            });
+          }
+        }
+      }
+    }
+
+    // 5b. Role-default grants: grantsForHumanRole() vs the doc's four-roles table.
+    const rolesRes = cachedContents(repo, ROLE_GRANTS_PATH, against, refSlug);
+    if (rolesRes.status === 200 && typeof rolesRes.content === "string") {
+      const parentRoleGrants = parseParentRoleGrants(rolesRes.content);
+      if (parentRoleGrants.size > 0) {
+        stats.permission_roles_checked = parentRoleGrants.size;
+        const docRoleGrants = parseDocRoleGrants(md);
+        for (const [role, parentGrantSet] of parentRoleGrants) {
+          const docGrantSet = docRoleGrants.get(role) || new Set();
+          const added = [...parentGrantSet].filter((k) => !docGrantSet.has(k));
+          const removed = [...docGrantSet].filter((k) => !parentGrantSet.has(k));
+          if (added.length === 0 && removed.length === 0) continue;
+          const bits = [];
+          if (added.length) bits.push(`missing in docs: ${added.join(", ")}`);
+          if (removed.length) bits.push(`stale in docs: ${removed.join(", ")}`);
+          drift.push({
+            kind: "permission-catalog-drift",
+            doc: docRel,
+            documented: `role \`${role}\` default grants (${bits.join("; ")})`,
+            parent_searched: `grantsForHumanRole() in ${ROLE_GRANTS_PATH}@${against}`,
+            confidence: "high",
+            suggest: "Reconcile the role's implicit-grants cell in roles-and-permissions.md (and its description in company.md) with grantsForHumanRole().",
+          });
+        }
+      }
+    }
+  }
+
   // Resolve the SHA of `against` for the output header. Skip in fixture mode.
   let checkedAgainst = against;
   if (!FIXTURE_DIR) {
@@ -831,7 +962,7 @@ function main() {
   const lines = [];
   lines.push(`Drift check against ${checkedAgainst}`);
   lines.push(
-    `Checked: ${stats.parent_paths_checked} parent paths, ${stats.cli_commands_checked} CLI commands, ${stats.env_vars_checked} env vars, ${stats.rest_routes_checked} REST routes`
+    `Checked: ${stats.parent_paths_checked} parent paths, ${stats.cli_commands_checked} CLI commands, ${stats.env_vars_checked} env vars, ${stats.rest_routes_checked} REST routes, ${stats.permission_keys_checked} permission keys, ${stats.permission_roles_checked} roles`
   );
   if (drift.length === 0) {
     lines.push("");

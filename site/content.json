@@ -107,6 +107,10 @@
           "file": "../docs/guides/org/org-structure.md"
         },
         {
+          "title": "Members & Access",
+          "file": "../docs/guides/org/members-and-access.md"
+        },
+        {
           "title": "Delegation",
           "file": "../docs/guides/org/delegation.md"
         },
@@ -175,72 +179,114 @@
       "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",
       "pages": [
         {
-          "title": "Set a Monthly Budget",
-          "file": "../docs/how-to/set-monthly-budget.md"
+          "title": "Members & Access",
+          "pages": [
+            {
+              "title": "Enable Multi-User Login",
+              "file": "../docs/how-to/enable-multi-user-login.md"
+            },
+            {
+              "title": "Add a Human Teammate",
+              "file": "../docs/how-to/add-a-human-teammate.md"
+            },
+            {
+              "title": "Offboard a Member",
+              "file": "../docs/how-to/offboard-a-member.md"
+            }
+          ]
         },
         {
-          "title": "Require Approval Before Spend",
-          "file": "../docs/how-to/require-board-approval-before-spend.md"
+          "title": "Governance & Budget",
+          "pages": [
+            {
+              "title": "Set a Monthly Budget",
+              "file": "../docs/how-to/set-monthly-budget.md"
+            },
+            {
+              "title": "Require Approval Before Spend",
+              "file": "../docs/how-to/require-board-approval-before-spend.md"
+            },
+            {
+              "title": "Handle Board Approvals for Hires",
+              "file": "../docs/how-to/handle-board-approvals-for-hires.md"
+            }
+          ]
         },
         {
-          "title": "Create a Daily Routine",
-          "file": "../docs/how-to/create-a-daily-routine.md"
+          "title": "Agents & Skills",
+          "pages": [
+            {
+              "title": "Bring Your Own Agent",
+              "file": "../docs/how-to/bring-your-own-agent.md"
+            },
+            {
+              "title": "Connect an Agent to GitHub",
+              "file": "../docs/how-to/connect-agent-to-github.md"
+            },
+            {
+              "title": "Add an MCP Server to an Agent",
+              "file": "../docs/how-to/add-mcp-server-to-agent.md"
+            },
+            {
+              "title": "Write a Company Skill",
+              "file": "../docs/how-to/write-a-company-skill.md"
+            }
+          ]
         },
         {
-          "title": "Connect an Agent to GitHub",
-          "file": "../docs/how-to/connect-agent-to-github.md"
+          "title": "Automation & Notifications",
+          "pages": [
+            {
+              "title": "Create a Daily Routine",
+              "file": "../docs/how-to/create-a-daily-routine.md"
+            },
+            {
+              "title": "Wire Slack/Discord Notifications",
+              "file": "../docs/how-to/wire-slack-discord-notifications.md"
+            }
+          ]
         },
         {
-          "title": "Update or Rotate a Provider API Key",
-          "file": "../docs/how-to/rotate-provider-api-key.md"
+          "title": "Secrets & Providers",
+          "pages": [
+            {
+              "title": "Update or Rotate a Provider API Key",
+              "file": "../docs/how-to/rotate-provider-api-key.md"
+            },
+            {
+              "title": "Connect an AWS Secrets Manager Vault",
+              "file": "../docs/how-to/connect-aws-secrets-vault.md"
+            }
+          ]
         },
         {
-          "title": "Update Paperclip to the Latest Version",
-          "file": "../docs/how-to/update-paperclip.md"
-        },
-        {
-          "title": "Add an MCP Server to an Agent",
-          "file": "../docs/how-to/add-mcp-server-to-agent.md"
-        },
-        {
-          "title": "Write a Company Skill",
-          "file": "../docs/how-to/write-a-company-skill.md"
-        },
-        {
-          "title": "Bring Your Own Agent",
-          "file": "../docs/how-to/bring-your-own-agent.md"
-        },
-        {
-          "title": "Deploy to a VPS or Fly.io",
-          "file": "../docs/how-to/deploy-to-vps-or-fly.md"
-        },
-        {
-          "title": "Back Up and Restore a Company",
-          "file": "../docs/how-to/back-up-and-restore-a-company.md"
-        },
-        {
-          "title": "Debug a Stuck Heartbeat",
-          "file": "../docs/how-to/debug-stuck-heartbeat.md"
-        },
-        {
-          "title": "Handle Board Approvals for Hires",
-          "file": "../docs/how-to/handle-board-approvals-for-hires.md"
-        },
-        {
-          "title": "Wire Slack/Discord Notifications",
-          "file": "../docs/how-to/wire-slack-discord-notifications.md"
-        },
-        {
-          "title": "Develop a plugin locally",
-          "file": "../docs/how-to/develop-a-plugin-locally.md"
-        },
-        {
-          "title": "Sync to Cloud Upstream",
-          "file": "../docs/how-to/sync-to-cloud-upstream.md"
-        },
-        {
-          "title": "Connect an AWS Secrets Manager Vault",
-          "file": "../docs/how-to/connect-aws-secrets-vault.md"
+          "title": "Deploy & Maintain",
+          "pages": [
+            {
+              "title": "Deploy to a VPS or Fly.io",
+              "file": "../docs/how-to/deploy-to-vps-or-fly.md"
+            },
+            {
+              "title": "Update Paperclip to the Latest Version",
+              "file": "../docs/how-to/update-paperclip.md"
+            },
+            {
+              "title": "Back Up and Restore a Company",
+              "file": "../docs/how-to/back-up-and-restore-a-company.md"
+            },
+            {
+              "title": "Debug a Stuck Heartbeat",
+              "file": "../docs/how-to/debug-stuck-heartbeat.md"
+            },
+            {
+              "title": "Sync to Cloud Upstream",
+              "file": "../docs/how-to/sync-to-cloud-upstream.md"
+            },
+            {
+              "title": "Develop a plugin locally",
+              "file": "../docs/how-to/develop-a-plugin-locally.md"
+            }
+          ]
         }
       ]
     },
@@ -253,6 +299,10 @@
         {
           "title": "Company",
           "file": "../docs/administration/company.md"
+        },
+        {
+          "title": "Roles & Permissions",
+          "file": "../docs/administration/roles-and-permissions.md"
         },
         {
           "title": "Settings",
