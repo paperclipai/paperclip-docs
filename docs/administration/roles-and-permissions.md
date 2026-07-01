@@ -23,8 +23,8 @@ There is also one layer that sits *above* the company: the **instance admin**, c
 
 | Role | Who it's for | Implicit grants |
 |---|---|---|
-| **Owner** | The people who run the company | `agents:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `joins:approve` |
-| **Admin** | Trusted operators who onboard people and agents | `agents:create`, `environments:manage`, `users:invite`, `tasks:assign`, `joins:approve` |
+| **Owner** | The people who run the company | `agents:create`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `joins:approve` |
+| **Admin** | Trusted operators who onboard people and agents | `agents:create`, `skills:create`, `environments:manage`, `users:invite`, `tasks:assign`, `joins:approve` |
 | **Operator** | Hands-on members who help run the work | `tasks:assign` |
 | **Viewer** | Read-only observers | *(none)* |
 
@@ -36,23 +36,28 @@ A fifth option, **Unset**, appears in the role drop-down. It leaves the member w
 
 ## The permission keys
 
-There are eight permission keys. Six of them show up as defaults on one or more roles; two are **explicit-grant-only** — no role includes them, so a member only ever gets them if you check the box in the member editor.
+There are ten permission keys. Seven of them show up as defaults on one or more roles; three are **explicit-grant-only** — no role includes them, so a member only ever gets them if you check the box in the member editor.
 
 | Permission key | What it allows | In which role by default |
 |---|---|---|
 | `agents:create` | Create (hire) new agents in the company | Owner, Admin |
+| `skills:create` | Create and manage company skills | Owner, Admin |
 | `environments:manage` | Create, edit, and remove the execution environments agents run in | Owner, Admin |
 | `users:invite` | Create and revoke company invite links | Owner, Admin |
 | `users:manage_permissions` | View and change members' roles and grants | Owner |
 | `tasks:assign` | Assign any issue to any agent or member in the company | Owner, Admin, Operator |
 | `tasks:assign_scope` | Assign issues, but only within a constrained scope (for example, a single manager's subtree). This is the *scoped fallback* Paperclip checks when a principal does **not** hold the broad `tasks:assign` grant | — (explicit only) |
 | `tasks:manage_active_checkouts` | Reassign or clear an issue that another assignee currently holds checked out — an override for unsticking work | — (explicit only) |
+| `pipelines:write` | Create and modify pipeline automations | — (explicit only) |
 | `joins:approve` | Approve or reject human and agent join requests | Owner, Admin |
 
-### About the two scoped keys
+### About the explicit-only keys
+
+Three keys never appear in a role's defaults, so a member only receives them through an explicit grant in the member editor:
 
 - **`tasks:assign_scope`** is how you let someone delegate *within their lane* without giving them company-wide assignment power. When a member has `tasks:assign_scope` but not `tasks:assign`, Paperclip evaluates the grant against the scope attached to it and allows the assignment only if the target falls inside that scope. Set the scope in the grant payload (via the member editor's grant, or `member role-and-grants` on the CLI).
 - **`tasks:manage_active_checkouts`** is an escape hatch. Normally an issue that an agent has checked out is off-limits to others until it's released; this grant lets the holder reassign or clear that active checkout — handy when an agent has stalled mid-task.
+- **`pipelines:write`** lets a member create and edit pipeline automations. Grant it to whoever runs your pipelines; it is kept off the standard roles so pipeline authorship is a deliberate choice.
 
 ---
 

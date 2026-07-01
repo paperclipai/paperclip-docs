@@ -554,6 +554,84 @@ test("check-drift: env var drift caught (high confidence)", () => {
   rmSync(root, { recursive: true, force: true });
 });
 
+const PERM_DOC = "docs/administration/roles-and-permissions.md";
+function permB64(s) {
+  return { status: 200, content_base64: Buffer.from(s).toString("base64") };
+}
+
+test("check-drift: permission catalog + role-grant drift caught (high confidence)", () => {
+  const { root, fixtures, scriptInRoot } = makeDriftFixture();
+  // Doc: catalog table omits `joins:approve`; owner grants omit `environments:manage`.
+  const doc = [
+    "# Roles & Permissions",
+    "",
+    "| Role | Who | Implicit grants |",
+    "|---|---|---|",
+    "| **Owner** | run | `agents:create`, `users:invite` |",
+    "| **Viewer** | read | *(none)* |",
+    "",
+    "| Permission key | What it allows | In which role |",
+    "|---|---|---|",
+    "| `agents:create` | make agents | Owner |",
+    "| `users:invite` | invite | Owner |",
+    "",
+  ].join("\n");
+  writeFile(root, PERM_DOC, doc);
+  writeFixtureContents(fixtures, "packages/shared/src/constants.ts", "master",
+    permB64('export const PERMISSION_KEYS = [\n  "agents:create",\n  "users:invite",\n  "joins:approve",\n] as const;\n'));
+  writeFixtureContents(fixtures, "server/src/services/company-member-roles.ts", "master",
+    permB64('export function grantsForHumanRole(role) {\n  switch (role) {\n    case "owner":\n      return [\n        { permissionKey: "agents:create", scope: null },\n        { permissionKey: "users:invite", scope: null },\n        { permissionKey: "environments:manage", scope: null },\n      ];\n    case "viewer":\n      return [];\n  }\n}\nexport function other() {}\n'));
+
+  const r = spawnSync(process.execPath, [scriptInRoot, "--json", "--against", "master"], {
+    encoding: "utf8",
+    env: { ...process.env, PAPERCLIP_SYNC_FIXTURE_DIR: fixtures },
+  });
+  assert(r.status === 0, `expected exit 0, got ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  const pc = out.drift.filter((d) => d.kind === "permission-catalog-drift");
+  assert(pc.length === 2, `expected 2 permission-catalog-drift, got ${pc.length}: ${JSON.stringify(pc)}`);
+  assert(pc.some((d) => /joins:approve/.test(d.documented)), `expected joins:approve catalog drift: ${JSON.stringify(pc)}`);
+  assert(pc.some((d) => /owner/.test(d.documented) && /environments:manage/.test(d.documented)), `expected owner role-grant drift: ${JSON.stringify(pc)}`);
+  assert(pc.every((d) => d.confidence === "high"), "expected all high confidence");
+
+  rmSync(root, { recursive: true, force: true });
+});
+
+test("check-drift: no permission drift when docs match parent", () => {
+  const { root, fixtures, scriptInRoot } = makeDriftFixture();
+  const doc = [
+    "# Roles & Permissions",
+    "",
+    "| Role | Who | Implicit grants |",
+    "|---|---|---|",
+    "| **Owner** | run | `agents:create`, `joins:approve` |",
+    "| **Viewer** | read | *(none)* |",
+    "",
+    "| Permission key | What it allows | In which role |",
+    "|---|---|---|",
+    "| `agents:create` | make agents | Owner |",
+    "| `joins:approve` | approve | Owner |",
+    "",
+  ].join("\n");
+  writeFile(root, PERM_DOC, doc);
+  writeFixtureContents(fixtures, "packages/shared/src/constants.ts", "master",
+    permB64('export const PERMISSION_KEYS = [\n  "agents:create",\n  "joins:approve",\n] as const;\n'));
+  writeFixtureContents(fixtures, "server/src/services/company-member-roles.ts", "master",
+    permB64('export function grantsForHumanRole(role) {\n  switch (role) {\n    case "owner":\n      return [\n        { permissionKey: "agents:create", scope: null },\n        { permissionKey: "joins:approve", scope: null },\n      ];\n    case "viewer":\n      return [];\n  }\n}\n'));
+
+  const r = spawnSync(process.execPath, [scriptInRoot, "--json", "--against", "master"], {
+    encoding: "utf8",
+    env: { ...process.env, PAPERCLIP_SYNC_FIXTURE_DIR: fixtures },
+  });
+  assert(r.status === 0, `expected exit 0, got ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  const pc = out.drift.filter((d) => d.kind === "permission-catalog-drift");
+  assert(pc.length === 0, `expected no permission drift, got ${pc.length}: ${JSON.stringify(pc)}`);
+  assert(out.stats.permission_keys_checked === 2, `expected 2 keys checked, got ${out.stats.permission_keys_checked}`);
+
+  rmSync(root, { recursive: true, force: true });
+});
+
 test("check-drift: REST route drift caught (medium confidence)", () => {
   const { root, fixtures, scriptInRoot } = makeDriftFixture();
   const apiDoc = [

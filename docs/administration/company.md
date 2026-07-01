@@ -73,8 +73,8 @@ The **Company Access** page is where you manage human memberships: who belongs t
 
 Paperclip uses four human membership roles. The role determines a set of implicit permission grants:
 
-- **Owner** — full company access. Includes creating agents, managing execution environments, inviting humans and agents, managing members and grants, assigning tasks, and approving join requests.
-- **Admin** — an operator with invite and approval powers. Can create agents, manage execution environments, invite users, assign tasks, and approve join requests. The one thing an Admin cannot do that an Owner can is manage other members' permissions.
+- **Owner** — full company access. Includes creating agents and skills, managing execution environments, inviting humans and agents, managing members and grants, assigning tasks, and approving join requests.
+- **Admin** — an operator with invite and approval powers. Can create agents and skills, manage execution environments, invite users, assign tasks, and approve join requests. The one thing an Admin cannot do that an Owner can is manage other members' permissions.
 - **Operator** — a hands-on member who helps run work. Can assign tasks.
 - **Viewer** — read-only access. No built-in grants.
 
@@ -104,7 +104,7 @@ Clicking **Edit** opens a dialog with three controls:
 2. **Membership status** — `Active`, `Pending`, or `Suspended`.
 3. **Grants** — a two-column grid of explicit permission grants. A read-only panel above the grid lists the grants the selected role provides implicitly. Checking a box here stores the grant explicitly on the member, so it persists even if the role later changes.
 
-The full set of permission keys is `agents:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `tasks:assign_scope`, `tasks:manage_active_checkouts`, and `joins:approve`. Each box is labelled with a human name and its underlying key for reference. Two of these — `tasks:assign_scope` and `tasks:manage_active_checkouts` — are never part of a role's implicit grants, so the only way a member gets them is by checking the box here. For what each key gates and which roles include it by default, see [Roles & Permissions](./roles-and-permissions.md).
+The full set of permission keys is `agents:create`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `tasks:assign_scope`, `tasks:manage_active_checkouts`, `pipelines:write`, and `joins:approve`. Each box is labelled with a human name and its underlying key for reference. Three of these — `tasks:assign_scope`, `tasks:manage_active_checkouts`, and `pipelines:write` — are never part of a role's implicit grants, so the only way a member gets them is by checking the box here. For what each key gates and which roles include it by default, see [Roles & Permissions](./roles-and-permissions.md).
 
 Click **Save access** to persist the changes, or **Cancel** to close the dialog without saving.
 
