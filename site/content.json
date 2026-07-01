@@ -51,6 +51,10 @@
           "file": "../docs/guides/day-to-day/dashboard.md"
         },
         {
+          "title": "Command Palette",
+          "file": "../docs/guides/day-to-day/command-palette.md"
+        },
+        {
           "title": "Issues",
           "file": "../docs/guides/day-to-day/issues.md"
         },

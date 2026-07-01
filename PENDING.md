@@ -9,12 +9,7 @@ This file is overwritten each run — it always reflects the current run, not an
 | Parent commit | Surface | Doc target | Outcome |
 |---|---|---|---|
 | `5e3d6e36` [codex] Preserve plan review context in agent wakes (#8649) | `planReviewContext` field added to `GET /api/issues/{issueId}/heartbeat-context` | `docs/reference/api/issues.md` | Appended a bullet to the Heartbeat Context payload list describing the new plan-review feedback field. Verified against parent (`verify-edit.mjs`: 0 unverified / 0 suspicious). |
-
-## Deferred — needs a human decision (not auto-authored)
-
-| Parent commit | Surface | Why deferred |
-|---|---|---|
-| `ef6061a5` feat: project typeahead in ⌘K command palette (#8773) | The ⌘K command palette now promotes fuzzy-matched **Projects** alongside Tasks/Actions. | The command palette is **not documented anywhere** in our docs (no `⌘K` / "command palette" reference exists). Documenting this enhancement means first authoring a palette/navigation page from scratch — net-new scope beyond a sync edit. Decide whether to create a new "getting around / keyboard navigation" page or fold it into an existing user guide, then it can be drafted. |
+| `ef6061a5` feat: project typeahead in ⌘K command palette (#8773) | The ⌘K command palette now promotes fuzzy-matched **Projects** alongside Tasks/Actions | `docs/guides/day-to-day/command-palette.md` (new page) | The command palette was previously undocumented, so authored a full new "Command Palette" page (shortcut, Pages/Actions groups, search-as-you-type, project ranking) and registered it in the Working Day-to-day nav after The Dashboard. Verified against parent (0 unverified / 0 suspicious). |
 
 ## Context-only / internal (no user- or developer-facing doc surface)
 
