@@ -13,7 +13,8 @@ const sourceStylesPath = path.join(__dirname, "styles.css");
 const sourceAppJsPath = path.join(__dirname, "app.js");
 const sourceNavPath = path.join(__dirname, "content.json");
 const screenshotsSourceDir = path.join(docsRoot, "user-guides", "screenshots");
-const defaultCanonicalOrigin = "https://docs.paperclip.ing";
+const defaultSiteUrl = "https://docs.paperclip.ing";
+const defaultSeoDescription = "Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows.";
 
 function printUsage() {
   console.log(`Usage: node site/build-release.mjs [options]
@@ -22,6 +23,8 @@ Options:
   --base-path <path>  Public URL base path for the uploaded docs bundle.
                       Examples: /, /docs/, /random/paperclip-docs/, auto
                       Default: auto (explicit paths are recommended for deployment)
+  --site-url <url>    Absolute public origin used for canonical URLs and sitemaps.
+                      Default: ${defaultSiteUrl}
   --out-dir <path>    Output directory for the release bundle.
                       Default: site/release
   --help              Show this help text.`);
@@ -30,6 +33,7 @@ Options:
 function parseArgs(argv) {
   const options = {
     basePath: "auto",
+    siteUrl: defaultSiteUrl,
     outDir: path.join(__dirname, "release"),
   };
 
@@ -57,6 +61,15 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (arg === "--site-url") {
+      const value = argv[index + 1];
+      if (!value) {
+        throw new Error("--site-url requires a value.");
+      }
+      options.siteUrl = normalizeSiteUrl(value);
+      index += 1;
+      continue;
+    }
     throw new Error(`Unknown argument: ${arg}`);
   }
 
@@ -69,6 +82,16 @@ function normalizeBasePath(value) {
   if (!trimmed || trimmed === "/") return "/";
   const withLeadingSlash = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
   return withLeadingSlash.endsWith("/") ? withLeadingSlash : `${withLeadingSlash}/`;
+}
+
+function normalizeSiteUrl(value) {
+  const trimmed = value.trim().replace(/\/+$/, "");
+  if (!trimmed) throw new Error("--site-url must not be empty.");
+  const parsed = new URL(trimmed);
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+    throw new Error("--site-url must be an http(s) URL.");
+  }
+  return parsed.toString().replace(/\/+$/, "");
 }
 
 function toPosixPath(value) {
@@ -416,6 +439,184 @@ function getDeploymentBasePath(basePath) {
   return basePath === "auto" ? "/paperclip-docs/" : basePath;
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function markdownToPlainText(markdown) {
+  return markdown
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[*_>#|-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function markdownDescription(markdown) {
+  const block = markdown
+    .split(/\n{2,}/)
+    .map((item) => item.trim())
+    .find((item) =>
+      item &&
+      !item.startsWith("#") &&
+      !item.startsWith("![") &&
+      !item.startsWith("|") &&
+      !item.startsWith("---")
+    );
+  const description = block ? markdownToPlainText(block) : defaultSeoDescription;
+  return description.slice(0, 220);
+}
+
+function siteUrlForPath(siteUrl, basePath, routePath = "") {
+  const publicBasePath = basePath === "auto" ? "/" : basePath;
+  const base = new URL(publicBasePath, `${siteUrl}/`);
+  return new URL(routePath.replace(/^\/+/, ""), base).toString();
+}
+
+function routeUrlForPage(siteUrl, basePath, page) {
+  return siteUrlForPath(siteUrl, basePath, `${page.slug}/`);
+}
+
+function buildJsonLd(metadata) {
+  const graph = metadata.page
+    ? {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        headline: metadata.title.replace(/ \| Paperclip Docs$/, ""),
+        description: metadata.description,
+        url: metadata.url,
+        isPartOf: {
+          "@type": "WebSite",
+          name: "Paperclip Docs",
+          url: siteUrlForPath(metadata.siteUrl, metadata.basePath),
+        },
+      }
+    : {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "Paperclip Docs",
+        description: metadata.description,
+        url: metadata.url,
+      };
+  return JSON.stringify(graph);
+}
+
+function escapeScriptContent(value) {
+  return String(value).replace(/<\//g, "<\\/");
+}
+
+function injectSeo(html, metadata, { baseHref = null } = {}) {
+  const title = escapeHtml(metadata.title);
+  let output = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`);
+  output = output.replace(/\n\s*<(?:meta|link)\b[^>]*data-seo-managed[^>]*>/g, "");
+  output = output.replace(/\n\s*<script\b[^>]*data-seo-managed[^>]*>[\s\S]*?<\/script>/g, "");
+  output = output.replace(/\n\s*<base\b[^>]*data-seo-base[^>]*>/g, "");
+
+  const tags = [
+    ...(baseHref ? [`<base data-seo-base href="${escapeHtml(baseHref)}" />`] : []),
+    `<meta name="description" data-seo-managed content="${escapeHtml(metadata.description)}" />`,
+    `<meta name="robots" data-seo-managed content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />`,
+    `<link rel="canonical" data-seo-managed href="${escapeHtml(metadata.url)}" />`,
+    `<meta property="og:type" data-seo-managed content="${metadata.page ? "article" : "website"}" />`,
+    `<meta property="og:site_name" data-seo-managed content="Paperclip Docs" />`,
+    `<meta property="og:title" data-seo-managed content="${title}" />`,
+    `<meta property="og:description" data-seo-managed content="${escapeHtml(metadata.description)}" />`,
+    `<meta property="og:url" data-seo-managed content="${escapeHtml(metadata.url)}" />`,
+    `<meta name="twitter:card" data-seo-managed content="summary" />`,
+    `<meta name="twitter:title" data-seo-managed content="${title}" />`,
+    `<meta name="twitter:description" data-seo-managed content="${escapeHtml(metadata.description)}" />`,
+    `<script type="application/ld+json" data-seo-managed>${escapeScriptContent(buildJsonLd(metadata))}</script>`,
+  ];
+
+  return output.replace(/(<title>[\s\S]*?<\/title>)/, `$1\n  ${tags.join("\n  ")}`);
+}
+
+async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
+  const pages = [];
+  for (const { page, section } of flattenNavPages(nav)) {
+    const releaseMarkdownPath = path.join(outDir, page.file);
+    const markdown = await fs.readFile(releaseMarkdownPath, "utf8");
+    const stats = await fs.stat(releaseMarkdownPath);
+    const h1 = markdown.match(/^#\s+(.+)$/m)?.[1]?.trim();
+    const pageTitle = page.title || h1 || "Paperclip Docs";
+    pages.push({
+      page,
+      sectionTitle: section.title,
+      title: `${pageTitle} | Paperclip Docs`,
+      description: markdownDescription(markdown),
+      url: routeUrlForPage(siteUrl, basePath, page),
+      lastmod: stats.mtime.toISOString().slice(0, 10),
+      siteUrl,
+      basePath,
+    });
+  }
+  return pages;
+}
+
+function buildSitemap({ siteUrl, basePath, pages }) {
+  const rootLastmod = pages
+    .map((page) => page.lastmod)
+    .sort()
+    .at(-1) || new Date().toISOString().slice(0, 10);
+  const entries = [
+    { loc: siteUrlForPath(siteUrl, basePath), lastmod: rootLastmod, priority: "1.0" },
+    ...pages.map((page) => ({ loc: page.url, lastmod: page.lastmod, priority: "0.8" })),
+  ];
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${entries.map((entry) => `  <url>
+    <loc>${escapeXml(entry.loc)}</loc>
+    <lastmod>${escapeXml(entry.lastmod)}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>${entry.priority}</priority>
+  </url>`).join("\n")}
+</urlset>
+`;
+}
+
+function buildRobots({ siteUrl, basePath }) {
+  return `User-agent: *
+Allow: /
+
+Sitemap: ${siteUrlForPath(siteUrl, basePath, "sitemap.xml")}
+`;
+}
+
+function buildCloudflareRedirects() {
+  return `# Serve generated files first; fall back to the SPA shell for client routes.
+/* /index.html 200
+`;
+}
+
+function buildCloudflareHeaders() {
+  return `/*
+  X-Robots-Tag: index, follow
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
+
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+`;
+}
+
 function collectMarkdownLinks(markdown) {
   const links = [];
   const markdownLinkRegex = /\[[^\]]+\]\(([^)\s]+(?:\s+\"[^\"]*\")?)\)/g;
@@ -530,102 +731,24 @@ location ${deploymentBasePath} {
 `;
 }
 
-function getPublicBasePath(basePath) {
-  return getDeploymentBasePath(basePath);
-}
-
-function getPublicAssetPath(basePath, fileName) {
-  const publicBasePath = getPublicBasePath(basePath);
-  return `${publicBasePath.replace(/\/$/, "")}/${fileName}`;
-}
-
-function getCanonicalPath(basePath, route = "") {
-  const publicBasePath = getPublicBasePath(basePath);
-  const base = publicBasePath.replace(/\/$/, "");
-  const normalizedRoute = normalizeRouteKey(route);
-  return normalizedRoute ? `${base}/${normalizedRoute}` : `${base || "/"}`;
-}
-
-function getCanonicalUrl(basePath, route = "") {
-  return new URL(getCanonicalPath(basePath, route), defaultCanonicalOrigin).toString();
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function stripMarkdownForDescription(markdown) {
-  return markdown
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/`([^`]+)`/g, "$1")
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-    .replace(/^#{1,6}\s+/gm, "")
-    .replace(/^>\s?/gm, "")
-    .replace(/[*_~#>|]/g, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function getPageDescription(markdown) {
-  const paragraphs = markdown
-    .replace(/```[\s\S]*?```/g, "")
-    .split(/\n{2,}/)
-    .filter((paragraph) => !paragraph.trim().startsWith("#"))
-    .map((paragraph) => stripMarkdownForDescription(paragraph))
-    .filter(Boolean);
-  const firstParagraph = paragraphs.find((paragraph) => !paragraph.startsWith("paperclip_version:"));
-  return (firstParagraph || "Paperclip documentation.").slice(0, 180);
-}
-
-function getMarkdownTitle(markdown, fallbackTitle) {
-  const heading = markdown.match(/^#\s+(.+)$/m);
-  return stripMarkdownForDescription(heading?.[1] || fallbackTitle || "Paperclip Docs");
-}
-
-function rewriteIndexAssetUrls(source, basePath) {
-  return source
-    .replace('href="styles.css"', `href="${getPublicAssetPath(basePath, "styles.css")}"`)
-    .replace('src="app.js"', `src="${getPublicAssetPath(basePath, "app.js")}"`);
-}
-
-function setHeadMetadata(html, { title, description, canonicalUrl }) {
-  const metadata = [
-    `<title>${escapeHtml(title)}</title>`,
-    `<meta name="description" content="${escapeHtml(description)}" />`,
-    `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`,
-  ].join("\n  ");
-  return html.replace(/<title>[\s\S]*?<\/title>/, metadata);
-}
-
 function renderStaticMarkdown(markdown) {
   marked.setOptions({ gfm: true, breaks: false });
   return marked.parse(markdown);
 }
 
-function buildStaticPageHtml(sourceIndex, page, markdown, basePath) {
-  const description = getPageDescription(markdown);
-  const title = `${getMarkdownTitle(markdown, page.title)} | Paperclip Docs`;
-  const canonicalUrl = getCanonicalUrl(basePath, page.slug);
+function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath) {
   const articleHtml = renderStaticMarkdown(markdown);
-  return setHeadMetadata(rewriteIndexAssetUrls(sourceIndex, basePath), {
-    title,
-    description,
-    canonicalUrl,
-  })
+  const routeBaseHref = basePath === "auto" ? "/" : basePath;
+  return injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref })
     .replace('<section id="landing">', '<section id="landing">')
     .replace('<div id="article-view">', '<div id="article-view" class="is-active">')
     .replace('<div id="loading">', '<div id="loading" style="display:none">')
     .replace('<article id="article" style="display:none"></article>', `<article id="article">${articleHtml}</article>`);
 }
 
-async function writeStaticRoutePages({ outDir, sourceIndex, releaseNav, markdownBodiesByFile, basePath }) {
-  for (const { page } of flattenNavPages(releaseNav)) {
+async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodiesByFile, basePath }) {
+  for (const metadata of pages) {
+    const { page } = metadata;
     const markdown = markdownBodiesByFile.get(page.file);
     if (!markdown) continue;
     const routePath = path.join(outDir, ...page.slug.split("/"), "index.html");
@@ -633,28 +756,8 @@ async function writeStaticRoutePages({ outDir, sourceIndex, releaseNav, markdown
       throw new Error(`Refusing to write route outside release directory: ${page.slug}`);
     }
     await ensureDir(path.dirname(routePath));
-    await fs.writeFile(routePath, buildStaticPageHtml(sourceIndex, page, markdown, basePath));
+    await fs.writeFile(routePath, buildStaticPageHtml(sourceIndex, metadata, markdown, basePath));
   }
-}
-
-function buildSitemap(releaseNav, basePath) {
-  const urls = [getCanonicalUrl(basePath)];
-  for (const { page } of flattenNavPages(releaseNav)) {
-    urls.push(getCanonicalUrl(basePath, page.slug));
-  }
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((url) => `  <url><loc>${escapeHtml(url)}</loc></url>`).join("\n")}
-</urlset>
-`;
-}
-
-function buildRobots(basePath) {
-  return `User-agent: *
-Allow: /
-
-Sitemap: ${getCanonicalUrl(basePath, "sitemap.xml")}
-`;
 }
 
 function buildDeployGuide(basePath) {
@@ -711,15 +814,13 @@ async function main() {
   const sourceStyles = await fs.readFile(sourceStylesPath, "utf8");
   const sourceAppJs = await fs.readFile(sourceAppJsPath, "utf8");
   const releaseAppJs = rewriteAppJs(sourceAppJs, options.basePath);
-  const releaseIndex = rewriteIndexAssetUrls(sourceIndex, options.basePath);
-  await fs.writeFile(path.join(options.outDir, "index.html"), releaseIndex);
   await fs.writeFile(path.join(options.outDir, "styles.css"), sourceStyles);
   await fs.writeFile(path.join(options.outDir, "app.js"), releaseAppJs);
   await fs.writeFile(path.join(options.outDir, ".htaccess"), buildHtaccess(options.basePath));
   await fs.writeFile(path.join(options.outDir, "nginx.conf.example"), buildNginxConfig(options.basePath));
   await fs.writeFile(path.join(options.outDir, "DEPLOY.md"), buildDeployGuide(options.basePath));
-  await fs.writeFile(path.join(options.outDir, "sitemap.xml"), buildSitemap(releaseNav, options.basePath));
-  await fs.writeFile(path.join(options.outDir, "robots.txt"), buildRobots(options.basePath));
+  await fs.writeFile(path.join(options.outDir, "_redirects"), buildCloudflareRedirects());
+  await fs.writeFile(path.join(options.outDir, "_headers"), buildCloudflareHeaders());
 
   // Copy markdown files, stripping YAML frontmatter, and collect per-file
   // frontmatter to surface via content.json (keyed by repo-relative path).
@@ -744,13 +845,33 @@ async function main() {
     if (fm) page.frontmatter = fm;
   }
   await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav, null, 2)}\n`);
+
+  const pageMetadata = await pageMetadataForNav(releaseNav, options.outDir, options.siteUrl, options.basePath);
+  const rootMetadata = {
+    title: "Paperclip Docs",
+    description: defaultSeoDescription,
+    url: siteUrlForPath(options.siteUrl, options.basePath),
+    siteUrl: options.siteUrl,
+    basePath: options.basePath,
+  };
+  await fs.writeFile(path.join(options.outDir, "index.html"), injectSeo(sourceIndex, rootMetadata));
   await writeStaticRoutePages({
     outDir: options.outDir,
     sourceIndex,
-    releaseNav,
+    pages: pageMetadata,
     markdownBodiesByFile,
     basePath: options.basePath,
   });
+
+  await fs.writeFile(path.join(options.outDir, "sitemap.xml"), buildSitemap({
+    siteUrl: options.siteUrl,
+    basePath: options.basePath,
+    pages: pageMetadata,
+  }));
+  await fs.writeFile(path.join(options.outDir, "robots.txt"), buildRobots({
+    siteUrl: options.siteUrl,
+    basePath: options.basePath,
+  }));
 
   if (await pathExists(screenshotsSourceDir)) {
     const screenshotTargetDir = path.join(options.outDir, "user-guides", "screenshots");
@@ -771,7 +892,9 @@ async function main() {
 
   console.log(`Release bundle written to ${path.relative(process.cwd(), options.outDir)}`);
   console.log(`Base path: ${options.basePath}`);
+  console.log(`Site URL: ${options.siteUrl}`);
   console.log(`Copied ${sortedMarkdownFiles.length} markdown files.`);
+  console.log(`Generated ${pageMetadata.length} crawlable route pages plus sitemap.xml and robots.txt.`);
   if (await pathExists(screenshotsSourceDir)) {
     console.log("Copied screenshot assets.");
   }

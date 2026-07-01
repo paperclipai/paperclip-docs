@@ -31,6 +31,9 @@ let tocScrollHandler = null;
 let tocResizeHandler = null;
 let tocDocumentClickHandler = null;
 let tocKeydownHandler = null;
+const SEO_SITE_NAME = 'Paperclip Docs';
+const SEO_DEFAULT_TITLE = 'Paperclip Docs';
+const SEO_DEFAULT_DESCRIPTION = 'Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows.';
 const APP_DIR_NAME = 'site';
 const APP_BASE_PATH = (() => {
   const marker = `/${APP_DIR_NAME}`;
@@ -130,7 +133,7 @@ function buildRouteValue(page, headingId = null) {
 function getRouteUrl(routeValue) {
   const normalized = normalizeRouteKey(routeValue);
   const basePath = APP_BASE_URL.pathname.replace(/\/$/, '');
-  return normalized ? `${basePath}/${normalized}` : `${basePath}/`;
+  return normalized ? `${basePath}/${normalized}/` : `${basePath}/`;
 }
 
 function getPageUrl(page) {
@@ -138,16 +141,96 @@ function getPageUrl(page) {
 }
 
 function getPageHeadingUrl(page, headingId) {
-  return getRouteUrl(buildRouteValue(page, headingId));
+  return `${getPageUrl(page)}#${encodeURIComponent(headingId)}`;
 }
 
 function getAbsoluteUrl(path) {
   return new URL(path, window.location.origin).toString();
 }
 
+function getAbsolutePageUrl(page) {
+  return getAbsoluteUrl(page ? getPageUrl(page) : getRouteUrl(''));
+}
+
+function setHeadElement(selector, tagName, attrs) {
+  let el = document.head.querySelector(selector);
+  if (!el) {
+    el = document.createElement(tagName);
+    el.dataset.seoManaged = '';
+    document.head.appendChild(el);
+  }
+  for (const [name, value] of Object.entries(attrs)) {
+    el.setAttribute(name, value);
+  }
+  return el;
+}
+
+function setSeoMetadata({ title, description, url, type = 'website' }) {
+  const cleanTitle = title || SEO_DEFAULT_TITLE;
+  const cleanDescription = description || SEO_DEFAULT_DESCRIPTION;
+  const cleanUrl = url || getAbsolutePageUrl(null);
+  document.title = cleanTitle;
+  setHeadElement('meta[name="description"]', 'meta', { name: 'description', content: cleanDescription });
+  setHeadElement('meta[name="robots"]', 'meta', {
+    name: 'robots',
+    content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+  });
+  setHeadElement('link[rel="canonical"]', 'link', { rel: 'canonical', href: cleanUrl });
+  setHeadElement('meta[property="og:type"]', 'meta', { property: 'og:type', content: type });
+  setHeadElement('meta[property="og:site_name"]', 'meta', { property: 'og:site_name', content: SEO_SITE_NAME });
+  setHeadElement('meta[property="og:title"]', 'meta', { property: 'og:title', content: cleanTitle });
+  setHeadElement('meta[property="og:description"]', 'meta', { property: 'og:description', content: cleanDescription });
+  setHeadElement('meta[property="og:url"]', 'meta', { property: 'og:url', content: cleanUrl });
+  setHeadElement('meta[name="twitter:card"]', 'meta', { name: 'twitter:card', content: 'summary' });
+  setHeadElement('meta[name="twitter:title"]', 'meta', { name: 'twitter:title', content: cleanTitle });
+  setHeadElement('meta[name="twitter:description"]', 'meta', { name: 'twitter:description', content: cleanDescription });
+}
+
+function markdownToDescription(md) {
+  const plain = stripFrontmatter(md)
+    .replace(/```[\s\S]*?```/g, ' ')
+    .split(/\n{2,}/)
+    .map(block => block.trim())
+    .find(block =>
+      block &&
+      !block.startsWith('#') &&
+      !block.startsWith('![') &&
+      !block.startsWith('|') &&
+      !block.startsWith('---')
+    );
+  if (!plain) return SEO_DEFAULT_DESCRIPTION;
+  return plain
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[*_`>#-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 220);
+}
+
+function updateLandingSeo() {
+  setSeoMetadata({
+    title: SEO_DEFAULT_TITLE,
+    description: SEO_DEFAULT_DESCRIPTION,
+    url: getAbsolutePageUrl(null),
+    type: 'website',
+  });
+}
+
+function updatePageSeo(page, md) {
+  if (!page) return;
+  const title = `${page.title} | Paperclip Docs`;
+  setSeoMetadata({
+    title,
+    description: markdownToDescription(md),
+    url: getAbsolutePageUrl(page),
+    type: 'article',
+  });
+}
+
 function getLegacyRoute() {
   const url = new URL(window.location.href);
-  return url.searchParams.get('page') || location.hash.slice(1);
+  const hash = location.hash.startsWith('#/') ? location.hash.slice(2) : location.hash.slice(1);
+  return url.searchParams.get('page') || hash;
 }
 
 function getPathRoute() {
@@ -158,6 +241,12 @@ function getPathRoute() {
 
 function getCurrentRoute() {
   return getPathRoute() || getLegacyRoute();
+}
+
+function getCurrentHeadingRoute() {
+  const pathRoute = getPathRoute();
+  if (!pathRoute || !location.hash || location.hash.startsWith('#/')) return null;
+  return normalizeRouteKey(decodeURIComponent(location.hash.slice(1)));
 }
 
 function slugifyHeadingText(text) {
@@ -400,6 +489,7 @@ function showLanding() {
   document.getElementById('breadcrumb').innerHTML = '';
   const basePath = APP_BASE_URL.pathname.replace(/\/$/, '');
   history.replaceState(null, '', `${basePath}/`);
+  updateLandingSeo();
 }
 function showArticleView() {
   document.getElementById('landing').classList.remove('is-active');
@@ -663,6 +753,7 @@ async function init() {
   const pathRoute = getPathRoute();
   const rawRoute = applyRedirect(pathRoute || getLegacyRoute());
   const initialRoute = parseRoute(rawRoute);
+  if (initialRoute.page && pathRoute) initialRoute.headingId = getCurrentHeadingRoute();
   const normalizedRaw = normalizeRouteKey(decodeURIComponent((rawRoute || '').trim()));
 
   if (initialRoute.page) {
@@ -858,6 +949,7 @@ async function loadPage(file, targetHeading = null, historyMode = 'push') {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     md = await res.text();
     currentMarkdown = md;
+    updatePageSeo(page, md);
   } catch (e) {
     showError(`Could not load: ${file}`, e.message);
     return;
@@ -1571,6 +1663,7 @@ function escapeAttr(s) {
 }
 
 window.addEventListener('hashchange', () => {
+  if (getPathRoute() && !location.hash.startsWith('#/')) return;
   const route = parseRoute(applyRedirect(location.hash.slice(1)));
   if (route.page) {
     loadPage(route.page.file, route.headingId, 'replace');
@@ -1582,6 +1675,7 @@ window.addEventListener('hashchange', () => {
 
 window.addEventListener('popstate', () => {
   const route = parseRoute(applyRedirect(getCurrentRoute()));
+  if (route.page && getPathRoute()) route.headingId = getCurrentHeadingRoute();
   if (route.page) {
     loadPage(route.page.file, route.headingId, 'replace');
     return;
