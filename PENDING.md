@@ -55,6 +55,7 @@ None. No previously-applied doc edit corresponds to a surface that has since dis
 
 No registry entry `depends_on` any UI source file changed in this window, so nothing is flagged for recapture. **Advisory:** the accent-bubble contrast fix (`#8689`) touches global `index.css` and issue chat rendering; the registry does not track `index.css` as a dependency (by design — it would mark everything stale). If a chat-thread screenshot looks off, recapture manually with `npm run screenshots:refresh`. See `SCREENSHOTS_PENDING.md`.
 
-## ⚠ Pre-existing build/lint warnings (not introduced by this run)
+## Build/lint
 
-- **`sync:lint-links` reports 1 "broken internal link"** in `docs/reference/skills/optional/research/last30days.md` (`-> url`) — a false positive: the checker parses ``[name](url)`` inside an inline-code span (prose documenting markdown syntax) as a real link. Fix belongs in `scripts/sync/lint-links.mjs` (skip inline-code spans) or the example doc — outside this sync's scope.
+- **Fixed this run:** `sync:lint-links` previously reported a false-positive "broken internal link" in `docs/reference/skills/optional/research/last30days.md` (`-> url`) — the checker parsed ``[name](url)`` inside an inline-code span (prose documenting markdown syntax) as a real link. `scripts/sync/lint-links.mjs` now strips inline-code spans before extracting links, so `sync:check` passes end-to-end.
+- **`verify-nav`** reports 2 orphans — `docs/reference/cli/commands.md` and `docs/reference/cli/control-plane-commands.md`. These are intentional CLI redirect anchor pages, not missed registrations; leave them.
