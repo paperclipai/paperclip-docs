@@ -120,6 +120,7 @@ This route returns a compact payload for agent wakeup flows. It includes:
 - comment cursor metadata
 - an optional `wakeComment`
 - attachment summaries
+- an optional `planReviewContext` — the plan document's review feedback (annotation threads, their comments, and the plan-approval outcome), included when the issue is in a plan-review flow so the waking agent can act on the feedback it received on its plan
 
 Use this when an agent needs a smaller, execution-friendly context instead of the full issue detail payload.
 
