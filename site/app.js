@@ -1,13 +1,26 @@
 /* ─── Section icons ─────────────────────────────────────────────────────── */
-// Rendered via Lucide (https://lucide.dev). Section names reference any Lucide
-// icon by its kebab-case id; `lucide.createIcons()` replaces <i data-lucide>
-// placeholders with inline SVG after each nav render.
+const SECTION_ICON_PATHS = {
+  'book-open': '<path d="M12 7v14"/><path d="M3 18a2 2 0 0 1 2-2h7V5H5a2 2 0 0 0-2 2z"/><path d="M21 18a2 2 0 0 0-2-2h-7V5h7a2 2 0 0 1 2 2z"/>',
+  braces: '<path d="M8 3H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-3a2 2 0 0 1 2-2 2 2 0 0 1-2-2V9a2 2 0 0 0-2-2h-1"/>',
+  cloud: '<path d="M17.5 19H8a5 5 0 1 1 1.1-9.9A7 7 0 0 1 22 12.5 4.5 4.5 0 0 1 17.5 19z"/>',
+  'kanban-square': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 7v10"/><path d="M12 7v6"/><path d="M16 7v3"/>',
+  'layout-dashboard': '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  network: '<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M12 8v4M5 16v-2a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"/>',
+  package: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5"/><path d="M12 12v9"/>',
+  plug: '<path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M7 8h10v4a5 5 0 0 1-10 0z"/>',
+  puzzle: '<path d="M19 13h-2.5a1.5 1.5 0 0 0 0 3H19v3H5v-3h2.5a1.5 1.5 0 0 0 0-3H5V5h4a2 2 0 1 1 4 0h6z"/>',
+  rocket: '<path d="M4.5 16.5c-1.2 1-1.5 3-1.5 3s2-.3 3-1.5"/><path d="M9 15 6 12c2-5 6-8 13-9-1 7-4 11-9 13z"/><path d="M15 9h.01"/>',
+  'settings-2': '<path d="M20 7h-9"/><path d="M14 17H4"/><circle cx="7" cy="7" r="3"/><circle cx="17" cy="17" r="3"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  terminal: '<path d="m4 17 6-6-6-6"/><path d="M12 19h8"/>',
+  wrench: '<path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.4 2.4-3-3z"/>',
+};
+
 function sectionIconTag(section) {
-  return `<i data-lucide="${escapeAttr(section?.icon || 'book')}"></i>`;
+  const icon = SECTION_ICON_PATHS[section?.icon] || SECTION_ICON_PATHS['book-open'];
+  return `<svg class="section-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;
 }
-function renderLucideIcons() {
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-}
+function renderLucideIcons() {}
 function getSectionKind(section) {
   if (section && typeof section === 'object') return section.tier || 'Guides';
   return 'Guides';
@@ -447,7 +460,7 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
   localStorage.setItem('pc-guides-theme', next);
   // Swap all visible screenshot srcs
   document.querySelectorAll('#article img[data-screenshot]').forEach(img => {
-    img.src = resolveScreenshotSrc(img.dataset.screenshot);
+    applyScreenshotSource(img, img.dataset.screenshot);
   });
 });
 
@@ -456,6 +469,7 @@ function openDrawer() {
   const drawer = document.getElementById('drawer');
   const backdrop = document.getElementById('drawer-backdrop');
   const hamburger = document.getElementById('hamburger');
+  drawer.inert = false;
   drawer.classList.add('is-open');
   backdrop.classList.add('is-open');
   drawer.setAttribute('aria-hidden', 'false');
@@ -469,6 +483,7 @@ function closeDrawer() {
   drawer.classList.remove('is-open');
   backdrop.classList.remove('is-open');
   drawer.setAttribute('aria-hidden', 'true');
+  drawer.inert = true;
   hamburger.setAttribute('aria-expanded', 'false');
   document.body.style.overflow = '';
 }
@@ -1183,6 +1198,9 @@ function stripFrontmatter(md) {
 function renderMarkdown(md) {
   md = stripFrontmatter(md);
   md = preprocessTabs(md);
+  if (typeof marked === 'undefined') {
+    throw new Error('Markdown renderer failed to load.');
+  }
   marked.setOptions({ gfm: true, breaks: false });
   return sanitizeMarkdownHtml(marked.parse(md));
 }
@@ -1373,15 +1391,41 @@ function postProcessTabs(root) {
   });
 }
 
+const RESPONSIVE_SCREENSHOT_VARIANTS = new Map([
+  ['dashboard/dashboard-overview.png', { width: 2880, height: 1800, variantWidth: 900 }],
+]);
+
+function getScreenshotVariantConfig(src) {
+  const match = String(src).match(/(?:screenshots|images)\/(?:light|dark)\/(.+)$/);
+  if (!match) return null;
+  return RESPONSIVE_SCREENSHOT_VARIANTS.get(match[1]) || null;
+}
+
+function applyScreenshotSource(img, rawSrc) {
+  const resolved = resolveScreenshotSrc(rawSrc);
+  if (resolved !== rawSrc) {
+    img.dataset.screenshot = rawSrc;
+  }
+  img.src = resolved;
+
+  const variantConfig = getScreenshotVariantConfig(resolved) || getScreenshotVariantConfig(rawSrc);
+  if (!variantConfig) return;
+
+  const optimizedSrc = resolved.replace(/\.png(?:\?.*)?$/i, '-900.webp');
+  img.width = variantConfig.width;
+  img.height = variantConfig.height;
+  img.sizes = '(max-width: 820px) calc(100vw - 48px), 820px';
+  img.srcset = `${optimizedSrc} ${variantConfig.variantWidth}w, ${resolved} ${variantConfig.width}w`;
+}
+
 function postProcessImages(root) {
-  root.querySelectorAll('img').forEach(img => {
+  [...root.querySelectorAll('img')].forEach((img, index) => {
     // Remap ../images/ paths to screenshots/{theme}/ and store original for theme swaps
     const rawSrc = img.getAttribute('src') || img.src;
-    const resolved = resolveScreenshotSrc(rawSrc);
-    if (resolved !== rawSrc) {
-      img.dataset.screenshot = rawSrc; // store original path
-      img.src = resolved;
-    }
+    applyScreenshotSource(img, rawSrc);
+    img.decoding = 'async';
+    img.loading = index === 0 ? 'eager' : 'lazy';
+    img.fetchPriority = index === 0 ? 'high' : 'auto';
     img.addEventListener('error', () => {
       const ph = document.createElement('div');
       ph.className = 'img-placeholder';
@@ -1520,15 +1564,15 @@ function buildToc(article, file) {
   const wrap = document.createElement('div');
   wrap.className = 'toc-wrap';
   wrap.innerHTML = `
-    <button type="button" class="toc-toggle" aria-expanded="false" aria-controls="toc-panel" aria-label="On this page">
+    <button type="button" class="toc-toggle" aria-expanded="false" aria-controls="toc-panel">
       ${TOC_SVG}
       <span class="toc-label">On this page</span>
       <span class="count">${headings.length}</span>
       ${CHEVRON_SVG}
     </button>
-    <div class="toc-panel" id="toc-panel" role="menu">
+    <nav class="toc-panel" id="toc-panel" aria-label="On this page">
       <div class="toc-panel-label">On this page</div>
-    </div>
+    </nav>
   `;
   const panel = wrap.querySelector('.toc-panel');
   const toggle = wrap.querySelector('.toc-toggle');

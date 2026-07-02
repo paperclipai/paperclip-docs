@@ -12,6 +12,7 @@ const sourceIndexPath = path.join(__dirname, "index.html");
 const sourceStylesPath = path.join(__dirname, "styles.css");
 const sourceAppJsPath = path.join(__dirname, "app.js");
 const sourceNavPath = path.join(__dirname, "content.json");
+const sourceVendorDir = path.join(__dirname, "vendor");
 const screenshotsSourceDir = path.join(docsRoot, "user-guides", "screenshots");
 const defaultSiteUrl = "https://docs.paperclip.ing";
 const defaultSeoDescription = "Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows.";
@@ -820,6 +821,15 @@ The generated \`.htaccess\` and \`nginx.conf.example\` are optional examples for
 `;
 }
 
+function minifyCss(source) {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s*([{}:;,>+~])\s*/g, "$1")
+    .replace(/;}/g, "}")
+    .trim();
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const sourceNav = JSON.parse(await fs.readFile(sourceNavPath, "utf8"));
@@ -833,8 +843,11 @@ async function main() {
   const sourceStyles = await fs.readFile(sourceStylesPath, "utf8");
   const sourceAppJs = await fs.readFile(sourceAppJsPath, "utf8");
   const releaseAppJs = rewriteAppJs(sourceAppJs, options.basePath);
-  await fs.writeFile(path.join(options.outDir, "styles.css"), sourceStyles);
+  await fs.writeFile(path.join(options.outDir, "styles.css"), minifyCss(sourceStyles));
   await fs.writeFile(path.join(options.outDir, "app.js"), releaseAppJs);
+  if (await pathExists(sourceVendorDir)) {
+    await copyDirRecursive(sourceVendorDir, path.join(options.outDir, "vendor"));
+  }
   await fs.writeFile(path.join(options.outDir, ".htaccess"), buildHtaccess(options.basePath));
   await fs.writeFile(path.join(options.outDir, "nginx.conf.example"), buildNginxConfig(options.basePath));
   await fs.writeFile(path.join(options.outDir, "DEPLOY.md"), buildDeployGuide(options.basePath));
