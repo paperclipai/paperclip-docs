@@ -1480,6 +1480,8 @@ function applyScreenshotSource(img, rawSrc) {
   img.height = variantConfig.height;
   img.sizes = '(max-width: 820px) calc(100vw - 48px), 820px';
   img.srcset = `${optimizedSrc} ${variantConfig.variantWidth}w, ${resolved} ${variantConfig.width}w`;
+  img.classList.add('responsive-screenshot');
+  img.style.aspectRatio = `${variantConfig.width} / ${variantConfig.height}`;
 }
 
 function postProcessImages(root) {

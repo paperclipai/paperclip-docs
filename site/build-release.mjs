@@ -462,6 +462,50 @@ function escapeXml(value) {
     .replace(/'/g, "&apos;");
 }
 
+const responsiveScreenshotVariants = new Map([
+  ["dashboard/dashboard-overview.png", { width: 2880, height: 1800, variantWidth: 900 }],
+]);
+
+function screenshotReleasePath(src, theme = "dark") {
+  const match = String(src).match(/(?:^|\/)user-guides\/screenshots\/(?:light|dark)\/(.+)$/);
+  if (match) return `user-guides/screenshots/${theme}/${match[1]}`;
+  return src;
+}
+
+function screenshotVariantConfig(src) {
+  const match = String(src).match(/(?:^|\/)user-guides\/screenshots\/(?:light|dark)\/(.+)$/);
+  if (!match) return null;
+  return responsiveScreenshotVariants.get(match[1]) || null;
+}
+
+function releaseMarkdownImage(href, title, text) {
+  const src = screenshotReleasePath(href);
+  const attrs = [
+    `src="${escapeAttr(src)}"`,
+    `alt="${escapeAttr(text || "")}"`,
+  ];
+  if (title) attrs.push(`title="${escapeAttr(title)}"`);
+
+  const variantConfig = screenshotVariantConfig(src);
+  if (variantConfig) {
+    const optimizedSrc = src.replace(/\.png(?:\?.*)?$/i, "-900.webp");
+    attrs.push(
+      `class="responsive-screenshot"`,
+      `data-screenshot="${escapeAttr(href)}"`,
+      `width="${variantConfig.width}"`,
+      `height="${variantConfig.height}"`,
+      `sizes="(max-width: 820px) calc(100vw - 48px), 820px"`,
+      `srcset="${escapeAttr(`${optimizedSrc} ${variantConfig.variantWidth}w, ${src} ${variantConfig.width}w`)}"`,
+      `decoding="async"`,
+      `loading="eager"`,
+      `fetchpriority="high"`,
+      `style="aspect-ratio:${variantConfig.width}/${variantConfig.height}"`,
+    );
+  }
+
+  return `<img ${attrs.join(" ")}>`;
+}
+
 function markdownToPlainText(markdown) {
   return markdown
     .replace(/```[\s\S]*?```/g, " ")
@@ -799,21 +843,30 @@ function preprocessTabs(markdown) {
 }
 
 function renderStaticMarkdown(markdown) {
-  marked.setOptions({ gfm: true, breaks: false });
+  const renderer = new marked.Renderer();
+  renderer.image = releaseMarkdownImage;
+  marked.setOptions({ gfm: true, breaks: false, renderer });
   return marked.parse(preprocessTabs(markdown));
 }
 
-function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath) {
+function inlineReleaseStyles(html, css) {
+  return html.replace(
+    '<link rel="stylesheet" href="styles.css" />',
+    `<style data-inline-release-css>${css}</style>`,
+  );
+}
+
+function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles) {
   const articleHtml = renderStaticMarkdown(markdown);
   const routeBaseHref = basePath === "auto" ? "/" : basePath;
-  return injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref })
+  return inlineReleaseStyles(injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref }), releaseStyles)
     .replace('<section id="landing">', '<section id="landing">')
     .replace('<div id="article-view">', '<div id="article-view" class="is-active">')
     .replace('<div id="loading">', '<div id="loading" style="display:none">')
     .replace('<article id="article" style="display:none"></article>', `<article id="article">${articleHtml}</article>`);
 }
 
-async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodiesByFile, basePath }) {
+async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodiesByFile, basePath, releaseStyles }) {
   for (const metadata of pages) {
     const { page } = metadata;
     const markdown = markdownBodiesByFile.get(page.file);
@@ -823,7 +876,7 @@ async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodie
       throw new Error(`Refusing to write route outside release directory: ${page.slug}`);
     }
     await ensureDir(path.dirname(routePath));
-    await fs.writeFile(routePath, buildStaticPageHtml(sourceIndex, metadata, markdown, basePath));
+    await fs.writeFile(routePath, buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles));
   }
 }
 
@@ -899,8 +952,9 @@ async function main() {
   const sourceIndex = await fs.readFile(sourceIndexPath, "utf8");
   const sourceStyles = await fs.readFile(sourceStylesPath, "utf8");
   const sourceAppJs = await fs.readFile(sourceAppJsPath, "utf8");
+  const releaseStyles = minifyCss(sourceStyles);
   const releaseAppJs = rewriteAppJs(sourceAppJs, options.basePath);
-  await fs.writeFile(path.join(options.outDir, "styles.css"), minifyCss(sourceStyles));
+  await fs.writeFile(path.join(options.outDir, "styles.css"), releaseStyles);
   await fs.writeFile(path.join(options.outDir, "app.js"), await minifyJs(releaseAppJs));
   if (await pathExists(sourceVendorDir)) {
     await copyDirRecursive(sourceVendorDir, path.join(options.outDir, "vendor"));
@@ -946,13 +1000,14 @@ async function main() {
     siteUrl: options.siteUrl,
     basePath: options.basePath,
   };
-  await fs.writeFile(path.join(options.outDir, "index.html"), injectSeo(sourceIndex, rootMetadata));
+  await fs.writeFile(path.join(options.outDir, "index.html"), inlineReleaseStyles(injectSeo(sourceIndex, rootMetadata), releaseStyles));
   await writeStaticRoutePages({
     outDir: options.outDir,
     sourceIndex,
     pages: pageMetadata,
     markdownBodiesByFile,
     basePath: options.basePath,
+    releaseStyles,
   });
 
   await fs.writeFile(path.join(options.outDir, "sitemap.xml"), buildSitemap({

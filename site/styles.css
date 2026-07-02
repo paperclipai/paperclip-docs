@@ -1064,8 +1064,13 @@
     #article img {
       max-width: 100%; border-radius: var(--radius-sm);
       border: 1px solid var(--stone); display: block;
+      height: auto;
       margin: 24px 0;
       box-shadow: 0 2px 8px rgba(26,26,26,0.06);
+    }
+    #article img.responsive-screenshot {
+      width: 100%;
+      object-fit: contain;
     }
     .img-placeholder {
       background: var(--parchment);

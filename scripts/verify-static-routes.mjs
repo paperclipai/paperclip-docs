@@ -46,8 +46,23 @@ try {
   assert(skillsHtml.includes("<h1>Skills Reference</h1>"), "skills route is missing crawler-visible page content");
   assert(skillsHtml.includes("the file shape on disk"), "skills route body is missing expected docs copy");
   assert(skillsHtml.includes('<base data-seo-base href="/" />'), "nested route is missing the release base path");
-  assert(skillsHtml.includes('href="styles.css"'), "nested route does not load stylesheet from the release base path");
+  assert(skillsHtml.includes("<style data-inline-release-css>"), "nested route does not inline release CSS");
+  assert(!skillsHtml.includes('rel="stylesheet" href="styles.css"'), "nested route still render-blocks on styles.css");
   assert(skillsHtml.includes('src="app.js"'), "nested route does not load app JS from the release base path");
+
+  const quickstartHtml = read("guides/getting-started/five-minute-path/index.html");
+  assert(
+    quickstartHtml.includes('data-screenshot="../../user-guides/screenshots/light/dashboard/dashboard-overview.png"'),
+    "quickstart route is missing the theme-aware dashboard screenshot marker",
+  );
+  assert(
+    quickstartHtml.includes('width="2880" height="1800"'),
+    "quickstart dashboard screenshot is missing intrinsic dimensions",
+  );
+  assert(
+    quickstartHtml.includes("dashboard-overview-900.webp 900w"),
+    "quickstart dashboard screenshot is missing the responsive WebP srcset",
+  );
 
   const appJs = read("app.js");
   assert(!appJs.includes("/#/"), "generated app JS still contains primary hash route URLs");
