@@ -3,6 +3,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { transform } from "esbuild";
 import { marked } from "marked";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -448,6 +449,10 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;");
 }
 
+function escapeAttr(value) {
+  return escapeHtml(value).replace(/'/g, "&#39;");
+}
+
 function escapeXml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -751,9 +756,51 @@ location ${deploymentBasePath} {
 `;
 }
 
+function renderTabsBlock(labels, body) {
+  const names = labels.split(",").map((label) => label.trim());
+  let output = '<div class="tabs-container">';
+  output += '<div class="tabs-bar">';
+  names.forEach((name, index) => {
+    output += `<button class="tab-btn${index === 0 ? " active" : ""}" data-tab="${escapeAttr(name)}">${escapeHtml(name)}</button>`;
+  });
+  output += "</div>";
+
+  const tabRegex = /<!-- tab: (.+?) -->([\s\S]*?)(?=<!-- tab:|$)/g;
+  let match;
+  let index = 0;
+  while ((match = tabRegex.exec(body)) !== null) {
+    output += `<div class="tab-panel${index === 0 ? " active" : ""}" data-panel="${escapeAttr(match[1].trim())}">`;
+    output += marked.parse(match[2].trim());
+    output += "</div>";
+    index += 1;
+  }
+  return `${output}</div>`;
+}
+
+function preprocessTabs(markdown) {
+  const openMarker = "<!-- tabs:";
+  const closeMarker = "<!-- /tabs -->";
+  const maxIterations = 100;
+  let output = markdown;
+
+  for (let index = 0; index < maxIterations; index += 1) {
+    const closeIndex = output.indexOf(closeMarker);
+    if (closeIndex === -1) break;
+    const openIndex = output.lastIndexOf(openMarker, closeIndex - 1);
+    if (openIndex === -1) break;
+    const afterOpen = output.indexOf("-->", openIndex);
+    if (afterOpen === -1 || afterOpen > closeIndex) break;
+    const labels = output.slice(openIndex + openMarker.length, afterOpen).trim();
+    const body = output.slice(afterOpen + 3, closeIndex);
+    output = output.slice(0, openIndex) + renderTabsBlock(labels, body) + output.slice(closeIndex + closeMarker.length);
+  }
+
+  return output;
+}
+
 function renderStaticMarkdown(markdown) {
   marked.setOptions({ gfm: true, breaks: false });
-  return marked.parse(markdown);
+  return marked.parse(preprocessTabs(markdown));
 }
 
 function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath) {
@@ -830,6 +877,16 @@ function minifyCss(source) {
     .trim();
 }
 
+async function minifyJs(source) {
+  const result = await transform(source, {
+    loader: "js",
+    minify: true,
+    target: "es2020",
+    legalComments: "none",
+  });
+  return result.code;
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const sourceNav = JSON.parse(await fs.readFile(sourceNavPath, "utf8"));
@@ -844,7 +901,7 @@ async function main() {
   const sourceAppJs = await fs.readFile(sourceAppJsPath, "utf8");
   const releaseAppJs = rewriteAppJs(sourceAppJs, options.basePath);
   await fs.writeFile(path.join(options.outDir, "styles.css"), minifyCss(sourceStyles));
-  await fs.writeFile(path.join(options.outDir, "app.js"), releaseAppJs);
+  await fs.writeFile(path.join(options.outDir, "app.js"), await minifyJs(releaseAppJs));
   if (await pathExists(sourceVendorDir)) {
     await copyDirRecursive(sourceVendorDir, path.join(options.outDir, "vendor"));
   }
@@ -875,7 +932,7 @@ async function main() {
     const fm = frontmatterByFile.get(page.file);
     if (fm) page.frontmatter = fm;
   }
-  await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav, null, 2)}\n`);
+  await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav)}\n`);
 
   const pageMetadata = await pageMetadataForNav(releaseNav, options.outDir, options.siteUrl, options.basePath);
   await fs.writeFile(path.join(options.outDir, "_redirects"), buildCloudflareRedirects({

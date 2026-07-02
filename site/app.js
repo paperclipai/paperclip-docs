@@ -44,6 +44,7 @@ let tocScrollHandler = null;
 let tocResizeHandler = null;
 let tocDocumentClickHandler = null;
 let tocKeydownHandler = null;
+let markdownRendererPromise = null;
 const SEO_SITE_NAME = 'Paperclip Docs';
 const SEO_DEFAULT_TITLE = 'Paperclip Docs';
 const SEO_DEFAULT_DESCRIPTION = 'Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows.';
@@ -57,6 +58,38 @@ const APP_BASE_PATH = (() => {
 })();
 const APP_BASE_URL = new URL(`${APP_BASE_PATH.replace(/\/$/, '')}/`, window.location.origin);
 const APP_SHELL_URL = new URL('index.html', APP_BASE_URL);
+
+function ensureMarkdownRenderer() {
+  if (window.marked) return Promise.resolve(window.marked);
+  if (!markdownRendererPromise) {
+    markdownRendererPromise = new Promise((resolve, reject) => {
+      const existing = document.querySelector('script[data-markdown-renderer]');
+      if (existing) {
+        existing.addEventListener('load', () => resolve(window.marked), { once: true });
+        existing.addEventListener('error', () => reject(new Error('Markdown renderer failed to load.')), { once: true });
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = resolveContentUrl('vendor/marked.min.js');
+      script.defer = true;
+      script.dataset.markdownRenderer = '';
+      script.addEventListener('load', () => {
+        if (window.marked) resolve(window.marked);
+        else reject(new Error('Markdown renderer failed to initialize.'));
+      }, { once: true });
+      script.addEventListener('error', () => reject(new Error('Markdown renderer failed to load.')), { once: true });
+      document.head.appendChild(script);
+    });
+  }
+  return markdownRendererPromise;
+}
+
+async function fetchMarkdown(file) {
+  const res = await fetch(resolveContentUrl(file));
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.text();
+}
 
 /* ─── Screenshot src resolver ───────────────────────────────────────────── */
 function resolveScreenshotSrc(src) {
@@ -438,16 +471,23 @@ function decorateCodeBlocks(article) {
     }
   } catch (_) {}
 
-  fetch('https://api.github.com/repos/' + REPO, {
-    headers: { 'Accept': 'application/vnd.github.v3+json' },
-  })
-    .then(res => (res.ok ? res.json() : null))
-    .then(data => {
-      if (!data || typeof data.stargazers_count !== 'number') return;
-      render(format(data.stargazers_count));
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ count: data.stargazers_count, ts: Date.now() })); } catch (_) {}
+  const refresh = () => {
+    fetch('https://api.github.com/repos/' + REPO, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' },
     })
-    .catch(() => {});
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!data || typeof data.stargazers_count !== 'number') return;
+        render(format(data.stargazers_count));
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ count: data.stargazers_count, ts: Date.now() })); } catch (_) {}
+      })
+      .catch(() => {});
+  };
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(refresh, { timeout: 3000 });
+  } else {
+    window.setTimeout(refresh, 1500);
+  }
 })();
 
 /* ─── Theme toggle wiring ───────────────────────────────────────────────── */
@@ -551,13 +591,12 @@ document.addEventListener('click', e => {
 /* ─── Search ────────────────────────────────────────────────────────────── */
 let searchIndex      = [];
 let searchFocusedIdx = -1;
+let searchIndexPromise = null;
 
 async function buildSearchIndex() {
   const tasks = allPages.map(async page => {
     try {
-      const res = await fetch(resolveContentUrl(page.file));
-      if (!res.ok) return null;
-      const md = await res.text();
+      const md = await fetchMarkdown(page.file);
       // Extract headings
       const headings = [];
       const hRe = /^#{1,3}\s+(.+)$/gm;
@@ -576,6 +615,13 @@ async function buildSearchIndex() {
     } catch { return null; }
   });
   searchIndex = (await Promise.all(tasks)).filter(Boolean);
+  return searchIndex;
+}
+
+function ensureSearchIndex() {
+  if (searchIndex.length) return Promise.resolve(searchIndex);
+  if (!searchIndexPromise) searchIndexPromise = buildSearchIndex();
+  return searchIndexPromise;
 }
 
 function searchGuides(query) {
@@ -660,6 +706,9 @@ function openSearchModal() {
   if (!modal || !input) return;
   modal.hidden = false;
   document.body.style.overflow = 'hidden';
+  ensureSearchIndex().then(() => {
+    if (input.value.trim()) renderSearchResults(input.value);
+  });
   // focus next tick so modal animates in cleanly
   requestAnimationFrame(() => { input.focus(); input.select(); });
 }
@@ -687,7 +736,21 @@ function initSearch() {
   const box   = document.getElementById('search-results');
   if (!input || !box) return;
 
-  input.addEventListener('input', () => renderSearchResults(input.value));
+  input.addEventListener('input', () => {
+    if (searchIndex.length) {
+      renderSearchResults(input.value);
+      return;
+    }
+    if (input.value.trim()) {
+      box.innerHTML = '<div class="search-empty">Loading search…</div>';
+      box.classList.add('is-open');
+    } else {
+      box.classList.remove('is-open');
+    }
+    ensureSearchIndex().then(() => {
+      if (input.value.trim()) renderSearchResults(input.value);
+    });
+  });
 
   input.addEventListener('keydown', e => {
     const items = [...box.querySelectorAll('.search-result')];
@@ -763,16 +826,16 @@ async function init() {
   buildSidebar();
   buildMobileDrawer();
   initSearch();
-  buildSearchIndex(); // background — no await
 
   const pathRoute = getPathRoute();
   const rawRoute = applyRedirect(pathRoute || getLegacyRoute());
   const initialRoute = parseRoute(rawRoute);
   if (initialRoute.page && pathRoute) initialRoute.headingId = getCurrentHeadingRoute();
-  const normalizedRaw = normalizeRouteKey(decodeURIComponent((rawRoute || '').trim()));
 
   if (initialRoute.page) {
-    loadPage(initialRoute.page.file, initialRoute.headingId, 'replace');
+    const staticArticle = document.getElementById('article');
+    const useStaticArticle = Boolean(pathRoute && staticArticle?.children.length);
+    loadPage(initialRoute.page.file, initialRoute.headingId, 'replace', { useStaticArticle });
   } else {
     // Empty or unknown route -> landing
     showLanding();
@@ -951,7 +1014,7 @@ function buildFlatList() {
 }
 
 /* ─── Load page ─────────────────────────────────────────────────────────── */
-async function loadPage(file, targetHeading = null, historyMode = 'push') {
+async function loadPage(file, targetHeading = null, historyMode = 'push', options = {}) {
   const page = allPages.find(candidate => candidate.file === file);
   currentFile = file;
   showArticleView();
@@ -959,20 +1022,21 @@ async function loadPage(file, targetHeading = null, historyMode = 'push') {
   showLoading();
 
   let md;
-  try {
-    const res = await fetch(resolveContentUrl(file));
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    md = await res.text();
-    currentMarkdown = md;
-    updatePageSeo(page, md);
-  } catch (e) {
-    showError(`Could not load: ${file}`, e.message);
-    return;
-  }
-
-  const html = renderMarkdown(md);
   const article = document.getElementById('article');
-  article.innerHTML = html;
+  const useStaticArticle = Boolean(options.useStaticArticle && article?.children.length);
+  if (useStaticArticle) {
+    currentMarkdown = '';
+  } else {
+    try {
+      md = await fetchMarkdown(file);
+      currentMarkdown = md;
+      updatePageSeo(page, md);
+      article.innerHTML = await renderMarkdown(md);
+    } catch (e) {
+      showError(`Could not load: ${file}`, e.message);
+      return;
+    }
+  }
   article.style.display = '';
 
   // Insert sticky meta-row after the first h1 (before other post-processing so TOC can attach to it).
@@ -1106,7 +1170,9 @@ function buildPageActions(page) {
 
   const copyMarkdown = async () => {
     try {
-      await navigator.clipboard.writeText(currentMarkdown || '');
+      const markdown = currentMarkdown || await fetchMarkdown(page.file);
+      if (!currentMarkdown) currentMarkdown = markdown;
+      await navigator.clipboard.writeText(markdown);
       flashCopied('Page copied');
     } catch (e) {
       console.error('Copy failed', e);
@@ -1195,14 +1261,12 @@ function stripFrontmatter(md) {
   return rest.slice(closeMatch.index + closeMatch[0].length).replace(/^\r?\n/, '');
 }
 
-function renderMarkdown(md) {
+async function renderMarkdown(md) {
+  const renderer = await ensureMarkdownRenderer();
+  renderer.setOptions({ gfm: true, breaks: false });
   md = stripFrontmatter(md);
   md = preprocessTabs(md);
-  if (typeof marked === 'undefined') {
-    throw new Error('Markdown renderer failed to load.');
-  }
-  marked.setOptions({ gfm: true, breaks: false });
-  return sanitizeMarkdownHtml(marked.parse(md));
+  return sanitizeMarkdownHtml(renderer.parse(md));
 }
 
 const ALLOWED_MARKDOWN_TAGS = new Set([
@@ -1298,7 +1362,7 @@ function renderTabsBlock(labels, body) {
   let idx = 0;
   while ((m = re.exec(body)) !== null) {
     out += `<div class="tab-panel${idx === 0 ? ' active' : ''}" data-panel="${escapeAttr(m[1].trim())}">`;
-    out += marked.parse(m[2].trim());
+    out += window.marked.parse(m[2].trim());
     out += `</div>`;
     idx++;
   }
