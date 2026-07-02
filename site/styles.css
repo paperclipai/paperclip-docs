@@ -65,6 +65,12 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
+    html:not(.motion-ready) *,
+    html:not(.motion-ready) *::before,
+    html:not(.motion-ready) *::after {
+      transition: none !important;
+      animation: none !important;
+    }
     body {
       background: var(--linen); color: var(--ink);
       font-family: var(--font-body); line-height: 1.65;
@@ -1111,6 +1117,14 @@
     .callout-tip     .callout-label { color: #188a3c;         font-weight: 600; }
     .callout-warning .callout-label { color: #b45309;         font-weight: 600; }
     .callout-danger  .callout-label { color: #991b1b;         font-weight: 600; }
+    [data-theme="dark"] .callout-info .callout-icon,
+    [data-theme="dark"] .callout-info .callout-label { color: #60a5fa; }
+    [data-theme="dark"] .callout-tip .callout-icon,
+    [data-theme="dark"] .callout-tip .callout-label { color: #22c55e; }
+    [data-theme="dark"] .callout-warning .callout-icon,
+    [data-theme="dark"] .callout-warning .callout-label { color: #f59e0b; }
+    [data-theme="dark"] .callout-danger .callout-icon,
+    [data-theme="dark"] .callout-danger .callout-label { color: #f87171; }
 
     /* Tabs */
     .tabs-container { margin-bottom: 24px; }

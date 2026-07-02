@@ -677,6 +677,11 @@ function buildCloudflareHeaders() {
   return `/*
   X-Robots-Tag: index, follow
   Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Cross-Origin-Opener-Policy: same-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com; upgrade-insecure-requests
 
 /sitemap.xml
   Content-Type: application/xml; charset=utf-8

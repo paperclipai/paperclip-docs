@@ -33,6 +33,9 @@ const TIER_ORDER = ['Learn', 'Administration', 'Reference'];
   if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
   else document.documentElement.removeAttribute('data-theme');
 })();
+window.addEventListener('load', () => {
+  requestAnimationFrame(() => document.documentElement.classList.add('motion-ready'));
+}, { once: true });
 
 /* ─── State ─────────────────────────────────────────────────────────────── */
 let navData     = null;

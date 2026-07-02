@@ -49,6 +49,21 @@ try {
   assert(skillsHtml.includes("<style data-inline-release-css>"), "nested route does not inline release CSS");
   assert(!skillsHtml.includes('rel="stylesheet" href="styles.css"'), "nested route still render-blocks on styles.css");
   assert(skillsHtml.includes('src="app.js"'), "nested route does not load app JS from the release base path");
+  assert(skillsHtml.includes("html:not(.motion-ready) *"), "nested route is missing the first-paint motion gate");
+
+  const rootHtml = read("index.html");
+  assert(
+    rootHtml.includes('href="/guides/getting-started/five-minute-path/" data-nav="link">Quickstart</a>'),
+    "footer Quickstart link should point to the docs quickstart route",
+  );
+  assert(
+    rootHtml.includes('href="/guides/org/adapters/" data-nav="link">Integrations</a>'),
+    "footer Integrations link should point to the adapters docs route",
+  );
+  assert(
+    rootHtml.includes("paperclip/blob/main/CONTRIBUTING.md"),
+    "footer Contributing link should point to the repo contributing file",
+  );
 
   const quickstartHtml = read("guides/getting-started/five-minute-path/index.html");
   assert(
@@ -98,6 +113,24 @@ try {
   assert(
     redirects.indexOf(canonicalRedirect) < redirects.indexOf("/* /index.html 200"),
     "canonical route redirects must appear before the SPA fallback rewrite",
+  );
+
+  const headers = read("_headers");
+  assert(
+    headers.includes("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload"),
+    "Cloudflare headers are missing HSTS",
+  );
+  assert(
+    headers.includes("Cross-Origin-Opener-Policy: same-origin"),
+    "Cloudflare headers are missing COOP",
+  );
+  assert(
+    headers.includes("Content-Security-Policy: default-src 'self';"),
+    "Cloudflare headers are missing CSP",
+  );
+  assert(
+    headers.includes("connect-src 'self' https://api.github.com"),
+    "Cloudflare CSP must allow the GitHub stars API",
   );
 
   const deployGuide = read("DEPLOY.md");
