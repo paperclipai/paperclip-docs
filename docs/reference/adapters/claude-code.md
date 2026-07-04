@@ -2,7 +2,7 @@
 paperclip_version: v2026.529.0
 ---
 
-# Claude Local
+# Claude Code
 
 `claude_local` runs Anthropic's Claude Code CLI on the same machine as Paperclip. Use it when you want a local coding agent with session persistence, skills injection, and full access to the configured working directory.
 
@@ -42,13 +42,13 @@ paperclip_version: v2026.529.0
 | `workspaceStrategy` | no | Execution workspace strategy, such as `git_worktree`. |
 | `workspaceRuntime` | no | Reserved workspace runtime metadata. |
 
-> **Note:** Claude Local is a headless adapter. The environment test is more important here than in a normal CLI session because Paperclip needs to know the command, path, auth mode, and model all work together.
+> **Note:** Claude Code is a headless adapter. The environment test is more important here than in a normal CLI session because Paperclip needs to know the command, path, auth mode, and model all work together.
 
 ---
 
 ## Model Discovery
 
-When you pick a model in the agent config form, Claude Local fills the model dropdown from a live query to Anthropic's API instead of a hard-coded list — so a Claude model that shipped after your last Paperclip update still shows up without waiting for a new release.
+When you pick a model in the agent config form, Claude Code fills the model dropdown from a live query to Anthropic's API instead of a hard-coded list — so a Claude model that shipped after your last Paperclip update still shows up without waiting for a new release.
 
 Here's how the list is built:
 
@@ -64,7 +64,7 @@ Discovered models are cached for about a minute (keyed to the API key and base U
 
 ## Session Persistence
 
-Claude Local stores the Claude Code session id and resumes it on the next heartbeat when the working directory still matches.
+Claude Code stores the Claude Code session id and resumes it on the next heartbeat when the working directory still matches.
 
 If the adapter cannot resume the previous session, it falls back to a fresh one automatically.
 
@@ -75,7 +75,7 @@ The session codec also preserves the important location hints from Claude's own 
 - `repoUrl`
 - `repoRef`
 
-> **Tip:** If you move the working directory between heartbeats, expect Claude Local to start a new session instead of trying to reuse the old one.
+> **Tip:** If you move the working directory between heartbeats, expect Claude Code to start a new session instead of trying to reuse the old one.
 
 ### Resuming a session's workspace
 
@@ -91,7 +91,7 @@ Finally, plugins that declare the `environment.drivers.register` capability now 
 
 ## Skills Injection
 
-Claude Local makes Paperclip skills available by creating a temporary directory of symlinks and passing it to Claude with `--add-dir`.
+Claude Code makes Paperclip skills available by creating a temporary directory of symlinks and passing it to Claude with `--add-dir`.
 
 For manual local CLI use outside Paperclip, run:
 
@@ -105,7 +105,7 @@ That command installs the skills into `~/.claude/skills`, creates an agent API k
 
 ## Environment Test
 
-The UI's `Test Environment` button validates Claude Local before the adapter is saved or run. The test checks:
+The UI's `Test Environment` button validates Claude Code before the adapter is saved or run. The test checks:
 
 - Claude Code is installed and executable.
 - The working directory is absolute and usable.

@@ -33,7 +33,7 @@ When an external adapter declares the same `type` as a built-in (for example, an
 
 Every row shows the same block of metadata:
 
-- The adapter's display label (`Claude Local`, `Codex Local`, your package's `label`, …).
+- The adapter's display label (`Claude Code`, `Codex`, your package's `label`, …).
 - A **Built-in** or **External** badge.
 - For external rows, an icon indicating source: a folder icon for _installed from local path_, a package icon for _installed from npm_.
 - A version badge (`v0.3.2`) when the package declares one.

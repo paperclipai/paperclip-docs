@@ -21,7 +21,7 @@ This is a first-class built-in adapter as of v2026.626.0. You configure it throu
 
 ## When Not To Use
 
-- You want Paperclip to launch Hermes as a local child process. Use [`hermes_local`](./hermes-local.md) instead.
+- You want Paperclip to launch Hermes as a local child process. Use [`hermes_local`](./hermes.md) instead.
 - The Hermes API server is not enabled on the target host.
 
 ---
@@ -148,6 +148,6 @@ Switch `sessionKeyStrategy` to `issue` (the default). If it is already set to `i
 
 ## Next Steps
 
-- [Hermes Local](./hermes-local.md) — run Hermes as a local child process on the same machine instead.
+- [Hermes](./hermes.md) — run Hermes as a local child process on the same machine instead.
 - [Bring Your Own Agent](../../how-to/bring-your-own-agent.md) — for the external agent invitation flow and the broader model of connecting third-party agents to Paperclip.
 - [Agent Adapters](../../guides/org/agent-adapters.md) — how Paperclip adapters work in general.

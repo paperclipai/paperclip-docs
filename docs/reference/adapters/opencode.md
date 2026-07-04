@@ -2,7 +2,7 @@
 paperclip_version: v2026.618.0
 ---
 
-# OpenCode Local
+# OpenCode
 
 `opencode_local` runs OpenCode on the same machine as Paperclip. Use it when you want provider/model routing in OpenCode's `provider/model` format and session resume across heartbeats.
 

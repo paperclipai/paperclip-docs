@@ -2,7 +2,7 @@
 paperclip_version: v2026.626.0
 ---
 
-# Hermes Local
+# Hermes
 
 `hermes_local` runs [Hermes Agent](https://github.com/NousResearch/hermes-agent) — a full-featured AI agent by Nous Research — on the same machine as Paperclip. Use it when you want persistent memory, a 30+ tool suite, 80+ loadable skills, multi-provider model routing, and MCP client support in a single adapter.
 

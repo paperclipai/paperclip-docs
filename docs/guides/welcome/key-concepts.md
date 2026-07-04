@@ -106,7 +106,7 @@ A heartbeat can be triggered by:
 **Why it exists:** Paperclip itself is not the AI — it's the orchestration layer above the AI. The adapter system lets Paperclip work with any AI runtime without being locked into one provider. You can run some agents on Claude and others on Codex, or connect entirely custom systems via the HTTP adapter.
 
 **What you do with it:**
-- Choose an adapter type when you hire an agent (Claude Local is the most common starting point)
+- Choose an adapter type when you hire an agent (Claude Code is the most common starting point)
 - Configure adapter-specific settings: which model to use, where files should be written, and which environment variables or secrets the agent needs
 - Use the "Test Environment" button to verify the adapter is working before enabling the agent
 

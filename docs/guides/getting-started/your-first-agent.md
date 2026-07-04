@@ -37,11 +37,11 @@ You'll need:
 
    ![The adapter type dropdown showing available adapter options](../../user-guides/screenshots/light/agents/adapter-type-dropdown.png)
 
-   <!-- tabs: Claude Local (Recommended), Codex Local -->
+   <!-- tabs: Claude Code (Recommended), Codex -->
 
-   <!-- tab: Claude Local (Recommended) -->
+   <!-- tab: Claude Code (Recommended) -->
 
-   **Claude Local** runs a Claude Code agent directly on your Mac. The agent has full access to your filesystem in its working directory, can run terminal commands, write and edit files, and call the Claude API on your behalf.
+   **Claude Code** runs a Claude Code agent directly on your Mac. The agent has full access to your filesystem in its working directory, can run terminal commands, write and edit files, and call the Claude API on your behalf.
 
    This is the most capable and most commonly used adapter for Paperclip agents.
 
@@ -49,7 +49,7 @@ You'll need:
 
    **Configuration fields:**
 
-   ![The Claude Local adapter configuration form with all fields filled in](../../user-guides/screenshots/light/agents/claude-local-config-filled.png)
+   ![The Claude Code adapter configuration form with all fields filled in](../../user-guides/screenshots/light/agents/claude-local-config-filled.png)
 
    - **Working directory** — The folder on your Mac where the agent will do its work. This is where files get created, edited, and read. If you're not sure what to use, create a folder called `paperclip-workspace` on your Desktop and paste that path here (e.g. `/Users/yourname/Desktop/paperclip-workspace`).
 
@@ -61,9 +61,9 @@ You'll need:
 
    > **Tip:** If you're unsure about the working directory, create a new folder called `paperclip-workspace` on your Desktop. Use that path until you decide on a better home for your agents' work.
 
-   <!-- tab: Codex Local -->
+   <!-- tab: Codex -->
 
-   **Codex Local** runs an OpenAI Codex agent directly on your Mac. Like `claude_local`, it has access to your filesystem and can run commands within its working directory — but it's powered by OpenAI's models rather than Anthropic's.
+   **Codex** runs an OpenAI Codex agent directly on your Mac. Like `claude_local`, it has access to your filesystem and can run commands within its working directory — but it's powered by OpenAI's models rather than Anthropic's.
 
    **Prerequisites:** You'll need the OpenAI Codex CLI installed. Check the [OpenAI documentation](https://platform.openai.com) for installation instructions.
 

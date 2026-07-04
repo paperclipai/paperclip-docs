@@ -111,7 +111,7 @@ curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/secrets" \
   }'
 ```
 
-Then reference the secret on the coder agent's adapter config — the same `env` block used in [Claude Local → Example](../reference/adapters/claude-local.md#example):
+Then reference the secret on the coder agent's adapter config — the same `env` block used in [Claude Code → Example](../reference/adapters/claude-code.md#example):
 
 ```json
 "env": {
@@ -257,8 +257,8 @@ For deeper heartbeat-level debugging — the agent isn't waking, the heartbeat f
 
 - [Workspaces](../guides/projects-workflow/workspaces.md) — full reference for `cwd`, `repoUrl`, `branchName`, and worktree lifecycle.
 - [Agents → Recommended bundle structure](../guides/org/agents.md#recommended-bundle-structure-agents--soul--heartbeat--tools) — how `AGENTS.md` works alongside `SOUL.md`, `HEARTBEAT.md`, and `TOOLS.md`.
-- [Claude Local](../reference/adapters/claude-local.md) — adapter fields, env vars, and session persistence.
-- [Codex Local](../reference/adapters/codex-local.md) — same recipe, OpenAI's Codex CLI instead.
+- [Claude Code](../reference/adapters/claude-code.md) — adapter fields, env vars, and session persistence.
+- [Codex](../reference/adapters/codex.md) — same recipe, OpenAI's Codex CLI instead.
 - [Execution Policy](../guides/power/execution-policy.md) — staged review with named participants.
 - [Debug a stuck heartbeat](./debug-stuck-heartbeat.md) — first stop when the agent doesn't push.
 - [Handle board approvals for hires](./handle-board-approvals-for-hires.md) — when to require approval for new agents that get repo write access.

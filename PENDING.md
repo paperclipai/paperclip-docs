@@ -24,11 +24,15 @@ Last run: 2026-07-04 · outcome: applied
   - Parent shipped a substantial new capability: interactively stand up a sandbox, then capture it as a reusable "custom image" provider template. Spans `packages/db/src/migrations/0125,0127`, `server/src/services/environment-custom-images.ts`, `environment-custom-image-terminal-sessions.ts`, `server/src/realtime/environment-custom-image-terminal-ws.ts`, `server/src/routes/environments.ts` (+198), and `ui/src/pages/CompanyEnvironments.tsx` (+458).
   - The plugin-SDK surface for this is now documented (above). The **operator-facing** guide (how to set up and capture a custom image from the UI) is deferred until the feature stabilizes on `master` and a dedicated page target is chosen (candidate: a companion to `docs/reference/cli/dev-environments.md`, or a new `docs/guides/power/` page).
 
-## ⚠ Flag — human decision needed
+## ✅ Applied — adapter display-name rename (option B, with redirects)
 
-- **Adapter display-name rename** (not applied)
-  - Parent renamed adapter *display labels* in `ui/src/adapters/adapter-display-registry.ts` and its own docs: **Claude Local → Claude Code**, **Codex Local → Codex**, **Gemini Local → Gemini CLI**, **OpenCode Local → OpenCode**, **Pi Local → Pi**, **Hermes Local → Hermes**, **Droid Local → Droid**. Type keys (`claude_local`, etc.) are unchanged.
-  - Our docs use the "… Local" names as page titles, filenames, and cross-reference link text across ~8 adapter pages plus `overview.md`. A wholesale rename is a breaking, high-blast-radius change (page slugs, anchors, inbound links). **Not auto-applied** — a human should decide whether to (a) rename doc titles/labels to match the new UI while keeping filenames/slugs stable, or (b) leave as-is.
+- Parent renamed adapter *display labels* in `ui/src/adapters/adapter-display-registry.ts` and its own docs. Applied the full rename to our docs (files, slugs, titles, labels, cross-references) with Cloudflare Pages `301` redirects for the old URLs:
+  - `claude-local` → **claude-code**, `codex-local` → **codex**, `gemini-local` → **gemini-cli**, `opencode-local` → **opencode**, `pi-local` → **pi**, `hermes-local` → **hermes**. (Cursor, Grok not renamed upstream — left as-is. Droid is external — table row only.)
+  - Renamed the 6 `docs/reference/adapters/*.md` files; rewrote all internal `.md` links, display labels, and one heading anchor (`#path-a--claude-local` → `#path-a--claude-code`).
+  - Updated `site/content.json` nav (titles + file paths) and added old→new entries to `site/redirects.json`.
+  - **Wired `redirects.json` into the build**: `site/build-release.mjs` now reads it and emits real `301` lines into `_redirects` (previously the map shipped nowhere and the client-side redirect layer was dead). This also revives all historical redirects in that file.
+  - Type keys (`claude_local`, etc.) are unchanged — only display names and doc slugs moved.
+  - Verified: `docs:build` clean, `sync:check` shows no broken internal links, `_redirects` contains 301s for both legacy `/adapters/*-local` and canonical `/reference/adapters/*-local` paths (with and without trailing slash).
 
 ## 📸 Screenshots
 

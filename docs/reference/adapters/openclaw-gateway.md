@@ -19,7 +19,7 @@ paperclip_version: v2026.618.0
 ## When Not To Use
 
 - The remote agent doesn't speak the OpenClaw Gateway protocol. Use [HTTP](./http.md).
-- You want to run a headless local CLI agent on the same machine. Use [Claude Local](./claude-local.md), [Codex Local](./codex-local.md), or [Process](./process.md).
+- You want to run a headless local CLI agent on the same machine. Use [Claude Code](./claude-code.md), [Codex](./codex.md), or [Process](./process.md).
 
 ---
 

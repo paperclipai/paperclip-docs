@@ -205,5 +205,5 @@ The operator-facing walkthrough of pausing, resuming, and removing overrides liv
 
 - [Creating an Adapter](./creating-an-adapter.md)
 - [Adapter UI Parser Contract](./adapter-ui-parser.md)
-- [Claude Local](./claude-local.md)
-- [Codex Local](./codex-local.md)
+- [Claude Code](./claude-code.md)
+- [Codex](./codex.md)

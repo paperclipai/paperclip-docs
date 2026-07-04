@@ -22,14 +22,14 @@ Every adapter is responsible for the same core jobs:
 
 | Use case | Start here |
 |---|---|
-| Claude Code on your machine | [Claude Local](./claude-local.md) |
-| OpenAI Codex CLI on your machine | [Codex Local](./codex-local.md) |
+| Claude Code on your machine | [Claude Code](./claude-code.md) |
+| OpenAI Codex CLI on your machine | [Codex](./codex.md) |
 | Claude, Codex, or a custom ACP agent through ACPX | [ACPX Local](./acpx-local.md) |
-| Gemini CLI on your machine | [Gemini Local](./gemini-local.md) |
+| Gemini CLI on your machine | [Gemini CLI](./gemini-cli.md) |
 | Cursor Agent CLI on your machine | [Cursor Local](./cursor-local.md) |
-| OpenCode CLI with provider/model routing | [OpenCode Local](./opencode-local.md) |
-| Pi CLI with its built-in tool set | [Pi Local](./pi-local.md) |
-| Hermes Agent with persistent memory and 30+ tools | [Hermes Local](./hermes-local.md) |
+| OpenCode CLI with provider/model routing | [OpenCode](./opencode.md) |
+| Pi CLI with its built-in tool set | [Pi](./pi.md) |
+| Hermes Agent with persistent memory and 30+ tools | [Hermes](./hermes.md) |
 | Grok Build CLI on your machine | [Grok Local](./grok-local.md) |
 | OpenClaw over a WebSocket gateway | [OpenClaw Gateway](./openclaw-gateway.md) |
 | A custom shell command or script | [Process](./process.md) |
@@ -53,14 +53,14 @@ These adapters ship with Paperclip and are always available in the host:
 
 | Adapter | Type key | UI availability | Best for |
 |---|---|---|---|
-| [Claude Local](./claude-local.md) | `claude_local` | Selectable (recommended) | Claude Code runs with session persistence, skills sync, and structured transcript parsing. |
-| [Codex Local](./codex-local.md) | `codex_local` | Selectable (recommended) | Codex CLI runs with session persistence and managed `CODEX_HOME`. |
+| [Claude Code](./claude-code.md) | `claude_local` | Selectable (recommended) | Claude Code runs with session persistence, skills sync, and structured transcript parsing. |
+| [Codex](./codex.md) | `codex_local` | Selectable (recommended) | Codex CLI runs with session persistence and managed `CODEX_HOME`. |
 | [ACPX Local](./acpx-local.md) | `acpx_local` | Selectable (staged rollout) | Claude, Codex, or a custom ACP agent through ACPX with live structured event streaming. |
-| [Gemini Local](./gemini-local.md) | `gemini_local` | Selectable | Gemini CLI runs with resume support and local skills sync. |
+| [Gemini CLI](./gemini-cli.md) | `gemini_local` | Selectable | Gemini CLI runs with resume support and local skills sync. |
 | [Cursor Local](./cursor-local.md) | `cursor` | Selectable | Cursor Agent CLI runs with `--resume` session continuity and structured stream output. |
-| [OpenCode Local](./opencode-local.md) | `opencode_local` | Selectable | OpenCode CLI runs with provider/model routing and `--session` resume. |
-| [Pi Local](./pi-local.md) | `pi_local` | Selectable | Pi CLI runs with its built-in tool set and provider/model routing. |
-| [Hermes Local](./hermes-local.md) | `hermes_local` | Selectable | Hermes Agent runs with persistent memory, 30+ tools, 80+ skills, and multi-provider routing. |
+| [OpenCode](./opencode.md) | `opencode_local` | Selectable | OpenCode CLI runs with provider/model routing and `--session` resume. |
+| [Pi](./pi.md) | `pi_local` | Selectable | Pi CLI runs with its built-in tool set and provider/model routing. |
+| [Hermes](./hermes.md) | `hermes_local` | Selectable | Hermes Agent runs with persistent memory, 30+ tools, 80+ skills, and multi-provider routing. |
 | [Grok Local](./grok-local.md) | `grok_local` | Selectable | Grok Build CLI runs with `--resume` session continuity, streaming reasoning output, and skills staged into `.claude/skills`. |
 | [OpenClaw Gateway](./openclaw-gateway.md) | `openclaw_gateway` | **Coming soon** (use OpenClaw invite flow) | Remote OpenClaw instances reached over the WebSocket gateway protocol. |
 | [Process](./process.md) | `process` | **Coming soon** (API / import only) | Shell commands, scripts, and custom local runtimes. |
@@ -117,14 +117,14 @@ If you're running sandbox workers, prefer `acpx_local`. Sandbox run logs stream 
 
 ## Next Steps
 
-- [Claude Local](./claude-local.md)
-- [Codex Local](./codex-local.md)
+- [Claude Code](./claude-code.md)
+- [Codex](./codex.md)
 - [ACPX Local](./acpx-local.md)
-- [Gemini Local](./gemini-local.md)
+- [Gemini CLI](./gemini-cli.md)
 - [Cursor Local](./cursor-local.md)
-- [OpenCode Local](./opencode-local.md)
-- [Pi Local](./pi-local.md)
-- [Hermes Local](./hermes-local.md)
+- [OpenCode](./opencode.md)
+- [Pi](./pi.md)
+- [Hermes](./hermes.md)
 - [Grok Local](./grok-local.md)
 - [OpenClaw Gateway](./openclaw-gateway.md)
 - [Process](./process.md)

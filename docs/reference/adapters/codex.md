@@ -2,7 +2,7 @@
 paperclip_version: v2026.618.0
 ---
 
-# Codex Local
+# Codex
 
 `codex_local` runs OpenAI's Codex CLI on the same machine as Paperclip. Use it when you want a local coding agent with persistent session state, managed `CODEX_HOME`, and Paperclip skills injected into the Codex skills directory.
 
@@ -43,7 +43,7 @@ paperclip_version: v2026.618.0
 | `workspaceStrategy` | no | Execution workspace strategy, such as `git_worktree`. |
 | `workspaceRuntime` | no | Reserved workspace runtime metadata. |
 
-> **Note:** Codex Local sends the prompt through stdin and uses `codex exec --json`. The adapter's environment test checks both the command and the auth path before you try to run a real heartbeat.
+> **Note:** Codex sends the prompt through stdin and uses `codex exec --json`. The adapter's environment test checks both the command and the auth path before you try to run a real heartbeat.
 
 ---
 
@@ -71,7 +71,7 @@ You can also type a model id that is not in this list. Anything Paperclip does n
 
 ## Session Persistence
 
-Codex Local preserves the `previous_response_id` chain so heartbeats can continue the same conversation instead of starting fresh each time.
+Codex preserves the `previous_response_id` chain so heartbeats can continue the same conversation instead of starting fresh each time.
 
 The session codec also preserves these location hints when present:
 
@@ -86,7 +86,7 @@ If the working directory changes, the adapter starts a fresh session instead of 
 
 ## Skills Injection
 
-Codex Local injects Paperclip skills into the effective `CODEX_HOME/skills` directory.
+Codex injects Paperclip skills into the effective `CODEX_HOME/skills` directory.
 
 In the default managed-home mode, Paperclip uses a per-company Codex home under the active Paperclip instance and seeds it from the shared Codex home for auth continuity.
 
@@ -138,7 +138,7 @@ If the probe fails, fix the command or auth path before saving the adapter.
 
 ## Custom Providers And Gateways
 
-Codex has no CLI flag or env var for pointing at a custom OpenAI-compatible endpoint. Custom endpoints live as `[model_providers.<id>]` tables in `$CODEX_HOME/config.toml`. To route Codex Local at your own gateway or provider without hand-editing that file, set the `PAPERCLIP_CODEX_PROVIDERS` environment variable on the Paperclip host.
+Codex has no CLI flag or env var for pointing at a custom OpenAI-compatible endpoint. Custom endpoints live as `[model_providers.<id>]` tables in `$CODEX_HOME/config.toml`. To route Codex at your own gateway or provider without hand-editing that file, set the `PAPERCLIP_CODEX_PROVIDERS` environment variable on the Paperclip host.
 
 `PAPERCLIP_CODEX_PROVIDERS` is a JSON object that maps onto Codex's `config.toml` schema:
 

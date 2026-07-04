@@ -656,16 +656,16 @@
           "file": "../docs/reference/adapters/overview.md"
         },
         {
-          "title": "Claude Local",
-          "file": "../docs/reference/adapters/claude-local.md"
+          "title": "Claude Code",
+          "file": "../docs/reference/adapters/claude-code.md"
         },
         {
-          "title": "Codex Local",
-          "file": "../docs/reference/adapters/codex-local.md"
+          "title": "Codex",
+          "file": "../docs/reference/adapters/codex.md"
         },
         {
-          "title": "Gemini Local",
-          "file": "../docs/reference/adapters/gemini-local.md"
+          "title": "Gemini CLI",
+          "file": "../docs/reference/adapters/gemini-cli.md"
         },
         {
           "title": "Cursor Local",
@@ -680,16 +680,16 @@
           "file": "../docs/reference/adapters/acpx-local.md"
         },
         {
-          "title": "OpenCode Local",
-          "file": "../docs/reference/adapters/opencode-local.md"
+          "title": "OpenCode",
+          "file": "../docs/reference/adapters/opencode.md"
         },
         {
-          "title": "Pi Local",
-          "file": "../docs/reference/adapters/pi-local.md"
+          "title": "Pi",
+          "file": "../docs/reference/adapters/pi.md"
         },
         {
-          "title": "Hermes Local",
-          "file": "../docs/reference/adapters/hermes-local.md"
+          "title": "Hermes",
+          "file": "../docs/reference/adapters/hermes.md"
         },
         {
           "title": "Hermes Gateway",

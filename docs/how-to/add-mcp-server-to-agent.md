@@ -12,7 +12,7 @@ The mental model is unchanged: Paperclip is the control plane, the adapter launc
 
 For Paperclip, MCP is how you give an agent a capability that doesn't fit a [skill](../reference/skills.md) (which is a markdown bundle, not executable) and that you don't want to teach the agent to call as raw HTTP. If the tool already speaks MCP, prefer that path.
 
-> **Adapter support today.** [Claude Local](../reference/adapters/claude-local.md) and [Hermes Local](../reference/adapters/hermes-local.md#tools) are the two adapters with documented MCP paths today. Claude Local inherits Claude Code's MCP client (configured at the Claude Code level); Hermes Local exposes MCP through its `toolsets` field. Codex Local, Cursor Local, Gemini Local, OpenCode Local, and Pi Local follow the same pattern as Claude Local — whatever MCP support their CLI ships with, the adapter inherits — but that path is not documented here yet.
+> **Adapter support today.** [Claude Code](../reference/adapters/claude-code.md) and [Hermes](../reference/adapters/hermes.md#tools) are the two adapters with documented MCP paths today. Claude Code inherits Claude Code's MCP client (configured at the Claude Code level); Hermes exposes MCP through its `toolsets` field. Codex, Cursor Local, Gemini CLI, OpenCode, and Pi follow the same pattern as Claude Code — whatever MCP support their CLI ships with, the adapter inherits — but that path is not documented here yet.
 
 ---
 
@@ -46,8 +46,8 @@ The agent never speaks MCP directly — its runtime does. That means MCP server 
 
 - Paperclip running locally or on a server you control. See [Installation](../guides/getting-started/installation.md).
 - An agent already hired with one of the supported adapters. See [Hire Your First Agent](../guides/getting-started/your-first-agent.md).
-- For Claude Local: the [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed on the host running the agent.
-- For Hermes Local: [Hermes Agent](https://github.com/NousResearch/hermes-agent) installed (`pip install hermes-agent`).
+- For Claude Code: the [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed on the host running the agent.
+- For Hermes: [Hermes Agent](https://github.com/NousResearch/hermes-agent) installed (`pip install hermes-agent`).
 - The MCP server you want to attach. [Anthropic's directory](https://github.com/modelcontextprotocol/servers) and [Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers) are the two best starting points.
 
 ---
@@ -56,7 +56,7 @@ The agent never speaks MCP directly — its runtime does. That means MCP server 
 
 Local stdio servers are the simplest case: a child process the runtime spawns, communicating over JSON-RPC on stdin/stdout. Use this for anything that runs on the same host as the agent — a filesystem reader, a Postgres bridge, a vector-store proxy.
 
-### Path A — Claude Local
+### Path A — Claude Code
 
 Claude Code keeps MCP server config in three possible scopes (precedence: local > project > user when the same name is defined twice):
 
@@ -66,7 +66,7 @@ Claude Code keeps MCP server config in three possible scopes (precedence: local 
 | **Project** | `<repo-root>/.mcp.json` | Anyone running Claude Code with that `cwd`. Committed to source control. |
 | **User** | `~/.claude.json` user-wide | Every Claude Code run by that OS user, across all projects. |
 
-For Paperclip, **prefer project scope**: Claude Local's `cwd` already pins the agent to a specific working directory, and `.mcp.json` in that directory ships with the project so other contributors and other agents pointed at the same `cwd` get the same servers.
+For Paperclip, **prefer project scope**: Claude Code's `cwd` already pins the agent to a specific working directory, and `.mcp.json` in that directory ships with the project so other contributors and other agents pointed at the same `cwd` get the same servers.
 
 Add a server with the Claude CLI (run on the host, in the agent's `cwd`). All `claude mcp add` options come before the server name, then `--` separates the name from the command + args that get passed to the MCP server:
 
@@ -95,7 +95,7 @@ That writes a `.mcp.json` in the project root that looks like:
 }
 ```
 
-> **Why scope matters for Paperclip.** Two agents that share a project workspace — say a CTO and a coder both pointed at the same repo — will both see project-scoped MCP servers. That's almost always what you want. If you need an MCP server visible to *one* agent only, use a per-agent `cwd` (so the project file is unique to that agent) or use [the local scope](#path-a--claude-local) and add it manually only on the heartbeat host running that agent.
+> **Why scope matters for Paperclip.** Two agents that share a project workspace — say a CTO and a coder both pointed at the same repo — will both see project-scoped MCP servers. That's almost always what you want. If you need an MCP server visible to *one* agent only, use a per-agent `cwd` (so the project file is unique to that agent) or use [the local scope](#path-a--claude-code) and add it manually only on the heartbeat host running that agent.
 
 Verify the server is loaded by running a one-shot probe with the same env the heartbeat uses. Claude Code's `claude mcp list` reads the same config the agent will see at run time:
 
@@ -106,7 +106,7 @@ claude mcp list
 
 Output looks like `filesystem: npx -y @modelcontextprotocol/server-filesystem … - ✓ Connected` for a healthy stdio server (HTTP/SSE servers get a `(HTTP)` / `(SSE)` tag), or `… - ✗ Failed to connect` for a broken one. If the failure shows up, the command isn't on `PATH` — fix that before assigning the agent any task that depends on it.
 
-### Path B — Hermes Local
+### Path B — Hermes
 
 Hermes Agent has a built-in MCP client gated by the adapter's `toolsets` field. Enable it on the agent's adapter config, then point Hermes at the actual servers in `~/.hermes/config.yaml`.
 
@@ -137,7 +137,7 @@ mcp_servers:
       - "/Users/me/projects/paperclip-workspace"
 ```
 
-> **Hermes server registration is host-wide.** The YAML is per-OS-user, not per-agent. If you run multiple Hermes agents on the same host and want different MCP servers per agent, use distinct OS users for each agent and run the heartbeat process under that user — the same isolation pattern Hermes already uses for its session memory. See [Hermes Local → Skills Integration](../reference/adapters/hermes-local.md#skills-integration) for the parallel pattern with skills.
+> **Hermes server registration is host-wide.** The YAML is per-OS-user, not per-agent. If you run multiple Hermes agents on the same host and want different MCP servers per agent, use distinct OS users for each agent and run the heartbeat process under that user — the same isolation pattern Hermes already uses for its session memory. See [Hermes → Skills Integration](../reference/adapters/hermes.md#skills-integration) for the parallel pattern with skills.
 
 ---
 
@@ -151,7 +151,7 @@ The wrinkle for Paperclip is that **Paperclip runs runtimes headlessly** — for
 2. Walk through OAuth once. The runtime persists tokens in the user's config dir and refreshes them automatically.
 3. Subsequent heartbeats run headless — the token is already on disk.
 
-### Path A — Claude Local
+### Path A — Claude Code
 
 ```bash
 # As the OS user the heartbeat runs as:
@@ -168,7 +168,7 @@ After the interactive run, `~/.claude.json` contains a refreshable OAuth token f
 
 > **User scope is correct here.** Remote MCP tokens are tied to the OS user that authorised them, so user scope (rather than project) reflects reality. Don't commit OAuth tokens to a project-scoped `.mcp.json` — they don't belong in git.
 
-### Path B — Hermes Local
+### Path B — Hermes
 
 Hermes's MCP client supports the same HTTP and SSE transports. The YAML form for a remote server with bearer auth (skip OAuth entirely if the vendor offers a long-lived API token):
 
@@ -193,7 +193,7 @@ mcp_servers:
 }
 ```
 
-For full OAuth (no static token), follow the same one-time interactive pattern as Claude Local — run `hermes chat` once to finish the browser flow, then let subsequent heartbeats use the persisted token.
+For full OAuth (no static token), follow the same one-time interactive pattern as Claude Code — run `hermes chat` once to finish the browser flow, then let subsequent heartbeats use the persisted token.
 
 ---
 
@@ -229,11 +229,11 @@ Three places to look, in order of speed.
 The single most useful check. From the agent's `cwd`, with the same `env` the heartbeat uses:
 
 ```bash
-# Claude Local
+# Claude Code
 claude mcp list                 # all configured servers + connection status
 claude mcp get github           # one server's full details, incl. OAuth status
 
-# Hermes Local
+# Hermes
 hermes mcp list
 ```
 
@@ -260,7 +260,7 @@ This forces the runtime to materialise its tool list into the transcript without
 
 ## 6. Worked example: GitHub MCP server
 
-Round-trip: a Claude Local agent that, given an issue title and description, opens a GitHub issue on the right repo via the [GitHub MCP server](https://github.com/github/github-mcp-server).
+Round-trip: a Claude Code agent that, given an issue title and description, opens a GitHub issue on the right repo via the [GitHub MCP server](https://github.com/github/github-mcp-server).
 
 ### Setup
 
@@ -336,8 +336,8 @@ For deeper heartbeat-level debugging — the agent isn't waking, the runtime fai
 
 ## See also
 
-- [Claude Local](../reference/adapters/claude-local.md) — the adapter that hosts Claude Code, including session persistence and skills sync.
-- [Hermes Local — Tools](../reference/adapters/hermes-local.md#tools) — the `toolsets` field including `mcp`.
+- [Claude Code](../reference/adapters/claude-code.md) — the adapter that hosts Claude Code, including session persistence and skills sync.
+- [Hermes — Tools](../reference/adapters/hermes.md#tools) — the `toolsets` field including `mcp`.
 - [Skills reference](../reference/skills.md) — when a skill bundle is the right primitive instead of an MCP server.
 - [Connect an agent to a GitHub repo](./connect-agent-to-github.md) — the PR-driven counterpart; pair it with this guide for a coder that opens issues *and* PRs.
 - [Debug a stuck heartbeat](./debug-stuck-heartbeat.md) — first stop when the agent's tool list looks wrong.

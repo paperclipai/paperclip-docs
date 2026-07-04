@@ -82,7 +82,7 @@ Most providers follow the same shape — generate a new key in the provider's co
 
 > **Info:** Moving from a Claude.ai subscription login to a console API key? That's the most common reason this doc gets opened. Older builds of `claude_local` accepted Claude Code's subscription auth; newer ones require an explicit `ANTHROPIC_API_KEY` from [console.anthropic.com](https://console.anthropic.com). Generate a console key, store it via Path A or Path B, and the adapter will start using it instead of the subscription session.
 
-The `claude_local` adapter can also authenticate through Bedrock settings or Claude Code's own login state. If you switch to one of those, clear the `ANTHROPIC_API_KEY` entry rather than leaving an old value in place. See [Claude Local](../reference/adapters/claude-local.md).
+The `claude_local` adapter can also authenticate through Bedrock settings or Claude Code's own login state. If you switch to one of those, clear the `ANTHROPIC_API_KEY` entry rather than leaving an old value in place. See [Claude Code](../reference/adapters/claude-code.md).
 
 <!-- tab: OpenAI -->
 
@@ -97,7 +97,7 @@ Used by `codex_local` and by `opencode_local` when the configured model is an Op
 **Env vars:** `GEMINI_API_KEY` or `GOOGLE_API_KEY` (either is accepted)
 **Console:** [aistudio.google.com](https://aistudio.google.com) → **Get API key**
 
-Used by `gemini_local`. The adapter also accepts Google account login or Gemini CLI auth, so on a developer machine you may not need the key at all. See [Gemini Local](../reference/adapters/gemini-local.md).
+Used by `gemini_local`. The adapter also accepts Google account login or Gemini CLI auth, so on a developer machine you may not need the key at all. See [Gemini CLI](../reference/adapters/gemini-cli.md).
 
 > **Note:** Test Environment confirms the binary is installed and the env var is set. It does not detect quota exhaustion or a revoked Google account — a passing check is not a guarantee that runs will succeed.
 
@@ -123,7 +123,7 @@ Used by `grok_local`. Treat it the same as the other provider keys — generate,
 - `google/...` → `GEMINI_API_KEY` or `GOOGLE_API_KEY`
 - `xai/...` → `XAI_API_KEY`
 
-If the agent uses two providers (for example a model and an embedding provider), rotate both. See [OpenCode Local](../reference/adapters/opencode-local.md).
+If the agent uses two providers (for example a model and an embedding provider), rotate both. See [OpenCode](../reference/adapters/opencode.md).
 
 <!-- /tabs -->
 

@@ -214,9 +214,9 @@ The local CLI adapters can be pointed at a custom or remote OpenAI-compatible ga
 
 | Variable | Adapter | Meaning |
 |---|---|---|
-| `PAPERCLIP_CODEX_PROVIDERS` | `codex_local` | JSON of custom providers (and an optional `model_provider`) written into Codex's managed `config.toml`. See [Codex Local](../adapters/codex-local.md). |
-| `PAPERCLIP_PI_PROVIDERS` | `pi_local` | JSON of custom providers written into Pi's managed `models.json`. See [Pi Local](../adapters/pi-local.md). |
-| `PAPERCLIP_OPENCODE_PROVIDERS` | `opencode_local` | JSON merged into OpenCode's `provider` config. See [OpenCode Local](../adapters/opencode-local.md). |
-| `PAPERCLIP_OPENCODE_SMALL_MODEL` | `opencode_local` | Sets OpenCode's `small_model` (the auxiliary/helper model). See [OpenCode Local](../adapters/opencode-local.md). |
+| `PAPERCLIP_CODEX_PROVIDERS` | `codex_local` | JSON of custom providers (and an optional `model_provider`) written into Codex's managed `config.toml`. See [Codex](../adapters/codex.md). |
+| `PAPERCLIP_PI_PROVIDERS` | `pi_local` | JSON of custom providers written into Pi's managed `models.json`. See [Pi](../adapters/pi.md). |
+| `PAPERCLIP_OPENCODE_PROVIDERS` | `opencode_local` | JSON merged into OpenCode's `provider` config. See [OpenCode](../adapters/opencode.md). |
+| `PAPERCLIP_OPENCODE_SMALL_MODEL` | `opencode_local` | Sets OpenCode's `small_model` (the auxiliary/helper model). See [OpenCode](../adapters/opencode.md). |
 
 Values support `{env:VAR}` placeholders, which are expanded server-side so secrets stay out of the stored JSON.

@@ -13,6 +13,7 @@ const sourceIndexPath = path.join(__dirname, "index.html");
 const sourceStylesPath = path.join(__dirname, "styles.css");
 const sourceAppJsPath = path.join(__dirname, "app.js");
 const sourceNavPath = path.join(__dirname, "content.json");
+const sourceRedirectsPath = path.join(__dirname, "redirects.json");
 const sourceVendorDir = path.join(__dirname, "vendor");
 const screenshotsSourceDir = path.join(docsRoot, "user-guides", "screenshots");
 const defaultSiteUrl = "https://docs.paperclip.ing";
@@ -655,7 +656,33 @@ function cloudflarePathForRoute(basePath, routePath, { trailingSlash = false } =
   return `/${key}${trailingSlash ? "/" : ""}`;
 }
 
-function buildCloudflareRedirects({ basePath, pages }) {
+async function loadSlugRedirects() {
+  // Map of moved pages: old slug -> new slug. Missing/empty file is fine.
+  try {
+    const raw = await fs.readFile(sourceRedirectsPath, "utf8");
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function buildCloudflareRedirects({ basePath, pages, slugRedirects = {} }) {
+  // Moved pages: 301 the old slug (with and without trailing slash) to the new
+  // canonical trailing-slash URL. Emitted first so a renamed page's old URL is
+  // matched here before hitting the SPA fallback below.
+  const slugRedirectLines = Object.entries(slugRedirects)
+    .flatMap(([fromSlug, toSlug]) => {
+      const destinationPath = cloudflarePathForRoute(basePath, toSlug, { trailingSlash: true });
+      const fromNoSlash = cloudflarePathForRoute(basePath, fromSlug);
+      const fromSlash = cloudflarePathForRoute(basePath, fromSlug, { trailingSlash: true });
+      return [
+        `${fromSlash} ${destinationPath} 301`,
+        `${fromNoSlash} ${destinationPath} 301`,
+      ];
+    })
+    .join("\n");
+
   const routeRedirects = pages
     .map(({ page }) => {
       const sourcePath = cloudflarePathForRoute(basePath, page.slug);
@@ -664,7 +691,8 @@ function buildCloudflareRedirects({ basePath, pages }) {
     })
     .join("\n");
 
-  return `# Canonical docs URLs include trailing slashes. Keep no-slash requests
+  return `# Moved pages: 301 old slugs to their new canonical URL (from redirects.json).
+${slugRedirectLines}${slugRedirectLines ? "\n\n" : ""}# Canonical docs URLs include trailing slashes. Keep no-slash requests
 # on a normal one-hop 301 instead of Cloudflare Pages' implicit directory 308.
 ${routeRedirects}
 
@@ -994,9 +1022,11 @@ async function main() {
   await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav)}\n`);
 
   const pageMetadata = await pageMetadataForNav(releaseNav, options.outDir, options.siteUrl, options.basePath);
+  const slugRedirects = await loadSlugRedirects();
   await fs.writeFile(path.join(options.outDir, "_redirects"), buildCloudflareRedirects({
     basePath: options.basePath,
     pages: pageMetadata,
+    slugRedirects,
   }));
   const rootMetadata = {
     title: "Paperclip Docs",

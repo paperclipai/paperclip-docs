@@ -6,7 +6,7 @@ paperclip_version: v2026.525.0
 
 `acpx_local` runs an agent through the Agent Client Protocol via ACPX on the Paperclip host or a managed execution environment. Use it when you want a single built-in adapter that can target Claude, Codex, or a custom ACP server command.
 
-> ⚠ ACPX runtime execution is still being enabled in stages. For today's stable Claude Code or Codex CLI wrapper behaviour, use [Claude Local](./claude-local.md) or [Codex Local](./codex-local.md).
+> ⚠ ACPX runtime execution is still being enabled in stages. For today's stable Claude Code or Codex CLI wrapper behaviour, use [Claude Code](./claude-code.md) or [Codex](./codex.md).
 
 ---
 
@@ -70,7 +70,7 @@ The adapter also picks a precise `errorCode` from those signals — `acpx_sessio
 
 When `agent=claude`, the adapter writes a Paperclip-managed `.claude/settings.local.json` into the working directory before launching the ACP server. The Claude Code SDK that `claude-agent-acp` runs reads settings from `user`, `project`, and `local` sources, so this local file takes precedence over your `~/.claude/settings.json`.
 
-That means a first-run Claude Local ACPX agent no longer strands on permission prompts when your user-level settings.json sets `defaultMode: "dontAsk"` — Paperclip's local file flips `defaultMode` back to `default` (recording `overrodeDontAsk` in the run's command notes), preserves any `defaultMode` you set to a non-`dontAsk` value, and merges in:
+That means a first-run Claude Code ACPX agent no longer strands on permission prompts when your user-level settings.json sets `defaultMode: "dontAsk"` — Paperclip's local file flips `defaultMode` back to `default` (recording `overrodeDontAsk` in the run's command notes), preserves any `defaultMode` you set to a non-`dontAsk` value, and merges in:
 
 - `permissions.allow` rules for the Paperclip helper scripts inside `cwd/scripts/` plus `Bash(curl:*)` and `Bash(env:*)`.
 - `permissions.additionalDirectories` entries for the adapter's `stateDir`, the agent's home directory, and the company root under your Paperclip instance directory — so Read tools can reach the paths the agent needs to talk to its own control plane.
@@ -102,6 +102,6 @@ Today's ACPX runtime is staged — see the callout at the top of this page. The 
 
 ## Related
 
-- [Claude Local](./claude-local.md) — stable Claude Code CLI wrapper.
-- [Codex Local](./codex-local.md) — stable Codex CLI wrapper.
+- [Claude Code](./claude-code.md) — stable Claude Code CLI wrapper.
+- [Codex](./codex.md) — stable Codex CLI wrapper.
 - [Creating An Adapter](./creating-an-adapter.md) — author your own adapter when none of the built-ins fit.
