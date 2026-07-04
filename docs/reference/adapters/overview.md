@@ -24,6 +24,7 @@ Every adapter is responsible for the same core jobs:
 |---|---|
 | Claude Code on your machine | [Claude Local](./claude-local.md) |
 | OpenAI Codex CLI on your machine | [Codex Local](./codex-local.md) |
+| Claude, Codex, or a custom ACP agent through ACPX | [ACPX Local](./acpx-local.md) |
 | Gemini CLI on your machine | [Gemini Local](./gemini-local.md) |
 | Cursor Agent CLI on your machine | [Cursor Local](./cursor-local.md) |
 | OpenCode CLI with provider/model routing | [OpenCode Local](./opencode-local.md) |
@@ -54,6 +55,7 @@ These adapters ship with Paperclip and are always available in the host:
 |---|---|---|---|
 | [Claude Local](./claude-local.md) | `claude_local` | Selectable (recommended) | Claude Code runs with session persistence, skills sync, and structured transcript parsing. |
 | [Codex Local](./codex-local.md) | `codex_local` | Selectable (recommended) | Codex CLI runs with session persistence and managed `CODEX_HOME`. |
+| [ACPX Local](./acpx-local.md) | `acpx_local` | Selectable (staged rollout) | Claude, Codex, or a custom ACP agent through ACPX with live structured event streaming. |
 | [Gemini Local](./gemini-local.md) | `gemini_local` | Selectable | Gemini CLI runs with resume support and local skills sync. |
 | [Cursor Local](./cursor-local.md) | `cursor` | Selectable | Cursor Agent CLI runs with `--resume` session continuity and structured stream output. |
 | [OpenCode Local](./opencode-local.md) | `opencode_local` | Selectable | OpenCode CLI runs with provider/model routing and `--session` resume. |
@@ -97,10 +99,27 @@ See:
 
 ---
 
+## Feedback Granularity
+
+Want to watch an agent think while it works? How much live detail you get in a run's transcript comes down to which adapter you pick.
+
+Every adapter streams its stdout to the run log, and Paperclip renders it live as the agent works — even runs on sandbox execution targets, whose logs are tailed incrementally so you see them fill in. What differs is the *structure*: the richer the event stream an adapter emits, the more the transcript can show you beyond raw output.
+
+Here are the rough tiers, richest first:
+
+- **`acpx_local` — full structured event stream.** ACPX emits a JSONL event for each meaningful moment: session identity, status (progress text plus context-window usage), assistant and thinking token deltas, tool-call title and status updates as calls progress, a result stop-reason summary, and errors. The transcript renders these as live-updating message, thinking, tool, and status blocks — and repeated tool-call status updates fold into a single tool card instead of stacking.
+- **CLI wrappers (`claude_local`, `codex_local`, `cursor`, `opencode_local`, …) — the CLI's own stream.** These parse each CLI's streaming JSON output: assistant text, tool calls and results, and a final usage/cost summary. You get as much detail as the CLI itself prints.
+- **Generic adapters (`process`, `http`) — plain output.** You see stdout and stderr lines with no structured transcript.
+
+If you're running sandbox workers, prefer `acpx_local`. Sandbox run logs stream live, so the richer the event stream, the more useful the live transcript and status line are while a remote run is still in flight.
+
+---
+
 ## Next Steps
 
 - [Claude Local](./claude-local.md)
 - [Codex Local](./codex-local.md)
+- [ACPX Local](./acpx-local.md)
 - [Gemini Local](./gemini-local.md)
 - [Cursor Local](./cursor-local.md)
 - [OpenCode Local](./opencode-local.md)
