@@ -39,14 +39,45 @@ try {
     "skills route did not get a route-specific title",
   );
   assert(
-    skillsHtml.includes('<link rel="canonical" href="https://docs.paperclip.ing/reference/skills" />'),
+    skillsHtml.includes('<link rel="canonical" data-seo-managed href="https://docs.paperclip.ing/reference/skills/" />'),
     "skills route canonical URL is missing or incorrect",
   );
   assert(!skillsHtml.match(/rel="canonical"[^>]+#/), "canonical URL contains a hash");
   assert(skillsHtml.includes("<h1>Skills Reference</h1>"), "skills route is missing crawler-visible page content");
   assert(skillsHtml.includes("the file shape on disk"), "skills route body is missing expected docs copy");
-  assert(skillsHtml.includes('href="/styles.css"'), "nested route does not load stylesheet from the release base path");
-  assert(skillsHtml.includes('src="/app.js"'), "nested route does not load app JS from the release base path");
+  assert(skillsHtml.includes('<base data-seo-base href="/" />'), "nested route is missing the release base path");
+  assert(skillsHtml.includes("<style data-inline-release-css>"), "nested route does not inline release CSS");
+  assert(!skillsHtml.includes('rel="stylesheet" href="styles.css"'), "nested route still render-blocks on styles.css");
+  assert(skillsHtml.includes('src="app.js"'), "nested route does not load app JS from the release base path");
+  assert(skillsHtml.includes("html:not(.motion-ready) *"), "nested route is missing the first-paint motion gate");
+
+  const rootHtml = read("index.html");
+  assert(
+    rootHtml.includes('href="/guides/getting-started/five-minute-path/" data-nav="link">Quickstart</a>'),
+    "footer Quickstart link should point to the docs quickstart route",
+  );
+  assert(
+    rootHtml.includes('href="/guides/org/adapters/" data-nav="link">Integrations</a>'),
+    "footer Integrations link should point to the adapters docs route",
+  );
+  assert(
+    rootHtml.includes("paperclip/blob/main/CONTRIBUTING.md"),
+    "footer Contributing link should point to the repo contributing file",
+  );
+
+  const quickstartHtml = read("guides/getting-started/five-minute-path/index.html");
+  assert(
+    quickstartHtml.includes('data-screenshot="../../user-guides/screenshots/light/dashboard/dashboard-overview.png"'),
+    "quickstart route is missing the theme-aware dashboard screenshot marker",
+  );
+  assert(
+    quickstartHtml.includes('width="2880" height="1800"'),
+    "quickstart dashboard screenshot is missing intrinsic dimensions",
+  );
+  assert(
+    quickstartHtml.includes("dashboard-overview-900.webp 900w"),
+    "quickstart dashboard screenshot is missing the responsive WebP srcset",
+  );
 
   const appJs = read("app.js");
   assert(!appJs.includes("/#/"), "generated app JS still contains primary hash route URLs");
@@ -72,6 +103,35 @@ try {
 
   const robots = read("robots.txt");
   assert(robots.includes("Sitemap: https://docs.paperclip.ing/sitemap.xml"), "robots.txt is missing sitemap reference");
+
+  const redirects = read("_redirects");
+  const canonicalRedirect = "/guides/getting-started/five-minute-path /guides/getting-started/five-minute-path/ 301";
+  assert(
+    redirects.includes(canonicalRedirect),
+    "Cloudflare redirects are missing the no-slash canonical redirect for the quickstart path",
+  );
+  assert(
+    redirects.indexOf(canonicalRedirect) < redirects.indexOf("/* /index.html 200"),
+    "canonical route redirects must appear before the SPA fallback rewrite",
+  );
+
+  const headers = read("_headers");
+  assert(
+    headers.includes("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload"),
+    "Cloudflare headers are missing HSTS",
+  );
+  assert(
+    headers.includes("Cross-Origin-Opener-Policy: same-origin"),
+    "Cloudflare headers are missing COOP",
+  );
+  assert(
+    headers.includes("Content-Security-Policy: default-src 'self';"),
+    "Cloudflare headers are missing CSP",
+  );
+  assert(
+    headers.includes("connect-src 'self' https://api.github.com"),
+    "Cloudflare CSP must allow the GitHub stars API",
+  );
 
   const deployGuide = read("DEPLOY.md");
   assert(deployGuide.includes("Cloudflare Pages"), "deploy guide is missing Cloudflare Pages guidance");

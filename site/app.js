@@ -1,13 +1,26 @@
 /* ─── Section icons ─────────────────────────────────────────────────────── */
-// Rendered via Lucide (https://lucide.dev). Section names reference any Lucide
-// icon by its kebab-case id; `lucide.createIcons()` replaces <i data-lucide>
-// placeholders with inline SVG after each nav render.
+const SECTION_ICON_PATHS = {
+  'book-open': '<path d="M12 7v14"/><path d="M3 18a2 2 0 0 1 2-2h7V5H5a2 2 0 0 0-2 2z"/><path d="M21 18a2 2 0 0 0-2-2h-7V5h7a2 2 0 0 1 2 2z"/>',
+  braces: '<path d="M8 3H7a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h1"/><path d="M16 21h1a2 2 0 0 0 2-2v-3a2 2 0 0 1 2-2 2 2 0 0 1-2-2V9a2 2 0 0 0-2-2h-1"/>',
+  cloud: '<path d="M17.5 19H8a5 5 0 1 1 1.1-9.9A7 7 0 0 1 22 12.5 4.5 4.5 0 0 1 17.5 19z"/>',
+  'kanban-square': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 7v10"/><path d="M12 7v6"/><path d="M16 7v3"/>',
+  'layout-dashboard': '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  network: '<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M12 8v4M5 16v-2a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"/>',
+  package: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5"/><path d="M12 12v9"/>',
+  plug: '<path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M7 8h10v4a5 5 0 0 1-10 0z"/>',
+  puzzle: '<path d="M19 13h-2.5a1.5 1.5 0 0 0 0 3H19v3H5v-3h2.5a1.5 1.5 0 0 0 0-3H5V5h4a2 2 0 1 1 4 0h6z"/>',
+  rocket: '<path d="M4.5 16.5c-1.2 1-1.5 3-1.5 3s2-.3 3-1.5"/><path d="M9 15 6 12c2-5 6-8 13-9-1 7-4 11-9 13z"/><path d="M15 9h.01"/>',
+  'settings-2': '<path d="M20 7h-9"/><path d="M14 17H4"/><circle cx="7" cy="7" r="3"/><circle cx="17" cy="17" r="3"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  terminal: '<path d="m4 17 6-6-6-6"/><path d="M12 19h8"/>',
+  wrench: '<path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.4 2.4-3-3z"/>',
+};
+
 function sectionIconTag(section) {
-  return `<i data-lucide="${escapeAttr(section?.icon || 'book')}"></i>`;
+  const icon = SECTION_ICON_PATHS[section?.icon] || SECTION_ICON_PATHS['book-open'];
+  return `<svg class="section-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;
 }
-function renderLucideIcons() {
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-}
+function renderLucideIcons() {}
 function getSectionKind(section) {
   if (section && typeof section === 'object') return section.tier || 'Guides';
   return 'Guides';
@@ -20,6 +33,9 @@ const TIER_ORDER = ['Learn', 'Administration', 'Reference'];
   if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
   else document.documentElement.removeAttribute('data-theme');
 })();
+window.addEventListener('load', () => {
+  requestAnimationFrame(() => document.documentElement.classList.add('motion-ready'));
+}, { once: true });
 
 /* ─── State ─────────────────────────────────────────────────────────────── */
 let navData     = null;
@@ -31,6 +47,10 @@ let tocScrollHandler = null;
 let tocResizeHandler = null;
 let tocDocumentClickHandler = null;
 let tocKeydownHandler = null;
+let markdownRendererPromise = null;
+const SEO_SITE_NAME = 'Paperclip Docs';
+const SEO_DEFAULT_TITLE = 'Paperclip Docs';
+const SEO_DEFAULT_DESCRIPTION = 'Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows.';
 const APP_DIR_NAME = 'site';
 const APP_BASE_PATH = (() => {
   const marker = `/${APP_DIR_NAME}`;
@@ -41,6 +61,38 @@ const APP_BASE_PATH = (() => {
 })();
 const APP_BASE_URL = new URL(`${APP_BASE_PATH.replace(/\/$/, '')}/`, window.location.origin);
 const APP_SHELL_URL = new URL('index.html', APP_BASE_URL);
+
+function ensureMarkdownRenderer() {
+  if (window.marked) return Promise.resolve(window.marked);
+  if (!markdownRendererPromise) {
+    markdownRendererPromise = new Promise((resolve, reject) => {
+      const existing = document.querySelector('script[data-markdown-renderer]');
+      if (existing) {
+        existing.addEventListener('load', () => resolve(window.marked), { once: true });
+        existing.addEventListener('error', () => reject(new Error('Markdown renderer failed to load.')), { once: true });
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = resolveContentUrl('vendor/marked.min.js');
+      script.defer = true;
+      script.dataset.markdownRenderer = '';
+      script.addEventListener('load', () => {
+        if (window.marked) resolve(window.marked);
+        else reject(new Error('Markdown renderer failed to initialize.'));
+      }, { once: true });
+      script.addEventListener('error', () => reject(new Error('Markdown renderer failed to load.')), { once: true });
+      document.head.appendChild(script);
+    });
+  }
+  return markdownRendererPromise;
+}
+
+async function fetchMarkdown(file) {
+  const res = await fetch(resolveContentUrl(file));
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.text();
+}
 
 /* ─── Screenshot src resolver ───────────────────────────────────────────── */
 function resolveScreenshotSrc(src) {
@@ -130,7 +182,7 @@ function buildRouteValue(page, headingId = null) {
 function getRouteUrl(routeValue) {
   const normalized = normalizeRouteKey(routeValue);
   const basePath = APP_BASE_URL.pathname.replace(/\/$/, '');
-  return normalized ? `${basePath}/${normalized}` : `${basePath}/`;
+  return normalized ? `${basePath}/${normalized}/` : `${basePath}/`;
 }
 
 function getPageUrl(page) {
@@ -138,16 +190,96 @@ function getPageUrl(page) {
 }
 
 function getPageHeadingUrl(page, headingId) {
-  return getRouteUrl(buildRouteValue(page, headingId));
+  return `${getPageUrl(page)}#${encodeURIComponent(headingId)}`;
 }
 
 function getAbsoluteUrl(path) {
   return new URL(path, window.location.origin).toString();
 }
 
+function getAbsolutePageUrl(page) {
+  return getAbsoluteUrl(page ? getPageUrl(page) : getRouteUrl(''));
+}
+
+function setHeadElement(selector, tagName, attrs) {
+  let el = document.head.querySelector(selector);
+  if (!el) {
+    el = document.createElement(tagName);
+    el.dataset.seoManaged = '';
+    document.head.appendChild(el);
+  }
+  for (const [name, value] of Object.entries(attrs)) {
+    el.setAttribute(name, value);
+  }
+  return el;
+}
+
+function setSeoMetadata({ title, description, url, type = 'website' }) {
+  const cleanTitle = title || SEO_DEFAULT_TITLE;
+  const cleanDescription = description || SEO_DEFAULT_DESCRIPTION;
+  const cleanUrl = url || getAbsolutePageUrl(null);
+  document.title = cleanTitle;
+  setHeadElement('meta[name="description"]', 'meta', { name: 'description', content: cleanDescription });
+  setHeadElement('meta[name="robots"]', 'meta', {
+    name: 'robots',
+    content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+  });
+  setHeadElement('link[rel="canonical"]', 'link', { rel: 'canonical', href: cleanUrl });
+  setHeadElement('meta[property="og:type"]', 'meta', { property: 'og:type', content: type });
+  setHeadElement('meta[property="og:site_name"]', 'meta', { property: 'og:site_name', content: SEO_SITE_NAME });
+  setHeadElement('meta[property="og:title"]', 'meta', { property: 'og:title', content: cleanTitle });
+  setHeadElement('meta[property="og:description"]', 'meta', { property: 'og:description', content: cleanDescription });
+  setHeadElement('meta[property="og:url"]', 'meta', { property: 'og:url', content: cleanUrl });
+  setHeadElement('meta[name="twitter:card"]', 'meta', { name: 'twitter:card', content: 'summary' });
+  setHeadElement('meta[name="twitter:title"]', 'meta', { name: 'twitter:title', content: cleanTitle });
+  setHeadElement('meta[name="twitter:description"]', 'meta', { name: 'twitter:description', content: cleanDescription });
+}
+
+function markdownToDescription(md) {
+  const plain = stripFrontmatter(md)
+    .replace(/```[\s\S]*?```/g, ' ')
+    .split(/\n{2,}/)
+    .map(block => block.trim())
+    .find(block =>
+      block &&
+      !block.startsWith('#') &&
+      !block.startsWith('![') &&
+      !block.startsWith('|') &&
+      !block.startsWith('---')
+    );
+  if (!plain) return SEO_DEFAULT_DESCRIPTION;
+  return plain
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[*_`>#-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 220);
+}
+
+function updateLandingSeo() {
+  setSeoMetadata({
+    title: SEO_DEFAULT_TITLE,
+    description: SEO_DEFAULT_DESCRIPTION,
+    url: getAbsolutePageUrl(null),
+    type: 'website',
+  });
+}
+
+function updatePageSeo(page, md) {
+  if (!page) return;
+  const title = `${page.title} | Paperclip Docs`;
+  setSeoMetadata({
+    title,
+    description: markdownToDescription(md),
+    url: getAbsolutePageUrl(page),
+    type: 'article',
+  });
+}
+
 function getLegacyRoute() {
   const url = new URL(window.location.href);
-  return url.searchParams.get('page') || location.hash.slice(1);
+  const hash = location.hash.startsWith('#/') ? location.hash.slice(2) : location.hash.slice(1);
+  return url.searchParams.get('page') || hash;
 }
 
 function getPathRoute() {
@@ -158,6 +290,12 @@ function getPathRoute() {
 
 function getCurrentRoute() {
   return getPathRoute() || getLegacyRoute();
+}
+
+function getCurrentHeadingRoute() {
+  const pathRoute = getPathRoute();
+  if (!pathRoute || !location.hash || location.hash.startsWith('#/')) return null;
+  return normalizeRouteKey(decodeURIComponent(location.hash.slice(1)));
 }
 
 function slugifyHeadingText(text) {
@@ -336,16 +474,23 @@ function decorateCodeBlocks(article) {
     }
   } catch (_) {}
 
-  fetch('https://api.github.com/repos/' + REPO, {
-    headers: { 'Accept': 'application/vnd.github.v3+json' },
-  })
-    .then(res => (res.ok ? res.json() : null))
-    .then(data => {
-      if (!data || typeof data.stargazers_count !== 'number') return;
-      render(format(data.stargazers_count));
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ count: data.stargazers_count, ts: Date.now() })); } catch (_) {}
+  const refresh = () => {
+    fetch('https://api.github.com/repos/' + REPO, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' },
     })
-    .catch(() => {});
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (!data || typeof data.stargazers_count !== 'number') return;
+        render(format(data.stargazers_count));
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ count: data.stargazers_count, ts: Date.now() })); } catch (_) {}
+      })
+      .catch(() => {});
+  };
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(refresh, { timeout: 3000 });
+  } else {
+    window.setTimeout(refresh, 1500);
+  }
 })();
 
 /* ─── Theme toggle wiring ───────────────────────────────────────────────── */
@@ -358,7 +503,7 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
   localStorage.setItem('pc-guides-theme', next);
   // Swap all visible screenshot srcs
   document.querySelectorAll('#article img[data-screenshot]').forEach(img => {
-    img.src = resolveScreenshotSrc(img.dataset.screenshot);
+    applyScreenshotSource(img, img.dataset.screenshot);
   });
 });
 
@@ -367,6 +512,7 @@ function openDrawer() {
   const drawer = document.getElementById('drawer');
   const backdrop = document.getElementById('drawer-backdrop');
   const hamburger = document.getElementById('hamburger');
+  drawer.inert = false;
   drawer.classList.add('is-open');
   backdrop.classList.add('is-open');
   drawer.setAttribute('aria-hidden', 'false');
@@ -380,6 +526,7 @@ function closeDrawer() {
   drawer.classList.remove('is-open');
   backdrop.classList.remove('is-open');
   drawer.setAttribute('aria-hidden', 'true');
+  drawer.inert = true;
   hamburger.setAttribute('aria-expanded', 'false');
   document.body.style.overflow = '';
 }
@@ -400,6 +547,7 @@ function showLanding() {
   document.getElementById('breadcrumb').innerHTML = '';
   const basePath = APP_BASE_URL.pathname.replace(/\/$/, '');
   history.replaceState(null, '', `${basePath}/`);
+  updateLandingSeo();
 }
 function showArticleView() {
   document.getElementById('landing').classList.remove('is-active');
@@ -446,13 +594,12 @@ document.addEventListener('click', e => {
 /* ─── Search ────────────────────────────────────────────────────────────── */
 let searchIndex      = [];
 let searchFocusedIdx = -1;
+let searchIndexPromise = null;
 
 async function buildSearchIndex() {
   const tasks = allPages.map(async page => {
     try {
-      const res = await fetch(resolveContentUrl(page.file));
-      if (!res.ok) return null;
-      const md = await res.text();
+      const md = await fetchMarkdown(page.file);
       // Extract headings
       const headings = [];
       const hRe = /^#{1,3}\s+(.+)$/gm;
@@ -471,6 +618,13 @@ async function buildSearchIndex() {
     } catch { return null; }
   });
   searchIndex = (await Promise.all(tasks)).filter(Boolean);
+  return searchIndex;
+}
+
+function ensureSearchIndex() {
+  if (searchIndex.length) return Promise.resolve(searchIndex);
+  if (!searchIndexPromise) searchIndexPromise = buildSearchIndex();
+  return searchIndexPromise;
 }
 
 function searchGuides(query) {
@@ -555,6 +709,9 @@ function openSearchModal() {
   if (!modal || !input) return;
   modal.hidden = false;
   document.body.style.overflow = 'hidden';
+  ensureSearchIndex().then(() => {
+    if (input.value.trim()) renderSearchResults(input.value);
+  });
   // focus next tick so modal animates in cleanly
   requestAnimationFrame(() => { input.focus(); input.select(); });
 }
@@ -582,7 +739,21 @@ function initSearch() {
   const box   = document.getElementById('search-results');
   if (!input || !box) return;
 
-  input.addEventListener('input', () => renderSearchResults(input.value));
+  input.addEventListener('input', () => {
+    if (searchIndex.length) {
+      renderSearchResults(input.value);
+      return;
+    }
+    if (input.value.trim()) {
+      box.innerHTML = '<div class="search-empty">Loading search…</div>';
+      box.classList.add('is-open');
+    } else {
+      box.classList.remove('is-open');
+    }
+    ensureSearchIndex().then(() => {
+      if (input.value.trim()) renderSearchResults(input.value);
+    });
+  });
 
   input.addEventListener('keydown', e => {
     const items = [...box.querySelectorAll('.search-result')];
@@ -658,15 +829,16 @@ async function init() {
   buildSidebar();
   buildMobileDrawer();
   initSearch();
-  buildSearchIndex(); // background — no await
 
   const pathRoute = getPathRoute();
   const rawRoute = applyRedirect(pathRoute || getLegacyRoute());
   const initialRoute = parseRoute(rawRoute);
-  const normalizedRaw = normalizeRouteKey(decodeURIComponent((rawRoute || '').trim()));
+  if (initialRoute.page && pathRoute) initialRoute.headingId = getCurrentHeadingRoute();
 
   if (initialRoute.page) {
-    loadPage(initialRoute.page.file, initialRoute.headingId, 'replace');
+    const staticArticle = document.getElementById('article');
+    const useStaticArticle = Boolean(pathRoute && staticArticle?.children.length);
+    loadPage(initialRoute.page.file, initialRoute.headingId, 'replace', { useStaticArticle });
   } else {
     // Empty or unknown route -> landing
     showLanding();
@@ -845,7 +1017,7 @@ function buildFlatList() {
 }
 
 /* ─── Load page ─────────────────────────────────────────────────────────── */
-async function loadPage(file, targetHeading = null, historyMode = 'push') {
+async function loadPage(file, targetHeading = null, historyMode = 'push', options = {}) {
   const page = allPages.find(candidate => candidate.file === file);
   currentFile = file;
   showArticleView();
@@ -853,19 +1025,21 @@ async function loadPage(file, targetHeading = null, historyMode = 'push') {
   showLoading();
 
   let md;
-  try {
-    const res = await fetch(resolveContentUrl(file));
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    md = await res.text();
-    currentMarkdown = md;
-  } catch (e) {
-    showError(`Could not load: ${file}`, e.message);
-    return;
-  }
-
-  const html = renderMarkdown(md);
   const article = document.getElementById('article');
-  article.innerHTML = html;
+  const useStaticArticle = Boolean(options.useStaticArticle && article?.children.length);
+  if (useStaticArticle) {
+    currentMarkdown = '';
+  } else {
+    try {
+      md = await fetchMarkdown(file);
+      currentMarkdown = md;
+      updatePageSeo(page, md);
+      article.innerHTML = await renderMarkdown(md);
+    } catch (e) {
+      showError(`Could not load: ${file}`, e.message);
+      return;
+    }
+  }
   article.style.display = '';
 
   // Insert sticky meta-row after the first h1 (before other post-processing so TOC can attach to it).
@@ -999,7 +1173,9 @@ function buildPageActions(page) {
 
   const copyMarkdown = async () => {
     try {
-      await navigator.clipboard.writeText(currentMarkdown || '');
+      const markdown = currentMarkdown || await fetchMarkdown(page.file);
+      if (!currentMarkdown) currentMarkdown = markdown;
+      await navigator.clipboard.writeText(markdown);
       flashCopied('Page copied');
     } catch (e) {
       console.error('Copy failed', e);
@@ -1088,11 +1264,12 @@ function stripFrontmatter(md) {
   return rest.slice(closeMatch.index + closeMatch[0].length).replace(/^\r?\n/, '');
 }
 
-function renderMarkdown(md) {
+async function renderMarkdown(md) {
+  const renderer = await ensureMarkdownRenderer();
+  renderer.setOptions({ gfm: true, breaks: false });
   md = stripFrontmatter(md);
   md = preprocessTabs(md);
-  marked.setOptions({ gfm: true, breaks: false });
-  return sanitizeMarkdownHtml(marked.parse(md));
+  return sanitizeMarkdownHtml(renderer.parse(md));
 }
 
 const ALLOWED_MARKDOWN_TAGS = new Set([
@@ -1188,7 +1365,7 @@ function renderTabsBlock(labels, body) {
   let idx = 0;
   while ((m = re.exec(body)) !== null) {
     out += `<div class="tab-panel${idx === 0 ? ' active' : ''}" data-panel="${escapeAttr(m[1].trim())}">`;
-    out += marked.parse(m[2].trim());
+    out += window.marked.parse(m[2].trim());
     out += `</div>`;
     idx++;
   }
@@ -1281,15 +1458,43 @@ function postProcessTabs(root) {
   });
 }
 
+const RESPONSIVE_SCREENSHOT_VARIANTS = new Map([
+  ['dashboard/dashboard-overview.png', { width: 2880, height: 1800, variantWidth: 900 }],
+]);
+
+function getScreenshotVariantConfig(src) {
+  const match = String(src).match(/(?:screenshots|images)\/(?:light|dark)\/(.+)$/);
+  if (!match) return null;
+  return RESPONSIVE_SCREENSHOT_VARIANTS.get(match[1]) || null;
+}
+
+function applyScreenshotSource(img, rawSrc) {
+  const resolved = resolveScreenshotSrc(rawSrc);
+  if (resolved !== rawSrc) {
+    img.dataset.screenshot = rawSrc;
+  }
+  img.src = resolved;
+
+  const variantConfig = getScreenshotVariantConfig(resolved) || getScreenshotVariantConfig(rawSrc);
+  if (!variantConfig) return;
+
+  const optimizedSrc = resolved.replace(/\.png(?:\?.*)?$/i, '-900.webp');
+  img.width = variantConfig.width;
+  img.height = variantConfig.height;
+  img.sizes = '(max-width: 820px) calc(100vw - 48px), 820px';
+  img.srcset = `${optimizedSrc} ${variantConfig.variantWidth}w, ${resolved} ${variantConfig.width}w`;
+  img.classList.add('responsive-screenshot');
+  img.style.aspectRatio = `${variantConfig.width} / ${variantConfig.height}`;
+}
+
 function postProcessImages(root) {
-  root.querySelectorAll('img').forEach(img => {
+  [...root.querySelectorAll('img')].forEach((img, index) => {
     // Remap ../images/ paths to screenshots/{theme}/ and store original for theme swaps
     const rawSrc = img.getAttribute('src') || img.src;
-    const resolved = resolveScreenshotSrc(rawSrc);
-    if (resolved !== rawSrc) {
-      img.dataset.screenshot = rawSrc; // store original path
-      img.src = resolved;
-    }
+    applyScreenshotSource(img, rawSrc);
+    img.decoding = 'async';
+    img.loading = index === 0 ? 'eager' : 'lazy';
+    img.fetchPriority = index === 0 ? 'high' : 'auto';
     img.addEventListener('error', () => {
       const ph = document.createElement('div');
       ph.className = 'img-placeholder';
@@ -1428,15 +1633,15 @@ function buildToc(article, file) {
   const wrap = document.createElement('div');
   wrap.className = 'toc-wrap';
   wrap.innerHTML = `
-    <button type="button" class="toc-toggle" aria-expanded="false" aria-controls="toc-panel" aria-label="On this page">
+    <button type="button" class="toc-toggle" aria-expanded="false" aria-controls="toc-panel">
       ${TOC_SVG}
       <span class="toc-label">On this page</span>
       <span class="count">${headings.length}</span>
       ${CHEVRON_SVG}
     </button>
-    <div class="toc-panel" id="toc-panel" role="menu">
+    <nav class="toc-panel" id="toc-panel" aria-label="On this page">
       <div class="toc-panel-label">On this page</div>
-    </div>
+    </nav>
   `;
   const panel = wrap.querySelector('.toc-panel');
   const toggle = wrap.querySelector('.toc-toggle');
@@ -1571,6 +1776,7 @@ function escapeAttr(s) {
 }
 
 window.addEventListener('hashchange', () => {
+  if (getPathRoute() && !location.hash.startsWith('#/')) return;
   const route = parseRoute(applyRedirect(location.hash.slice(1)));
   if (route.page) {
     loadPage(route.page.file, route.headingId, 'replace');
@@ -1582,6 +1788,7 @@ window.addEventListener('hashchange', () => {
 
 window.addEventListener('popstate', () => {
   const route = parseRoute(applyRedirect(getCurrentRoute()));
+  if (route.page && getPathRoute()) route.headingId = getCurrentHeadingRoute();
   if (route.page) {
     loadPage(route.page.file, route.headingId, 'replace');
     return;
