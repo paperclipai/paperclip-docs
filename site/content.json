@@ -55,6 +55,10 @@
           "file": "../docs/guides/day-to-day/issues.md"
         },
         {
+          "title": "Work Modes",
+          "file": "../docs/guides/day-to-day/work-modes.md"
+        },
+        {
           "title": "Artifacts",
           "file": "../docs/guides/day-to-day/artifacts.md"
         },
