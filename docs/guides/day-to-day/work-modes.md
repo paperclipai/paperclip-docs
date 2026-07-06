@@ -49,7 +49,3 @@ The choice comes down to one question: what do you want to exist after the task 
 If the answer is a change (code merged, a document written, a system configured), use standard mode and let the workflow do its job. If the answer is knowledge (a lookup, a comparison, a judgment call, a "what would happen if"), use ask mode and get the reply where you asked.
 
 The gray zone is research. A quick "what does the codebase do here?" is ask mode. A deep investigation that should leave citations, artifacts, and a reviewable document behind is standard work wearing a question as its title. When in doubt, ask what you would want to link to a week later: a comment, or a work product.
-
-## Related
-
-- The launch context: [Paperclip v2026.626.0](https://paperclip.ing/blog/v2026-626-0/)
