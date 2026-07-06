@@ -320,6 +320,47 @@ export const CAPTURE_TARGETS = [
     dependsOn: ["ui/src/pages/IssueDetail.tsx"],
     themes: ["light", "dark"],
   },
+  {
+    name: "work-modes/standard-mode-run",
+    route: "/{prefix}/issues/{issueId}",
+    dependsOn: [
+      "ui/src/pages/IssueDetail.tsx",
+      "ui/src/components/IssueChatThread.tsx",
+    ],
+    themes: ["light", "dark"],
+  },
+  {
+    name: "work-modes/ask-mode-answer",
+    route: "/{prefix}/issues/{issueId}",
+    dependsOn: [
+      "ui/src/pages/IssueDetail.tsx",
+      "ui/src/components/IssueChatThread.tsx",
+    ],
+    themes: ["light", "dark"],
+  },
+  {
+    name: "work-modes/plan-mode-plan",
+    route: "/{prefix}/issues/{issueId}",
+    dependsOn: [
+      "ui/src/pages/IssueDetail.tsx",
+      "ui/src/components/IssueDocumentsSection.tsx",
+    ],
+    themes: ["light", "dark"],
+  },
+  {
+    name: "work-modes/work-mode-picker",
+    route: "/{prefix}/inbox/mine",
+    dependsOn: [
+      "ui/src/components/NewIssueDialog.tsx",
+      "ui/src/lib/work-mode-meta.ts",
+    ],
+    steps: [
+      { press: "c" },
+      { waitMs: 600 },
+      { click: { css: "[data-issue-work-mode-chip]" } },
+    ],
+    themes: ["light", "dark"],
+  },
 
   // ── Projects ───────────────────────────────────────────────────────────────
   {

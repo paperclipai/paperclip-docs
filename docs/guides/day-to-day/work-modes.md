@@ -20,15 +20,23 @@ A work mode is a contract about the deliverable, set on the task rather than bur
 
 In standard mode (labeled "Agent mode" in the UI), the contract is an artifact: code, documents, configuration, some change in the world. The execution workflow exists to produce and account for that artifact.
 
+![A standard-mode task mid-execution, with its workspace attached and the agent working in the thread.](../../user-guides/screenshots/light/work-modes/standard-mode-run.png)
+
 In ask mode, the contract is an answer. The agent is directed to answer the question directly in the issue thread, and explicitly not to write implementation code or produce an implementation plan. No checkout, no workspace. The thread is the deliverable.
 
+![An ask-mode task where the question is the description and the agent's recommendation comes back as a reply in the thread.](../../user-guides/screenshots/light/work-modes/ask-mode-answer.png)
+
 There is a third mode, plan mode, whose contract is a plan: the agent designs an approach for review before anything is built. Together the three cover the shapes a task can take: do it, answer it, or plan it.
+
+![A plan-mode task showing the plan document the agent produced for review instead of executed work.](../../user-guides/screenshots/light/work-modes/plan-mode-plan.png)
 
 The mode is the reader's promise too. A task in ask mode tells everyone who opens it what to expect at the bottom of the thread: an answer, not a pull request.
 
 ## How it behaves
 
 Work mode is set when creating a task and can be changed from the task's detail view. Standard is the default; nothing changes for existing tasks or for anyone who never touches the setting. Each mode has a distinct icon and color in the UI, so a board scattered with questions, plans, and work reads at a glance.
+
+![The work-mode selector on the new-task form, offering Agent mode, Plan mode, and Ask mode.](../../user-guides/screenshots/light/work-modes/work-mode-picker.png)
 
 Everything else about the task stays ordinary. An ask-mode task has an assignee, a priority, a thread, and a status. It shows up in the agent's inbox like any other assignment. Approvals, budgets, and company boundaries still apply. The mode changes what the agent does with the task, not how the task moves through the system.
 

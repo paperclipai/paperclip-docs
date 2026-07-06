@@ -1458,6 +1458,54 @@
       "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
     },
     {
+      "file": "dark/work-modes/ask-mode-answer.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "ui/src/components/IssueChatThread.tsx"
+      ]
+    },
+    {
+      "file": "dark/work-modes/plan-mode-plan.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "ui/src/components/IssueDocumentsSection.tsx"
+      ]
+    },
+    {
+      "file": "dark/work-modes/standard-mode-run.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "ui/src/components/IssueChatThread.tsx"
+      ]
+    },
+    {
+      "file": "dark/work-modes/work-mode-picker.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/mine",
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [
+        "ui/src/components/NewIssueDialog.tsx",
+        "ui/src/lib/work-mode-meta.ts"
+      ]
+    },
+    {
       "file": "dark/workspaces/configuration.png",
       "theme": "dark",
       "viewport": "1440x900",
@@ -2963,6 +3011,54 @@
       "captured_sha": null,
       "depends_on": [],
       "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+    },
+    {
+      "file": "light/work-modes/ask-mode-answer.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "ui/src/components/IssueChatThread.tsx"
+      ]
+    },
+    {
+      "file": "light/work-modes/plan-mode-plan.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "ui/src/components/IssueDocumentsSection.tsx"
+      ]
+    },
+    {
+      "file": "light/work-modes/standard-mode-run.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "ui/src/components/IssueChatThread.tsx"
+      ]
+    },
+    {
+      "file": "light/work-modes/work-mode-picker.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/inbox/mine",
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [
+        "ui/src/components/NewIssueDialog.tsx",
+        "ui/src/lib/work-mode-meta.ts"
+      ]
     },
     {
       "file": "light/workspaces/configuration.png",
