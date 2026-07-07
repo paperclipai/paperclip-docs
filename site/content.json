@@ -79,6 +79,10 @@
           "file": "../docs/guides/day-to-day/activity-log.md"
         },
         {
+          "title": "Work Timeline",
+          "file": "../docs/guides/day-to-day/work-timeline.md"
+        },
+        {
           "title": "Feedback & Voting",
           "file": "../docs/guides/day-to-day/feedback-voting.md"
         }
