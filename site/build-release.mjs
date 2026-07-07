@@ -686,17 +686,13 @@ function buildCloudflareRedirects({ basePath, pages, legacyRedirects = {} }) {
 ${routeRedirects}
 
 # Legacy docs URLs moved during the information architecture cleanup. Redirect
-# them before the SPA fallback so crawlers see one canonical URL per page.
+# them before unknown URLs fall through to 404 so crawlers see one canonical URL per page.
 ${legacyRouteRedirects}
-
-# Serve generated files first; fall back to the SPA shell for client routes.
-/* /index.html 200
 `;
 }
 
 function buildCloudflareHeaders() {
   return `/*
-  X-Robots-Tag: index, follow
   Referrer-Policy: strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
@@ -706,9 +702,69 @@ function buildCloudflareHeaders() {
 
 /sitemap.xml
   Content-Type: application/xml; charset=utf-8
+  X-Robots-Tag: noindex, nofollow
 
 /robots.txt
   Content-Type: text/plain; charset=utf-8
+  X-Robots-Tag: noindex, nofollow
+
+/*.css
+  X-Robots-Tag: noindex, nofollow
+
+/*.js
+  X-Robots-Tag: noindex, nofollow
+
+/*.json
+  X-Robots-Tag: noindex, nofollow
+
+/*.md
+  X-Robots-Tag: noindex, nofollow
+
+/*.png
+  X-Robots-Tag: noindex, nofollow
+
+/*.jpg
+  X-Robots-Tag: noindex, nofollow
+
+/*.jpeg
+  X-Robots-Tag: noindex, nofollow
+
+/*.webp
+  X-Robots-Tag: noindex, nofollow
+
+/*.svg
+  X-Robots-Tag: noindex, nofollow
+
+/*.txt
+  X-Robots-Tag: noindex, nofollow
+`;
+}
+
+function buildNotFoundPage(siteUrl, basePath) {
+  const metadata = {
+    title: "Not found | Paperclip Docs",
+    description: "This Paperclip Docs URL does not exist.",
+    url: siteUrlForPath(siteUrl, basePath, "404.html"),
+    siteUrl,
+    basePath,
+  };
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${escapeHtml(metadata.title)}</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="${escapeHtml(metadata.url)}" />
+</head>
+<body>
+  <main>
+    <h1>Not found</h1>
+    <p>This Paperclip Docs URL does not exist.</p>
+    <p><a href="${escapeAttr(siteUrlForPath(siteUrl, basePath))}">Open the docs home page</a></p>
+  </main>
+</body>
+</html>
 `;
 }
 
@@ -930,6 +986,7 @@ ${basePathGuidance}
 - Serve the bundle root at \`${deploymentBasePath}\`
 - Keep all copied files together so requests for \`content.json\`, markdown files, images, fonts, and JS resolve normally
 - Serve generated files such as \`sitemap.xml\`, \`robots.txt\`, and nested route directories unchanged
+- Do not add a wildcard SPA rewrite such as \`/* /index.html 200\`; unknown URLs and removed assets must return 404 so crawlers do not treat them as duplicate docs pages
 
 If \`content.json\` or linked markdown files are missing from the uploaded bundle, the docs app will fail to load content.
 
@@ -990,6 +1047,7 @@ async function main() {
   await fs.writeFile(path.join(options.outDir, "nginx.conf.example"), buildNginxConfig(options.basePath));
   await fs.writeFile(path.join(options.outDir, "DEPLOY.md"), buildDeployGuide(options.basePath));
   await fs.writeFile(path.join(options.outDir, "_headers"), buildCloudflareHeaders());
+  await fs.writeFile(path.join(options.outDir, "404.html"), buildNotFoundPage(options.siteUrl, options.basePath));
 
   // Copy markdown files, stripping YAML frontmatter, and collect per-file
   // frontmatter to surface via content.json (keyed by repo-relative path).
