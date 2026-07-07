@@ -18,7 +18,7 @@ A company-scoped secret is a key on a wall hook. Any run can take it, and every 
 
 Environment binding decides which doors ask for a badge: a definition bound to an environment declares that runs in that environment need this secret. The dispatch check is the turnstile. It reads the badge before the run enters, not after the run is halfway through the building, and it always gives the same answer for the same badge: either the responsible user has supplied the value or they haven't.
 
-![Flow diagram: user-scoped definition, per-user values, environment binding, responsible-user attribution, and the pass/block dispatch check](../user-guides/diagrams/secret-scope-dispatch-flow.png)
+![Flow diagram: user-scoped definition, per-user values, environment binding, responsible-user attribution, and the pass/block dispatch check](../user-guides/screenshots/light/secrets/secret-scope-dispatch-flow.png)
 
 ## How a run resolves a secret
 
