@@ -115,6 +115,33 @@ try {
     "canonical route redirects must appear before the SPA fallback rewrite",
   );
 
+  const legacyRedirects = JSON.parse(readFileSync(join(root, "site/redirects.json"), "utf8"));
+  const legacyRedirectFallbackIndex = redirects.indexOf("/* /index.html 200");
+  for (const [sourceRoute, destinationRoute] of Object.entries(legacyRedirects)) {
+    const destinationIndexPath = join(outDir, destinationRoute, "index.html");
+    assert(
+      existsSync(destinationIndexPath),
+      `legacy redirect target is not a generated page: ${sourceRoute} -> ${destinationRoute}`,
+    );
+    const noSlashRedirect = `/${sourceRoute} /${destinationRoute}/ 301`;
+    const slashRedirect = `/${sourceRoute}/ /${destinationRoute}/ 301`;
+    assert(redirects.includes(noSlashRedirect), `missing legacy no-slash redirect: ${noSlashRedirect}`);
+    assert(redirects.includes(slashRedirect), `missing legacy slash redirect: ${slashRedirect}`);
+    assert(
+      redirects.indexOf(noSlashRedirect) < legacyRedirectFallbackIndex &&
+        redirects.indexOf(slashRedirect) < legacyRedirectFallbackIndex,
+      `legacy redirects must appear before the SPA fallback rewrite: ${sourceRoute}`,
+    );
+  }
+  assert(
+    redirects.includes("/guides/agent-developer/how-agents-work /guides/org/agents/ 301"),
+    "Search Console legacy agent-developer URL should redirect to the current agents guide",
+  );
+  assert(
+    redirects.includes("/start/quickstart/ /guides/getting-started/five-minute-path/ 301"),
+    "Search Console legacy quickstart URL should redirect to the current quickstart",
+  );
+
   const headers = read("_headers");
   assert(
     headers.includes("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload"),

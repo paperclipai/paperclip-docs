@@ -13,6 +13,7 @@ const sourceIndexPath = path.join(__dirname, "index.html");
 const sourceStylesPath = path.join(__dirname, "styles.css");
 const sourceAppJsPath = path.join(__dirname, "app.js");
 const sourceNavPath = path.join(__dirname, "content.json");
+const sourceRedirectsPath = path.join(__dirname, "redirects.json");
 const sourceVendorDir = path.join(__dirname, "vendor");
 const screenshotsSourceDir = path.join(docsRoot, "user-guides", "screenshots");
 const defaultSiteUrl = "https://docs.paperclip.ing";
@@ -655,7 +656,18 @@ function cloudflarePathForRoute(basePath, routePath, { trailingSlash = false } =
   return `/${key}${trailingSlash ? "/" : ""}`;
 }
 
-function buildCloudflareRedirects({ basePath, pages }) {
+function cloudflareRedirectLine(basePath, sourceRoute, destinationRoute) {
+  const sourcePath = cloudflarePathForRoute(basePath, sourceRoute);
+  const sourceSlashPath = cloudflarePathForRoute(basePath, sourceRoute, { trailingSlash: true });
+  const destinationPath = cloudflarePathForRoute(basePath, destinationRoute, { trailingSlash: true });
+  if (sourceSlashPath === destinationPath) return [];
+  return [
+    `${sourcePath} ${destinationPath} 301`,
+    `${sourceSlashPath} ${destinationPath} 301`,
+  ];
+}
+
+function buildCloudflareRedirects({ basePath, pages, legacyRedirects = {} }) {
   const routeRedirects = pages
     .map(({ page }) => {
       const sourcePath = cloudflarePathForRoute(basePath, page.slug);
@@ -663,10 +675,19 @@ function buildCloudflareRedirects({ basePath, pages }) {
       return `${sourcePath} ${destinationPath} 301`;
     })
     .join("\n");
+  const legacyRouteRedirects = Object.entries(legacyRedirects)
+    .flatMap(([sourceRoute, destinationRoute]) =>
+      cloudflareRedirectLine(basePath, sourceRoute, destinationRoute)
+    )
+    .join("\n");
 
   return `# Canonical docs URLs include trailing slashes. Keep no-slash requests
 # on a normal one-hop 301 instead of Cloudflare Pages' implicit directory 308.
 ${routeRedirects}
+
+# Legacy docs URLs moved during the information architecture cleanup. Redirect
+# them before the SPA fallback so crawlers see one canonical URL per page.
+${legacyRouteRedirects}
 
 # Serve generated files first; fall back to the SPA shell for client routes.
 /* /index.html 200
@@ -948,6 +969,7 @@ async function minifyJs(source) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const sourceNav = JSON.parse(await fs.readFile(sourceNavPath, "utf8"));
+  const sourceRedirects = JSON.parse(await fs.readFile(sourceRedirectsPath, "utf8"));
   const releaseNav = attachSlugs(rewriteNav(sourceNav));
   const { markdownFiles, warnings } = await collectReleaseFiles(sourceNav);
 
@@ -997,6 +1019,7 @@ async function main() {
   await fs.writeFile(path.join(options.outDir, "_redirects"), buildCloudflareRedirects({
     basePath: options.basePath,
     pages: pageMetadata,
+    legacyRedirects: sourceRedirects,
   }));
   const rootMetadata = {
     title: "Paperclip Docs",
