@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.626.0
+---
+
 # Task Watchdogs
 
 Sometimes an agent stops work for the wrong reason. It misreads a blocker, declares an issue "done" without real proof, accepts a stale plan confirmation, or hits a recoverable error and gives up. When that happens, nothing wakes anyone — the issue tree just goes quiet and sits there.
@@ -26,6 +30,8 @@ Only the first one is something you turn on by hand.
 
 A watchdog stays asleep while there's still live work to do. It wakes only when **every leaf** in the watched subtree has come to rest — done, cancelled, blocked, in review, or waiting on an interaction — and there's no continuation path left to follow.
 
+![Watchdog lifecycle: attach, work runs, subtree stops, review task opens, outcome posts, fingerprint settles](../../user-guides/screenshots/diagrams/task-watchdog-lifecycle.png)
+
 At that point Paperclip hands the watchdog agent the tree and a mandate: treat every stopped leaf as a *claim* that has to be verified, not a fact to be trusted. The watchdog then:
 
 - **Leaves genuinely-finished leaves alone**, with a short note on what it checked.
@@ -33,6 +39,12 @@ At that point Paperclip hands the watchdog agent the tree and a mandate: treat e
 - **Confirms real blockers**, leaving a clear waiting state that names who can unblock it and what happens next.
 
 It will not take "I couldn't" or "waiting for approval" at face value — that's the whole point.
+
+The review's outcome lands back in the watched issue's thread, so the record of who checked what — and what they found — lives with the work itself. The activity feed labels changes made through a watchdog review, so when you skim a thread later you can tell which actions came from the watchdog and which from the assignees.
+
+![A watchdog review outcome posted back to the task thread, with its disposition and verified evidence.](../../user-guides/screenshots/light/watchdogs/watchdog-thread-outcome.png)
+
+One refinement makes the loop livable: Paperclip fingerprints the stopped state it has already reviewed. If nothing has changed since the last review, no new review task is created. A stalled tree gets looked at once per distinct state, not once per scan, so the watchdog never fills the thread with duplicate reviews of the same silence.
 
 ---
 
@@ -90,6 +102,18 @@ A watchdog operates under hard, server-enforced limits — custom instructions c
 - It **can't touch its own configuration** or create another watchdog for the same tree, and it can't wake itself.
 
 Any move that crosses those lines is rejected at the API layer, so the watchdog has to take a legitimate path instead: comment, open an in-subtree follow-up, leave a valid waiting state, or escalate to a human.
+
+---
+
+## Watchdogs, approvals, and execution policy
+
+Paperclip has three oversight mechanisms, and they answer different questions.
+
+Approvals are human gates: a person must say yes before something happens. Execution policy is staged review: work passes through defined reviewer stages before it counts as done. Both are checkpoints that work flows through.
+
+A watchdog is the opposite shape. It does not sit in the path of work; it watches from beside it and engages when the path goes quiet. Approvals and execution policy catch things at boundaries you defined in advance. A watchdog catches the failure mode neither can see: nothing arriving at the boundary at all.
+
+They compose. A long-running task can carry an execution policy for its deliverables, approvals for its expensive actions, and a watchdog to make sure it keeps reaching those gates.
 
 ---
 
