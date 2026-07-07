@@ -305,6 +305,10 @@
           "file": "../docs/administration/roles-and-permissions.md"
         },
         {
+          "title": "Secret Scopes",
+          "file": "../docs/administration/secret-scopes.md"
+        },
+        {
           "title": "Settings",
           "file": "../docs/administration/settings.md"
         },
