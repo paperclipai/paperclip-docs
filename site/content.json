@@ -121,6 +121,10 @@
         {
           "title": "Adapter Manager",
           "file": "../docs/guides/org/adapters.md"
+        },
+        {
+          "title": "Hermes Adapters",
+          "file": "../docs/guides/org/hermes-adapters.md"
         }
       ]
     },
