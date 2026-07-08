@@ -6,7 +6,7 @@ paperclip_version: v2026.618.0
 
 Sandbox provider plugins let Paperclip provision external compute as the execution environment for agent runs. They live in the parent repo under `packages/plugins/sandbox-providers/` and ship as published npm packages you install from the Plugin Manager (see [Plugins](../../administration/plugins.md)).
 
-A sandbox provider plugin registers an `environmentDriver` of kind `sandbox_provider`. Once installed, the provider is available when you configure a sandbox environment under **Company Settings → Environments**.
+A sandbox provider plugin registers an `environmentDriver` of kind `sandbox_provider`. Once installed, the provider is available when you configure a sandbox environment under **Settings → Instance settings → Environments**.
 
 > ⚠ TODO: expand each provider section with a full `configSchema` field reference once a stable cross-provider schema reference is published. The fields below come from each provider's `README.md` in the parent repo at `v2026.512.0`.
 
@@ -16,7 +16,7 @@ A sandbox provider plugin registers an `environmentDriver` of kind `sandbox_prov
 
 Package: `@paperclipai/plugin-cloudflare-sandbox`
 
-Configure from **Company Settings → Environments** with core `driver: "sandbox"` and `provider: "cloudflare"`.
+Configure from **Settings → Instance settings → Environments** with core `driver: "sandbox"` and `provider: "cloudflare"`.
 
 Required fields: `bridgeBaseUrl`, `bridgeAuthToken`.
 
@@ -47,7 +47,7 @@ There's nothing to configure on the Paperclip side — upgrade the bridge worker
 
 Package: `@paperclipai/plugin-daytona`
 
-Configure from **Company Settings → Environments**. Put the Daytona API key on the sandbox environment itself — Paperclip stores pasted API keys as company secrets. `DAYTONA_API_KEY` remains an optional host-level fallback when an environment omits the key.
+Configure from **Settings → Instance settings → Environments**. Put the Daytona API key on the sandbox environment itself — Paperclip stores pasted API keys as company secrets. `DAYTONA_API_KEY` remains an optional host-level fallback when an environment omits the key.
 
 Optional `apiUrl` and `target` settings map directly to the Daytona SDK or client configuration. The driver supports both `snapshot`-based and `image`-based sandbox creation; setting both is rejected as ambiguous. Reusable leases map to Daytona stop/start semantics; non-reusable leases are deleted on release.
 
@@ -81,7 +81,7 @@ Optional `cpu` (cores), `memory` (GiB; one of `1`, `2`, `4`, `8`), `disk` (GiB),
 
 Package: `@paperclipai/plugin-exe-dev`
 
-Configure from **Company Settings → Environments**. Put the exe.dev API token on the sandbox environment itself — Paperclip stores pasted API keys and pasted SSH private keys as company secrets. `EXE_API_KEY` remains an optional host-level fallback when an environment omits the token.
+Configure from **Settings → Instance settings → Environments**. Put the exe.dev API token on the sandbox environment itself — Paperclip stores pasted API keys and pasted SSH private keys as company secrets. `EXE_API_KEY` remains an optional host-level fallback when an environment omits the token.
 
 The provider provisions VMs through exe.dev's HTTPS API and runs commands through direct SSH to the created VM. You need:
 
@@ -95,7 +95,7 @@ The provider provisions VMs through exe.dev's HTTPS API and runs commands throug
 
 Package: `@paperclipai/plugin-e2b-sandbox` (shipped since `v2026.427.0`).
 
-Configure from **Company Settings → Environments**. The plugin manifest declares a `configSchema` with `template`, `apiKey` (a Paperclip secret reference; falls back to `E2B_API_KEY`), and `timeoutMs`.
+Configure from **Settings → Instance settings → Environments**. The plugin manifest declares a `configSchema` with `template`, `apiKey` (a Paperclip secret reference; falls back to `E2B_API_KEY`), and `timeoutMs`.
 
 ---
 
@@ -119,7 +119,7 @@ Provisions Novita Agent Sandbox instances for Paperclip agent runs. Install it l
 
 The host runs `npm install` into its managed plugin directory at install time, so the provider's own dependencies (such as `novita-sandbox`) are pulled in for you.
 
-Configure Novita from **Company Settings → Environments**. Put the Novita API key on the sandbox environment itself — Paperclip stores pasted API keys as company secrets. `NOVITA_API_KEY` remains an optional host-level fallback when an environment omits the key.
+Configure Novita from **Settings → Instance settings → Environments**. Put the Novita API key on the sandbox environment itself — Paperclip stores pasted API keys as company secrets. `NOVITA_API_KEY` remains an optional host-level fallback when an environment omits the key.
 
 The driver's `configSchema` exposes:
 
@@ -193,7 +193,7 @@ For the `job` backend you only need a 1.27+ cluster and cluster access from Pape
 
 ### Configure
 
-Create a sandbox environment under **Company Settings → Environments** with `driver: kubernetes`. Exactly one auth field is required:
+Create a sandbox environment under **Settings → Instance settings → Environments** with `driver: kubernetes`. Exactly one auth field is required:
 
 - `inCluster: true` — use the in-pod ServiceAccount credentials, when Paperclip-server runs inside the same cluster.
 - `kubeconfig: <YAML>` — an inline kubeconfig, stored as a company secret.

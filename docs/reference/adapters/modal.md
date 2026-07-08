@@ -42,7 +42,7 @@ Modal's official JS SDK supports **Node 22 or later**. Paperclip's current basel
 
 ## Configure
 
-Configure Modal from **Company Settings → Environments**, not from the plugin's instance settings page. Add a new sandbox environment, pick `modal` as the provider, and fill in the fields below.
+Configure Modal from **Settings → Instance settings → Environments**, not from the plugin's instance settings page. Add a new sandbox environment, pick `modal` as the provider, and fill in the fields below.
 
 | Field | Required | Notes |
 |---|---:|---|
@@ -86,7 +86,7 @@ Before you point a real task at the new environment, walk through this once:
 
 1. Provision Modal credentials in your Modal account (`modal token new`) or use a service account.
 2. Install the plugin from the Paperclip Plugins page.
-3. In **Company Settings → Environments**, add a Modal sandbox environment with at least `appName`, `image`, `tokenId`, and `tokenSecret`.
+3. In **Settings → Instance settings → Environments**, add a Modal sandbox environment with at least `appName`, `image`, `tokenId`, and `tokenSecret`.
 4. Run the environment **Probe** action. A success result confirms auth, app creation, image pull, and an `exec` round-trip.
 5. Run at least one Paperclip task with a remote-managed adapter (for example `claude_local`) bound to that environment. The adapter should provision the sandbox, run commands in it, and clean it up.
 
