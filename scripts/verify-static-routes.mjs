@@ -111,11 +111,51 @@ try {
     "Cloudflare redirects are missing the no-slash canonical redirect for the quickstart path",
   );
   assert(
-    redirects.indexOf(canonicalRedirect) < redirects.indexOf("/* /index.html 200"),
-    "canonical route redirects must appear before the SPA fallback rewrite",
+    !redirects.includes("/* /index.html 200"),
+    "Cloudflare redirects must not rewrite unknown URLs and removed assets to the docs shell",
+  );
+
+  const legacyRedirects = JSON.parse(readFileSync(join(root, "site/redirects.json"), "utf8"));
+  for (const [sourceRoute, destinationRoute] of Object.entries(legacyRedirects)) {
+    const destinationIndexPath = join(outDir, destinationRoute, "index.html");
+    assert(
+      existsSync(destinationIndexPath),
+      `legacy redirect target is not a generated page: ${sourceRoute} -> ${destinationRoute}`,
+    );
+    const noSlashRedirect = `/${sourceRoute} /${destinationRoute}/ 301`;
+    const slashRedirect = `/${sourceRoute}/ /${destinationRoute}/ 301`;
+    assert(redirects.includes(noSlashRedirect), `missing legacy no-slash redirect: ${noSlashRedirect}`);
+    assert(redirects.includes(slashRedirect), `missing legacy slash redirect: ${slashRedirect}`);
+  }
+  assert(
+    redirects.includes("/guides/agent-developer/how-agents-work /guides/org/agents/ 301"),
+    "Search Console legacy agent-developer URL should redirect to the current agents guide",
+  );
+  assert(
+    redirects.includes("/start/quickstart/ /guides/getting-started/five-minute-path/ 301"),
+    "Search Console legacy quickstart URL should redirect to the current quickstart",
   );
 
   const headers = read("_headers");
+  assert(!headers.includes("X-Robots-Tag: index, follow"), "headers must not globally mark every static file indexable");
+  assert(
+    headers.includes("/*.css\n  X-Robots-Tag: noindex, nofollow"),
+    "CSS assets should be marked noindex in Cloudflare headers",
+  );
+  assert(
+    headers.includes("/*.js\n  X-Robots-Tag: noindex, nofollow"),
+    "JS assets should be marked noindex in Cloudflare headers",
+  );
+  assert(
+    headers.includes("/*.md\n  X-Robots-Tag: noindex, nofollow"),
+    "copied markdown source files should be marked noindex in Cloudflare headers",
+  );
+  assert(
+    headers.includes("/sitemap.xml\n  Content-Type: application/xml; charset=utf-8\n  X-Robots-Tag: noindex, nofollow"),
+    "sitemap.xml should be served as XML and excluded from search results",
+  );
+  const notFoundHtml = read("404.html");
+  assert(notFoundHtml.includes('<meta name="robots" content="noindex, nofollow" />'), "404 page must be noindex");
   assert(
     headers.includes("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload"),
     "Cloudflare headers are missing HSTS",

@@ -656,33 +656,18 @@ function cloudflarePathForRoute(basePath, routePath, { trailingSlash = false } =
   return `/${key}${trailingSlash ? "/" : ""}`;
 }
 
-async function loadSlugRedirects() {
-  // Map of moved pages: old slug -> new slug. Missing/empty file is fine.
-  try {
-    const raw = await fs.readFile(sourceRedirectsPath, "utf8");
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
+function cloudflareRedirectLine(basePath, sourceRoute, destinationRoute) {
+  const sourcePath = cloudflarePathForRoute(basePath, sourceRoute);
+  const sourceSlashPath = cloudflarePathForRoute(basePath, sourceRoute, { trailingSlash: true });
+  const destinationPath = cloudflarePathForRoute(basePath, destinationRoute, { trailingSlash: true });
+  if (sourceSlashPath === destinationPath) return [];
+  return [
+    `${sourcePath} ${destinationPath} 301`,
+    `${sourceSlashPath} ${destinationPath} 301`,
+  ];
 }
 
-function buildCloudflareRedirects({ basePath, pages, slugRedirects = {} }) {
-  // Moved pages: 301 the old slug (with and without trailing slash) to the new
-  // canonical trailing-slash URL. Emitted first so a renamed page's old URL is
-  // matched here before hitting the SPA fallback below.
-  const slugRedirectLines = Object.entries(slugRedirects)
-    .flatMap(([fromSlug, toSlug]) => {
-      const destinationPath = cloudflarePathForRoute(basePath, toSlug, { trailingSlash: true });
-      const fromNoSlash = cloudflarePathForRoute(basePath, fromSlug);
-      const fromSlash = cloudflarePathForRoute(basePath, fromSlug, { trailingSlash: true });
-      return [
-        `${fromSlash} ${destinationPath} 301`,
-        `${fromNoSlash} ${destinationPath} 301`,
-      ];
-    })
-    .join("\n");
-
+function buildCloudflareRedirects({ basePath, pages, legacyRedirects = {} }) {
   const routeRedirects = pages
     .map(({ page }) => {
       const sourcePath = cloudflarePathForRoute(basePath, page.slug);
@@ -690,20 +675,24 @@ function buildCloudflareRedirects({ basePath, pages, slugRedirects = {} }) {
       return `${sourcePath} ${destinationPath} 301`;
     })
     .join("\n");
+  const legacyRouteRedirects = Object.entries(legacyRedirects)
+    .flatMap(([sourceRoute, destinationRoute]) =>
+      cloudflareRedirectLine(basePath, sourceRoute, destinationRoute)
+    )
+    .join("\n");
 
-  return `# Moved pages: 301 old slugs to their new canonical URL (from redirects.json).
-${slugRedirectLines}${slugRedirectLines ? "\n\n" : ""}# Canonical docs URLs include trailing slashes. Keep no-slash requests
+  return `# Canonical docs URLs include trailing slashes. Keep no-slash requests
 # on a normal one-hop 301 instead of Cloudflare Pages' implicit directory 308.
 ${routeRedirects}
 
-# Serve generated files first; fall back to the SPA shell for client routes.
-/* /index.html 200
+# Legacy docs URLs moved during the information architecture cleanup. Redirect
+# them before unknown URLs fall through to 404 so crawlers see one canonical URL per page.
+${legacyRouteRedirects}
 `;
 }
 
 function buildCloudflareHeaders() {
   return `/*
-  X-Robots-Tag: index, follow
   Referrer-Policy: strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
@@ -713,9 +702,69 @@ function buildCloudflareHeaders() {
 
 /sitemap.xml
   Content-Type: application/xml; charset=utf-8
+  X-Robots-Tag: noindex, nofollow
 
 /robots.txt
   Content-Type: text/plain; charset=utf-8
+  X-Robots-Tag: noindex, nofollow
+
+/*.css
+  X-Robots-Tag: noindex, nofollow
+
+/*.js
+  X-Robots-Tag: noindex, nofollow
+
+/*.json
+  X-Robots-Tag: noindex, nofollow
+
+/*.md
+  X-Robots-Tag: noindex, nofollow
+
+/*.png
+  X-Robots-Tag: noindex, nofollow
+
+/*.jpg
+  X-Robots-Tag: noindex, nofollow
+
+/*.jpeg
+  X-Robots-Tag: noindex, nofollow
+
+/*.webp
+  X-Robots-Tag: noindex, nofollow
+
+/*.svg
+  X-Robots-Tag: noindex, nofollow
+
+/*.txt
+  X-Robots-Tag: noindex, nofollow
+`;
+}
+
+function buildNotFoundPage(siteUrl, basePath) {
+  const metadata = {
+    title: "Not found | Paperclip Docs",
+    description: "This Paperclip Docs URL does not exist.",
+    url: siteUrlForPath(siteUrl, basePath, "404.html"),
+    siteUrl,
+    basePath,
+  };
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${escapeHtml(metadata.title)}</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="${escapeHtml(metadata.url)}" />
+</head>
+<body>
+  <main>
+    <h1>Not found</h1>
+    <p>This Paperclip Docs URL does not exist.</p>
+    <p><a href="${escapeAttr(siteUrlForPath(siteUrl, basePath))}">Open the docs home page</a></p>
+  </main>
+</body>
+</html>
 `;
 }
 
@@ -937,6 +986,7 @@ ${basePathGuidance}
 - Serve the bundle root at \`${deploymentBasePath}\`
 - Keep all copied files together so requests for \`content.json\`, markdown files, images, fonts, and JS resolve normally
 - Serve generated files such as \`sitemap.xml\`, \`robots.txt\`, and nested route directories unchanged
+- Do not add a wildcard SPA rewrite such as \`/* /index.html 200\`; unknown URLs and removed assets must return 404 so crawlers do not treat them as duplicate docs pages
 
 If \`content.json\` or linked markdown files are missing from the uploaded bundle, the docs app will fail to load content.
 
@@ -976,6 +1026,7 @@ async function minifyJs(source) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const sourceNav = JSON.parse(await fs.readFile(sourceNavPath, "utf8"));
+  const sourceRedirects = JSON.parse(await fs.readFile(sourceRedirectsPath, "utf8"));
   const releaseNav = attachSlugs(rewriteNav(sourceNav));
   const { markdownFiles, warnings } = await collectReleaseFiles(sourceNav);
 
@@ -996,6 +1047,7 @@ async function main() {
   await fs.writeFile(path.join(options.outDir, "nginx.conf.example"), buildNginxConfig(options.basePath));
   await fs.writeFile(path.join(options.outDir, "DEPLOY.md"), buildDeployGuide(options.basePath));
   await fs.writeFile(path.join(options.outDir, "_headers"), buildCloudflareHeaders());
+  await fs.writeFile(path.join(options.outDir, "404.html"), buildNotFoundPage(options.siteUrl, options.basePath));
 
   // Copy markdown files, stripping YAML frontmatter, and collect per-file
   // frontmatter to surface via content.json (keyed by repo-relative path).
@@ -1022,11 +1074,10 @@ async function main() {
   await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav)}\n`);
 
   const pageMetadata = await pageMetadataForNav(releaseNav, options.outDir, options.siteUrl, options.basePath);
-  const slugRedirects = await loadSlugRedirects();
   await fs.writeFile(path.join(options.outDir, "_redirects"), buildCloudflareRedirects({
     basePath: options.basePath,
     pages: pageMetadata,
-    slugRedirects,
+    legacyRedirects: sourceRedirects,
   }));
   const rootMetadata = {
     title: "Paperclip Docs",
