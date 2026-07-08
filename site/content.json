@@ -155,6 +155,10 @@
           "file": "../docs/guides/projects-workflow/workspaces.md"
         },
         {
+          "title": "Custom Sandbox Images",
+          "file": "../docs/guides/projects-workflow/custom-sandbox-images.md"
+        },
+        {
           "title": "Task Watchdogs",
           "file": "../docs/guides/projects-workflow/task-watchdogs.md"
         }
@@ -632,6 +636,15 @@
                 {
                   "title": "Release Announcement",
                   "file": "../docs/reference/skills/optional/content/release-announcement.md"
+                }
+              ]
+            },
+            {
+              "title": "Finance",
+              "pages": [
+                {
+                  "title": "Ramp",
+                  "file": "../docs/reference/skills/optional/finance/ramp.md"
                 }
               ]
             },

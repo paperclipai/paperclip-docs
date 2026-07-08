@@ -16,6 +16,10 @@ For the catalog mechanics, start with the [Skills reference](../skills.md#3-app-
 
 - [Release Announcement](./optional/content/release-announcement.md) — turn release changes into concise public-facing announcement copy.
 
+## Finance
+
+- [Ramp](./optional/finance/ramp.md) — follow Ramp's official agent playbooks (onboarding, cards, spend controls) under Paperclip's approval gates and host allowlist.
+
 ## Product
 
 - [Design Critique](./optional/product/design-critique.md) — review a product or UI flow for clarity, hierarchy, and execution risks.

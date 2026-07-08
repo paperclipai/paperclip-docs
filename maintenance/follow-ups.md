@@ -41,6 +41,17 @@ It earned its keep immediately: the first live run flagged `skills:create` and `
 
 `docs/user-guides/screenshots/registry.json` was scaffolded with 274 empty entries. The `depends_on` arrays need to be populated by hand for staleness detection to fire. Pick high-traffic screenshots first (issues, dashboard, costs, onboarding) and trace them to the relevant `ui/src/**` paths.
 
+## Missing screenshot capture targets (inherited from merged PRs)
+
+`sync:verify-screenshots` flags **7 referenced screenshots that are not capture targets** in `scripts/screenshots/routes.mjs`, so the pipeline can't recapture them and they'll go stale silently. All were introduced by already-merged content PRs, not by prose authoring — `main` is red on the watchdog one too:
+
+- `secrets/user-secret-definition`, `secrets/per-user-value-entry`, `secrets/dispatch-check` (from PR #47, `docs/administration/secret-scopes.md`) — real UI shots; need routes + a seed that has user-secret definitions before a target can be added accurately.
+- `work-timeline/work-timeline-overview`, `work-timeline/work-timeline-handoff` (from PR #48, `docs/guides/day-to-day/work-timeline.md`) — need the Work Timeline route and multi-agent handoff seed state.
+- `watchdogs/watchdog-thread-outcome` (from PR #45, `docs/guides/projects-workflow/task-watchdogs.md`) — inside an issue thread; needs a seeded watchdog outcome.
+- `secrets/secret-scope-dispatch-flow` (PR #47) — **NOT a UI capture**: it's a hand-authored flow diagram served from the screenshots tree. It should be *excluded* from verify-screenshots (like `index.css`), not given a route. Consider an allowlist/`static: true` flag in `routes.mjs` or the verifier.
+
+Adding targets needs a pass over the parent UI routes + `scripts/screenshots/seed.mjs` to confirm each route and seed state; deferred to avoid registering unverifiable routes that would fail capture.
+
 ## Pre-existing doc issues unrelated to /sync-docs
 
 - 3 broken screenshot refs from before the skill work: `docs/administration/cli-auth.md` → `light/auth/board-claim.png` and `light/auth/device-code.png`; `docs/how-to/connect-agent-to-github.md` → `light/workspaces/github-pr-issue-side-by-side.png`. Either capture the screenshots or rewrite the doc sections that reference them.
