@@ -1063,7 +1063,10 @@ test("screenshots: instance env does not forward host credentials", () => {
 
     assert(env.HOME === home, `HOME should point at scratch home, got ${env.HOME}`);
     assert(env.PAPERCLIP_HOME === home, `PAPERCLIP_HOME should point at scratch home, got ${env.PAPERCLIP_HOME}`);
-    assert(!("DATABASE_URL" in env), "DATABASE_URL must not be forwarded");
+    // DATABASE_URL is pinned to "" (not omitted) so it wins over the parent
+    // repo's `.env`, which dotenv loads with `override: false`. The host's real
+    // value must never leak through — an empty pin is what forces embedded Postgres.
+    assert(env.DATABASE_URL === "", `DATABASE_URL must be pinned empty, not forwarded from host, got ${JSON.stringify(env.DATABASE_URL)}`);
     assert(!("OPENAI_API_KEY" in env), "OPENAI_API_KEY must not be forwarded");
     assert(!("GITHUB_TOKEN" in env), "GITHUB_TOKEN must not be forwarded");
   } finally {
