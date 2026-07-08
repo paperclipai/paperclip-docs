@@ -749,4 +749,59 @@ export const CAPTURE_TARGETS = [
   // ── Left manual on purpose ──────────────────────────────────────────────────
   //   dashboard/dashboard-overview-annotated — hand-annotated; the doc page is
   //     re-pointed to the freshly captured dashboard/dashboard-overview instead.
+
+  // ── v2026.707.0: Work Timeline ──────────────────────────────────────────────
+  // Company-scoped Gantt-style timeline (route path "timeline"; page Timeline.tsx).
+  // Both shots share the route; "overview" is the default view, "handoff" frames a
+  // cross-agent handoff. Automated capture lands the default timeline; the handoff
+  // framing may need seeded multi-agent state (see maintenance/follow-ups.md).
+  {
+    name: "work-timeline/work-timeline-overview",
+    route: "/{prefix}/timeline",
+    dependsOn: ["ui/src/pages/Timeline.tsx", "ui/src/api/workTimeline.ts", "server/src/services/work-timeline.ts"],
+  },
+  {
+    name: "work-timeline/work-timeline-handoff",
+    route: "/{prefix}/timeline",
+    dependsOn: ["ui/src/pages/Timeline.tsx", "server/src/services/work-timeline.ts"],
+  },
+
+  // ── v2026.707.0: User-specific secrets / secret scopes ──────────────────────
+  // Route "company/settings/secrets" (Secrets.tsx) with user-secret tabs/dialogs
+  // under ui/src/pages/secrets/. The definition/value/dispatch-check shots need a
+  // tab click and seeded user-secret state; captured route-only here — tab steps
+  // and seed are a follow-up capture pass (see maintenance/follow-ups.md).
+  {
+    name: "secrets/user-secret-definition",
+    route: "/{prefix}/company/settings/secrets",
+    dependsOn: ["ui/src/pages/Secrets.tsx", "ui/src/pages/secrets/UserSecretDefinitionsTab.tsx"],
+  },
+  {
+    name: "secrets/per-user-value-entry",
+    route: "/{prefix}/company/settings/secrets",
+    dependsOn: ["ui/src/pages/Secrets.tsx", "ui/src/pages/secrets/SetMyUserSecretDialog.tsx", "ui/src/pages/secrets/MyUserSecretsTab.tsx"],
+  },
+  {
+    name: "secrets/dispatch-check",
+    route: "/{prefix}/company/settings/secrets",
+    dependsOn: ["ui/src/pages/secrets/MissingUserSecretsBanner.tsx", "server/src/services/secrets.ts"],
+  },
+
+  // ── v2026.707.0: Task watchdog thread outcome ───────────────────────────────
+  // Watchdog outcome rendered inside an issue thread (route issues/{issueId}).
+  // Needs a seeded watchdog outcome to render meaningfully — route + deps tracked
+  // here so the shot is flagged stale when the surface moves (seed: follow-ups).
+  {
+    name: "watchdogs/watchdog-thread-outcome",
+    route: "/{prefix}/issues/{issueId}",
+    dependsOn: ["ui/src/pages/IssueDetail.tsx", "server/src/services/task-watchdogs.ts"],
+  },
 ];
+
+// Hand-authored diagrams that live under the screenshots tree so they deploy with
+// the site, but are NOT captured from the UI. verify-screenshots treats a doc
+// reference to one of these as satisfied — they have no route and are never
+// auto-recaptured (compare the index.css note: intentionally untracked).
+export const STATIC_DIAGRAMS = new Set([
+  "secrets/secret-scope-dispatch-flow",
+]);

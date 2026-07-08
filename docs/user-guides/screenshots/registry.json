@@ -3114,6 +3114,154 @@
       "depends_on": [
         "ui/src/pages/ExecutionWorkspaceDetail.tsx"
       ]
+    },
+    {
+      "file": "light/work-timeline/work-timeline-overview.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/timeline",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/Timeline.tsx",
+        "ui/src/api/workTimeline.ts",
+        "server/src/services/work-timeline.ts"
+      ]
+    },
+    {
+      "file": "dark/work-timeline/work-timeline-overview.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/timeline",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/Timeline.tsx",
+        "ui/src/api/workTimeline.ts",
+        "server/src/services/work-timeline.ts"
+      ]
+    },
+    {
+      "file": "light/work-timeline/work-timeline-handoff.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/timeline",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/Timeline.tsx",
+        "server/src/services/work-timeline.ts"
+      ]
+    },
+    {
+      "file": "dark/work-timeline/work-timeline-handoff.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/timeline",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/Timeline.tsx",
+        "server/src/services/work-timeline.ts"
+      ]
+    },
+    {
+      "file": "light/secrets/user-secret-definition.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/secrets",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/Secrets.tsx",
+        "ui/src/pages/secrets/UserSecretDefinitionsTab.tsx"
+      ]
+    },
+    {
+      "file": "dark/secrets/user-secret-definition.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/secrets",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/Secrets.tsx",
+        "ui/src/pages/secrets/UserSecretDefinitionsTab.tsx"
+      ]
+    },
+    {
+      "file": "light/secrets/per-user-value-entry.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/secrets",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/Secrets.tsx",
+        "ui/src/pages/secrets/SetMyUserSecretDialog.tsx",
+        "ui/src/pages/secrets/MyUserSecretsTab.tsx"
+      ]
+    },
+    {
+      "file": "dark/secrets/per-user-value-entry.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/secrets",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/Secrets.tsx",
+        "ui/src/pages/secrets/SetMyUserSecretDialog.tsx",
+        "ui/src/pages/secrets/MyUserSecretsTab.tsx"
+      ]
+    },
+    {
+      "file": "light/secrets/dispatch-check.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/secrets",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/secrets/MissingUserSecretsBanner.tsx",
+        "server/src/services/secrets.ts"
+      ]
+    },
+    {
+      "file": "dark/secrets/dispatch-check.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/secrets",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/secrets/MissingUserSecretsBanner.tsx",
+        "server/src/services/secrets.ts"
+      ]
+    },
+    {
+      "file": "light/watchdogs/watchdog-thread-outcome.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "server/src/services/task-watchdogs.ts"
+      ]
+    },
+    {
+      "file": "dark/watchdogs/watchdog-thread-outcome.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": "master",
+      "captured_sha": "390627b46eb333309d357004384b220ecf8a65af",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "server/src/services/task-watchdogs.ts"
+      ]
     }
   ]
 }

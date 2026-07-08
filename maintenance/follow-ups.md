@@ -41,16 +41,20 @@ It earned its keep immediately: the first live run flagged `skills:create` and `
 
 `docs/user-guides/screenshots/registry.json` was scaffolded with 274 empty entries. The `depends_on` arrays need to be populated by hand for staleness detection to fire. Pick high-traffic screenshots first (issues, dashboard, costs, onboarding) and trace them to the relevant `ui/src/**` paths.
 
-## Missing screenshot capture targets (inherited from merged PRs)
+## Screenshot capture targets for v2026.707.0 shots — DONE (routes) / seed pending
 
-`sync:verify-screenshots` flags **7 referenced screenshots that are not capture targets** in `scripts/screenshots/routes.mjs`, so the pipeline can't recapture them and they'll go stale silently. All were introduced by already-merged content PRs, not by prose authoring — `main` is red on the watchdog one too:
+The 7 `sync:verify-screenshots` gaps inherited from merged PRs #45/#47/#48 are now resolved at the tracking layer:
 
-- `secrets/user-secret-definition`, `secrets/per-user-value-entry`, `secrets/dispatch-check` (from PR #47, `docs/administration/secret-scopes.md`) — real UI shots; need routes + a seed that has user-secret definitions before a target can be added accurately.
-- `work-timeline/work-timeline-overview`, `work-timeline/work-timeline-handoff` (from PR #48, `docs/guides/day-to-day/work-timeline.md`) — need the Work Timeline route and multi-agent handoff seed state.
-- `watchdogs/watchdog-thread-outcome` (from PR #45, `docs/guides/projects-workflow/task-watchdogs.md`) — inside an issue thread; needs a seeded watchdog outcome.
-- `secrets/secret-scope-dispatch-flow` (PR #47) — **NOT a UI capture**: it's a hand-authored flow diagram served from the screenshots tree. It should be *excluded* from verify-screenshots (like `index.css`), not given a route. Consider an allowlist/`static: true` flag in `routes.mjs` or the verifier.
+- **Registered as capture targets** in `scripts/screenshots/routes.mjs` with code-verified routes + `dependsOn`: `work-timeline/*` (`/{prefix}/timeline` → `Timeline.tsx`), `secrets/user-secret-definition` / `secrets/per-user-value-entry` / `secrets/dispatch-check` (`/{prefix}/company/settings/secrets` → `Secrets.tsx` + `ui/src/pages/secrets/*`), and `watchdogs/watchdog-thread-outcome` (`/{prefix}/issues/{issueId}`). Registry entries with `depends_on` added for all 12 (light+dark), so staleness now fires when the surface moves.
+- **`secrets/secret-scope-dispatch-flow`** is a hand-authored diagram, not a UI capture. Added a `STATIC_DIAGRAMS` allowlist to `routes.mjs` and taught `verify-screenshots.mjs` to skip it (same rationale as the intentionally-untracked `index.css`).
 
-Adding targets needs a pass over the parent UI routes + `scripts/screenshots/seed.mjs` to confirm each route and seed state; deferred to avoid registering unverifiable routes that would fail capture.
+**Still pending — seed + interaction steps for the stateful shots.** The targets are route-accurate, but automated capture of the *specific states* needs work in `scripts/screenshots/seed.mjs` and `steps`:
+- `work-timeline-handoff` — multi-agent handoff/overlap state on the timeline.
+- `secrets/user-secret-definition` + `per-user-value-entry` — a seeded user-secret definition and a per-user value, plus the tab/dialog `steps` to reach them.
+- `secrets/dispatch-check` — a run blocked on a missing user secret (the `MissingUserSecretsBanner`).
+- `watchdogs/watchdog-thread-outcome` — a seeded watchdog outcome inside an issue thread.
+
+Until then the committed hand-captured PNGs stand; a `screenshots:refresh` will only revisit these when their `dependsOn` paths change, and the output always lands in a review PR (never auto-pushed).
 
 ## Pre-existing doc issues unrelated to /sync-docs
 
