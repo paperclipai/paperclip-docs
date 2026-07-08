@@ -21,7 +21,7 @@ Custom images are part of sandbox environments, and environments are an **experi
 1. Go to **Settings → Instance settings → Experimental**.
 2. Turn on **Enable Environments**.
 
-That switch is described in the UI as *"Show environment management in company settings and allow project and agent environment assignment."* With it on, an **Environments** screen appears under **Settings → Instance settings**, where you create and edit the environments your agents run in.
+That switch is described in the UI as *"Show environment management in company settings and allow project and agent environment assignment controls."* With it on, an **Environments** screen appears under **Settings → Instance settings**, where you create and edit the environments your agents run in.
 
 > **Note:** Custom images only apply to **sandbox** environments — the kind backed by a sandbox provider plugin (see [Sandbox Providers](../../reference/adapters/sandbox-providers.md)). They don't apply to `local` or `ssh` environments.
 

@@ -16,11 +16,11 @@ The Work Timeline puts them on one. It is the answer to "where did the night go"
 
 Think of the page as a Gantt chart drawn after the fact. A planning Gantt shows work someone intends to do; the Work Timeline uses the same visual grammar to show work that already happened.
 
-Each horizontal lane belongs to one actor, labeled with its avatar. Each bar in a lane is a work period: a stretch of time that actor was executing. The time axis is shared by every lane, and that shared axis is what makes the two signals readable.
+Each horizontal lane belongs to one actor — an agent or an automation, labeled with its avatar. (A human isn't given a lane of their own; they appear as the avatar that kicked a piece of work off.) Each bar in a lane is a work period: a stretch of time that actor was executing. The time axis is shared by every lane, and that shared axis is what makes the two signals readable.
 
 ![The company Work Timeline: one lane per actor, bars for work periods, overlapping work visible across lanes.](../../user-guides/screenshots/light/work-timeline/work-timeline-overview.png)
 
-A handoff reads across lanes: one actor's bar ends, and at about the same point on the axis a bar begins in another lane. Work stopped in one lane and picked up in another.
+A handoff reads across lanes: one actor's bar ends, and at about the same point on the axis a bar begins in another lane. Work stopped in one lane and picked up in another. Where Paperclip can see the delegation, hovering a bar draws a connector line to the bar it handed off to, so a handoff isn't left to visual inference alone.
 
 ![A handoff on the timeline: the upper actor's bar ends where the lower actor's bar begins.](../../user-guides/screenshots/light/work-timeline/work-timeline-handoff.png)
 
@@ -28,7 +28,7 @@ Overlap reads down the page: bars in different lanes covering the same stretch o
 
 ## How it behaves
 
-The page is company-scoped: one timeline covers the whole company, so cross-agent patterns appear without any assembly on your part. There is nothing to configure; you open the page and read it. The chart renders as a compact SVG, so a stretch of multi-agent history fits on one screen. Behind the page sits a dedicated company endpoint with hardened security filters; it exists to serve this view.
+The page is company-scoped: one timeline covers every agent in the company across the window you choose, so cross-agent patterns appear without any assembly on your part. It opens on a rolling seven-day window; a range control (**Today**, **7 days**, **30 days**) plus a custom start and end date let you widen or narrow it, up to a 31-day maximum. Zoom controls and a draggable minimap along the bottom pan and zoom into a busy stretch, and a legend keys the bar colours — delegated work, automation, cancelled runs, and a **Now** marker. The chart is a scrollable SVG built to pan across a long span, not to shrink all of history onto one screen. Behind the page sits a dedicated company endpoint with hardened security filters: it only ever shows work you are authorised to see, and it exists to serve this view.
 
 The timeline is a reading surface, not a replacement for the records underneath it. A bar tells you that an actor was working and for how long, not what the work contained. When a shape on the timeline raises a question, the answer lives in the task thread, the run log, or the Activity Log.
 
