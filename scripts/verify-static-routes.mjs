@@ -84,11 +84,51 @@ try {
   assert(glossaryHtml.includes('<h3 id="board-operator">Board Operator</h3>'), "glossary route is missing the Board Operator term anchor");
   assert(glossaryHtml.includes('<h3 id="heartbeat">Heartbeat</h3>'), "glossary route is missing the Heartbeat term anchor");
 
+  const aiCompanyOsPath = "guides/welcome/what-is-an-ai-company-operating-system/index.html";
+  assert(existsSync(join(outDir, aiCompanyOsPath)), `missing ${aiCompanyOsPath}`);
+  const aiCompanyOsHtml = read(aiCompanyOsPath);
+  assert(
+    aiCompanyOsHtml.includes("<title>What is an AI Company Operating System? | Paperclip Docs</title>"),
+    "AI company OS route did not get a route-specific title",
+  );
+  assert(
+    aiCompanyOsHtml.includes('content="An AI company operating system (AI company OS) is software that runs a team of AI agents'),
+    "AI company OS route did not use the opening definition for its meta description",
+  );
+  assert(
+    aiCompanyOsHtml.includes('href="/guides/welcome/what-is-paperclip/"'),
+    "AI company OS page did not rewrite ./what-is-paperclip.md to its route",
+  );
+  assert(
+    aiCompanyOsHtml.includes('href="/guides/welcome/key-concepts/"'),
+    "AI company OS page did not rewrite ./key-concepts.md to its route",
+  );
+  assert(
+    aiCompanyOsHtml.includes('href="/guides/welcome/glossary/"'),
+    "AI company OS page did not rewrite ./glossary.md to its route",
+  );
+  assert(
+    aiCompanyOsHtml.includes('href="/guides/getting-started/five-minute-path/"'),
+    "AI company OS page did not rewrite ../getting-started/five-minute-path.md to its route",
+  );
+  assert(
+    aiCompanyOsHtml.includes('href="https://paperclip.ing/vs/multica"'),
+    "AI company OS page should preserve absolute comparison links",
+  );
+  assert(!aiCompanyOsHtml.includes('href="./what-is-paperclip.md"'), "AI company OS static page still links to ./what-is-paperclip.md");
+  assert(!aiCompanyOsHtml.includes('href="./key-concepts.md"'), "AI company OS static page still links to ./key-concepts.md");
+  assert(!aiCompanyOsHtml.includes('href="./glossary.md"'), "AI company OS static page still links to ./glossary.md");
+  assert(!aiCompanyOsHtml.includes('href="../getting-started/five-minute-path.md"'), "AI company OS static page still links to ../getting-started/five-minute-path.md");
+
   const appJs = read("app.js");
   assert(!appJs.includes("/#/"), "generated app JS still contains primary hash route URLs");
 
   const sitemap = read("sitemap.xml");
   assert(sitemap.includes("https://docs.paperclip.ing/reference/skills"), "sitemap is missing reference/skills");
+  assert(
+    sitemap.includes("https://docs.paperclip.ing/guides/welcome/what-is-an-ai-company-operating-system"),
+    "sitemap is missing the AI company OS pillar page",
+  );
   assert(
     existsSync(join(outDir, "reference/skills/bundled/index.html")),
     "missing reference/skills/bundled/index.html",
