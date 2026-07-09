@@ -43,7 +43,7 @@ try {
     "skills route canonical URL is missing or incorrect",
   );
   assert(!skillsHtml.match(/rel="canonical"[^>]+#/), "canonical URL contains a hash");
-  assert(skillsHtml.includes("<h1>Skills Reference</h1>"), "skills route is missing crawler-visible page content");
+  assert(skillsHtml.includes('<h1 id="skills-reference">Skills Reference</h1>'), "skills route is missing crawler-visible page content");
   assert(skillsHtml.includes("the file shape on disk"), "skills route body is missing expected docs copy");
   assert(skillsHtml.includes('<base data-seo-base href="/" />'), "nested route is missing the release base path");
   assert(skillsHtml.includes("<style data-inline-release-css>"), "nested route does not inline release CSS");
@@ -78,6 +78,11 @@ try {
     quickstartHtml.includes("dashboard-overview-900.webp 900w"),
     "quickstart dashboard screenshot is missing the responsive WebP srcset",
   );
+
+  const glossaryHtml = read("guides/welcome/glossary/index.html");
+  assert(glossaryHtml.includes('<h3 id="adapter">Adapter</h3>'), "glossary route is missing the Adapter term anchor");
+  assert(glossaryHtml.includes('<h3 id="board-operator">Board Operator</h3>'), "glossary route is missing the Board Operator term anchor");
+  assert(glossaryHtml.includes('<h3 id="heartbeat">Heartbeat</h3>'), "glossary route is missing the Heartbeat term anchor");
 
   const appJs = read("app.js");
   assert(!appJs.includes("/#/"), "generated app JS still contains primary hash route URLs");
