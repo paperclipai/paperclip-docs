@@ -365,6 +365,10 @@
           "file": "../docs/reference/api/issues.md"
         },
         {
+          "title": "Checkbox Confirmations",
+          "file": "../docs/reference/api/checkbox-confirmations.md"
+        },
+        {
           "title": "Approvals",
           "file": "../docs/reference/api/approvals.md"
         },
