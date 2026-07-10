@@ -24,7 +24,6 @@ Every adapter is responsible for the same core jobs:
 |---|---|
 | Claude Code on your machine | [Claude Code](./claude-code.md) |
 | OpenAI Codex CLI on your machine | [Codex](./codex.md) |
-| Claude, Codex, or a custom ACP agent through ACPX | [ACPX Local](./acpx-local.md) |
 | Gemini CLI on your machine | [Gemini CLI](./gemini-cli.md) |
 | Cursor Agent CLI on your machine | [Cursor Local](./cursor-local.md) |
 | OpenCode CLI with provider/model routing | [OpenCode](./opencode.md) |
@@ -55,7 +54,6 @@ These adapters ship with Paperclip and are always available in the host:
 |---|---|---|---|
 | [Claude Code](./claude-code.md) | `claude_local` | Selectable (recommended) | Claude Code runs with session persistence, skills sync, and structured transcript parsing. |
 | [Codex](./codex.md) | `codex_local` | Selectable (recommended) | Codex CLI runs with session persistence and managed `CODEX_HOME`. |
-| [ACPX Local](./acpx-local.md) | `acpx_local` | Selectable (staged rollout) | Claude, Codex, or a custom ACP agent through ACPX with live structured event streaming. |
 | [Gemini CLI](./gemini-cli.md) | `gemini_local` | Selectable | Gemini CLI runs with resume support and local skills sync. |
 | [Cursor Local](./cursor-local.md) | `cursor` | Selectable | Cursor Agent CLI runs with `--resume` session continuity and structured stream output. |
 | [OpenCode](./opencode.md) | `opencode_local` | Selectable | OpenCode CLI runs with provider/model routing and `--session` resume. |
@@ -107,11 +105,11 @@ Every adapter streams its stdout to the run log, and Paperclip renders it live a
 
 Here are the rough tiers, richest first:
 
-- **`acpx_local` — full structured event stream.** ACPX emits a JSONL event for each meaningful moment: session identity, status (progress text plus context-window usage), assistant and thinking token deltas, tool-call title and status updates as calls progress, a result stop-reason summary, and errors. The transcript renders these as live-updating message, thinking, tool, and status blocks — and repeated tool-call status updates fold into a single tool card instead of stacking.
-- **CLI wrappers (`claude_local`, `codex_local`, `cursor`, `opencode_local`, …) — the CLI's own stream.** These parse each CLI's streaming JSON output: assistant text, tool calls and results, and a final usage/cost summary. You get as much detail as the CLI itself prints.
+- **ACP engine — full structured event stream.** When `claude_local`, `codex_local`, or `gemini_local` runs through the Agent Client Protocol — the default `engine: auto`, or a forced `engine: acp` — it emits a JSONL event for each meaningful moment: session identity, status (progress text plus context-window usage), assistant and thinking token deltas, tool-call title and status updates as calls progress, a result stop-reason summary, and errors. The transcript renders these as live-updating message, thinking, tool, and status blocks — and repeated tool-call status updates fold into a single tool card instead of stacking.
+- **CLI wrappers (`claude_local` / `codex_local` / `gemini_local` on `engine: cli`, plus `cursor`, `opencode_local`, …) — the CLI's own stream.** These parse each CLI's streaming JSON output: assistant text, tool calls and results, and a final usage/cost summary. You get as much detail as the CLI itself prints.
 - **Generic adapters (`process`, `http`) — plain output.** You see stdout and stderr lines with no structured transcript.
 
-If you're running sandbox workers, prefer `acpx_local`. Sandbox run logs stream live, so the richer the event stream, the more useful the live transcript and status line are while a remote run is still in flight.
+If you're running sandbox workers, leave `engine` on `auto` so the adapter uses ACP whenever the host supports it. Sandbox run logs stream live, so the richer the event stream, the more useful the live transcript and status line are while a remote run is still in flight.
 
 ---
 
@@ -119,7 +117,6 @@ If you're running sandbox workers, prefer `acpx_local`. Sandbox run logs stream 
 
 - [Claude Code](./claude-code.md)
 - [Codex](./codex.md)
-- [ACPX Local](./acpx-local.md)
 - [Gemini CLI](./gemini-cli.md)
 - [Cursor Local](./cursor-local.md)
 - [OpenCode](./opencode.md)
