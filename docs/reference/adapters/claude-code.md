@@ -28,6 +28,7 @@ paperclip_version: v2026.529.0
 | Field | Required | Notes |
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
+| `engine` | no | How Claude Code is run: `auto` (the default — ACP preferred), `acp` (always the Agent Client Protocol), or `cli` (always the classic Claude CLI). See [ACP Engine](#acp-engine). |
 | `model` | no | Claude model id. Common choices include `claude-opus-4-6`, `claude-sonnet-4-6`, and `claude-haiku-4-6`. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `env` | no | Environment variables passed to Claude Code. Secret refs are supported. |
@@ -43,6 +44,30 @@ paperclip_version: v2026.529.0
 | `workspaceRuntime` | no | Reserved workspace runtime metadata. |
 
 > **Note:** Claude Code is a headless adapter. The environment test is more important here than in a normal CLI session because Paperclip needs to know the command, path, auth mode, and model all work together.
+
+---
+
+## ACP Engine
+
+Claude Code can run through one of two engines — ACP or the classic Claude CLI — selected by the `engine` field:
+
+- **`auto` (default) — ACP preferred.** Paperclip runs Claude through the Agent Client Protocol (ACP) when the host meets the prerequisites, and falls back to the Claude CLI — with diagnostics explaining why — when it can't.
+- **`acp` — always ACP.** Force the Agent Client Protocol path.
+- **`cli` — always the Claude CLI.** Force the classic CLI wrapper and skip ACP entirely.
+
+ACP gives you a richer, structured live transcript: session identity, status with context-window usage, assistant and thinking token deltas, and tool-call updates that fold into a single card as they progress. That extra detail is most useful when you're watching a sandbox run stream in.
+
+When the engine resolves to ACP (either `acp`, or `auto` on a capable host), these extra fields apply:
+
+| Field | Default | Notes |
+|---|---|---|
+| `agentCommand` | package-local `claude-agent-acp` | Optional override for the Claude ACP server command. |
+| `mode` | `persistent` | `persistent` keeps ACP session state between runs; `oneshot` starts fresh each run. |
+| `nonInteractivePermissions` | `deny` | What to do if the ACP agent asks for input outside an interactive session — `deny` the request or `fail` the run. |
+| `stateDir` | Paperclip-managed | Optional ACP session-state directory. Defaults to Paperclip's company- and agent-scoped storage. |
+| `warmHandleIdleMs` | `0` | How long to keep the ACP process warm between runs, in milliseconds. `0` closes it after each run while still retaining persistent session state. |
+
+> **Heads-up:** ACP is where the old standalone `acpx_local` adapter's capabilities now live. That adapter has been retired — pick `claude_local` (or `codex_local` / `gemini_local`) and leave `engine` on `auto` to get ACP by default.
 
 ---
 

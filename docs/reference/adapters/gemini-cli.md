@@ -30,6 +30,7 @@ paperclip_version: v2026.618.0
 | Field | Required | Notes |
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
+| `engine` | no | How Gemini is run: `auto` (the default — ACP preferred), `acp` (always the Agent Client Protocol), or `cli` (always the classic Gemini CLI). See [ACP Engine](#acp-engine). |
 | `model` | no | Gemini model id. Defaults to `auto`. Common choices include `gemini-2.5-pro` and `gemini-2.5-flash`. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `instructionsFilePath` | no | Markdown instructions file prepended to the prompt. |
@@ -44,6 +45,30 @@ paperclip_version: v2026.618.0
 | `graceSec` | no | Grace period before a forced stop. |
 
 > **Note:** Gemini CLI uses `--output-format stream-json` for readiness checks and resumes sessions with `--resume` when the stored session cwd still matches the current cwd. It passes your prompt with `--prompt` for non-interactive runs (not through stdin), and it sets a headless-safe terminal and browser environment for the Gemini CLI child process so unattended runs never stall waiting on browser auth or a colour-terminal prompt.
+
+---
+
+## ACP Engine
+
+Gemini can run through one of two engines — ACP or the classic Gemini CLI — selected by the `engine` field:
+
+- **`auto` (default) — ACP preferred.** Paperclip runs Gemini through the Agent Client Protocol (ACP) when the host meets the prerequisites, and falls back to the Gemini CLI — with diagnostics explaining why — when it can't.
+- **`acp` — always ACP.** Force the Agent Client Protocol path.
+- **`cli` — always the Gemini CLI.** Force the classic CLI wrapper and skip ACP entirely.
+
+ACP gives you a richer, structured live transcript: session identity, status with context-window usage, assistant and thinking token deltas, and tool-call updates that fold into a single card as they progress. That extra detail is most useful when you're watching a sandbox run stream in.
+
+When the engine resolves to ACP (either `acp`, or `auto` on a capable host), these extra fields apply:
+
+| Field | Default | Notes |
+|---|---|---|
+| `agentCommand` | `gemini --acp` | Optional override for the Gemini ACP server command. |
+| `mode` | `persistent` | `persistent` keeps ACP session state between runs; `oneshot` starts fresh each run. |
+| `nonInteractivePermissions` | `deny` | What to do if the ACP agent asks for input outside an interactive session — `deny` the request or `fail` the run. |
+| `stateDir` | Paperclip-managed | Optional ACP session-state directory. Defaults to Paperclip's company- and agent-scoped storage. |
+| `warmHandleIdleMs` | `0` | How long to keep the ACP process warm between runs, in milliseconds. `0` closes it after each run while still retaining persistent session state. |
+
+> **Heads-up:** ACP is where the old standalone `acpx_local` adapter's capabilities now live. That adapter has been retired — pick `gemini_local` (or `claude_local` / `codex_local`) and leave `engine` on `auto` to get ACP by default.
 
 ---
 

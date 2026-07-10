@@ -28,6 +28,7 @@ paperclip_version: v2026.618.0
 | Field | Required | Notes |
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
+| `engine` | no | How Codex is run: `auto` (the default — ACP preferred), `acp` (always the Agent Client Protocol), or `cli` (always the classic Codex CLI). See [ACP Engine](#acp-engine). |
 | `model` | no | Codex model id. See [Models](#models). If you leave it unset, the adapter omits `--model` so the Codex CLI uses its own default. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `instructionsFilePath` | no | Markdown file prepended to the stdin prompt sent to `codex exec`. |
@@ -44,6 +45,30 @@ paperclip_version: v2026.618.0
 | `workspaceRuntime` | no | Reserved workspace runtime metadata. |
 
 > **Note:** Codex sends the prompt through stdin and uses `codex exec --json`. The adapter's environment test checks both the command and the auth path before you try to run a real heartbeat.
+
+---
+
+## ACP Engine
+
+Codex can run through one of two engines — ACP or the classic Codex CLI — selected by the `engine` field:
+
+- **`auto` (default) — ACP preferred.** Paperclip runs Codex through the Agent Client Protocol (ACP) when the host meets the prerequisites, and falls back to the Codex CLI — with diagnostics explaining why — when it can't.
+- **`acp` — always ACP.** Force the Agent Client Protocol path.
+- **`cli` — always the Codex CLI.** Force the classic CLI wrapper and skip ACP entirely.
+
+ACP gives you a richer, structured live transcript: session identity, status with context-window usage, assistant and thinking token deltas, and tool-call updates that fold into a single card as they progress. That extra detail is most useful when you're watching a sandbox run stream in.
+
+When the engine resolves to ACP (either `acp`, or `auto` on a capable host), these extra fields apply:
+
+| Field | Default | Notes |
+|---|---|---|
+| `agentCommand` | package-local `codex-acp` | Optional override for the Codex ACP server command. |
+| `mode` | `persistent` | `persistent` keeps ACP session state between runs; `oneshot` starts fresh each run. |
+| `nonInteractivePermissions` | `deny` | What to do if the ACP agent asks for input outside an interactive session — `deny` the request or `fail` the run. |
+| `stateDir` | Paperclip-managed | Optional ACP session-state directory. Defaults to Paperclip's company- and agent-scoped storage. |
+| `warmHandleIdleMs` | `0` | How long to keep the ACP process warm between runs, in milliseconds. `0` closes it after each run while still retaining persistent session state. |
+
+> **Heads-up:** ACP is where the old standalone `acpx_local` adapter's capabilities now live. That adapter has been retired — pick `codex_local` (or `claude_local` / `gemini_local`) and leave `engine` on `auto` to get ACP by default.
 
 ---
 
