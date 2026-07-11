@@ -23,8 +23,8 @@ There is also one layer that sits *above* the company: the **instance admin**, c
 
 | Role | Who it's for | Implicit grants |
 |---|---|---|
-| **Owner** | The people who run the company | `agents:create`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `joins:approve` |
-| **Admin** | Trusted operators who onboard people and agents | `agents:create`, `skills:create`, `environments:manage`, `users:invite`, `tasks:assign`, `joins:approve` |
+| **Owner** | The people who run the company | `agents:create`, `agents:configure`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `joins:approve` |
+| **Admin** | Trusted operators who onboard people and agents | `agents:create`, `agents:configure`, `skills:create`, `environments:manage`, `users:invite`, `tasks:assign`, `joins:approve` |
 | **Operator** | Hands-on members who help run the work | `tasks:assign` |
 | **Viewer** | Read-only observers | *(none)* |
 
@@ -36,12 +36,15 @@ A fifth option, **Unset**, appears in the role drop-down. It leaves the member w
 
 ## The permission keys
 
-There are ten permission keys. Seven of them show up as defaults on one or more roles; three are **explicit-grant-only** — no role includes them, so a member only ever gets them if you check the box in the member editor.
+There are thirteen permission keys. Eight of them show up as defaults on one or more roles; five are **explicit-grant-only** — no role includes them, so a member only ever gets them if you check the box in the member editor.
 
 | Permission key | What it allows | In which role by default |
 |---|---|---|
 | `agents:create` | Create (hire) new agents in the company | Owner, Admin |
+| `agents:configure` | Change an existing agent's setup — its adapter config, instructions, role, and budget | Owner, Admin |
+| `agents:suggest-changes` | Propose changes to an agent's setup for review, without applying them directly | — (explicit only) |
 | `skills:create` | Create and manage company skills | Owner, Admin |
+| `skills:suggest-changes` | Propose changes to a company skill for review, without applying them directly | — (explicit only) |
 | `environments:manage` | Create, edit, and remove the execution environments agents run in | Owner, Admin |
 | `users:invite` | Create and revoke company invite links | Owner, Admin |
 | `users:manage_permissions` | View and change members' roles and grants | Owner |
@@ -51,10 +54,18 @@ There are ten permission keys. Seven of them show up as defaults on one or more 
 | `pipelines:write` | Create and modify pipeline automations | — (explicit only) |
 | `joins:approve` | Approve or reject human and agent join requests | Owner, Admin |
 
+### About the direct-vs-suggest pairs
+
+Two of the keys come in matched pairs — a *direct* key that applies a change immediately, and a *suggest* key that only proposes one for review:
+
+- **`agents:configure`** lets a member change an existing agent directly. **`agents:suggest-changes`** is the softer counterpart: a member who holds it (but not `agents:configure`) can *propose* a change to an agent's instructions or config, which then goes through review before it takes effect. This is what powers coaching flows like the built-in [Reflection Coach](../reference/api/built-in-agents.md#the-reflection-coach) — it can suggest an improvement to an agent's `AGENTS.md` without hot-swapping it.
+- **`skills:create`** lets a member author and edit company skills directly. **`skills:suggest-changes`** lets a member propose an edit to a company skill for review instead of writing it straight in.
+
 ### About the explicit-only keys
 
-Three keys never appear in a role's defaults, so a member only receives them through an explicit grant in the member editor:
+Five keys never appear in a role's defaults, so a member only receives them through an explicit grant in the member editor:
 
+- **`agents:suggest-changes`** and **`skills:suggest-changes`** — the review-gated proposal keys described just above. Grant them to a member (or agent) you want proposing improvements without direct write access.
 - **`tasks:assign_scope`** is how you let someone delegate *within their lane* without giving them company-wide assignment power. When a member has `tasks:assign_scope` but not `tasks:assign`, Paperclip evaluates the grant against the scope attached to it and allows the assignment only if the target falls inside that scope. Set the scope in the grant payload (via the member editor's grant, or `member role-and-grants` on the CLI).
 - **`tasks:manage_active_checkouts`** is an escape hatch. Normally an issue that an agent has checked out is off-limits to others until it's released; this grant lets the holder reassign or clear that active checkout — handy when an agent has stalled mid-task.
 - **`pipelines:write`** lets a member create and edit pipeline automations. Grant it to whoever runs your pipelines; it is kept off the standard roles so pipeline authorship is a deliberate choice.

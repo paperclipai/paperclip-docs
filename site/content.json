@@ -361,8 +361,16 @@
           "file": "../docs/reference/api/agents.md"
         },
         {
+          "title": "Built-in Agents",
+          "file": "../docs/reference/api/built-in-agents.md"
+        },
+        {
           "title": "Issues",
           "file": "../docs/reference/api/issues.md"
+        },
+        {
+          "title": "Cases",
+          "file": "../docs/reference/api/cases.md"
         },
         {
           "title": "Checkbox Confirmations",

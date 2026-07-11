@@ -78,6 +78,7 @@ Pick any of the known Codex model ids in the `model` field. The current options 
 
 - `gpt-5.5`
 - `gpt-5.4`
+- `gpt-5.4-mini`
 - `gpt-5.3-codex` (the adapter default)
 - `gpt-5.3-codex-spark`
 - `gpt-5`
