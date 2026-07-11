@@ -507,6 +507,15 @@ function releaseMarkdownImage(href, title, text) {
   return `<img ${attrs.join(" ")}>`;
 }
 
+function slugifyHeadingText(text) {
+  return String(text)
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
 function markdownToPlainText(markdown) {
   return markdown
     .replace(/```[\s\S]*?```/g, " ")
@@ -926,7 +935,16 @@ function preprocessTabs(markdown) {
 
 function renderStaticMarkdown(markdown) {
   const renderer = new marked.Renderer();
+  const usedHeadingIds = new Set();
   renderer.image = releaseMarkdownImage;
+  renderer.heading = (html, level, rawText) => {
+    const baseId = slugifyHeadingText(rawText) || `h${level}`;
+    let id = baseId;
+    let suffix = 2;
+    while (usedHeadingIds.has(id)) id = `${baseId}-${suffix++}`;
+    usedHeadingIds.add(id);
+    return `<h${level} id="${escapeAttr(id)}">${html}</h${level}>\n`;
+  };
   marked.setOptions({ gfm: true, breaks: false, renderer });
   return marked.parse(preprocessTabs(markdown));
 }
