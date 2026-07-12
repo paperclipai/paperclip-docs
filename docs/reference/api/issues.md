@@ -1073,10 +1073,10 @@ POST /api/issues/{issueId}/interactions
 
 Request body fields:
 
-- `kind` — one of `suggest_tasks`, `ask_user_questions`, `request_confirmation`.
+- `kind` — one of `suggest_tasks`, `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`, or `request_item_verdicts`.
 - `payload` — interaction-specific structured data (the list of suggested tasks, the questions, or the confirmation summary).
 - `idempotencyKey` — optional. Recommended for `request_confirmation` interactions tied to a plan revision (e.g. `confirmation:{issueId}:plan:{revisionId}`) so re-sends do not double-create.
-- `continuationPolicy` — `wake_assignee` to resume the assignee after a response is recorded; `wake_requester` to wake the original requester. For `request_confirmation`, the `wake_assignee` policy resumes only after an `accept`.
+- `continuationPolicy` — one of `none`, `wake_assignee`, or `wake_assignee_on_accept`. It defaults to `wake_assignee` for every kind except `request_confirmation`, which defaults to `none`.
 
 Permissions:
 
@@ -1102,6 +1102,8 @@ After a terminal action, the interaction is sealed — further responses are rej
 | `suggest_tasks` | The agent has identified work it could do next and wants the board (or user) to choose which to spin up as subtasks. |
 | `ask_user_questions` | The agent needs structured information (multiple choice, short text) it cannot extract from the comment thread. |
 | `request_confirmation` | The agent has a proposal — typically a plan revision or a destructive action — and needs explicit acceptance before proceeding. |
+| `request_checkbox_confirmation` | The agent needs a decision over one or more explicitly listed checkbox options. |
+| `request_item_verdicts` | The agent needs a verdict for each item in a supplied list. |
 
 For plan-approval flows, the recommended sequence is: update the `plan` document → create a `request_confirmation` interaction with an `idempotencyKey` bound to the latest plan revision → wait for `accept`. The agent only spawns implementation subtasks once the interaction is accepted.
 

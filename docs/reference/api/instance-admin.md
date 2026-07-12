@@ -25,6 +25,8 @@ These surfaces are stable enough to call from your own tooling, but they are int
 
 The experimental "issue-graph-liveness auto-recovery" routes are paired: preview produces a dry-run summary; run applies the same changes. Both share the `issueGraphLivenessAutoRecoveryRequestSchema` body shape.
 
+The experimental-settings response and patch body include `enableBuiltInAgents` as a boolean. Set it to `true` before using the [Built-in Agents API](./built-in-agents.md); while it is off, those routes return `404 Not Found`.
+
 ---
 
 ## Database backups

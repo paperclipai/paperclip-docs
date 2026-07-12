@@ -41,7 +41,7 @@ paperclip_version: v2026.618.0
 | `extraArgs` | no | Extra CLI arguments appended to the Gemini invocation. |
 | `env` | no | Environment variables passed to the runtime. Secret refs are supported. |
 | `helloProbeTimeoutSec` | no | Timeout for the readiness probe. |
-| `timeoutSec` | no | Run timeout in seconds. `0` means no timeout. |
+| `timeoutSec` | no | Run timeout in seconds. On local and SSH targets, `0` means no adapter wall-clock timeout. On a sandbox target, `0` or an unset value uses the 14,400-second sandbox default; use a positive value to override it or a negative value to opt out of the adapter timeout. |
 | `graceSec` | no | Grace period before a forced stop. |
 
 > **Note:** Gemini CLI uses `--output-format stream-json` for readiness checks and resumes sessions with `--resume` when the stored session cwd still matches the current cwd. It passes your prompt with `--prompt` for non-interactive runs (not through stdin), and it sets a headless-safe terminal and browser environment for the Gemini CLI child process so unattended runs never stall waiting on browser auth or a colour-terminal prompt.
@@ -69,6 +69,12 @@ When the engine resolves to ACP (either `acp`, or `auto` on a capable host), the
 | `warmHandleIdleMs` | `0` | How long to keep the ACP process warm between runs, in milliseconds. `0` closes it after each run while still retaining persistent session state. |
 
 > **Heads-up:** ACP is where the old standalone `acpx_local` adapter's capabilities now live. That adapter has been retired — pick `gemini_local` (or `claude_local` / `codex_local`) and leave `engine` on `auto` to get ACP by default.
+
+### ACP in sandbox environments
+
+You can keep `engine` on `auto` when this agent runs in a Paperclip sandbox environment. If that sandbox provides Paperclip's bidirectional process session, Paperclip keeps the ACP engine and its structured live transcript; you do not add a separate bridge setting to the adapter config.
+
+An environment that only runs one-shot commands cannot host an ACP session, so `auto` falls back to the Gemini CLI with a diagnostic. The same fallback applies to non-sandbox remote targets such as SSH. Choose `engine: "acp"` when ACP is required and a failed prerequisite should stop the run, or `engine: "cli"` when you always want the CLI lane.
 
 ---
 

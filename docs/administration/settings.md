@@ -248,6 +248,7 @@ Turning one on is not dangerous in the "this will break your data" sense — but
 ### The available flags
 
 - **Enable Isolated Workspaces** — shows the execution-workspace controls in project configuration and allows isolated workspace behavior for new and existing issue runs. If you're not using isolated workspaces, leave this off; turning it on exposes extra UI you don't need.
+- **Enable Built-in Agents** — makes the built-in-agent controls and API available. Turn it on before you provision `briefs`, `learning`, or `reflection-coach`; with it off, the built-in-agent routes return `404 Not Found`.
 - **Auto-Restart Dev Server When Idle** — only relevant under `pnpm dev:once`. When the backend detects a stale boot (code changes, new migrations), it waits for queued and running local agent runs to finish and then restarts the dev server automatically. Useful during active development on Paperclip itself, not intended for production.
 - **Streamlined Left Navigation Bar** — **on by default now**, so you don't need to flip anything to get it. It trims the sidebar: Projects move under the **Work** section as a single **Projects** link with its own page, and the agents list shows only your active agents (the five most recently active). Turning this flag **off** is the opt-out — it restores the classic sidebar, where each project gets its own collapsible entry and there's no top-level Projects link.
 
