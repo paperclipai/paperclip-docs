@@ -3240,6 +3240,30 @@
       ]
     },
     {
+      "file": "light/interactions/checkbox-confirmation-card.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "ui/src/components/IssueThreadInteractionCard.tsx"
+      ]
+    },
+    {
+      "file": "dark/interactions/checkbox-confirmation-card.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}",
+      "captured_against": null,
+      "captured_sha": null,
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "ui/src/components/IssueThreadInteractionCard.tsx"
+      ]
+    },
+    {
       "file": "light/watchdogs/watchdog-thread-outcome.png",
       "theme": "light",
       "viewport": "1440x900",

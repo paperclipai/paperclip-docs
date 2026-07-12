@@ -38,7 +38,7 @@ paperclip_version: v2026.529.0
 | `chrome` | no | Passes `--chrome` when enabled. |
 | `maxTurnsPerRun` | no | Caps the number of agentic turns in one heartbeat. Defaults to `300`. |
 | `dangerouslySkipPermissions` | no | Defaults to `true` because Paperclip runs Claude in headless `--print` mode. |
-| `timeoutSec` | no | Run timeout in seconds. `0` means no timeout. |
+| `timeoutSec` | no | Run timeout in seconds. On local and SSH targets, `0` means no adapter wall-clock timeout. On a sandbox target, `0` or an unset value uses the 14,400-second sandbox default; use a positive value to override it or a negative value to opt out of the adapter timeout. |
 | `graceSec` | no | Grace period before a forced stop. |
 | `workspaceStrategy` | no | Execution workspace strategy, such as `git_worktree`. |
 | `workspaceRuntime` | no | Reserved workspace runtime metadata. |
@@ -68,6 +68,12 @@ When the engine resolves to ACP (either `acp`, or `auto` on a capable host), the
 | `warmHandleIdleMs` | `0` | How long to keep the ACP process warm between runs, in milliseconds. `0` closes it after each run while still retaining persistent session state. |
 
 > **Heads-up:** ACP is where the old standalone `acpx_local` adapter's capabilities now live. That adapter has been retired — pick `claude_local` (or `codex_local` / `gemini_local`) and leave `engine` on `auto` to get ACP by default.
+
+### ACP in sandbox environments
+
+You can keep `engine` on `auto` when this agent runs in a Paperclip sandbox environment. If that sandbox provides Paperclip's bidirectional process session, Paperclip keeps the ACP engine and its structured live transcript; you do not add a separate bridge setting to the adapter config.
+
+An environment that only runs one-shot commands cannot host an ACP session, so `auto` falls back to the Claude CLI with a diagnostic. The same fallback applies to non-sandbox remote targets such as SSH. Choose `engine: "acp"` when ACP is required and a failed prerequisite should stop the run, or `engine: "cli"` when you always want the CLI lane.
 
 ---
 

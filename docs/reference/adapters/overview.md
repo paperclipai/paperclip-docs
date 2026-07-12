@@ -109,7 +109,7 @@ Here are the rough tiers, richest first:
 - **CLI wrappers (`claude_local` / `codex_local` / `gemini_local` on `engine: cli`, plus `cursor`, `opencode_local`, …) — the CLI's own stream.** These parse each CLI's streaming JSON output: assistant text, tool calls and results, and a final usage/cost summary. You get as much detail as the CLI itself prints.
 - **Generic adapters (`process`, `http`) — plain output.** You see stdout and stderr lines with no structured transcript.
 
-If you're running sandbox workers, leave `engine` on `auto` so the adapter uses ACP whenever the host supports it. Sandbox run logs stream live, so the richer the event stream, the more useful the live transcript and status line are while a remote run is still in flight.
+If you're running sandbox workers, leave `engine` on `auto` so the adapter uses ACP when the sandbox provides Paperclip's bidirectional process session. A sandbox that only runs one-shot commands, and non-sandbox remote targets, fall back to the CLI lane. Sandbox run logs stream live either way, but the richer event stream makes the transcript and status line more useful while a remote run is in flight.
 
 ---
 

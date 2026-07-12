@@ -320,6 +320,17 @@ export const CAPTURE_TARGETS = [
     dependsOn: ["ui/src/pages/IssueDetail.tsx"],
     themes: ["light", "dark"],
   },
+  // Checkbox confirmation cards render in the issue thread. Track the owning
+  // issue route so the capture pipeline can refresh the documented card.
+  {
+    name: "interactions/checkbox-confirmation-card",
+    route: "/{prefix}/issues/{issueId}",
+    dependsOn: [
+      "ui/src/pages/IssueDetail.tsx",
+      "ui/src/components/IssueThreadInteractionCard.tsx",
+    ],
+    themes: ["light", "dark"],
+  },
   {
     name: "work-modes/standard-mode-run",
     route: "/{prefix}/issues/{issueId}",

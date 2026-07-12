@@ -71,6 +71,10 @@
           "file": "../docs/guides/day-to-day/blocked-inbox.md"
         },
         {
+          "title": "Decisions",
+          "file": "../docs/guides/day-to-day/decisions.md"
+        },
+        {
           "title": "Approvals",
           "file": "../docs/guides/day-to-day/approvals.md"
         },
@@ -371,6 +375,10 @@
         {
           "title": "Cases",
           "file": "../docs/reference/api/cases.md"
+        },
+        {
+          "title": "Attention",
+          "file": "../docs/reference/api/attention.md"
         },
         {
           "title": "Checkbox Confirmations",
