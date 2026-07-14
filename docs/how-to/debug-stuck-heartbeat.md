@@ -58,6 +58,14 @@ Five symptoms that cover almost every "this agent isn't working right" report. O
 
 ---
 
+## 6. Recovery wakes slow down after repeated no-progress runs
+
+**Symptom.** A recovery-style wake is recorded as skipped with reason `issue_rewake_throttled`, instead of starting another agent session right away.
+
+**Cause.** Paperclip protects you from an expensive no-op loop. After two successful runs for the same issue make no issue-visible progress, another recovery-style wake waits for an escalating cooldown. The delay starts at two minutes and never exceeds 30 minutes.
+
+**Fix.** Read the latest run first, then give the agent new information or explicitly resume the work when you are ready to intervene. A new comment, fresh issue activity, and an explicit resume bypass the cooldown. Server-side recovery retries also continue immediately, so this safeguard does not delay a real crash-recovery attempt.
+
 ## Where to look first
 
 - **Run logs.** Agent detail → **Run history** → click any run for the full transcript and exit code.
