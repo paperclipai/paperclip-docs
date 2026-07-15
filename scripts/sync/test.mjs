@@ -758,6 +758,78 @@ test("check-drift: env vars can verify against tree-discovered package sources",
   rmSync(root, { recursive: true, force: true });
 });
 
+test("check-drift: cache is keyed by resolved SHA, never a moving ref name", () => {
+  // Regression guard for the stale-`master` cache bug: `--against master`
+  // resolves to an immutable SHA, and the cache directory is keyed by that SHA
+  // (drift-<sha>), never by the moving branch name (drift-master). Fetches also
+  // use the resolved SHA — proven below by foo.ts resolving with no drift even
+  // though its content fixture is keyed by the SHA, not "master".
+  const { root, fixtures, scriptInRoot } = makeDriftFixture();
+  const SHA = "0123456789abcdef0123456789abcdef01234567"; // 40 hex
+  writeFile(root, "docs/reference/sample.md", "See cli/src/commands/foo.ts for details.\n");
+  // Resolve `master` → SHA via the commit stub.
+  writeFile(root, "_fixtures/commit-master.json", JSON.stringify({ sha: SHA }));
+  // Content fixture keyed by the RESOLVED SHA (not "master").
+  writeFixtureContents(fixtures, "cli/src/commands/foo.ts", SHA, { status: 200 });
+
+  const cacheDir = join(root, "_cache");
+  const r = spawnSync(process.execPath, [scriptInRoot, "--json", "--against", "master"], {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      PAPERCLIP_SYNC_FIXTURE_DIR: fixtures,
+      PAPERCLIP_SYNC_CACHE_DIR: cacheDir,
+    },
+  });
+  assert(r.status === 0, `expected exit 0, got ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  assert(
+    out.checked_against === `master (${SHA.slice(0, 7)})`,
+    `expected checked_against "master (${SHA.slice(0, 7)})", got ${out.checked_against}`
+  );
+  const pp = out.drift.filter((d) => d.kind === "parent-path-missing");
+  assert(pp.length === 0, `expected no parent-path drift (fetch used SHA), got ${JSON.stringify(pp)}`);
+  assert(existsSync(join(cacheDir, `drift-${SHA}`)), `expected cache dir drift-${SHA}`);
+  assert(
+    !existsSync(join(cacheDir, "drift-master")),
+    "cache must NOT be keyed by the moving ref name 'master'"
+  );
+
+  rmSync(root, { recursive: true, force: true });
+});
+
+test("check-drift: ref comes from .sync-state.json when --against is absent", () => {
+  // Mode-awareness: with no --against, the ref is taken from .sync-state.json
+  // (nightly → last_seen_parent_sha), not the moving default branch. repo.json
+  // still says the default branch is "master", so if mode-awareness were
+  // ignored the fetch would use "master" and foo.ts (keyed by the state SHA)
+  // would 404 into drift.
+  const { root, fixtures, scriptInRoot } = makeDriftFixture();
+  const SHA = "89abcdef0123456789abcdef0123456789abcdef"; // 40 hex
+  writeFile(
+    root,
+    ".sync-state.json",
+    JSON.stringify({ branch_mode: "nightly", last_seen_parent_sha: SHA })
+  );
+  writeFile(root, "docs/reference/sample.md", "See cli/src/commands/foo.ts for details.\n");
+  writeFixtureContents(fixtures, "cli/src/commands/foo.ts", SHA, { status: 200 });
+
+  const r = spawnSync(process.execPath, [scriptInRoot, "--json"], {
+    encoding: "utf8",
+    env: { ...process.env, PAPERCLIP_SYNC_FIXTURE_DIR: fixtures },
+  });
+  assert(r.status === 0, `expected exit 0, got ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  assert(
+    out.checked_against === SHA.slice(0, 7),
+    `expected checked_against ${SHA.slice(0, 7)}, got ${out.checked_against}`
+  );
+  const pp = out.drift.filter((d) => d.kind === "parent-path-missing");
+  assert(pp.length === 0, `expected no parent-path drift (fetch used state SHA), got ${JSON.stringify(pp)}`);
+
+  rmSync(root, { recursive: true, force: true });
+});
+
 // ----------------------------------------------------------------------------
 // verify-edit (unit, fixture-driven)
 // ----------------------------------------------------------------------------
