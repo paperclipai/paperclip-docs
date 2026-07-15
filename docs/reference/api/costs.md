@@ -36,6 +36,7 @@ Common optional fields:
 - `billingCode` for your own accounting label
 - `biller` if the charge came from a billing entity different from `provider`
 - `billingType` if you want to distinguish `metered_api`, `subscription_included`, `subscription_overage`, `credits`, `fixed`, or `unknown`
+- `costStatus` to mark whether the usage is priced — `reported` for normal spend, or `unpriced` when you recorded token usage but no dollar cost was available
 - `inputTokens`, `cachedInputTokens`, `outputTokens` for token-level reporting
 
 Rules from the implementation:
@@ -45,7 +46,10 @@ Rules from the implementation:
 - Agent-authenticated calls can only report that agent’s own costs.
 - `biller` defaults to `provider` when omitted.
 - `billingType` defaults to `unknown` when omitted.
+- `costStatus` defaults to `reported` when omitted.
 - `occurredAt` must be an ISO datetime string.
+
+> **Priced vs. unpriced usage.** Most cost events carry a real `costCents` amount, so they stay `reported`. When an agent run uses tokens but Paperclip can't determine a dollar cost — for example a local CLI whose per-token pricing isn't known — the usage is recorded with `costStatus` set to `unpriced` instead of being logged as if it cost nothing. That keeps the token counts on the record while flagging that the money figure is an unknown rather than a real zero.
 
 When the event is accepted, Paperclip:
 
