@@ -46,6 +46,7 @@ These variables matter most once you move beyond a default local install.
 | `PAPERCLIP_AGENT_JWT_TTL_SECONDS` | Agent JWT lifetime in seconds. |
 | `PAPERCLIP_AGENT_JWT_ISSUER` | Agent JWT issuer. |
 | `PAPERCLIP_AGENT_JWT_AUDIENCE` | Agent JWT audience. |
+| `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` | Signing secret for tool action approvals. Unlike `BETTER_AUTH_SECRET` it has no fallback — if it is unset, the server cannot issue signed tool action approvals and raises `ToolActionSigningSecretMissingError`. Set it in the instance's own environment; worktrees inherit it from `.paperclip/.env`. For local development the `.env.example` ships `paperclip-dev-tool-action-signing-secret-change-me`. |
 
 Related deployment variables:
 
