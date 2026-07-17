@@ -51,8 +51,16 @@
           "file": "../docs/guides/day-to-day/dashboard.md"
         },
         {
+          "title": "Command Palette",
+          "file": "../docs/guides/day-to-day/command-palette.md"
+        },
+        {
           "title": "Issues",
           "file": "../docs/guides/day-to-day/issues.md"
+        },
+        {
+          "title": "Work Modes",
+          "file": "../docs/guides/day-to-day/work-modes.md"
         },
         {
           "title": "Artifacts",
@@ -73,6 +81,10 @@
         {
           "title": "Activity Log",
           "file": "../docs/guides/day-to-day/activity-log.md"
+        },
+        {
+          "title": "Work Timeline",
+          "file": "../docs/guides/day-to-day/work-timeline.md"
         },
         {
           "title": "Feedback & Voting",
@@ -101,6 +113,10 @@
         {
           "title": "Org Structure",
           "file": "../docs/guides/org/org-structure.md"
+        },
+        {
+          "title": "Members & Access",
+          "file": "../docs/guides/org/members-and-access.md"
         },
         {
           "title": "Delegation",
@@ -137,6 +153,14 @@
         {
           "title": "Execution Workspaces",
           "file": "../docs/guides/projects-workflow/workspaces.md"
+        },
+        {
+          "title": "Custom Sandbox Images",
+          "file": "../docs/guides/projects-workflow/custom-sandbox-images.md"
+        },
+        {
+          "title": "Task Watchdogs",
+          "file": "../docs/guides/projects-workflow/task-watchdogs.md"
         }
       ]
     },
@@ -164,79 +188,141 @@
       "tier": "Learn",
       "title": "How-to Guides",
       "icon": "wrench",
-      "desc": "Field-tested recipes for specific problems \u2014 short, copy-pasteable, current.",
+      "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",
       "pages": [
         {
-          "title": "Set a Monthly Budget",
-          "file": "../docs/how-to/set-monthly-budget.md"
+          "title": "Members & Access",
+          "pages": [
+            {
+              "title": "Enable Multi-User Login",
+              "file": "../docs/how-to/enable-multi-user-login.md"
+            },
+            {
+              "title": "Add a Human Teammate",
+              "file": "../docs/how-to/add-a-human-teammate.md"
+            },
+            {
+              "title": "Offboard a Member",
+              "file": "../docs/how-to/offboard-a-member.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+            }
+          ]
         },
         {
-          "title": "Require Approval Before Spend",
-          "file": "../docs/how-to/require-board-approval-before-spend.md"
+          "title": "Governance & Budget",
+          "pages": [
+            {
+              "title": "Set a Monthly Budget",
+              "file": "../docs/how-to/set-monthly-budget.md"
+            },
+            {
+              "title": "Require Approval Before Spend",
+              "file": "../docs/how-to/require-board-approval-before-spend.md"
+            },
+            {
+              "title": "Handle Board Approvals for Hires",
+              "file": "../docs/how-to/handle-board-approvals-for-hires.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+            }
+          ]
         },
         {
-          "title": "Create a Daily Routine",
-          "file": "../docs/how-to/create-a-daily-routine.md"
+          "title": "Agents & Skills",
+          "pages": [
+            {
+              "title": "Bring Your Own Agent",
+              "file": "../docs/how-to/bring-your-own-agent.md"
+            },
+            {
+              "title": "Connect an Agent to GitHub",
+              "file": "../docs/how-to/connect-agent-to-github.md"
+            },
+            {
+              "title": "Add an MCP Server to an Agent",
+              "file": "../docs/how-to/add-mcp-server-to-agent.md"
+            },
+            {
+              "title": "Write a Company Skill",
+              "file": "../docs/how-to/write-a-company-skill.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+            }
+          ]
         },
         {
-          "title": "Connect an Agent to GitHub",
-          "file": "../docs/how-to/connect-agent-to-github.md"
+          "title": "Automation & Notifications",
+          "pages": [
+            {
+              "title": "Create a Daily Routine",
+              "file": "../docs/how-to/create-a-daily-routine.md"
+            },
+            {
+              "title": "Wire Slack/Discord Notifications",
+              "file": "../docs/how-to/wire-slack-discord-notifications.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+            }
+          ]
         },
         {
-          "title": "Update or Rotate a Provider API Key",
-          "file": "../docs/how-to/rotate-provider-api-key.md"
+          "title": "Secrets & Providers",
+          "pages": [
+            {
+              "title": "Update or Rotate a Provider API Key",
+              "file": "../docs/how-to/rotate-provider-api-key.md"
+            },
+            {
+              "title": "Connect an AWS Secrets Manager Vault",
+              "file": "../docs/how-to/connect-aws-secrets-vault.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+            }
+          ]
         },
         {
-          "title": "Update Paperclip to the Latest Version",
-          "file": "../docs/how-to/update-paperclip.md"
-        },
-        {
-          "title": "Add an MCP Server to an Agent",
-          "file": "../docs/how-to/add-mcp-server-to-agent.md"
-        },
-        {
-          "title": "Write a Company Skill",
-          "file": "../docs/how-to/write-a-company-skill.md"
-        },
-        {
-          "title": "Bring Your Own Agent",
-          "file": "../docs/how-to/bring-your-own-agent.md"
-        },
-        {
-          "title": "Deploy to a VPS or Fly.io",
-          "file": "../docs/how-to/deploy-to-vps-or-fly.md"
-        },
-        {
-          "title": "Back Up and Restore a Company",
-          "file": "../docs/how-to/back-up-and-restore-a-company.md"
-        },
-        {
-          "title": "Debug a Stuck Heartbeat",
-          "file": "../docs/how-to/debug-stuck-heartbeat.md"
-        },
-        {
-          "title": "Handle Board Approvals for Hires",
-          "file": "../docs/how-to/handle-board-approvals-for-hires.md"
-        },
-        {
-          "title": "Wire Slack/Discord Notifications",
-          "file": "../docs/how-to/wire-slack-discord-notifications.md"
-        },
-        {
-          "title": "Develop a plugin locally",
-          "file": "../docs/how-to/develop-a-plugin-locally.md"
-        },
-        {
-          "title": "Sync to Cloud Upstream",
-          "file": "../docs/how-to/sync-to-cloud-upstream.md"
-        },
-        {
-          "title": "Connect an AWS Secrets Manager Vault",
-          "file": "../docs/how-to/connect-aws-secrets-vault.md"
-        },
-        {
-          "title": "Build a BuyWhere Shopping Agent",
-          "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+          "title": "Deploy & Maintain",
+          "pages": [
+            {
+              "title": "Deploy to a VPS or Fly.io",
+              "file": "../docs/how-to/deploy-to-vps-or-fly.md"
+            },
+            {
+              "title": "Update Paperclip to the Latest Version",
+              "file": "../docs/how-to/update-paperclip.md"
+            },
+            {
+              "title": "Back Up and Restore a Company",
+              "file": "../docs/how-to/back-up-and-restore-a-company.md"
+            },
+            {
+              "title": "Debug a Stuck Heartbeat",
+              "file": "../docs/how-to/debug-stuck-heartbeat.md"
+            },
+            {
+              "title": "Sync to Cloud Upstream",
+              "file": "../docs/how-to/sync-to-cloud-upstream.md"
+            },
+            {
+              "title": "Develop a plugin locally",
+              "file": "../docs/how-to/develop-a-plugin-locally.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+            }
+          ]
         }
       ]
     },
@@ -244,11 +330,19 @@
       "tier": "Learn",
       "title": "Administration",
       "icon": "shield",
-      "desc": "Company settings, instance configuration, plugins, and CLI auth \u2014 for operators and admins.",
+      "desc": "Company settings, instance configuration, plugins, and CLI auth — for operators and admins.",
       "pages": [
         {
           "title": "Company",
           "file": "../docs/administration/company.md"
+        },
+        {
+          "title": "Roles & Permissions",
+          "file": "../docs/administration/roles-and-permissions.md"
+        },
+        {
+          "title": "Secret Scopes",
+          "file": "../docs/administration/secret-scopes.md"
         },
         {
           "title": "Settings",
@@ -293,6 +387,10 @@
         {
           "title": "Issues",
           "file": "../docs/reference/api/issues.md"
+        },
+        {
+          "title": "Checkbox Confirmations",
+          "file": "../docs/reference/api/checkbox-confirmations.md"
         },
         {
           "title": "Approvals",
@@ -485,6 +583,126 @@
         {
           "title": "Skills Reference",
           "file": "../docs/reference/skills.md"
+        },
+        {
+          "title": "Bundled",
+          "pages": [
+            {
+              "title": "Overview",
+              "file": "../docs/reference/skills/bundled.md"
+            },
+            {
+              "title": "Docs",
+              "pages": [
+                {
+                  "title": "Doc Maintenance",
+                  "file": "../docs/reference/skills/bundled/docs/doc-maintenance.md"
+                }
+              ]
+            },
+            {
+              "title": "Paperclip Operations",
+              "pages": [
+                {
+                  "title": "Issue Triage",
+                  "file": "../docs/reference/skills/bundled/paperclip-operations/issue-triage.md"
+                },
+                {
+                  "title": "Task Planning",
+                  "file": "../docs/reference/skills/bundled/paperclip-operations/task-planning.md"
+                }
+              ]
+            },
+            {
+              "title": "Product",
+              "pages": [
+                {
+                  "title": "Wireframe",
+                  "file": "../docs/reference/skills/bundled/product/wireframe.md"
+                }
+              ]
+            },
+            {
+              "title": "Quality",
+              "pages": [
+                {
+                  "title": "QA Acceptance",
+                  "file": "../docs/reference/skills/bundled/quality/qa-acceptance.md"
+                }
+              ]
+            },
+            {
+              "title": "Software Development",
+              "pages": [
+                {
+                  "title": "GitHub PR Workflow",
+                  "file": "../docs/reference/skills/bundled/software-development/github-pr-workflow.md"
+                }
+              ]
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+            }
+          ]
+        },
+        {
+          "title": "Optional",
+          "pages": [
+            {
+              "title": "Overview",
+              "file": "../docs/reference/skills/optional.md"
+            },
+            {
+              "title": "Browser",
+              "pages": [
+                {
+                  "title": "Agent Browser",
+                  "file": "../docs/reference/skills/optional/browser/agent-browser.md"
+                }
+              ]
+            },
+            {
+              "title": "Content",
+              "pages": [
+                {
+                  "title": "Release Announcement",
+                  "file": "../docs/reference/skills/optional/content/release-announcement.md"
+                }
+              ]
+            },
+            {
+              "title": "Finance",
+              "pages": [
+                {
+                  "title": "Ramp",
+                  "file": "../docs/reference/skills/optional/finance/ramp.md"
+                }
+              ]
+            },
+            {
+              "title": "Product",
+              "pages": [
+                {
+                  "title": "Design Critique",
+                  "file": "../docs/reference/skills/optional/product/design-critique.md"
+                }
+              ]
+            },
+            {
+              "title": "Research",
+              "pages": [
+                {
+                  "title": "Last30Days",
+                  "file": "../docs/reference/skills/optional/research/last30days.md"
+                }
+              ]
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+            }
+          ]
         }
       ]
     },
@@ -492,23 +710,23 @@
       "tier": "Reference",
       "title": "Adapters",
       "icon": "plug",
-      "desc": "Connect any agent runtime \u2014 Claude, Codex, Gemini, or your own HTTP service.",
+      "desc": "Connect any agent runtime — Claude, Codex, Gemini, or your own HTTP service.",
       "pages": [
         {
           "title": "Overview",
           "file": "../docs/reference/adapters/overview.md"
         },
         {
-          "title": "Claude Local",
-          "file": "../docs/reference/adapters/claude-local.md"
+          "title": "Claude Code",
+          "file": "../docs/reference/adapters/claude-code.md"
         },
         {
-          "title": "Codex Local",
-          "file": "../docs/reference/adapters/codex-local.md"
+          "title": "Codex",
+          "file": "../docs/reference/adapters/codex.md"
         },
         {
-          "title": "Gemini Local",
-          "file": "../docs/reference/adapters/gemini-local.md"
+          "title": "Gemini CLI",
+          "file": "../docs/reference/adapters/gemini-cli.md"
         },
         {
           "title": "Cursor Local",
@@ -523,16 +741,20 @@
           "file": "../docs/reference/adapters/acpx-local.md"
         },
         {
-          "title": "OpenCode Local",
-          "file": "../docs/reference/adapters/opencode-local.md"
+          "title": "OpenCode",
+          "file": "../docs/reference/adapters/opencode.md"
         },
         {
-          "title": "Pi Local",
-          "file": "../docs/reference/adapters/pi-local.md"
+          "title": "Pi",
+          "file": "../docs/reference/adapters/pi.md"
         },
         {
-          "title": "Hermes Local",
-          "file": "../docs/reference/adapters/hermes-local.md"
+          "title": "Hermes",
+          "file": "../docs/reference/adapters/hermes.md"
+        },
+        {
+          "title": "Hermes Gateway",
+          "file": "../docs/reference/adapters/hermes-gateway.md"
         },
         {
           "title": "Grok Local",
@@ -596,7 +818,7 @@
       "tier": "Reference",
       "title": "Deployment",
       "icon": "cloud",
-      "desc": "Run Paperclip on your laptop, in Docker, or on a server \u2014 with secrets and Tailscale.",
+      "desc": "Run Paperclip on your laptop, in Docker, or on a server — with secrets and Tailscale.",
       "pages": [
         {
           "title": "Overview",
