@@ -204,6 +204,11 @@
             {
               "title": "Offboard a Member",
               "file": "../docs/how-to/offboard-a-member.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+
             }
           ]
         },
@@ -221,6 +226,11 @@
             {
               "title": "Handle Board Approvals for Hires",
               "file": "../docs/how-to/handle-board-approvals-for-hires.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+
             }
           ]
         },
@@ -242,6 +252,11 @@
             {
               "title": "Write a Company Skill",
               "file": "../docs/how-to/write-a-company-skill.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+
             }
           ]
         },
@@ -255,6 +270,11 @@
             {
               "title": "Wire Slack/Discord Notifications",
               "file": "../docs/how-to/wire-slack-discord-notifications.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+
             }
           ]
         },
@@ -268,6 +288,11 @@
             {
               "title": "Connect an AWS Secrets Manager Vault",
               "file": "../docs/how-to/connect-aws-secrets-vault.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+
             }
           ]
         },
@@ -297,6 +322,11 @@
             {
               "title": "Develop a plugin locally",
               "file": "../docs/how-to/develop-a-plugin-locally.md"
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+
             }
           ]
         }
@@ -615,6 +645,11 @@
                   "file": "../docs/reference/skills/bundled/software-development/github-pr-workflow.md"
                 }
               ]
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+
             }
           ]
         },
@@ -669,6 +704,11 @@
                   "file": "../docs/reference/skills/optional/research/last30days.md"
                 }
               ]
+            },
+            {
+              "title": "Build a BuyWhere Shopping Agent",
+              "file": "../docs/how-to/build-a-buywhere-shopping-agent.md"
+
             }
           ]
         }
