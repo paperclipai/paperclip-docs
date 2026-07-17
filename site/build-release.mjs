@@ -516,6 +516,31 @@ function slugifyHeadingText(text) {
     .replace(/-+/g, "-");
 }
 
+function markedLinkArgs(args, renderer) {
+  const [hrefOrToken, title, text] = args;
+  if (hrefOrToken && typeof hrefOrToken === "object") {
+    const token = hrefOrToken;
+    return {
+      href: token.href || "",
+      title: token.title || "",
+      text: Array.isArray(token.tokens) && renderer?.parser
+        ? renderer.parser.parseInline(token.tokens)
+        : token.text || "",
+    };
+  }
+  return { href: hrefOrToken || "", title: title || "", text: text || "" };
+}
+
+function releaseMarkdownLinkForPage(page, pages, basePath) {
+  return function releaseMarkdownLink(...args) {
+    const { href, title, text } = markedLinkArgs(args, this);
+    const rewrittenHref = rewriteLocalMarkdownHref(href, page, pages, basePath);
+    const attrs = [`href="${escapeAttr(rewrittenHref)}"`];
+    if (title) attrs.push(`title="${escapeAttr(title)}"`);
+    return `<a ${attrs.join(" ")}>${text}</a>`;
+  };
+}
+
 function markdownToPlainText(markdown) {
   return markdown
     .replace(/```[\s\S]*?```/g, " ")
@@ -551,6 +576,26 @@ function siteUrlForPath(siteUrl, basePath, routePath = "") {
 
 function routeUrlForPage(siteUrl, basePath, page) {
   return siteUrlForPath(siteUrl, basePath, `${page.slug}/`);
+}
+
+function routeHrefForPage(basePath, page, heading = "") {
+  const publicBasePath = basePath === "auto" ? "/" : basePath;
+  const suffix = heading ? `#${heading}` : "";
+  return `${publicBasePath}${page.slug}/${suffix}`;
+}
+
+function rewriteLocalMarkdownHref(href, currentPage, pages, basePath) {
+  if (!href || !isLocalDocHref(href)) return href;
+
+  const hashIndex = href.indexOf("#");
+  const docHref = hashIndex === -1 ? href : href.slice(0, hashIndex);
+  const headingHref = hashIndex === -1 ? "" : href.slice(hashIndex + 1);
+  if (!docHref.endsWith(".md")) return href;
+
+  const baseDir = currentPage.file.replace(/\/[^/]+$/, "/");
+  const targetFile = normalizeDocPath(baseDir + docHref);
+  const targetPage = pages.find((page) => page.file === targetFile);
+  return targetPage ? routeHrefForPage(basePath, targetPage, headingHref) : href;
 }
 
 function buildJsonLd(metadata) {
@@ -933,10 +978,11 @@ function preprocessTabs(markdown) {
   return output;
 }
 
-function renderStaticMarkdown(markdown) {
+function renderStaticMarkdown(markdown, page, pages, basePath) {
   const renderer = new marked.Renderer();
   const usedHeadingIds = new Set();
   renderer.image = releaseMarkdownImage;
+  renderer.link = releaseMarkdownLinkForPage(page, pages, basePath);
   renderer.heading = (html, level, rawText) => {
     const baseId = slugifyHeadingText(rawText) || `h${level}`;
     let id = baseId;
@@ -956,8 +1002,8 @@ function inlineReleaseStyles(html, css) {
   );
 }
 
-function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles) {
-  const articleHtml = renderStaticMarkdown(markdown);
+function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles, pages) {
+  const articleHtml = renderStaticMarkdown(markdown, metadata.page, pages, basePath);
   const routeBaseHref = basePath === "auto" ? "/" : basePath;
   return inlineReleaseStyles(injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref }), releaseStyles)
     .replace('<section id="landing">', '<section id="landing">')
@@ -967,6 +1013,7 @@ function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseS
 }
 
 async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodiesByFile, basePath, releaseStyles }) {
+  const navPages = pages.map((metadata) => metadata.page);
   for (const metadata of pages) {
     const { page } = metadata;
     const markdown = markdownBodiesByFile.get(page.file);
@@ -976,7 +1023,7 @@ async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodie
       throw new Error(`Refusing to write route outside release directory: ${page.slug}`);
     }
     await ensureDir(path.dirname(routePath));
-    await fs.writeFile(routePath, buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles));
+    await fs.writeFile(routePath, buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles, navPages));
   }
 }
 
