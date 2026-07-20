@@ -38,6 +38,7 @@ The branch model is non-negotiable: end users on the latest *released* paperclip
 - `scripts/sync/check-drift.mjs` — Phase 1.5 drift detection (finds documented surfaces missing from parent).
 - `scripts/sync/detect-renames.mjs` — Phase 3 directory rename detection (distinguishes a renamed surface from a brand-new one).
 - `scripts/sync/verify-edit.mjs` — Phase 5.5 post-edit verification (checks that authored claims still match parent code).
+- `scripts/sync/realign-nightly.mjs` — post-release realign (Phase 7): fast-forwards `nightly` onto the merged release branch and re-anchors the merge-base after the squash-merge severs ancestry.
 
 ## Invocation
 
@@ -72,6 +73,7 @@ The branch model is non-negotiable: end users on the latest *released* paperclip
    - Release mode: ensure on `main`. Release mode is **self-sufficient** — it does not require the `nightly` branch to exist or to have drafts. If `nightly` exists with relevant drafts, they're used as a starting point; if not, the release run computes everything from scratch.
    - Nightly mode: ensure on `nightly`. If `nightly` doesn't exist, create it from `main`.
 5. Nightly mode only: **merge `main` into `nightly` first** to absorb any hot-fix typos that landed on released docs. Resolve trivially or abort if conflicts need human attention.
+   - **Ancestry guard (squash-only repo).** Before merging, check `git merge-base --is-ancestor <last release squash commit> nightly` — practically: does the merge produce add/add conflicts on pages both branches created? This repo squash-merges release PRs, which severs the ancestry between `main` and `nightly`; if the post-release realign was skipped, this merge explodes into add/add conflicts on every page nightly drafted that cycle. If that happens, do NOT resolve by hand — abort and run `node scripts/sync/realign-nightly.mjs <release-branch>` (see Phase 8 and the special case below), then retry.
 
 ### Phase 2 — Resolve the diff window (cumulative)
 
@@ -290,6 +292,14 @@ Both commands spin up an isolated `local_trusted` / `loopback` Paperclip instanc
    - Nightly PR-tier edits → branch `nightly-draft/<short-sha>-<surface>` off `nightly`, open PR against `nightly`.
    - Release mode → branch `release/v2026.X.Y` off `nightly`, open PR against `main` titled `Release docs for paperclip v2026.X.Y`. PR body = manifest + screenshot staleness + structured sections (below) + checklist.
 
+     **Squash-merge consequence.** This repo is squash-only (`gh pr merge --squash`). Squashing the release PR breaks the ancestry between `main` and `nightly` — the squash commit has no parent link to the nightly commits that produced it. Therefore, **immediately after the release PR merges**, run:
+
+     ```sh
+     node scripts/sync/realign-nightly.mjs release/v2026.X.Y --push
+     ```
+
+     It fast-forwards `nightly` onto the release branch, merges `origin/main` back in to re-anchor the merge-base at the squash commit, verifies main's tip is an ancestor of nightly, and pushes. Skipping this arms an add/add conflict trap that detonates at the next nightly run (see the special case below). Do not run any nightly-mode sync between the squash-merge and the realign.
+
    PR body structured sections (each omitted if empty — never silently dropped):
 
    - `### ⚠ Drift` — every drift candidate from Phase 1.5 grouped by `kind`, high-confidence first, medium-confidence prefixed with `Verify:`. Never auto-resolved — the PR explicitly asks the reviewer to act on each entry (update path, delete section, or confirm false positive).
@@ -337,6 +347,9 @@ Fix directly on `main` of this repo. The skill's "merge main into nightly at sta
 
 ### Renames on parent (e.g. `cli/src/commands` → `apps/cli/src/cmds`)
 Anchor-map watchers will report "no changes detected" for many runs even though parent is clearly active. Fix `anchor-map.json` to the new paths. The next run will pick up the cumulative diff against the new paths correctly.
+
+### Release PR was squashed and nightly was not realigned
+Symptom: the next nightly run's "merge `main` into `nightly`" fails with add/add conflicts on pages both branches created (nightly's unstamped drafts vs main's release-stamped copies). Cause: this repo is squash-only, so the release squash commit has no ancestry link back to nightly, and the realign step (Phase 7) was skipped. Recovery: abort the merge (`git merge --abort`), then run `node scripts/sync/realign-nightly.mjs <release-branch> --push`. If the local release branch was already deleted, recreate it from the last pre-merge SHA (`git branch release/vX.Y.Z <sha>` — find it in the merged PR's head) or, if main has had no commits since the squash, `git checkout nightly && git merge origin/main -X theirs` is NOT safe (it can silently drop post-tag nightly drafts) — prefer recreating the branch. Never `git reset --hard origin/main` on nightly: it destroys drafts for parent features that shipped after the release tag.
 
 ### Nightly branch has open PRs against it when a release ships
 The release PR merges `nightly` → `main`. If there are open nightly-draft PRs, they get included in the release if merged into `nightly` first, or remain on `nightly` for the next release cycle if not. The skill should list open `nightly-draft/*` PRs in the release-PR body so the human reviewer can decide.

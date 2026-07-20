@@ -181,7 +181,8 @@ flowchart LR
         direction TB
         docsmain["main<br/>(docs.paperclip.ing — released)"]
         nightly["nightly<br/>(preview URL — draft state)"]
-        nightly -- "release PR<br/>(when parent tags)" --> docsmain
+        nightly -- "release PR (squash-merged)<br/>(when parent tags)" --> docsmain
+        docsmain -- "realign-nightly.mjs<br/>(required after every release —<br/>squash severs ancestry)" --> nightly
         docsmain -- "merge main → nightly<br/>(at every nightly run,<br/>absorbs hot-fix typos)" --> nightly
     end
 
@@ -335,6 +336,7 @@ Both modes use **cumulative diffs** — always from `base_release_tag` in `.sync
 - Diffs `base_release_tag → new_tag`.
 - Most of the work is already done by nightly drafts; this mode mainly verifies completeness, stamps `paperclip_version` frontmatter, and opens a single PR: `Release docs for paperclip vX.Y.Z` (merges `nightly` → `main`).
 - On merge to `main`, tag this repo `docs/vX.Y.Z`, Cloudflare deploys live.
+- **Immediately after the squash-merge, run `node scripts/sync/realign-nightly.mjs release/vX.Y.Z --push`.** The repo is squash-only, so the merge severs `main`↔`nightly` ancestry; the realign fast-forwards `nightly` onto the shipped content and re-anchors the merge-base. Skipping it makes the next nightly run fail with add/add conflicts on every page drafted that cycle.
 
 ### Running the skill
 
