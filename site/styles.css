@@ -43,20 +43,21 @@
       --transition: 0.2s ease;
     }
 
-    /* ─── Dark theme — warm charcoal + manila cream ──────────── */
+    /* ─── Dark theme — warm charcoal + white text ────────────── */
     [data-theme="dark"] {
       --white:      #1f1d1a;            /* surface */
       --linen:      #141413;            /* page background — charcoal */
       --parchment:  #2a2724;            /* raised surface */
       --stone:      #2f2c28;            /* rule / border */
       --stone-dark: #3a3836;            /* border hover */
-      --ink:        #f3e6c4;            /* manila — primary text */
+      --ink:        #ffffff;            /* primary text */
       --graphite:   #9a958a;            /* secondary text (brand --text-2 dark) */
       --ash:        #8a8579;            /* muted text — raised from brand #6E6960 for WCAG AA (~5:1) since --ash is reused for normal-size text */
       --void:       #0d0d0d;
       --mint:       rgba(34,197,94,0.12);
     }
-    [data-theme="dark"] #article pre { background: #0d0d0d; color: #f3e6c4; }
+    [data-theme="dark"] #article { color: var(--ink); }
+    [data-theme="dark"] #article pre { background: #0d0d0d; color: #ffffff; }
     [data-theme="dark"] #header { background: rgba(20,20,19,0.92); backdrop-filter: blur(8px); }
 
     html {
@@ -168,8 +169,8 @@
       transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
     }
     .navbar-cta:hover { background: var(--white); color: var(--ink); border-color: var(--ink); }
-    [data-theme="dark"] .navbar-cta { color: #141413; background: #f3e6c4; border-color: #f3e6c4; }
-    [data-theme="dark"] .navbar-cta:hover { background: transparent; color: #f3e6c4; border-color: #f3e6c4; }
+    [data-theme="dark"] .navbar-cta { color: #141413; background: #ffffff; border-color: #ffffff; }
+    [data-theme="dark"] .navbar-cta:hover { background: transparent; color: #ffffff; border-color: #ffffff; }
     .navbar-cta-count { font-size: 0.75rem; font-weight: 600; opacity: 0.7; margin-left: 0.1rem; }
 
     /* ─── Navbar search trigger ──────────────────────────────── */
@@ -411,7 +412,7 @@
       /* Pin to paperclip.ing dark palette regardless of page theme */
       --bg: #141413;
       --surface: #1F1D1A;
-      --ink-t: #F3E6C4;
+      --ink-t: #FFFFFF;
       --mono: #9A958A;
       --rule: #2F2C28;
       background: var(--bg);
