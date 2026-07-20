@@ -190,6 +190,58 @@
     },
     {
       "tier": "Learn",
+      "title": "Experimental",
+      "icon": "flask-conical",
+      "desc": "Opt-in features that ship behind flags — what each one does, why it exists, and how to turn it on.",
+      "pages": [
+        {
+          "title": "Overview",
+          "file": "../docs/experimental/overview.md"
+        },
+        {
+          "title": "Environments",
+          "file": "../docs/experimental/environments.md"
+        },
+        {
+          "title": "Isolated Workspaces",
+          "file": "../docs/experimental/isolated-workspaces.md"
+        },
+        {
+          "title": "Experimental File Viewer",
+          "file": "../docs/experimental/file-viewer.md"
+        },
+        {
+          "title": "External Objects",
+          "file": "../docs/experimental/external-objects.md"
+        },
+        {
+          "title": "Task Plan Decomposition Panel",
+          "file": "../docs/experimental/plan-decomposition-panel.md"
+        },
+        {
+          "title": "Task Watchdogs",
+          "file": "../docs/experimental/task-watchdogs.md"
+        },
+        {
+          "title": "Cloud Sync",
+          "file": "../docs/experimental/cloud-sync.md"
+        },
+        {
+          "title": "Server Info Debug View",
+          "file": "../docs/experimental/server-info-debug-view.md"
+        },
+        {
+          "title": "Auto-Restart Dev Server",
+          "file": "../docs/experimental/auto-restart-dev-server.md"
+        },
+        {
+          "title": "Auto-Create Recovery Tasks",
+          "file": "../docs/experimental/auto-create-recovery-tasks.md"
+        }
+      ]
+    },
+    {
+      "tier": "Learn",
       "title": "How-to Guides",
       "icon": "wrench",
       "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",

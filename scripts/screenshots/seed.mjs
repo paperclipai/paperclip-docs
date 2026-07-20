@@ -671,11 +671,57 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     skillId = (list.find((s) => s.slug === "code-review") ?? list[0])?.id ?? null;
   });
 
-  // 14e. Enable isolated workspaces so /workspaces renders (otherwise the page
-  // redirects to /issues). Endpoint: PATCH /api/instance/settings/experimental.
-  await step("enable isolated workspaces flag", async () => {
-    await api("PATCH", "/api/instance/settings/experimental", { enableIsolatedWorkspaces: true }, baseUrl);
-    console.log("[seed] enabled isolated workspaces");
+  // 14e. Enable the experimental flags whose surfaces the docs screenshot:
+  // isolated workspaces (otherwise /workspaces redirects to /issues) plus the
+  // flags documented in docs/experimental/. Auto-recovery is left off so the
+  // seeded board doesn't grow recovery tasks mid-capture.
+  // Endpoint: PATCH /api/instance/settings/experimental.
+  await step("enable experimental flags", async () => {
+    await api("PATCH", "/api/instance/settings/experimental", {
+      enableIsolatedWorkspaces: true,
+      enableEnvironments: true,
+      enableExperimentalFileViewer: true,
+      enableExternalObjects: true,
+      enableTaskWatchdogs: true,
+      enableCloudSync: true,
+      enableServerInfoDebugView: true,
+      enableIssuePlanDecompositions: true,
+    }, baseUrl);
+    console.log("[seed] enabled experimental flags");
+  });
+
+  // 14e-2. An issue that references external work objects (GitHub PR/issue
+  // URLs) for the external-objects screenshot. Created after the flag flips on
+  // so URL detection runs on create; the refresh call resolves live status when
+  // the capture host has GitHub egress (non-fatal when offline).
+  let externalObjectIssueId = null;
+  await step("create external-object issue", async () => {
+    const existing = asList(await get(C("/issues"), baseUrl)).find((i) => i.title === "Adopt upstream sandbox proxy fix");
+    let issue = existing;
+    if (!issue) {
+      issue = await post(
+        C("/issues"),
+        {
+          title: "Adopt upstream sandbox proxy fix",
+          description:
+            "Upstream shipped the fix in https://github.com/paperclipai/paperclip/pull/8512 — verify it covers our case, tracked upstream in https://github.com/paperclipai/paperclip/issues/4419.",
+          status: "in_progress",
+          priority: "medium",
+          assigneeAgentId: workerAgentId ?? undefined,
+          projectId: projectId ?? undefined,
+        },
+        baseUrl,
+      );
+    }
+    externalObjectIssueId = issue?.id ?? null;
+    if (externalObjectIssueId) {
+      try {
+        await post(`/api/issues/${externalObjectIssueId}/external-objects/refresh`, {}, baseUrl);
+      } catch (err) {
+        console.warn("[seed] external-object refresh failed (non-fatal):", err.message);
+      }
+    }
+    console.log(`[seed] external-object issue → ${externalObjectIssueId}`);
   });
 
   // 14f. Approval items (fresh runs only — no natural key).
@@ -833,6 +879,7 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     emptyPrefix,
     httpAgentId,
     skillId,
+    externalObjectIssueId,
     runnerAgentId,
     runnerRunId,
     longRunnerAgentId,
