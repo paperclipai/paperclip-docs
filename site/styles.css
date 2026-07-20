@@ -56,6 +56,7 @@
       --void:       #0d0d0d;
       --mint:       rgba(34,197,94,0.12);
     }
+    [data-theme="dark"] #article { color: var(--ink); }
     [data-theme="dark"] #article pre { background: #0d0d0d; color: #ffffff; }
     [data-theme="dark"] #header { background: rgba(20,20,19,0.92); backdrop-filter: blur(8px); }
 
