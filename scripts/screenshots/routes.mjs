@@ -807,6 +807,145 @@ export const CAPTURE_TARGETS = [
     route: "/{prefix}/issues/{issueId}",
     dependsOn: ["ui/src/pages/IssueDetail.tsx", "server/src/services/task-watchdogs.ts"],
   },
+
+  // ── Backfill: previously unrouted registry entries ──────────────────────────
+  // These 20 registry entries predate route wiring (route: null since April).
+  // None are currently referenced by a doc page — wired so they participate in
+  // staleness tracking and future capture passes. Routes verified against the
+  // v2026.720.0 route table (ui/src/App.tsx). dashboard/dashboard-overview-annotated
+  // stays out on purpose: it is hand-annotated (see "Left manual on purpose" above).
+
+  // Company creation modal — same harness limitation as onboarding/*: the seeded
+  // instance already has a company, so the sidebar "New company" dialog is the
+  // only reachable path; the goal/budget/saved states need the dialog steps to
+  // succeed (see maintenance/follow-ups.md: company-less capture pass).
+  {
+    name: "company/new-company-form",
+    route: "/{prefix}/dashboard",
+    dependsOn: ["ui/src/components/OnboardingWizard.tsx", "ui/src/components/Sidebar.tsx"],
+    steps: [{ click: { role: "button", name: /New company/i } }, { waitMs: 800 }],
+  },
+  {
+    name: "company/company-goal-field",
+    route: "/{prefix}/dashboard",
+    dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
+    steps: [{ click: { role: "button", name: /New company/i } }, { waitMs: 800 }],
+  },
+  {
+    name: "company/company-budget-setting",
+    route: "/{prefix}/dashboard",
+    dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
+    steps: [{ click: { role: "button", name: /New company/i } }, { waitMs: 800 }],
+  },
+  {
+    name: "company/company-saved",
+    route: "/{prefix}/company/settings",
+    dependsOn: ["ui/src/pages/CompanySettings.tsx"],
+  },
+  {
+    name: "onboarding/budget-field",
+    route: "/{prefix}/dashboard",
+    dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
+    steps: [{ click: { role: "button", name: /New company/i } }, { waitMs: 800 }],
+  },
+
+  // Dashboard panel clips (same pattern as dashboard/agent-status-panel).
+  {
+    name: "dashboard/cost-summary-panel",
+    route: "/{prefix}/dashboard",
+    dependsOn: ["ui/src/pages/Dashboard.tsx"],
+    clip: { css: 'xpath=(//*[contains(text(),"Cost") or contains(text(),"Spend")]/ancestor::div[contains(@class,"rounded")])[1]' },
+  },
+  {
+    name: "dashboard/stale-tasks-panel",
+    route: "/{prefix}/dashboard",
+    dependsOn: ["ui/src/pages/Dashboard.tsx"],
+    clip: { css: 'xpath=(//*[contains(text(),"Stale")]/ancestor::div[contains(@class,"rounded")])[1]' },
+  },
+
+  // Export / import — full pages double as the dialog surfaces.
+  {
+    name: "export-import/export-dialog",
+    route: "/{prefix}/company/export",
+    dependsOn: ["ui/src/pages/CompanyExport.tsx"],
+  },
+  {
+    name: "export-import/import-dialog",
+    route: "/{prefix}/company/import",
+    dependsOn: ["ui/src/pages/CompanyImport.tsx"],
+  },
+
+  // Org chart states.
+  {
+    name: "org/org-chart-add-agent",
+    route: "/{prefix}/org",
+    dependsOn: ["ui/src/pages/OrgChart.tsx"],
+    steps: [{ click: { role: "button", name: /Add agent/i } }, { waitMs: 600 }],
+  },
+  {
+    // Seed assigns Bob → Ada (manager), so the plain chart shows the assignment.
+    name: "org/org-chart-manager-assigned",
+    route: "/{prefix}/org",
+    dependsOn: ["ui/src/pages/OrgChart.tsx"],
+  },
+  {
+    name: "org/workspace-modes",
+    route: "/{prefix}/workspaces",
+    dependsOn: ["ui/src/pages/Workspaces.tsx"],
+  },
+
+  // Skills.
+  {
+    name: "skills/skills-list",
+    route: "/{prefix}/skills",
+    dependsOn: ["ui/src/pages/CompanySkills.tsx"],
+  },
+  {
+    name: "skills/skill-detail",
+    route: "/{prefix}/skills/{skillId}",
+    dependsOn: ["ui/src/pages/CompanySkills.tsx"],
+  },
+
+  // Tasks / inbox. There is no /issues/new route — creation is a dialog.
+  {
+    name: "tasks/inbox-view-with-filters",
+    route: "/{prefix}/inbox/all",
+    dependsOn: ["ui/src/pages/Inbox.tsx"],
+    steps: [{ click: { role: "button", name: /Filter/i } }, { waitMs: 500 }],
+  },
+  {
+    name: "tasks/new-task-form-empty",
+    route: "/{prefix}/inbox/mine",
+    dependsOn: ["ui/src/pages/Inbox.tsx"],
+    steps: [{ click: { role: "button", name: /New task|New issue/i } }, { waitMs: 800 }],
+  },
+  {
+    name: "tasks/new-task-form-filled",
+    route: "/{prefix}/inbox/mine",
+    dependsOn: ["ui/src/pages/Inbox.tsx"],
+    steps: [
+      { click: { role: "button", name: /New task|New issue/i } },
+      { waitMs: 600 },
+      { fill: { role: "textbox", nth: 0, value: "Draft the Q3 launch checklist" } },
+      { waitMs: 400 },
+    ],
+  },
+  {
+    name: "tasks/task-detail-in-progress",
+    route: "/{prefix}/issues/{issueId}",
+    dependsOn: ["ui/src/pages/IssueDetail.tsx"],
+  },
+  {
+    name: "tasks/task-done-status",
+    route: "/{prefix}/issues/done",
+    dependsOn: ["ui/src/pages/Inbox.tsx"],
+  },
+  {
+    name: "tasks/comment-input-box",
+    route: "/{prefix}/issues/{issueId}",
+    dependsOn: ["ui/src/pages/IssueDetail.tsx", "ui/src/components/CommentThread.tsx"],
+    clip: { css: 'xpath=//textarea/ancestor::div[contains(@class,"rounded")][1]' },
+  },
 ];
 
 // Hand-authored diagrams that live under the screenshots tree so they deploy with

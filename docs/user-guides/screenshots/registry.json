@@ -477,31 +477,34 @@
       "file": "dark/company/company-budget-setting.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx"
+      ]
     },
     {
       "file": "dark/company/company-goal-field.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx"
+      ]
     },
     {
       "file": "dark/company/company-saved.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/company/settings",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/CompanySettings.tsx"
+      ]
     },
     {
       "file": "dark/company/export.png",
@@ -551,11 +554,13 @@
       "file": "dark/company/new-company-form.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx",
+        "ui/src/components/Sidebar.tsx"
+      ]
     },
     {
       "file": "dark/company/settings.png",
@@ -739,11 +744,12 @@
       "file": "dark/dashboard/cost-summary-panel.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
     },
     {
       "file": "dark/dashboard/dashboard-overview-annotated.png",
@@ -753,7 +759,7 @@
       "captured_against": null,
       "captured_sha": null,
       "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "_note": "Hand-annotated asset — never auto-captured (see routes.mjs \"Left manual on purpose\"). Docs reference the plain dashboard/dashboard-overview instead."
     },
     {
       "file": "dark/dashboard/dashboard-overview.png",
@@ -770,11 +776,12 @@
       "file": "dark/dashboard/stale-tasks-panel.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
     },
     {
       "file": "dark/dashboard/task-breakdown-panel.png",
@@ -791,21 +798,23 @@
       "file": "dark/export-import/export-dialog.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/company/export",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/CompanyExport.tsx"
+      ]
     },
     {
       "file": "dark/export-import/import-dialog.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/company/import",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/CompanyImport.tsx"
+      ]
     },
     {
       "file": "dark/goals/detail.png",
@@ -933,11 +942,12 @@
       "file": "dark/onboarding/budget-field.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx"
+      ]
     },
     {
       "file": "dark/onboarding/empty-dashboard.png",
@@ -999,21 +1009,23 @@
       "file": "dark/org/org-chart-add-agent.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/org",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/OrgChart.tsx"
+      ]
     },
     {
       "file": "dark/org/org-chart-manager-assigned.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/org",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/OrgChart.tsx"
+      ]
     },
     {
       "file": "dark/org/org-chart-small-team.png",
@@ -1063,11 +1075,12 @@
       "file": "dark/org/workspace-modes.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/workspaces",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Workspaces.tsx"
+      ]
     },
     {
       "file": "dark/plugins/detail.png",
@@ -1397,31 +1410,35 @@
       "file": "dark/skills/skill-detail.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/skills/{skillId}",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
     },
     {
       "file": "dark/skills/skills-list.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/skills",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
     },
     {
       "file": "dark/tasks/comment-input-box.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/issues/{issueId}",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "ui/src/components/CommentThread.tsx"
+      ]
     },
     {
       "file": "dark/tasks/inbox-newly-created-tasks.png",
@@ -1438,11 +1455,12 @@
       "file": "dark/tasks/inbox-view-with-filters.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/inbox/all",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
     },
     {
       "file": "dark/tasks/inbox-view.png",
@@ -1459,31 +1477,34 @@
       "file": "dark/tasks/new-task-form-empty.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/inbox/mine",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
     },
     {
       "file": "dark/tasks/new-task-form-filled.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/inbox/mine",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
     },
     {
       "file": "dark/tasks/task-detail-in-progress.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/issues/{issueId}",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
     },
     {
       "file": "dark/tasks/task-detail-with-comments.png",
@@ -1500,11 +1521,12 @@
       "file": "dark/tasks/task-done-status.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/issues/done",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
     },
     {
       "file": "dark/watchdogs/watchdog-thread-outcome.png",
@@ -2118,31 +2140,34 @@
       "file": "light/company/company-budget-setting.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx"
+      ]
     },
     {
       "file": "light/company/company-goal-field.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx"
+      ]
     },
     {
       "file": "light/company/company-saved.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/company/settings",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/CompanySettings.tsx"
+      ]
     },
     {
       "file": "light/company/export.png",
@@ -2192,11 +2217,13 @@
       "file": "light/company/new-company-form.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx",
+        "ui/src/components/Sidebar.tsx"
+      ]
     },
     {
       "file": "light/company/settings.png",
@@ -2380,11 +2407,12 @@
       "file": "light/dashboard/cost-summary-panel.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
     },
     {
       "file": "light/dashboard/dashboard-overview-annotated.png",
@@ -2394,7 +2422,7 @@
       "captured_against": null,
       "captured_sha": null,
       "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "_note": "Hand-annotated asset — never auto-captured (see routes.mjs \"Left manual on purpose\"). Docs reference the plain dashboard/dashboard-overview instead."
     },
     {
       "file": "light/dashboard/dashboard-overview.png",
@@ -2411,11 +2439,12 @@
       "file": "light/dashboard/stale-tasks-panel.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Dashboard.tsx"
+      ]
     },
     {
       "file": "light/dashboard/task-breakdown-panel.png",
@@ -2432,21 +2461,23 @@
       "file": "light/export-import/export-dialog.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/company/export",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/CompanyExport.tsx"
+      ]
     },
     {
       "file": "light/export-import/import-dialog.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/company/import",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/CompanyImport.tsx"
+      ]
     },
     {
       "file": "light/goals/detail.png",
@@ -2574,11 +2605,12 @@
       "file": "light/onboarding/budget-field.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/dashboard",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/components/OnboardingWizard.tsx"
+      ]
     },
     {
       "file": "light/onboarding/empty-dashboard.png",
@@ -2640,21 +2672,23 @@
       "file": "light/org/org-chart-add-agent.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/org",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/OrgChart.tsx"
+      ]
     },
     {
       "file": "light/org/org-chart-manager-assigned.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/org",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/OrgChart.tsx"
+      ]
     },
     {
       "file": "light/org/org-chart-small-team.png",
@@ -2704,11 +2738,12 @@
       "file": "light/org/workspace-modes.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/workspaces",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Workspaces.tsx"
+      ]
     },
     {
       "file": "light/plugins/detail.png",
@@ -3038,31 +3073,35 @@
       "file": "light/skills/skill-detail.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/skills/{skillId}",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
     },
     {
       "file": "light/skills/skills-list.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/skills",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/CompanySkills.tsx"
+      ]
     },
     {
       "file": "light/tasks/comment-input-box.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/issues/{issueId}",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx",
+        "ui/src/components/CommentThread.tsx"
+      ]
     },
     {
       "file": "light/tasks/inbox-newly-created-tasks.png",
@@ -3079,11 +3118,12 @@
       "file": "light/tasks/inbox-view-with-filters.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/inbox/all",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
     },
     {
       "file": "light/tasks/inbox-view.png",
@@ -3100,31 +3140,34 @@
       "file": "light/tasks/new-task-form-empty.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/inbox/mine",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
     },
     {
       "file": "light/tasks/new-task-form-filled.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/inbox/mine",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
     },
     {
       "file": "light/tasks/task-detail-in-progress.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/issues/{issueId}",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ]
     },
     {
       "file": "light/tasks/task-detail-with-comments.png",
@@ -3141,11 +3184,12 @@
       "file": "light/tasks/task-done-status.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": null,
+      "route": "/ACME/issues/done",
       "captured_against": null,
       "captured_sha": null,
-      "depends_on": [],
-      "_todo": "Fill in `route` (URL path captured) and `depends_on` (parent-repo paths whose changes invalidate this screenshot). Until depends_on is populated, staleness detection is a no-op for this entry."
+      "depends_on": [
+        "ui/src/pages/Inbox.tsx"
+      ]
     },
     {
       "file": "light/watchdogs/watchdog-thread-outcome.png",
