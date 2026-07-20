@@ -47,9 +47,11 @@ Newly settled since the prior run: `7947308…f12bb27` (**60 commits / 397 files
 
 - **Folders UI** — `ui/src/components/folders/*` (`SkillFolderTree`, `FolderControls`, `skill-folder-tree.ts`). The API is documented; the skill-library folder tree the user actually clicks is not.
 
-## ⚠ Reconcile
+## ✅ Reconcile — resolved this run
 
-- **`acpx_local` retired to a live tombstone — rewrite `acpx-local.md`, do NOT delete it.**
+- **`acpx_local` retired to a live tombstone.** `docs/reference/adapters/acpx-local.md` has been rewritten as a stub: it states the adapter is retired, points at `claude-code.md` / `codex.md` / `gemini-cli.md`, documents the automatic `0136` migration table (`codex` → `codex_local`, everything else → `claude_local`, both with `engine: "acp"`), and explains what to do if the `acpx_local` string still shows up in a run error. The `content.json` entry is kept, retitled **ACPX Local (retired)** so it stays findable when browsing the adapter list. The page was **not** deleted and its body was **not** duplicated forward — the old config fields (`agent`, `effort`, `reasoningEffort`, `thinkingEffort`) are exactly what the migration rewrites away.
+
+  The investigation that produced this, retained because the helper gap is the reusable lesson:
 
   `scripts/sync/detect-renames.mjs` reported `packages/adapters/acpx-local` under `removed_dirs_no_match`, which reads as a plain deletion. **That verdict is wrong.** Verified against parent `eedc7dd` ("Make ACP the default engine for local adapters", #9238):
 
@@ -57,9 +59,9 @@ Newly settled since the prior run: `7947308…f12bb27` (**60 commits / 397 files
   2. **The `acpx_local` adapter type is still registered, deliberately.** `server/src/adapters/registry.ts:215` keeps an `acpxLocalAdapter` whose `execute` only emits a retirement message. Its own comment: *"Paperclip keeps this tombstone registered so stale `acpx_local` rows fail clearly instead of falling back to the process adapter."* The type is gone from `AGENT_ADAPTER_TYPES` (so it is unselectable for new agents) but still resolvable at runtime.
   3. **Existing rows were migrated.** `packages/db/src/migrations/0136_acpx_default_engine_migration.sql` rewrites `acpx_local` agents to `claude_local` or `codex_local` (branching on `adapter_config->>'agent'`) with `engine: 'acp'`, and consolidates the Codex reasoning-effort fields onto `modelReasoningEffort`.
 
-  **Therefore: keep the page and convert it to a tombstone.** Deleting it would be a mistake — a user whose agent still carries a stale row sees the literal string `acpx_local` in a runtime error and will search the docs for exactly that. The page should state the adapter is retired, name the replacement (`claude_local` / `codex_local` with `adapterConfig.engine="acp"`), and say that existing agents were migrated automatically by `0136`. Drop the `paperclip_version: v2026.525.0` frontmatter or bump it. Keep the nav entry (`site/content.json:725`).
+  Note also that `@paperclipai/acpx-engine` is an **internal library**, not a successor adapter — it exports `createAcpxEngineExecutor`, `execute`, `sessionCodec`, `printAcpxStreamEvent`, `parseAcpxStdoutLine`, and appears nowhere in `packages/shared/src/constants.ts`. There is no adapter type to select, so it gets no adapter page. (`grok_local`, the only type added alongside `acpx_local`'s removal, is unrelated: `packages/adapters/grok-local` already existed at the base tag and was simply registered late.)
 
-  **Helper gap worth fixing.** `detect-renames.mjs` matches top-level directories under watched roots, so it cannot see a move that crosses a package boundary into a nested path (`packages/adapters/<x>` → `packages/adapter-utils/src/<x>`). Any future cross-package extraction will be misreported the same way. Consider matching on file-content similarity, or at minimum scanning for the removed dir's basename appearing as a new nested path elsewhere in the window.
+  **Helper gap — still open.** `detect-renames.mjs` matches top-level directories under watched roots, so it cannot see a move that crosses a package boundary into a nested path (`packages/adapters/<x>` → `packages/adapter-utils/src/<x>`). Any future cross-package extraction will be misreported the same way, and the failure mode points toward deleting docs that should be kept. Documented as a gotcha in [`maintenance/maintenance.md`](maintenance/maintenance.md#gotcha-detect-renamesmjs-cannot-see-cross-package-moves) with the verification commands. A code fix is still worth doing: match on file-content similarity, or at minimum scan for the removed dir's basename appearing as a new nested path elsewhere in the window.
 
 ## ↻ Renames detected
 

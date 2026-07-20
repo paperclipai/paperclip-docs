@@ -376,6 +376,38 @@ The full list with example invocations lives in [Runbook → Helper scripts (ful
 
 See [`skills/sync-docs/SKILL.md`](skills/sync-docs/SKILL.md) for the full operational playbook.
 
+### Gotcha: `detect-renames.mjs` cannot see cross-package moves
+
+`scripts/sync/detect-renames.mjs` matches **top-level directories** under the watched roots. It cannot see a move that crosses a package boundary into a *nested* path, so it reports one as `removed_dirs_no_match` — which reads as "this surface was deleted, consider removing its doc page."
+
+That failure mode is silent and it points the wrong way: toward deleting docs that should be kept. **Always confirm a `removed_dirs_no_match` against the parent commit before acting on it.**
+
+The case that exposed this (parent `eedc7dd`, #9238) had three layers the helper could not report:
+
+1. **The runtime moved** — `packages/adapters/acpx-local/` → `packages/adapter-utils/src/acpx-engine/`. Different package, nested path, so no match.
+2. **The identifier stayed registered on purpose** — `server/src/adapters/registry.ts` keeps a retired `acpx_local` entry so stale DB rows fail loudly instead of falling back to the `process` adapter. Gone from `AGENT_ADAPTER_TYPES`, still resolvable at runtime.
+3. **Existing rows were migrated** — `packages/db/src/migrations/0136_acpx_default_engine_migration.sql`.
+
+How to check, before you touch a page:
+
+```sh
+# What actually happened to the directory?
+gh api "repos/paperclipai/paperclip/commits?path=<removed-path>/src/index.ts&sha=master&per_page=3" \
+  -q '.[] | "\(.sha[0:9]) \(.commit.message | split("\n")[0])"'
+
+# Did the basename reappear as a nested path elsewhere in the window?
+node -e "require('/tmp/paperclip-sync/window.json').files
+  .filter(f => f.filename.includes('<basename>') && f.status === 'added')
+  .forEach(f => console.log(f.filename))"
+
+# Is the identifier still registered anywhere?
+gh api "search/code?q=<identifier>+repo:paperclipai/paperclip" -q '.items[].path'
+```
+
+**When a user-facing surface is retired, keep the page and convert it to a stub.** Do not delete it and do not duplicate its body forward under a new name — retired pages usually document config fields that a migration has already rewritten, so copying them propagates dead config. The stub should say what replaced the surface, link to the pages that now cover it, and describe the migration path. Keep the `content.json` entry and mark the title (e.g. `ACPX Local (retired)`) so someone who meets the old identifier in a runtime error can still find it by browsing.
+
+`docs/reference/adapters/acpx-local.md` is the worked example. `docs/reference/cli/commands.md` is the same pattern for a page that split rather than retired — that one is intentionally orphaned from `content.json`, since its readers arrive by direct URL rather than by browsing.
+
 ### Hot-fixes on released docs
 
 If you spot a typo or broken example on `main` (released docs), fix it on `main` directly — it deploys to `docs.paperclip.ing` on merge. The sync skill merges `main` back into `nightly` at the start of every nightly run, so the fix isn't lost.
