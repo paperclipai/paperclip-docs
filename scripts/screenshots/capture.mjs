@@ -162,6 +162,10 @@ async function runSteps(page, steps, label) {
  * @property {"light"|"dark"|"both"} [theme] - Which theme(s). Default "both".
  * @property {string[]} [staleFiles] - Registry file list to restrict capture.
  * @property {string}   [baseUrl]   - Base URL override.
+ * @property {"pre-seed"|"post-seed"} [phase] - Which capture phase to run.
+ *   Targets default to "post-seed"; targets marked `phase: "pre-seed"` in
+ *   routes.mjs are shot against the company-less instance (before seed.mjs
+ *   runs) so onboarding-wizard states are reachable. Default "post-seed".
  */
 
 /**
@@ -175,6 +179,7 @@ export default async function capture(opts = {}) {
     theme: themeFilter = "both",
     staleFiles,
     baseUrl = BASE_URL,
+    phase = "post-seed",
   } = opts;
 
   const seedIds = await loadSeedIds();
@@ -189,7 +194,7 @@ export default async function capture(opts = {}) {
   const staleSet = staleFiles ? new Set(staleFiles) : null;
 
   // Filter targets.
-  let targets = CAPTURE_TARGETS;
+  let targets = CAPTURE_TARGETS.filter((t) => (t.phase ?? "post-seed") === phase);
   if (only) {
     targets = targets.filter((t) => t.name.includes(only));
   }
@@ -327,6 +332,7 @@ if (process.argv[1] && new URL(import.meta.url).pathname === process.argv[1]) {
     staleFiles: staleRaw ? staleRaw.split(",") : undefined,
     baseUrl: get("--base-url") ?? BASE_URL,
     keep: has("--keep"),
+    phase: get("--phase") ?? "post-seed",
   };
 
   capture(opts).catch((err) => {

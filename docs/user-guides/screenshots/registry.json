@@ -477,20 +477,20 @@
       "file": "dark/company/company-budget-setting.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
+      "route": "/ACME/agents/{agentId}/configuration",
       "captured_against": null,
       "captured_sha": null,
       "depends_on": [
-        "ui/src/components/OnboardingWizard.tsx"
+        "ui/src/components/AgentConfigForm.tsx"
       ]
     },
     {
       "file": "dark/company/company-goal-field.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
-      "captured_against": null,
-      "captured_sha": null,
+      "route": "/onboarding",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
         "ui/src/components/OnboardingWizard.tsx"
       ]
@@ -554,12 +554,11 @@
       "file": "dark/company/new-company-form.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
-      "captured_against": null,
-      "captured_sha": null,
+      "route": "/onboarding",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
-        "ui/src/components/OnboardingWizard.tsx",
-        "ui/src/components/Sidebar.tsx"
+        "ui/src/components/OnboardingWizard.tsx"
       ]
     },
     {
@@ -942,11 +941,11 @@
       "file": "dark/onboarding/budget-field.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
-      "captured_against": null,
-      "captured_sha": null,
+      "route": "/ACME/agents/{agentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
-        "ui/src/components/OnboardingWizard.tsx"
+        "ui/src/components/AgentConfigForm.tsx"
       ]
     },
     {
@@ -964,9 +963,9 @@
       "file": "dark/onboarding/goal-field.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
-      "captured_against": "master",
-      "captured_sha": "4c6c0c6ad048838dda4a67e1aca43aa37a6fcf0d",
+      "route": "/onboarding",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
         "ui/src/components/OnboardingWizard.tsx"
       ]
@@ -975,12 +974,11 @@
       "file": "dark/onboarding/new-company-modal-empty.png",
       "theme": "dark",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
-      "captured_against": "master",
-      "captured_sha": "4c6c0c6ad048838dda4a67e1aca43aa37a6fcf0d",
+      "route": "/onboarding",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
-        "ui/src/components/OnboardingWizard.tsx",
-        "ui/src/components/SidebarCompanyMenu.tsx"
+        "ui/src/components/OnboardingWizard.tsx"
       ]
     },
     {
@@ -988,8 +986,8 @@
       "theme": "dark",
       "viewport": "1440x900",
       "route": "/ACME/dashboard",
-      "captured_against": "master",
-      "captured_sha": "4c6c0c6ad048838dda4a67e1aca43aa37a6fcf0d",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
         "ui/src/components/SidebarCompanyMenu.tsx"
       ]
@@ -2140,20 +2138,20 @@
       "file": "light/company/company-budget-setting.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
+      "route": "/ACME/agents/{agentId}/configuration",
       "captured_against": null,
       "captured_sha": null,
       "depends_on": [
-        "ui/src/components/OnboardingWizard.tsx"
+        "ui/src/components/AgentConfigForm.tsx"
       ]
     },
     {
       "file": "light/company/company-goal-field.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
-      "captured_against": null,
-      "captured_sha": null,
+      "route": "/onboarding",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
         "ui/src/components/OnboardingWizard.tsx"
       ]
@@ -2217,12 +2215,11 @@
       "file": "light/company/new-company-form.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
-      "captured_against": null,
-      "captured_sha": null,
+      "route": "/onboarding",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
-        "ui/src/components/OnboardingWizard.tsx",
-        "ui/src/components/Sidebar.tsx"
+        "ui/src/components/OnboardingWizard.tsx"
       ]
     },
     {
@@ -2605,11 +2602,11 @@
       "file": "light/onboarding/budget-field.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
-      "captured_against": null,
-      "captured_sha": null,
+      "route": "/ACME/agents/{agentId}/configuration",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
-        "ui/src/components/OnboardingWizard.tsx"
+        "ui/src/components/AgentConfigForm.tsx"
       ]
     },
     {
@@ -2627,9 +2624,9 @@
       "file": "light/onboarding/goal-field.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
-      "captured_against": "master",
-      "captured_sha": "4c6c0c6ad048838dda4a67e1aca43aa37a6fcf0d",
+      "route": "/onboarding",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
         "ui/src/components/OnboardingWizard.tsx"
       ]
@@ -2638,12 +2635,11 @@
       "file": "light/onboarding/new-company-modal-empty.png",
       "theme": "light",
       "viewport": "1440x900",
-      "route": "/ACME/dashboard",
-      "captured_against": "master",
-      "captured_sha": "4c6c0c6ad048838dda4a67e1aca43aa37a6fcf0d",
+      "route": "/onboarding",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
-        "ui/src/components/OnboardingWizard.tsx",
-        "ui/src/components/SidebarCompanyMenu.tsx"
+        "ui/src/components/OnboardingWizard.tsx"
       ]
     },
     {
@@ -2651,8 +2647,8 @@
       "theme": "light",
       "viewport": "1440x900",
       "route": "/ACME/dashboard",
-      "captured_against": "master",
-      "captured_sha": "4c6c0c6ad048838dda4a67e1aca43aa37a6fcf0d",
+      "captured_against": "HEAD",
+      "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
         "ui/src/components/SidebarCompanyMenu.tsx"
       ]
