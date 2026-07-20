@@ -301,6 +301,10 @@
             {
               "title": "Develop a plugin locally",
               "file": "../docs/how-to/develop-a-plugin-locally.md"
+            },
+            {
+              "title": "Community Desktop App (unofficial)",
+              "file": "../docs/how-to/community-desktop-app.md"
             }
           ]
         }

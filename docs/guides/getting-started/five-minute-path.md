@@ -18,9 +18,9 @@ You'll see all four ideas (company, agent, task, heartbeat) in the next few minu
 
 Install Paperclip and grab an AI provider key. This is one-time setup and lives outside the 5-minute clock — depending on what you already have, expect 3–10 minutes.
 
-- A Mac (for the Desktop app) or any machine with Node.js 20+ (for the terminal install).
+- Any machine with Node.js 20+ — the terminal install is one command.
 - An API key from [Anthropic](https://console.anthropic.com) (for `claude_local`) or [OpenAI](https://platform.openai.com) (for `codex_local`). The installation guide walks through getting one.
-- For the `claude_local` adapter: [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed on the same Mac. Install this *before* you start the path; you'll need it in step 2.
+- For the `claude_local` adapter: [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed on the same machine. Install this *before* you start the path; you'll need it in step 2.
 
 > **Warning:** Agents make API calls that cost money. Plan on spending $5–20 to play with the product, $20–100/month for an active company. Set per-agent and company budgets before enabling heartbeats — Paperclip pauses agents automatically when they hit 100%.
 

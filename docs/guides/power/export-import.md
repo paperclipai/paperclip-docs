@@ -180,6 +180,6 @@ After an import:
 
 ## You're set
 
-Export and import give you durable, shareable backups of everything you've built. The final guide covers terminal setup — for developers who want to run Paperclip outside the Desktop App.
+Export and import give you durable, shareable backups of everything you've built. The final guide covers terminal setup — for developers who want deeper control over how Paperclip runs.
 
 [Terminal Setup →](./terminal-setup.md)

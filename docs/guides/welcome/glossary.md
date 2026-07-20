@@ -118,7 +118,7 @@ The visual representation of your agent hierarchy. The CEO is at the top; direct
 
 ### Paperclip Desktop
 
-The macOS application for Paperclip. It packages a full Paperclip instance into a regular Mac app — drag it to Applications, open it, and Paperclip is running. No terminal or developer setup required. Paperclip Desktop is the recommended starting point for non-developers.
+An **unofficial, community-maintained** macOS application that packages a Paperclip instance into a regular Mac app. It is not built or supported by the Paperclip team; the supported install paths are the terminal and server installs in the [Installation guide](../getting-started/installation.md). See [Community Desktop App](../../how-to/community-desktop-app.md).
 
 ### Project
 
