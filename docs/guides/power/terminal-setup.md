@@ -1,6 +1,6 @@
 # Terminal Setup
 
-> **Note:** This guide is for developers comfortable with a terminal. If you're not a developer, use the [Desktop App installation guide](../getting-started/installation.md) instead — it covers the full setup without any of this.
+> **Note:** This guide goes deeper than the standard setup. If you're installing Paperclip for the first time, start with the [Installation guide](../getting-started/installation.md) — it covers the one-command install step by step.
 
 Paperclip runs as a Node.js server. The onboarding command handles the full setup in one step.
 

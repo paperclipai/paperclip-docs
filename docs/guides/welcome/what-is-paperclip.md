@@ -38,22 +38,16 @@ The dashboard is your control centre. At a glance you can see which agents are a
 
 ## Who is it for?
 
-**If you're not a developer** — Paperclip has a desktop app for macOS that works like any other application. Download it, open it, and your Paperclip instance is running. No terminal, no configuration files, no installation steps beyond dragging an icon to your Applications folder. You'll need an API key from Anthropic or OpenAI (the services that power the AI agents), but the guides here walk you through getting one.
+**If you're not a developer** — installing Paperclip is a single command in the terminal, and the [Installation guide](../getting-started/installation.md) walks you through every step, including the one-time setup it needs. You'll need an API key from Anthropic or OpenAI (the services that power the AI agents), and the guides here walk you through getting one. Once Paperclip is running, everything happens in a friendly web interface — no terminal required day to day.
 
-**If you are a developer** — you can run Paperclip from the terminal with a single command, self-host it on your own infrastructure, connect any AI runtime via the adapter system, and extend it with plugins. The non-developer guides still apply to you — the difference is just in how you install it.
+**If you are a developer** — you can run Paperclip from the terminal with a single command, self-host it on your own infrastructure, connect any AI runtime via the adapter system, and extend it with plugins.
 
 ---
 
 ## What you need to get started
 
-**On macOS (no terminal required):**
-- A Mac running macOS 12 or later
+- Node.js 20 or later (macOS, Linux, or Windows)
 - An API key from [Anthropic](https://console.anthropic.com) or [OpenAI](https://platform.openai.com) — the guide covers how to get one
-- The Paperclip Desktop app — free to download
-
-**On any platform (terminal required):**
-- Node.js 20 or later
-- An API key from your chosen AI provider
 
 > **Warning:** Using AI agents costs money. Anthropic and OpenAI charge per use, and an active agent team can spend $20–100+ per month depending on how many agents you run and how often they work. You'll set budgets in Paperclip to keep spending under control — but be aware of this before you start.
 
@@ -69,6 +63,6 @@ The AI itself lives in the agents you configure (Claude, Codex, or others). Pape
 
 ## Ready to install?
 
-The next guide walks you through installing Paperclip — either via the Desktop app (no terminal needed) or the command line.
+The next guide walks you through installing Paperclip — a single command on your own machine, or a full server deployment for teams.
 
 [Go to Installation →](../getting-started/installation.md)

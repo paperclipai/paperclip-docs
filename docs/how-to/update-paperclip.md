@@ -22,31 +22,14 @@ Every stable release has notes at `releases/vYYYY.MDD.P.md` in the parent repo a
 
 | Install path | How to tell | Which section below |
 |---|---|---|
-| Desktop App (macOS) | You launch Paperclip from the Applications folder. | [Path A](#path-a--desktop-app-macos) |
-| Terminal (`npx paperclipai`) | You run `npx paperclipai run` (or it's wrapped by systemd). | [Path B](#path-b--terminal--npx) |
-| Git clone | You ran `git clone`, then `pnpm install && pnpm dev`. | [Path C](#path-c--git-clone--self-hosted) |
+| Terminal (`npx paperclipai`) | You run `npx paperclipai run` (or it's wrapped by systemd). | [Path A](#path-a--terminal--npx) |
+| Git clone | You ran `git clone`, then `pnpm install && pnpm dev`. | [Path B](#path-b--git-clone--self-hosted) |
+
+> **Note:** Using the unofficial, community-maintained desktop app? It updates itself — see [Community Desktop App](./community-desktop-app.md#updating).
 
 ---
 
-## Path A — Desktop App (macOS)
-
-The desktop app auto-updates. You don't run any commands.
-
-1. Open Paperclip. On launch, it checks GitHub Releases for a newer build of [`paperclip-desktop`](https://github.com/aronprins/paperclip-desktop/releases).
-2. If a newer version exists, Paperclip prompts you to download it. Approve the download.
-3. The update installs **the next time you quit Paperclip**. Quit and reopen to land on the new version.
-
-> **Note:** Auto-download is opt-in (you have to click the prompt), but install-on-quit is automatic once the download is approved. If you skipped the download prompt, Paperclip will offer it again on the next launch.
-
-**To force an immediate check**, open the **Paperclip** menu in the macOS menu bar and click **Check for Updates**. The updater runs the same check that fires on launch and prompts you if something newer is available.
-
-**To verify your current version**, open the **Paperclip** menu → **About Paperclip**.
-
-> **Tip:** Desktop App releases follow the same calendar version as the CLI, but they're packaged separately. The desktop release may lag the CLI by a day or two while installers are notarised.
-
----
-
-## Path B — Terminal / `npx`
+## Path A — Terminal / `npx`
 
 The `paperclipai` CLI is a regular npm package. Updating means refreshing what `npx` (or your global install) resolves.
 
@@ -117,7 +100,7 @@ sudo journalctl -u paperclip -n 50 --no-pager
 
 ---
 
-## Path C — Git clone / self-hosted
+## Path B — Git clone / self-hosted
 
 This is the developer path — you ran `git clone https://github.com/paperclipai/paperclip` and run `pnpm dev` directly.
 
@@ -165,7 +148,7 @@ git pull
 
 Regardless of path:
 
-1. **Check the running version.** In the UI, hover the small **`v`** badge at the bottom of the left sidebar (next to the Documentation link and the settings/theme icons) — the tooltip shows the full server version, e.g. `v2026.525.0`. Desktop App users can also open the **Paperclip** menu → **About Paperclip**. CLI users can run `paperclipai --version`.
+1. **Check the running version.** In the UI, hover the small **`v`** badge at the bottom of the left sidebar (next to the Documentation link and the settings/theme icons) — the tooltip shows the full server version, e.g. `v2026.525.0`. CLI users can run `paperclipai --version`.
 2. **Open the dashboard.** Confirm the UI loads, your companies and agents are present, and nothing renders as an error state.
 3. **Trigger one heartbeat.** Assign a small task to an existing agent or wait for the next scheduled heartbeat. Watch the run log for a successful turn. This confirms adapters still launch under the new binary.
 
@@ -186,9 +169,7 @@ npx paperclipai@latest --version
 
 **Agents stop running after the update** — Check the run log for adapter errors. New releases occasionally tighten env-var validation or require a newer adapter binary (Claude Code, Codex, etc.). Update those binaries on the host and re-test.
 
-**Desktop App never prompts for an update** — Make sure you're on the network and that a newer release actually exists at [paperclip-desktop/releases](https://github.com/aronprins/paperclip-desktop/releases). If the desktop release feed is empty, the updater logs a warning and skips silently. Reopen the app on a new release day.
-
-**You updated but want to roll back** — For npm: `npm install -g paperclipai@<previous-version>` or `npx paperclipai@<previous-version> run`. For git clone: `git checkout <previous-tag>`, then `pnpm install` and restart. For the Desktop App: download the previous installer from the [releases page](https://github.com/aronprins/paperclip-desktop/releases) and reinstall over the current app. Rollback is safe for code, but a forward-only migration may have already rewritten your database — restore the pre-update DB backup if so.
+**You updated but want to roll back** — For npm: `npm install -g paperclipai@<previous-version>` or `npx paperclipai@<previous-version> run`. For git clone: `git checkout <previous-tag>`, then `pnpm install` and restart. Rollback is safe for code, but a forward-only migration may have already rewritten your database — restore the pre-update DB backup if so.
 
 ---
 
