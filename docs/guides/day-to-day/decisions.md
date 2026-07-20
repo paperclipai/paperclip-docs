@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Decisions
 
 The **Decisions** page gives you one place to see work that needs a human call. Instead of checking approvals, blocked issues, failed runs, and budget warnings separately, you can start here and work through a ranked queue.

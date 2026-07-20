@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Attention
 
 Read the board's current decision queue. This is the feed behind the **Decisions** screen: a single, ranked view of work that needs a person to act, from approvals and questions to blocked work, failed runs, budget alerts, and agent errors.

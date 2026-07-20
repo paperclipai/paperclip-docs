@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Cases
 
 A **case** is a first-class work object for the messy, document-heavy work that doesn't fit neatly into a single issue — a research write-up, an investigation, a proposal, a piece of legal or compliance review. Where an issue tracks a unit of work through a status pipeline, a case is a container: it has a type you define, a title and summary, arbitrary structured `fields`, attached documents (with full revision history, locking, and inline annotation threads), file attachments, labels, an event timeline, and typed links back to the issues that spawned or serviced it. Cases can also nest, so a parent case can gather a family of related child cases.

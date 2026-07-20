@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Adapters Overview
 
 Adapters connect Paperclip's control plane to the runtime that actually does the work. Use this section when you need to choose an adapter, understand what Paperclip expects from one, or build a new adapter package.

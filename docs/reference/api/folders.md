@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Folders
 
 Once a company has more than a handful of routines or skills, a flat list stops being useful. **Folders** give you somewhere to put them — a nested tree, scoped to one company, that you can rename, recolour, reorder, and drag items into.

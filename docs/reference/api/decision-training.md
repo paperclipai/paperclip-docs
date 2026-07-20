@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Decision Training
 
 Every day, the people in your company make judgement calls that agents can learn from — someone answers an agent's question in a thread, someone approves or rejects a risky action, someone decides how an execution stage should proceed. **Decision training** lets you keep those moments. You point at a decision that already happened, the server freezes everything the decider could see at that moment into an immutable snapshot, you add a note explaining *why* the call went the way it did, and the result becomes a labelled training example you can export.

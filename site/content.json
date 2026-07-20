@@ -429,6 +429,10 @@
           "file": "../docs/reference/api/decision-training.md"
         },
         {
+          "title": "Summary Slots",
+          "file": "../docs/reference/api/summary-slots.md"
+        },
+        {
           "title": "Dashboard",
           "file": "../docs/reference/api/dashboard.md"
         },
@@ -447,6 +451,10 @@
         {
           "title": "Plugins",
           "file": "../docs/reference/api/plugins.md"
+        },
+        {
+          "title": "Tool Gateway",
+          "file": "../docs/reference/api/tool-gateway.md"
         },
         {
           "title": "Instance Admin",

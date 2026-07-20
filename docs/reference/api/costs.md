@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Costs
 
 Use this API when you want to answer four questions:

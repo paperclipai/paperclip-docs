@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Inbox Agent Policy
 
 Agents can act on your inbox — archiving items, clearing things out, keeping your attention queue tidy. That is helpful right up until it isn't. The **inbox agent policy** is your personal switch: per company, you decide whether agents may manage your inbox at all, and if so, which ones.

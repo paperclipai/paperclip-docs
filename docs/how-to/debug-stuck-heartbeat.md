@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Debug a stuck heartbeat
 
 Five symptoms that cover almost every "this agent isn't working right" report. Open the agent's detail page and scroll to **Run history** before you start — every diagnosis below begins there.

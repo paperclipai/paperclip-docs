@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # ACPX Local (retired)
 
 > **This adapter has been retired.** `acpx_local` is no longer a choice when you create an agent. ACP is now a capability of each harness adapter rather than a separate adapter, so pick the adapter that matches your harness and let ACP handle itself:

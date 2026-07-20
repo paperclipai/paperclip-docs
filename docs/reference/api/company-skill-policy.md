@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Company Skill Policy
 
 Skills are how your agents pick up new abilities — and left unguarded, an agent can create, import, install, edit, or remove them at will. The **company skill policy** is the guardrail. It is a single per-company document that says which agents may perform which skill actions, on which skills, and from which sources.

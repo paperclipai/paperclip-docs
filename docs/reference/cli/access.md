@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.720.0
 ---
 
 # Access, Profile & Instance Admin

@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Settings
 
 Paperclip has two settings surfaces, and it matters which one you're looking at.

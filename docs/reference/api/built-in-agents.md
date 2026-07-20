@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Built-in Agents
 
 First-party agents that Paperclip ships with, ready to provision into any company.
