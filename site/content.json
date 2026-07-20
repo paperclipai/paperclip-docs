@@ -397,6 +397,18 @@
           "file": "../docs/reference/api/resource-memberships.md"
         },
         {
+          "title": "Folders",
+          "file": "../docs/reference/api/folders.md"
+        },
+        {
+          "title": "Company Skill Policy",
+          "file": "../docs/reference/api/company-skill-policy.md"
+        },
+        {
+          "title": "Inbox Agent Policy",
+          "file": "../docs/reference/api/inbox-agent-policy.md"
+        },
+        {
           "title": "Costs",
           "file": "../docs/reference/api/costs.md"
         },
@@ -407,6 +419,10 @@
         {
           "title": "Activity",
           "file": "../docs/reference/api/activity.md"
+        },
+        {
+          "title": "Decision Training",
+          "file": "../docs/reference/api/decision-training.md"
         },
         {
           "title": "Dashboard",

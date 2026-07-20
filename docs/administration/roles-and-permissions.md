@@ -36,7 +36,7 @@ A fifth option, **Unset**, appears in the role drop-down. It leaves the member w
 
 ## The permission keys
 
-There are nineteen permission keys. Eight of them show up as defaults on one or more roles; eleven are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
+There are twenty permission keys. Eight of them show up as defaults on one or more roles; twelve are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
 
 | Permission key | What it allows | In which role by default |
 |---|---|---|
@@ -52,6 +52,7 @@ There are nineteen permission keys. Eight of them show up as defaults on one or 
 | `tools:view_audit` | Read the gateway's audit trail of tool calls | — (explicit only) |
 | `tools:use` | Try a connection's tools from the board — the test-call surface | — (explicit only) |
 | `tools:manage_runtime` | Inspect the tool runtime slots that are running, and stop or restart them | — (explicit only) |
+| `inbox:manage` | Act on *another* person's inbox. An agent working its own responsible user's inbox does not need this key — see the note below | — (explicit only) |
 | `users:invite` | Create and revoke company invite links | Owner, Admin |
 | `users:manage_permissions` | View and change members' roles and grants | Owner |
 | `tasks:assign` | Assign any issue to any agent or member in the company | Owner, Admin, Operator |
@@ -69,13 +70,16 @@ Two of the keys come in matched pairs — a *direct* key that applies a change i
 
 ### About the explicit-only keys
 
-Eleven keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
+Twelve keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
 
 - **`agents:suggest-changes`** and **`skills:suggest-changes`** — the review-gated proposal keys described just above. Grant them to a member (or agent) you want proposing improvements without direct write access.
 - **`tasks:assign_scope`** is how you let someone delegate *within their lane* without giving them company-wide assignment power. When a member has `tasks:assign_scope` but not `tasks:assign`, Paperclip evaluates the grant against the scope attached to it and allows the assignment only if the target falls inside that scope. Set the scope in the grant payload (via the member editor's grant, or `member role-and-grants` on the CLI).
 - **`tasks:manage_active_checkouts`** is an escape hatch. Normally an issue that an agent has checked out is off-limits to others until it's released; this grant lets the holder reassign or clear that active checkout — handy when an agent has stalled mid-task.
 - **`pipelines:write`** lets a member create and edit pipeline automations. Grant it to whoever runs your pipelines; it is kept off the standard roles so pipeline authorship is a deliberate choice.
 - **The six `tools:*` keys** cover the tools and MCP surface, and none of them ride along with a role — connecting an outside tool to your agents is always a deliberate choice. Split them by job: `tools:admin` for whoever wires up apps and gateways, `tools:manage_connections` for whoever decides which agents get a connection, `tools:use` for people who need to test-call a tool, `tools:manage_runtime` for whoever babysits running tool processes, and `tools:view_audit` for anyone who needs to read the call trail without touching the setup. Note that `tools:admin` is not a superset — holding it does not imply the others, so grant each key you actually need.
+- **`inbox:manage`** governs *cross-user* inbox access. It matters most for agents: an agent may act on the inbox of the user it is responsible for without holding this key at all, but the moment it needs to touch someone else's inbox, Paperclip looks for an `inbox:manage` grant — and then checks that the grant's scope actually covers the user being acted on. Grant it, scoped, to an agent you want triaging inboxes beyond its own responsible user.
+
+> **`inbox:manage` and the low-trust preset.** Agents running under the low-trust review preset are denied `inbox:manage` by default, alongside the other company-wide and privileged actions. Raising an agent's trust preset is a separate decision from granting the key — a low-trust agent holding the grant is still refused.
 
 > **`tools:manage_profiles` is not wired up yet.** The key exists and you can grant it, but no endpoint checks it in this build. Editing tool profiles today only requires an active membership with any role other than Viewer. Treat the key as reserved: granting it changes nothing, and withholding it blocks nothing.
 
