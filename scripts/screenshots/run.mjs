@@ -10,6 +10,8 @@
  *      fully isolated env (scratchHome as PAPERCLIP_HOME, loopback binding,
  *      local_trusted mode, no external DB). onboard preserves the config from 1b.
  *   3. Poll BASE_URL/api/health until 200 (timeout 120 s).
+ *   3.5. Capture `phase: "pre-seed"` targets (onboarding wizard) while the
+ *        instance is still company-less — the only window those states exist.
  *   4. Run seed() to create demo entities and write .seed-ids.json.
  *   5. Run sync-registry to back-fill routes into registry.json.
  *   6. Run capture(), passing through supported CLI flags.
@@ -257,6 +259,30 @@ async function main() {
     process.exit(1);
   }
   console.log("run: server is healthy.");
+
+  // ── 3.5. Pre-seed capture (onboarding wizard) ────────────────────────────
+  // The instance has no company yet, so /onboarding is reachable — this is the
+  // only window where the create-a-company wizard states can be captured.
+  // Targets marked `phase: "pre-seed"` in routes.mjs are shot here; once
+  // seed.mjs creates the demo company, these surfaces become unreachable.
+  console.log("run: capturing pre-seed (onboarding) screenshots…");
+  try {
+    const capture = await importCapture();
+    const staleRaw = getFlag(args, "--stale");
+    await capture({
+      all: hasFlag(args, "--all"),
+      only: getFlag(args, "--only"),
+      theme: getFlag(args, "--theme") ?? "both",
+      staleFiles: staleRaw ? staleRaw.split(",") : undefined,
+      baseUrl: getFlag(args, "--base-url") ?? BASE_URL,
+      keep: keepScratch,
+      phase: "pre-seed",
+    });
+  } catch (err) {
+    // Pre-seed captures are a bonus pass — a failure here should not abort the
+    // main run, but it must be loud in the summary.
+    console.error("run: pre-seed capture failed (continuing to seed):", err);
+  }
 
   // ── 4. Seed demo data ────────────────────────────────────────────────────
   console.log("run: seeding demo data…");

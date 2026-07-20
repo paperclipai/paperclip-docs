@@ -699,10 +699,12 @@ export const CAPTURE_TARGETS = [
     steps: [{ click: { role: "button", name: /workspace switcher/i } }, { waitMs: 500 }],
   },
   {
+    // Captured pre-seed: the company-less instance redirects to /onboarding,
+    // so the wizard's empty step 1 is reachable directly (see run.mjs phase 3.5).
     name: "onboarding/new-company-modal-empty",
-    route: "/{prefix}/dashboard",
-    dependsOn: ["ui/src/components/OnboardingWizard.tsx", "ui/src/components/SidebarCompanyMenu.tsx"],
-    steps: [{ click: { role: "button", name: /workspace switcher/i } }, { waitMs: 400 }, { click: { role: "menuitem", name: /Add company/i } }, { waitMs: 900 }],
+    phase: "pre-seed",
+    route: "/onboarding",
+    dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
   },
 
   // ── Approvals (items seeded via REST in seed.mjs) ───────────────────────────
@@ -740,16 +742,17 @@ export const CAPTURE_TARGETS = [
 
   // ── Onboarding goal field (wizard step 1) ───────────────────────────────────
   {
+    // Captured pre-seed on the /onboarding wizard. Filling the company name
+    // reveals the Mission ("What is your team trying to achieve?") field.
     name: "onboarding/goal-field",
-    route: "/{prefix}/dashboard",
+    phase: "pre-seed",
+    route: "/onboarding",
     dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
     steps: [
-      { click: { role: "button", name: /workspace switcher/i } },
-      { waitMs: 400 },
-      { click: { role: "menuitem", name: /Add company/i } },
-      { waitMs: 900 },
       { fill: { placeholder: "Acme Corp" }, value: "Acme Robotics" },
       { waitMs: 400 },
+      { click: { role: "button", name: /^Next$/ } },
+      { waitMs: 900 },
     ],
   },
 
@@ -821,21 +824,28 @@ export const CAPTURE_TARGETS = [
   // succeed (see maintenance/follow-ups.md: company-less capture pass).
   {
     name: "company/new-company-form",
-    route: "/{prefix}/dashboard",
-    dependsOn: ["ui/src/components/OnboardingWizard.tsx", "ui/src/components/Sidebar.tsx"],
-    steps: [{ click: { role: "button", name: /New company/i } }, { waitMs: 800 }],
+    phase: "pre-seed",
+    route: "/onboarding",
+    dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
   },
   {
     name: "company/company-goal-field",
-    route: "/{prefix}/dashboard",
+    phase: "pre-seed",
+    route: "/onboarding",
     dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
-    steps: [{ click: { role: "button", name: /New company/i } }, { waitMs: 800 }],
+    steps: [
+      { fill: { placeholder: "Acme Corp" }, value: "Acme Robotics" },
+      { waitMs: 400 },
+      { click: { role: "button", name: /^Next$/ } },
+      { waitMs: 900 },
+    ],
   },
   {
+    // Budget fields live on the agent configuration form, not the onboarding
+    // wizard (verified against v2026.720.0 — OnboardingWizard has no budget UI).
     name: "company/company-budget-setting",
-    route: "/{prefix}/dashboard",
-    dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
-    steps: [{ click: { role: "button", name: /New company/i } }, { waitMs: 800 }],
+    route: "/{prefix}/agents/{agentId}/configuration",
+    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
   },
   {
     name: "company/company-saved",
@@ -844,9 +854,8 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "onboarding/budget-field",
-    route: "/{prefix}/dashboard",
-    dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
-    steps: [{ click: { role: "button", name: /New company/i } }, { waitMs: 800 }],
+    route: "/{prefix}/agents/{agentId}/configuration",
+    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
   },
 
   // Dashboard panel clips (same pattern as dashboard/agent-status-panel).
