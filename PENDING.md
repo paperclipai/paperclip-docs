@@ -49,11 +49,17 @@ Newly settled since the prior run: `7947308…f12bb27` (**60 commits / 397 files
 
 ## ⚠ Reconcile
 
-- **`acpx_local` adapter fully removed upstream, doc page still live.** `scripts/sync/detect-renames.mjs` reports `packages/adapters/acpx-local` under `removed_dirs_no_match` — a genuine deletion, not a rename. The whole package is gone from parent (`package.json`, `src/**`, `vitest.config.ts` all `removed`), and `ui/src/adapters/acpx-local/index.ts` went with it.
+- **`acpx_local` retired to a live tombstone — rewrite `acpx-local.md`, do NOT delete it.**
 
-  Our sibling adapter pages already anticipated this — `claude-code.md`, `codex.md`, and `gemini-cli.md` each carry a "that adapter has been retired" note pointing at ACP. But `docs/reference/adapters/acpx-local.md` is still a live nav entry (`site/content.json:725`) describing `acpx_local` as a selectable adapter, and still carries `paperclip_version: v2026.525.0`.
+  `scripts/sync/detect-renames.mjs` reported `packages/adapters/acpx-local` under `removed_dirs_no_match`, which reads as a plain deletion. **That verdict is wrong.** Verified against parent `eedc7dd` ("Make ACP the default engine for local adapters", #9238):
 
-  **Not auto-resolved** — the skill never deletes a page without explicit confirmation. Two reasonable options for the human: (a) delete the page and its nav entry, since the three sibling pages already redirect readers to ACP; or (b) keep it as a short tombstone that says the adapter is retired and links to `claude-code.md` / `codex.md` / `gemini-cli.md`. Option (b) is safer if the page has inbound links from outside the docs.
+  1. **The runtime moved, it did not vanish.** `packages/adapters/acpx-local/` → `packages/adapter-utils/src/acpx-engine/` (module `@paperclipai/acpx-engine`), now imported by `claude-local`, `codex-local`, and `gemini-local`. ACP stopped being a separate *adapter choice* and became an *execution capability* of each harness adapter.
+  2. **The `acpx_local` adapter type is still registered, deliberately.** `server/src/adapters/registry.ts:215` keeps an `acpxLocalAdapter` whose `execute` only emits a retirement message. Its own comment: *"Paperclip keeps this tombstone registered so stale `acpx_local` rows fail clearly instead of falling back to the process adapter."* The type is gone from `AGENT_ADAPTER_TYPES` (so it is unselectable for new agents) but still resolvable at runtime.
+  3. **Existing rows were migrated.** `packages/db/src/migrations/0136_acpx_default_engine_migration.sql` rewrites `acpx_local` agents to `claude_local` or `codex_local` (branching on `adapter_config->>'agent'`) with `engine: 'acp'`, and consolidates the Codex reasoning-effort fields onto `modelReasoningEffort`.
+
+  **Therefore: keep the page and convert it to a tombstone.** Deleting it would be a mistake — a user whose agent still carries a stale row sees the literal string `acpx_local` in a runtime error and will search the docs for exactly that. The page should state the adapter is retired, name the replacement (`claude_local` / `codex_local` with `adapterConfig.engine="acp"`), and say that existing agents were migrated automatically by `0136`. Drop the `paperclip_version: v2026.525.0` frontmatter or bump it. Keep the nav entry (`site/content.json:725`).
+
+  **Helper gap worth fixing.** `detect-renames.mjs` matches top-level directories under watched roots, so it cannot see a move that crosses a package boundary into a nested path (`packages/adapters/<x>` → `packages/adapter-utils/src/<x>`). Any future cross-package extraction will be misreported the same way. Consider matching on file-content similarity, or at minimum scanning for the removed dir's basename appearing as a new nested path elsewhere in the window.
 
 ## ↻ Renames detected
 
