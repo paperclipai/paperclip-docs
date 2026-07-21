@@ -133,6 +133,14 @@ export function instanceEnv(home) {
     DATABASE_URL: "",
     DATABASE_MIGRATION_URL: "",
     SERVE_UI: "true",
+    // The server resolves its config by walking UP from cwd for a
+    // `.paperclip/config.json` (see server/src/paths.ts) BEFORE honoring
+    // PAPERCLIP_HOME. Since onboard runs with cwd = PARENT_REPO, a developer's
+    // real `.paperclip/config.json` in the parent repo would be picked up,
+    // binding the screenshot run to the real instance's DB. Pin PAPERCLIP_CONFIG
+    // to the scratch instance's config path so onboard reads/writes the
+    // isolated config instead.
+    PAPERCLIP_CONFIG: instanceConfigPath(home),
   };
 }
 

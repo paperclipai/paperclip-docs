@@ -794,6 +794,75 @@
       ]
     },
     {
+      "file": "dark/experimental/cloud-upstream.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/cloud-upstream",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/pages/CloudUpstream.tsx"
+      ]
+    },
+    {
+      "file": "dark/experimental/environments.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/environments",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/pages/CompanyEnvironments.tsx"
+      ]
+    },
+    {
+      "file": "dark/experimental/external-objects.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{externalObjectIssueId}",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/components/ExternalObjectPill.tsx",
+        "ui/src/components/IssueRelatedWorkPanel.tsx"
+      ]
+    },
+    {
+      "file": "dark/experimental/file-viewer-browse.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}?browse=1",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/components/FileViewerSheet.tsx",
+        "ui/src/components/WorkspaceFileBrowser.tsx"
+      ]
+    },
+    {
+      "file": "dark/experimental/recovery-preview.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/instance/settings/experimental",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/pages/InstanceExperimentalSettings.tsx"
+      ]
+    },
+    {
+      "file": "dark/experimental/server-info.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/components/SidebarServerInfo.tsx",
+        "ui/src/components/SidebarAccountMenu.tsx"
+      ]
+    },
+    {
       "file": "dark/export-import/export-dialog.png",
       "theme": "dark",
       "viewport": "1440x900",
@@ -2452,6 +2521,75 @@
       "captured_sha": "903bd157c22a39c1b90813b8d2a7e63cfd10fa65",
       "depends_on": [
         "ui/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "file": "light/experimental/cloud-upstream.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/company/settings/cloud-upstream",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/pages/CloudUpstream.tsx"
+      ]
+    },
+    {
+      "file": "light/experimental/environments.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/environments",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/pages/CompanyEnvironments.tsx"
+      ]
+    },
+    {
+      "file": "light/experimental/external-objects.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{externalObjectIssueId}",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/components/ExternalObjectPill.tsx",
+        "ui/src/components/IssueRelatedWorkPanel.tsx"
+      ]
+    },
+    {
+      "file": "light/experimental/file-viewer-browse.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/issues/{issueId}?browse=1",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/components/FileViewerSheet.tsx",
+        "ui/src/components/WorkspaceFileBrowser.tsx"
+      ]
+    },
+    {
+      "file": "light/experimental/recovery-preview.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/instance/settings/experimental",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/pages/InstanceExperimentalSettings.tsx"
+      ]
+    },
+    {
+      "file": "light/experimental/server-info.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/dashboard",
+      "captured_against": "master",
+      "captured_sha": "59eee4829cae581d9dd462712c34d91942f07a8c",
+      "depends_on": [
+        "ui/src/components/SidebarServerInfo.tsx",
+        "ui/src/components/SidebarAccountMenu.tsx"
       ]
     },
     {

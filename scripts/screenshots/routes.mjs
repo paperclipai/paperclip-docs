@@ -967,7 +967,7 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "experimental/cloud-upstream",
-    route: "/company/settings/cloud-upstream",
+    route: "/{prefix}/company/settings/cloud-upstream",
     dependsOn: ["ui/src/pages/CloudUpstream.tsx"],
   },
   {

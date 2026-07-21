@@ -256,14 +256,33 @@ export default async function capture(opts = {}) {
 
       const page = await context.newPage();
 
-      try {
-        await page.goto(url, { waitUntil: "networkidle", timeout: 20_000 });
-      } catch {
-        // Timeout or navigation error — best-effort screenshot of whatever rendered.
-      }
-
       const wait = target.wait ?? 1200;
-      await page.waitForTimeout(wait);
+      // The pipeline serves the UI through vite dev middleware, which compiles
+      // route chunks lazily on first request. `networkidle` can fire before the
+      // SPA has mounted, yielding a pure-white blank. Navigate, then poll until
+      // the app has actually rendered real content; reload-and-retry if not.
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          await page.goto(url, { waitUntil: "networkidle", timeout: 20_000 });
+        } catch {
+          // Timeout or navigation error — best-effort; the content poll decides.
+        }
+        await page.waitForTimeout(wait);
+        let contentLen = 0;
+        try {
+          contentLen = await page.evaluate(
+            () => (document.body?.innerText || "").trim().length,
+          );
+        } catch {
+          // evaluate can race a navigation; treat as not-yet-rendered.
+        }
+        if (contentLen > 40) break;
+        if (attempt < 3) {
+          console.warn(
+            `capture:   [${theme}] ${target.name} rendered blank (len=${contentLen}); retry ${attempt + 1}/3`,
+          );
+        }
+      }
 
       // Optional interaction steps (open a dialog, switch a tab, fill a field…).
       if (Array.isArray(target.steps) && target.steps.length) {
