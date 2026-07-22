@@ -381,6 +381,10 @@
           "file": "../docs/administration/secret-scopes.md"
         },
         {
+          "title": "Secret Folders",
+          "file": "../docs/administration/secret-folders.md"
+        },
+        {
           "title": "Settings",
           "file": "../docs/administration/settings.md"
         },

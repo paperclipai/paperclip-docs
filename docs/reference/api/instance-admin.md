@@ -51,6 +51,8 @@ On a brand-new private instance that requires login, this lets the first person 
 
 **Availability.** This route only exists when the instance runs with `deploymentMode` set to `authenticated` **and** `deploymentExposure` set to `private`. On any other configuration it returns `404` with `Browser first-admin claim is not available`.
 
+**Cloud-managed instances.** If your instance is managed by a Paperclip control plane rather than run by you, you never meet this claim screen at all — the instance comes up ready to use. The control plane owns identity there, and the users it signs in are deliberately never given the `instance_admin` role, so `GET /api/health` skips the first-admin check entirely and always reports `bootstrapStatus: "ready"`. Self-hosted instances are unaffected: if you run the server yourself, the claim flow behaves exactly as described here.
+
 **Authentication.** The caller must be a signed-in browser session (a board actor whose session source is the browser). Other callers — agents, CLI tokens, unauthenticated requests — get `401` with `Sign in from a browser session before claiming first admin`.
 
 **Behaviour.** If no `instance_admin` exists yet, the signed-in user is promoted to `instance_admin`. The claim is atomic — the table is locked so exactly one user can win. If the instance has already been claimed, the route returns `409` with `Someone else has already claimed this instance`.

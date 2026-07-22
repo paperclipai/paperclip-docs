@@ -52,6 +52,8 @@ The trade-off is real. User scope adds an onboarding step per human: a new teamm
 
 Scope answers a different question than the rest of the secret model. Providers and vaults, covered in the [Secrets reference](../reference/deploy/secrets.md), decide where secret material is stored and how Paperclip reaches external stores. Scope decides who supplies a value and which runs can use it. Reading that page first helps if you are new to secrets generally; this page assumes the basics and explains only the scoping layer.
 
+Naming is a third, separate question. Slashes in a secret name give the Secrets screen a folder tree to browse, and that grouping is independent of scope — a folder happily holds both company-scoped and user-scoped secrets. See [Secret folders](./secret-folders.md) for how the tree is derived and how to file secrets into it.
+
 ## Further reading
 
 - [Secrets reference](../reference/deploy/secrets.md) covers the default provider, provider vaults, strict mode, and migrating inline credentials to secret references.
