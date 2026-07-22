@@ -20,13 +20,77 @@
  */
 
 import { createRequire } from "node:module";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
+import os from "node:os";
 import {
   INSTANCE_ID,
   PARENT_REPO,
   scratchHome,
 } from "./config.mjs";
+
+/**
+ * Create a real on-disk git worktree with a few realistic files so the
+ * FileViewer / WorkspaceFileBrowser can actually list and preview files.
+ * Without a directory that exists at `execution_workspaces.cwd`, the server
+ * reports the workspace as "cleaned up / unavailable" and the browse sheet
+ * renders an empty state instead of a file tree.
+ * Returns the absolute path, or null if setup failed (caller keeps the demo cwd).
+ */
+function createDemoWorktree(prefix) {
+  const dir = resolve(os.tmpdir(), "paperclip-docs-shots-worktree", `${prefix}-204`);
+  const files = {
+    "package.json": JSON.stringify(
+      { name: "@acme/website", private: true, scripts: { dev: "vite", build: "vite build" } },
+      null,
+      2,
+    ) + "\n",
+    "README.md": "# Acme Website\n\nMarketing site. The homepage hero lives in `src/components/Hero.tsx`.\n",
+    "src/App.tsx":
+      'import { Hero } from "./components/Hero";\n\nexport function App() {\n  return (\n    <main>\n      <Hero />\n    </main>\n  );\n}\n',
+    "src/components/Hero.tsx":
+      'export function Hero() {\n  return (\n    <section className="hero">\n      <h1>Build with Acme Robotics</h1>\n      <p>The platform for autonomous teams.</p>\n      <a href="/signup">Get started</a>\n    </section>\n  );\n}\n',
+    "src/styles/hero.css":
+      ".hero {\n  padding: 6rem 2rem;\n  text-align: center;\n}\n.hero h1 {\n  font-size: 3rem;\n}\n",
+  };
+  try {
+    rmSync(dir, { recursive: true, force: true });
+    for (const [rel, content] of Object.entries(files)) {
+      const abs = resolve(dir, rel);
+      mkdirSync(resolve(abs, ".."), { recursive: true });
+      writeFileSync(abs, content);
+    }
+    const git = (args) =>
+      execFileSync("git", args, { cwd: dir, stdio: "ignore" });
+    git(["init", "-q"]);
+    git(["add", "-A"]);
+    git([
+      "-c", "user.email=demo@acme.example",
+      "-c", "user.name=Acme Demo",
+      "commit", "-q", "-m", "Design the homepage hero section",
+    ]);
+    // Leave a few uncommitted/untracked changes so the browser's default
+    // "recently changed files" view (git status --porcelain) shows a file list
+    // rather than an empty state.
+    writeFileSync(
+      resolve(dir, "src/components/Hero.tsx"),
+      'export function Hero() {\n  return (\n    <section className="hero">\n      <h1>Build faster with Acme Robotics</h1>\n      <p>The platform for autonomous engineering teams.</p>\n      <a className="cta" href="/signup">Start free trial</a>\n    </section>\n  );\n}\n',
+    );
+    writeFileSync(
+      resolve(dir, "src/components/CtaButton.tsx"),
+      'export function CtaButton({ label }: { label: string }) {\n  return <button className="cta">{label}</button>;\n}\n',
+    );
+    writeFileSync(
+      resolve(dir, "README.md"),
+      "# Acme Website\n\nMarketing site. The homepage hero lives in `src/components/Hero.tsx`.\n\n## Development\n\n```\npnpm install\npnpm dev\n```\n",
+    );
+    return dir;
+  } catch (err) {
+    console.warn(`[seed-ws] demo worktree setup failed (non-fatal): ${err.message}`);
+    return null;
+  }
+}
 
 /** Resolve the `postgres` (postgres.js) client from the parent repo. */
 function loadPostgres() {
@@ -102,7 +166,9 @@ export async function seedExecutionWorkspace(input) {
 
   const prefix = input.issuePrefix ?? "ACM";
   const branchName = `${prefix}-204-workspace`;
-  const cwd = `/srv/acme/website-worktrees/${prefix}-204`;
+  // Point cwd at a real on-disk git worktree so the file browser lists files.
+  // Falls back to the illustrative path if the worktree couldn't be created.
+  const cwd = createDemoWorktree(prefix) ?? `/srv/acme/website-worktrees/${prefix}-204`;
   const workspaceRuntime = {
     commands: [
       {

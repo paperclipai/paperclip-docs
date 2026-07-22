@@ -42,6 +42,7 @@ const ID_TOKENS = [
   "budgetWarnAgentId", // agent seeded to ~80% (warning)
   "budgetMaxAgentId", // agent seeded to 100% and paused
   "skillId", // a company skill id
+  "externalObjectIssueId", // issue whose description references GitHub PR/issue URLs
   "hireApprovalId", // a pending hire_agent approval
   "strategyApprovalId", // a pending approve_ceo_strategy approval
   "boardApprovalId", // a pending request_board_approval
@@ -954,6 +955,44 @@ export const CAPTURE_TARGETS = [
     route: "/{prefix}/issues/{issueId}",
     dependsOn: ["ui/src/pages/IssueDetail.tsx", "ui/src/components/CommentThread.tsx"],
     clip: { css: 'xpath=//textarea/ancestor::div[contains(@class,"rounded")][1]' },
+  },
+
+  // ── Experimental feature surfaces (docs/experimental/*) ─────────────────────
+  // Seed enables the gating flags (seed.mjs step 14e), so these routes render
+  // their real content rather than the disabled stubs.
+  {
+    name: "experimental/environments",
+    route: "/instance/settings/environments",
+    dependsOn: ["ui/src/pages/CompanyEnvironments.tsx"],
+  },
+  {
+    name: "experimental/cloud-upstream",
+    route: "/{prefix}/company/settings/cloud-upstream",
+    dependsOn: ["ui/src/pages/CloudUpstream.tsx"],
+  },
+  {
+    name: "experimental/file-viewer-browse",
+    route: "/{prefix}/issues/{issueId}?browse=1",
+    dependsOn: ["ui/src/components/FileViewerSheet.tsx", "ui/src/components/WorkspaceFileBrowser.tsx"],
+    wait: 2000,
+  },
+  {
+    name: "experimental/external-objects",
+    route: "/{prefix}/issues/{externalObjectIssueId}",
+    dependsOn: ["ui/src/components/ExternalObjectPill.tsx", "ui/src/components/IssueRelatedWorkPanel.tsx"],
+    wait: 2000,
+  },
+  {
+    name: "experimental/server-info",
+    route: "/{prefix}/dashboard",
+    dependsOn: ["ui/src/components/SidebarServerInfo.tsx", "ui/src/components/SidebarAccountMenu.tsx"],
+    steps: [{ click: { role: "button", name: "Open account menu" } }, { waitMs: 800 }],
+  },
+  {
+    name: "experimental/recovery-preview",
+    route: "/instance/settings/experimental",
+    dependsOn: ["ui/src/pages/InstanceExperimentalSettings.tsx"],
+    steps: [{ click: { role: "button", name: "Preview" } }, { waitMs: 1500 }],
   },
 ];
 

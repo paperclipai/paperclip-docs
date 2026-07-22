@@ -201,6 +201,19 @@ Costs tabs live in React state (not URL/hash). Capture each tab by clicking its 
 | `cli-auth.png` | `/cli-auth/{cliAuthId}` | Pending CLI auth code screen. Capture before approving. |
 | `board-claim.png` | `/board-claim/{boardClaimToken}` | Board claim landing page, pre-claim state. |
 
+### Experimental features (`screenshots/light/experimental/`)
+
+Used by `docs/experimental/*`. Seed enables the gating flags (`seed.mjs` step 14e) before capture.
+
+| Filename | URL | Notes |
+|---|---|---|
+| `environments.png` | `/instance/settings/environments` | Requires `enableEnvironments`; shows the environment list + Add environment. |
+| `cloud-upstream.png` | `/company/settings/cloud-upstream` | Requires `enableCloudSync`; connection card in the not-yet-connected state. |
+| `file-viewer-browse.png` | `/{slug}/issues/{issueId}?browse=1` | Requires `enableExperimentalFileViewer`; file-viewer sheet in browse mode. |
+| `external-objects.png` | `/{slug}/issues/{externalObjectIssueId}` | Requires `enableExternalObjects`; issue whose description references GitHub PR/issue URLs. |
+| `server-info.png` | `/{slug}/dashboard` + click "Open account menu" | Requires `enableServerInfoDebugView`; account drawer with the Server section. |
+| `recovery-preview.png` | `/instance/settings/experimental` + click "Preview" | "Confirm auto-recovery" dialog for Auto-Create Recovery Tasks. |
+
 ---
 
 ## Capture script (reference)
