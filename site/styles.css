@@ -1127,6 +1127,49 @@
     [data-theme="dark"] .callout-danger .callout-icon,
     [data-theme="dark"] .callout-danger .callout-label { color: #f87171; }
 
+    /* Accordion — native <details>/<summary> disclosure */
+    details.accordion {
+      border: 1px solid var(--stone);
+      border-radius: var(--radius-sm);
+      background: var(--white);
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    details.accordion + details.accordion { margin-top: -4px; }
+    details.accordion > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 13px 16px;
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-serif);
+      font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+      color: var(--ink);
+      user-select: none;
+      transition: background var(--transition);
+    }
+    details.accordion > summary::-webkit-details-marker { display: none; }
+    details.accordion > summary:hover { background: var(--parchment); }
+    details.accordion > summary::before {
+      content: "";
+      flex-shrink: 0;
+      width: 8px; height: 8px;
+      border-right: 2px solid var(--ash);
+      border-bottom: 2px solid var(--ash);
+      transform: rotate(-45deg);
+      transition: transform var(--transition);
+    }
+    details.accordion[open] > summary::before { transform: rotate(45deg); }
+    details.accordion[open] > summary { border-bottom: 1px solid var(--stone); }
+    details.accordion .accordion-meta {
+      margin-left: auto;
+      font-family: var(--font-body);
+      font-size: 12px; font-weight: 500;
+      color: var(--ash);
+    }
+    details.accordion > .accordion-body { padding: 4px 16px 8px; }
+    details.accordion > .accordion-body > :first-child { margin-top: 12px; }
+    details.accordion > .accordion-body > :last-child { margin-bottom: 4px; }
+
     /* Tabs */
     .tabs-container { margin-bottom: 24px; }
     .tabs-bar {
