@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.525.0
+paperclip_version: v2026.722.0
 ---
 
 # Secrets
@@ -550,6 +550,46 @@ requests.post(
 <!-- /tabs -->
 
 ---
+
+## Delivery modes: env vs access
+
+There is more than one way for a secret to reach an agent, and the difference matters when you care about how long a value sits in memory.
+
+- **Environment injection (`env`)** is the classic path described above. Paperclip resolves the secret at launch and injects the plaintext into the agent process environment. The value is present for the whole run.
+- **Run-bound access (`api`)** exposes the secret through an API the running agent calls on demand, instead of pre-loading it into the environment. Nothing is injected up front; the agent fetches the value only when it needs it.
+- **`both`** means the same secret is available through environment injection *and* the run-bound access API.
+
+When you list an agent's granted secrets (see below), each entry reports its `delivery` as `env`, `api`, or `both`, so an agent can tell how a given credential will be delivered before it reaches for it.
+
+Access-mode grants are the ones marked as API-only. Operators manage which secrets each agent can reach — and whether a grant is delivered as an environment variable or as run-bound access — from the **Secret access** editor in agent settings. The deep folder and picker UI for that editor is documented in [Secret folders](../../administration/secret-folders.md).
+
+## Run-Bound Agent Secret Access
+
+These two routes let a running agent read the secrets it has been granted, on demand, rather than relying only on values injected at launch. They are agent-only and run-bound: the caller must authenticate as an agent whose token is backed by a live, verified heartbeat run, and every request is evaluated through the `secrets:read` authorization check.
+
+Low-trust tokens stay denied here on purpose — skill-test run tokens and low-trust review agents cannot use this API, so it never broadens what those restricted runs can reach.
+
+### List granted secrets
+
+```http
+GET /api/agents/me/secrets
+```
+
+Returns just the aliases this agent is granted — never the secret values. The response is `{ "secrets": [...] }`, where each entry carries `key`, `name`, `description`, `delivery`, `projectionClass`, `latestVersion`, `versionSelector`, and `resolvedVersion`. The internal secret ID, binding ID, and config path are stripped from the payload.
+
+Use the `key` from each entry as the alias for the value route below.
+
+### Read one secret value
+
+```http
+POST /api/agents/me/secrets/{key}/value
+```
+
+Returns the plaintext value for a single granted alias. The `{key}` path parameter is the `key` from the list route. The response body is `{ "key", "value", "version" }`, and it is returned with a `Cache-Control: no-store` header so the value is not retained by caches or intermediaries.
+
+If the alias is not granted to the calling agent, the request is rejected with a forbidden error. Every successful value read is written to both the security audit trail and the operator activity log, so each fetch is tied to a specific agent and run.
+
+Full request and response examples for both routes live on the [Agents reference](agents.md#fetch-granted-secrets) page, since they are agent-run-scoped.
 
 ## `secret-ref` form fields
 

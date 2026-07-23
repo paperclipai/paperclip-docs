@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.618.0
+paperclip_version: v2026.722.0
 ---
 
 # Plugin SDK
@@ -205,7 +205,29 @@ Protocol types: `JsonRpcId`, `JsonRpcRequest`, `JsonRpcSuccessResponse`, `JsonRp
 
 External-object protocol shapes: `PluginExternalObjectUrlCandidate`, `PluginExternalObjectSourceContext`, `DetectExternalObjectsParams`, `PluginExternalObjectDetection`, `DetectExternalObjectsResult`, `PluginExternalObjectRecordSnapshot`, `ResolveExternalObjectParams`, `PluginExternalObjectResolvedSnapshot`, `PluginExternalObjectResolveResult`, `RefreshExternalObjectsParams`, `RefreshExternalObjectsResult`. See [External-object reference providers](#external-object-reference-providers) for the lifecycle that uses them.
 
-Environment-driver protocol shapes: `PluginEnvironmentDiagnostic`, `PluginEnvironmentDriverBaseParams`, `PluginEnvironmentValidateConfigParams`, `PluginEnvironmentValidationResult`, `PluginEnvironmentProbeParams`, `PluginEnvironmentProbeResult`, `PluginEnvironmentLease`, `PluginEnvironmentAcquireLeaseParams`, `PluginEnvironmentResumeLeaseParams`, `PluginEnvironmentReleaseLeaseParams`, `PluginEnvironmentDestroyLeaseParams`, `PluginEnvironmentRealizeWorkspaceParams`, `PluginEnvironmentRealizeWorkspaceResult`, `PluginEnvironmentExecuteParams`, `PluginEnvironmentExecuteResult`, `PluginEnvironmentInteractiveSetupStatus`, `PluginEnvironmentInteractiveSetupConnectionType`, `PluginEnvironmentTemplateRefKind`, `PluginEnvironmentInteractiveSetupConnectionSummary`, `PluginEnvironmentInteractiveSetupConnectionPayload`, `PluginEnvironmentInteractiveSetupSession`, `PluginEnvironmentStartInteractiveSetupParams`, `PluginEnvironmentGetInteractiveSetupParams`, `PluginEnvironmentCaptureTemplateParams`, `PluginEnvironmentCaptureTemplateResult`, `PluginEnvironmentCancelInteractiveSetupParams`, `PluginEnvironmentCancelInteractiveSetupResult`, `PluginEnvironmentDeleteTemplateParams`, `PluginEnvironmentDeleteTemplateResult`, `PluginEnvironmentTemplateConfigBinding`. The last block backs the optional interactive-setup and template-capture hooks described below.
+Environment-driver protocol shapes: `PluginEnvironmentDiagnostic`, `PluginEnvironmentDriverBaseParams`, `PluginEnvironmentValidateConfigParams`, `PluginEnvironmentValidationResult`, `PluginEnvironmentProbeParams`, `PluginEnvironmentProbeResult`, `PluginEnvironmentLease`, `PluginEnvironmentAcquireLeaseParams`, `PluginEnvironmentResumeLeaseParams`, `PluginEnvironmentReleaseLeaseParams`, `PluginEnvironmentDestroyLeaseParams`, `PluginEnvironmentRealizeWorkspaceParams`, `PluginEnvironmentRealizeWorkspaceResult`, `PluginEnvironmentExecuteParams`, `PluginEnvironmentExecuteResult`, `PluginSyncFileMapping`, `PluginSyncOperation`, `PluginEnvironmentSyncInParams`, `PluginEnvironmentSyncOutParams`, `PluginEnvironmentSyncResult`, `PluginEnvironmentInteractiveSetupStatus`, `PluginEnvironmentInteractiveSetupConnectionType`, `PluginEnvironmentTemplateRefKind`, `PluginEnvironmentInteractiveSetupConnectionSummary`, `PluginEnvironmentInteractiveSetupConnectionPayload`, `PluginEnvironmentInteractiveSetupSession`, `PluginEnvironmentStartInteractiveSetupParams`, `PluginEnvironmentGetInteractiveSetupParams`, `PluginEnvironmentCaptureTemplateParams`, `PluginEnvironmentCaptureTemplateResult`, `PluginEnvironmentCancelInteractiveSetupParams`, `PluginEnvironmentCancelInteractiveSetupResult`, `PluginEnvironmentDeleteTemplateParams`, `PluginEnvironmentDeleteTemplateResult`, `PluginEnvironmentTemplateConfigBinding`. The `PluginSync*` and `PluginEnvironmentSync*` shapes back the optional sandbox file-sync hooks, and the interactive-setup and template-capture shapes back the setup hooks — both described below.
+
+#### Sandbox file sync (optional)
+
+By default the host moves files in and out of a leased sandbox with a byte-identical base64-over-`environmentExecute` fallback. If your driver can do better — a provider-native bulk upload, an internal tar stream, per-file enumeration — you can take over the transfer by implementing a matched pair of hooks on the object you pass to `definePlugin({...})`:
+
+- `onEnvironmentSyncIn(params: PluginEnvironmentSyncInParams): Promise<PluginEnvironmentSyncResult>` — called before execution to place host files and directories at their target sandbox paths.
+- `onEnvironmentSyncOut(params: PluginEnvironmentSyncOutParams): Promise<PluginEnvironmentSyncResult>` — called after execution to copy sandbox files and directories back to their target host paths.
+
+Both hooks are optional and opt-in, but they come as a pair: define **both** to advertise the `environmentSyncIn` / `environmentSyncOut` methods, and the host routes transfers through your driver. Leave them undefined and the base64 fallback stays in effect — a driver that only leases and executes can ignore them entirely.
+
+Each params object carries the current `PluginEnvironmentLease` plus an ordered `operations` array of `PluginSyncOperation`. Operations are applied in array order; each one bundles an opaque, non-sensitive `operationId` (authored by the orchestrator — your driver must not interpret it) and a `files` list of `PluginSyncFileMapping`. A mapping describes one source→target transfer:
+
+| Field | Type | Declares |
+|---|---|---|
+| `sourcePath` | `string` | Absolute path of the transfer source — a host path for syncIn, a sandbox path for syncOut. |
+| `targetPath` | `string` | Absolute path of the transfer target — a sandbox path for syncIn, a host path for syncOut. Sandbox paths are POSIX. |
+| `kind` | `"file" \| "directory"` | Whether the mapping moves a single regular file or a directory tree. |
+| `mode?` | `number` | POSIX file mode to apply at the target (e.g. `0o600` for secret material). When set, the target must be created with this mode and no world-readable window — create-with-mode or chmod-before-bytes, never after. |
+| `exclude?` | `string[]` | Glob patterns to skip when `kind` is `"directory"`. |
+| `followSymlinks?` | `boolean` | Symlink handling for directory transfers. Falsy preserves symlinks as links; `true` dereferences them to their target bytes (mirrors tar's `-h`). |
+
+Return a `PluginEnvironmentSyncResult`: an `operations` array echoing each `operationId` with its `filesTransferred` and `bytesTransferred` counts, for host-side observability. The contract is provider-agnostic — transfer a directory however you like, as long as the observable result matches the mappings. For the full authoring rules, see the parent `doc/plugins/SANDBOX_FILE_SYNC_HOOKS.md`.
 
 #### Interactive setup and reusable templates (optional)
 

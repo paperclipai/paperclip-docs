@@ -199,6 +199,10 @@
           "file": "../docs/experimental/overview.md"
         },
         {
+          "title": "Connections v3 (Apps)",
+          "file": "../docs/experimental/connections-apps.md"
+        },
+        {
           "title": "Environments",
           "file": "../docs/experimental/environments.md"
         },

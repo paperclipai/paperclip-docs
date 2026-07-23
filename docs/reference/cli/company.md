@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.722.0
 ---
 
 # Company Commands
@@ -100,8 +100,9 @@ paperclipai company export <company-id> \
 | `--issues <values>` | Comma-separated issue identifiers/IDs to include. |
 | `--project-issues <values>` | Comma-separated project shortnames/IDs whose issues should be exported. |
 | `--expand-referenced-skills` | Vendor skill contents into the package instead of exporting upstream references. Defaults to off. |
+| `--force` | Overwrite a non-empty output directory without the interactive confirmation. Defaults to off. |
 
-The default `--include` is deliberately small (`company,agents`) so a quick export does not drag along every task. Widen it explicitly when you want a full clone. If the output directory already contains files, the command asks you to confirm an overwrite in an interactive terminal, and refuses outright in a non-interactive one — choose an empty directory for headless runs.
+The default `--include` is deliberately small (`company,agents`) so a quick export does not drag along every task. Widen it explicitly when you want a full clone. If the output directory already contains files, the command asks you to confirm an overwrite in an interactive terminal, and refuses outright in a non-interactive one — pass `--force` to overwrite anyway, or choose an empty directory for headless runs. `--force` is what you want for automated exports (for example the nightly backup routine) that write into a directory that legitimately still holds files.
 
 On success the command prints the resolved output path, the package root, the number of files written, the `.paperclip.yaml` extension path, and a warning count.
 

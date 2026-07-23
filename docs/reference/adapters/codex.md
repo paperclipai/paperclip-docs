@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.722.0
 ---
 
 # Codex
@@ -154,6 +154,18 @@ Each `codex_local` agent runs against its own managed Codex home, so one agent c
 - **A per-agent API key wins when you set one.** If the agent's `env` carries an `OPENAI_API_KEY`, Paperclip writes that key into the managed home as API-key auth instead of borrowing the host login.
 - **Your own `CODEX_HOME` is left alone.** If you point the adapter at a `CODEX_HOME` outside Paperclip's managed company tree, Paperclip treats it as self-managed and never seeds or overwrites it.
 - **No silent credential-less runs.** If a managed home ends up with no usable login and no configured API key, the run fails fast with a clear adapter error instead of starting Codex and hitting a `401` from the provider.
+
+### CODEX_HOME sync into a sandbox
+
+When this agent runs in a Paperclip sandbox, the adapter does not copy your whole Codex home into the sandbox. Instead it stages an explicit allowlist, so only the material a run actually needs crosses the boundary and none of your host-local runtime state comes along for the ride. The synced entries are:
+
+- `config.json`
+- `config.toml`
+- `instructions.md`
+- `auth.json`
+- `skills`
+
+Everything the stock `codex` binary writes at runtime — session databases (`*.sqlite`, `*-wal`), `plugins/`, `cache/`, `sessions/`, `shell_snapshots/`, and the like — stays on the host and is intentionally left out. This allowlist only applies to sandboxed execution; local and SSH targets read the managed home in place.
 
 ---
 

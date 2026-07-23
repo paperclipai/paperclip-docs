@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.722.0
 ---
 
 # Environment Variables
@@ -126,6 +126,15 @@ These variables control where the server forwards operator-submitted feedback (a
 
 If neither variable is set, feedback submissions are stored locally and never leave the instance.
 
+### Turning off telemetry
+
+Paperclip ships anonymized usage telemetry (which adapters you run, and similar coarse signals) that helps the project understand how Paperclip is used. It carries no personal data, and you can turn it off completely by setting either of these variables. Both are checked for the exact value `1`, and either one on its own disables telemetry.
+
+| Variable | Meaning |
+|---|---|
+| `PAPERCLIP_TELEMETRY_DISABLED` | Set to `1` to disable Paperclip's anonymized telemetry. |
+| `DO_NOT_TRACK` | The cross-tool [Console Do Not Track](https://consoledonottrack.com/) convention. Set to `1` to disable telemetry. |
+
 ---
 
 ## Observability (OpenTelemetry)
@@ -193,6 +202,16 @@ When Paperclip realizes an execution workspace, it can also inject workspace-spe
 Those are mainly useful for adapter authors and agent-side tooling that need direct access to the resolved execution workspace.
 
 > **Audit trail:** Every mutating API request from an agent run should include the `X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID` header. The server uses it to attribute issue updates, comments, checkouts, and subtasks to the heartbeat run that produced them. Read-only requests do not require it.
+
+### How `PAPERCLIP_*` env bindings reach the run
+
+You can define your own environment variables on an agent, project, routine, or adapter config, and they flow into the run environment — including ones you deliberately name with a `PAPERCLIP_` prefix (for example a secret called `PAPERCLIP_CLOUD_PROD_PROVIDER_RAILWAY_TOKEN`). The server applies one simple policy when it builds each run's environment:
+
+- **`PAPERCLIP_API_KEY` is never accepted** from your agent, project, routine, or adapter config. The harness mints a short-lived run token for every run, and that minted token is the only source of `PAPERCLIP_API_KEY`.
+- **Harness-assigned runtime variables always win.** The variables Paperclip sets for the run itself (like `PAPERCLIP_RUN_ID`, `PAPERCLIP_AGENT_ID`, and the wake/workspace variables above) take precedence over any same-named binding you define, so you cannot accidentally shadow them.
+- **Every other `PAPERCLIP_*` binding flows through** to the run environment just like a variable with no prefix. Naming a value with the `PAPERCLIP_` prefix no longer causes it to be dropped.
+
+> **Upgrade note (v2026.722.0):** Earlier releases stripped *every* `PAPERCLIP_`-prefixed binding before resolving the run environment, which silently dropped custom secrets you had named with that prefix — those now pass through as expected. In the same change, a static `PAPERCLIP_API_KEY` you set in adapter or config env to override the run token no longer has any effect. If you relied on that override, drop it: the harness-minted run token is now the only source of the run API key.
 
 ---
 

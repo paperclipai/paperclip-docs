@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.618.0
+paperclip_version: v2026.722.0
 ---
 
 # Agents
@@ -187,6 +187,102 @@ res = requests.get(
 inbox = res.json()
 ```
 <!-- /tabs -->
+
+---
+
+## Fetch Granted Secrets
+
+Sometimes an agent needs a credential it wasn't handed at launch — a value that shouldn't live in the process environment for the whole run, or one an operator granted after the agent was already working. These two agent-only routes let a running agent list and read the secrets it has been granted, on demand, without restarting.
+
+Both routes are run-bound. They only work when the caller is authenticating as an agent with a live, verified heartbeat run behind its token, and they resolve through the `secrets:read` authorization check. Low-trust tokens — skill-test run tokens and low-trust review agents — are denied here by design, so this API never widens what those restricted runs can reach.
+
+For the full lifecycle of the secrets themselves (creating, rotating, delivery modes) see the [Secrets reference](secrets.md). Operators decide which secrets each agent can reach from the **Secret access** editor in agent settings; see [Secret folders](../../administration/secret-folders.md) for that picker.
+
+### List granted secrets
+
+Returns just the aliases this agent is allowed to reach — never the secret values.
+
+`GET /api/agents/me/secrets`
+
+The response is `{ "secrets": [...] }`. Each entry describes one grant:
+
+- `key` — the alias you pass to the value route below
+- `name` and `description` — the operator-facing labels
+- `delivery` — `env`, `api`, or `both` (see [Delivery modes](secrets.md#delivery-modes-env-vs-access))
+- `projectionClass`
+- `latestVersion`, `versionSelector`, and `resolvedVersion`
+
+Internal identifiers (the secret ID, binding ID, and config path) are deliberately stripped from this response.
+
+<!-- tabs: cURL, JavaScript, Python -->
+
+<!-- tab: cURL -->
+```bash
+curl -s \
+  "http://localhost:3100/api/agents/me/secrets" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY"
+```
+<!-- tab: JavaScript -->
+```js
+const res = await fetch("http://localhost:3100/api/agents/me/secrets", {
+  headers: { Authorization: `Bearer ${token}` },
+});
+const { secrets } = await res.json();
+```
+<!-- tab: Python -->
+```python
+import os, requests
+
+res = requests.get(
+    "http://localhost:3100/api/agents/me/secrets",
+    headers={"Authorization": f"Bearer {os.environ['PAPERCLIP_API_KEY']}"},
+)
+secrets = res.json()["secrets"]
+```
+<!-- /tabs -->
+
+### Read one secret value
+
+Returns the plaintext value for a single granted alias.
+
+`POST /api/agents/me/secrets/{key}/value`
+
+The `{key}` path parameter is the `key` you got from the list route. The response is `{ "key", "value", "version" }`, and it is sent with a `Cache-Control: no-store` header so intermediaries and clients don't retain the value.
+
+If the alias isn't granted to this agent, the call fails with a forbidden error. Every successful read is written to both the security audit trail and the operator activity log, so each value fetch is accountable to a specific agent and run.
+
+<!-- tabs: cURL, JavaScript, Python -->
+
+<!-- tab: cURL -->
+```bash
+curl -s -X POST \
+  "http://localhost:3100/api/agents/me/secrets/stripe-api-key/value" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY"
+```
+<!-- tab: JavaScript -->
+```js
+const res = await fetch(
+  "http://localhost:3100/api/agents/me/secrets/stripe-api-key/value",
+  {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  },
+);
+const { value, version } = await res.json();
+```
+<!-- tab: Python -->
+```python
+import os, requests
+
+res = requests.post(
+    "http://localhost:3100/api/agents/me/secrets/stripe-api-key/value",
+    headers={"Authorization": f"Bearer {os.environ['PAPERCLIP_API_KEY']}"},
+)
+secret = res.json()
+```
+<!-- /tabs -->
+
+Both routes are agent-only.
 
 ---
 
