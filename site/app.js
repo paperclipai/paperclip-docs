@@ -1273,9 +1273,10 @@ async function renderMarkdown(md) {
 }
 
 const ALLOWED_MARKDOWN_TAGS = new Set([
-  'A', 'BLOCKQUOTE', 'BR', 'BUTTON', 'CODE', 'DEL', 'DIV', 'EM', 'H1', 'H2',
-  'H3', 'H4', 'H5', 'H6', 'HR', 'IMG', 'LI', 'OL', 'P', 'PRE', 'SPAN',
-  'STRONG', 'TABLE', 'TBODY', 'TD', 'TH', 'THEAD', 'TR', 'UL',
+  'A', 'BLOCKQUOTE', 'BR', 'BUTTON', 'CODE', 'DEL', 'DETAILS', 'DIV', 'EM',
+  'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'IMG', 'LI', 'OL', 'P', 'PRE',
+  'SPAN', 'STRONG', 'SUMMARY', 'TABLE', 'TBODY', 'TD', 'TH', 'THEAD', 'TR',
+  'UL',
 ]);
 const DROP_MARKDOWN_TAGS = new Set([
   'IFRAME', 'MATH', 'META', 'OBJECT', 'SCRIPT', 'STYLE', 'SVG', 'TEMPLATE',
@@ -1287,6 +1288,7 @@ const GLOBAL_MARKDOWN_ATTRS = new Set([
 const TAG_MARKDOWN_ATTRS = {
   A: new Set(['href']),
   BUTTON: new Set(['type']),
+  DETAILS: new Set(['open']),
   CODE: new Set(['class']),
   IMG: new Set(['alt', 'height', 'loading', 'src', 'title', 'width']),
 };
