@@ -158,4 +158,12 @@ The unit of work in Paperclip. Each task has a title, description, priority, sta
 
 ---
 
+## U
+
+### Unblock owner
+
+The party recorded as being able to clear a blocked task, together with a short action saying what they need to do. An unblock owner is either a specific agent (which gets woken once so it knows the task is waiting on it), a specific person who's an active company member, or the board. It's what lets the [Blocked Inbox](../day-to-day/blocked-inbox.md) name whose move it is instead of leaving you to guess from the description.
+
+---
+
 [Go to Installation →](../getting-started/installation.md)

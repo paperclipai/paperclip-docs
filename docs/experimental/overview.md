@@ -29,6 +29,16 @@ All experimental flags live in one place, and they're instance-wide (they apply 
 
 Changes take effect immediately — no restart, no migration. Each feature page in this section repeats the exact toggle name to look for.
 
+## If a toggle is locked
+
+On an instance managed by Paperclip Cloud, some of these features are decided for you. Open the Experimental page there and you'll see a small lock badge reading **Managed by Paperclip Cloud** next to the feature's name, and its toggle greyed out — the switch still shows you whether the feature is on or off, you just can't move it. Clicking it does nothing.
+
+That's not a permission problem with your account. Paperclip Cloud sets those values for the fleet your instance runs in, and the app re-applies them every time it reads the settings, so the answer can't drift — nothing you or anyone else does inside the instance changes a managed value. If you need one of these features turned on or off, that's a change on the Paperclip Cloud side rather than something you flip on this page.
+
+Only some features are managed this way. Anything without the badge is still yours to turn on and off exactly as described above, and the two kinds sit side by side in the same list — so the badge is what tells you which is which, on any given release.
+
+**Self-hosted instances are unaffected.** If you run Paperclip yourself, there is no managed configuration, no lock badge, and every card on the page stays editable. What makes the difference is a single environment variable, [`PAPERCLIP_MANAGED_CONFIG`](../reference/deploy/environment-variables.md#cloud-managed-instances), which only the Paperclip Cloud harness sets.
+
 ## The features
 
 | Feature | What it adds |

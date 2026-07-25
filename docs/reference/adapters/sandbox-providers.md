@@ -238,6 +238,34 @@ NetworkPolicy      paperclip-egress-allow    (DNS + paperclip-server callback + 
 
 Each run then gets its own short-lived resources, named `pc-{ulid}`, that cascade-delete when the lease is released (a `Sandbox` CR + pod + `pc-{ulid}-env` secret under `sandbox-cr`, or a `batch/v1` Job + pod + secret under `job`).
 
+### Workspace file sync
+
+Every agent run moves files both ways: Paperclip pushes the workspace and the run's asset files into the sandbox before the agent starts, then pulls changed files and outputs back to the host afterwards. On the default `sandbox-cr` backend the provider now does that transfer itself, natively over the pod exec channel, and there's nothing for you to switch on.
+
+The provider implements the two file-sync lifecycle hooks, `onEnvironmentSyncIn` (host → pod) and `onEnvironmentSyncOut` (pod → host). Defining them makes the plugin worker advertise the `environmentSyncIn` and `environmentSyncOut` verbs, and Paperclip then routes each sync operation through **one** pod exec that streams a tar archive — instead of the generic base64 fallback, which pays a fresh exec (a fresh WebSocket to the API server) per chunk. Inbound, the host builds a tarball on disk and streams its raw bytes into the pod's stdin; outbound, the pod tars straight to stdout and the host streams that into a file. Nothing buffers the whole payload, so the fallback's 100 MB in-memory ceiling no longer applies — but the Paperclip host does need ephemeral disk for the archive, which it stages in a `paperclip-k8s-sync-*` directory under the system temp dir.
+
+Two limits worth knowing about, because the sandbox is untrusted and both fail closed rather than letting a hostile pod exhaust the host:
+
+- An outbound transfer aborts the moment the pod has streamed more than 8 GiB to host disk.
+- The pod's stderr for a sync exec is capped at 1 MiB.
+
+Neither is exposed as an environment config field, and there are no new fields in the `Configure` table for this — the one setting that does affect sync is the existing `podActivityDeadlineSec`, which each sync exec inherits (in milliseconds) as its timeout. If you tightened that deadline, remember that large transfers now draw on the same budget as the run itself.
+
+Sync needs a workspace remote dir on the lease (`remoteCwd`, `/workspace` unless you set a `remotePath`), and that directory is the confinement root: every sandbox-side path must resolve inside it. Paperclip checks each path on the host first, then re-checks it in the pod through `realpath` and a `/proc/self/fd` pin so a symlink swapped in mid-transfer can't redirect a write outside the root. Outbound archives are sandbox-authored, so the host inspects every tar member (and every symlink and hardlink target) and refuses the archive before extracting if any of them would land outside the extraction directory.
+
+The `job` backend has no exec path at all, so it can't do native sync. Those leases are marked `nativeFileSyncUnsupported`, and Paperclip's per-lease capability gate keeps them on the byte-identical base64 fallback — you don't lose file transfer by choosing `job`, it's just slower.
+
+#### When a transfer fails
+
+Failures are loud. A non-zero exit from the in-pod script fails the whole transfer with the captured stderr attached, so you never get a silent partial success:
+
+- **Single files land atomically.** Each file is staged in a `0700` directory directly under the workspace root, gets its requested mode applied *before* the rename, then is moved onto its target with `mv -f`. An interrupted transfer can't leave a truncated file behind, and a secret file is never briefly world-readable.
+- **Directory mappings extract in place** and are not atomic, matching what the base64 fallback's tar did.
+- **Scratch is always swept.** Staging directories (named with the reserved `.paperclip-upload` prefix) are removed by a shell `trap` on any exit, including a failed one.
+- **A confinement violation rejects before any byte moves,** as does a source file that gets replaced between validation and copy.
+
+One image prerequisite comes with this: the in-pod scripts need a path canonicalizer, either `realpath` or `readlink -f`. If your image has neither, sync fails closed rather than proceeding with the host check as its only defense. They also use `sh`, `tar`, `head`, `mkdir`, `chmod`, `mv`, `cp`, `dirname`, and `dd`, and read `/proc/self/fd`. The scripts are plain POSIX `sh` and deliberately avoid GNU-only flags, so BusyBox-based images are fine — but an image with no shell or no `tar` can't be a sync target. The first-party `ghcr.io/paperclipai/agent-runtime-*` images build on `ubuntu:22.04` and already carry all of this, so they need no changes.
+
 ### Security baseline
 
 Every agent pod runs non-root (`runAsUser: 1000`, `runAsNonRoot: true`), drops all Linux capabilities with `allowPrivilegeEscalation: false`, uses `readOnlyRootFilesystem: true` with explicit `emptyDir` mounts for the writable paths it needs, and applies `seccompProfile: RuntimeDefault`. Each tenant namespace enforces `pod-security.kubernetes.io/enforce: restricted` and starts from a deny-all NetworkPolicy, so the only egress that works is what the adapter defaults and your `egressAllowFqdns` / `egressAllowCidrs` open up.
