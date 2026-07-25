@@ -51,7 +51,63 @@ All identifiers below are exported from `@paperclipai/plugin-sdk`. They are the 
 | `runWorker` | Boots the worker JSON-RPC loop against the supplied plugin and `import.meta.url`. | At the bottom of your worker entrypoint, after `definePlugin`. |
 | `startWorkerRpcHost` | Lower-level entry that returns a `WorkerRpcHost` you can manage yourself (for tests or custom harnesses). | Embedding the worker in a non-default transport (e.g. an in-process test). |
 
-Types: `PluginDefinition`, `PaperclipPlugin`, `PluginHealthDiagnostics`, `PluginConfigValidationResult`, `PluginWebhookInput`, `PluginApiRequestInput`, `PluginApiResponse`, `RunWorkerOptions`, `WorkerRpcHostOptions`, `WorkerRpcHost`.
+Types: `PluginDefinition`, `PaperclipPlugin`, `PluginHealthDiagnostics`, `PluginConfigChangeContext`, `PluginConfigValidationResult`, `PluginWebhookInput`, `PluginApiRequestInput`, `PluginApiResponse`, `RunWorkerOptions`, `WorkerRpcHostOptions`, `WorkerRpcHost`.
+
+#### Knowing *which* company's config changed
+
+When an operator saves your plugin's configuration, the host calls your optional `onConfigChanged` hook so you can apply the change without a worker restart. Plugin configuration in Paperclip is company-scoped, and a worker is spawned once per plugin — not once per company — so the interesting question is always "whose config is this?"
+
+`onConfigChanged` now answers it. The hook takes a second argument:
+
+```ts
+onConfigChanged?(
+  newConfig: Record<string, unknown>,
+  context?: PluginConfigChangeContext,
+): Promise<void>;
+```
+
+`PluginConfigChangeContext` has a single field, `companyId: string | null` — the company whose configuration changed, or `null` for an instance/global save that is not bound to a specific company.
+
+You will also see this hook fire earlier than you might expect. When your worker starts, the host replays each configured company's stored config through the same `configChanged` path an operator save uses. That is what makes a **proactive** plugin possible: one that does its company work from `setup()` rather than waiting for an event, and so has no company-scoped invocation to read `ctx.config.get(companyId)` inside. The host also authorizes your plugin's configured companies as the worker's proactive scopes, so worker-to-host calls made from your own timers and loops resolve to one of those companies instead of being rejected for missing company context. Any *other* company stays denied.
+
+The startup replay is best-effort, so it is a head start rather than a contract: a worker that doesn't implement `onConfigChanged` simply keeps reading config at runtime with `ctx.config.get(companyId)`. Because the same config can be replayed more than once, make your `onConfigChanged` idempotent.
+
+#### Declaring multi-company support with `multiCompanyConfig`
+
+Because that replay fans out every configured company, a plugin that keeps one worker-global config would quietly end up running as whichever company arrived last. That is a cross-tenant mix-up — one company's token applied to another company's traffic — so the host **fails closed** rather than letting it happen.
+
+Set `multiCompanyConfig: true` on your plugin definition when your worker genuinely serves more than one company from a single process, and key your per-company state on `context.companyId`:
+
+```ts
+import { definePlugin, runWorker, type PluginLogger } from "@paperclipai/plugin-sdk";
+
+const configByCompany = new Map<string, Record<string, unknown>>();
+let logger: PluginLogger | null = null;
+
+const plugin = definePlugin({
+  multiCompanyConfig: true,
+
+  async setup(ctx) {
+    logger = ctx.logger;
+  },
+
+  async onConfigChanged(newConfig, context) {
+    if (!context?.companyId) {
+      // Instance-wide save — nothing company-specific to rebind.
+      return;
+    }
+    configByCompany.set(context.companyId, newConfig);
+    logger?.info("Applied config for one company", { companyId: context.companyId });
+  },
+});
+
+export default plugin;
+runWorker(plugin, import.meta.url);
+```
+
+Leave `multiCompanyConfig` off (the default) and your plugin is treated as single-tenant. "Fails closed" then means something specific: once a `configChanged` delivery has applied one company's config, a delivery carrying a **different** config for a **different** company is rejected with `PLUGIN_RPC_ERROR_CODES.CROSS_TENANT_CONFIG` instead of overwriting what is already applied. Re-delivering the *same* config under a different company id is treated as an idempotent replay and still allowed, so duplicate scope rows that embed identical config are harmless.
+
+The `companyId` has always travelled on the wire — it is the optional `companyId?: string | null` field on `ConfigChangedParams`. What changed is that the SDK now hands it to your hook instead of dropping it.
 
 ### Plugin context
 
@@ -70,6 +126,7 @@ Types: `PluginDefinition`, `PaperclipPlugin`, `PluginHealthDiagnostics`, `Plugin
 | `PluginStateClient` | Scoped key-value state under a `ScopeKey`. |
 | `PluginEntitiesClient` | Upsert and query plugin-owned entities (`PluginEntityUpsert`, `PluginEntityQuery`, `PluginEntityRecord`). |
 | `PluginProjectsClient`, `PluginExecutionWorkspacesClient`, `PluginCompaniesClient`, `PluginIssuesClient`, `PluginIssueRelationsClient`, `PluginIssueSummariesClient`, `PluginAgentsClient`, `PluginAgentSessionsClient`, `PluginGoalsClient`, `PluginSkillsClient` | Read/write access to the core Paperclip domain via the host. |
+| `ctx.approvals` | Read and decide company approvals — see [Responding to interactions and approvals](#responding-to-interactions-and-approvals). Requires `approvals.read` for `list` / `get` and `approvals.respond` for `decide`. The interface is named `PluginApprovalsClient` in the SDK source but is not currently re-exported as a name; it is reachable from `PluginContext`. |
 | `ctx.routines` | Resolve and reconcile plugin-managed Paperclip routines (`ctx.routines.managed`). Requires the `routines.managed` capability. The interface type is not currently re-exported as a name, but it is reachable from `PluginContext`. |
 | `PluginDataClient` | Register data feeds the UI can query (`ctx.data.register(...)`). |
 | `PluginActionsClient` | Register host-invokable actions. |
@@ -85,7 +142,7 @@ Issue-domain helpers: `PluginIssueMutationActor`, `PluginIssueRelationSummary`, 
 
 Workspace metadata for `ctx.executionWorkspaces`: `PluginExecutionWorkspaceMetadata`.
 
-Agent-session helpers: `AgentSession`, `AgentSessionEvent`, `AgentSessionSendResult`.
+Agent-session helpers: `AgentSession`, `AgentSessionEvent`, `AgentSessionSendResult`. When you send a message with `ctx.agents.sessions.sendMessage(...)`, the `message` field on the `AgentSessionEvent` you receive with `eventType: "done"` is the canonical final user-facing assistant reply for that run — or `null` when the run produced no reply text. That is the field to relay back to whoever asked; you no longer need to reassemble it from the `"chunk"` events. An `eventType: "error"` event carries a run-status string in `message` instead.
 
 Workspace, event, and scope helpers: `PluginWorkspace`, `PluginEvent`, `EventFilter`, `ScopeKey`, `PluginJobContext`.
 
@@ -137,6 +194,116 @@ Dependencies between managed resources are declared with `PluginManagedResourceR
 Keys are stable identity. Renaming `agentKey`, `projectKey`, `routineKey`, or `skillKey` after publishing creates a new managed resource from the host's point of view.
 
 For the full manifest example and authoring rules, see the parent `doc/plugins/PLUGIN_AUTHORING_GUIDE.md`; the declaration types listed under [Manifest types](#manifest-types) above are the source of truth for what each managed entry accepts.
+
+### Responding to interactions and approvals
+
+If your plugin bridges Paperclip to somewhere people already work — a chat app, a ticketing tool — the interesting half is the round trip *back*. An agent asks a question or requests a confirmation, someone answers it where they saw it, and the decision has to land on the board exactly as if they had clicked the button in Paperclip themselves.
+
+`ctx.issues` and `ctx.approvals` give you that, plus the ability to read the files people attached along the way. All of it is capability-gated, and the write halves all ask you to name the human the decision belongs to.
+
+A note on imports: the domain types these methods hand back — `IssueThreadInteraction`, `Approval`, `IssueAttachment` — come from `@paperclipai/shared`, not from the SDK's own export list. Import them from there.
+
+#### Reading and resolving issue-thread interactions
+
+Interactions are the decision cards an agent posts into an issue thread: suggested tasks, questions, confirmations. Your plugin could already create them; now it can read them back and resolve them.
+
+| Method | Signature | Capability |
+|---|---|---|
+| `ctx.issues.listInteractions` | `listInteractions(issueId, companyId)` → `Promise<IssueThreadInteraction[]>` | `issue.interactions.read` |
+| `ctx.issues.respondInteraction` | `respondInteraction(issueId, interactionId, input, companyId)` → `Promise<{ interaction: IssueThreadInteraction; applied: boolean }>` | `issue.interactions.respond` |
+
+`input` is `{ action: "accept" | "reject"; actorUserId?: string; reason?: string | null }`.
+
+```ts
+const { interaction, applied } = await ctx.issues.respondInteraction(
+  issueId,
+  interactionId,
+  { action: "accept", actorUserId, reason: null },
+  companyId,
+);
+
+if (!applied) {
+  ctx.logger.info("Interaction was already resolved", { status: interaction.status });
+}
+```
+
+Three things worth planning for:
+
+- **`actorUserId` is optional in the type but required in practice.** Resolving an interaction is a board-user action, so the host rejects the call when it is missing. It is not a value the host takes on trust either: it independently re-verifies that the user is an active human member of the issue's company at apply time, and rejects a member whose `membershipRole` is `viewer`, because the web app treats viewer access as read-only on exactly these routes. Your plugin can only ever act as an identity that could have taken the same action in Paperclip.
+- **`applied` tells you whether *this* call did the work.** It is `true` when your call performed the resolution and `false` when the interaction had already converged to a resolved state. A duplicate button tap relayed from chat is therefore a safe no-op rather than an error, and the already-resolved interaction still comes back so you can render its final state.
+- **Accepting can wake the agent.** When the resolved interaction's `continuationPolicy` is `wake_assignee` — or `wake_assignee_on_accept` and the decision was an accept — the host wakes the issue's assignee so the agent resumes, the same way it would after a decision made in the web app.
+
+#### Deciding approvals
+
+`ctx.approvals` is the new client for company approvals.
+
+| Method | Signature | Capability |
+|---|---|---|
+| `ctx.approvals.list` | `list({ companyId, status? })` → `Promise<Approval[]>` | `approvals.read` |
+| `ctx.approvals.get` | `get(approvalId, companyId)` → `Promise<Approval \| null>` | `approvals.read` |
+| `ctx.approvals.decide` | `decide(approvalId, input, companyId)` → `Promise<{ approval: Approval; applied: boolean }>` | `approvals.respond` |
+
+`input` on `decide` is `{ action: "approve" | "reject"; actorUserId?: string; decisionNote?: string | null }`. The `actorUserId` rules and the meaning of `applied` are identical to `respondInteraction` above.
+
+Two behaviours to know about:
+
+- **Payloads are redacted on the way out.** `list` and `get` return approvals whose `payload` has been redacted host-side to match Paperclip's own approval read surface, so the bridge never hands your plugin secrets the web app itself hides from an approval reader.
+- **A fresh decision wakes the requester.** When `applied` is `true` and the approval has a `requestedByAgentId`, the host wakes that agent so it resumes after the decision.
+
+#### Reading attachments
+
+| Method | Signature | Capability |
+|---|---|---|
+| `ctx.issues.listAttachments` | `listAttachments(issueId, companyId)` → `Promise<IssueAttachment[]>` | `issue.attachments.read` |
+| `ctx.issues.getAttachmentContent` | `getAttachmentContent(attachmentId, companyId, options?)` → `Promise<PluginIssueAttachmentContent \| null>` | `issue.attachments.read` |
+
+`options` is `{ maxBytes?: number | null }`. `PluginIssueAttachmentContent` is declared in the SDK's `types.ts` but is not currently re-exported as a name; it is reachable as the return type of `getAttachmentContent`, and it carries:
+
+| Field | Type | Declares |
+|---|---|---|
+| `attachmentId` | `string` | The attachment's id. |
+| `contentType` | `string` | The stored MIME type. |
+| `byteSize` | `number` | The number of bytes actually read. |
+| `sha256` | `string` | Content hash of the stored object. |
+| `originalFilename` | `string \| null` | The filename as uploaded, when one was recorded. |
+| `contentBase64` | `string` | The raw bytes, base64-encoded. |
+
+```ts
+const attachments = await ctx.issues.listAttachments(issueId, companyId);
+
+for (const attachment of attachments) {
+  const content = await ctx.issues.getAttachmentContent(attachment.id, companyId, {
+    maxBytes: 5 * 1024 * 1024,
+  });
+  if (!content) continue;
+
+  ctx.logger.info("Read attachment", {
+    originalFilename: content.originalFilename,
+    contentType: content.contentType,
+    byteSize: content.byteSize,
+  });
+}
+```
+
+`getAttachmentContent` hands you **bytes, not a URL** — the read goes through the capability-scoped host bridge, and the result has no URL surface of its own. A few consequences:
+
+- **Unknown and cross-company ids are indistinguishable.** Both return `null`, by design, so the bridge is not an existence oracle across companies.
+- **`maxBytes` refuses rather than truncates.** Pass it and the host throws when the stored size is over the cap, and throws again if the object turns out to exceed the cap mid-stream. You never receive a partial file that looks whole.
+- **Reads are audit-logged.** Each successful content read is recorded in the host activity log against the issue.
+
+#### The five new capability strings
+
+Declare these in your manifest's `capabilities` — the host's capability validator rejects a plugin that calls these methods without them:
+
+| Capability | Grants |
+|---|---|
+| `issue.interactions.read` | `ctx.issues.listInteractions` |
+| `issue.interactions.respond` | `ctx.issues.respondInteraction` |
+| `issue.attachments.read` | `ctx.issues.listAttachments` and `ctx.issues.getAttachmentContent` |
+| `approvals.read` | `ctx.approvals.list` and `ctx.approvals.get` |
+| `approvals.respond` | `ctx.approvals.decide` |
+
+All five are members of `PLUGIN_CAPABILITIES`, which the SDK re-exports if you want to check values at runtime.
 
 ### External-object reference providers
 
@@ -201,6 +368,10 @@ Helpers and constants:
 - `serializeMessage`, `parseMessage`
 - `JsonRpcParseError`, `JsonRpcCallError`
 
+`PLUGIN_RPC_ERROR_CODES` includes `CROSS_TENANT_CONFIG`, the code the worker raises when a `configChanged` delivery would collapse a single-tenant worker onto a second company's configuration — see [Declaring multi-company support with `multiCompanyConfig`](#declaring-multi-company-support-with-multicompanyconfig).
+
+The worker-to-host method table `WorkerToHostMethods` gained the calls that back the clients above: `issues.listInteractions`, `issues.respondInteraction`, `issues.listAttachments`, `issues.getAttachmentContent`, `approvals.list`, `approvals.get`, and `approvals.decide`.
+
 Protocol types: `JsonRpcId`, `JsonRpcRequest`, `JsonRpcSuccessResponse`, `JsonRpcError`, `JsonRpcErrorResponse`, `JsonRpcResponse`, `JsonRpcNotification`, `JsonRpcMessage`, `JsonRpcErrorCode`, `PluginRpcErrorCode`, plus the parameter shapes for each RPC method: `InitializeParams`, `InitializeResult`, `ConfigChangedParams`, `ValidateConfigParams`, `OnEventParams`, `RunJobParams`, `GetDataParams`, `PerformActionParams`, `ExecuteToolParams`, and the host method tables `HostToWorkerMethods` / `HostToWorkerMethodName` / `WorkerToHostMethods` / `WorkerToHostMethodName` / `HostToWorkerRequest` / `HostToWorkerResponse` / `WorkerToHostRequest` / `WorkerToHostResponse` / `WorkerToHostNotifications` / `WorkerToHostNotificationName`.
 
 External-object protocol shapes: `PluginExternalObjectUrlCandidate`, `PluginExternalObjectSourceContext`, `DetectExternalObjectsParams`, `PluginExternalObjectDetection`, `DetectExternalObjectsResult`, `PluginExternalObjectRecordSnapshot`, `ResolveExternalObjectParams`, `PluginExternalObjectResolvedSnapshot`, `PluginExternalObjectResolveResult`, `RefreshExternalObjectsParams`, `RefreshExternalObjectsResult`. See [External-object reference providers](#external-object-reference-providers) for the lifecycle that uses them.
@@ -255,6 +426,8 @@ For embedding the host side of the bridge in tests or custom integrations:
 
 Types: `HostServices`, `HostClientFactoryOptions`, `HostClientHandlers`.
 
+`HostServices` groups the handlers you must supply by domain. Alongside the existing `issues` group — which now also needs `listInteractions`, `respondInteraction`, `listAttachments`, and `getAttachmentContent` — there is a new `approvals` group providing `list`, `get`, and `decide`. `getRequiredCapability` is the place to confirm which capability each call sits behind.
+
 ### Bundling and dev server
 
 Helpers for the plugin's build pipeline:
@@ -275,6 +448,16 @@ The SDK ships a first-class test harness so you do not have to spin up a real ho
 - `filterEnvironmentEvents`, `assertEnvironmentEventOrder`, `assertLeaseLifecycle`, `assertWorkspaceRealizationLifecycle`, `assertExecutionLifecycle`, `assertEnvironmentError` — assertion helpers for the environment-driver flow.
 
 Types: `TestHarness`, `TestHarnessOptions`, `TestHarnessLogEntry`, `EnvironmentTestHarness`, `EnvironmentTestHarnessOptions`, `EnvironmentEventRecord`, `FakeEnvironmentDriverOptions`.
+
+To test the interaction, approval, and attachment paths, seed them through `harness.seed({ ... })`, which accepts three new keys:
+
+| Key | Type |
+|---|---|
+| `issueInteractions` | `IssueThreadInteraction[]` |
+| `issueAttachments` | `Array<IssueAttachment & { contentBase64?: string }>` |
+| `approvals` | `Approval[]` |
+
+The harness deliberately mirrors the host's own write bar rather than waving it through: `respondInteraction` and `approvals.decide` both throw when `actorUserId` is missing, when it is not an active `user` member of the company, or when that member's `membershipRole` is `viewer`. Seed the members you want to act as through `harness.seed({ accessMembers: [...] })`, and a plugin test can't pass an attribution production would reject. The harness also honours `maxBytes` on `getAttachmentContent` and returns `applied: false` on replays, so idempotency is testable without a real host.
 
 ### Re-exports
 
