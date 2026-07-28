@@ -159,9 +159,18 @@
     }
   ],
   "adapter_doc_sources": {
-    "$comment": "Maps a doc basename (docs/reference/adapters/<name>.md) to the source paths the verifier should search. Use when the doc name does not match the adapter package directory under packages/adapters/.",
+    "$comment": "Maps a doc basename (docs/reference/adapters/<name>.md) to the source paths the verifier should search. Use when the doc name does not match the adapter package directory under packages/adapters/. Without an entry here, verify-edit.mjs finds no sources and reports every adapter-config-field on the page as unverified — a silent false negative that fires on every run, not a one-off.",
     "hermes-local": ["packages/adapters/hermes"],
-    "hermes-gateway": ["packages/adapters/hermes"]
+    "hermes-gateway": ["packages/adapters/hermes"],
+    "claude-code": ["packages/adapters/claude-local"],
+    "codex": ["packages/adapters/codex-local"],
+    "gemini-cli": ["packages/adapters/gemini-local"],
+    "opencode": ["packages/adapters/opencode-local"],
+    "pi": ["packages/adapters/pi-local"],
+    "http": ["server/src/adapters/http"],
+    "process": ["server/src/adapters/process"],
+    "modal": ["packages/plugins/sandbox-providers/modal"],
+    "sandbox-providers": ["packages/plugins/sandbox-providers"]
   },
   "screenshot_registry": "docs/user-guides/screenshots/registry.json",
   "quarantine_hours": 24,

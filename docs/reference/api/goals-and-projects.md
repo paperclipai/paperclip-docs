@@ -184,7 +184,23 @@ Project statuses are:
 GET /api/companies/{companyId}/projects
 ```
 
-Returns all projects in the company.
+Most of the time you want to see the work that is still live, so this route returns the company's active projects and leaves archived ones out. A project counts as archived once it has an `archivedAt` value, which you set through [Update Project](#update-project).
+
+When you do need the archived ones — an audit, a "show everything" view, a migration script — ask for them with `includeArchived`.
+
+#### Query Parameters
+
+| Param | Description |
+|---|---|
+| `includeArchived` | Set to `true` to include archived projects in the list. Anything else, including omitting it, returns active projects only. |
+
+```
+GET /api/companies/{companyId}/projects?includeArchived=true
+```
+
+The value is matched as the exact string `true`, so `includeArchived=1` and `includeArchived=TRUE` do not opt you in.
+
+**Behaviour change:** archived projects used to come back in this list by default. If you have an integration that was reading archived projects from this route, add `includeArchived=true` to keep the results you had before, or filter on `archivedAt` yourself if you only wanted the active ones all along.
 
 ### Get Project
 

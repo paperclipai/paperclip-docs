@@ -115,6 +115,10 @@ OpenCode supports multiple providers. Common ids:
 
 Run `opencode models` for the authoritative list on your machine.
 
+You are not limited to that list, though. OpenCode only resolves a `--model provider/model` when the model id exists in that provider's `models` map, so an id the bundled catalog does not carry — a model released after the catalog shipped, or a routing variant such as `openai/gpt-oss-120b:nitro` — would otherwise be rejected with `Model not found` even though the provider serves it.
+
+To spare you that, Paperclip registers whatever you put in `model` into the temporary `opencode.json` described above, adding it to that provider's `models` map when it is not already there. Models the catalog already knows keep all of their metadata, and an explicit definition — from your own OpenCode config or from `PAPERCLIP_OPENCODE_PROVIDERS` — always wins, so Paperclip never overwrites one. When it does add an entry, you will see a run note saying it registered the model. Like the rest of the runtime config on this page, this applies when `dangerouslySkipPermissions` is enabled and the target runs locally.
+
 ---
 
 ## Example

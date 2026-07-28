@@ -7,164 +7,287 @@ this list automatically.
 | | |
 | --- | --- |
 | Mode | `nightly` |
-| Window | `v2026.722.0` (`e55d702`) → `14f20be9` |
-| Parent default branch | `master`, HEAD `cca2806e` at run time |
-| Quarantine | 24h — cutoff `2026-07-24T06:54:55Z` |
-| Commits in window | 29 (19 newer commits held back by quarantine) |
-| Files in window | 118 (no compare-API truncation) |
-| Manifest hash | `e1aabc6c0eafd7ae0eda24db0ebf545a4e1ad0c5b3dad4bc4caa76208a190e77` |
+| Window | `v2026.722.0` (`e55d702`) → `2568bdec` |
+| Parent default branch | `master`, HEAD `77979950` at run time |
+| Quarantine | 24h — cutoff `2026-07-27T08:57:42Z` |
+| Commits in window | 53 (10 newer commits held back by quarantine) |
+| Files in window | 290 (no compare-API truncation) |
+| Manifest hash | `405ffd990768d384a23201e41b7b4f1c5afc5233b8c19e1b9a50832d8bd6739a` |
+
+**E1–E10 were applied by the previous run** (window ended `14f20be9`) and are unchanged in this
+cumulative manifest — they are listed at the bottom for continuity. **N1–N11 are the new work in
+this run**, from the 24-commit delta `14f20be9 → 2568bdec`.
 
 ## Auto-merge tier
 
-None this window. `.env.example` did not change, so the `env-vars` watcher had no hits. The one
-new environment variable (`PAPERCLIP_MANAGED_CONFIG`) exists only in
-`server/src/services/managed-config.ts` — it is harness-injected rather than a schema-bound
-append, which makes it a judgement call. It rides along with **E1**.
+None this window. `.env.example` did not change, so the `env-vars` watcher had no hits. The new
+`PAPERCLIP_NETWORK_EGRESS_*` variables (**N5**) are injected into the sandbox by the Kubernetes
+provider rather than read from a schema-bound file, so they are a judgement call and ride along
+with N5.
 
-## PR tier
+## PR tier — new this run
 
-### E1 — Cloud-managed instances lock experimental feature toggles
+### N1 — Status Cards
 
-`docs/experimental/overview.md` · `docs/reference/deploy/environment-variables.md`
+`docs/experimental/status-cards.md` (new) · `docs/experimental/overview.md` ·
+`docs/reference/api/status-cards.md` (new)
 
-A new `PAPERCLIP_MANAGED_CONFIG` variable carries one JSON document
-(`{v, mode, catalogVersion, features, plugins.autoInstall}`) from the Paperclip Cloud harness
-into the app. Parsing is strict and fails closed: bad JSON, an unknown feature key, or a missing
-section refuses startup rather than silently dropping a control. Only an *absent* variable means
-self-hosted — a present-but-blank value is an error. The overlay is never persisted; it is
-applied at read time, so a database restore or hand-edited row cannot resurrect a capability the
-harness disabled. Affected toggles render as locked, marked as managed by Paperclip.
+The largest surface in this window. A status card is one plain-English message describing what you
+want to keep an eye on; the Summarizer compiles it into bounded company-search queries, runs them,
+and writes a summary that it keeps current as the underlying work moves. Cards live on a shared,
+company-scoped **Status** board.
 
-Parent: `server/src/services/managed-config.ts` (new) ·
-`server/src/services/instance-settings.ts` · `packages/shared/src/feature-catalog.ts` (new) ·
-`packages/shared/src/types/instance.ts` · `ui/src/pages/InstanceExperimentalSettings.tsx`
-— commits `216d3d26`, `0f898f95`, `ad74fb54`
+The whole feature is gated on the `enableStatusCards` experimental flag, whose feature-catalog tier
+is `managed` with `cloudDefault: false` and `selfHostedDefault: false` — so it is off everywhere by
+default, and locked on Cloud-managed instances. With the flag off, every route answers
+`404 Not Found`.
 
-### E2 — Generalized bundled-plugin auto-provisioning
+Documented in full: the compile → summarise lifecycle, the five card states, the three refresh
+modes with their required fields, the five change triggers, active hours and the 100,000-token
+default daily cap, the full-rebuild thresholds (>10 changed issues, ≥9 consecutive incrementals,
+config change, recompile, restore), the 200-issue mention cap, archive/restore, and the agent
+limits (20 cards, 4,000-character prompt, authored-cards-only).
 
-`docs/administration/plugins.md`
+Parent: `server/src/routes/status-cards.ts` (new, 12 routes) ·
+`server/src/services/status-cards.ts` · `status-card-update-engine.ts` ·
+`status-card-finalization.ts` (all new) · `packages/db/src/schema/status_cards.ts` ·
+`packages/shared/src/validators/status-card.ts` · `packages/shared/src/feature-catalog.ts` ·
+`ui/src/pages/StatusCards/**` · migrations `0185`–`0191`
+— commits `7e40ed8c`, `3a16b912`, `8f08ec5c`
 
-What used to be a Kubernetes-only provisioning path is now general: the managed-config
-`plugins.autoInstall` list drives which bundled plugins an instance provisions.
+### N2 — `status-card-query` bundled catalog skill
 
-Parent: `server/src/services/bundled-plugins.ts` (new) · `plugin-registry.ts` ·
-`plugin-loader.ts` — commit `c4cdcc48`
+`docs/reference/skills/bundled/paperclip-operations/status-card-query.md` (new) ·
+`docs/reference/skills/bundled.md` · `docs/reference/skills.md`
 
-### E3 — `POST /api/plugins/install` path hardening
+The skill that backs N1. Two modes: authoring (an agent creates and refines its own cards through
+the public API) and compilation (the Summarizer turns a card's prose into structured
+`CompanySearchQuery` objects, then writes the card's first summary from the same assigned run).
+`defaultInstall` is `false`.
 
-`docs/reference/api/plugins.md` · `docs/how-to/develop-a-plugin-locally.md`
+Parent: `packages/skills-catalog/catalog/bundled/paperclip-operations/status-card-query/SKILL.md`
+(new) · `packages/skills-catalog/generated/catalog.json` — commit `3a16b912`
 
-`localPath` is now canonicalized for every install kind, so a crafted path cannot escape the
-allowed roots.
+### N3 — Routine activity gate
 
-Parent: `server/src/services/plugin-install-guard.ts` (new) · `server/src/routes/plugins.ts`
-— commit `0ef3b320`
+`docs/reference/api/routines.md` · `docs/how-to/create-a-daily-routine.md`
 
-### E4 — Plugin SDK: respond to interactions and approvals, read attachments
+Routines can now decline to fire on a quiet week. `activityGatePolicy` is `always` (default) or
+`require_external_activity`; `activityGateScope` is `company` (default) or `project`. Under
+`require_external_activity`, a scheduled tick dispatches only if the activity log holds an entry
+since the last *dispatched* run that isn't read/inbox bookkeeping, isn't the scheduler writing
+about this routine, and didn't come from a run on an issue this routine created — so a routine can
+never re-arm itself. A gated-off tick writes a `skipped` run with
+`failureReason: "no_external_activity"` and is not backfilled. Webhook and manual runs ignore the
+gate entirely.
 
-`docs/reference/plugins/sdk.md`
+Note the sharp edge documented on the page: `activityGateScope: "project"` on a routine with no
+`projectId` can never match, so it will never fire on a schedule.
 
-Plugins can now respond to interactions and approvals and read attachments. `configChanged`
-receives a `companyId` and fails closed without one; stored config is delivered to
-freshly-started workers, and proactive workers get a company scope seeded before `setup()`.
+Parent: `packages/shared/src/constants.ts` · `packages/shared/src/validators/routine.ts` ·
+`server/src/services/routines.ts` · `ui/src/pages/RoutineDetail.tsx` — commit `30ff3d7c`
 
-Parent: `packages/plugins/sdk/src/{index,types,protocol,define-plugin,host-client-factory,worker-rpc-host,testing}.ts` ·
-`server/src/services/plugin-host-services.ts` · `plugin-capability-validator.ts`
-— commits `5a00040c`, `a7186dce`, `1ebf5254`, `f2f168f6`, `3093c5e6`, `caae2778`
+### N4 — Archived projects leave the default project list
 
-### E5 — Blocked tasks name an explicit unblock owner
+`docs/reference/api/goals-and-projects.md`
 
-`docs/guides/day-to-day/blocked-inbox.md`
+`GET /api/companies/{companyId}/projects` now returns active projects only. Opt back in with
+`includeArchived=true` — matched as the exact string `true`, so `1` and `TRUE` do not work. Flagged
+on the page as a **behaviour change** for existing integrations.
 
-A blocked transition now records who owns the unblock — a specific agent, or the board — along
-with the action needed, and wakes an owning agent once. Note the rollout cutoff: only
-transitions at or after `2026-07-23T18:13:03Z` carry a descriptor, so tasks blocked before that
-keep the previous behaviour. The blocked and recovery notices were rewritten in plain language
-in the same window.
+Parent: `server/src/routes/projects.ts` · `server/src/services/projects.ts`
+— commits `56487002`, `2002c4ff`
 
-Parent: `server/src/services/routable-blocked.ts` (new) · `server/src/services/issues.ts` ·
-`packages/db/src/schema/issues.ts` · migration `0184_routable_blocked.sql` ·
-`packages/shared/src/types/issue.ts` · `ui/src/components/IssueBlockedNotice.tsx`
-— commits `148a5b11`, `62e367c1`
-
-### E6 — Trust-gated direct-parent issue reports
-
-`docs/administration/trust-and-low-trust-review.md`
-
-A low-trust agent may now report against its direct parent issue under a trust gate.
-
-Parent: `server/src/routes/issues.ts` · `server/src/services/authorization.ts`
-— commit `a17bee98`
-
-### E7 — Kubernetes sandbox provider: native file-sync lifecycle hooks
+### N5 — Task-scoped network egress grants (Kubernetes)
 
 `docs/reference/adapters/sandbox-providers.md`
 
-File sync now runs as native lifecycle hooks over pod exec instead of relying on external
-tooling.
+An individual task can now open extra network destinations for the length of its own run, through
+`executionWorkspaceSettings.networkEgress` (`allowFqdns`, `allowCidrs`), instead of widening the
+whole environment's allow-list. The provider creates a per-run policy named `pc-{ulid}-egress`,
+selected by the run's `paperclip.io/run-id` label and owner-referenced to the run so it is cleaned
+up with it.
 
-Parent: `packages/plugins/sandbox-providers/kubernetes/src/file-sync.ts` (new) ·
-`pod-exec.ts` · `plugin.ts` · `types.ts` — commit `9edde683`
+The page is deliberately blunt about the limitation: under `egressMode: "standard"` a Kubernetes
+NetworkPolicy cannot express a hostname, so `allowFqdns` are **not** enforced — an FQDN-only grant
+falls back to allowing public IPv4 on TCP 80/443 with private, loopback, link-local, CGNAT, and
+multicast ranges carved out. Only `egressMode: "cilium"` enforces names.
 
-### E8 — Secrets: acting user threaded into user-scoped resolution
+Parent: `packages/plugins/sandbox-providers/kubernetes/src/scoped-network-egress.ts` (new) ·
+`network-policy.ts` · `cilium-network-policy.ts` — commit `7f766526`
 
-`docs/administration/secret-scopes.md` · `docs/reference/api/secrets.md`
+### N6 — Cloud Docker image variant
 
-User-scoped secret resolution now carries the acting user explicitly, and skills routes that
-skip a user secret record an audit actor.
+`docs/reference/deploy/docker.md`
 
-Parent: `server/src/services/secrets.ts` · `server/src/routes/authz.ts`
-— commits `81f47e70`, `e41ba306`
+A second published image — the production image plus pre-built bundled sandbox-provider plugins,
+tagged with a `-cloud` suffix (`sha-<short>-cloud`, `latest-cloud`, `<version>-cloud`). Managed
+instances need it because `plugins.autoInstall` can only install a bundled plugin whose `dist/` is
+already in the image. Self-hosters want the plain tag.
 
-### E9 — `summarize-status` is actions-first; monitor-claim discipline
+This also fixed a live trap in our own docs: the page told readers to run `docker build -t ... .`
+with no `--target`. Now that the Dockerfile declares `cloud` *after* `production`, that command
+silently builds the cloud variant. The page now says `--target production`, and explains why.
 
-`docs/reference/skills.md` · `docs/guides/org/skills.md`
+Parent: `Dockerfile` (new `cloud-plugins` and `cloud` stages, `ARG CLOUD_BUNDLED_PLUGINS="daytona"`) ·
+`.github/workflows/docker.yml` — commit `965a827e`
 
-The bundled `summarize-status` skill was rewritten to lead with actions, and agents must now
-claim only the monitors they actually schedule.
+### N7 — Task watchdogs stop repeating themselves
 
-Parent: `skills/paperclip/SKILL.md` ·
-`packages/skills-catalog/catalog/bundled/paperclip-operations/summarize-status/SKILL.md`
-— commits `e3f8380e`, `04e070bf`
+`docs/experimental/task-watchdogs.md`
 
-### E10 — Built-in agents: first-time setup from `needs_setup`
+A watchdog now stores a snapshot of the stopped state it reviewed — per stopped task: status,
+assignee, blockers, and any question or approval it waits on — and stays quiet while later
+evaluations still match it. It wakes again only on a material move: a status change, a different
+assignee, a gained or lost blocker, a started or finished wait, or a new stopped task in the tree.
+A fresh comment or document no longer re-triggers it.
 
-`docs/reference/api/built-in-agents.md`
+Parent: `server/src/services/task-watchdogs.ts` · `packages/db/src/schema/issue_watchdogs.ts` ·
+migration `0192_task_watchdog_stop_snapshots.sql` — commit `c481be44`
 
-A built-in agent sitting in `needs_setup` can now complete first-time setup.
+### N8 — Real build version in published images
 
-Parent: `server/src/routes/agents.ts` · `server/src/services/built-in-agents.ts`
-— commit `176a9e82`
+`docs/experimental/server-info-debug-view.md`
+
+The production image bakes `ARG PAPERCLIP_BUILD_VERSION`, and `server/src/version.ts` prefers it
+over the `package.json` placeholder. **No doc change was needed** — our page's existing claims
+about what the Server section shows were already accurate. Recorded here so the next run does not
+re-open it.
+
+Parent: `server/src/version.ts` · `server/src/build-version.ts` · `Dockerfile` — commit `d1b9448b`
+
+### N9 — In-place workspace realization
+
+`docs/experimental/isolated-workspaces.md`
+
+Task environments that already own the authoritative filesystem and toolchain now execute in place
+instead of being copied. Copy mode gained explicit confinement, so writing to an unsynchronized
+path fails visibly rather than being silently discarded on sync-back — which is the part a user
+actually notices, because it changes what a failing run looks like.
+
+Parent: `packages/shared/src/types/workspace-runtime.ts` ·
+`packages/adapter-utils/src/execution-target.ts` · `local-process-sandbox.ts` ·
+`server/src/services/execution-workspace-policy.ts` · `environment-run-orchestrator.ts`
+— commit `4e008185`
+
+### N10 — OpenCode resolves uncatalogued models
+
+`docs/reference/adapters/opencode.md`
+
+OpenCode only resolves `--model provider/model` when the id exists in that provider's runtime
+`models` map, so newly released models and routing variants failed with `Model not found`.
+Paperclip now registers the configured model into the injected `opencode.json`, without ever
+overwriting an explicit provider definition.
+
+Parent: `packages/adapters/opencode-local/src/server/runtime-config.ts` — commit `ee3ed011`
+
+### N11 — Recovery wakes on the normal model lane
+
+`docs/how-to/debug-stuck-heartbeat.md`
+
+Added as symptom 7. When a run succeeds but leaves its issue `in_progress` with no durable
+disposition, the corrective wake now goes out on the agent's normal model and adapter settings —
+carrying the issue description, the agent's final report, and its recorded next action — instead of
+a cheap status-only profile. So it can look like a full work run, and costs like one. Still bounded
+to a single attempt (`finish_successful_run_handoff`); a stopped or paused assignee gets no wake at
+all.
+
+Parent: `server/src/services/recovery/successful-run-handoff.ts` ·
+`server/src/services/heartbeat.ts` — commit `7014e46e`
 
 ## Judged no doc impact
 
-- acpx staging, per-adapter managed-home seed, and in-sandbox cwd routing (`d36ea13e`,
-  `e1cc6332`, `8a3cc865`, `b517b887`) — internal adapter plumbing with no user-facing surface.
-- Interactions fixes: tolerate legacy stored result outcomes (`e2068319`) and stop wedging
-  confirmation accept on a terminal work state (`429792f1`) — no documented behaviour changes.
-- Lockfile refresh and CI hardening (`0650ae97`, `58ae799d`, `14f20be9`).
+- `4c55f0d8` inbox no longer renders external-object summary markers on task rows — filtering is
+  unchanged, so this is a screenshot concern only.
+- `c9881223` routine folder groups render as inline sections — UI polish, screenshot only.
+- `b083b173` calendar-month retention for database backups — internal scheduling.
+- `762ce5b4`, `197718bc` acpx per-step timing observability — internal telemetry.
+- `e4662b1f`, `b3b07ae4`, `665408c6` Codex sandbox control-plane access, silent active builds, and
+  mid-turn crash classification — internal reliability.
+- `d3c004d1`, `b996b71a` wake-payload description dedupe and resume-delta compaction — internal
+  prompt compaction.
+- `2568bdec` sandbox proxy socket path length — internal.
+- `cca2806e` test-only.
 
 ## ⚠ Drift
 
-None. `check-drift.mjs` against parent `master` returned zero records.
+None. `check-drift.mjs` against parent `master` (`77979950`) returned zero records.
 
 ## ↻ Renames detected
 
-None. `detect-renames.mjs` found no directory renames in this window.
+None. `detect-renames.mjs` found no directory renames, no genuinely-new top-level dirs, and no
+unmatched removals in this window.
 
 ## ⚠ Reconcile
 
-None. `last_applied_manifest_hash` was empty — the previous run ended in a release merge — so
-every entry above is new work rather than the residue of a revert.
+None. No manifest entry from the previous run disappeared from this cumulative window, so nothing
+we already documented has been reverted upstream.
+
+## Verification report
+
+`verify-edit.mjs` against `2568bdec` across all 15 touched doc files: **99 claims extracted, 98
+verified, 1 unverified, 0 suspicious.**
+
+Six of those files extract zero claims — the verifier only recognises CLI commands, CLI flags, env
+vars, REST routes (in `docs/reference/api/**` only), adapter config fields and values, and
+`cli|packages|server|skills/**.{ts,md,json}` file paths. Prose-heavy pages like
+`docs/experimental/status-cards.md` are therefore *unchecked*, not *clean*. The numeric claims on
+that page were confirmed by hand against `status-card-update-engine.ts` instead: the 100,000-token
+default cap, the `changeCount > 10` and `incrementalCount >= 9` full-rebuild thresholds, the
+`maxUpdatesPerHour ?? 6` reactive default, and `STATUS_CARD_MAX_MENTIONED_ISSUES = 200`.
+
+The one remaining record is a false positive on a pre-existing line:
+`adapter-config-value: anthropic-key` at `docs/reference/adapters/opencode.md:136`. It is a
+user-chosen secret name inside a config example, not an upstream identifier, and it was not
+touched by this run.
+
+**Tooling fix applied this run.** The first verification pass reported 38 unverified records, 34 of
+them on `opencode.md` — every one a false negative. `verify-edit.mjs` resolves adapter sources as
+`packages/adapters/<doc-basename>`, and nine of our adapter pages have no directory at that path.
+`scripts/sync/anchor-map.json` now maps them explicitly:
+
+| Doc page | Parent source |
+| --- | --- |
+| `claude-code.md` | `packages/adapters/claude-local` |
+| `codex.md` | `packages/adapters/codex-local` |
+| `gemini-cli.md` | `packages/adapters/gemini-local` |
+| `opencode.md` | `packages/adapters/opencode-local` |
+| `pi.md` | `packages/adapters/pi-local` |
+| `http.md` | `server/src/adapters/http` |
+| `process.md` | `server/src/adapters/process` |
+| `modal.md` | `packages/plugins/sandbox-providers/modal` |
+| `sandbox-providers.md` | `packages/plugins/sandbox-providers` |
+
+That took the two affected files from 38 unverified to 1. This was a silent, long-standing gap —
+those pages have been unverifiable on every run, not just this one. `acpx-local.md` is left
+unmapped on purpose: it is a retired stub.
 
 ## Warnings
 
-- **Stale watcher path.** The `db-migrations` watcher in `scripts/sync/anchor-map.json` points
-  at `packages/db/migrations/**`, but the parent keeps migrations under
-  `packages/db/src/migrations/**`. Migration `0184_routable_blocked.sql` was caught only because
-  the `schemas` watcher matched `packages/db/src/schema/issues.ts`. The map needs fixing.
-- **Screenshot coverage gap.** Commit `62e367c1` rewrote the user-facing copy of
-  `IssueBlockedNotice.tsx`, `IssueRecoveryActionCard.tsx`, and `IssueAssignedBacklogNotice.tsx`,
-  but no registry entry lists any of those files in `depends_on`, so none was flagged stale.
+- **Stale watcher path (carried over, still unfixed).** The `db-migrations` watcher points at
+  `packages/db/migrations/**`, but the parent keeps migrations under
+  `packages/db/src/migrations/**`. Eight migrations landed in this window (`0185`–`0192`) and not
+  one was matched by that watcher — they were caught only because the `schemas` watcher matched
+  sibling files. The map needs fixing.
+- **Screenshot registry has no Status Cards coverage.** An entire new UI surface ships with zero
+  capture targets. See `SCREENSHOTS_PENDING.md`.
+- **`feature-catalog.ts` is not a tracked screenshot dependency.** It determines which cards render
+  on the Experimental settings page, so a future flag added without touching the page component
+  would not flag that screenshot stale. See `SCREENSHOTS_PENDING.md`.
 
-See `SCREENSHOTS_PENDING.md` for the screenshots this window did invalidate.
+## Applied by the previous run (E1–E10)
+
+Unchanged in this cumulative window; listed for continuity.
+
+- **E1** Cloud-managed instances lock experimental feature toggles (`PAPERCLIP_MANAGED_CONFIG`)
+- **E2** Generalized bundled-plugin auto-provisioning
+- **E3** `POST /api/plugins/install` path hardening
+- **E4** Plugin SDK: respond to interactions and approvals, read attachments
+- **E5** Blocked tasks name an explicit unblock owner
+- **E6** Trust-gated direct-parent issue reports
+- **E7** Kubernetes sandbox provider native file-sync lifecycle hooks
+- **E8** Secrets: acting user threaded into user-scoped resolution
+- **E9** `summarize-status` is actions-first; monitor-claim discipline
+- **E10** Built-in agents: first-time setup from `needs_setup`
+
+See `SCREENSHOTS_PENDING.md` for the screenshots this window invalidated.

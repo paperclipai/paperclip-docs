@@ -238,6 +238,61 @@ NetworkPolicy      paperclip-egress-allow    (DNS + paperclip-server callback + 
 
 Each run then gets its own short-lived resources, named `pc-{ulid}`, that cascade-delete when the lease is released (a `Sandbox` CR + pod + `pc-{ulid}-env` secret under `sandbox-cr`, or a `batch/v1` Job + pod + secret under `job`).
 
+### Task-scoped egress grants
+
+The `egressAllowFqdns` and `egressAllowCidrs` you set in the `Configure` table apply to every run in the environment, which quietly pushes you toward making them wide enough for your most demanding task. Task-scoped grants let you avoid that trade. Keep the environment's allow-list as tight as you like, then open the extra destinations one individual task needs, for the length of that task's run only.
+
+You set the grant on the task itself, inside its `executionWorkspaceSettings` (one of the execution fields described on the [Issues](../api/issues.md) API page):
+
+```json
+{
+  "executionWorkspaceSettings": {
+    "networkEgress": {
+      "allowFqdns": ["registry.npmjs.org", "files.pythonhosted.org"],
+      "allowCidrs": ["203.0.113.0/24"]
+    }
+  }
+}
+```
+
+Both lists are optional. Paperclip trims each entry, drops blanks and duplicates, and lowercases the FQDNs; CIDRs are kept exactly as you wrote them. If both lists come out empty, nothing extra is created and the run simply uses the namespace's normal egress allow-list.
+
+When there is something to grant, the provider creates one more policy alongside the run's other resources, named after the run's workload as `pc-{ulid}-egress`. (If a workload name would push that past Kubernetes' 253-character name limit, the middle is shortened to fit.) Two details make it safe to hand out per task:
+
+- It selects only the pod carrying that run's `paperclip.io/run-id` label, so the extra destinations never become reachable from other agent pods sharing the tenant namespace.
+- It carries an owner reference to the run's `Sandbox` CR or `Job`, so it's cleaned up along with the run.
+
+The per-run policy carries only the granted destinations. DNS and the callback to paperclip-server keep coming from the namespace-level policy, so a grant adds to the baseline rather than replacing it. The grant is read once, when the sandbox is claimed for the run — editing the task afterwards won't rewrite a policy that's already live. And if the policy can't be created, Paperclip releases the workload it just claimed and lease acquisition fails, so a run never starts with a grant that didn't actually get applied.
+
+#### What each egress mode really enforces
+
+This is where the `egressMode` you picked matters, because the two modes are not equivalent and the difference is worth understanding before you rely on one.
+
+With `egressMode: "cilium"`, the grant becomes a `CiliumNetworkPolicy`. Your `allowFqdns` are enforced as names: each one becomes an exact-name `toFQDNs` match, allowed on TCP 443. Your `allowCidrs` become a `toCIDRSet` entry with no port restriction.
+
+With `egressMode: "standard"` (the default), the grant becomes a plain `networking.k8s.io/v1` NetworkPolicy — and a Kubernetes NetworkPolicy has no way to express a hostname at all. It can only match IP blocks. So:
+
+- `allowCidrs` behave exactly as you'd expect: one `ipBlock` rule per CIDR, with no port restriction.
+- `allowFqdns` are **not** enforced. If you grant FQDNs and leave `allowCidrs` empty, the policy falls back to allowing all public IPv4 on TCP 80 and 443 so the hosts you named are at least reachable, with `0.0.0.0/8`, `10.0.0.0/8`, `100.64.0.0/10`, `127.0.0.0/8`, `169.254.0.0/16`, `172.16.0.0/12`, `192.168.0.0/16`, and `224.0.0.0/4` carved out. Cluster internals, loopback, and the link-local metadata endpoint stay blocked — but every *other* public host on 80/443 becomes reachable too, not just the ones you listed.
+- If you grant FQDNs **and** CIDRs together in standard mode, that fallback does not fire. Only your CIDRs are allowed, and the FQDNs you named are reachable only if they happen to resolve inside those CIDRs.
+
+The short version: under `standard`, treat `allowFqdns` as a statement of intent that buys the run public HTTP/HTTPS, and treat `allowCidrs` as the part that's genuinely enforced. If you need a grant to mean "this hostname and nothing else", run Cilium and set `egressMode: "cilium"`.
+
+#### When a request gets blocked
+
+Two things make a denied request diagnosable from inside the run instead of leaving the agent guessing.
+
+First, every sandbox is handed the effective grant through its environment:
+
+| Variable | Value |
+|---|---|
+| `PAPERCLIP_NETWORK_EGRESS_POLICY` | `kubernetes-default-deny` |
+| `PAPERCLIP_NETWORK_EGRESS_GRANT_PATH` | `executionWorkspaceSettings.networkEgress` |
+| `PAPERCLIP_NETWORK_EGRESS_ALLOW_FQDNS` | The granted FQDNs, comma-separated (empty when there are none) |
+| `PAPERCLIP_NETWORK_EGRESS_ALLOW_CIDRS` | The granted CIDRs, comma-separated (empty when there are none) |
+
+Second, when a command's stderr looks like a blocked network call — `could not resolve host`, `network is unreachable`, `connection timed out`, `failed to connect`, or `temporary failure in name resolution` — Paperclip appends a note to it saying the network policy denied or couldn't route the request, listing what the task currently has granted (or saying that nothing is granted), and pointing at `executionWorkspaceSettings.networkEgress` as the place to request access. That's usually enough for an agent to tell a flaky endpoint apart from a destination nobody opened for it.
+
 ### Workspace file sync
 
 Every agent run moves files both ways: Paperclip pushes the workspace and the run's asset files into the sandbox before the agent starts, then pulls changed files and outputs back to the host afterwards. On the default `sandbox-cr` backend the provider now does that transfer itself, natively over the pod exec channel, and there's nothing for you to switch on.
@@ -268,7 +323,7 @@ One image prerequisite comes with this: the in-pod scripts need a path canonical
 
 ### Security baseline
 
-Every agent pod runs non-root (`runAsUser: 1000`, `runAsNonRoot: true`), drops all Linux capabilities with `allowPrivilegeEscalation: false`, uses `readOnlyRootFilesystem: true` with explicit `emptyDir` mounts for the writable paths it needs, and applies `seccompProfile: RuntimeDefault`. Each tenant namespace enforces `pod-security.kubernetes.io/enforce: restricted` and starts from a deny-all NetworkPolicy, so the only egress that works is what the adapter defaults and your `egressAllowFqdns` / `egressAllowCidrs` open up.
+Every agent pod runs non-root (`runAsUser: 1000`, `runAsNonRoot: true`), drops all Linux capabilities with `allowPrivilegeEscalation: false`, uses `readOnlyRootFilesystem: true` with explicit `emptyDir` mounts for the writable paths it needs, and applies `seccompProfile: RuntimeDefault`. Each tenant namespace enforces `pod-security.kubernetes.io/enforce: restricted` and starts from a deny-all NetworkPolicy, so the only egress that works is what the adapter defaults and your `egressAllowFqdns` / `egressAllowCidrs` open up — plus whatever an individual task adds through a [task-scoped egress grant](#task-scoped-egress-grants) for the length of its own run.
 
 For stronger isolation, install [Kata Containers](https://github.com/kata-containers/kata-containers) with the Firecracker hypervisor and set `runtimeClassName: kata-fc`. Each agent pod then runs inside a Firecracker microVM. This requires nodes capable of nested virtualization.
 

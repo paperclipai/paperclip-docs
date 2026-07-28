@@ -33,6 +33,28 @@ The instance flag alone doesn't isolate anything — each project opts in:
 
 The full tour of the workspace detail screen — tabs, runtime controls, logs — is in the [Workspaces guide](../guides/projects-workflow/workspaces.md).
 
+## When the run happens on an environment
+
+If a task also runs on an [environment](environments.md) — an SSH machine or a provider sandbox — there's one more question to settle: which filesystem the agent actually edits. Paperclip records that as the run's *workspace realization*, and it has two modes.
+
+In `copy` mode — the familiar one — your isolated workspace is shipped out to the environment, the agent works on that copy, and the result is brought back when the run ends.
+
+In `in_place` mode nothing is copied. The environment already holds the authoritative files and the right toolchain, so the run works directly in the environment's own tree, at the path Paperclip calls the `authoritativeRoot`, and there's no sync-back step afterwards. Your local worktree and branch still exist; the run just isn't the thing editing them.
+
+You don't pick this. The environment's driver or sandbox provider declares it, and Paperclip follows — there is no setting for it in project or task configuration. On a Codex run you can tell which mode you got from two places: the run log says `[paperclip] Syncing CODEX_HOME to …` in place mode instead of `[paperclip] Syncing workspace and CODEX_HOME to …`, and the agent's process gets `PAPERCLIP_WORKSPACE_REALIZATION_MODE` and `PAPERCLIP_WORKSPACE_AUTHORITATIVE_ROOT` so your own scripts can check too.
+
+### Writes outside the workspace now fail out loud
+
+This part is worth knowing even if you never touch environments, because it changes what a broken run looks like.
+
+In `copy` mode, an agent sandboxed to its workspace can only be given writable paths that live inside the synchronized tree — or that the environment has mapped back out of it. Hand it a writable path that satisfies neither and the run stops before the agent starts, with an error naming the path:
+
+> Writable sandbox path "…" is outside synchronized workspace "…" and has no outbound restore mapping.
+
+That failure is the point. Before, such a path was writable during the run and then quietly discarded when the workspace was copied back, so an agent could finish, verify its own work, and report success on files nobody would ever see. An error at the start is much easier to act on: move the path inside the workspace, or make it read-only.
+
+Absolute paths the environment declares as aliases — a `/app` that really means "the workspace" — are bound to the synchronized tree for you, and are rejected the same visible way if they point anywhere else.
+
 ## When it's off
 
 The Workspaces sidebar item disappears (visiting `/workspaces` redirects to your issues), project and task workspace controls are hidden, and — because of the run-time enforcement above — runs execute on the primary checkout even for tasks that previously had isolated settings. Project policies and per-task settings are kept in the database and come back when you re-enable.
@@ -42,6 +64,8 @@ The Workspaces sidebar item disappears (visiting `/workspaces` redirects to your
 - Isolation requires **both** the instance flag and the project's *Enable isolated task checkouts* policy.
 - Git worktree is the only implementation — the UI labels it *"Host-managed implementation: Git worktree."*
 - The advanced **Environment** dropdown in the same section needs the [Environments](environments.md) flag and more than one selectable environment.
+- Workspace-scoped sandbox confinement — including the writable-path check above — runs on Linux hosts only.
+- A Codex agent pinned to the ACP engine can't run in an in-place environment: *"In-place workspace realization requires the Codex CLI engine; ACP archive staging is not supported."* Leave the engine unset and Paperclip picks the CLI for you.
 
 ## Where to go next
 
