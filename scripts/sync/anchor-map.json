@@ -140,14 +140,14 @@
     {
       "name": "db-migrations",
       "parent_paths": [
-        "packages/db/migrations/**"
+        "packages/db/src/migrations/**"
       ],
       "docs_paths": [
         "docs/administration/**",
         "docs/reference/deploy/database.md"
       ],
       "tier": "context-only",
-      "detect": "Migrations themselves rarely need user-facing docs, but a sudden burst of migrations often correlates with a schema change watched elsewhere. Use this watcher's hits as context only — never produce edits directly."
+      "detect": "Migrations themselves rarely need user-facing docs, but a sudden burst of migrations often correlates with a schema change watched elsewhere. Use this watcher's hits as context only — never produce edits directly. Deliberately NOT promoted above context-only: most migrations are columns, indexes, and renames that need no prose, and promoting this would put all of them in front of a human for triage. The gap that would justify revisiting is a migration changing user-visible behaviour WITHOUT touching a packages/**/schema/*.ts file the `schemas` watcher already catches — a data backfill that changes a default, a retention window, or a constraint that starts rejecting input that used to be accepted."
     },
     {
       "name": "release-notes",
