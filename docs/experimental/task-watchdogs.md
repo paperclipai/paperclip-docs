@@ -24,6 +24,10 @@ Watchdogs are opt-in, per task — there's no global "watch everything" switch:
 
 Once set, the scheduler evaluates the watched subtree automatically. When everything under the task has stopped, the watchdog agent runs, posts its reasoning in the thread, and — if the stop was a mistake — creates or unblocks follow-up work inside the watched subtree.
 
+You only hear from it once per distinct stopped state. Each time a watchdog reviews a stop, Paperclip stores a snapshot of what it saw: for every stopped task in the tree, its status, who it's assigned to, what's blocking it, and which questions or approvals it's waiting on. Later evaluations compare against that snapshot and stay quiet while it still matches — so a stopped task picking up a fresh comment, document, or work product won't re-trigger the watchdog, and neither will part of the tree finishing and dropping out. It wakes again when something material moves: a stopped task changes status, gets a different assignee, gains or loses a blocker, starts or stops waiting on a question or approval, or a new stopped task appears under the watched one.
+
+When it does wake, the stopped-state comment it posts lists each stopped task with what it's waiting on, so you can see at a glance why the tree came to rest.
+
 The full lifecycle — when a watchdog wakes, what it's allowed to do, and how it differs from the other things called "watchdog" — is covered in the [Task Watchdogs guide](../guides/projects-workflow/task-watchdogs.md).
 
 ## When it's off
@@ -33,7 +37,8 @@ The flag hides the configuration UI only. **Watchdogs you already configured kee
 ## Caveats
 
 - Watchdog runs are deliberately scope-limited: they can't change watchdog configuration, and any issues they create must stay inside the watched subtree.
-- A watchdog pass costs a normal agent run — attach them to trees that matter, not everything.
+- A watchdog pass costs a normal agent run — attach them to trees that matter, not everything. Deduplication means you don't pay twice for the same stopped state, but every genuinely new one is a new run.
+- If a watchdog accepts a stop and you disagree, it won't take a second look at that same state. Move the tree yourself — change a status, clear a blocker, reassign — and the next evaluation sees a new stopped state.
 
 ## Where to go next
 

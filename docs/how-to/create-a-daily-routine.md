@@ -126,6 +126,38 @@ In the UI, any `env` value with `type: "secret_ref"` is rendered through a secre
 
 ---
 
+## 5. (Optional) Don't run on a dead week
+
+A daily routine on a quiet project is mostly noise — thirty standups in a row that all say "nothing changed". The activity gate turns that off. Set `activityGatePolicy` to `require_external_activity` and a scheduled tick only fires if something actually happened since the routine last ran.
+
+```bash
+curl -X PATCH "$PAPERCLIP_API_URL/api/routines/$ROUTINE_ID" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "activityGatePolicy": "require_external_activity",
+    "activityGateScope": "project"
+  }'
+```
+
+Both fields also work at create time, alongside `concurrencyPolicy` and `catchUpPolicy` in step 1. The defaults are `activityGatePolicy: "always"` — fire on every tick, which is what you get if you never touch this — and `activityGateScope: "company"`.
+
+"Something happened" means an entry in the company's activity log recorded after the routine's last dispatched run: someone commented, an issue moved, an agent finished a piece of work. Three kinds of entries deliberately don't count:
+
+- Read and inbox bookkeeping — `issue.read_marked`, `issue.read_unmarked`, `issue.inbox_archived`, `issue.inbox_unarchived`. Opening your inbox isn't news.
+- Anything the scheduler logged about this routine, including its own skip records.
+- Anything an agent did while working on an execution issue this routine created.
+
+Those last two matter more than they look. Without them a routine would keep re-arming itself on its own output, and the gate would never close.
+
+`activityGateScope` decides how wide to look. `company` counts activity anywhere in the company; `project` counts only activity tied to the routine's project — its issues, its routines and their runs, and agent runs working on its issues. Reach for `project` on the standup and triage patterns below, where a busy neighbouring project shouldn't wake up a quiet one. One catch: a routine with `activityGateScope: "project"` and no `projectId` can never match anything, so it will never fire on a schedule.
+
+A gated-off tick is not an error and not a backlog. It shows up in the run history as a `skipped` run with `failureReason: "no_external_activity"`, the schedule advances to the next tick, and nothing is backfilled when the project wakes up again.
+
+The gate only applies to schedule triggers. Webhook firings and `POST /api/routines/{routineId}/run` always dispatch — if an external system took the trouble to call you, that call *is* the activity.
+
+---
+
 ## Pattern 1 — Daily standup
 
 The agent reads what changed since the previous standup and comments on a parent project issue with a short summary. Use `coalesce_if_active`: if the agent is still writing yesterday's standup when today's tick lands, merge the work — there's no value in two standup issues for the same morning.
@@ -307,7 +339,7 @@ The runs you'll see:
 | `received` | The tick was accepted; dispatch is in flight. |
 | `issue_created` | A fresh execution issue was created and assigned. |
 | `coalesced` | An active run already existed; this tick linked to it. |
-| `skipped` | An active run already existed; concurrency policy dropped this tick. |
+| `skipped` | The tick didn't create work — an active run already existed and the concurrency policy dropped it, the project was paused, or the activity gate found nothing new. `failureReason` says which. |
 | `completed` | The execution issue reached `done`. |
 | `failed` | The execution issue failed, was cancelled, or dispatch errored. The `failureReason` field tells you which. |
 

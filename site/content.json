@@ -227,6 +227,10 @@
           "file": "../docs/experimental/task-watchdogs.md"
         },
         {
+          "title": "Status Cards",
+          "file": "../docs/experimental/status-cards.md"
+        },
+        {
           "title": "Cloud Sync",
           "file": "../docs/experimental/cloud-sync.md"
         },
@@ -493,6 +497,10 @@
           "file": "../docs/reference/api/summary-slots.md"
         },
         {
+          "title": "Status Cards",
+          "file": "../docs/reference/api/status-cards.md"
+        },
+        {
           "title": "Dashboard",
           "file": "../docs/reference/api/dashboard.md"
         },
@@ -686,6 +694,10 @@
                 {
                   "title": "Issue Triage",
                   "file": "../docs/reference/skills/bundled/paperclip-operations/issue-triage.md"
+                },
+                {
+                  "title": "Status Card Query",
+                  "file": "../docs/reference/skills/bundled/paperclip-operations/status-card-query.md"
                 },
                 {
                   "title": "Task Planning",
