@@ -1,9 +1,12 @@
 # LOOA-935: Explicit index policy for `/experimental/` docs routes
 
-**Status:** audit-only; proposed route policy, pending approval.  
-**Audit date:** 2026-07-28  
+**Status:** audit-only; proposed route policy, pending approval.
+
+**Audit date:** 2026-07-28
+
 **Scope:** all 12 routes sourced from `docs/experimental/` and listed in the
-`Experimental` section of `site/content.json`.  
+`Experimental` section of `site/content.json`.
+
 **Public URL changes in this issue:** none. No redirect, canonical, sitemap,
 navigation, or robots behavior has been changed.
 
