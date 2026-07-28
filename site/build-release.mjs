@@ -2,12 +2,15 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { transform } from "esbuild";
 import { marked } from "marked";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, "..");
 const docsRoot = path.resolve(__dirname, "..", "docs");
 const sourceIndexPath = path.join(__dirname, "index.html");
 const sourceStylesPath = path.join(__dirname, "styles.css");
@@ -18,6 +21,7 @@ const sourceVendorDir = path.join(__dirname, "vendor");
 const screenshotsSourceDir = path.join(docsRoot, "user-guides", "screenshots");
 const defaultSiteUrl = "https://docs.paperclip.ing";
 const defaultSeoDescription = "Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows.";
+const execFileAsync = promisify(execFile);
 
 function printUsage() {
   console.log(`Usage: node site/build-release.mjs [options]
@@ -611,8 +615,8 @@ async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
   const pages = [];
   for (const { page, section } of flattenNavPages(nav)) {
     const releaseMarkdownPath = path.join(outDir, page.file);
+    const sourceMarkdownPath = path.join(docsRoot, page.file);
     const markdown = await fs.readFile(releaseMarkdownPath, "utf8");
-    const stats = await fs.stat(releaseMarkdownPath);
     const h1 = markdown.match(/^#\s+(.+)$/m)?.[1]?.trim();
     const pageTitle = page.title || h1 || "Paperclip Docs";
     pages.push({
@@ -621,7 +625,7 @@ async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
       title: `${pageTitle} | Paperclip Docs`,
       description: markdownDescription(markdown),
       url: routeUrlForPage(siteUrl, basePath, page),
-      lastmod: stats.mtime.toISOString().slice(0, 10),
+      lastmod: await gitLastModified(sourceMarkdownPath),
       siteUrl,
       basePath,
     });
@@ -629,22 +633,39 @@ async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
   return pages;
 }
 
+async function gitLastModified(sourcePath) {
+  if (!isPathInside(repoRoot, sourcePath)) return undefined;
+  const repoRelativePath = toPosixPath(path.relative(repoRoot, sourcePath));
+  try {
+    const { stdout } = await execFileAsync(
+      "git",
+      ["log", "-1", "--follow", "--format=%cs", "--", repoRelativePath],
+      { cwd: repoRoot },
+    );
+    const value = stdout.trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : undefined;
+  } catch {
+    // An omitted lastmod is safer than publishing the build timestamp as if
+    // every document changed at once.
+    return undefined;
+  }
+}
+
 function buildSitemap({ siteUrl, basePath, pages }) {
   const rootLastmod = pages
     .map((page) => page.lastmod)
+    .filter(Boolean)
     .sort()
-    .at(-1) || new Date().toISOString().slice(0, 10);
+    .at(-1);
   const entries = [
-    { loc: siteUrlForPath(siteUrl, basePath), lastmod: rootLastmod, priority: "1.0" },
-    ...pages.map((page) => ({ loc: page.url, lastmod: page.lastmod, priority: "0.8" })),
+    { loc: siteUrlForPath(siteUrl, basePath), lastmod: rootLastmod },
+    ...pages.map((page) => ({ loc: page.url, lastmod: page.lastmod })),
   ];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${entries.map((entry) => `  <url>
     <loc>${escapeXml(entry.loc)}</loc>
-    <lastmod>${escapeXml(entry.lastmod)}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>${entry.priority}</priority>
+${entry.lastmod ? `    <lastmod>${escapeXml(entry.lastmod)}</lastmod>\n` : ""}
   </url>`).join("\n")}
 </urlset>
 `;
@@ -956,18 +977,32 @@ function inlineReleaseStyles(html, css) {
   );
 }
 
-function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles) {
+function buildStaticPageNav(prev, next) {
+  const prevHtml = prev
+    ? `<a class="page-nav-btn prev" href="${escapeAttr(prev.url)}"><span class="page-nav-label">← Previous</span><span class="page-nav-title">${escapeHtml(prev.page.title)}</span></a>`
+    : '<div class="page-nav-spacer"></div>';
+  const nextHtml = next
+    ? `<a class="page-nav-btn next" href="${escapeAttr(next.url)}"><span class="page-nav-label">Next →</span><span class="page-nav-title">${escapeHtml(next.page.title)}</span></a>`
+    : "";
+  return `${prevHtml}${nextHtml}`;
+}
+
+function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles, prev, next) {
   const articleHtml = renderStaticMarkdown(markdown);
   const routeBaseHref = basePath === "auto" ? "/" : basePath;
   return inlineReleaseStyles(injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref }), releaseStyles)
     .replace('<section id="landing">', '<section id="landing">')
     .replace('<div id="article-view">', '<div id="article-view" class="is-active">')
     .replace('<div id="loading">', '<div id="loading" style="display:none">')
-    .replace('<article id="article" style="display:none"></article>', `<article id="article">${articleHtml}</article>`);
+    .replace('<article id="article" style="display:none"></article>', `<article id="article">${articleHtml}</article>`)
+    .replace(
+      '<div id="page-nav" style="display:none"></div>',
+      `<div id="page-nav" style="display:flex">${buildStaticPageNav(prev, next)}</div>`,
+    );
 }
 
 async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodiesByFile, basePath, releaseStyles }) {
-  for (const metadata of pages) {
+  for (const [index, metadata] of pages.entries()) {
     const { page } = metadata;
     const markdown = markdownBodiesByFile.get(page.file);
     if (!markdown) continue;
@@ -976,7 +1011,18 @@ async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodie
       throw new Error(`Refusing to write route outside release directory: ${page.slug}`);
     }
     await ensureDir(path.dirname(routePath));
-    await fs.writeFile(routePath, buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles));
+    await fs.writeFile(
+      routePath,
+      buildStaticPageHtml(
+        sourceIndex,
+        metadata,
+        markdown,
+        basePath,
+        releaseStyles,
+        pages[index - 1],
+        pages[index + 1],
+      ),
+    );
   }
 }
 

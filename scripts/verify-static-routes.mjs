@@ -89,6 +89,10 @@ try {
 
   const sitemap = read("sitemap.xml");
   assert(sitemap.includes("https://docs.paperclip.ing/reference/skills"), "sitemap is missing reference/skills");
+  assert(!sitemap.includes("<changefreq>"), "sitemap should not publish ignored changefreq values");
+  assert(!sitemap.includes("<priority>"), "sitemap should not publish ignored priority values");
+  const sitemapLastmods = [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((match) => match[1]);
+  assert(new Set(sitemapLastmods).size > 1, "sitemap lastmod values should reflect document history, not one build date");
   assert(
     existsSync(join(outDir, "reference/skills/bundled/index.html")),
     "missing reference/skills/bundled/index.html",
@@ -104,6 +108,14 @@ try {
   assert(
     sitemap.includes("https://docs.paperclip.ing/reference/skills/optional"),
     "sitemap is missing reference/skills/optional",
+  );
+  assert(
+    skillsHtml.includes('class="page-nav-btn prev" href="https://docs.paperclip.ing/'),
+    "static docs pages should expose a crawlable previous-page link",
+  );
+  assert(
+    skillsHtml.includes('class="page-nav-btn next" href="https://docs.paperclip.ing/'),
+    "static docs pages should expose a crawlable next-page link",
   );
 
   const robots = read("robots.txt");
