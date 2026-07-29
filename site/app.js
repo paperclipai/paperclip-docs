@@ -1721,21 +1721,29 @@ function renderPageNav(file) {
   nav.innerHTML = '';
 
   if (prev) {
-    const btn = document.createElement('button');
-    btn.className = 'page-nav-btn prev';
-    btn.innerHTML = `<span class="page-nav-label">← Previous</span><span class="page-nav-title">${escapeHtml(prev.title)}</span>`;
-    btn.addEventListener('click', () => loadPage(prev.file));
-    nav.appendChild(btn);
+    const link = document.createElement('a');
+    link.className = 'page-nav-btn prev';
+    link.href = getPageUrl(prev);
+    link.innerHTML = `<span class="page-nav-label">← Previous</span><span class="page-nav-title">${escapeHtml(prev.title)}</span>`;
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      loadPage(prev.file);
+    });
+    nav.appendChild(link);
   } else {
     nav.appendChild(Object.assign(document.createElement('div'), { className: 'page-nav-spacer' }));
   }
 
   if (next) {
-    const btn = document.createElement('button');
-    btn.className = 'page-nav-btn next';
-    btn.innerHTML = `<span class="page-nav-label">Next →</span><span class="page-nav-title">${escapeHtml(next.title)}</span>`;
-    btn.addEventListener('click', () => loadPage(next.file));
-    nav.appendChild(btn);
+    const link = document.createElement('a');
+    link.className = 'page-nav-btn next';
+    link.href = getPageUrl(next);
+    link.innerHTML = `<span class="page-nav-label">Next →</span><span class="page-nav-title">${escapeHtml(next.title)}</span>`;
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      loadPage(next.file);
+    });
+    nav.appendChild(link);
   }
 
   nav.style.display = (prev || next) ? 'flex' : 'none';
