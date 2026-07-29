@@ -1095,6 +1095,108 @@ POST /api/issues/{issueId}/interactions/{interactionId}/respond
 
 After a terminal action, the interaction is sealed — further responses are rejected.
 
+### Take a card back: withdraw
+
+Sometimes a card stops being the right question. The agent asked before it had the full picture, the plan moved on, or you posted the answer in the thread instead. Rather than leaving a stale card sitting in the issue waiting for someone to click it, you can **withdraw** it.
+
+```
+POST /api/issues/{issueId}/interactions/{interactionId}/withdraw
+```
+
+Request body:
+
+| Field | Type | Notes |
+|---|---|---|
+| `reason` | string, optional | Up to 4000 characters. Explains why the card was pulled. Trimmed; an empty string is stored as `null`. |
+
+Withdrawal works on any pending interaction kind — `suggest_tasks`, `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`, and `request_item_verdicts` all accept it. The card moves to status `cancelled`, its `result.outcome` becomes `"withdrawn"`, and your `reason` is stored on `result.reason`. In the issue thread the card then reads as **Withdrawn** instead of waiting for a decision.
+
+Who may withdraw a card:
+
+- **Board users** — any interaction on an issue in their company.
+- **The agent that created the interaction** (`createdByAgentId` matches the calling agent).
+- **The current issue assignee** (`assigneeAgentId` matches the calling agent). Assignees also have to satisfy the normal agent issue-mutation checks.
+
+Everyone else gets a `403`. The errors you can hit:
+
+| Status | Error | When |
+|---|---|---|
+| `401` | `Agent run id required` | An agent called the route without an active run id. |
+| `403` | `Task-watchdog runs cannot withdraw issue-thread interactions` | The caller is a task-watchdog run. Watchdogs supervise issues; they do not get to retract other agents' questions. |
+| `403` | `Issue is outside this actor's authorization boundary` | The calling agent cannot mutate this issue at all. |
+| `403` | `Only the interaction creator, current issue assignee, or a board user may withdraw it` | The agent is authorized on the issue but is neither the creator nor the assignee. |
+| `404` | `Interaction not found` | The interaction id does not belong to this issue and company. |
+| `409` | `Interaction has already been resolved` | The card is no longer `pending` — someone answered, accepted, rejected, or cancelled it first. |
+| `409` | `The linked tool action is already executing and can no longer be withdrawn` | A `request_confirmation` whose approved tool call has already been claimed for execution. Once the action is in flight it cannot be recalled. |
+
+A withdrawal also settles anything the card was gating. If a `request_confirmation` had a linked tool action request that was still `pending` or `approved`, that request is `cancelled` in the same transaction — so an approved-but-unexecuted call can never outlive the card that authorized it. And when the withdrawing actor is not the issue assignee, a continuation wakeup is queued for the assignee so it learns the question is gone instead of waiting on it. On a withdrawal that wakeup fires only for cards created with `continuationPolicy: "wake_assignee"` — the `wake_assignee_on_accept` policy needs an `accepted` card, and a withdrawn one is `cancelled`. It is also skipped when the issue has no assignee agent, or is already closed.
+
+Withdrawal is written to the audit trail as `issue.thread_interaction_withdrawn`, with the interaction id, kind, resulting status, and reason attached.
+
+### Withdraw vs. cancel
+
+Both routes retire a pending card, and both take an optional `reason`, but they are not interchangeable:
+
+```
+POST /api/issues/{issueId}/interactions/{interactionId}/cancel
+POST /api/issues/{issueId}/interactions/{interactionId}/withdraw
+```
+
+| | `cancel` | `withdraw` |
+|---|---|---|
+| Who can call it | Board users only. Agent actors get `403` (`Agent actors cannot resolve issue-thread interactions through this board-only route`). | Board users, the interaction creator agent, or the current issue assignee agent. |
+| Which kinds | `ask_user_questions` only. Anything else returns `422` (`Only ask_user_questions interactions can be cancelled`). | Every interaction kind. |
+| Resulting status | `cancelled` | `cancelled` |
+| Result payload | `cancelled: true` plus `cancellationReason`. | `outcome: "withdrawn"` plus `reason`. |
+| Linked tool actions | Not touched. | Pending or approved linked requests are cancelled too. |
+| Activity log action | `issue.thread_interaction_cancelled` | `issue.thread_interaction_withdrawn` |
+
+Rule of thumb: **cancel** is the board saying "never mind, I'm not answering these questions." **Withdraw** is whoever owns the work saying "this card should not have been raised, ignore it" — and it is the one an agent can call for itself.
+
+### Pending cards expire when the issue closes
+
+A card that nobody ever answers used to be able to outlive its issue. It can't any more. When an issue transitions to `done` or `cancelled`, every interaction still in `pending` on that issue is expired automatically, in the same transaction as the status change.
+
+An expired-with-the-issue card looks like this:
+
+- `status` is `expired`.
+- `result.outcome` is `"issue_closed"`.
+- For `request_item_verdicts`, `complete` is `false` and whatever verdicts were already recorded are preserved on `items`.
+- In the thread the card reads "Expired when issue closed" rather than sitting there as an open question.
+
+This runs on every terminal transition, not just the ones that come through the REST API — the tree controls, recovery flows, and pipelines that close issues internally all funnel through the same path. Each expiry is logged as `issue.thread_interaction_expired` with `source: "issue.status_transition.issue_closed"`.
+
+Two related guarantees come with it:
+
+- **You cannot open a new card on a closed issue.** `POST /api/issues/{issueId}/interactions` returns `409` with `Cannot create an interaction on a closed issue`. Retries carrying an `idempotencyKey` from before the close still return the original card, now expired.
+- **Approved tool actions stop at the door.** If an issue closes while a governed tool call is queued, the execution is refused with `409` and the reason code `action_issue_closed` (`The issue for this tool action is closed; the approval has expired`), and the action request is expired.
+
+`GET /api/issues/{issueId}/interactions` also sweeps as it reads, so if an issue was closed by a path that predates this behaviour, simply listing the interactions settles any stragglers before returning them.
+
+### Cards superseded by a comment
+
+There is a second automatic expiry, and it also runs when you list an issue's interactions. If a pending card carries `supersedeOnUserComment: true` in its payload — the default for `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`, and `request_item_verdicts` — and a genuine human comment was posted at or after the card was created, the card expires and `result.commentId` points at the comment that replaced it. Confirmation and verdict cards record this as `result.outcome: "superseded_by_comment"`; `ask_user_questions` records it as `result.expirationReason: "superseded_by_comment"` instead.
+
+Only real human comments count: the comment must have a user author and must not have been written by an agent run. Set `supersedeOnUserComment: false` in the payload when a card must survive discussion in the thread.
+
+Both sweeps run on `GET /api/issues/{issueId}/interactions`, so a caller that lists interactions always sees settled state — no separate cleanup call needed.
+
+### Interaction outcomes
+
+The `result.outcome` field tells you how a card ended. Which values are possible depends on the kind:
+
+| Kind | Possible `outcome` values |
+|---|---|
+| `request_confirmation` | `accepted`, `rejected`, `superseded_by_comment`, `stale_target`, `withdrawn`, `issue_closed` |
+| `request_checkbox_confirmation` | Same values as `request_confirmation` — its result is a confirmation result plus `selectedOptionIds`. |
+| `request_item_verdicts` | `resolved`, `superseded_by_comment`, `stale_target`, `cancelled`, `withdrawn`, `issue_closed` |
+| `suggest_tasks` | `withdrawn` or `issue_closed`, and otherwise absent — a normal response carries `createdTasks` / `rejectionReason` instead. |
+| `ask_user_questions` | `withdrawn` or `issue_closed`, and otherwise absent — a normal response carries `answers`, a cancellation carries `cancelled: true` with `cancellationReason`, and a comment-superseded card carries `expirationReason: "superseded_by_comment"`. |
+
+`request_item_verdicts` results also carry an optional `reason` string alongside the outcome, matching `request_confirmation`.
+
+If you are writing an integration that reads interaction results, treat `withdrawn` and `issue_closed` as "no decision was made" and do not wait for one — they are administrative endings, not answers.
+
 ### Choosing the kind
 
 | Kind | When to use |

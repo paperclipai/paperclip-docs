@@ -11,6 +11,7 @@ Use this API when you need to:
 - list the secrets stored for a company
 - create a new secret value
 - rotate a secret without changing how agents reference it
+- write a new value through to a secret that lives in an external vault
 - update secret metadata like the display name or description
 - remove a secret entirely
 - inspect which providers are available in this deployment
@@ -36,8 +37,22 @@ The provider descriptor includes:
 - `id`
 - `label`
 - `requiresExternalRef`
+- `supportsManagedValues`
+- `supportsExternalReferences`
+- `supportsExternalValueWrites`
+- `configured`
 
 If `requiresExternalRef` is `true`, the provider expects an external reference string in addition to the secret value.
+
+The three `supports…` flags tell you what a provider will let you do, so you can check before you try:
+
+- `supportsManagedValues` — Paperclip can create and rotate the value itself. The default `local_encrypted` provider reports `true` here and `false` for external references.
+- `supportsExternalReferences` — the provider can link to a secret that already lives somewhere else, and Paperclip only stores the pointer.
+- `supportsExternalValueWrites` — the interesting one. When this is `true`, you can also push a *new value* through to a linked external secret from Paperclip, instead of only repointing the link. `aws_secrets_manager` reports `true` here. The `gcp_secret_manager` and `vault` entries are placeholders in the current build: they report `supportsManagedValues: false` and never advertise external value writes.
+
+`configured` tells you whether the provider has everything it needs in this deployment. A provider can advertise a capability and still be unconfigured, in which case the write fails when you attempt it.
+
+See [Rotate Secret](#rotate-secret) for what happens when you use that last flag.
 
 <!-- tabs: cURL, JavaScript, Python -->
 
@@ -92,6 +107,7 @@ For each secret, the API exposes metadata such as:
 - `companyId`
 - `name`
 - `provider`
+- `managedMode`
 - `externalRef`
 - `latestVersion`
 - `description`
@@ -101,6 +117,13 @@ For each secret, the API exposes metadata such as:
 - `updatedAt`
 
 What you do not get back is the plaintext secret value itself.
+
+`managedMode` is worth understanding before you rotate anything, because it decides where the value actually lives:
+
+- `paperclip_managed` — Paperclip owns the value. It created it, it stores it, and it writes the new one when you rotate.
+- `external_reference` — the value lives in an external vault and `externalRef` is the pointer to it. Paperclip stores the pointer and a version history of that pointer, not the credential.
+
+An `external_reference` secret used to be link-only. If the provider reports `supportsExternalValueWrites`, you can now also write a new value straight through to the external vault — see [Rotate Secret](#rotate-secret).
 
 For the default `local_encrypted` provider, the stored version material is AES-GCM encrypted using the local master key. The version rows also keep a SHA-256 hash of the original value.
 
@@ -264,7 +287,7 @@ Body:
 | `description` | No | Update the operator-facing note. |
 | `externalRef` | No | Update the provider reference without creating a new secret version. |
 
-This endpoint does not change the secret value.
+This endpoint does not change the secret value. There is no `value` field here, and that has not changed — every value write, including a write through to an external vault, goes through [Rotate Secret](#rotate-secret).
 
 Use it when you want to tidy up metadata or point an external-backed secret at a new provider reference without changing how the secret is versioned in Paperclip.
 
@@ -335,8 +358,10 @@ Body:
 
 | Field | Required | Notes |
 |---|---|---|
-| `value` | Yes | The new plaintext secret value. |
+| `value` | Yes for `paperclip_managed` | The new plaintext secret value. Optional on an `external_reference` secret — send it only when you want to write the new value through to the external vault. |
 | `externalRef` | No | If omitted, Paperclip keeps the existing external reference for the secret. |
+| `providerVersionRef` | No | Pins an `external_reference` secret at a specific provider-side version when you repoint it. It cannot be combined with a `value`, and it has no effect on a `paperclip_managed` secret. |
+| `providerConfigId` | No | Pins the write to a specific provider vault. Omit it to keep the vault the secret already uses; send `null` to fall back to the deployment default. |
 
 Rotation creates a new immutable version and advances `latestVersion`.
 
@@ -399,6 +424,55 @@ rotated = response.json()
 ```
 
 <!-- /tabs -->
+
+### Rotating an external-reference secret
+
+The examples above are the `paperclip_managed` case, where rotation always means "store this new value". For an `external_reference` secret there are two different things you might want, and the request body is what picks between them.
+
+**Repoint the link.** Send `externalRef` (and optionally `providerVersionRef`) with no `value`. Paperclip records a new metadata version pointing at a different secret in the vault. Nothing is written to the vault itself — this is the behavior external-reference secrets have always had.
+
+```bash
+curl -X POST "http://localhost:3100/api/secrets/secret-uuid/rotate" \
+  -H "Authorization: Bearer <board-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "externalRef": "prod/anthropic/api-key"
+  }'
+```
+
+**Write a new value through.** Send `value` and leave the reference alone — the same request shape as the tabs above. If the provider supports it, Paperclip writes that value into the external secret your `externalRef` already points at. You no longer have to leave Paperclip, open the vault console, and paste the credential there by hand.
+
+This second option only works when the provider actually implements external value writes; such a provider advertises `supportsExternalValueWrites` in its descriptor, which is what the board reads to decide whether to offer you the choice. Today that means AWS Secrets Manager.
+
+What that write looks like on the AWS side:
+
+- Paperclip reads the current `AWSCURRENT` version first, so it knows what it is replacing.
+- It then writes the new value as a new AWS version, which becomes `AWSCURRENT`. That is deliberate: **every** consumer of that AWS secret picks up the new value, not just Paperclip.
+- The stored material keeps tracking `AWSCURRENT` rather than pinning the version it just wrote, so a later rotation done directly in AWS still flows through to Paperclip.
+- If Paperclip fails to record the new version after the vault write succeeded, it moves `AWSCURRENT` back to the version that was current before, so you are not left with a value the control plane doesn't know about.
+
+Because the write goes to a shared vault, treat it as a real rotation: anything else reading that AWS secret sees the new value on its next read.
+
+On success you get the same response as any other rotation — the updated secret record, with `latestVersion` advanced, `lastRotatedAt` stamped, and `externalRef` set to the reference the provider confirmed. AWS normalizes that to the full ARN of the secret it wrote to, so the value you get back may be more specific than the one you sent when the secret was linked.
+
+If you would rather do this from the board, [Connect an AWS Secrets Manager vault](../../how-to/connect-aws-secrets-vault.md#change-the-value-of-a-linked-aws-secret) walks through the same two choices in the UI.
+
+### Validation errors for external value writes
+
+A value write to an external-reference secret is rejected before anything reaches the provider when:
+
+| Condition | Message |
+|---|---|
+| The secret has no `externalRef` to write to. | `External reference secrets require externalRef` |
+| You sent both a new `value` and a different `externalRef`. | `Provide either a new value or a new external reference, not both` |
+| You sent a `value` together with `providerVersionRef`. | `Value updates cannot pin providerVersionRef` |
+| The provider cannot write values to external secrets. | `<provider label> does not support writing values to external reference secrets` |
+
+The last message embeds the provider's own label — so a refusal from the GCP Secret Manager stub reads `GCP Secret Manager does not support writing values to external reference secrets`. You will not see this one from AWS Secrets Manager, which implements the write.
+
+There is a fifth rejection that comes from AWS itself rather than the shared validation above: writing to a reference that points inside the vault's Paperclip-managed namespace fails with `AWS Paperclip-managed namespace secrets cannot be imported as external references`. Those secrets are Paperclip's own to rotate — link to a secret you manage instead.
+
+The rule behind the second and third rows is the same one: one request does one thing. Repointing the link and replacing the value are separate rotations, so run them as separate calls if you need both.
 
 ---
 
@@ -626,6 +700,7 @@ See [Routine env map](../../how-to/create-a-daily-routine.md#4-optional-give-the
 - Create uses version `1`; rotate increments the version counter.
 - `update` changes metadata only, not the stored value.
 - `rotate` creates a new stored value and updates the latest pointer.
+- On an `external_reference` secret, `rotate` either repoints the link or — when the provider advertises `supportsExternalValueWrites` — writes the new value through to the external vault. It will not do both in one request.
 - `local_encrypted` is the default provider in a normal local deployment.
 - External providers are advertised by `GET /api/companies/{companyId}/secret-providers`, but only the configured provider actually works in the current deployment.
 - The API is board-only and company-scoped throughout.

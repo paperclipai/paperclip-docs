@@ -82,7 +82,7 @@ A malformed value (a stray sign, leading zeros, or an unrecognised token) makes 
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `PAPERCLIP_MANAGED_CONFIG` | unset (self-hosted) | Set only by the Paperclip Cloud harness. Holds one JSON document describing which experimental feature flags the harness manages for this instance, plus the plugin keys it declares for auto-install. **Absent** means self-hosted: no overlay, no behavior change. **Present but blank, or malformed, makes the server refuse to start.** |
+| `PAPERCLIP_MANAGED_CONFIG` | unset (self-hosted) | Set only by the Paperclip Cloud harness. Holds one JSON document describing which experimental feature flags the harness manages for this instance, the plugin keys it declares for auto-install, and optionally the sandbox environment it provisions for you at boot. **Absent** means self-hosted: no overlay, no behavior change. **Present but blank, or malformed, makes the server refuse to start.** |
 
 You don't set this variable yourself. It exists so that a hosted instance gets its feature configuration from the fleet that runs it rather than from its own database, and it's documented here so you can recognise it in a running container's environment.
 
@@ -94,11 +94,18 @@ The value is a single JSON document:
   "mode": "cloud",
   "catalogVersion": "2026.720.0",
   "features": { "enableApps": false, "enableCases": true },
-  "plugins": { "autoInstall": ["daytona", "kubernetes"] }
+  "plugins": { "autoInstall": ["daytona", "kubernetes"] },
+  "environments": [
+    { "name": "Daytona", "provider": "daytona", "config": { "target": "us" } }
+  ]
 }
 ```
 
-All five keys are required — `v`, `mode`, `catalogVersion`, `features`, and `plugins.autoInstall` — though `features` may be `{}` and `plugins.autoInstall` may be `[]`. `mode` is always `"cloud"`, and `catalogVersion` records the feature-catalog version the document was validated against.
+Six top-level keys are allowed — `v`, `mode`, `catalogVersion`, `features`, `plugins`, and `environments` — and anything else makes the server refuse to start.
+
+Five of them are required: `v`, `mode`, `catalogVersion`, `features`, and `plugins.autoInstall`, though `features` may be `{}` and `plugins.autoInstall` may be `[]`. `mode` is always `"cloud"`, and `catalogVersion` records the feature-catalog version the document was validated against.
+
+`environments` is the one **optional** section. It arrived later than the others, and documents delivered before it existed still have to boot on newer builds — a fleet image roll can't be lockstepped with a config re-delivery — so leaving it out simply means "this instance declares no managed environment". That's different from a missing `features` or `plugins.autoInstall`, where absence would silently drop a control the harness meant to be in force. When the section *is* present, it's validated just as strictly as everything else. [The sandbox environment it provisions](#the-sandbox-environment-it-provisions) below has the details.
 
 ### It fails closed
 
@@ -110,6 +117,7 @@ Only an **absent** variable means self-hosted. Everything else is treated as a h
 - missing `features` or `plugins.autoInstall`
 - naming a feature key this build doesn't have, or one whose feature-catalog tier isn't `managed`
 - giving a non-boolean value for a feature, or a blank/duplicate plugin key
+- carrying a malformed `environments` section — more than one entry, an unknown key inside an entry, a blank `name` or `provider`, a `provider` that isn't also listed in `plugins.autoInstall`, a `config` that sets `provider` itself, or a `config` key that looks like a credential
 
 ### What it can and can't reach
 
@@ -124,6 +132,50 @@ Paperclip publishes that tier map per release as a `feature-catalog.json` artifa
 The overlay is never persisted. The values are applied when settings are read, which means they re-assert on every read — a database restore or a hand-edited settings row cannot resurrect a capability the harness disabled.
 
 In the UI, every key the overlay controls renders with a lock badge reading **Managed by Paperclip Cloud** and a disabled toggle. Self-hosted responses carry no managed keys at all, so every toggle stays editable. See [Experimental features](../../experimental/overview.md#if-a-toggle-is-locked) for the user-facing view.
+
+### The sandbox environment it provisions
+
+If you open **Settings → Instance settings → Environments** on a hosted instance and find a sandbox environment already waiting there — one you never created — the `environments` section is where it came from. The fleet declares it, and the server sets it up for you on boot so agents have somewhere to run without you wiring up a provider first.
+
+The feature overlay above is read-time only, but this part is different: an entry provisions a real environment row you can see in the UI, and the server re-applies it on every boot. That's safe to repeat — the step is idempotent, so a restart refreshes the row rather than piling up duplicates.
+
+Each entry looks like this:
+
+```json
+{
+  "name": "Daytona",
+  "description": "Managed sandboxes for agent runs",
+  "provider": "daytona",
+  "config": { "target": "us" }
+}
+```
+
+- **`name`** is the display name of the environment row.
+- **`description`** is optional. It mirrors the document, so dropping it later clears the description rather than pinning the old one forever.
+- **`provider`** is the sandbox plugin's driver key — the same key the plugin uses in `plugins.autoInstall`, like `daytona` or `kubernetes`. It has to appear in that auto-install list too: on a managed instance the fleet is the only way a plugin gets installed, so an environment whose provider plugin isn't provisioned could never serve a run. That mismatch is caught at startup rather than at the first run.
+- **`config`** is stored verbatim on the environment row and validated by the provider plugin when it acquires a lease. See [Sandbox Providers](../adapters/sandbox-providers.md) for the fields each provider accepts.
+
+### One entry, and never any credentials
+
+Two rules shape what this section is allowed to declare.
+
+**At most one entry.** The database enforces a single Paperclip-managed sandbox row per instance (a partial unique index named `environments_managed_sandbox_idx`), and every entry in the list provisions that one row — so a longer list could never be satisfied and is rejected at parse time. For the same reason, a **non-empty** `environments` section and a forced `PAPERCLIP_EXECUTION_MODE` are mutually exclusive: both claim the same row, and configuring both stops the server rather than letting boot order pick a winner. An empty `"environments": []` declares nothing, so it sits alongside a forced execution mode without complaint.
+
+**No secrets, ever.** A managed-config document carries no credentials, so any `config` key that *looks* like one — matching `api_key`, `apiKey`, `token`, `secret`, `password`, or `credential`, at any nesting depth — is treated as a misrouted credential and refuses startup. Provider credentials reach a managed instance as ordinary process environment variables instead: every bundled sandbox provider falls back to its own documented variable, such as `DAYTONA_API_KEY`, when `config` leaves the key out.
+
+### When the provider isn't ready
+
+Provisioning waits for the bundled-plugin startup pass to finish, then checks that the entry's provider plugin is installed, `ready`, **and** running a live worker. A plugin whose record says `ready` but whose activation failed has no worker and can't serve a lease, so that check matters.
+
+If the provider isn't up, Paperclip skips the entry rather than writing an active row — and if an earlier boot already provisioned one, it archives that row so run scheduling stops selecting an environment whose leases would fail. The server logs the reason and keeps booting; the cost is that this one environment is unavailable, not a fleet stuck in a crash loop.
+
+Recovery is automatic in the common case. When the plugin record is `ready` and only its worker is down — a crash in restart-backoff — Paperclip listens for the worker manager to respawn it and re-runs the setup the moment it comes back, so the environment returns without anyone restarting the server. A missing or non-`ready` plugin needs the next healthy boot instead.
+
+That's the same deliberate split you see elsewhere in the document: a **malformed** section refuses startup, while a **failed setup step** logs and boots degraded.
+
+### Removing an entry doesn't remove the environment
+
+Dropping the `environments` section, or the entry inside it, stops future refreshes — it does not delete or archive the environment row. This matches how `plugins.autoInstall` behaves ([Plugins](../../administration/plugins.md#what-it-wont-undo) covers the plugin side): runs may still hold leases against that environment, so withdrawing it is an explicit action someone takes, not a side effect of an edited document. The archiving described above is scoped to a provider that was declared but couldn't come up, never to an entry you removed.
 
 ---
 

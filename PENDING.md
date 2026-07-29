@@ -7,287 +7,347 @@ this list automatically.
 | | |
 | --- | --- |
 | Mode | `nightly` |
-| Window | `v2026.722.0` (`e55d702`) → `2568bdec` |
-| Parent default branch | `master`, HEAD `77979950` at run time |
-| Quarantine | 24h — cutoff `2026-07-27T08:57:42Z` |
-| Commits in window | 53 (10 newer commits held back by quarantine) |
-| Files in window | 290 (no compare-API truncation) |
-| Manifest hash | `405ffd990768d384a23201e41b7b4f1c5afc5233b8c19e1b9a50832d8bd6739a` |
+| Window | `v2026.722.0` (`e55d702`) → `77979950` |
+| Parent default branch | `master`, HEAD `ca92f727` at run time |
+| Quarantine | 24h — cutoff `2026-07-28T08:48:16Z` |
+| Commits in window | 72 (20 newer commits held back by quarantine) |
+| Files in window | 411 (no compare-API truncation) |
+| Manifest hash | `bff8ab019fb90bc70385c2b515730250be85c42d335c9ea32bcae4600c5d524d` |
 
-**E1–E10 were applied by the previous run** (window ended `14f20be9`) and are unchanged in this
-cumulative manifest — they are listed at the bottom for continuity. **N1–N11 are the new work in
-this run**, from the 24-commit delta `14f20be9 → 2568bdec`.
+**N1–N11 and E1–E10 were applied by previous runs** and are unchanged in this cumulative manifest.
+**D1–D10 are the new work in this run**, from the 19-commit delta `2568bdec → 77979950`.
 
 ## Auto-merge tier
 
-None this window. `.env.example` did not change, so the `env-vars` watcher had no hits. The new
-`PAPERCLIP_NETWORK_EGRESS_*` variables (**N5**) are injected into the sandbox by the Kubernetes
-provider rather than read from a schema-bound file, so they are a judgement call and ride along
-with N5.
+None this window. `.env.example` did not change, so the `env-vars` watcher had no hits. The two new
+instance feature flags (`enableBetaSkills` in **D4**, `enableOwnerInstanceAdmin` in **D5**) live in
+`packages/shared/src/feature-catalog.ts`, not in a schema-bound env file, so they are judgement
+calls and ride with their entries.
 
 ## PR tier — new this run
 
-### N1 — Status Cards
+### D1 — Managed instances can be handed a sandbox environment
 
-`docs/experimental/status-cards.md` (new) · `docs/experimental/overview.md` ·
-`docs/reference/api/status-cards.md` (new)
+`docs/reference/deploy/environment-variables.md`
 
-The largest surface in this window. A status card is one plain-English message describing what you
-want to keep an eye on; the Summarizer compiles it into bounded company-search queries, runs them,
-and writes a summary that it keeps current as the underlying work moves. Cards live on a shared,
-company-scoped **Status** board.
+The `PAPERCLIP_MANAGED_CONFIG` document gained an `environments` section. Each entry declares one
+instance-level Paperclip-managed sandbox row — `{ name, description?, provider, config }` — that
+the server provisions idempotently at boot, so a hosted instance can arrive with somewhere for
+agents to run before anyone wires up a provider.
 
-The whole feature is gated on the `enableStatusCards` experimental flag, whose feature-catalog tier
-is `managed` with `cloudDefault: false` and `selfHostedDefault: false` — so it is off everywhere by
-default, and locked on Cloud-managed instances. With the flag off, every route answers
-`404 Not Found`.
+The interesting parts are the guardrails, and the page documents all of them: `environments` is the
+one **optional** section (documents delivered before it existed must keep booting newer builds, and
+a fleet image roll cannot be lockstepped with a config re-delivery); **at most one entry**, because
+the DB enforces a single managed sandbox row per instance via the partial unique index
+`environments_managed_sandbox_idx`; `provider` must also appear in `plugins.autoInstall`; `config`
+must not set `provider` itself; and any config key matching `api_key`/`token`/`secret`/`password`/
+`credential` at any depth is treated as a misrouted credential and refuses startup — credentials
+arrive as process env vars such as `DAYTONA_API_KEY` instead. `PAPERCLIP_EXECUTION_MODE` and this
+section are mutually exclusive; both claim the same row.
 
-Documented in full: the compile → summarise lifecycle, the five card states, the three refresh
-modes with their required fields, the five change triggers, active hours and the 100,000-token
-default daily cap, the full-rebuild thresholds (>10 changed issues, ≥9 consecutive incrementals,
-config change, recompile, restore), the 200-issue mention cap, archive/restore, and the agent
-limits (20 cards, 4,000-character prompt, authored-cards-only).
+Also documented: the deliberate split failure posture (a malformed section refuses startup; a failed
+DB ensure logs and boots degraded), the provider-readiness gate that skips or archives an entry
+whose plugin has no live worker, the one-shot worker `ready` listener that restores it without a
+server restart, and that removing an entry never deletes or archives the row.
 
-Parent: `server/src/routes/status-cards.ts` (new, 12 routes) ·
-`server/src/services/status-cards.ts` · `status-card-update-engine.ts` ·
-`status-card-finalization.ts` (all new) · `packages/db/src/schema/status_cards.ts` ·
-`packages/shared/src/validators/status-card.ts` · `packages/shared/src/feature-catalog.ts` ·
-`ui/src/pages/StatusCards/**` · migrations `0185`–`0191`
-— commits `7e40ed8c`, `3a16b912`, `8f08ec5c`
+Parent: `server/src/services/managed-environments.ts` (new) · `managed-config.ts` ·
+`environments.ts` · `server/src/index.ts` — commit `273315a4`
 
-### N2 — `status-card-query` bundled catalog skill
+### D2 — Withdrawing an interaction, and expiry on a closed issue
 
-`docs/reference/skills/bundled/paperclip-operations/status-card-query.md` (new) ·
-`docs/reference/skills/bundled.md` · `docs/reference/skills.md`
+`docs/reference/api/issues.md`
 
-The skill that backs N1. Two modes: authoring (an agent creates and refines its own cards through
-the public API) and compilation (the Summarizer turns a card's prose into structured
-`CompanySearchQuery` objects, then writes the card's first summary from the same assigned run).
-`defaultInstall` is `false`.
+New route `POST /issues/:id/interactions/:interactionId/withdraw`. The interaction creator, the
+current issue assignee, or a board user may withdraw; task-watchdog runs are refused with `403`.
+Pending interactions now also expire automatically when their issue reaches a terminal state.
 
-Parent: `packages/skills-catalog/catalog/bundled/paperclip-operations/status-card-query/SKILL.md`
-(new) · `packages/skills-catalog/generated/catalog.json` — commit `3a16b912`
+The result vocabulary widened accordingly: `RequestConfirmationResult.outcome` and
+`RequestItemVerdictsResult.outcome` both gained `withdrawn` and `issue_closed`, and
+`SuggestTasksResult` / `AskUserQuestionsResult` gained an optional `outcome` of the same two plus a
+`reason`. The page draws the line between withdrawal and the pre-existing cancel endpoint, since
+both now exist.
 
-### N3 — Routine activity gate
+Parent: `server/src/routes/issues.ts` · `server/src/services/issue-thread-interactions.ts` ·
+`packages/shared/src/validators/issue.ts` · `types/issue.ts` · `tool-gateway.ts`
+— commit `f6ab82d4`
 
-`docs/reference/api/routines.md` · `docs/how-to/create-a-daily-routine.md`
+### D3 — Starring a document
 
-Routines can now decline to fire on a quiet week. `activityGatePolicy` is `always` (default) or
-`require_external_activity`; `activityGateScope` is `company` (default) or `project`. Under
-`require_external_activity`, a scheduled tick dispatches only if the activity log holds an entry
-since the last *dispatched* run that isn't read/inbox bookkeeping, isn't the scheduler writing
-about this routine, and didn't come from a run on an issue this routine created — so a routine can
-never re-arm itself. A gated-off tick writes a `skipped` run with
-`failureReason: "no_external_activity"` and is not backfilled. Webhook and manual runs ignore the
-gate entirely.
+`docs/reference/api/resource-memberships.md` · `docs/reference/api/companies.md`
 
-Note the sharp edge documented on the page: `activityGateScope: "project"` on a routine with no
-`projectId` can never match, so it will never fire on a schedule.
+New route `PUT /companies/:companyId/resource-memberships/me/documents/:documentId`. Documents are
+**star-only** — the body is `{ "starred": boolean }` (strict), not the `state` (`joined`/`left`)
+the project and agent routes take, and `state` always reports back as `joined` because there is
+nothing to leave.
 
-Parent: `packages/shared/src/constants.ts` · `packages/shared/src/validators/routine.ts` ·
-`server/src/services/routines.ts` · `ui/src/pages/RoutineDetail.tsx` — commit `30ff3d7c`
+Two response-shape sharp edges are called out explicitly: `starredDocumentIds` and
+`documentStarredAt` are **required** on the memberships response, unlike their optional project and
+agent counterparts, and `documentStarredAt` holds ISO-8601 **strings** where `projectStarredAt`
+holds Dates. `starredDocumentIds` is ordered most-recently-starred first. The company artifacts list
+gained a `starred` filter for board actors.
 
-### N4 — Archived projects leave the default project list
+Parent: `server/src/routes/resource-memberships.ts` · `services/resource-memberships.ts` ·
+`routes/companies.ts` · `services/company-artifacts.ts` ·
+`packages/db/src/migrations/0193_document_memberships.sql` — commit `c111ee4c`
 
-`docs/reference/api/goals-and-projects.md`
+### D4 — Pinning a beta release of the core Paperclip skill
 
-`GET /api/companies/{companyId}/projects` now returns active projects only. Opt back in with
-`includeArchived=true` — matched as the exact string `true`, so `1` and `TRUE` do not work. Flagged
-on the page as a **behaviour change** for existing integrations.
+`docs/guides/org/skills.md` · `docs/reference/skills.md`
 
-Parent: `server/src/routes/projects.ts` · `server/src/services/projects.ts`
-— commits `56487002`, `2002c4ff`
+An agent can pin a frozen historical release of the Paperclip core skill instead of always tracking
+the live default. Gated on `enableBetaSkills` ("Beta skills"), tier `preference` with
+`cloudDefault: false` and `selfHostedDefault: false` — off everywhere by default, but a
+`preference`-tier flag an operator can turn on themselves, unlike the `managed` tier.
 
-### N5 — Task-scoped network egress grants (Kubernetes)
+Skill version rows gained `releaseId`, `releaseName`, and `releasedAt`, with a partial unique index
+so one skill holds at most one version per release id. Two releases ship today: `v0`
+("V0 — Original") and `v7-roster` ("V7 — Roster champion"). The pages are clear that these are
+frozen snapshots — `v7-roster` predates three later edits to the live default.
 
-`docs/reference/adapters/sandbox-providers.md`
+Parent: `server/src/services/company-skills.ts` · `runtime-skill-selections.ts` ·
+`skills-releases/paperclip/releases.json` (new) · `packages/shared/src/feature-catalog.ts` ·
+`packages/db/src/migrations/0194_company_skill_releases.sql` — commit `c3bd0c5d`
 
-An individual task can now open extra network destinations for the length of its own run, through
-`executionWorkspaceSettings.networkEgress` (`allowFqdns`, `allowCidrs`), instead of widening the
-whole environment's allow-list. The provider creates a per-run policy named `pc-{ulid}-egress`,
-selected by the run's `paperclip.io/run-id` label and owner-referenced to the run so it is cleaned
-up with it.
+### D5 — Stack owners can hold instance admin on their own cloud instance
 
-The page is deliberately blunt about the limitation: under `egressMode: "standard"` a Kubernetes
-NetworkPolicy cannot express a hostname, so `allowFqdns` are **not** enforced — an FQDN-only grant
-falls back to allowing public IPv4 on TCP 80/443 with private, loopback, link-local, CGNAT, and
-multicast ranges carved out. Only `egressMode: "cilium"` enforces names.
+`docs/administration/roles-and-permissions.md`
 
-Parent: `packages/plugins/sandbox-providers/kubernetes/src/scoped-network-egress.ts` (new) ·
-`network-policy.ts` · `cilium-network-policy.ts` — commit `7f766526`
+`enableOwnerInstanceAdmin` ("Owner Instance Admin"), tier `managed`, `cloudDefault: true`,
+`selfHostedDefault: false`. Only the `owner` stack role elevates — `admin`, `member`, and `support`
+stay company-scoped. Elevation is **computed per request** at the trusted-header boundary: no
+`instance_user_roles` row is ever written, so a leftover row elevates nobody on a cloud-managed
+instance, and turning the flag off drops the owner back on the very next request. It resolves
+through the instance-settings service so the managed-config overlay applies fleet-wide, and it
+**fails closed** — a settings read error means no elevation. Inert self-hosted, which has no
+trusted cloud tenant path (`PAPERCLIP_CLOUD_TENANT_SERVER_TOKEN` unset).
 
-### N6 — Cloud Docker image variant
+The page deliberately does not oversell the grant: it enumerates the code-level platform floors that
+bind every actor on a cloud-managed instance, instance admins included —
+`adapter_install_platform_managed`, `environment_platform_managed`,
+`execution_mode_platform_managed`, and `database_backups_platform_managed`.
 
-`docs/reference/deploy/docker.md`
+Parent: `server/src/middleware/auth.ts` · `services/authorization.ts` · `routes/environments.ts` ·
+`routes/adapters.ts` · `routes/instance-settings.ts` · `routes/instance-database-backups.ts` ·
+`packages/shared/src/feature-catalog.ts` — commit `c274f10a`
 
-A second published image — the production image plus pre-built bundled sandbox-provider plugins,
-tagged with a `-cloud` suffix (`sha-<short>-cloud`, `latest-cloud`, `<version>-cloud`). Managed
-instances need it because `plugins.autoInstall` can only install a bundled plugin whose `dist/` is
-already in the image. Self-hosters want the plain tag.
+### D6 — Setting the value of an external-reference secret
 
-This also fixed a live trap in our own docs: the page told readers to run `docker build -t ... .`
-with no `--target`. Now that the Dockerfile declares `cloud` *after* `production`, that command
-silently builds the cloud variant. The page now says `--target production`, and explains why.
+`docs/reference/api/secrets.md` · `docs/how-to/connect-aws-secrets-vault.md`
 
-Parent: `Dockerfile` (new `cloud-plugins` and `cloud` stages, `ARG CLOUD_BUNDLED_PLUGINS="daytona"`) ·
-`.github/workflows/docker.yml` — commit `965a827e`
+An `external_reference` secret used to be link-only — you could repoint it, not set it. If the
+provider supports it, you can now write a new value straight through to the external vault. The
+descriptor gained `supportsExternalValueWrites`, the provider module gained an optional
+`updateExternalSecretValue` hook, and AWS Secrets Manager implements it.
 
-### N7 — Task watchdogs stop repeating themselves
+The four rejection cases are documented with their exact messages: a missing `externalRef`
+("External reference secrets require externalRef"), sending both a value and a different ref
+("Provide either a new value or a new external reference, not both"), pinning a version on a value
+update ("Value updates cannot pin providerVersionRef"), and a provider without the hook, whose
+message embeds the provider's own label.
 
-`docs/experimental/task-watchdogs.md`
+Parent: `server/src/services/secrets.ts` · `server/src/secrets/aws-secrets-manager-provider.ts` ·
+`server/src/secrets/types.ts` · `packages/shared/src/types/secrets.ts` — commit `0cf64d36`
 
-A watchdog now stores a snapshot of the stopped state it reviewed — per stopped task: status,
-assignee, blockers, and any question or approval it waits on — and stays quiet while later
-evaluations still match it. It wakes again only on a material move: a status change, a different
-assignee, a gained or lost blocker, a started or finished wait, or a new stopped task in the tree.
-A fresh comment or document no longer re-triggers it.
+### D7 — Running commands after a sync operation's files land
 
-Parent: `server/src/services/task-watchdogs.ts` · `packages/db/src/schema/issue_watchdogs.ts` ·
-migration `0192_task_watchdog_stop_snapshots.sql` — commit `c481be44`
+`docs/reference/plugins/sdk.md`
 
-### N8 — Real build version in published images
+`PluginSyncOperation` gained an optional `postUploadCommands?: PluginPostUploadCommand[]` — ordered
+control commands run after that operation's files are placed, in array order, fail-fast. Absent
+means "no commands" and is byte-identical to a pre-contract operation. `PluginPostUploadCommand`
+(`command`, `cwd?`, `timeoutMs?`) is exported from the SDK index.
 
-`docs/experimental/server-info-debug-view.md`
+The security contract is written out rather than softened, because a provider author is the second
+half of it: `command` is adapter/core-authored only — never from a route, issue or comment content,
+workspace file content, a plugin callback, or arbitrary adapter config; a provider must treat it as
+**opaque** and must not rewrite, concatenate, or prefix it (the working directory rides as a
+structured argument, never a `cd … &&` prefix); and a present `cwd` must be re-validated
+fail-closed under the operation's sandbox root before exec, with an absent `cwd` defaulting to the
+resolved remote root rather than a process default. Both native providers are walked through —
+Daytona's lexical + realpath guards feeding `executeCommand`'s structured `cwd`, and the Kubernetes
+wrapper that pins the inode through `/proc/self/fd` and exits `42` on an escape attempt.
 
-The production image bakes `ARG PAPERCLIP_BUILD_VERSION`, and `server/src/version.ts` prefers it
-over the `package.json` placeholder. **No doc change was needed** — our page's existing claims
-about what the Server section shows were already accurate. Recorded here so the next run does not
-re-open it.
+Parent: `packages/plugins/sdk/src/protocol.ts` · `src/index.ts` ·
+`packages/plugins/sandbox-providers/daytona/src/file-sync.ts` ·
+`kubernetes/src/file-sync.ts` — commits `030dd9d1`, `0ccba45e`
 
-Parent: `server/src/version.ts` · `server/src/build-version.ts` · `Dockerfile` — commit `d1b9448b`
+### D8 — Codex's cheap lane no longer picks a model for you
 
-### N9 — In-place workspace realization
+`docs/reference/adapters/codex.md`
 
-`docs/experimental/isolated-workspaces.md`
+Two things. `gpt-5.3-codex-spark` was removed from the adapter's `models` array — **our page still
+listed it**, so this was a live wrong claim, not just a new feature. See the note under
+**Verification report** about how it was found.
 
-Task environments that already own the authoritative filesystem and toolchain now execute in place
-instead of being copied. Copy mode gained explicit confinement, so writing to an unsynchronized
-path fails visibly rather than being silently discarded on sync-back — which is the part a user
-actually notices, because it changes what a failing run looks like.
+Second, the `cheap` model profile's `adapterConfig` is now empty `{}` and its description reads
+"Use an explicitly configured lower-cost Codex model without changing the primary model." It used
+to hard-code `model: "gpt-5.3-codex-spark"` and `modelReasoningEffort: "high"`. Enabling it now does
+nothing until you fill in the model yourself — the page carries a heads-up for anyone who was
+relying on the old behaviour. New agents are additionally created with `modelProfiles.cheap =
+{ enabled: false }` when their runtime config does not already mention `cheap`.
 
-Parent: `packages/shared/src/types/workspace-runtime.ts` ·
-`packages/adapter-utils/src/execution-target.ts` · `local-process-sandbox.ts` ·
-`server/src/services/execution-workspace-policy.ts` · `environment-run-orchestrator.ts`
-— commit `4e008185`
+Parent: `packages/adapters/codex-local/src/index.ts` · `server/src/routes/agents.ts` ·
+`ui/src/lib/new-agent-runtime-config.ts` — commit `1426494a`
 
-### N10 — OpenCode resolves uncatalogued models
+### D9 — Training moved under Decisions
 
-`docs/reference/adapters/opencode.md`
+`docs/guides/day-to-day/decisions.md`
 
-OpenCode only resolves `--model provider/model` when the id exists in that provider's runtime
-`models` map, so newly released models and routing variants failed with `Model not found`.
-Paperclip now registers the configured model into the injected `opencode.json`, without ever
-overwriting an explicit provider definition.
+The Training library moved from `/training` to `/decisions/training` (inspector at
+`/decisions/training/:id`); the old paths redirect. In the Decisions header the labelled **Training**
+button became an icon-only graduation-cap button. One paragraph plus a cross-reference — the change
+did not warrant more.
 
-Parent: `packages/adapters/opencode-local/src/server/runtime-config.ts` — commit `ee3ed011`
+Parent: `ui/src/App.tsx` · `ui/src/pages/WhatNeedsMe.tsx` · `ui/src/lib/decisionTraining.ts`
+— commit `8339bcc7`
 
-### N11 — Recovery wakes on the normal model lane
+### D10 — The activity gate is no longer API-only
 
-`docs/how-to/debug-stuck-heartbeat.md`
+`docs/how-to/create-a-daily-routine.md` · `docs/reference/api/routines.md`
 
-Added as symptom 7. When a run succeeds but leaves its issue `in_progress` with no durable
-disposition, the corrective wake now goes out on the agent's normal model and adapter settings —
-carrying the issue description, the agent's final report, and its recorded next action — instead of
-a cheap status-only profile. So it can look like a full work run, and costs like one. Still bounded
-to a single attempt (`finish_successful_run_handoff`); a stopped or paused assignee gets no wake at
-all.
+The gate itself was documented in **N3**; what changed is the surface. The routine editor now has an
+**Advanced run policy** section with radio cards for both policies and both scopes, and the control
+is **disabled rather than hidden** when the routine has no schedule trigger, explaining that
+webhook, manual, and API fires always run. The how-to now leads with the UI and keeps the payloads
+for scripting.
 
-Parent: `server/src/services/recovery/successful-run-handoff.ts` ·
-`server/src/services/heartbeat.ts` — commit `7014e46e`
+Skipped run rows also gained a one-line reason. Three are mapped —
+`no_external_activity` → "Skipped — no activity since last run", `paused` → "Skipped — routine
+paused", `worktree_execution_cutoff` → "Skipped — worktree execution cutoff" — and an unmapped
+reason falls back to the normal subtitle. `worktree_execution_cutoff` was **not** documented on the
+API reference at all; that gap is now filled.
+
+Parent: `ui/src/components/routine-sections/editable-sections.tsx` ·
+`ui/src/lib/routine-run-display.ts` · `ui/src/pages/RoutineDetail.tsx` — commit `ab2bdfee`
 
 ## Judged no doc impact
 
-- `4c55f0d8` inbox no longer renders external-object summary markers on task rows — filtering is
-  unchanged, so this is a screenshot concern only.
-- `c9881223` routine folder groups render as inline sections — UI polish, screenshot only.
-- `b083b173` calendar-month retention for database backups — internal scheduling.
-- `762ce5b4`, `197718bc` acpx per-step timing observability — internal telemetry.
-- `e4662b1f`, `b3b07ae4`, `665408c6` Codex sandbox control-plane access, silent active builds, and
-  mid-turn crash classification — internal reliability.
-- `d3c004d1`, `b996b71a` wake-payload description dedupe and resume-delta compaction — internal
-  prompt compaction.
-- `2568bdec` sandbox proxy socket path length — internal.
-- `cca2806e` test-only.
+- `71a65357` execution-semantics and `3b015623` connections — parent-repo doc edits only; they are
+  reference data for framing, never a source for our pages.
+- `aed4478c` pr-gardening scoped to instance-authored PRs — internal.
+- `197718bc` acpx per-step timing attribution — internal telemetry (also judged in the prior run).
+- `a3b293e2`, `3d23c3b2`, `77979950` Daytona bridge parallelisation, per-lease handle caching, and
+  the no-profile exec fast path — internal performance.
+- `1cd09ed5` heartbeat task-session reuse and bounded control-plane write retries — internal.
+- Migrations `0193` and `0194` — context for **D3** and **D4**, not separate entries.
 
 ## ⚠ Drift
 
-None. `check-drift.mjs` against parent `master` (`77979950`) returned zero records.
+None. `check-drift.mjs` against parent `master` returned zero records, both at triage time and after
+the edits (10 parent paths, 57 CLI commands, 69 env vars, 409 REST routes, 18 permission keys, 4
+roles checked).
+
+Worth noting for the next maintainer: the drift checker did **not** catch the stale
+`gpt-5.3-codex-spark` entry fixed in **D8**, because it does not scan adapter model lists. That
+class of claim — enumerated values on an adapter reference page — is currently only caught when the
+diff window happens to touch the adapter. See the note in **Verification report**.
 
 ## ↻ Renames detected
 
-None. `detect-renames.mjs` found no directory renames, no genuinely-new top-level dirs, and no
-unmatched removals in this window.
+None. `detect-renames.mjs` on the delta window found no directory renames, no genuinely-new
+top-level dirs, and no unmatched removals.
 
 ## ⚠ Reconcile
 
 None. No manifest entry from the previous run disappeared from this cumulative window, so nothing
-we already documented has been reverted upstream.
+already documented has been reverted upstream.
 
 ## Verification report
 
-`verify-edit.mjs` against `2568bdec` across all 15 touched doc files: **99 claims extracted, 98
-verified, 1 unverified, 0 suspicious.**
+`verify-edit.mjs` against `77979950` across all 14 touched doc files: **232 claims extracted, 219
+verified, 13 unverified, 0 suspicious.**
 
-Six of those files extract zero claims — the verifier only recognises CLI commands, CLI flags, env
-vars, REST routes (in `docs/reference/api/**` only), adapter config fields and values, and
-`cli|packages|server|skills/**.{ts,md,json}` file paths. Prose-heavy pages like
-`docs/experimental/status-cards.md` are therefore *unchecked*, not *clean*. The numeric claims on
-that page were confirmed by hand against `status-card-update-engine.ts` instead: the 100,000-token
-default cap, the `changeCount > 10` and `incrementalCount >= 9` full-rebuild thresholds, the
-`maxUpdatesPerHour ?? 6` reactive default, and `STATUS_CARD_MAX_MENTIONED_ISSUES = 200`.
+**All 13 unverified records pre-date this run** — each string was confirmed present on `HEAD` before
+any edit, and each sits outside the hunks this run added:
 
-The one remaining record is a false positive on a pre-existing line:
-`adapter-config-value: anthropic-key` at `docs/reference/adapters/opencode.md:136`. It is a
-user-chosen secret name inside a config example, not an upstream identifier, and it was not
-touched by this run.
+- 10 × `sdk.md:509` — `PLUGIN_CATEGORIES`, `PLUGIN_CAPABILITIES`, `PLUGIN_UI_SLOT_TYPES`,
+  `PLUGIN_UI_SLOT_ENTITY_TYPES`, `PLUGIN_STATE_SCOPE_KINDS`, `PLUGIN_JOB_STATUSES`,
+  `PLUGIN_JOB_RUN_STATUSES`, `PLUGIN_JOB_RUN_TRIGGERS`, `PLUGIN_WEBHOOK_DELIVERY_STATUSES`,
+  `PLUGIN_BRIDGE_ERROR_CODES`. These are exported SDK const names, not env vars — the verifier's
+  env-var rule matches any SCREAMING_SNAKE_CASE token. A standing false positive, not a defect.
+- 2 × `codex.md` — `my-gateway` and `secret-id` are placeholder values inside examples.
+- 1 × `environment-variables.md:309` — `PAPERCLIP_CLOUD_PROD_PROVIDER_RAILWAY_TOKEN`.
 
-**Tooling fix applied this run.** The first verification pass reported 38 unverified records, 34 of
-them on `opencode.md` — every one a false negative. `verify-edit.mjs` resolves adapter sources as
-`packages/adapters/<doc-basename>`, and nine of our adapter pages have no directory at that path.
-`scripts/sync/anchor-map.json` now maps them explicitly:
+Every claim newly written by this run verified. Claims the verifier cannot see were hand-checked
+against parent code at the window ref: the `environments_managed_sandbox_idx` invariant, the
+`provider` ∈ `plugins.autoInstall` rule, the secret-like-key pattern, the `config` must-not-set-
+`provider` rule, `PAPERCLIP_EXECUTION_MODE` mutual exclusion, the
+`resource_membership.starred`/`.unstarred` activity actions, the most-recently-starred-first
+ordering, all four `*_platform_managed` floor codes, and the Daytona/Kubernetes `postUploadCommands`
+confinement behaviour including the `exit 42` escape path.
 
-| Doc page | Parent source |
-| --- | --- |
-| `claude-code.md` | `packages/adapters/claude-local` |
-| `codex.md` | `packages/adapters/codex-local` |
-| `gemini-cli.md` | `packages/adapters/gemini-local` |
-| `opencode.md` | `packages/adapters/opencode-local` |
-| `pi.md` | `packages/adapters/pi-local` |
-| `http.md` | `server/src/adapters/http` |
-| `process.md` | `server/src/adapters/process` |
-| `modal.md` | `packages/plugins/sandbox-providers/modal` |
-| `sandbox-providers.md` | `packages/plugins/sandbox-providers` |
+### ⚠ One edit was rolled back
 
-That took the two affected files from 38 unverified to 1. This was a silent, long-standing gap —
-those pages have been unverifiable on every run, not just this one. `acpx-local.md` is left
-unmapped on purpose: it is a retired stub.
+The **D8** author fetched `packages/adapters/codex-local/src/index.ts` at `master` HEAD instead of
+at the window ref, and wrote three claims from commit `487e33b8` — which is **inside the 24h
+quarantine** (2026-07-28T21:15Z, past the 08:48Z cutoff) and must not reach docs yet. It had made
+`gpt-5.6-sol` the adapter default, dropped the bare `gpt-5.6` entry, and added a paragraph about the
+alias being rewritten.
+
+All three were reverted; the model list now matches the window ref exactly
+(`DEFAULT_CODEX_LOCAL_MODEL = "gpt-5.6"`, with `gpt-5.6-sol` as its own entry), and only the
+in-window `gpt-5.3-codex-spark` removal and the Model Profiles section remain.
+
+The other nine entries were checked for the same failure by intersecting every ref-lessly-read
+parent file against the 69 files that changed between the window ref and `master` HEAD:
+`codex-local/src/index.ts` was the **only** intersection, so no other entry is affected.
+
+**Skill fix worth making:** the Phase 5 subagent instruction should require `?ref=<window-to-sha>`
+on every `gh api .../contents/...` fetch. Right now the skill hands subagents a window but lets them
+read HEAD, and quarantine is silently defeated whenever a file moves in that gap.
+
+### Second pass — adversarial re-verification
+
+Four independent verifiers re-checked all 14 files against the window ref, instructed to find errors
+rather than confirm the work. They found **six defects the mechanical verifier cannot see**, all now
+fixed. None was a quarantine leak; the `?ref=` pinning held everywhere on the second pass.
+
+**Wrong claims, corrected:**
+
+1. `reference/skills.md` — said a `versionId` pin is "only accepted for beta releases of the bundled
+   `paperclip` skill." The API accepts a `versionId` for **any** company skill; `assertVersionMatchesSkill`
+   checks only that the version belongs to the named skill. Restricting the picker to the bundled
+   `paperclip` skill is a **UI** rule. Corrected, in two places.
+2. `reference/skills.md` — the troubleshooting bullet told readers to confirm a pin via
+   `GET /api/agents/{agentId}/skills`, in the exact scenario (flag off) where that response reports
+   `versionId: null` despite the pin being stored. Now qualified.
+3. `administration/roles-and-permissions.md` — claimed a leftover `instance_admin` row "elevates
+   nobody on a cloud-managed instance." **Overbroad, and security-relevant.** The `instance_user_roles`
+   exclusion follows the *actor*, not the instance: it applies to `cloud_tenant` arrivals only. A
+   session or board-API-key actor on the same instance is still evaluated against the table, so a
+   stray row does elevate them. Rewritten to scope the guarantee correctly.
+4. `administration/roles-and-permissions.md` — told readers to look for `enableOwnerInstanceAdmin` on
+   the Experimental settings page with a lock badge. **It has no UI card at all** (zero occurrences in
+   `InstanceExperimentalSettings.tsx`). Rewritten to say so.
+5. `reference/api/secrets.md` — illustrated the unsupported-provider error with AWS Secrets Manager,
+   which is impossible: AWS implements `updateExternalSecretValue`. Only the GCP/Vault stubs can emit
+   it. Example replaced, and the fifth (AWS-side managed-namespace) rejection added.
+6. `how-to/connect-aws-secrets-vault.md` — the IAM permission list was **insufficient for the
+   behaviour the docs promise**. The documented failure rollback calls `UpdateSecretVersionStage`,
+   which was listed nowhere; without it a failed write leaves the new version live. Added in both
+   places.
+
+**Accepted as correct after challenge:** D1's managed-config guardrails end to end, D2's entire
+withdraw/expiry surface (every error string, status code, and outcome-table row), D3 in full, D4's
+release data and UI strings, D5's four platform floors, D6's rotate-only placement and rejection
+strings, D7's protocol contract and both provider walkthroughs, D8's post-rollback model list, D9,
+and D10's UI strings and skip-reason mappings.
+
+Three further imprecisions were tightened rather than left: the `PAPERCLIP_EXECUTION_MODE` exclusion
+applies to a **non-empty** `environments` section; the withdrawal continuation-wakeup rule was
+over-generalised to "every other resolution"; and the platform-managed environments floor has a
+deliberate marker-clearing exception.
 
 ## Warnings
 
-- **Stale watcher path (carried over, still unfixed).** The `db-migrations` watcher points at
-  `packages/db/migrations/**`, but the parent keeps migrations under
-  `packages/db/src/migrations/**`. Eight migrations landed in this window (`0185`–`0192`) and not
-  one was matched by that watcher — they were caught only because the `schemas` watcher matched
-  sibling files. The map needs fixing.
-- **Screenshot registry has no Status Cards coverage.** An entire new UI surface ships with zero
-  capture targets. See `SCREENSHOTS_PENDING.md`.
-- **`feature-catalog.ts` is not a tracked screenshot dependency.** It determines which cards render
-  on the Experimental settings page, so a future flag added without touching the page component
-  would not flag that screenshot stale. See `SCREENSHOTS_PENDING.md`.
+- `verify-nav` reports 2 orphans — `docs/reference/cli/commands.md` and
+  `docs/reference/cli/control-plane-commands.md`. Both are intentional redirect anchors. Expected,
+  no action.
+- No new pages were created this run, so `site/content.json` was not touched and no `nav_addition`
+  merge was needed.
 
-## Applied by the previous run (E1–E10)
+## Applied by previous runs (E1–E10, N1–N11)
 
-Unchanged in this cumulative window; listed for continuity.
-
-- **E1** Cloud-managed instances lock experimental feature toggles (`PAPERCLIP_MANAGED_CONFIG`)
-- **E2** Generalized bundled-plugin auto-provisioning
-- **E3** `POST /api/plugins/install` path hardening
-- **E4** Plugin SDK: respond to interactions and approvals, read attachments
-- **E5** Blocked tasks name an explicit unblock owner
-- **E6** Trust-gated direct-parent issue reports
-- **E7** Kubernetes sandbox provider native file-sync lifecycle hooks
-- **E8** Secrets: acting user threaded into user-scoped resolution
-- **E9** `summarize-status` is actions-first; monitor-claim discipline
-- **E10** Built-in agents: first-time setup from `needs_setup`
-
-See `SCREENSHOTS_PENDING.md` for the screenshots this window invalidated.
+Unchanged in this cumulative manifest — see the git history of this file for their full entries.
+They remain in the window because the window is cumulative from `v2026.722.0`, and will ship
+together with D1–D10 in the next release PR.

@@ -723,10 +723,22 @@ Routine runs use these statuses:
 |---|---|
 | `received` | The run was accepted and is being processed. |
 | `coalesced` | A live execution already existed, so this run linked to it. |
-| `skipped` | The run did not create work. Either a live execution already existed and the concurrency policy chose to skip, or the routine's project was paused at tick time, or the activity gate found nothing new. Read `failureReason` to tell them apart — a paused project records `failureReason: "paused"` (the trigger's last result spells it out as `Skipped because the project is paused`), and a quiet activity gate records `failureReason: "no_external_activity"` (last result `skipped_no_activity`). |
+| `skipped` | The run did not create work. Either a live execution already existed and the concurrency policy chose to skip, or the routine's project was paused at tick time, or the activity gate found nothing new, or the instance is running in a worktree that is not cleared to execute this routine. Read `failureReason` to tell them apart — see the table below. |
 | `issue_created` | A new execution issue was created. |
 | `completed` | The execution issue later moved to `done`. |
 | `failed` | The execution issue failed, was cancelled, or the dispatch failed. |
+
+### Why a run was skipped
+
+A suppressed automatic firing records a `failureReason` you can read back, and the UI turns each one into a one-line subtitle on the run row:
+
+| `failureReason` | Trigger last result | Run row subtitle | Meaning |
+|---|---|---|---|
+| `no_external_activity` | `skipped_no_activity` | Skipped — no activity since last run | The activity gate found nothing new since the routine's last dispatched run. |
+| `paused` | `Skipped because the project is paused` | Skipped — routine paused | The routine's project was paused at tick time. |
+| `worktree_execution_cutoff` | `skipped_worktree_execution_cutoff` | Skipped — worktree execution cutoff | The server is running inside a development worktree (`PAPERCLIP_IN_WORKTREE`) where automatic run execution is not armed for this routine — either the worktree isn't armed at all, or the routine was created before the worktree's activation cutoff. This applies to scheduled ticks and webhook firings alike. |
+
+A run skipped by the concurrency policy carries no `failureReason` — it records the live execution issue in `linkedIssueId` instead.
 
 The list view also shows the current active issue for a routine when one exists.
 

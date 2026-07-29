@@ -357,6 +357,8 @@ The server resolves each reference to its canonical key and persists exactly tha
 
 This route reconciles the agent's attachments to match exactly what you send: any skill in the list is attached, anything not in the list is detached. An empty list detaches everything.
 
+Each entry may also be an object instead of a bare string — `{ "key": "...", "versionId": "..." }` — which pins the agent to a specific version of that skill. The server checks only that the version belongs to the skill you named; any non-null `versionId` additionally requires `enableBetaSkills` to be on. The UI is narrower than the API here: it only offers a version picker for the bundled `paperclip` skill's releases. See [Beta releases of the bundled `paperclip` skill](#beta-releases-of-the-bundled-paperclip-skill).
+
 The response is an `AgentSkillSnapshot`:
 
 ```json
@@ -494,7 +496,7 @@ Behaviour depends on the source:
 | `url` | No | None | Treat as a point-in-time snapshot. Re-import the URL to refresh. |
 | `local_path` (managed) | Live | None — files refresh on read | Stored under `<paperclipInstanceRoot>/skills/{companyId}/`. Edited via `PATCH /skills/{id}/files`. |
 | `local_path` (project scan) | Live | Re-run the scan endpoint | Skills whose `SKILL.md` disappears are pruned automatically (`pruneMissingLocalPathSkills`). |
-| `paperclip_bundled` | Pinned to the Paperclip release | Upgrade Paperclip itself | Re-imported on every list call; cannot be edited. |
+| `paperclip_bundled` | Pinned to the Paperclip release | Upgrade Paperclip itself | Re-imported on every list call; cannot be edited. The bundled `paperclip` skill additionally carries beta releases an agent can pin — see [below](#beta-releases-of-the-bundled-paperclip-skill). |
 | `catalog` | Pinned to the shipped catalog version (`metadata.originHash`) | `GET /skills/{id}/update-status` → `POST /skills/{id}/install-update`; `POST /skills/{id}/reset` to restore the origin | App-shipped catalog skills. Updates compare against the version the app ships. See [App-shipped catalog](#3-app-shipped-catalog). |
 
 ### `update-status` response
@@ -515,6 +517,46 @@ For non-GitHub sources, `supported: false` is returned with a reason. Calling `i
 ### Install-update semantics
 
 `install-update` re-runs the import for the same source URL, finds the matching skill (by canonical key or slug), upserts the row in place, and returns the refreshed record. The skill's `id` does not change — anything attached by ID continues to work without re-syncing.
+
+### Beta releases of the bundled `paperclip` skill
+
+The bundled `paperclip` skill (canonical key `paperclipai/paperclip/paperclip`) also carries **releases**: frozen snapshots an agent can be pinned to instead of the live default. For why you would pin one and how the picker behaves, read [Pinning a beta release of the Paperclip skill](../guides/org/skills.md#pinning-a-beta-release-of-the-paperclip-skill) in the guide. This section is the data and wire shape.
+
+**The flag.** `enableBetaSkills` is an instance experimental setting, catalogued as **Beta skills** — *"Allow agents to pin beta releases of the Paperclip core skill."* Its tier is `preference`, meaning a tenant-controlled setting the Paperclip Cloud harness never manages, in contrast to the `managed`-tier flags that can arrive locked. Both `cloudDefault` and `selfHostedDefault` are `false`, so it is off on every instance until an operator turns it on.
+
+**Where the snapshots come from.** The server reads `skills-releases/paperclip/releases.json` and seeds one skill version per manifest entry into every company that has the bundled `paperclip` skill. Each entry carries `id`, `releaseName`, `releasedAt`, `notes`, and `dir` — the folder holding that snapshot's files, resolved relative to the registry root. Seeding never moves the skill's current version: the live default is left alone, and a release only takes effect on agents that pin it.
+
+Two releases ship today:
+
+| `id` | `releaseName` | `releasedAt` |
+|---|---|---|
+| `v0` | `V0 — Original` | `2026-07-15T07:52:54-05:00` |
+| `v7-roster` | `V7 — Roster champion` | `2026-07-21` |
+
+Both are frozen historical snapshots. `v7-roster` predates three later edits to `SKILL.md`, `references/api-reference.md`, and `references/company-skills.md`; the live default keeps that newer guidance.
+
+Re-seeding is byte-checked. If a company already holds a version for a release id whose stored inventory no longer hashes to the registry snapshot, the seed fails with `Bundled skill release <id> does not match its seeded snapshot.` rather than rewriting a release that agents may already be pinned to.
+
+**Storage.** `company_skill_versions` rows carry three release columns — `release_id`, `release_name`, and `released_at`, surfaced on `CompanySkillVersion` as `releaseId`, `releaseName`, and `releasedAt`. All three are null for ordinary versions. A partial unique index, `company_skill_versions_skill_release_idx` on (`company_skill_id`, `release_id`) where `release_id is not null`, guarantees one skill has at most one version per release id.
+
+**Listing releases.** `GET /api/companies/{companyId}/skills/{skillId}/versions` returns the skill's versions; the releases are the rows with a non-null `releaseId`.
+
+**Pinning.** `POST /api/agents/{agentId}/skills/sync` takes either shape per entry:
+
+```json
+{
+  "desiredSkills": [
+    "code-review",
+    { "key": "paperclipai/paperclip/paperclip", "versionId": "<company skill version uuid>" }
+  ]
+}
+```
+
+The bare string form and `"versionId": null` both mean *no pin* — the live default. The returned `AgentSkillSnapshot` reports pins on `desiredSkillEntries` (a list of `{ key, versionId }`) alongside the flat `desiredSkills` list.
+
+If any entry carries a non-null `versionId` while `enableBetaSkills` is off, the request fails with `400` and the message `Beta skill version pins require the Beta skills experimental setting to be enabled.`
+
+**With the flag off.** Existing pins are kept but not applied. Both the heartbeat and agent config resolution build their version selection map with `versionPinsEnabled: false`, which maps every key to `null`, so every agent resolves to the live skill. Turning the flag back on restores the saved pins.
 
 ---
 
@@ -561,6 +603,12 @@ Walk down this list in order. The first match is usually the problem.
 ### "An agent gets a skill it never asked for"
 
 - It's bundled-required. `paperclipai/paperclip/*` skills with `metadata.sourceKind: paperclip_bundled` are unioned into every resolved `desiredSkills` set by the server. Removing them from the request has no effect.
+
+### "I pinned a beta release but the agent still runs the default"
+
+- Check **Beta skills** on **Settings → Instance settings → Experimental**. With `enableBetaSkills` off, saved pins are ignored rather than deleted, and every agent resolves to the live skill.
+- A pin only applies while its skill is in the agent's desired set. Detaching the skill drops the pin along with it.
+- Confirm the pin actually persisted: with the flag **on**, `GET /api/agents/{agentId}/skills` reports it under `desiredSkillEntries`. With the flag off that response reports `versionId: null` even though the pin is still stored on the agent — so use it to check a pin, not to conclude one was lost.
 
 ### "I deleted a skill and it came back"
 

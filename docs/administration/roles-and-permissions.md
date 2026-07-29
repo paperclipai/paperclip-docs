@@ -110,6 +110,34 @@ An instance admin can:
 
 Instance admin is granted from the Instance Access page or the CLI (`paperclipai admin user promote <user-id>`), not from the company role drop-down. It is independent of company roles — a person can be an instance admin without being a member of a given company, in which case the Access page shows a banner noting the admin-level access without membership. See [Settings](./settings.md#instance-access) for the Instance Access surface, and the first instance admin is established through the one-time [board claim](./cli-auth.md) flow.
 
+### Owner instance admin on a cloud-managed instance
+
+If your instance is managed by Paperclip Cloud, you probably want the person who owns the stack to be able to open Instance Settings on their own dedicated instance without asking anyone. That's what **Owner Instance Admin** is for.
+
+On a cloud-managed instance, people don't claim the instance the way a self-hosted operator does — they arrive from the Paperclip Cloud side carrying a *stack role*: `owner`, `admin`, `member`, or `support`. On its own, none of those roles brings instance admin with it; the control plane owns identity, and the instance never writes an instance-admin role for them.
+
+Owner Instance Admin is the one exception. While it's on, the person holding the `owner` stack role is treated as an instance admin of their own instance. `admin`, `member`, and `support` are not — they stay company-scoped exactly as before.
+
+Two things are worth understanding about how the elevation behaves:
+
+- **Nothing is written down.** Paperclip works the elevation out fresh on every request, at the point where the instance trusts the identity Paperclip Cloud hands it. No instance-admin role row is ever created for it. Turn the feature off and the owner drops back to company scope on the very next request, with nothing to clean up. If the instance can't read its own settings for some reason, it assumes the feature is off: the safe answer wins.
+- **Stale role rows don't ride along — for cloud arrivals.** When someone arrives through the trusted Paperclip Cloud path, the authorization service deliberately skips the `instance_user_roles` lookup, and their own leftover `instance_admin` rows are purged as they authenticate. So a hand-inserted row can't quietly re-elevate a cloud tenant. Be precise about the scope, though: that exclusion follows the *actor*, not the instance. A user who signs in through an ordinary session or a board API key on the same instance is still evaluated against `instance_user_roles` the normal way, so a row left behind for that user does elevate them. Cleaning up stray rows is still worth doing.
+- **The switch is `enableOwnerInstanceAdmin`.** It's on by default for cloud-managed instances and off for self-hosted, and Paperclip Cloud can set it for a whole fleet through the managed configuration document. It is a `managed`-tier flag with no card on the [Experimental](../experimental/overview.md) page, so there is no toggle to look for in the UI — on a cloud-managed instance this is the platform's setting, not yours.
+
+**Running Paperclip yourself?** This feature does nothing. Self-hosted instances have no trusted cloud identity path — that path only exists when the platform sets `PAPERCLIP_CLOUD_TENANT_SERVER_TOKEN` — so the flag is off by default and there is nothing for it to elevate. Instance admin on a self-hosted instance works exactly as described above.
+
+#### What an elevated owner still can't do
+
+Instance admin on a cloud-managed instance is not the same thing as owning the machine. A handful of surfaces belong to the platform, and their limits are set in code: they apply to *every* actor on a cloud-managed instance, instance admins included, and no flag or grant lifts them.
+
+- **Installing adapter code.** Installing or reinstalling an external adapter package at runtime is refused (`adapter_install_platform_managed`). Adapter code runs inside the server process, so on cloud-managed instances it ships with the platform image instead of being fetched on demand.
+- **Platform-provisioned environments.** Environments the platform created can't be updated or deleted (`environment_platform_managed`). The one deliberate exception is a metadata-only patch that does nothing but clear the platform markers — the recovery path for a row left stamped after it stopped being a live platform slot. Their environment variables and credential-shaped config keys are never shown to anyone, admin or not; the structural details — provider, image, template, region — stay visible so the environment still renders properly.
+- **The instance execution mode.** `executionMode` in the instance's general settings is pinned by the platform (`execution_mode_platform_managed`). Saving the same value back is fine, so settings forms that echo the whole object keep working — actually changing it is refused, because switching provider would strand runs on something the platform never provisioned.
+- **Manual database backups.** Triggering a database backup by hand is refused (`database_backups_platform_managed`). Backups on cloud-managed instances are the platform's job.
+- **Managed feature flags.** Anything Paperclip Cloud pins for the fleet keeps its lock badge. Being an instance admin doesn't unlock those toggles — see [Experimental features](../experimental/overview.md) and [Cloud-managed instances](../reference/deploy/environment-variables.md#cloud-managed-instances).
+
+Outside those platform-owned surfaces, an elevated owner has the instance-admin reach described above — every company on the instance, including ones they aren't a member of. One thing not to expect, though: handing instance admin to someone *else* on a cloud-managed instance isn't done from inside the instance. Promotion writes an instance-admin role row, and those rows are deliberately ignored for people who arrive through Paperclip Cloud. Elevation there comes from the stack role plus this feature, and nothing else.
+
 ---
 
 ## Good to know (current limits)
