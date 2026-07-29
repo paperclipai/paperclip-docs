@@ -442,7 +442,7 @@ curl -X POST "http://localhost:3100/api/secrets/secret-uuid/rotate" \
 
 **Write a new value through.** Send `value` and leave the reference alone — the same request shape as the tabs above. If the provider supports it, Paperclip writes that value into the external secret your `externalRef` already points at. You no longer have to leave Paperclip, open the vault console, and paste the credential there by hand.
 
-This second option only works when the provider advertises `supportsExternalValueWrites` in its descriptor. Today that means AWS Secrets Manager.
+This second option only works when the provider actually implements external value writes; such a provider advertises `supportsExternalValueWrites` in its descriptor, which is what the board reads to decide whether to offer you the choice. Today that means AWS Secrets Manager.
 
 What that write looks like on the AWS side:
 
@@ -468,7 +468,9 @@ A value write to an external-reference secret is rejected before anything reache
 | You sent a `value` together with `providerVersionRef`. | `Value updates cannot pin providerVersionRef` |
 | The provider cannot write values to external secrets. | `<provider label> does not support writing values to external reference secrets` |
 
-The last message embeds the provider's own label, so a refusal from AWS Secrets Manager would read `AWS Secrets Manager does not support writing values to external reference secrets`.
+The last message embeds the provider's own label — so a refusal from the GCP Secret Manager stub reads `GCP Secret Manager does not support writing values to external reference secrets`. You will not see this one from AWS Secrets Manager, which implements the write.
+
+There is a fifth rejection that comes from AWS itself rather than the shared validation above: writing to a reference that points inside the vault's Paperclip-managed namespace fails with `AWS Paperclip-managed namespace secrets cannot be imported as external references`. Those secrets are Paperclip's own to rotate — link to a secret you manage instead.
 
 The rule behind the second and third rows is the same one: one request does one thing. Repointing the link and replacing the value are separate rotations, so run them as separate calls if you need both.
 

@@ -442,7 +442,7 @@ The two native providers show what that looks like in practice, and they are wor
 
 Kubernetes executes these commands symmetrically with Daytona rather than dropping them silently: a native provider that ignored the field would fail open, which is exactly the outcome the contract exists to prevent.
 
-Both native providers run the commands on the way **in** — after `performSyncIn` has placed the operation's mappings. Use the same placement in your own driver.
+Both native providers run the commands on the way **in** only — inside `performSyncIn`'s per-operation loop, once that operation's mappings have landed. Neither runs them on sync-out. Use the same placement in your own driver.
 
 #### Interactive setup and reusable templates (optional)
 

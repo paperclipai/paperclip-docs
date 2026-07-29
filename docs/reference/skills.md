@@ -357,7 +357,7 @@ The server resolves each reference to its canonical key and persists exactly tha
 
 This route reconciles the agent's attachments to match exactly what you send: any skill in the list is attached, anything not in the list is detached. An empty list detaches everything.
 
-Each entry may also be an object instead of a bare string — `{ "key": "...", "versionId": "..." }` — which pins the agent to a specific version of that skill. This is only accepted for beta releases of the bundled `paperclip` skill and only while `enableBetaSkills` is on; see [Beta releases of the bundled `paperclip` skill](#beta-releases-of-the-bundled-paperclip-skill).
+Each entry may also be an object instead of a bare string — `{ "key": "...", "versionId": "..." }` — which pins the agent to a specific version of that skill. The server checks only that the version belongs to the skill you named; any non-null `versionId` additionally requires `enableBetaSkills` to be on. The UI is narrower than the API here: it only offers a version picker for the bundled `paperclip` skill's releases. See [Beta releases of the bundled `paperclip` skill](#beta-releases-of-the-bundled-paperclip-skill).
 
 The response is an `AgentSkillSnapshot`:
 
@@ -607,8 +607,8 @@ Walk down this list in order. The first match is usually the problem.
 ### "I pinned a beta release but the agent still runs the default"
 
 - Check **Beta skills** on **Settings → Instance settings → Experimental**. With `enableBetaSkills` off, saved pins are ignored rather than deleted, and every agent resolves to the live skill.
-- Pins only apply to the bundled `paperclip` skill, and only while it is in the agent's desired set. Detaching the skill drops its pin along with it.
-- Confirm the pin actually persisted: `GET /api/agents/{agentId}/skills` reports it under `desiredSkillEntries`.
+- A pin only applies while its skill is in the agent's desired set. Detaching the skill drops the pin along with it.
+- Confirm the pin actually persisted: with the flag **on**, `GET /api/agents/{agentId}/skills` reports it under `desiredSkillEntries`. With the flag off that response reports `versionId: null` even though the pin is still stored on the agent — so use it to check a pin, not to conclude one was lost.
 
 ### "I deleted a skill and it came back"
 

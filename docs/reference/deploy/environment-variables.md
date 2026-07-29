@@ -159,7 +159,7 @@ Each entry looks like this:
 
 Two rules shape what this section is allowed to declare.
 
-**At most one entry.** The database enforces a single Paperclip-managed sandbox row per instance (a partial unique index named `environments_managed_sandbox_idx`), and every entry in the list provisions that one row — so a longer list could never be satisfied and is rejected at parse time. For the same reason, the `environments` section and a forced `PAPERCLIP_EXECUTION_MODE` are mutually exclusive: both claim the same row, and configuring both stops the server rather than letting boot order pick a winner.
+**At most one entry.** The database enforces a single Paperclip-managed sandbox row per instance (a partial unique index named `environments_managed_sandbox_idx`), and every entry in the list provisions that one row — so a longer list could never be satisfied and is rejected at parse time. For the same reason, a **non-empty** `environments` section and a forced `PAPERCLIP_EXECUTION_MODE` are mutually exclusive: both claim the same row, and configuring both stops the server rather than letting boot order pick a winner. An empty `"environments": []` declares nothing, so it sits alongside a forced execution mode without complaint.
 
 **No secrets, ever.** A managed-config document carries no credentials, so any `config` key that *looks* like one — matching `api_key`, `apiKey`, `token`, `secret`, `password`, or `credential`, at any nesting depth — is treated as a misrouted credential and refuses startup. Provider credentials reach a managed instance as ordinary process environment variables instead: every bundled sandbox provider falls back to its own documented variable, such as `DAYTONA_API_KEY`, when `config` leaves the key out.
 

@@ -14,7 +14,7 @@ If you only need the conceptual model — strict mode, the local encrypted provi
 
 You need three things on the host running the Paperclip server:
 
-- AWS credentials the process can read (the usual chain: env vars, instance role, or `~/.aws/credentials`). The credentials need `secretsmanager:ListSecrets` — that's the only call discovery makes. Reading and writing secret values at runtime uses the usual `GetSecretValue` / `PutSecretValue` permissions on whatever ARNs the secrets resolve to.
+- AWS credentials the process can read (the usual chain: env vars, instance role, or `~/.aws/credentials`). The credentials need `secretsmanager:ListSecrets` — that's the only call discovery makes. Reading and writing secret values at runtime uses the usual `GetSecretValue` / `PutSecretValue` permissions on whatever ARNs the secrets resolve to, plus `secretsmanager:UpdateSecretVersionStage` if you want to [write values through to linked secrets](#change-the-value-of-a-linked-aws-secret) — that one backs the rollback on a failed write.
 - A region you intend to read from, for example `us-east-1`.
 - An owner role on the company in Paperclip — only owners can write `secret_provider_config` rows.
 
@@ -100,7 +100,7 @@ Two things to know before you use it:
 - **The new value becomes current for everyone.** Paperclip writes a new AWS version and makes it `AWSCURRENT`, exactly as a rotation in the AWS console would. Anything else reading that AWS secret — Lambdas, ECS tasks, another team's service — picks up the new value too. That is usually the point, but it means this is not a Paperclip-only change.
 - **You can't do both at once.** Writing a value and repointing the reference are separate operations. Pick one tab, save, and run the second change as its own update if you need it.
 
-The permissions for this are the ones already listed in [Before you start](#before-you-start): writing a value uses `PutSecretValue` on the target ARN, on top of the `GetSecretValue` that resolution already needed.
+Writing a value uses `PutSecretValue` on the target ARN, on top of the `GetSecretValue` that resolution already needed. Grant `secretsmanager:UpdateSecretVersionStage` as well: if the write fails partway, Paperclip moves `AWSCURRENT` back to the version that was current before, and without that permission the rollback can't run — leaving the new version live even though the update reported a failure.
 
 > **Tip:** Paperclip keeps tracking `AWSCURRENT` rather than pinning the version it just wrote. Rotate the same secret directly in AWS later and Paperclip still resolves the newest value — the write-through path doesn't lock the link to one version.
 

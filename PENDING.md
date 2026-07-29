@@ -296,6 +296,48 @@ parent file against the 69 files that changed between the window ref and `master
 on every `gh api .../contents/...` fetch. Right now the skill hands subagents a window but lets them
 read HEAD, and quarantine is silently defeated whenever a file moves in that gap.
 
+### Second pass — adversarial re-verification
+
+Four independent verifiers re-checked all 14 files against the window ref, instructed to find errors
+rather than confirm the work. They found **six defects the mechanical verifier cannot see**, all now
+fixed. None was a quarantine leak; the `?ref=` pinning held everywhere on the second pass.
+
+**Wrong claims, corrected:**
+
+1. `reference/skills.md` — said a `versionId` pin is "only accepted for beta releases of the bundled
+   `paperclip` skill." The API accepts a `versionId` for **any** company skill; `assertVersionMatchesSkill`
+   checks only that the version belongs to the named skill. Restricting the picker to the bundled
+   `paperclip` skill is a **UI** rule. Corrected, in two places.
+2. `reference/skills.md` — the troubleshooting bullet told readers to confirm a pin via
+   `GET /api/agents/{agentId}/skills`, in the exact scenario (flag off) where that response reports
+   `versionId: null` despite the pin being stored. Now qualified.
+3. `administration/roles-and-permissions.md` — claimed a leftover `instance_admin` row "elevates
+   nobody on a cloud-managed instance." **Overbroad, and security-relevant.** The `instance_user_roles`
+   exclusion follows the *actor*, not the instance: it applies to `cloud_tenant` arrivals only. A
+   session or board-API-key actor on the same instance is still evaluated against the table, so a
+   stray row does elevate them. Rewritten to scope the guarantee correctly.
+4. `administration/roles-and-permissions.md` — told readers to look for `enableOwnerInstanceAdmin` on
+   the Experimental settings page with a lock badge. **It has no UI card at all** (zero occurrences in
+   `InstanceExperimentalSettings.tsx`). Rewritten to say so.
+5. `reference/api/secrets.md` — illustrated the unsupported-provider error with AWS Secrets Manager,
+   which is impossible: AWS implements `updateExternalSecretValue`. Only the GCP/Vault stubs can emit
+   it. Example replaced, and the fifth (AWS-side managed-namespace) rejection added.
+6. `how-to/connect-aws-secrets-vault.md` — the IAM permission list was **insufficient for the
+   behaviour the docs promise**. The documented failure rollback calls `UpdateSecretVersionStage`,
+   which was listed nowhere; without it a failed write leaves the new version live. Added in both
+   places.
+
+**Accepted as correct after challenge:** D1's managed-config guardrails end to end, D2's entire
+withdraw/expiry surface (every error string, status code, and outcome-table row), D3 in full, D4's
+release data and UI strings, D5's four platform floors, D6's rotate-only placement and rejection
+strings, D7's protocol contract and both provider walkthroughs, D8's post-rollback model list, D9,
+and D10's UI strings and skip-reason mappings.
+
+Three further imprecisions were tightened rather than left: the `PAPERCLIP_EXECUTION_MODE` exclusion
+applies to a **non-empty** `environments` section; the withdrawal continuation-wakeup rule was
+over-generalised to "every other resolution"; and the platform-managed environments floor has a
+deliberate marker-clearing exception.
+
 ## Warnings
 
 - `verify-nav` reports 2 orphans — `docs/reference/cli/commands.md` and
