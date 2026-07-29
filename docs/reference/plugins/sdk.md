@@ -376,7 +376,7 @@ Protocol types: `JsonRpcId`, `JsonRpcRequest`, `JsonRpcSuccessResponse`, `JsonRp
 
 External-object protocol shapes: `PluginExternalObjectUrlCandidate`, `PluginExternalObjectSourceContext`, `DetectExternalObjectsParams`, `PluginExternalObjectDetection`, `DetectExternalObjectsResult`, `PluginExternalObjectRecordSnapshot`, `ResolveExternalObjectParams`, `PluginExternalObjectResolvedSnapshot`, `PluginExternalObjectResolveResult`, `RefreshExternalObjectsParams`, `RefreshExternalObjectsResult`. See [External-object reference providers](#external-object-reference-providers) for the lifecycle that uses them.
 
-Environment-driver protocol shapes: `PluginEnvironmentDiagnostic`, `PluginEnvironmentDriverBaseParams`, `PluginEnvironmentValidateConfigParams`, `PluginEnvironmentValidationResult`, `PluginEnvironmentProbeParams`, `PluginEnvironmentProbeResult`, `PluginEnvironmentLease`, `PluginEnvironmentAcquireLeaseParams`, `PluginEnvironmentResumeLeaseParams`, `PluginEnvironmentReleaseLeaseParams`, `PluginEnvironmentDestroyLeaseParams`, `PluginEnvironmentRealizeWorkspaceParams`, `PluginEnvironmentRealizeWorkspaceResult`, `PluginEnvironmentExecuteParams`, `PluginEnvironmentExecuteResult`, `PluginSyncFileMapping`, `PluginSyncOperation`, `PluginEnvironmentSyncInParams`, `PluginEnvironmentSyncOutParams`, `PluginEnvironmentSyncResult`, `PluginEnvironmentInteractiveSetupStatus`, `PluginEnvironmentInteractiveSetupConnectionType`, `PluginEnvironmentTemplateRefKind`, `PluginEnvironmentInteractiveSetupConnectionSummary`, `PluginEnvironmentInteractiveSetupConnectionPayload`, `PluginEnvironmentInteractiveSetupSession`, `PluginEnvironmentStartInteractiveSetupParams`, `PluginEnvironmentGetInteractiveSetupParams`, `PluginEnvironmentCaptureTemplateParams`, `PluginEnvironmentCaptureTemplateResult`, `PluginEnvironmentCancelInteractiveSetupParams`, `PluginEnvironmentCancelInteractiveSetupResult`, `PluginEnvironmentDeleteTemplateParams`, `PluginEnvironmentDeleteTemplateResult`, `PluginEnvironmentTemplateConfigBinding`. The `PluginSync*` and `PluginEnvironmentSync*` shapes back the optional sandbox file-sync hooks, and the interactive-setup and template-capture shapes back the setup hooks — both described below.
+Environment-driver protocol shapes: `PluginEnvironmentDiagnostic`, `PluginEnvironmentDriverBaseParams`, `PluginEnvironmentValidateConfigParams`, `PluginEnvironmentValidationResult`, `PluginEnvironmentProbeParams`, `PluginEnvironmentProbeResult`, `PluginEnvironmentLease`, `PluginEnvironmentAcquireLeaseParams`, `PluginEnvironmentResumeLeaseParams`, `PluginEnvironmentReleaseLeaseParams`, `PluginEnvironmentDestroyLeaseParams`, `PluginEnvironmentRealizeWorkspaceParams`, `PluginEnvironmentRealizeWorkspaceResult`, `PluginEnvironmentExecuteParams`, `PluginEnvironmentExecuteResult`, `PluginSyncFileMapping`, `PluginPostUploadCommand`, `PluginSyncOperation`, `PluginEnvironmentSyncInParams`, `PluginEnvironmentSyncOutParams`, `PluginEnvironmentSyncResult`, `PluginEnvironmentInteractiveSetupStatus`, `PluginEnvironmentInteractiveSetupConnectionType`, `PluginEnvironmentTemplateRefKind`, `PluginEnvironmentInteractiveSetupConnectionSummary`, `PluginEnvironmentInteractiveSetupConnectionPayload`, `PluginEnvironmentInteractiveSetupSession`, `PluginEnvironmentStartInteractiveSetupParams`, `PluginEnvironmentGetInteractiveSetupParams`, `PluginEnvironmentCaptureTemplateParams`, `PluginEnvironmentCaptureTemplateResult`, `PluginEnvironmentCancelInteractiveSetupParams`, `PluginEnvironmentCancelInteractiveSetupResult`, `PluginEnvironmentDeleteTemplateParams`, `PluginEnvironmentDeleteTemplateResult`, `PluginEnvironmentTemplateConfigBinding`. The `PluginSync*` and `PluginEnvironmentSync*` shapes back the optional sandbox file-sync hooks, and the interactive-setup and template-capture shapes back the setup hooks — both described below.
 
 #### Sandbox file sync (optional)
 
@@ -399,6 +399,50 @@ Each params object carries the current `PluginEnvironmentLease` plus an ordered 
 | `followSymlinks?` | `boolean` | Symlink handling for directory transfers. Falsy preserves symlinks as links; `true` dereferences them to their target bytes (mirrors tar's `-h`). |
 
 Return a `PluginEnvironmentSyncResult`: an `operations` array echoing each `operationId` with its `filesTransferred` and `bytesTransferred` counts, for host-side observability. The contract is provider-agnostic — transfer a directory however you like, as long as the observable result matches the mappings. For the full authoring rules, see the parent `doc/plugins/SANDBOX_FILE_SYNC_HOOKS.md`.
+
+##### Running commands after the files land
+
+Some files are not useful the moment they arrive. A dependency manifest needs an install step, an archive needs unpacking, a checked-out tree needs a fixup before the run can start. So a sync operation can now carry a short list of shell commands that run inside the sandbox *after* that operation's files have been placed.
+
+`PluginSyncOperation` gained one optional field for this:
+
+| Field | Type | Declares |
+|---|---|---|
+| `postUploadCommands?` | `PluginPostUploadCommand[]` | Ordered control commands run after this operation's files land, in array order, fail-fast. |
+
+Absent means "no commands", and an operation without the field is byte-identical to a pre-contract one — so if you never look at it, your driver behaves exactly as it did before.
+
+Each entry is a `PluginPostUploadCommand`, exported from `@paperclipai/plugin-sdk`:
+
+| Field | Type | Declares |
+|---|---|---|
+| `command` | `string` | The opaque, adapter-authored shell command to run after upload. Executed verbatim by the provider. |
+| `cwd?` | `string` | Working directory for the command. When present, must be an absolute POSIX path confined under the operation's allowed sandbox target root. |
+| `timeoutMs?` | `number` | Optional per-command timeout in milliseconds. |
+
+The ordering rules are simple, and you should follow them exactly:
+
+- **Files first, then commands.** Run the list once per operation, after *every* mapping in that operation has been placed — not after each individual file.
+- **Array order, fail-fast.** The first non-zero exit or timeout aborts the operation. Don't skip ahead, and don't fall back to a silent partial success.
+
+###### The security contract you have to honour
+
+This is the part that matters most, because `command` is a string your driver hands to a shell. Paperclip keeps it safe by controlling where the string can come from, and your provider is the second half of that contract.
+
+**`command` is a Paperclip/adapter-authored control operation.** It may be supplied only by core or adapter code. It never comes from a server route, from issue or comment content, from project or workspace file content, from a provider-plugin callback, or from arbitrary adapter config. Any path embedded in it is built by adapter/core helpers out of already-confined paths and shell-quoted before it ever reaches you.
+
+**Treat the command as opaque.** You may execute it or reject it. You must **not** rewrite it, concatenate it, or append shell fragments of your own. In practice that means the working directory rides as a structured argument, never as a `cd … &&` prefix glued onto the front of the command string.
+
+**Re-validate `cwd` before you exec.** When `cwd` is present, confine it under the same sandbox root you use for file placement, with the same guards — `..`, absolute-escape, and symlink-escape all rejected fail-closed, *before* any command runs. When `cwd` is absent, default to the resolved sync remote/runtime root. Never fall back to a process default cwd.
+
+The two native providers show what that looks like in practice, and they are worth reading if you are writing your own:
+
+- **Daytona** (`packages/plugins/sandbox-providers/daytona/src/file-sync.ts`) re-runs its lexical `assertConfinedSandboxPath` check plus the realpath/symlink `assertSandboxPathsConfined` guard on a present `cwd`, then calls `sandbox.process.executeCommand(command.command, cwd, undefined, commandTimeoutSeconds)` — the command string is passed through untouched and the directory travels as its own argument.
+- **Kubernetes** (`packages/plugins/sandbox-providers/kubernetes/src/file-sync.ts`) validates `cwd` lexically on the host first, then runs a fixed wrapper script in the pod that resolves the directory through realpath, pins it via `/proc/self/fd`, `cd`s into the pinned inode, and only then execs the command. Both the directory and the command ride as positional parameters (`$1` and `$2`) — the wrapper interpolates neither into its own script text, so the command runs byte-for-byte as authored. An escape attempt exits `42` before the command runs.
+
+Kubernetes executes these commands symmetrically with Daytona rather than dropping them silently: a native provider that ignored the field would fail open, which is exactly the outcome the contract exists to prevent.
+
+Both native providers run the commands on the way **in** — after `performSyncIn` has placed the operation's mappings. Use the same placement in your own driver.
 
 #### Interactive setup and reusable templates (optional)
 

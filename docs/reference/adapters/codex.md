@@ -88,7 +88,6 @@ Pick any of the known Codex model ids in the `model` field. The current options 
 - `gpt-5.6-luna`
 - `gpt-5.4`
 - `gpt-5.4-mini`
-- `gpt-5.3-codex-spark`
 - `gpt-5`
 - `o3`
 - `o4-mini`
@@ -100,6 +99,22 @@ Pick any of the known Codex model ids in the `model` field. The current options 
 You can also type a model id that is not in this list. Anything Paperclip does not recognize is treated as a manual model id and passed straight through to the Codex CLI.
 
 > **Tip:** Leave `model` empty to let Codex choose. When no model is set, the adapter omits the `--model` flag entirely so the Codex CLI falls back to its own default model.
+
+---
+
+## Model Profiles
+
+A model profile is a named alternative to the agent's main model settings, so you can run the same agent on a different lane without rewriting its adapter config. Codex ships one profile, and it comes from the adapter itself (`source: "adapter_default"`), so every `codex_local` agent has it available:
+
+| Key | Label | Description |
+|---|---|---|
+| `cheap` | Cheap | Use an explicitly configured lower-cost Codex model without changing the primary model. |
+
+The important part is *explicitly configured*: the `cheap` profile ships with an empty `adapterConfig`, so it does not choose a model for you. Enabling it changes nothing until you fill in what the cheap lane should use — normally a `model`, and optionally an override such as `modelReasoningEffort`. You decide which model counts as cheap for this agent, and the primary `model` in your adapter config stays exactly as it is.
+
+> **Heads-up:** `cheap` used to hard-code a specific Codex model and reasoning effort for you. It no longer does. If you were relying on that, set the model you want on the profile yourself.
+
+New Codex agents start with this profile switched off. When an agent is created and its runtime config does not already mention `cheap`, Paperclip records `modelProfiles.cheap = { enabled: false }` — the profile is present but dormant, waiting for you to configure it and turn it on.
 
 ---
 

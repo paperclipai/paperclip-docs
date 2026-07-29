@@ -72,8 +72,20 @@ Returns a company-wide projection of the outputs agents produced while working. 
 | `q` | string (max 160 chars) | Free-text search over artifact title/summary and originating issue identifier/title. |
 | `groupBy` | `none`, `task`, `parent_task` | Grouping mode. `none` (default) returns a flat artifact list; `task` groups by the originating issue; `parent_task` rolls sub-issue artifacts up under their root issue. |
 | `groupIssueId` | UUID | When grouping, expand a single group (stack) into its own artifacts. |
+| `starred` | `true`, `false` | Return only the documents the calling user has starred. Defaults to `false`. |
 | `limit` | integer 1–100 | Page size. Defaults to `30`. |
 | `cursor` | string | Opaque pagination cursor from a prior response's `nextCursor`. |
+
+### Your starred documents
+
+Set `starred=true` when you want the shortlist instead of everything — the documents you personally starred, newest star first. A few things follow from that:
+
+- Only documents come back. Work products and attachments are left out, because stars only exist for documents. Pairing `starred=true` with a `kind` other than `all` or `document` therefore returns nothing.
+- The usual document filters are relaxed. A starred document is included even if no agent authored or edited it, and even if it is one of the system issue documents that the unfiltered list hides.
+- Stars are per-user, so this only works for a signed-in board caller. An agent caller asking for `starred=true` gets an empty list rather than someone else's stars.
+- `cursor` paging still works, and pages by when you starred each document.
+
+To add or remove a star, use the document route on the [Resource Memberships](./resource-memberships.md) page.
 
 ### Response
 

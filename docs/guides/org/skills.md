@@ -279,6 +279,37 @@ A **View company skills library** link at the top of the tab jumps back to the c
 
 ---
 
+## Pinning a beta release of the Paperclip skill
+
+The bundled `paperclip` skill — the base procedure every agent follows on each run — keeps moving. Most of the time that is exactly what you want: better guidance ships and every agent picks it up. But sometimes you want one agent held still, either because you are comparing how two versions of the procedure behave or because a particular snapshot suits a run you would rather not disturb while you evaluate a newer one.
+
+**Beta releases** let you do that. A release is a frozen snapshot of the Paperclip core skill, seeded into your company library alongside the live version. Pin an agent to one and that agent runs the snapshot; every other agent keeps running the live default.
+
+### Turn it on first
+
+The picker stays hidden until someone enables it. Open **Settings → Instance settings → Experimental** and flip the **Beta skills** card: *"Allow agents to pin beta releases of the Paperclip core skill. Disabling this returns every agent to the default live skill without removing saved pins."*
+
+It is off by default everywhere — cloud and self-hosted alike — and it is not one of the cloud-managed flags, so it stays yours to turn on and off on any instance. See [Experimental features](../../experimental/overview.md) for how that page behaves.
+
+### Pick a release
+
+Open the agent, go to the **Skills** tab, and find the Paperclip core skill row — it needs to be enabled for that agent. A **Skill release** dropdown appears alongside it:
+
+- **Default — current (recommended)** — no pin at all. The agent runs the live skill and picks up every future change. This is where every agent starts.
+- Each frozen release, shown as its name plus the day it was cut — for example **V7 — Roster champion · released 2026-07-21** — carrying a small **Beta** badge.
+
+Two releases ship today: **V0 — Original**, the original snapshot of the core skill, and **V7 — Roster champion**. Both are historical by design. **V7 — Roster champion** predates three later edits to `SKILL.md`, `references/api-reference.md`, and `references/company-skills.md`, and the live default keeps that newer guidance — which is the trade-off worth holding in mind. A pin buys you a procedure that will not move, and costs you every improvement made since it was cut. That is why the default option says *recommended*.
+
+Choosing a release saves immediately rather than waiting for the usual autosave, and the skill row picks up a **Beta · V7** style badge so you can see at a glance which agents are pinned. Switch back to **Default — current (recommended)** to clear the pin.
+
+### What happens when the flag is off
+
+Turning **Beta skills** back off erases nothing. Saved pins stay on the agent — they are simply ignored, and every agent goes back to the live default skill on its next run. Turn the flag on again and those pins apply again.
+
+The same rule holds over the API: saving a version pin while the flag is off is rejected with *"Beta skill version pins require the Beta skills experimental setting to be enabled."* For the request shape, the release fields, and where the snapshots come from, see [Skills reference → Beta releases of the bundled `paperclip` skill](../../reference/skills.md#beta-releases-of-the-bundled-paperclip-skill).
+
+---
+
 ## Trust level
 
 Skills are loaded into agent runs as additional instructions, so where they come from matters. Paperclip uses the **Source** badge on every skill row to make that provenance obvious:

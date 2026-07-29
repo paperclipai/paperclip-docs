@@ -8,6 +8,8 @@ The **Decisions** page gives you one place to see work that needs a human call. 
 
 Open it from the sidebar, or go directly to `/decisions`.
 
+The Training library lives with this page. Click the graduation-cap **Training** button in the page header, or go directly to `/decisions/training`, to browse the decisions your company has kept as training examples. Older `/training` links still resolve — they redirect to the new address.
+
 ---
 
 ## Read the queue
@@ -54,3 +56,4 @@ These choices are personal to your board user. They tidy your queue without chan
 - [Blocked Inbox](./blocked-inbox.md) — focus specifically on stopped issues.
 - [Issues](./issues.md) — inspect and guide the work behind a decision.
 - [Attention API](../../reference/api/attention.md) — build a board-facing integration around the same queue.
+- [Decision Training](../../reference/api/decision-training.md) — keep a decision as a labelled training example, and export what you have collected.
