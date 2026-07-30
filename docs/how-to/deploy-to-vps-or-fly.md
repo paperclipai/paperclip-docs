@@ -30,7 +30,7 @@ The container holds the API, the UI, and any adapter processes the runtime spawn
 - A domain you control (`paperclip.example.com`).
 - Provider credentials: Fly.io account + `flyctl`, **or** a small Linux VPS with Docker.
 - A hosted Postgres (Supabase, Neon, Fly Postgres). Embedded Postgres is for local only — see [Database](../reference/deploy/database.md).
-- Provider keys for whichever LLM adapters you plan to run (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`).
+- Credentials for whichever LLM adapters you plan to run — an API key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`), a subscription token, or Bedrock access. For Claude Code the choice matters on a server; see [Headless auth for Claude Code](#headless-auth-for-claude-code) below.
 
 ---
 
@@ -94,6 +94,37 @@ Migrations run automatically on container start against `DATABASE_URL`. If your 
 Default: **co-located** in the same container. Local adapters (`claude_local`, `codex_local`) run as child processes when a heartbeat fires. This is fine until you outgrow the container's CPU/memory.
 
 Move runners to **separate** machines once heartbeats start contending with the API: configure adapters to point at a remote runner pool, or run a second container with the same `DATABASE_URL` and `PAPERCLIP_API_URL` and accept only agent traffic. Worth it past a handful of busy agents.
+
+---
+
+## Headless auth for Claude Code
+
+A container has no browser and no OS keychain, so the `claude` login flow you use on a laptop doesn't apply here. Running `claude` and logging in inside the container *appears* to work, but the credentials land in the container user's `~/.claude` — not on the `PAPERCLIP_HOME` volume — so they vanish on the next deploy, and the login expires after a while regardless. The symptom is confusing: `claude -p "hello"` works when you SSH in and test by hand, then the adapter gets empty output or auth failures on the next heartbeat.
+
+Pick one of the three unattended modes and set it explicitly ([full details on the adapter page](../reference/adapters/claude-code.md#authentication)):
+
+**API key** — the setup shown in the recipes above. `flyctl secrets set ANTHROPIC_API_KEY=sk-...` (or `-e` on Docker) works, but binding the key per-agent as a secret reference in the adapter's `env` field is better: it survives redeploys and upgrades, and rotates in one place. Bills per token to your Claude Console account.
+
+**Subscription token** — if you want usage billed to a Claude Pro/Max/Team/Enterprise plan instead of an API key. Mint a long-lived token on your local machine (the browser step happens there, not on the server):
+
+```sh
+claude setup-token   # approve in browser, copy the printed token
+```
+
+Then store it as a Paperclip secret and bind it in the Claude Code adapter's `env` as `CLAUDE_CODE_OAUTH_TOKEN`. The token is valid for about a year — put a reminder in your calendar, because expiry looks like a sudden auth failure.
+
+**AWS Bedrock** — routes inference and billing through AWS; no Anthropic key needed. Set in the adapter's `env`:
+
+```json
+"env": {
+  "CLAUDE_CODE_USE_BEDROCK": "1",
+  "AWS_REGION": "us-east-1"
+}
+```
+
+plus AWS credentials (static keys as secret refs, `AWS_BEARER_TOKEN_BEDROCK`, or an instance role if the VPS is an EC2 host), and a region-qualified model id (`us.anthropic.…`) in the adapter's model field.
+
+> **Warning:** Don't mix modes. If an `ANTHROPIC_API_KEY` is visible anywhere — a Fly secret, a Docker `-e` flag, the adapter env — Claude Code uses it in headless mode without asking, even when you meant to run on a subscription token. One credential per deployment; run the adapter's **Test Environment** after deploying and check which auth mode it reports.
 
 ---
 

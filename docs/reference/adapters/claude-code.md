@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.722.0
 ---
 
 # Claude Code
@@ -29,9 +29,9 @@ paperclip_version: v2026.720.0
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
 | `engine` | no | How Claude Code is run: `auto` (the default — ACP preferred), `acp` (always the Agent Client Protocol), or `cli` (always the classic Claude CLI). See [ACP Engine](#acp-engine). |
-| `model` | no | Claude model id. Common choices include `claude-opus-4-6`, `claude-sonnet-4-6`, and `claude-haiku-4-6`. |
+| `model` | no | Claude model id. Common choices include `claude-opus-4-6`, `claude-sonnet-4-6`, and `claude-haiku-4-6`. On Bedrock, use a region-qualified id — see [Authentication](#authentication). |
 | `promptTemplate` | no | Prompt template used for the run. |
-| `env` | no | Environment variables passed to Claude Code. Secret refs are supported. |
+| `env` | no | Environment variables passed to Claude Code. Secret refs are supported. This is where auth credentials belong — see [Authentication](#authentication). |
 | `command` | no | Defaults to `claude`. Override only if you need a different executable path. |
 | `extraArgs` | no | Extra CLI arguments appended to the Claude invocation. |
 | `effort` | no | Reasoning effort passed with `--effort` (`low`, `medium`, or `high`). |
@@ -44,6 +44,97 @@ paperclip_version: v2026.720.0
 | `workspaceRuntime` | no | Reserved workspace runtime metadata. |
 
 > **Note:** Claude Code is a headless adapter. The environment test is more important here than in a normal CLI session because Paperclip needs to know the command, path, auth mode, and model all work together.
+
+---
+
+## Authentication
+
+Paperclip never creates or injects Claude credentials itself. The adapter runs `claude` with the environment you give it and reports which auth mode that environment implies. Three modes work unattended:
+
+| Mode | You set | Usage bills to | Headless-safe |
+|---|---|---|---|
+| **Anthropic API key** | `ANTHROPIC_API_KEY` | Your [Claude Console](https://platform.claude.com) account, at per-token API rates | Yes |
+| **Subscription token** | `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token` | Your Claude Pro/Max/Team/Enterprise plan's usage limits | Yes |
+| **AWS Bedrock** | `CLAUDE_CODE_USE_BEDROCK=1` + AWS credentials | Your AWS account | Yes |
+| Interactive login (`claude` → `/login`) | Nothing — credentials live in the OS user's `~/.claude` | Plan usage limits | Only with caveats — see below |
+
+### How your environment reaches Claude
+
+Where you put the variables matters:
+
+- **Local execution (default):** the spawned `claude` inherits the Paperclip host process environment (minus Paperclip's own `PAPERCLIP_*` runtime variables), with the adapter's `env` field layered on top. Host-level exports work, but they are invisible in the agent config and easy to lose across restarts and upgrades.
+- **SSH and sandbox targets:** the host environment is **not** forwarded. Only the adapter-built environment — including your `env` field — reaches the remote `claude`. Auth variables that only exist in the host shell silently disappear on these targets.
+
+Either way, the reliable pattern is the same: **put credentials in the adapter's `env` field as [secret references](../deploy/secrets.md)**. They then travel with the agent to every execution target, survive upgrades, and rotate in one place — see [Update or rotate a provider API key](../../how-to/rotate-provider-api-key.md).
+
+### Which mode wins
+
+When more than one credential is visible, Claude Code — not Paperclip — picks one, in this order: Bedrock/Vertex flags → `ANTHROPIC_AUTH_TOKEN` → `ANTHROPIC_API_KEY` → `apiKeyHelper` → `CLAUDE_CODE_OAUTH_TOKEN` → stored `/login` credentials.
+
+> **Warning:** In the headless `--print` mode Paperclip uses, an `ANTHROPIC_API_KEY` is used **without any prompt** whenever it is present. If you intend to run on subscription auth, a stray API key anywhere in the host environment or adapter `env` silently flips your runs to metered API billing. The environment test warns about exactly this: *"ANTHROPIC_API_KEY is set. Claude will use API-key auth instead of subscription credentials."* Take that warning literally — it names who gets billed.
+
+### Mode 1: Anthropic API key
+
+The simplest unattended setup. Create a key in the [Claude Console](https://platform.claude.com), store it as a Paperclip secret, and bind it:
+
+```json
+"env": {
+  "ANTHROPIC_API_KEY": {
+    "type": "secret_ref",
+    "secretId": "secret-id",
+    "version": "latest"
+  }
+}
+```
+
+Every token the agent uses is billed to that key at API rates. Watch the Console usage page during the first few heartbeats so the cost profile matches your expectation — agent workloads consume far more tokens than interactive use.
+
+### Mode 2: Subscription in headless environments (`claude setup-token`)
+
+Interactive `/login` credentials are stored per OS user (macOS Keychain, or `~/.claude/.credentials.json` on Linux) and logins **expire**. On a laptop that's fine; on a server it produces exactly the failure mode people report: `claude` works when you test it by hand, then returns empty output or "login required" when Paperclip spawns it under a different user, a different `HOME`, or after the login has expired.
+
+The headless-safe way to use a subscription is a long-lived token:
+
+1. On any machine with a browser (not necessarily the server), run `claude setup-token`. Requires a Pro, Max, Team, or Enterprise plan.
+2. Approve access in the browser. The token (valid ~1 year) prints to the terminal and is not saved anywhere — copy it.
+3. Store it as a Paperclip secret and bind it in the adapter `env` as `CLAUDE_CODE_OAUTH_TOKEN`.
+4. Make sure no `ANTHROPIC_API_KEY` is set anywhere the agent can see — it would outrank the token (see [Which mode wins](#which-mode-wins)).
+
+Usage draws from your plan's usage limits instead of per-token billing. Note that plan limits are sized for individual use; a busy multi-agent company can exhaust them mid-cycle, and heartbeats then fail until the window resets.
+
+Relying on stored `/login` credentials instead can work — local runs inherit `HOME`, so credentials resolve if Paperclip runs as the **same OS user** that logged in — but treat it as a development convenience, not a deployment strategy. The login expires without an interactive session to renew it.
+
+### Mode 3: AWS Bedrock
+
+Claude Code natively supports Bedrock; the adapter detects it and adjusts model discovery and cost attribution. Configure it entirely through the adapter `env`:
+
+```json
+"env": {
+  "CLAUDE_CODE_USE_BEDROCK": "1",
+  "AWS_REGION": "us-east-1",
+  "AWS_ACCESS_KEY_ID": { "type": "secret_ref", "secretId": "…", "version": "latest" },
+  "AWS_SECRET_ACCESS_KEY": { "type": "secret_ref", "secretId": "…", "version": "latest" }
+}
+```
+
+Credentials use the standard AWS SDK chain, so alternatives to static keys also work: an EC2/ECS instance role (nothing to configure — best option when Paperclip runs in AWS), or a Bedrock API key via `AWS_BEARER_TOKEN_BEDROCK`. Avoid `AWS_PROFILE` with SSO for unattended runs — SSO sessions expire and need an interactive `aws sso login` to renew.
+
+Bedrock specifics to know:
+
+- **Model ids must be region-qualified** inference-profile ids (`us.anthropic.claude-sonnet-4-6`-style) or application inference profile ARNs. Plain Anthropic ids like `claude-sonnet-4-6` are invalid on Bedrock, and the adapter drops them rather than passing them through. When Bedrock is detected, the model dropdown switches to region-qualified ids automatically — see [Model Discovery](#model-discovery).
+- Your IAM principal needs `bedrock:InvokeModel`, `bedrock:InvokeModelWithResponseStream`, and `bedrock:ListInferenceProfiles`/`GetInferenceProfile`, plus model access enabled in the Bedrock console. See [Claude Code on Amazon Bedrock](https://code.claude.com/docs/en/amazon-bedrock) for the full policy and model-pinning variables.
+- Claude Code's WebSearch tool is not available on Bedrock.
+- Billing routes through AWS: run costs are attributed to `aws_bedrock` in Paperclip's cost tracking, and your Anthropic console shows nothing.
+
+### Keeping auth upgrade-safe
+
+Paperclip upgrades never change your auth mode — the adapter only reflects the environment it finds. But an upgrade or config reset that drops a secret binding can leave the agent unauthenticated, and the recovery is where costs go wrong: agents retry with full context against a 401 until you fix it, and if you "fix" it by adding an API key where subscription auth was intended, billing silently moves to that key.
+
+To stay safe:
+
+- Pick **one** mode per agent and configure it explicitly in the adapter `env` with secret refs. Don't leave a fallback API key exported on the host "just in case".
+- After any upgrade, run **Test Environment** before agents resume and read the auth line it reports: Bedrock detected, API key detected (warns), or subscription mode. If the reported mode isn't the one you intended, stop and fix the binding first.
+- If heartbeats start failing with auth errors, pause the agents while you repair credentials — every failed retry still loads full context and, once auth is restored to the wrong mode, bills to it.
 
 ---
 
@@ -140,10 +231,10 @@ The UI's `Test Environment` button validates Claude Code before the adapter is s
 
 - Claude Code is installed and executable.
 - The working directory is absolute and usable.
-- Auth is configured through `ANTHROPIC_API_KEY`, Bedrock settings, or Claude subscription login.
+- Auth is configured through one of the modes in [Authentication](#authentication) — it reports Bedrock detected, API key detected (with a warning that the key overrides subscription credentials), or subscription mode, and warns if the CLI still requires login.
 - The hello probe can run `claude --print - --output-format stream-json --verbose` with the prompt `Respond with hello.`
 
-If the test fails, fix the command, path, or auth signal before trying again.
+If the test fails, fix the command, path, or auth signal before trying again. Pay attention to the reported auth mode even when the test passes — it tells you where usage will be billed.
 
 ---
 

@@ -27,6 +27,8 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 - [Codex Adapter](adapters/codex.md) — the narrower `CODEX_HOME` sandbox-sync allowlist.
 - [Plugin SDK](plugins/sdk.md) — environment-sync exports and the `onEnvironmentSyncIn` / `onEnvironmentSyncOut` hooks.
 - [`company` CLI](cli/company.md) — the `export --force` flag.
+- [Claude Code Adapter](adapters/claude-code.md) — new Authentication section: API key vs subscription token (`claude setup-token` / `CLAUDE_CODE_OAUTH_TOKEN`) vs AWS Bedrock, credential precedence, env passthrough per execution target, and upgrade-safe configuration.
+- [Deploy to a VPS or Fly.io](../how-to/deploy-to-vps-or-fly.md) — headless auth options for Claude Code on servers and containers.
 
 </div>
 </details>
