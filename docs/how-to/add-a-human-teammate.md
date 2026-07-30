@@ -47,6 +47,8 @@ When they open the URL they land on a Paperclip join page branded with your comp
 
 On their side they see a "waiting for approval" state. Nothing they do from here touches your company data until you approve them.
 
+> **If they see "Email and password sign up is not enabled":** your instance has self-service sign-up turned off, so the invitee can't create the account they need to accept the invite. This is controlled by the `auth.disableSignUp` config field (or the `PAPERCLIP_AUTH_DISABLE_SIGN_UP` environment variable). To let invited teammates register, make sure sign-up is enabled — set `auth.disableSignUp` to `false` (its default) or confirm `PAPERCLIP_AUTH_DISABLE_SIGN_UP` isn't set to `true` — then restart the instance and have them reopen the invite link. See [Enable multi-user login](./enable-multi-user-login.md) for the full authenticated-mode setup.
+
 ---
 
 ## 5. Approve them (and fine-tune access)
