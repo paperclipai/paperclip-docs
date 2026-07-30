@@ -53,7 +53,7 @@ The header shows:
 
 - **Level** — the goal's level label in muted uppercase (for example `COMPANY` or `TEAM`). Levels are how Paperclip lets you separate high-level company outcomes from narrower team or workstream goals.
 - **Status** — a status badge. Goals use the same status vocabulary as projects and issues for visual consistency, so you can tell at a glance whether a goal is active, achieved, or dropped.
-- **Properties toggle** — a small slider icon on the right that re-opens the properties panel if you closed it. The properties panel is where you edit level, status, parent, and other metadata without having to leave the page.
+- **Properties toggle** — a small slider icon on the right that re-opens the properties panel if you closed it. The properties panel is where you edit level, status, and other metadata without having to leave the page. The parent goal is shown here but is not editable from the panel — see [Reparenting and flattening](#reparenting-and-flattening).
 
 The body below the header has:
 
@@ -124,7 +124,17 @@ You can also create a sub-goal from the main Goals page by choosing a parent in 
 
 ### Reparenting and flattening
 
-Moving a goal between parents is done from the goal's properties panel — change the parent field, and the tree re-renders. Flattening a sub-goal to a root goal is the same action, with the parent set to none.
+A goal's parent is set **when you create it** — either by choosing a parent in the new-goal dialog or by using the **Sub Goal** button, which pre-fills it. The app does not currently expose an editable parent field on an existing goal, so changing a goal's parent (or flattening a sub-goal back to a root goal) is done through the CLI or API rather than the properties panel:
+
+```sh
+# Re-parent a goal under a different parent
+paperclipai goal update <goal-id> --parent-id <new-parent-goal-id>
+
+# Flatten a sub-goal to a top-level goal
+paperclipai goal update <goal-id> --parent-id null
+```
+
+The same change is available on the API via `PATCH /goals/{id}` with a `parentId` field (pass `null` to promote the goal to the root). The tree re-renders once the change lands. See the [Goal CLI reference](../../reference/cli/goal.md#update-a-goal) for the full flag list.
 
 Deep hierarchies are rarely the right answer. Two or three levels is usually enough to capture the structure without making the tree tedious to read.
 

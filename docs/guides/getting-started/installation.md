@@ -61,6 +61,16 @@ This single command handles everything: it downloads Paperclip, creates a config
 → Opening Paperclip in your browser...
 ```
 
+> **Troubleshooting (macOS, Apple Silicon):** If onboarding fails while starting the embedded PostgreSQL, it's usually a missing library symlink. The bundled Postgres (`@embedded-postgres/darwin-arm64`) ships versioned compression libraries — for example `libzstd.1.5.7.dylib` and `liblz4.1.10.0.dylib` — but not the shorter compatibility symlinks (`libzstd.1.dylib`, `liblz4.1.dylib`) that Postgres looks for, so it won't start until you add them. Find the versioned files under the embedded-postgres package (inside its `.../lib` directory in `node_modules`) and create the missing symlinks, then re-run `npx paperclipai run`:
+>
+> ```bash
+> cd "$(dirname "$(find ~ -path '*@embedded-postgres/darwin-arm64*/lib/libzstd.*.dylib' 2>/dev/null | head -1)")"
+> ln -sf libzstd.*.dylib libzstd.1.dylib
+> ln -sf liblz4.*.dylib liblz4.1.dylib
+> ```
+>
+> Version numbers vary between releases — match whichever versioned `.dylib` files are actually present.
+
 ---
 
 ## Step 4 — Open Paperclip
