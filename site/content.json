@@ -756,6 +756,10 @@
                 {
                   "title": "Release Announcement",
                   "file": "../docs/reference/skills/optional/content/release-announcement.md"
+                },
+                {
+                  "title": "Simplified English",
+                  "file": "../docs/reference/skills/optional/content/simplified-english.md"
                 }
               ]
             },

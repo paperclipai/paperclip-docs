@@ -15,6 +15,7 @@ For the catalog mechanics, start with the [Skills reference](../skills.md#3-app-
 ## Content
 
 - [Release Announcement](./optional/content/release-announcement.md) — turn release changes into concise public-facing announcement copy.
+- [Simplified English](./optional/content/simplified-english.md) — write user-facing comments, plans, and documents in ASD-STE100 Simplified Technical English so readers understand them the first time.
 
 ## Finance
 

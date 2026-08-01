@@ -7,347 +7,91 @@ this list automatically.
 | | |
 | --- | --- |
 | Mode | `nightly` |
-| Window | `v2026.722.0` (`e55d702`) → `77979950` |
-| Parent default branch | `master`, HEAD `ca92f727` at run time |
-| Quarantine | 24h — cutoff `2026-07-28T08:48:16Z` |
-| Commits in window | 72 (20 newer commits held back by quarantine) |
-| Files in window | 411 (no compare-API truncation) |
-| Manifest hash | `bff8ab019fb90bc70385c2b515730250be85c42d335c9ea32bcae4600c5d524d` |
+| Window | `v2026.722.0` (`e55d702`) → `4813ed3f` |
+| Parent default branch | `master`, HEAD `6401f4f` at run time |
+| Quarantine | 24h — cutoff `2026-07-31T07:53:03Z` (43 newer commits held back) |
+| Commits in window | 131 |
+| Files in window | 607 (no compare-API truncation) |
+| Manifest hash | `e4b9fed22c73f0ee91fa1a7f2f542c8f700f91685025710ef73b3833cf76bddc` |
+| Previous manifest hash | `bff8ab019fb90bc70385c2b515730250be85c42d335c9ea32bcae4600c5d524d` |
 
-**N1–N11 and E1–E10 were applied by previous runs** and are unchanged in this cumulative manifest.
-**D1–D10 are the new work in this run**, from the 19-commit delta `2568bdec → 77979950`.
+**Most of this window (managed environments, status cards, interaction withdrawal, beta skills) was
+applied by previous runs and is unchanged in this cumulative manifest.** The new work this run is the
+59-commit delta `77979950 → 4813ed3f`, distilled to the entries below.
 
 ## Auto-merge tier
 
-None this window. `.env.example` did not change, so the `env-vars` watcher had no hits. The two new
-instance feature flags (`enableBetaSkills` in **D4**, `enableOwnerInstanceAdmin` in **D5**) live in
-`packages/shared/src/feature-catalog.ts`, not in a schema-bound env file, so they are judgement
-calls and ride with their entries.
+None this window. `.env.example`, `server/src/config.ts`, and `packages/**/env.ts|config.ts` did not
+change, so the `env-vars` watcher had no hits.
 
-## PR tier — new this run
-
-### D1 — Managed instances can be handed a sandbox environment
+## ⚠ Reconcile / Drift — needs human attention
 
-`docs/reference/deploy/environment-variables.md`
-
-The `PAPERCLIP_MANAGED_CONFIG` document gained an `environments` section. Each entry declares one
-instance-level Paperclip-managed sandbox row — `{ name, description?, provider, config }` — that
-the server provisions idempotently at boot, so a hosted instance can arrive with somewhere for
-agents to run before anyone wires up a provider.
+### R1 — Cloud Sync removed upstream, replaced by company Import/Export
 
-The interesting parts are the guardrails, and the page documents all of them: `environments` is the
-one **optional** section (documents delivered before it existed must keep booting newer builds, and
-a fleet image roll cannot be lockstepped with a config re-delivery); **at most one entry**, because
-the DB enforces a single managed sandbox row per instance via the partial unique index
-`environments_managed_sandbox_idx`; `provider` must also appear in `plugins.autoInstall`; `config`
-must not set `provider` itself; and any config key matching `api_key`/`token`/`secret`/`password`/
-`credential` at any depth is treated as a misrouted credential and refuses startup — credentials
-arrive as process env vars such as `DAYTONA_API_KEY` instead. `PAPERCLIP_EXECUTION_MODE` and this
-section are mutually exclusive; both claim the same row.
-
-Also documented: the deliberate split failure posture (a malformed section refuses startup; a failed
-DB ensure logs and boots degraded), the provider-readiness gate that skips or archives an entry
-whose plugin has no live worker, the one-shot worker `ready` listener that restores it without a
-server restart, and that removing an entry never deletes or archives the row.
+Parent commit `916c1350` ("Replace host-to-host Cloud Sync with full-fidelity company Import/Export")
+deleted the entire host-to-host cloud sync surface: the CLI `cloud connect` / `cloud push` commands
+(`cli/src/commands/client/cloud*.ts`), the `cloud-upstreams` service (`-1309` lines), its schema and
+UI, and migration `0196_drop_cloud_upstream_tables.sql`.
 
-Parent: `server/src/services/managed-environments.ts` (new) · `managed-config.ts` ·
-`environments.ts` · `server/src/index.ts` — commit `273315a4`
+Three of our pages documented that now-removed feature. **This run added a deprecation banner** to each,
+pointing readers at the Import/Export replacement — the pages are **not** deleted (that's a release-time
+decision):
 
-### D2 — Withdrawing an interaction, and expiry on a closed issue
+- `docs/reference/cli/cloud.md`
+- `docs/how-to/sync-to-cloud-upstream.md`
+- `docs/experimental/cloud-sync.md`
 
-`docs/reference/api/issues.md`
+Drift independently confirmed the removal at `docs/reference/cli/cloud.md:32` (`paperclipai cloud`
+command missing from parent, high confidence).
 
-New route `POST /issues/:id/interactions/:interactionId/withdraw`. The interaction creator, the
-current issue assignee, or a board user may withdraw; task-watchdog runs are refused with `403`.
-Pending interactions now also expire automatically when their issue reaches a terminal state.
+### Drift — permission key not yet documented
 
-The result vocabulary widened accordingly: `RequestConfirmationResult.outcome` and
-`RequestItemVerdictsResult.outcome` both gained `withdrawn` and `issue_closed`, and
-`SuggestTasksResult` / `AskUserQuestionsResult` gained an optional `outcome` of the same two plus a
-`reason`. The page draws the line between withdrawal and the pre-existing cancel endpoint, since
-both now exist.
-
-Parent: `server/src/routes/issues.ts` · `server/src/services/issue-thread-interactions.ts` ·
-`packages/shared/src/validators/issue.ts` · `types/issue.ts` · `tool-gateway.ts`
-— commit `f6ab82d4`
-
-### D3 — Starring a document
-
-`docs/reference/api/resource-memberships.md` · `docs/reference/api/companies.md`
+`docs/administration/roles-and-permissions.md` is missing the permission key
+`audit:view_agent_actions`, which exists in parent (high confidence). It comes from the agent-audit-UI
+feature (commit `71231dfa`) that is **still inside the 24h quarantine window**, so documenting it now
+would be premature. Surfaced only — revisit next run once the feature clears quarantine.
 
-New route `PUT /companies/:companyId/resource-memberships/me/documents/:documentId`. Documents are
-**star-only** — the body is `{ "starred": boolean }` (strict), not the `state` (`joined`/`left`)
-the project and agent routes take, and `state` always reports back as `joined` because there is
-nothing to leave.
+## PR tier — drafted this run
 
-Two response-shape sharp edges are called out explicitly: `starredDocumentIds` and
-`documentStarredAt` are **required** on the memberships response, unlike their optional project and
-agent counterparts, and `documentStarredAt` holds ISO-8601 **strings** where `projectStarredAt`
-holds Dates. `starredDocumentIds` is ordered most-recently-starred first. The company artifacts list
-gained a `starred` filter for board actors.
-
-Parent: `server/src/routes/resource-memberships.ts` · `services/resource-memberships.ts` ·
-`routes/companies.ts` · `services/company-artifacts.ts` ·
-`packages/db/src/migrations/0193_document_memberships.sql` — commit `c111ee4c`
+### P1 — Full-fidelity company Import/Export (replaces Cloud Sync)
 
-### D4 — Pinning a beta release of the core Paperclip skill
+`docs/guides/power/export-import.md` · `docs/how-to/back-up-and-restore-a-company.md` ·
+`docs/reference/cli/company.md`
 
-`docs/guides/org/skills.md` · `docs/reference/skills.md`
+`paperclipai company export <companyId>` writes a portable markdown package (`--include` selects
+`company,agents,projects,issues,tasks,skills`; plus `--skills`, `--projects`, `--issues`,
+`--project-issues`, `--expand-referenced-skills`). `paperclipai company import <fromPathOrUrl>` reads a
+package from a local path, a URL, or GitHub (`--target new|existing`, `--collision rename|skip|replace`,
+`--dry-run`, `--ref`). Large companies upload as compressed zip; imports run as async jobs with an
+integrity guard. Parent: `cli/.../company.ts`, `packages/shared/.../portability-fidelity.ts` — commits
+`916c1350`, `276ae3a7`, `5ec7ce76`, `075951f6`.
 
-An agent can pin a frozen historical release of the Paperclip core skill instead of always tracking
-the live default. Gated on `enableBetaSkills` ("Beta skills"), tier `preference` with
-`cloudDefault: false` and `selfHostedDefault: false` — off everywhere by default, but a
-`preference`-tier flag an operator can turn on themselves, unlike the `managed` tier.
+### P2 — New optional catalog skill: `simplified-english`
 
-Skill version rows gained `releaseId`, `releaseName`, and `releasedAt`, with a partial unique index
-so one skill holds at most one version per release id. Two releases ship today: `v0`
-("V0 — Original") and `v7-roster` ("V7 — Roster champion"). The pages are clear that these are
-frozen snapshots — `v7-roster` predates three later edits to the live default.
+`docs/reference/skills/optional.md` · new `docs/reference/skills/optional/content/simplified-english.md`
+· catalog table in `docs/reference/skills.md`
 
-Parent: `server/src/services/company-skills.ts` · `runtime-skill-selections.ts` ·
-`skills-releases/paperclip/releases.json` (new) · `packages/shared/src/feature-catalog.ts` ·
-`packages/db/src/migrations/0194_company_skill_releases.sql` — commit `c3bd0c5d`
+New `content`-category optional catalog skill. Parent:
+`packages/skills-catalog/catalog/optional/content/simplified-english/SKILL.md` — commit `efe8b3b7`.
 
-### D5 — Stack owners can hold instance admin on their own cloud instance
+### P4 — Managed (company) skill rename API
 
-`docs/administration/roles-and-permissions.md`
+`docs/guides/org/skills.md`
 
-`enableOwnerInstanceAdmin` ("Owner Instance Admin"), tier `managed`, `cloudDefault: true`,
-`selfHostedDefault: false`. Only the `owner` stack role elevates — `admin`, `member`, and `support`
-stay company-scoped. Elevation is **computed per request** at the trusted-header boundary: no
-`instance_user_roles` row is ever written, so a leftover row elevates nobody on a cloud-managed
-instance, and turning the flag off drops the owner back on the very next request. It resolves
-through the instance-settings service so the managed-config overlay applies fleet-wide, and it
-**fails closed** — a settings read error means no elevation. Inert self-hosted, which has no
-trusted cloud tenant path (`PAPERCLIP_CLOUD_TENANT_SERVER_TOKEN` unset).
+New route `POST /companies/:companyId/skills/:skillId/rename` renames a company skill, reassigns
+affected agents, and logs `company.skill_renamed`. Parent: `server/src/routes/company-skills.ts`,
+`server/src/services/company-skills.ts`, `packages/shared/.../validators/company-skill.ts` — commit
+`fcf66f3a`.
 
-The page deliberately does not oversell the grant: it enumerates the code-level platform floors that
-bind every actor on a cloud-managed instance, instance admins included —
-`adapter_install_platform_managed`, `environment_platform_managed`,
-`execution_mode_platform_managed`, and `database_backups_platform_managed`.
+## Noted but not drafted
 
-Parent: `server/src/middleware/auth.ts` · `services/authorization.ts` · `routes/environments.ts` ·
-`routes/adapters.ts` · `routes/instance-settings.ts` · `routes/instance-database-backups.ts` ·
-`packages/shared/src/feature-catalog.ts` — commit `c274f10a`
-
-### D6 — Setting the value of an external-reference secret
-
-`docs/reference/api/secrets.md` · `docs/how-to/connect-aws-secrets-vault.md`
-
-An `external_reference` secret used to be link-only — you could repoint it, not set it. If the
-provider supports it, you can now write a new value straight through to the external vault. The
-descriptor gained `supportsExternalValueWrites`, the provider module gained an optional
-`updateExternalSecretValue` hook, and AWS Secrets Manager implements it.
-
-The four rejection cases are documented with their exact messages: a missing `externalRef`
-("External reference secrets require externalRef"), sending both a value and a different ref
-("Provide either a new value or a new external reference, not both"), pinning a version on a value
-update ("Value updates cannot pin providerVersionRef"), and a provider without the hook, whose
-message embeds the provider's own label.
-
-Parent: `server/src/services/secrets.ts` · `server/src/secrets/aws-secrets-manager-provider.ts` ·
-`server/src/secrets/types.ts` · `packages/shared/src/types/secrets.ts` — commit `0cf64d36`
-
-### D7 — Running commands after a sync operation's files land
-
-`docs/reference/plugins/sdk.md`
-
-`PluginSyncOperation` gained an optional `postUploadCommands?: PluginPostUploadCommand[]` — ordered
-control commands run after that operation's files are placed, in array order, fail-fast. Absent
-means "no commands" and is byte-identical to a pre-contract operation. `PluginPostUploadCommand`
-(`command`, `cwd?`, `timeoutMs?`) is exported from the SDK index.
-
-The security contract is written out rather than softened, because a provider author is the second
-half of it: `command` is adapter/core-authored only — never from a route, issue or comment content,
-workspace file content, a plugin callback, or arbitrary adapter config; a provider must treat it as
-**opaque** and must not rewrite, concatenate, or prefix it (the working directory rides as a
-structured argument, never a `cd … &&` prefix); and a present `cwd` must be re-validated
-fail-closed under the operation's sandbox root before exec, with an absent `cwd` defaulting to the
-resolved remote root rather than a process default. Both native providers are walked through —
-Daytona's lexical + realpath guards feeding `executeCommand`'s structured `cwd`, and the Kubernetes
-wrapper that pins the inode through `/proc/self/fd` and exits `42` on an escape attempt.
-
-Parent: `packages/plugins/sdk/src/protocol.ts` · `src/index.ts` ·
-`packages/plugins/sandbox-providers/daytona/src/file-sync.ts` ·
-`kubernetes/src/file-sync.ts` — commits `030dd9d1`, `0ccba45e`
-
-### D8 — Codex's cheap lane no longer picks a model for you
-
-`docs/reference/adapters/codex.md`
-
-Two things. `gpt-5.3-codex-spark` was removed from the adapter's `models` array — **our page still
-listed it**, so this was a live wrong claim, not just a new feature. See the note under
-**Verification report** about how it was found.
-
-Second, the `cheap` model profile's `adapterConfig` is now empty `{}` and its description reads
-"Use an explicitly configured lower-cost Codex model without changing the primary model." It used
-to hard-code `model: "gpt-5.3-codex-spark"` and `modelReasoningEffort: "high"`. Enabling it now does
-nothing until you fill in the model yourself — the page carries a heads-up for anyone who was
-relying on the old behaviour. New agents are additionally created with `modelProfiles.cheap =
-{ enabled: false }` when their runtime config does not already mention `cheap`.
-
-Parent: `packages/adapters/codex-local/src/index.ts` · `server/src/routes/agents.ts` ·
-`ui/src/lib/new-agent-runtime-config.ts` — commit `1426494a`
-
-### D9 — Training moved under Decisions
-
-`docs/guides/day-to-day/decisions.md`
-
-The Training library moved from `/training` to `/decisions/training` (inspector at
-`/decisions/training/:id`); the old paths redirect. In the Decisions header the labelled **Training**
-button became an icon-only graduation-cap button. One paragraph plus a cross-reference — the change
-did not warrant more.
-
-Parent: `ui/src/App.tsx` · `ui/src/pages/WhatNeedsMe.tsx` · `ui/src/lib/decisionTraining.ts`
-— commit `8339bcc7`
-
-### D10 — The activity gate is no longer API-only
-
-`docs/how-to/create-a-daily-routine.md` · `docs/reference/api/routines.md`
-
-The gate itself was documented in **N3**; what changed is the surface. The routine editor now has an
-**Advanced run policy** section with radio cards for both policies and both scopes, and the control
-is **disabled rather than hidden** when the routine has no schedule trigger, explaining that
-webhook, manual, and API fires always run. The how-to now leads with the UI and keeps the payloads
-for scripting.
-
-Skipped run rows also gained a one-line reason. Three are mapped —
-`no_external_activity` → "Skipped — no activity since last run", `paused` → "Skipped — routine
-paused", `worktree_execution_cutoff` → "Skipped — worktree execution cutoff" — and an unmapped
-reason falls back to the normal subtitle. `worktree_execution_cutoff` was **not** documented on the
-API reference at all; that gap is now filled.
-
-Parent: `ui/src/components/routine-sections/editable-sections.tsx` ·
-`ui/src/lib/routine-run-display.ts` · `ui/src/pages/RoutineDetail.tsx` — commit `ab2bdfee`
-
-## Judged no doc impact
-
-- `71a65357` execution-semantics and `3b015623` connections — parent-repo doc edits only; they are
-  reference data for framing, never a source for our pages.
-- `aed4478c` pr-gardening scoped to instance-authored PRs — internal.
-- `197718bc` acpx per-step timing attribution — internal telemetry (also judged in the prior run).
-- `a3b293e2`, `3d23c3b2`, `77979950` Daytona bridge parallelisation, per-lease handle caching, and
-  the no-profile exec fast path — internal performance.
-- `1cd09ed5` heartbeat task-session reuse and bounded control-plane write retries — internal.
-- Migrations `0193` and `0194` — context for **D3** and **D4**, not separate entries.
-
-## ⚠ Drift
-
-None. `check-drift.mjs` against parent `master` returned zero records, both at triage time and after
-the edits (10 parent paths, 57 CLI commands, 69 env vars, 409 REST routes, 18 permission keys, 4
-roles checked).
-
-Worth noting for the next maintainer: the drift checker did **not** catch the stale
-`gpt-5.3-codex-spark` entry fixed in **D8**, because it does not scan adapter model lists. That
-class of claim — enumerated values on an adapter reference page — is currently only caught when the
-diff window happens to touch the adapter. See the note in **Verification report**.
-
-## ↻ Renames detected
-
-None. `detect-renames.mjs` on the delta window found no directory renames, no genuinely-new
-top-level dirs, and no unmatched removals.
-
-## ⚠ Reconcile
-
-None. No manifest entry from the previous run disappeared from this cumulative window, so nothing
-already documented has been reverted upstream.
-
-## Verification report
-
-`verify-edit.mjs` against `77979950` across all 14 touched doc files: **232 claims extracted, 219
-verified, 13 unverified, 0 suspicious.**
-
-**All 13 unverified records pre-date this run** — each string was confirmed present on `HEAD` before
-any edit, and each sits outside the hunks this run added:
-
-- 10 × `sdk.md:509` — `PLUGIN_CATEGORIES`, `PLUGIN_CAPABILITIES`, `PLUGIN_UI_SLOT_TYPES`,
-  `PLUGIN_UI_SLOT_ENTITY_TYPES`, `PLUGIN_STATE_SCOPE_KINDS`, `PLUGIN_JOB_STATUSES`,
-  `PLUGIN_JOB_RUN_STATUSES`, `PLUGIN_JOB_RUN_TRIGGERS`, `PLUGIN_WEBHOOK_DELIVERY_STATUSES`,
-  `PLUGIN_BRIDGE_ERROR_CODES`. These are exported SDK const names, not env vars — the verifier's
-  env-var rule matches any SCREAMING_SNAKE_CASE token. A standing false positive, not a defect.
-- 2 × `codex.md` — `my-gateway` and `secret-id` are placeholder values inside examples.
-- 1 × `environment-variables.md:309` — `PAPERCLIP_CLOUD_PROD_PROVIDER_RAILWAY_TOKEN`.
-
-Every claim newly written by this run verified. Claims the verifier cannot see were hand-checked
-against parent code at the window ref: the `environments_managed_sandbox_idx` invariant, the
-`provider` ∈ `plugins.autoInstall` rule, the secret-like-key pattern, the `config` must-not-set-
-`provider` rule, `PAPERCLIP_EXECUTION_MODE` mutual exclusion, the
-`resource_membership.starred`/`.unstarred` activity actions, the most-recently-starred-first
-ordering, all four `*_platform_managed` floor codes, and the Daytona/Kubernetes `postUploadCommands`
-confinement behaviour including the `exit 42` escape path.
-
-### ⚠ One edit was rolled back
-
-The **D8** author fetched `packages/adapters/codex-local/src/index.ts` at `master` HEAD instead of
-at the window ref, and wrote three claims from commit `487e33b8` — which is **inside the 24h
-quarantine** (2026-07-28T21:15Z, past the 08:48Z cutoff) and must not reach docs yet. It had made
-`gpt-5.6-sol` the adapter default, dropped the bare `gpt-5.6` entry, and added a paragraph about the
-alias being rewritten.
-
-All three were reverted; the model list now matches the window ref exactly
-(`DEFAULT_CODEX_LOCAL_MODEL = "gpt-5.6"`, with `gpt-5.6-sol` as its own entry), and only the
-in-window `gpt-5.3-codex-spark` removal and the Model Profiles section remain.
-
-The other nine entries were checked for the same failure by intersecting every ref-lessly-read
-parent file against the 69 files that changed between the window ref and `master` HEAD:
-`codex-local/src/index.ts` was the **only** intersection, so no other entry is affected.
-
-**Skill fix worth making:** the Phase 5 subagent instruction should require `?ref=<window-to-sha>`
-on every `gh api .../contents/...` fetch. Right now the skill hands subagents a window but lets them
-read HEAD, and quarantine is silently defeated whenever a file moves in that gap.
-
-### Second pass — adversarial re-verification
-
-Four independent verifiers re-checked all 14 files against the window ref, instructed to find errors
-rather than confirm the work. They found **six defects the mechanical verifier cannot see**, all now
-fixed. None was a quarantine leak; the `?ref=` pinning held everywhere on the second pass.
-
-**Wrong claims, corrected:**
-
-1. `reference/skills.md` — said a `versionId` pin is "only accepted for beta releases of the bundled
-   `paperclip` skill." The API accepts a `versionId` for **any** company skill; `assertVersionMatchesSkill`
-   checks only that the version belongs to the named skill. Restricting the picker to the bundled
-   `paperclip` skill is a **UI** rule. Corrected, in two places.
-2. `reference/skills.md` — the troubleshooting bullet told readers to confirm a pin via
-   `GET /api/agents/{agentId}/skills`, in the exact scenario (flag off) where that response reports
-   `versionId: null` despite the pin being stored. Now qualified.
-3. `administration/roles-and-permissions.md` — claimed a leftover `instance_admin` row "elevates
-   nobody on a cloud-managed instance." **Overbroad, and security-relevant.** The `instance_user_roles`
-   exclusion follows the *actor*, not the instance: it applies to `cloud_tenant` arrivals only. A
-   session or board-API-key actor on the same instance is still evaluated against the table, so a
-   stray row does elevate them. Rewritten to scope the guarantee correctly.
-4. `administration/roles-and-permissions.md` — told readers to look for `enableOwnerInstanceAdmin` on
-   the Experimental settings page with a lock badge. **It has no UI card at all** (zero occurrences in
-   `InstanceExperimentalSettings.tsx`). Rewritten to say so.
-5. `reference/api/secrets.md` — illustrated the unsupported-provider error with AWS Secrets Manager,
-   which is impossible: AWS implements `updateExternalSecretValue`. Only the GCP/Vault stubs can emit
-   it. Example replaced, and the fifth (AWS-side managed-namespace) rejection added.
-6. `how-to/connect-aws-secrets-vault.md` — the IAM permission list was **insufficient for the
-   behaviour the docs promise**. The documented failure rollback calls `UpdateSecretVersionStage`,
-   which was listed nowhere; without it a failed write leaves the new version live. Added in both
-   places.
-
-**Accepted as correct after challenge:** D1's managed-config guardrails end to end, D2's entire
-withdraw/expiry surface (every error string, status code, and outcome-table row), D3 in full, D4's
-release data and UI strings, D5's four platform floors, D6's rotate-only placement and rejection
-strings, D7's protocol contract and both provider walkthroughs, D8's post-rollback model list, D9,
-and D10's UI strings and skip-reason mappings.
-
-Three further imprecisions were tightened rather than left: the `PAPERCLIP_EXECUTION_MODE` exclusion
-applies to a **non-empty** `environments` section; the withdrawal continuation-wakeup rule was
-over-generalised to "every other resolution"; and the platform-managed environments floor has a
-deliberate marker-clearing exception.
-
-## Warnings
-
-- `verify-nav` reports 2 orphans — `docs/reference/cli/commands.md` and
-  `docs/reference/cli/control-plane-commands.md`. Both are intentional redirect anchors. Expected,
-  no action.
-- No new pages were created this run, so `site/content.json` was not touched and no `nav_addition`
-  merge was needed.
-
-## Applied by previous runs (E1–E10, N1–N11)
-
-Unchanged in this cumulative manifest — see the git history of this file for their full entries.
-They remain in the window because the window is cumulative from `v2026.722.0`, and will ship
-together with D1–D10 in the next release PR.
+- **P3 / P5 dropped — parent-internal, not a product surface.** `create-paperclip-bundled-skill`
+  (commit `c62fa8d6`) and `garden-inbox` (commit `a5d252d0`) live under **`.agents/skills/`** — the
+  parent repo's own Claude Code dev tooling, not skills our users install. Not documented.
+- **P6 deferred — internal plumbing + quarantined config.** "Stage referenced projects into the run
+  sandbox" (commits `6a267e03`, `15ce70dc`, `a93a74f9`, `11273c18`) is `packages/adapter-utils/**`
+  runtime plumbing; its user-facing `@-mention` config surface (`53bcf389`) is still inside quarantine.
+  Revisit once the config surface clears.
+- Adapter model-list additions (Claude Opus 5 `4eace88f`, GPT-5.6 `487e33b8`), opt-in run-log mirroring
+  (`187a90b7`), and cosmetic UI (animated loaders, task-list recency separators) — no user-doc value or
+  screenshot-only impact.
