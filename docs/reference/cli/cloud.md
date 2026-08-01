@@ -4,6 +4,8 @@ paperclip_version: v2026.609.0
 
 # Cloud Sync Commands
 
+> **Deprecated — being removed.** Host-to-host Cloud Sync has been retired upstream. The `cloud connect` and `cloud push` commands no longer exist. To move a company between instances, use full-fidelity **company Import/Export** instead — see [`paperclipai company export` / `import`](./company.md) and [Back up and restore a company](../../how-to/back-up-and-restore-a-company.md). This page is kept temporarily for anyone on an older build and will be removed in a future release.
+
 Use these commands when you want to push a company that lives on your local Paperclip instance up into a Paperclip Cloud stack — the upstream "sync" model where your laptop or self-hosted instance is the source and the cloud stack is the target. There are exactly two commands: `cloud connect` authorizes this instance against a cloud stack, and `cloud push` exports a local company and applies (or previews) it upstream. Cloud sync is experimental and gated behind an instance setting, so reach for it only when you have deliberately turned it on.
 
 > **Warning:** Cloud sync is an experimental, one-directional model: local pushes to cloud. `cloud push` is refused unless the `enableCloudSync` experimental setting is turned on for your local instance. There is no `pull` command — the cloud stack does not push back down to you.

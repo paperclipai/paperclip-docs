@@ -203,6 +203,29 @@ If you started from a folder — say, from inside **My Skills** — the new skil
 
 ---
 
+## Renaming a skill
+
+Names age. The `code-review` skill you wrote in week one turns out to be your PR triage procedure, and every agent that uses it is now working from a name that misleads whoever reads the roster next. You can rename it without unpicking anything.
+
+Renaming changes three things at once, because in Paperclip they travel together:
+
+- The **name** — what you and your team see in the library. The `name:` line in the skill's `SKILL.md` frontmatter is rewritten to match, so the file and the library never disagree.
+- The **slug** — the `kebab-case` shortname used in URLs. Give it explicitly if you want to, or leave it out and Paperclip derives it from the new name.
+- The **key** — the stable identifier agents reference. It follows the slug, so a new slug means a new key.
+
+That last one is where renaming would normally hurt, and it's the part Paperclip handles for you. **Every agent that had the old skill attached is moved to the new key automatically**, keeping any pinned skill version as it was. Nothing silently detaches, and nobody has to go around the Agents list re-ticking checkboxes.
+
+A few things worth knowing before you rename:
+
+- **Only Paperclip-managed skills can be renamed.** Skills from the built-in catalog, GitHub, skills.sh, or a project scan are read-only for the same reason their contents are — see [Editing a skill that isn't yours to edit](#editing-a-skill-that-isnt-yours-to-edit) if you want an editable copy you *can* rename.
+- **The new slug has to be free.** If another skill in the company already uses it, the rename is refused rather than overwriting anything, and you'll be told which one clashed.
+- **It's audited.** The rename is written to the company activity log as `company.skill_renamed`, recording the previous and new name, slug, and key, plus every agent that was reassigned.
+- **It obeys the skill policy.** Renaming counts as an edit, so if your company restricts who may change skills, the same rule applies here — see [Who is allowed to change skills](#who-is-allowed-to-change-skills).
+
+If you'd rather script it, the endpoint is `POST /api/companies/{companyId}/skills/{skillId}/rename`. It takes a `name` (required, and it has to be a single line) and an optional `slug`; leave the slug out and it's derived from the name. The response hands back the renamed skill along with the previous name, slug, and key, and the list of agents that were reassigned.
+
+---
+
 ## Editing a skill that isn't yours to edit
 
 Plenty of good skills come from somewhere you don't control: a GitHub repository, skills.sh, the built-in catalog. Those are read-only on purpose, so nobody quietly rewrites a pinned skill under your agents' feet. Open one in Studio and you'll see a **Read-only** badge, an explanation of why, and a **Edit a copy** button.

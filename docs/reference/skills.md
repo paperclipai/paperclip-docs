@@ -218,7 +218,7 @@ Catalog skills are split into two **kinds** (`CatalogSkillKind`):
 | Kind | Meaning | Examples |
 |---|---|---|
 | `bundled` | Core skills the app considers part of the baseline kit. | `doc-maintenance`, `issue-triage`, `task-planning`, `qa-acceptance`, `github-pr-workflow`, `wireframe`, `summarize-status`, `status-card-query` |
-| `optional` | Extra skills you opt into when you need them. | `agent-browser`, `release-announcement`, `design-critique`, `last30days` |
+| `optional` | Extra skills you opt into when you need them. | `agent-browser`, `release-announcement`, `simplified-english`, `design-critique`, `last30days` |
 
 Each catalog skill also carries a `category` you can filter on. Most of the baseline kit is coding- and process-oriented, but the catalog is not limited to engineering work — for example, the `product`-category **`wireframe`** skill teaches an agent to produce low-fidelity, black-and-white UI wireframes as standalone SVG files (recommended for `designer`, `product`, and `engineer` roles), and the `research`-category **`last30days`** skill (recommended for `researcher`, `marketer`, `product-manager`, and `analyst` roles) researches what people have said about a topic across Reddit, X, YouTube, and the rest of the web in the last 30 days. A bundled skill is not the same as a *required* one: `wireframe` ships in the baseline kit but installs only when you choose it (its `defaultInstall` is `false`), so designers and product folks can pull it in without it being forced on every agent.
 
