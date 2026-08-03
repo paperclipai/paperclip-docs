@@ -48,12 +48,44 @@ strands two screenshots — `light/experimental/cloud-upstream.png` and
 `dark/experimental/cloud-upstream.png`. They can never be recaptured; they need deleting from the
 registry whenever the cloud pages are resolved.
 
-### Drift — `PAPERCLIP_PUBLIC_BASE_URL` not found in parent
+**Re-checked this run — the removal is total, more than the last run established.** Searching parent
+at `8540ce29`: `enableCloudSync` survives only in a historical log (`doc/logs/2026-05-24-…`),
+`cloudUpstream` only in `doc/design/COMPONENT-INVENTORY.md`, `paperclip-upstream` returns **0** hits
+(the `/.well-known` discovery endpoint is gone), and `cli/src/commands/client/` has no `cloud*` file
+left. Not just the commands and services — the experimental setting itself is gone.
 
-`docs/guides/getting-started/installation.md:247` documents `PAPERCLIP_PUBLIC_BASE_URL`, which the
-verifier could not find in any of 576 parent env source files (high confidence). **This text is
-pre-existing** — it was not authored this run; it surfaced because this run touched that page.
-Someone needs to decide whether the variable was renamed, removed, or never existed.
+Two consequences the banners do not currently cover:
+
+1. **`docs/experimental/cloud-sync.md` still gives live instructions** for a toggle that no longer
+   exists: *"Settings → Instance settings → Experimental → turn on Cloud Sync"*. A reader on a
+   current build will hunt for a switch that isn't there. The banner says the feature is retired;
+   the body still reads as a how-to.
+2. **Three inbound links present it as a live feature with no deprecation signal at all** — a reader
+   arriving from any of these has no warning before they land:
+   - `docs/experimental/overview.md:54` — feature table row
+   - `docs/experimental/connections-apps.md:61` — *"another connection-oriented experimental surface"*
+   - `docs/administration/settings.md:262` — listed among settings
+
+All three pages also remain in `site/content.json` nav. Deletion stays a release-time call, but the
+inbound links are arguably a bug now rather than a pending decision.
+
+### Drift — `PAPERCLIP_PUBLIC_BASE_URL` — FALSE POSITIVE, no action needed
+
+Traced and dismissed. The string at `docs/guides/getting-started/installation.md:247` sits inside a
+warning whose whole purpose is to say the name is **wrong**:
+
+> The variable names matter. `PAPERCLIP_AUTH_PUBLIC_BASE_URL` (not `PAPERCLIP_PUBLIC_BASE_URL` or
+> `PAPERCLIP_API_URL`) is what the CLI reads.
+
+Parent code confirms the doc is correct: `PAPERCLIP_AUTH_PUBLIC_BASE_URL` 9 hits,
+`PAPERCLIP_PUBLIC_URL` 22, `PAPERCLIP_API_URL` 115, and `PAPERCLIP_PUBLIC_BASE_URL` **0** — exactly
+the counterexample the warning describes. The page needs no change.
+
+**The checker does, though.** `check-drift.mjs` extracts any env-var-shaped token from a page with no
+awareness of negation, so a name cited as a counterexample reads as a documented variable. This will
+re-fire on every run until the extractor learns to skip names inside "not X" constructions (or the
+env-var scan gets a deny-list). Worth fixing — silent recurring noise trains reviewers to skim the
+drift section.
 
 ### Drift — resolved this run
 
