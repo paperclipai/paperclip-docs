@@ -346,6 +346,49 @@ Above the tabs, separately from the Properties panel, the detail view also rende
 - An **Issue Workspace card** that summarises the issue's project and its execution workspace binding — the same underlying concept the Workspace / Branch / Folder rows describe, but surfaced as a single card so it is visible even when the sidebar is collapsed.
 - An **Attachments** section. Images appear as thumbnails that open in a gallery modal; video attachments play back inline in a built-in player; non-image attachments render as file rows with their content type and size. Each attachment offers two actions: **open** previews it inline (images in the gallery, video in the player), while **download** saves the file to disk. Supported media includes images, PDF, text, CSV, JSON, video (mp4, webm, mov/quicktime), and zip archives. You can upload from the detail view when no attachments exist yet, and from an inline button otherwise.
 
+### Tabs in the properties panel (experimental)
+
+Once a task has a plan or a few files hanging off it, one long scroll of properties stops being the fastest way to find things. With the **Chat-Style Tasks** experimental feature turned on, the properties panel splits into tabs so the plan and the task's files each get their own space.
+
+> **Experimental:** these tabs only appear when **Chat-Style Tasks** is enabled in **Settings → Instance settings → Experimental**. With the flag off, the panel keeps the single stacked list of properties described above, and nothing on this page changes. See [Experimental features](../../experimental/overview.md) for how that page behaves.
+
+The tab strip sits in the panel's header bar, to the left of the window controls, and offers up to three tabs:
+
+- **Properties** — exactly the fields listed above, unchanged. This is always the first tab and the one you land on.
+- **Plan** — the task's `plan` document plus its accepted-plan history. Appears only when the task has a plan document or at least one accepted plan.
+- **Artifacts** — the task's attachments. Appears only when the task has at least one attachment.
+
+Tabs are earned, not permanent: a task with neither a plan nor attachments shows a plain **Properties** title in the header bar instead of a one-tab strip. If you're sitting on the Plan or Artifacts tab and its content goes away — or you move to a task that never had any — the panel falls back to **Properties** rather than showing you an empty pane.
+
+The panel itself also gains a resize grip on its left edge and a **Maximize panel** button in the header (which becomes **Restore panel** once expanded), so you can widen the pane when you're reading a long plan and shrink it again afterwards. The width you drag it to is remembered.
+
+#### The Plan tab
+
+Open **Plan** and you get the plan itself, rendered, rather than a link to go find it. Above the text a small line tells you which version you're reading — for example *"Revision 3 · updated Aug 3, 2:15 PM"* — so you can tell at a glance whether the agent has revised the plan since you last looked.
+
+Below the plan sits the accepted-plan history: each accepted revision and the child tasks it created. That's the same **Plan decomposition** view described in [Task Plan Decomposition Panel](../../experimental/plan-decomposition-panel.md), moved here so the plan and what it produced read together.
+
+#### Approving a plan from the panel
+
+When an agent asks you to confirm a plan, the decision doesn't hide at the bottom of the chat thread. A small action bar pins itself below the panel's scroll area, so it stays visible while you scroll through the plan above it. (On the mobile Properties sheet it renders in place instead of pinning.)
+
+You get two choices:
+
+- **Confirm** — accepts the plan and lets the agent proceed. While it's saving, the button reads *"Confirming..."*.
+- **Decline** — sends the plan back for revision. Choosing it opens a text box, prompting *"Optional: what would you like revised?"*, so you can say what should change; **Cancel** backs out without sending anything. The button reads *"Sending back..."* while it saves.
+
+Agents can customise both button labels and the prompt in the text box when they ask, so a particular request might read something other than Confirm and Decline. Some requests make the reason mandatory — decline without typing one and you'll see *"A decline reason is required."* Others skip the text box entirely, in which case Decline sends immediately.
+
+If either action fails, the bar tells you plainly — *"Couldn't confirm — try again."* or *"Couldn't send that back — try again."* — and leaves your choice intact so you can retry. And if the same request gets answered somewhere else in the meantime (in the chat thread, or by a colleague), the bar clears itself.
+
+#### The Artifacts tab
+
+**Artifacts** is a plain list of the files attached to this task — one row each, showing the filename and its size. Click a row to open the file in a new tab.
+
+It's there to answer "what did this task produce?" without scrolling the thread. The tab is read-only, so there's no uploading or deleting from it, and the company-wide view of every output still lives on the [Artifacts page](./artifacts.md).
+
+With **Chat-Style Tasks** on, the centre column's **Attachments**, **Output**, keyed-documents, and **Plan decomposition** sections all step aside — the plan and the task's files live in this panel instead, leaving the middle of the page to the conversation.
+
 ### Output
 
 When an agent finishes a piece of work, it can hand back the result directly on the issue. The **Output** section surfaces those deliverables — the work products the agent produced — so you can inspect them right on the board without ever opening the agent's workspace.
