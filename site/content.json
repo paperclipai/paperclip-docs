@@ -223,6 +223,10 @@
           "file": "../docs/experimental/plan-decomposition-panel.md"
         },
         {
+          "title": "Chat-Style Tasks",
+          "file": "../docs/experimental/task-chat.md"
+        },
+        {
           "title": "Task Watchdogs",
           "file": "../docs/experimental/task-watchdogs.md"
         },
@@ -449,6 +453,10 @@
           "file": "../docs/reference/api/attention.md"
         },
         {
+          "title": "Decisions",
+          "file": "../docs/reference/api/decisions.md"
+        },
+        {
           "title": "Checkbox Confirmations",
           "file": "../docs/reference/api/checkbox-confirmations.md"
         },
@@ -555,6 +563,10 @@
         {
           "title": "Setup Commands",
           "file": "../docs/reference/cli/setup-commands.md"
+        },
+        {
+          "title": "Service",
+          "file": "../docs/reference/cli/service.md"
         },
         {
           "title": "Dev Environments",

@@ -76,6 +76,18 @@ Where an artifact came from a real file, the card gives you the means to open it
 
 ---
 
+## Reaching artifacts from a task
+
+The Artifacts page is the company-wide shelf. Sometimes you're already inside one task and just want to see what *this* task produced — without going back out to the shelf and filtering your way in.
+
+If your instance has the **Chat-Style Tasks** experimental feature turned on, the task's properties panel grows an **Artifacts** tab for exactly that. It lists the files attached to the task, one row each with the filename and its size; click a row to open the file in a new tab. The tab only appears once the task actually has an attachment, and it's read-only — a quick answer to "what came out of this task?", not a place to upload or delete.
+
+> **Experimental:** the tab only exists when **Chat-Style Tasks** is enabled in **Settings → Instance settings → Experimental**. With the flag off, a task's attachments stay in the **Attachments** section on the task page. See [Experimental features](../../experimental/overview.md).
+
+Either way, the Artifacts page remains the place to see everything at once, across every task and project. See [Issues](./issues.md#tabs-in-the-properties-panel-experimental) for the rest of what those tabs hold.
+
+---
+
 ## Reading a file in the in-app viewer
 
 When an artifact is a real file from an issue's workspace, you can read it without downloading anything. Click the file and Paperclip opens an **in-app file viewer** — a slide-over sheet that loads the file's contents right there in the app.
@@ -124,5 +136,6 @@ Each file row shows a **download button** when the file can be downloaded. Click
 - **Stacks** — artifacts grouped by their task (or rolled up by parent task), so related outputs stay together.
 - **Cards** — previews you can read or watch in place, each linking back to the issue it came from.
 - **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from a file artifact or from an inline file chip an agent left in its writing.
+- **Artifacts tab on a task** — with **Chat-Style Tasks** enabled, one task's files listed in its properties panel.
 
 You now know how to find, filter, and review everything your agents have made. When you want to dig into the work behind a given artifact, follow its link back to the issue and pick up the thread there.

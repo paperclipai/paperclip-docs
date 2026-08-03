@@ -48,9 +48,10 @@ Only some features are managed this way. Anything without the badge is still you
 | [Experimental File Viewer](file-viewer.md) | Task-detail controls for browsing and previewing workspace files relative to a task. |
 | [External Objects](external-objects.md) | Detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects. |
 | [Task Plan Decomposition Panel](plan-decomposition-panel.md) | Shows accepted-plan decomposition history on task detail pages. |
+| [Chat-Style Tasks](task-chat.md) | Rebuilds the task detail page as a live conversation: chat bubbles, streaming activity that folds into a one-line summary, a three-mode composer, and a resizable Properties · Plan · Artifacts pane. |
 | [Task Watchdogs](task-watchdogs.md) | Watchdog agents that verify stopped task subtrees and restore live paths when work should continue. |
 | [Status Cards](status-cards.md) | A shared board of living summaries: one message per card, compiled into a watch query and kept current by the Summarizer. |
-| [Cloud Sync](cloud-sync.md) | Connect a local instance to a Paperclip Cloud upstream: preview, push, retry, and activation review. |
+| [Cloud Sync](cloud-sync.md) | **Retired.** Host-to-host Cloud Sync has been removed upstream, toggle included — you won't find it on the Experimental page any more. Use [company Import/Export](../how-to/back-up-and-restore-a-company.md) to move a company between instances. |
 | [Server Info Debug View](server-info-debug-view.md) | A "Server" section in the account drawer with the server restart time and running commit. |
 | [Auto-Restart Dev Server When Idle](auto-restart-dev-server.md) | For Paperclip developers: restarts a stale `pnpm dev:once` boot once all local runs finish. |
 | [Auto-Create Recovery Tasks](auto-create-recovery-tasks.md) | Lets the scheduler create recovery tasks for stalled task dependency chains. |

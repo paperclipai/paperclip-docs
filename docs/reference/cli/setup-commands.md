@@ -21,6 +21,8 @@ Reach for setup commands when you need to:
 - take a one-off database snapshot ([`db:backup`](#paperclipai-dbbackup))
 - trust a private hostname in authenticated mode ([`allowed-hostname`](#paperclipai-allowed-hostname))
 - bootstrap and launch a local server in one step ([`run`](#paperclipai-run-local-bootstrap))
+- keep an instance running in the background across logins ([`service`](./service.md))
+- install, update, roll back, or remove the CLI itself ([Installing the CLI](./installation.md) and [Update Paperclip](../../how-to/update-paperclip.md))
 - mint the first board credential headlessly ([`auth bootstrap-ceo`](#paperclipai-auth-bootstrap-ceo))
 - trigger one agent heartbeat for debugging ([`heartbeat run`](#paperclipai-heartbeat-run))
 - pause every routine in a company during an incident ([`routines disable-all`](#paperclipai-routines-disable-all))
@@ -56,8 +58,11 @@ paperclipai run --no-repair
 | `--bind <mode>` | On first run only, pass an onboarding reachability preset: `loopback`, `lan`, or `tailnet`. |
 | `--repair` | Attempt automatic repairs during doctor. Enabled by default. |
 | `--no-repair` | Disable automatic repairs during doctor. |
+| `--force` | Run even when the same instance is active under the service manager. |
 
 > **Tip:** `--bind` only matters on the very first `run`, when it forwards the preset to onboarding. Once a config exists, `run` reuses it; change binding later with [`configure --section server`](#paperclipai-configure).
+
+> **Warning:** Before anything else, `run` checks whether this instance is already active under the service manager. If it is, `run` refuses to start — two servers on one port and one database is not a state you want — and points you at `paperclipai service status --instance <id>`. `--force` bypasses that check when you genuinely want a foreground process anyway. See [Service](./service.md).
 
 ---
 
@@ -85,7 +90,11 @@ The first prompt offers two paths:
 | `-d, --data-dir <path>` | Isolate all local state from `~/.paperclip`. |
 | `--bind <mode>` | Quickstart reachability preset: `loopback`, `lan`, or `tailnet`. |
 | `-y, --yes` | Accept Quickstart defaults non-interactively and start immediately. Without `--bind`, this forces trusted-local loopback defaults and ignores conflicting reachability env vars. |
+| `--install-service` | Install and start the background service after onboarding. |
+| `--no-install-service` | Do not install or suggest the background service. |
 | `--run` | Start the server immediately after saving the config. |
+
+Near the end of the wizard, `onboard` offers to install Paperclip as a background service so it starts on login and keeps running after you close the terminal. `--install-service` installs it without asking; `--no-install-service` skips both the install and the suggestion. When the service is installed, onboarding does *not* also start a foreground server — the service is already running Paperclip for you. On a platform where service management is unavailable, `--install-service` warns and continues. See [Service](./service.md) for what gets installed and how to manage it.
 
 > **Note:** If a valid config already exists, `onboard` preserves it unchanged, ensures the agent JWT secret and secrets key exist, and prints next-step commands. Use [`configure`](#paperclipai-configure) to change settings on an existing install rather than re-onboarding.
 
@@ -114,8 +123,23 @@ It loads the config's `.env`, then runs these checks in order, stopping early on
 - LLM provider
 - log directory
 - listen port
+- Node.js runtime
+- the managed install: store, shim, `PATH`, and payload retention
+- the background service: definition, runtime, health, version, and lingering
 
 Each line reports `✓ pass`, `! warn`, or `✗ fail` with a repair hint. The summary counts passed/warned/failed, and a clear "fix and re-run" message is printed when anything fails.
+
+The last three groups cover *how Paperclip is installed and supervised*, not how it is configured:
+
+| Check group | What it looks at |
+|---|---|
+| Node.js runtime | Fails on anything older than Node.js 20. |
+| Managed install | Only runs if you have a [managed install](./installation.md#the-managed-install). Confirms the manifest and active payload agree, that `~/.local/bin/paperclipai` is a real Paperclip shim, that its directory is on `PATH` (a warning if not), and that no orphaned payloads are left behind. |
+| Background service | Only runs if a [service](./service.md) is installed for this instance. Confirms the definition on disk matches what your current install would generate, that the service is active, that the health endpoint answers, and that the running version matches your managed install. On Linux it warns when start-on-login is on but systemd lingering is off. |
+
+All three are optional by design. Running Paperclip through `npx`, a global npm install, or a source checkout, with no background service, passes cleanly — the checks report "not present" rather than complaining.
+
+> **Note:** `doctor` (like `run`) also does a quick, cached, once-a-day check for a newer published version and prints a one-line notice when one exists. Turn it off by setting `PAPERCLIP_UPDATE_CHECK=0`, or by setting `updates.checkEnabled` to `false` in your config.
 
 | Flag | Use |
 |---|---|
@@ -320,6 +344,8 @@ Use `--data-dir` (or `--instance`) to run an isolated instance — handy for cle
 ## See also
 
 - [Installation](./installation.md) — install the CLI and pick a deployment shape
+- [Service](./service.md) — run an instance in the background with `paperclipai service`
+- [Update Paperclip](../../how-to/update-paperclip.md) — check, apply, and roll back new versions
 - [Authentication](./authentication.md) — board tokens, agent keys, and the login flows after bootstrap
 - [Runs](./run.md) — inspecting and controlling heartbeat runs (the `run` *subcommands*)
 - [Routines](./routine.md) — create, edit, and resume scheduled automation

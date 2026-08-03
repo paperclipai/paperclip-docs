@@ -121,6 +121,50 @@ This lets you start small and scale the team based on actual work, not upfront p
 
 ---
 
+## Guardrails on agent-to-agent delegation
+
+Delegation is powerful precisely because you don't have to watch it. That's also the risk: when an agent hands work to the wrong place, the task can sit in a queue nobody will ever pick up, and you won't hear about it. Paperclip refuses a couple of these hand-offs outright, so the agent gets an error it can act on instead of a silent dead end.
+
+Both guardrails apply only when an **agent** is doing the assigning. You can still assign work anywhere you like — staging a task for an agent you plan to unpause later is a perfectly reasonable thing to do, and you can see the agent's state right there in the UI.
+
+### An agent can't assign work to a paused agent
+
+A paused agent never runs. If another agent assigns it a task — typically an escalation routed up the `reports_to` chain to a paused manager — the task is accepted, nothing picks it up, and the work quietly vanishes.
+
+So when the assigning actor is an agent and the assignee is paused, Paperclip refuses the assignment with a conflict and this message:
+
+> Cannot assign work to a paused agent. Assign an invokable agent, leave the issue unassigned, or escalate to a board operator instead.
+
+The message names the three ways out on purpose: pick an agent that can actually run, leave the task unassigned so a human can route it, or escalate to a board operator. The existing refusals for terminated agents, agents still pending approval, and agents with an invalid org chain are unchanged and still apply to everyone.
+
+### An agent can't delegate work back around a loop
+
+Here's the shape this catches. Agent A hits something it can't do — say it can't push to GitHub — and creates a child task for agent B. Agent B can't do it either, so it "resolves" its blocker by creating a grandchild task assigned straight back to A. Neither agent gained a capability, the chain of blocked tasks keeps growing, and nothing reaches the human who could actually fix the gap.
+
+When an agent creates a child task and the assignee is the agent that created a **still-open** ancestor in the same chain, Paperclip refuses the creation with a conflict carrying the code `delegation_cycle`. The message names the ancestor task, then spells out the alternatives:
+
+> Complete the remaining work in your own issue, leave the child unassigned, or escalate to a board operator — do not delegate the work back to the agent that delegated it to you.
+
+A few things deliberately don't trip this:
+
+- **You aren't affected.** Re-routing work around the org chart is your call to make.
+- **Closed ancestors don't count.** Only tasks that aren't `done` or `cancelled` are considered — handing new work to the agent that created something finished is normal.
+- **It keys on the *creator*, not the assignee.** Passing a subtask to whoever is working the parent task is a common, legitimate pattern, and it still works.
+
+When you see a `delegation_cycle` refusal in a run transcript, treat it as a signal rather than a bug: two of your agents are both missing something one of them assumed the other had. Usually that's a credential, a tool, or a permission — fix it once and the chain unblocks. If the gap is GitHub push access specifically, [Connect an agent to a GitHub repo](../../how-to/connect-agent-to-github.md#the-credential-preflight-catches-a-missing-token-before-the-work) covers the preflight that now asks you for the token before any work is burned.
+
+### When an escalation path is already dead
+
+The guardrails above fire at the moment an agent tries to do something. There's also a standing warning for the hazard itself.
+
+Agents escalate up the `reports_to` chain, and a paused manager doesn't break that chain — the agents beneath it stay perfectly invokable, so nothing looks wrong at a glance. This bites most often after an instance import, which pauses every agent by default: you unpause the workers, get on with your day, and leave the manager paused.
+
+Paperclip now spots this. When an agent that can itself run work reports (directly or further up) to a paused agent, its detail page shows an amber **Escalation path is paused** banner. Unlike the invalid-org-chain banner it sits next to, this one is a warning and doesn't block anything — the agent keeps working, it just has nowhere useful to escalate. The banner text names the paused manager and the two fixes: unpause them, or change who the agent reports to.
+
+You'll find more on the banner and where it appears in [Agents → The Agent Detail Page](./agents.md#the-agent-detail-page).
+
+---
+
 ## Troubleshooting: CEO isn't delegating
 
 If you've set a goal but nothing seems to be happening, work through these common causes:
@@ -138,7 +182,8 @@ If you've set a goal but nothing seems to be happening, work through these commo
 | Check | What to look for |
 |---|---|
 | **Reports have heartbeats** | Go to each agent's detail page. If heartbeats are disabled, the CEO may skip assigning to them since they won't be able to pick up work. |
-| **Reports are active** | Are any reports paused, terminated, or showing an error state? The CEO won't assign to agents it can't reach. |
+| **Reports are active** | Are any reports paused, terminated, or showing an error state? The CEO won't assign to agents it can't reach — an agent assigning to a paused agent is refused outright. |
+| **Escalation banners** | Open each agent's detail page and look for an amber **Escalation path is paused** banner. A paused manager means escalations from that agent have nowhere to go. |
 | **CEO's budget** | At 80% of its monthly budget, Paperclip warns you. At 100%, it auto-pauses entirely. |
 
 ### CEO is assigning everything to itself
