@@ -4,6 +4,14 @@
 
 **Audit date:** 2026-07-28
 
+**Cold-review correction:** 2026-08-04. The first revision incorrectly said
+every feature page was linked from the experimental overview. The newer
+Connections/Apps route is present in Learn navigation and linked from the
+changelog, but is missing from both the experimental
+overview and the instance-settings experimental-feature list. This correction
+does not change its route classification; it adds the missed internal-link
+repair to the follow-up work.
+
 **Scope:** all 12 routes sourced from `docs/experimental/` and listed in the
 `Experimental` section of `site/content.json`.
 
@@ -47,14 +55,15 @@ in search. Those distinctions are the primary-source basis for the policy:
 ## URL-level classification
 
 All “repository evidence” below is directly inspectable in this repository.
-Every route is registered in `site/content.json`; every feature page is linked
-from `docs/experimental/overview.md`; and all except the newer
-Connections/Apps page are also linked from `docs/administration/settings.md`.
+Every route is registered in `site/content.json`. The experimental overview
+links 10 feature pages, and the instance-settings page links 11; both omit the
+newer Connections/Apps page. That page remains intentionally discoverable in
+Learn navigation and through a link from the changelog.
 
 | Route | Policy | Rationale and repository evidence | Duplicate / deprecated evidence | Approved canonical action | Related deeper content (ordinary links, not canonicals) |
 | --- | --- | --- | --- | --- | --- |
 | `/experimental/overview/` | core | Section hub in the Learn navigation; linked from instance settings and from every experimental feature page. | No replacement or substantially equivalent hub found. | Self-canonical. | `/administration/settings/` |
-| `/experimental/connections-apps/` | core | The only feature-level explanation of the experimental Apps/Connections v3 surface; present in Learn navigation and linked from the changelog and experimental hub. | No competing setup or reference page found. The page explicitly describes an evolving preview, not a deprecated surface. | Self-canonical. | None yet; add a separate usage guide only when the product supports a stable end-to-end task. |
+| `/experimental/connections-apps/` | core | The only feature-level explanation of the experimental Apps/Connections v3 surface; present in Learn navigation and linked from the changelog. It is missing from the experimental overview and instance-settings feature list, which is an internal-link gap to repair. | No competing setup or reference page found. The page explicitly describes an evolving preview, not a deprecated surface. | Self-canonical. | None yet; add a separate usage guide only when the product supports a stable end-to-end task. |
 | `/experimental/environments/` | core | Distinct flag/setup entry for reusable execution targets; linked from settings, the hub, and isolated-workspaces. | `workspaces.md` and `custom-sandbox-images.md` cover downstream operations, not the flag’s complete setup intent. No deprecation marker or redirect. | Self-canonical. | `/guides/projects-workflow/workspaces/`; `/guides/projects-workflow/custom-sandbox-images/`; `/reference/adapters/sandbox-providers/` |
 | `/experimental/isolated-workspaces/` | core | Distinct flag and project opt-in setup; linked from settings, the hub, and environments. | `workspaces.md` is a deeper operational tour, not a 1:1 duplicate. No deprecation marker or redirect. | Self-canonical. | `/guides/projects-workflow/workspaces/`; `/guides/projects-workflow/projects/` |
 | `/experimental/file-viewer/` | core | Explicit preserve target in the issue; unique setup, entry points, limits, and safeguards; linked from settings and the hub. | Workspaces and artifacts pages supply surrounding concepts but do not replace this feature guide. No deprecation marker or redirect. | Self-canonical. | `/guides/projects-workflow/workspaces/`; `/guides/day-to-day/artifacts/` |
@@ -130,6 +139,13 @@ On 2026-07-28:
   `index, follow`, the expected self-canonical URL, and a sitemap entry.
 - Redirect census: no `experimental/` mapping in `site/redirects.json`.
 
+Cold review on 2026-08-04 reproduced those build checks and found one
+provenance error in the original audit: `docs/experimental/overview.md` links
+10 feature pages, not all 11. `connections-apps.md` is the omitted route.
+`docs/administration/settings.md` also omits that route. The page is nevertheless
+registered in `site/content.json`, generated, indexable, self-canonical,
+included in the sitemap, and linked from `docs/reference/changelog.md`.
+
 ## Proposed implementation after route-list approval
 
 This issue does not implement these changes.
@@ -147,7 +163,10 @@ This issue does not implement these changes.
    never point a canonical at merely related content.
 5. Extend `scripts/verify-static-routes.mjs` to assert route-policy coverage,
    canonical/robots/sitemap behavior, and the two preserve guards.
-6. After approval, route implementation to engineering as a separate scoped
+6. Add Connections/Apps to `docs/experimental/overview.md` and to the
+   experimental-feature list in `docs/administration/settings.md`; verify both
+   links in the focused static-route check.
+7. After approval, route implementation to engineering as a separate scoped
    change; do not merge or deploy without the named human approval required by
    the parent plan.
 
