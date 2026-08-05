@@ -63,21 +63,20 @@ change, so the `env-vars` watcher had no hits.
 
 ## ⚠ Reconcile / Drift — needs human attention
 
-### R1 — Cloud Sync removed upstream (carried over, still unresolved)
+### R1 — Cloud Sync removed upstream (partly resolved this run)
 
-Host-to-host Cloud Sync was deleted upstream in a prior window. Three pages still describe it, each
-already carrying a deprecation banner added in an earlier run. Deleting them is a release-time
-decision, so they stay on `nightly` for now:
+Host-to-host Cloud Sync was deleted upstream in a prior window.
 
-- `docs/reference/cli/cloud.md`
+**Resolved this run:** `docs/reference/cli/cloud.md` was trimmed from a full command reference down to
+a removal stub — the `cloud connect` / `cloud push` documentation for the deleted commands is gone,
+replaced by a pointer to company Import/Export. This clears the single drift record
+(`paperclipai cloud` at `cloud.md:34`).
+
+**Still carried:** two other pages still describe Cloud Sync, each with a deprecation banner from an
+earlier run. Deleting them is a release-time decision, so they stay on `nightly` for now:
+
 - `docs/how-to/sync-to-cloud-upstream.md`
 - `docs/experimental/cloud-sync.md`
-
-Drift independently re-confirms it this run: `paperclipai cloud` missing from parent (high
-confidence) at `docs/reference/cli/cloud.md:34`. Note `cloud.md` is intentionally a deprecation stub
-— its banner is present, but the detailed `cloud connect` / `cloud push` body below is kept "for
-anyone on an older build." The drift record is a true positive against that retained body; whether to
-trim it now or at release is the reviewer's call.
 
 `ui/src/pages/CloudUpstream.tsx` remains `removed` in the window, still stranding two screenshots
 (`light/experimental/cloud-upstream.png`, `dark/experimental/cloud-upstream.png`) that can never be
