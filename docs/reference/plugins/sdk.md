@@ -133,10 +133,13 @@ The `companyId` has always travelled on the wire — it is the optional `company
 | `PluginStreamsClient` | Stream-style host APIs. |
 | `PluginToolsClient` | Register tool implementations declared in the manifest (`ToolRunContext`, `ToolResult`). |
 | `PluginMetricsClient`, `PluginTelemetryClient` | Emit metrics and telemetry. |
+| `PluginTracer`, `PluginSpan` | Open tracing spans around your plugin's work (`ctx.tracer.startSpan(...)`). |
 | `PluginLogger` | Structured logger (`ctx.logger.info/warn/error`). |
 | `PluginDatabaseClient` | Access the managed Postgres namespace declared for the plugin. |
 
 When you emit a metric with `metrics.write` (via `PluginMetricsClient`) or write a line with `log` (via `PluginLogger`), you can pass an optional `companyId` to scope that record to a company so it is cascade-deleted when the company is removed; omit it or pass `null` to keep the record at instance scope.
+
+`ctx.tracer` lets you wrap a piece of work in a span so it shows up in the host's traces. You use it the same way as `ctx.logger`: call `ctx.tracer.startSpan("my-work", { attributes: { … } })`, set attributes or a status on the returned `PluginSpan`, and call `end()` when you're done. It's a deliberately minimal, OpenTelemetry-free contract — the SDK never pulls in `@opentelemetry/api` — and the host does the real recording. Two things to keep in mind: a span you open when tracing is off (or when there's no active host trace context) is a harmless no-op that records nothing, so you can always open one without guarding; and the host re-clamps every attribute at its trust boundary, so an attribute outside the host's allowlist never makes it onto a recorded span. If you need the default explicitly — say, to keep tests free of a real tracer — import the shared no-ops `NOOP_PLUGIN_TRACER` and `NOOP_PLUGIN_SPAN`.
 
 Issue-domain helpers: `PluginIssueMutationActor`, `PluginIssueRelationSummary`, `PluginIssueCheckoutOwnership`, `PluginIssueWakeupResult`, `PluginIssueWakeupBatchResult`, `PluginIssueRunSummary`, `PluginIssueApprovalSummary`, `PluginIssueCostSummary`, `PluginBudgetIncidentSummary`, `PluginIssueInvocationBlockSummary`, `PluginIssueOrchestrationSummary`, `PluginIssueSubtreeOptions`, `PluginIssueAssigneeSummary`, `PluginIssueSubtree`, `IssueDocumentSummary`.
 
@@ -506,6 +509,7 @@ The harness deliberately mirrors the host's own write bar rather than waving it 
 ### Re-exports
 
 - `z` — `zod` is re-exported so plugin authors do not need to add a separate dependency. Use it for `instanceConfigSchema` and tool `parametersSchema` declarations.
+- `NOOP_PLUGIN_TRACER`, `NOOP_PLUGIN_SPAN` — the default no-op tracer and span (values, not types). Handy as a stand-in when you want the do-nothing default explicitly, e.g. in tests.
 - Constants from `@paperclipai/shared`: `PLUGIN_API_VERSION`, `PLUGIN_STATUSES`, `PLUGIN_CATEGORIES`, `PLUGIN_CAPABILITIES`, `PLUGIN_UI_SLOT_TYPES`, `PLUGIN_UI_SLOT_ENTITY_TYPES`, `PLUGIN_STATE_SCOPE_KINDS`, `PLUGIN_JOB_STATUSES`, `PLUGIN_JOB_RUN_STATUSES`, `PLUGIN_JOB_RUN_TRIGGERS`, `PLUGIN_WEBHOOK_DELIVERY_STATUSES`, `PLUGIN_EVENT_TYPES`, `PLUGIN_BRIDGE_ERROR_CODES`.
 
 ---
