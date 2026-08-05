@@ -7,184 +7,88 @@ this list automatically.
 | | |
 | --- | --- |
 | Mode | `nightly` |
-| Window | `v2026.722.0` (`e55d702`) → `8540ce29` |
-| Parent default branch | `master`, HEAD `2c90cf0` at run time |
-| Quarantine | 24h — cutoff `2026-08-02T09:59:05Z` (16 newer commits held back) |
-| Commits in window | 192 |
-| Files in window | 836 (no compare-API truncation) |
-| Manifest hash | `8aeaf1eb5f39bf4e1eac59fda823b28d86d67ea8a5d1daedfec11439456ee91b` |
-| Previous manifest hash | `e4b9fed22c73f0ee91fa1a7f2f542c8f700f91685025710ef73b3833cf76bddc` |
+| Window | `v2026.722.0` (`e55d702`) → `2ab797d` |
+| Parent default branch | `master`, HEAD `c54936e` at run time |
+| Quarantine | 24h — cutoff `2026-08-04T06:55:56Z` (23 newer commits held back) |
+| Commits in window | 223 |
+| Files in window | 932 (no compare-API truncation) |
+| Manifest hash | `21cc36bac8b443748b7c87a7511558326adf7a5ba6cc687034e556350140fd61` |
+| Previous manifest hash | `8aeaf1eb5f39bf4e1eac59fda823b28d86d67ea8a5d1daedfec11439456ee91b` |
 
-**Most of this window (managed environments, status cards, interaction withdrawal, company
-Import/Export, the catalog and skill-rename work) was applied by previous runs and is unchanged in
-this cumulative manifest.** The new work this run is the delta `4813ed3f → 8540ce29`, which also
-absorbs the 43 commits that were still inside quarantine at the previous run.
+**Most of this window (Decisions v1, the agent-action audit, CLI lifecycle install/update/service,
+chat-style tasks, managed environments, status cards, company Import/Export, and the Cloud Sync
+deprecation) was applied by previous runs and is unchanged in this cumulative manifest.** The new
+work this run is the delta `2c90cf0 → 2ab797d` — 15 commits, 116 files — which is dominated by
+task-chat and Decisions UI polish plus two genuinely new documentable surfaces.
 
-Reconciliation found no disappeared entries — every surface the last manifest documented is still
-present in the cumulative diff, so nothing was reverted upstream.
+## Applied this run (PR tier)
+
+Authored directly on `nightly`; both verified against parent code (Phase 5.5).
+
+### P1 — Plugin SDK tracer (`ctx.tracer`)
+
+`packages/plugins/sdk/src/index.ts` now re-exports the tracer surface added to
+`packages/plugins/sdk/src/types.ts`: the `PluginTracer` and `PluginSpan` types and the
+`NOOP_PLUGIN_TRACER` / `NOOP_PLUGIN_SPAN` no-op values. A plugin opens a span with
+`ctx.tracer.startSpan(name, { attributes })`; the host records it, re-clamps attributes at its trust
+boundary, and a span opened with no active host trace context is a harmless no-op.
+
+- **Target:** `docs/reference/plugins/sdk.md` — added a `PluginContext` table row, an explanatory
+  paragraph next to the metrics/logger note, and a Re-exports bullet for the two no-op values.
+
+### P2 — Shared workspace concurrency (project execution-workspace policy)
+
+`packages/shared/src/validators/project.ts` added `sharedWorkspaceConcurrency: "auto" | "serialize"
+| "allow"` to `projectExecutionWorkspacePolicySchema`; the server resolves it in
+`server/src/services/execution-workspace-policy.ts` (per-issue override → project policy → `auto`),
+and `ui/src/components/ProjectProperties.tsx` surfaces it as the **Shared workspace concurrency**
+control under Execution Workspaces. Verbatim UI help text drives the mode descriptions.
+
+- **Target:** `docs/experimental/isolated-workspaces.md` — added a **"When two runs want the shared
+  checkout"** subsection under *Using it*.
 
 ## Auto-merge tier
 
 None this window. `.env.example`, `server/src/config.ts`, and `packages/**/env.ts|config.ts` did not
 change, so the `env-vars` watcher had no hits.
 
+## Context-only / no doc edit
+
+- **Task-chat redesign (PAP-351)** — attachment chips, description bubble, status whimsy, auto-follow,
+  MCP icon (`ui/src/components/task-chat/**`). Refines the already-documented chat-style tasks; the
+  underlying capability is unchanged, so this is presentation polish → screenshot staleness, not prose.
+- **Decisions shelf/toolbar** (`DecisionShelf.tsx`, `DecisionsToolbar.tsx`) — UI refinements to the
+  already-documented Decisions v1 surface.
+- **Daytona sandbox provider** — adopts the new SDK tracer internally; no user-facing config change.
+
 ## ⚠ Reconcile / Drift — needs human attention
 
 ### R1 — Cloud Sync removed upstream (carried over, still unresolved)
 
-Parent commit `916c1350` deleted the host-to-host cloud sync surface. Three pages still describe it,
-each carrying the deprecation banner added in the previous run. Deleting them is a release-time
-decision, so they stay:
+Host-to-host Cloud Sync was deleted upstream in a prior window. Three pages still describe it, each
+already carrying a deprecation banner added in an earlier run. Deleting them is a release-time
+decision, so they stay on `nightly` for now:
 
 - `docs/reference/cli/cloud.md`
 - `docs/how-to/sync-to-cloud-upstream.md`
 - `docs/experimental/cloud-sync.md`
 
-Drift independently re-confirms it: `paperclipai cloud` missing from parent (high confidence), at
-`docs/reference/cli/cloud.md:34`.
+Drift independently re-confirms it this run: `paperclipai cloud` missing from parent (high
+confidence) at `docs/reference/cli/cloud.md:34`. Note `cloud.md` is intentionally a deprecation stub
+— its banner is present, but the detailed `cloud connect` / `cloud push` body below is kept "for
+anyone on an older build." The drift record is a true positive against that retained body; whether to
+trim it now or at release is the reviewer's call.
 
-**New this run:** `ui/src/pages/CloudUpstream.tsx` is confirmed `removed` in the window, which
-strands two screenshots — `light/experimental/cloud-upstream.png` and
-`dark/experimental/cloud-upstream.png`. They can never be recaptured; they need deleting from the
-registry whenever the cloud pages are resolved.
+`ui/src/pages/CloudUpstream.tsx` remains `removed` in the window, still stranding two screenshots
+(`light/experimental/cloud-upstream.png`, `dark/experimental/cloud-upstream.png`) that can never be
+recaptured — delete them from the registry whenever the cloud pages are resolved.
 
-**Re-checked this run — the removal is total, more than the last run established.** Searching parent
-at `8540ce29`: `enableCloudSync` survives only in a historical log (`doc/logs/2026-05-24-…`),
-`cloudUpstream` only in `doc/design/COMPONENT-INVENTORY.md`, `paperclip-upstream` returns **0** hits
-(the `/.well-known` discovery endpoint is gone), and `cli/src/commands/client/` has no `cloud*` file
-left. Not just the commands and services — the experimental setting itself is gone.
+Two inbound-link issues from the previous run still stand — readers arriving from these have no
+deprecation warning before they land:
 
-Two consequences the banners do not currently cover:
+- `docs/experimental/overview.md:54` — feature table row
+- `docs/experimental/connections-apps.md:61` — "another connection-oriented experimental surface"
+- `docs/administration/settings.md:262` — listed among settings
 
-1. **`docs/experimental/cloud-sync.md` still gives live instructions** for a toggle that no longer
-   exists: *"Settings → Instance settings → Experimental → turn on Cloud Sync"*. A reader on a
-   current build will hunt for a switch that isn't there. The banner says the feature is retired;
-   the body still reads as a how-to.
-2. **Three inbound links present it as a live feature with no deprecation signal at all** — a reader
-   arriving from any of these has no warning before they land:
-   - `docs/experimental/overview.md:54` — feature table row
-   - `docs/experimental/connections-apps.md:61` — *"another connection-oriented experimental surface"*
-   - `docs/administration/settings.md:262` — listed among settings
-
-All three pages also remain in `site/content.json` nav. Deletion stays a release-time call, but the
-inbound links are arguably a bug now rather than a pending decision.
-
-### Drift — `PAPERCLIP_PUBLIC_BASE_URL` — FALSE POSITIVE, no action needed
-
-Traced and dismissed. The string at `docs/guides/getting-started/installation.md:247` sits inside a
-warning whose whole purpose is to say the name is **wrong**:
-
-> The variable names matter. `PAPERCLIP_AUTH_PUBLIC_BASE_URL` (not `PAPERCLIP_PUBLIC_BASE_URL` or
-> `PAPERCLIP_API_URL`) is what the CLI reads.
-
-Parent code confirms the doc is correct: `PAPERCLIP_AUTH_PUBLIC_BASE_URL` 9 hits,
-`PAPERCLIP_PUBLIC_URL` 22, `PAPERCLIP_API_URL` 115, and `PAPERCLIP_PUBLIC_BASE_URL` **0** — exactly
-the counterexample the warning describes. The page needs no change.
-
-**The checker does, though.** `check-drift.mjs` extracts any env-var-shaped token from a page with no
-awareness of negation, so a name cited as a counterexample reads as a documented variable. This will
-re-fire on every run until the extractor learns to skip names inside "not X" constructions (or the
-env-var scan gets a deny-list). Worth fixing — silent recurring noise trains reviewers to skim the
-drift section.
-
-### Drift — resolved this run
-
-`audit:view_agent_actions` is now documented (P3 below). The drift checker no longer reports it.
-
-## PR tier — drafted this run
-
-### P1 — CLI lifecycle: `install`, `update`, `uninstall`, `service`
-
-`docs/reference/cli/service.md` (new) · `docs/reference/cli/installation.md` ·
-`docs/reference/cli/setup-commands.md` · `docs/how-to/update-paperclip.md` ·
-`docs/guides/getting-started/installation.md`
-
-An entire CLI surface that was documented nowhere. `paperclipai install` puts Paperclip in a managed
-per-user CLI store (`--canary`, `--version`, `--ref`, `--repo`, `-y`); `paperclipai update` (alias
-`upgrade`) checks, applies, or rolls back (`--latest`, `--canary`, `--version`, `--rollback`,
-`--check`, `--dry-run`, `--json`, `-y`, `--no-backup`); `paperclipai uninstall` removes the managed
-install while preserving user data. The `paperclipai service` group runs Paperclip as a background
-service — `install` (`--no-start-now`, `--no-start-on-login`, `--enable-linger`), `uninstall`,
-`start`, `stop`, `restart` (`--wait`, `--expected-version`), `status`, and `logs` (`-f`, `-n`), all
-accepting `-i/--instance` and `--json`. `onboard` gained `--install-service` / `--no-install-service`
-and `run` gained `--force`. Parent: `cli/src/index.ts` plus the five command files.
-
-### P2 — Decisions v1: persisted decisions, queues, and triage
-
-`docs/reference/api/decisions.md` (new) · `docs/reference/api/attention.md` ·
-`docs/guides/day-to-day/decisions.md`
-
-The Decisions page was previously a live attention feed only. Parent now has a real backing entity:
-17 routes across `server/src/routes/decisions.ts` and `decision-queues.ts`, schemas `decisions.ts`
-and `decision_queues.ts`, plus decision signing and wakeup services. Migrations `0197_decisions_v1`,
-`0198_decision_queues_and_triage`, `0199_decision_queue_composite_key`. Commit `30c49c83`.
-
-> The follow-up "decisions desk workflow and retention" commit (`0a09e4d9`) is **still inside
-> quarantine** and is deliberately not documented yet. Expect a follow-up entry next run.
-
-### P3 — Agent-action Audit feed + `audit:view_agent_actions`
-
-`docs/administration/roles-and-permissions.md` · `docs/administration/company.md` ·
-`docs/guides/day-to-day/activity-log.md`
-
-New company-wide Audit feed of what agents did, with CSV export, gated by the new explicit-only
-permission key. Enforcement confirmed at `server/src/routes/activity.ts:124`
-(`assertAgentAuditPermission`), bypassed only for `local_implicit` actors and instance admins.
-Parent: `server/src/services/agent-action-audit.ts`, `ui/src/pages/audit/**`.
-
-### P4 — Chat-style task view (experimental)
-
-`docs/experimental/task-chat.md` (new) · `docs/experimental/overview.md`
-
-Turns the task detail page into a single live conversation — chat bubbles, streaming turns that fold
-to a one-line summary, inline tool cards and diffs, a three-mode composer, and a resizable
-Properties · Plan · Artifacts pane. Instance-wide experimental flag, off by default, purely
-presentational. Parent: `ui/src/components/task-chat/**` (26 files), commit `c185e64b`.
-
-### P5 — Agent governance guardrails
-
-`docs/guides/org/delegation.md` · `docs/guides/org/agents.md` ·
-`docs/guides/power/execution-policy.md` · `docs/how-to/connect-agent-to-github.md`
-
-Five behavioural rules that change what agents may do: review rounds are capped and exhausted
-reviews escalate to the responsible human (`27f8c8db`); agent-initiated assignment to a paused agent
-is refused (`ada47be7`); delegation cycles back to an open ancestor's creator are refused
-(`ddbcf53e`); an agent whose escalation path routes to a paused manager now warns (`3dec88ce`); and
-the push-capability preflight fires from the issue's stated PR deliverable (`592cade5`).
-
-### P6 — Cache-adjusted run cost
-
-`docs/guides/day-to-day/costs.md` · `docs/reference/api/costs.md`
-
-Paperclip now records what the provider actually billed after prompt-cache discounts.
-`cacheAdjustedCostUsd` takes precedence over `costUsd` when resolving the `costCents` written to a
-run's cost event, so budgets and every rollup use billed dollars. Parent:
-`server/src/services/heartbeat.ts`, commit `ee851fc3`.
-
-### P7 — Issue Plans and Artifacts tabs
-
-`docs/guides/day-to-day/issues.md` · `docs/guides/day-to-day/artifacts.md` ·
-`docs/experimental/plan-decomposition-panel.md`
-
-New Plans and Artifacts tabs on the issue properties panel, plus a plan confirmation action bar that
-pins accept / send-back to the bottom of the pane. Parent:
-`ui/src/components/issue-properties/**`, `ui/src/hooks/useIssuePlanDocument.ts`.
-
-## Verification (Phase 5.5)
-
-117 claims extracted across the touched pages; all verified against parent at `8540ce29` except two,
-neither of which blocks:
-
-- `--help` at `docs/reference/cli/installation.md:37` — **false positive**. It is a Commander
-  built-in, so there is no `.option("--help")` declaration for the verifier to find.
-- `PAPERCLIP_PUBLIC_BASE_URL` — pre-existing text, logged as drift above rather than a failed edit.
-
-## Noted but not drafted
-
-- CI sharding work (`8540ce29`, `8444e573`, `86767951`) — no doc surface.
-- Recovery internals: stand-down while an operator-cancelled run is latest (`a0dbe210`), keeping the
-  agent invokable after a workspace sync conflict (`e4b0152c`), reclaiming isolated worktree
-  instances on teardown (`173d6d2a`).
-- Inbox behaviour: passive issue views kept out of Mine (`14d4db63`), re-sort deferred to attention
-  boundaries (`ec84eb73`) — screenshot impact only.
-- Workspace-ready comments rendered as compact system notices (`a388ea1c`) — cosmetic.
+(No other drift records this run. The `PAPERCLIP_PUBLIC_BASE_URL` false positive from the previous
+run no longer even surfaces in the drift scan.)

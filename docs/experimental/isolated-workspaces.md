@@ -33,6 +33,16 @@ The instance flag alone doesn't isolate anything — each project opts in:
 
 The full tour of the workspace detail screen — tabs, runtime controls, logs — is in the [Workspaces guide](../guides/projects-workflow/workspaces.md).
 
+### When two runs want the shared checkout
+
+Isolated workspaces solve concurrency by giving each run its own tree. But runs that stay on the project's **shared** checkout can still collide — two agents editing the same working copy at once corrupt each other's work. The **Shared workspace concurrency** control in **Execution Workspaces** decides what happens then:
+
+- **Auto** *(the default)* — Concurrent runs on local/SSH runners; runs take turns in cloud sandboxes. Paperclip picks the safe behaviour for where the run actually executes.
+- **Serialize** — Runs always take turns in the shared project workspace. A second run waits until the first releases the checkout, everywhere.
+- **Allow** — Runs never wait for the workspace; concurrent edits are possible. Choose this only when you know your runs won't step on each other.
+
+The setting lives on the project policy, and if the project allows per-task overrides a single task can pick its own mode. When nothing is set, a run resolves to **Auto**.
+
 ## When the run happens on an environment
 
 If a task also runs on an [environment](environments.md) — an SSH machine or a provider sandbox — there's one more question to settle: which filesystem the agent actually edits. Paperclip records that as the run's *workspace realization*, and it has two modes.
