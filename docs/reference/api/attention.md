@@ -98,6 +98,62 @@ A `decision` item is an agent's open proposal: a question with a short list of o
 
 ---
 
+## Agent-addressed issue-thread interactions
+
+An `issue_thread_interaction` item is a card an agent raised on an issue thread — a question, a confirmation, a set of verdicts. Historically every such card waited for the board. Cards can now be **addressed to a specific agent** and resolved by an **eligible agent under company governance**, which changes both who can answer and whether the card shows up in this feed at all.
+
+The full interaction lifecycle (create, respond, withdraw, expiry) lives in the [Issues API](./issues.md#interactions); this section covers the addressee and resolver-policy surface that decides how a card is routed.
+
+### Resolver policy
+
+Two fields set on create, both exposed on every interaction record, decide who may resolve a card:
+
+| Field | Values | Meaning |
+|---|---|---|
+| `resolverPolicy` | `board_only`, `board_or_agents` | The policy requested when the card was created. Optional on create. |
+| `addresseeAgentId` | agent UUID or `null` | Optional. Addresses the card to one specific agent, which is woken to resolve it. Must reference an invokable agent in the same company. |
+
+The server resolves the requested policy against **company governance** and stores the result as three fields on the interaction:
+
+| Field | Meaning |
+|---|---|
+| `resolverPolicy` | Mirrors `requestedResolverPolicy` for compatibility. |
+| `requestedResolverPolicy` | The policy asked for: the create request's `resolverPolicy`, else the company's per-kind `defaultPolicy`, else the built-in default for that kind (`ask_user_questions` defaults to `board_or_agents`; all other kinds default to `board_only`). |
+| `effectiveResolverPolicy` | What is actually enforced. Forced to `board_only` when the card carries a tool action, or when the company's per-kind governance `cap` is `board_only`; otherwise equal to `requestedResolverPolicy`. |
+
+Company governance lives on the company setting `interactionResolverGovernance` — a per-kind map of `{ defaultPolicy?, cap? }`, each value being `board_only` or `board_or_agents`. `defaultPolicy` sets the fallback when a create request omits `resolverPolicy`; `cap` is a ceiling that can only tighten a card down to `board_only`.
+
+### Who may resolve
+
+A board user may always resolve a card. An **agent** may resolve one only when every check passes:
+
+- `effectiveResolverPolicy` is `board_or_agents` — otherwise `403` `This issue-thread interaction is board-only`.
+- If `addresseeAgentId` is set, the calling agent must be that addressee — otherwise `403` `Only the addressed agent or a board user may resolve this issue-thread interaction`.
+- The calling agent is not the card's creator (`createdByAgentId`) — otherwise `403` `Agents cannot resolve interactions they created`.
+- The call is not from the same run that created the card (`sourceRunId`) — otherwise `403` `Agents cannot resolve interactions created by the same run`.
+- The call carries an active run id — otherwise `401` `Agent run id required`.
+
+Tool-action confirmations are always board-only, and task-watchdog runs can never resolve interactions.
+
+### Attention-feed filtering
+
+The board feed is deliberately quiet about cards that a governed agent is expected to handle. An `issue_thread_interaction` item is **dropped from this feed** when its `addresseeAgentId` points at an agent that is currently **invokable** — that card is the addressed agent's to resolve, not the board's. A card stays in the feed when:
+
+- `addresseeAgentId` is `null` (it was raised for the board), or
+- the addressed agent is no longer invokable — the card falls back to the board so it never gets stranded.
+
+### Withdrawal and terminal expiry
+
+Addressed cards settle through the same administrative endings as any other interaction, plus one that is specific to addressees:
+
+- **Withdrawal** — the creator, the current issue assignee, or a board user can withdraw a pending card; its `result.outcome` becomes `withdrawn`. See [withdraw vs. cancel](./issues.md#withdraw-vs-cancel).
+- **Issue closed** — when the issue reaches `done` or `cancelled`, every still-pending card on it expires with `result.outcome` `issue_closed`.
+- **Addressee deleted** — when the addressed agent is deleted, its pending cards are cancelled with `result.outcome` `addressee_deleted` (`Cancelled because the addressed agent was deleted`).
+
+Treat `withdrawn`, `issue_closed`, and `addressee_deleted` as administrative endings, not answers — no decision was made.
+
+---
+
 ## Dismiss or snooze an item
 
 The attention endpoint does not mutate the queue. Dismissal state belongs to the current board user and uses the inbox-dismissal routes instead.

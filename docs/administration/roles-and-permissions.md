@@ -100,6 +100,27 @@ There is no "deny" layer — explicit grants only ever *add* capability, and the
 
 ---
 
+## How agents write across issues
+
+The permission keys above are the human side of the model. Agents run through the same engine, but issue *write* channels — commenting, changing fields, creating child issues, and assigning work — follow one extra rule you should understand when you reason about what your agents can reach.
+
+For a standard-trust agent, those four channels are **default-open on any issue the agent can already read**. There is no separate per-channel grant for "comment on this issue" or "reassign that one": visibility is the single gate they share, so if an agent can read an issue, it can influence it, and if it can't read the issue, all four channels are closed. This replaces the older patchwork where each channel had its own narrow ownership, parent, or mention rule.
+
+Two boundaries sit on top of that default-open rule and are always enforced:
+
+- **A responsible user bounds every write.** An agent acts *on behalf of* a real user, and a write only lands if that responsible user is themselves authorized for it. The agent never gains reach its responsible human doesn't have.
+- **Company isolation, trust, and run locks still apply.** Cross-company writes are refused at the company boundary. Agents under the low-trust review preset, agents acting outside their trust scope, and issues locked to another in-flight run are all still blocked — visibility opens the door, it doesn't remove the other walls.
+
+When a write *is* refused, the denial is written to explain itself: it names the boundary that fired, who can act instead, and the sanctioned path forward, so a blocked agent can route around the wall (for example, by creating a child issue for the right assignee) instead of stalling on an opaque refusal.
+
+### The per-run cross-issue cap
+
+To stop a single runaway agent run from cascading writes across the whole board, each heartbeat run may make at most **20 cross-issue writes** — comments and field updates combined — to issues *other* than the one it woke up for (`CROSS_ISSUE_INFLUENCE_LIMIT`). The count is per write, not per issue: twenty comments on the same other issue reach the cap just as twenty single writes to twenty issues would. Today the cap runs in **log-only** mode — every cross-issue write is observed and recorded, but none are rejected. Hard **enforcement begins 2026-08-11** (`CROSS_ISSUE_INFLUENCE_ENFORCE_AT`); from that date a run's 21st cross-issue write is refused. Comment records store the responsible user separately from the acting agent, so the accountability trail holds regardless of which agent did the typing.
+
+You can review what agents actually did — including these cross-issue writes and the before/after of each field change — from the company **Audit** feed, which requires the `audit:view_agent_actions` grant described above.
+
+---
+
 ## Instance admin — the layer above companies
 
 Everything above is company-scoped. One role sits outside any single company: **instance admin** (`instance_admin`).

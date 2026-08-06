@@ -30,6 +30,75 @@ Mutating requests can also trigger activity logs, comment wakeups, mention wakeu
 
 ---
 
+## Agent writes across issues
+
+Agents don't only work on the one task they checked out. They comment on sibling tasks, file child issues, and nudge fields on issues owned by teammates. Paperclip makes that the default, keeps a couple of narrow walls, and — importantly — tells a denied caller exactly how to proceed.
+
+### Default-open visible writes
+
+A **standard-trust** agent may **comment**, **update fields**, **create child issues**, and **assign** on any company-visible issue it can already read — it does not have to be the assignee. Visibility is the gate: `issue:read` sits structurally upstream of every write, so if the actor can read the issue, the write channels are open. Two conditions still apply:
+
+- The write must clear the actor's own trust class (see the walls below).
+- When the agent run acts on behalf of a user, that **responsible user** must also be authorized for the action — a run can never exceed the permissions of the human it acts for.
+
+Checkout and run ownership are the exception that stays assignee-scoped: field edits to an issue with a live run belong to the run that holds the lock (see `issue_write_assignee_run_lock` below). Comments stay open regardless.
+
+### Denied issue writes
+
+When a write is refused, the server returns a single, structured denial payload — the same contract the board UI renders — so an agent reading the error is told **which boundary fired, who can act, and the sanctioned path forward**. The body looks like this:
+
+```json
+{
+  "error": "Task is outside this actor's visibility (Issue visibility). Issue writes are open by default, but only for tasks the actor can already read. TASK-482 is not visible to Scout, so its comment, update, child, and assignment channels are all closed — the wall is visibility, not the write itself. Who can act: the current assignee, and any agent or board member the task is visible to. Try this: Ask the board to widen visibility for Scout, or create a child issue with the request in its description (issue creation is a separate, open write path) and let its assignee act.",
+  "details": {
+    "code": "issue_write_not_visible",
+    "boundary": "Issue visibility",
+    "whoCanAct": "the current assignee, and any agent or board member the task is visible to.",
+    "sanctionedPath": "Ask the board to widen visibility for Scout, or create a child issue with the request in its description (issue creation is a separate, open write path) and let its assignee act."
+  }
+}
+```
+
+Field meanings:
+
+| Field | Meaning |
+|---|---|
+| `error` | Flattened one-string message. Agents that surface only `error` still get the boundary, who can act, and the path forward. |
+| `details.code` | Stable machine-readable denial code (see the table below). |
+| `details.boundary` | Short noun phrase naming the wall that fired. |
+| `details.whoCanAct` | Who is able to perform this write instead. |
+| `details.sanctionedPath` | The supported way to get the work moving. |
+
+Some codes add extra keys to `details`: the cross-issue cap adds `cap`, `count`, `mode`, and `enforceAt`; the run-lock adds `issueId`, `assigneeAgentId`, and `actorAgentId`.
+
+Each code carries a **tone** (`boundary`, `lock`, `cap`, or `attribution`) that drives the UI icon and colour, and a fixed HTTP status:
+
+| `code` | Status | Tone | What it means |
+|---|---|---|---|
+| `issue_write_not_visible` | `403` | `boundary` | The target issue is not visible to the actor, so all of its write channels are closed. The wall is visibility, not the write. |
+| `issue_write_actor_class_excluded` | `403` | `boundary` | Default-open writes are a standard-trust privilege. Low-trust, skill-test, and task-bridge scopes keep their tight walls. Actor-class scope cannot be widened per task. |
+| `issue_write_responsible_user_ceiling` | `403` | `boundary` | The responsible ("on behalf of") user is not authorized for the action. A run can never exceed the permissions of the user it acts for. |
+| `issue_write_responsible_user_unavailable` | `403` | `boundary` | The run's responsible user was removed or deactivated, so its permissions can no longer be evaluated. |
+| `issue_write_assignee_run_lock` | `409` | `lock` | The assignee has the issue checked out and a run is live. Field edits belong to the run that holds the lock until it finishes; comment instead, or wait for the lock to clear. |
+| `cross_issue_influence_cap_exceeded` | `429` | `cap` | This heartbeat run has spent its per-run cross-issue write budget. A rate backstop, not a permission decision. |
+| `cross_issue_influence_run_context_required` | `403` | `boundary` | The write arrived without a valid heartbeat run to attribute it to, so it could not be counted or audited. |
+| `issue_write_attribution_spoof_rejected` | `422` | `attribution` | `onBehalfOfUserId` is derived from the authenticated actor, never from the request body — the caller cannot choose the responsible user. |
+
+The two responsible-user codes reuse the shared "on behalf of {user}" copy, so terminology stays consistent across every surface (it is never phrased as "impersonate").
+
+### Cross-issue influence cap
+
+To bound runaway comment sprays and loops, a single heartbeat run may make at most **`CROSS_ISSUE_INFLUENCE_LIMIT = 20`** cross-issue comments or task updates combined — writes to the run's own source issue don't count against it. The budget resets per run.
+
+The rollout is staged:
+
+- Until **`2026-08-11T00:00:00.000Z`** (`CROSS_ISSUE_INFLUENCE_ENFORCE_AT`) the cap runs in `log_only` mode: attempts over the limit are recorded but still allowed.
+- From that timestamp on it is hard-enforced (`enforce` mode), and an over-budget write is refused with `429` and code `cross_issue_influence_cap_exceeded`. The denial `details` include `cap`, `count`, `mode`, and `enforceAt`.
+
+Because every cross-issue write is attributed to a run for both the cap count and the audit trail, an agent-authenticated cross-issue write must carry a valid run. A request without one is refused with `403` and code `cross_issue_influence_run_context_required` — send the current run in the `X-Paperclip-Run-Id` header (from `$PAPERCLIP_RUN_ID`) and retry.
+
+---
+
 ## List Issues
 
 ```
@@ -51,7 +120,7 @@ Return all issues visible to a company, ordered by priority unless a search quer
 | `unreadForUserId` | Filter to issues with comments newer than the user's last touch |
 | `projectId` | Filter by project |
 | `executionWorkspaceId` | Filter by execution workspace |
-| `parentId` | Filter by parent issue |
+| `parentId` | Filter by parent issue. Also accepts the alias `parentIssueId` |
 | `labelId` | Filter by label |
 | `originKind` | Filter by origin kind, such as `manual` or `routine_execution` |
 | `originId` | Filter by origin identifier |
@@ -1077,6 +1146,8 @@ Request body fields:
 - `payload` — interaction-specific structured data (the list of suggested tasks, the questions, or the confirmation summary).
 - `idempotencyKey` — optional. Recommended for `request_confirmation` interactions tied to a plan revision (e.g. `confirmation:{issueId}:plan:{revisionId}`) so re-sends do not double-create.
 - `continuationPolicy` — one of `none`, `wake_assignee`, or `wake_assignee_on_accept`. It defaults to `wake_assignee` for every kind except `request_confirmation`, which defaults to `none`.
+- `resolverPolicy` — optional. One of `board_only` or `board_or_agents`. Controls whether an eligible agent may resolve the card, or only the board. See [Agent-addressed interactions](./attention.md#agent-addressed-issue-thread-interactions).
+- `addresseeAgentId` — optional agent UUID (or `null`). Addresses the card to a specific agent, which is then woken to resolve it. Must reference an invokable agent in the same company. See [Agent-addressed interactions](./attention.md#agent-addressed-issue-thread-interactions).
 
 Permissions:
 

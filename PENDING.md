@@ -7,87 +7,81 @@ this list automatically.
 | | |
 | --- | --- |
 | Mode | `nightly` |
-| Window | `v2026.722.0` (`e55d702`) → `2ab797d` |
-| Parent default branch | `master`, HEAD `c54936e` at run time |
-| Quarantine | 24h — cutoff `2026-08-04T06:55:56Z` (23 newer commits held back) |
-| Commits in window | 223 |
-| Files in window | 932 (no compare-API truncation) |
-| Manifest hash | `21cc36bac8b443748b7c87a7511558326adf7a5ba6cc687034e556350140fd61` |
-| Previous manifest hash | `8aeaf1eb5f39bf4e1eac59fda823b28d86d67ea8a5d1daedfec11439456ee91b` |
+| Window (cumulative) | `v2026.722.0` (`e55d702`) → `8142e54` |
+| Parent default branch | `master`, HEAD `814cb33` at run time |
+| Quarantine | 24h — cutoff `2026-08-05T05:48:58Z` (22 newer commits held back) |
+| Commits in cumulative window | 245 |
+| Files in cumulative window | 1046 (no compare-API truncation) |
+| Manifest hash | `5b15136c72c6b07e88c6e332787dc874ae8f5ce04a65cd6f3cbbe9353c524dc0` |
+| Previous manifest hash | `21cc36bac8b443748b7c87a7511558326adf7a5ba6cc687034e556350140fd61` |
 
-**Most of this window (Decisions v1, the agent-action audit, CLI lifecycle install/update/service,
-chat-style tasks, managed environments, status cards, company Import/Export, and the Cloud Sync
-deprecation) was applied by previous runs and is unchanged in this cumulative manifest.** The new
-work this run is the delta `2c90cf0 → 2ab797d` — 15 commits, 116 files — which is dominated by
-task-chat and Decisions UI polish plus two genuinely new documentable surfaces.
+**Most of this cumulative window (Decisions v1, the agent-action audit, CLI lifecycle
+install/update/service, chat-style tasks, managed environments, status cards, company
+Import/Export, the plugin SDK tracer, shared-workspace concurrency, and the Cloud Sync
+deprecation) was applied by previous runs and is unchanged in this manifest.** The new work this
+run is the delta `2ab797d → 8142e54` — **22 commits, 232 files** — which centres on cross-task
+agent writes and the Activity/Audit page merge.
 
 ## Applied this run (PR tier)
 
-Authored directly on `nightly`; both verified against parent code (Phase 5.5).
+Authored on branch `nightly-draft/8142e54-cross-task-writes-activity`. Every touched file passed
+Phase 5.5 verification against the pinned quarantine ref `8142e54` (0 unverified, 0 suspicious).
 
-### P1 — Plugin SDK tracer (`ctx.tracer`)
+### A — Cross-task agent writes: attribution, receipts, actionable denials
 
-`packages/plugins/sdk/src/index.ts` now re-exports the tracer surface added to
-`packages/plugins/sdk/src/types.ts`: the `PluginTracer` and `PluginSpan` types and the
-`NOOP_PLUGIN_TRACER` / `NOOP_PLUGIN_SPAN` no-op values. A plugin opens a span with
-`ctx.tracer.startSpan(name, { attributes })`; the host records it, re-clamps attributes at its trust
-boundary, and a span opened with no active host trace context is a harmless no-op.
+Standard-trust agents can now comment, update fields, create child issues, and assign on any
+company-visible issue they can read (one shared default-open rule; the responsible human still
+bounds every action). Three surfaces make those writes legible — an attribution chip on comments,
+a before/after field receipt, and an actionable denial that names the boundary, who can act, and
+the sanctioned path forward. A per-run cross-issue cap (`CROSS_ISSUE_INFLUENCE_LIMIT = 20` writes,
+comments and updates combined; `log_only` today, hard-enforced from **2026-08-11**) contains
+runaway runs. Issue-thread interactions can now be addressed to another agent under company
+governance.
 
-- **Target:** `docs/reference/plugins/sdk.md` — added a `PluginContext` table row, an explanatory
-  paragraph next to the metrics/logger note, and a Re-exports bullet for the two no-op values.
+- **Parent commits:** `#10843`, `#10804`, `#10837`, `#10252` (+ `#4032` `parentIssueId` alias)
+- **Targets:**
+  - `docs/guides/day-to-day/issues.md` — new "When an agent writes on another issue" section
+  - `docs/administration/roles-and-permissions.md` — new "How agents write across issues" section
+  - `docs/reference/api/issues.md` — denial contract (8 codes, tones `boundary|lock|cap|attribution`),
+    default-open rule, cross-issue cap, `parentIssueId` alias, new interaction request fields
+  - `docs/reference/api/attention.md` — governed agent addressees (`resolverPolicy`,
+    `addresseeAgentId`, resolver-policy triple, governance setting, attention-feed filtering)
 
-### P2 — Shared workspace concurrency (project execution-workspace policy)
+### B — Activity page unification
 
-`packages/shared/src/validators/project.ts` added `sharedWorkspaceConcurrency: "auto" | "serialize"
-| "allow"` to `projectExecutionWorkspacePolicySchema`; the server resolves it in
-`server/src/services/execution-workspace-policy.ts` (per-issue override → project policy → `auto`),
-and `ui/src/components/ProjectProperties.tsx` surfaces it as the **Shared workspace concurrency**
-control under Execution Workspaces. Verbatim UI help text drives the mode descriptions.
+The board's two overlapping history pages (basic Activity list + separate permission-gated Audit
+feed) merged into one Activity page built on the rich audit feed, with a scope toggle (all actors
+vs agent actions only) and two-tier access — any member reads `actorScope=all` with sensitive
+attribution stripped; `audit:view_agent_actions` unlocks attribution filters and CSV export.
 
-- **Target:** `docs/experimental/isolated-workspaces.md` — added a **"When two runs want the shared
-  checkout"** subsection under *Using it*.
+- **Parent commits:** `#10838`, `#10831`, `#10830`
+- **Targets:**
+  - `docs/guides/day-to-day/activity-log.md` — rewrote the stale "separate Audit page" section into
+    one unified page with the scope toggle, rich filters, two-tier access, and CSV export
+  - `docs/reference/api/activity.md` — documented `GET /audit/agent-actions` (+ `.csv`) with the
+    verbatim param table, `accessTier` response shape, and `audit.exported` logging; added `plugin`
+    to the `actorType` enum
+- **Nav:** no `site/content.json` change needed (no separate "Audit" entry existed).
 
-## Auto-merge tier
+## Deferred (not authored this run)
 
-None this window. `.env.example`, `server/src/config.ts`, and `packages/**/env.ts|config.ts` did not
-change, so the `env-vars` watcher had no hits.
+### C — Cloud-aware in-app features + managed cloud instance ⏸
 
-## Context-only / no doc edit
+`#10850` and `#2495e29f` make the app **cloud-aware** for operators running on **Paperclip Cloud**
+(the hosted product): a `/api/cloud/stacks` portfolio proxy, sidebar stack switching, and preserved
+company display names in cloud tenants. This is unrelated to the deprecated **Cloud Sync** feature —
+it is not an un-deprecation. Deferred by decision: it is an operator-only hosted-product surface with
+no existing doc home; batch it with a future dedicated "Paperclip Cloud" section at release time.
 
-- **Task-chat redesign (PAP-351)** — attachment chips, description bubble, status whimsy, auto-follow,
-  MCP icon (`ui/src/components/task-chat/**`). Refines the already-documented chat-style tasks; the
-  underlying capability is unchanged, so this is presentation polish → screenshot staleness, not prose.
-- **Decisions shelf/toolbar** (`DecisionShelf.tsx`, `DecisionsToolbar.tsx`) — UI refinements to the
-  already-documented Decisions v1 surface.
-- **Daytona sandbox provider** — adopts the new SDK tracer internally; no user-facing config change.
+### D — Review-path contract + stalled-review actions
 
-## ⚠ Reconcile / Drift — needs human attention
+`#10675` maintains the `in_review` review-path contract and adds stalled-review recovery actions.
+Refines the already-drafted Decisions/review docs; not authored this run.
 
-### R1 — Cloud Sync removed upstream (partly resolved this run)
+## ⚠ Drift
 
-Host-to-host Cloud Sync was deleted upstream in a prior window.
+None. `check-drift.mjs` against parent reported no drift.
 
-**Resolved this run:** `docs/reference/cli/cloud.md` was trimmed from a full command reference down to
-a removal stub — the `cloud connect` / `cloud push` documentation for the deleted commands is gone,
-replaced by a pointer to company Import/Export. This clears the single drift record
-(`paperclipai cloud` at `cloud.md:34`).
+## ⚠ Reconcile
 
-**Still carried:** two other pages still describe Cloud Sync, each with a deprecation banner from an
-earlier run. Deleting them is a release-time decision, so they stay on `nightly` for now:
-
-- `docs/how-to/sync-to-cloud-upstream.md`
-- `docs/experimental/cloud-sync.md`
-
-`ui/src/pages/CloudUpstream.tsx` remains `removed` in the window, still stranding two screenshots
-(`light/experimental/cloud-upstream.png`, `dark/experimental/cloud-upstream.png`) that can never be
-recaptured — delete them from the registry whenever the cloud pages are resolved.
-
-Two inbound-link issues from the previous run still stand — readers arriving from these have no
-deprecation warning before they land:
-
-- `docs/experimental/overview.md:54` — feature table row
-- `docs/experimental/connections-apps.md:61` — "another connection-oriented experimental surface"
-- `docs/administration/settings.md:262` — listed among settings
-
-(No other drift records this run. The `PAPERCLIP_PUBLIC_BASE_URL` false positive from the previous
-run no longer even surfaces in the drift scan.)
+None. No previously-applied entry disappeared from the cumulative manifest.
