@@ -91,7 +91,12 @@ try {
   assert(sitemap.includes("https://docs.paperclip.ing/reference/skills"), "sitemap is missing reference/skills");
   assert(!sitemap.includes("<changefreq>"), "sitemap should not publish ignored changefreq values");
   assert(!sitemap.includes("<priority>"), "sitemap should not publish ignored priority values");
+  const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
   const sitemapLastmods = [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((match) => match[1]);
+  assert(
+    sitemapLastmods.length === sitemapUrls.length,
+    "a complete Git checkout should publish one content-history lastmod per sitemap URL",
+  );
   assert(new Set(sitemapLastmods).size > 1, "sitemap lastmod values should reflect document history, not one build date");
   assert(
     existsSync(join(outDir, "reference/skills/bundled/index.html")),

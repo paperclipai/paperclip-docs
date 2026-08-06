@@ -612,6 +612,7 @@ function injectSeo(html, metadata, { baseHref = null } = {}) {
 }
 
 async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
+  const hasCompleteGitHistory = await ensureCompleteGitHistory();
   const pages = [];
   for (const { page, section } of flattenNavPages(nav)) {
     const releaseMarkdownPath = path.join(outDir, page.file);
@@ -625,7 +626,7 @@ async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
       title: `${pageTitle} | Paperclip Docs`,
       description: markdownDescription(markdown),
       url: routeUrlForPage(siteUrl, basePath, page),
-      lastmod: await gitLastModified(sourceMarkdownPath),
+      lastmod: await gitLastModified(sourceMarkdownPath, { hasCompleteGitHistory }),
       siteUrl,
       basePath,
     });
@@ -633,7 +634,36 @@ async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
   return pages;
 }
 
-async function gitLastModified(sourcePath) {
+async function ensureCompleteGitHistory() {
+  try {
+    const { stdout } = await execFileAsync(
+      "git",
+      ["rev-parse", "--is-shallow-repository"],
+      { cwd: repoRoot },
+    );
+    if (stdout.trim() !== "true") return true;
+
+    await execFileAsync(
+      "git",
+      ["fetch", "--quiet", "--unshallow", "--no-tags", "origin"],
+      { cwd: repoRoot, timeout: 30_000 },
+    );
+    const { stdout: updatedState } = await execFileAsync(
+      "git",
+      ["rev-parse", "--is-shallow-repository"],
+      { cwd: repoRoot },
+    );
+    if (updatedState.trim() !== "true") return true;
+  } catch (error) {
+    console.warn(`Could not load complete Git history for sitemap lastmod values: ${error.message}`);
+  }
+
+  console.warn("Omitting sitemap lastmod values because Git history is incomplete.");
+  return false;
+}
+
+async function gitLastModified(sourcePath, { hasCompleteGitHistory }) {
+  if (!hasCompleteGitHistory) return undefined;
   if (!isPathInside(repoRoot, sourcePath)) return undefined;
   const repoRelativePath = toPosixPath(path.relative(repoRoot, sourcePath));
   try {
