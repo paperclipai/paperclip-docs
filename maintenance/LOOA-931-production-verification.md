@@ -116,6 +116,21 @@ Verification performed:
   the build; 184 dates across 24 distinct values.
 - `git diff --check` — passed.
 
+## Branch preview verification
+
+Cloudflare deployed commit `e6e084ccdadc082653663be394ee4b97594c92a6` at
+`https://9701e6d9.paperclip-docs-74t.pages.dev`. The preview check passed and
+the fetched preview artifact showed:
+
+- 184 sitemap URLs and 184 `lastmod` values;
+- 24 distinct dates from 2026-04-22 through 2026-07-30;
+- byte-for-byte parity with the local full-history sitemap build;
+- the sampled Skills route retained its production canonical, `index, follow`
+  robots rule, and crawlable previous/next anchors.
+
+The preview sitemap SHA-256 is
+`51a37a7922d112b143a2cb642ce938a572f378a01c85ced95ee6ba2824c45ff5`.
+
 ## Prior, hypothesis, metric
 
 **Prior — strong.** A per-file Git commit date is a defensible approximation
