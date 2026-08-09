@@ -663,12 +663,14 @@
       gap: 2px;
     }
 
-    /* Loading / error */
-    #loading, #error-state {
+    /* Runtime status — populated by app.js only during a client transition. */
+    #runtime-status[data-state] {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 12px; padding: 80px 0;
       color: var(--ash); font-size: 14px;
     }
+    #runtime-status[hidden] { display: none; }
+    .runtime-status-detail { font-size: 12px; color: var(--ash); margin-top: 4px; }
     .spinner {
       width: 24px; height: 24px;
       border: 2px solid var(--stone); border-top-color: var(--green);
@@ -1416,4 +1418,68 @@
     }
     @media (max-width: 600px) {
       .landing-tier-cards { grid-template-columns: 1fr; }
+    }
+
+    /* Full manifest directory — server-rendered, so it reads and navigates
+       with JavaScript disabled. */
+    #landing-directory {
+      margin-top: 64px;
+      padding-top: 40px;
+      border-top: 1px solid var(--stone);
+    }
+    #landing-directory-title {
+      margin: 0 0 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ash);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .landing-directory-columns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px 24px;
+    }
+    .landing-directory-section > h3 {
+      margin: 0 0 10px;
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+    .landing-directory-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .landing-directory-list .landing-directory-list {
+      margin: 4px 0 8px;
+      padding-left: 12px;
+      border-left: 1px solid var(--stone);
+    }
+    .landing-directory-list a {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--graphite);
+      text-decoration: none;
+    }
+    .landing-directory-list a:hover { color: var(--ink); text-decoration: underline; }
+    .landing-directory-group-title {
+      display: block;
+      margin-top: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ash);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    @media (max-width: 900px) {
+      .landing-directory-columns { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .landing-directory-columns { grid-template-columns: 1fr; }
     }
