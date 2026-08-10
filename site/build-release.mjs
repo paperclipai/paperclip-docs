@@ -5,6 +5,7 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 import { transform } from "esbuild";
 import { marked } from "marked";
 
@@ -738,6 +739,27 @@ function buildCloudflareHeaders() {
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com; upgrade-insecure-requests
 
+# PAP-16990 cache policy. HTML shells must always revalidate so a returning
+# visitor never renders a stale document that points at a since-changed bundle.
+# Path routes are extensionless directories, so the docs root and every route
+# directory are matched explicitly. Fingerprinted JS/CSS carry a content hash in
+# the URL and are safe to cache immutably; content.json ships per release with
+# the exact-version bundle, so it revalidates alongside the HTML.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/app.*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/styles.*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/content.json
+  Cache-Control: public, max-age=0, must-revalidate
+
 /sitemap.xml
   Content-Type: application/xml; charset=utf-8
   X-Robots-Tag: noindex, nofollow
@@ -979,10 +1001,31 @@ function renderStaticMarkdown(markdown) {
 }
 
 function inlineReleaseStyles(html, css) {
+  // Match the stylesheet link whether or not its href has been content-
+  // fingerprinted (styles.css or styles.<hash>.css) so inlining keeps working.
   return html.replace(
-    '<link rel="stylesheet" href="styles.css" />',
+    /<link rel="stylesheet" href="styles(?:\.[0-9a-f]+)?\.css" \/>/,
     `<style data-inline-release-css>${css}</style>`,
   );
+}
+
+// Derive a content-fingerprinted filename (e.g. app.js -> app.<hash>.js). The
+// hash is over the exact bytes that ship, so the URL changes if and only if the
+// asset's contents change. Exported for the fingerprint regression test.
+export function fingerprintAssetName(filename, content) {
+  const dot = filename.lastIndexOf(".");
+  const stem = filename.slice(0, dot);
+  const ext = filename.slice(dot);
+  const hash = createHash("sha256").update(content).digest("hex").slice(0, 12);
+  return `${stem}.${hash}${ext}`;
+}
+
+// Point the shell's external asset references at their fingerprinted URLs so
+// every generated route loads the exact bundle it was built with (PAP-16990).
+function rewriteAssetReferences(html, { appJsName, stylesName }) {
+  return html
+    .replace('src="app.js"', `src="${appJsName}"`)
+    .replace('href="styles.css"', `href="${stylesName}"`);
 }
 
 /* ─── Server-rendered homepage directory ──────────────────────────────────
@@ -1270,11 +1313,20 @@ async function main() {
   const sourceStyles = await fs.readFile(sourceStylesPath, "utf8");
   const sourceAppJs = await fs.readFile(sourceAppJsPath, "utf8");
   const sectionIconPaths = extractSectionIconPaths(sourceAppJs);
-  const sourceIndex = linkDocsRootAnchors(rawSourceIndex, options.basePath);
   const releaseStyles = minifyCss(sourceStyles);
-  const releaseAppJs = rewriteAppJs(sourceAppJs, options.basePath);
-  await fs.writeFile(path.join(options.outDir, "styles.css"), releaseStyles);
-  await fs.writeFile(path.join(options.outDir, "app.js"), await minifyJs(releaseAppJs));
+  const releaseAppJs = await minifyJs(rewriteAppJs(sourceAppJs, options.basePath));
+  // Content-fingerprint the external client bundle so a returning browser can
+  // never combine freshly revalidated HTML with a stale cached app.js. Every
+  // generated route references this exact build's asset URL; a changed bundle
+  // gets a brand-new URL that no cache can satisfy with old bytes (PAP-16990).
+  const appJsName = fingerprintAssetName("app.js", releaseAppJs);
+  const stylesName = fingerprintAssetName("styles.css", releaseStyles);
+  const sourceIndex = rewriteAssetReferences(
+    linkDocsRootAnchors(rawSourceIndex, options.basePath),
+    { appJsName, stylesName },
+  );
+  await fs.writeFile(path.join(options.outDir, stylesName), releaseStyles);
+  await fs.writeFile(path.join(options.outDir, appJsName), releaseAppJs);
   if (await pathExists(sourceVendorDir)) {
     await copyDirRecursive(sourceVendorDir, path.join(options.outDir, "vendor"));
   }

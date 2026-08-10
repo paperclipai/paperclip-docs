@@ -97,7 +97,8 @@ try {
   assert(skillsHtml.includes('<base data-seo-base href="/" />'), "nested route is missing the release base path");
   assert(skillsHtml.includes("<style data-inline-release-css>"), "nested route does not inline release CSS");
   assert(!skillsHtml.includes('rel="stylesheet" href="styles.css"'), "nested route still render-blocks on styles.css");
-  assert(skillsHtml.includes('src="app.js"'), "nested route does not load app JS from the release base path");
+  const skillsAppJsMatch = skillsHtml.match(/src="(app\.[0-9a-f]+\.js)"/);
+  assert(skillsAppJsMatch, "nested route does not load a fingerprinted app JS bundle from the release base path");
   assert(skillsHtml.includes("html:not(.motion-ready) *"), "nested route is missing the first-paint motion gate");
 
   const rootHtml = read("index.html");
@@ -133,7 +134,10 @@ try {
   assert(glossaryHtml.includes('<h3 id="board-operator">Board Operator</h3>'), "glossary route is missing the Board Operator term anchor");
   assert(glossaryHtml.includes('<h3 id="heartbeat">Heartbeat</h3>'), "glossary route is missing the Heartbeat term anchor");
 
-  const appJs = read("app.js");
+  const rootAppJsMatch = rootHtml.match(/src="(app\.[0-9a-f]+\.js)"/);
+  assert(rootAppJsMatch, "root HTML does not reference a fingerprinted app JS bundle");
+  assert(!existsSync(join(outDir, "app.js")), "release still emits an unversioned app.js that a stale cache could pin");
+  const appJs = read(rootAppJsMatch[1]);
   assert(!appJs.includes("/#/"), "generated app JS still contains primary hash route URLs");
 
   const sitemap = read("sitemap.xml");
