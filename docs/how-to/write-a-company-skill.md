@@ -153,7 +153,7 @@ You can also browse the result in the UI under **Skills** — the new row shows 
 
 ## 4. Assign the skill to specific agents
 
-Skills live company-wide; *which* agents see them is controlled by each agent's `desiredSkills`. To attach the new skill to two coder agents, sync each one with a list that includes the new key:
+Skills live company-wide; *which* agents see them is controlled by each agent's `desiredSkills`. Sync takes a required `mode` that says how the skills you name should meet the agent's current set. To simply add the new skill to a coder agent without touching anything else it already has, use `mode: "add"`:
 
 ```bash
 curl -X POST "$PAPERCLIP_API_URL/api/agents/$CODER_AGENT_ID/skills/sync" \
@@ -161,13 +161,13 @@ curl -X POST "$PAPERCLIP_API_URL/api/agents/$CODER_AGENT_ID/skills/sync" \
   -H "Content-Type: application/json" \
   -d '{
     "desiredSkills": [
-      "paperclip",
       "release-note-writer"
-    ]
+    ],
+    "mode": "add"
   }'
 ```
 
-The route is **reconciling**, not additive: anything in `desiredSkills` is attached, anything *not* in the list is detached. Always send the full set, not just the new entry. If you don't know the agent's current set, read it first:
+`mode` picks the behaviour: `add` keeps the agent's other skills and unions in the ones you name, `remove` drops only the named skills, and `replace` overwrites the complete desired set with exactly what you send (that's the reconciling behaviour — anything not in the list is detached). Because `add` and `remove` are now available, you no longer have to send the full set just to change one entry — reach for `replace` only when you truly want to overwrite everything. If you want to `replace` and don't know the agent's current set, read it first:
 
 ```bash
 curl "$PAPERCLIP_API_URL/api/agents/$CODER_AGENT_ID/skills" \
@@ -182,7 +182,7 @@ Each `desiredSkills` entry can be:
 - a skill **UUID** (`id` from the company skills list),
 - or a **slug** (`release-note-writer`) — fine for one-off calls but rejected with `Invalid company skill selection (ambiguous references: …)` if the slug matches more than one skill.
 
-> **Bundled skills are always attached.** The server unions any `paperclipai/paperclip/*` bundled skills (`paperclip`, etc.) into every agent's resolved set, regardless of what you send. That's why you keep `paperclip` on the list above — leaving it off doesn't remove it; it just makes the response confusing.
+> **Bundled skills are always attached.** The server unions any `paperclipai/paperclip/*` bundled skills (`paperclip`, etc.) into every agent's resolved set, regardless of what you send. So you never have to list `paperclip` to keep it — and even a `mode: "replace"` that omits it won't drop it from the resolved set.
 
 ### Adapter sync mode matters
 

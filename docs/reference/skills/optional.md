@@ -29,6 +29,10 @@ For the catalog mechanics, start with the [Skills reference](../skills.md#3-app-
 
 - [Last30Days](./optional/research/last30days.md) — research recent public discussion about a topic across Reddit, X, YouTube, and the web.
 
+## Software Development
+
+- [Prepare MCP Integration](./optional/software-development/prepare-mcp-integration.md) — research a new MCP or vendor integration, gate it on exact-revision human approval, then ship one governed Paperclip connector per approved connection.
+
 ## See also
 
 - [Skills Reference](../skills.md) — file shape, install pipeline, catalog browse/install/audit/update/reset, assignment, and troubleshooting.

@@ -377,7 +377,7 @@ You can also scan and import skills from project workspaces when you already hav
 Most of the time you will manage skills from the UI, but the same operations are available as REST endpoints when you want to script onboarding or reproduce a known agent setup from another company.
 
 - **List the skills attached to an agent**: `GET /api/agents/{agentId}/skills`
-- **Sync the attached set**: `POST /api/agents/{agentId}/skills/sync` with `{ "desiredSkills": [...] }`. Each entry is a skill UUID, canonical key, or unique slug. The server reconciles attachments to match — adding any missing and removing any not in the list.
+- **Sync the attached set**: `POST /api/agents/{agentId}/skills/sync` with `{ "desiredSkills": [...], "mode": "add" | "remove" | "replace" }`. Each `desiredSkills` entry is a skill UUID, canonical key, or unique slug. The required `mode` chooses how the list applies: `add` unions the named skills into the current set, `remove` drops only the named skills, and `replace` reconciles the set to match exactly — adding any missing and removing any not in the list.
 - **Provision skills at hire time**: pass `desiredSkills` on `POST /api/companies/{companyId}/agents` so the agent comes online with the right set already attached.
 
 The skills must already be installed at the company level before you can attach them. For the full reference — file shape, install pipeline, canonical keys, versioning, and troubleshooting — see:

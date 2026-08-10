@@ -801,6 +801,15 @@
                   "file": "../docs/reference/skills/optional/research/last30days.md"
                 }
               ]
+            },
+            {
+              "title": "Software Development",
+              "pages": [
+                {
+                  "title": "Prepare MCP Integration",
+                  "file": "../docs/reference/skills/optional/software-development/prepare-mcp-integration.md"
+                }
+              ]
             }
           ]
         }
