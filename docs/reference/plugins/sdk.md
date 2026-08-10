@@ -128,6 +128,7 @@ The `companyId` has always travelled on the wire — it is the optional `company
 | `PluginProjectsClient`, `PluginExecutionWorkspacesClient`, `PluginCompaniesClient`, `PluginIssuesClient`, `PluginIssueRelationsClient`, `PluginIssueSummariesClient`, `PluginAgentsClient`, `PluginAgentSessionsClient`, `PluginGoalsClient`, `PluginSkillsClient` | Read/write access to the core Paperclip domain via the host. |
 | `ctx.approvals` | Read and decide company approvals — see [Responding to interactions and approvals](#responding-to-interactions-and-approvals). Requires `approvals.read` for `list` / `get` and `approvals.respond` for `decide`. The interface is named `PluginApprovalsClient` in the SDK source but is not currently re-exported as a name; it is reachable from `PluginContext`. |
 | `ctx.routines` | Resolve and reconcile plugin-managed Paperclip routines (`ctx.routines.managed`). Requires the `routines.managed` capability. The interface type is not currently re-exported as a name, but it is reachable from `PluginContext`. |
+| `ctx.execution` | Stream live output from a long-running `execute` call — see [Streaming live command output](#streaming-live-command-output). The interface is named `PluginExecutionClient` in the SDK source but is not currently re-exported as a name; it is reachable from `PluginContext`. |
 | `PluginDataClient` | Register data feeds the UI can query (`ctx.data.register(...)`). |
 | `PluginActionsClient` | Register host-invokable actions. |
 | `PluginStreamsClient` | Stream-style host APIs. |
@@ -380,6 +381,25 @@ Protocol types: `JsonRpcId`, `JsonRpcRequest`, `JsonRpcSuccessResponse`, `JsonRp
 External-object protocol shapes: `PluginExternalObjectUrlCandidate`, `PluginExternalObjectSourceContext`, `DetectExternalObjectsParams`, `PluginExternalObjectDetection`, `DetectExternalObjectsResult`, `PluginExternalObjectRecordSnapshot`, `ResolveExternalObjectParams`, `PluginExternalObjectResolvedSnapshot`, `PluginExternalObjectResolveResult`, `RefreshExternalObjectsParams`, `RefreshExternalObjectsResult`. See [External-object reference providers](#external-object-reference-providers) for the lifecycle that uses them.
 
 Environment-driver protocol shapes: `PluginEnvironmentDiagnostic`, `PluginEnvironmentDriverBaseParams`, `PluginEnvironmentValidateConfigParams`, `PluginEnvironmentValidationResult`, `PluginEnvironmentProbeParams`, `PluginEnvironmentProbeResult`, `PluginEnvironmentLease`, `PluginEnvironmentAcquireLeaseParams`, `PluginEnvironmentResumeLeaseParams`, `PluginEnvironmentReleaseLeaseParams`, `PluginEnvironmentDestroyLeaseParams`, `PluginEnvironmentRealizeWorkspaceParams`, `PluginEnvironmentRealizeWorkspaceResult`, `PluginEnvironmentExecuteParams`, `PluginEnvironmentExecuteResult`, `PluginSyncFileMapping`, `PluginPostUploadCommand`, `PluginSyncOperation`, `PluginEnvironmentSyncInParams`, `PluginEnvironmentSyncOutParams`, `PluginEnvironmentSyncResult`, `PluginEnvironmentInteractiveSetupStatus`, `PluginEnvironmentInteractiveSetupConnectionType`, `PluginEnvironmentTemplateRefKind`, `PluginEnvironmentInteractiveSetupConnectionSummary`, `PluginEnvironmentInteractiveSetupConnectionPayload`, `PluginEnvironmentInteractiveSetupSession`, `PluginEnvironmentStartInteractiveSetupParams`, `PluginEnvironmentGetInteractiveSetupParams`, `PluginEnvironmentCaptureTemplateParams`, `PluginEnvironmentCaptureTemplateResult`, `PluginEnvironmentCancelInteractiveSetupParams`, `PluginEnvironmentCancelInteractiveSetupResult`, `PluginEnvironmentDeleteTemplateParams`, `PluginEnvironmentDeleteTemplateResult`, `PluginEnvironmentTemplateConfigBinding`. The `PluginSync*` and `PluginEnvironmentSync*` shapes back the optional sandbox file-sync hooks, and the interactive-setup and template-capture shapes back the setup hooks — both described below.
+
+#### Streaming live command output
+
+When your driver runs a long-lived command through `execute`, you don't have to wait for it to finish to show its output. While an `execute` call is still running, call `ctx.execution.log(stream, chunk)` for each fresh piece of output the command produces, and the host forwards it to that call's log callback as it arrives — before the final `execute` result lands. The host knows which `execute` invocation the chunk belongs to because it correlates every chunk with the invocation currently running (by the host-issued invocation id carried on the message envelope), so you just report chunks as they come and the host does the matching.
+
+The one method is `log(stream: "stdout" | "stderr", chunk: string): void`. Pass `"stdout"` or `"stderr"` for `stream`, and the text of the new output as `chunk` — it is a string, not raw bytes. A few things make this safe to sprinkle in wherever your command loop reads output:
+
+- **The default is a no-op that never throws.** A driver that doesn't stream keeps its current behaviour, and you never need to guard the call — if there's nothing to stream to, `log` simply does nothing.
+- **The host drops anything malformed.** A `stream` that isn't exactly `stdout` or `stderr` is dropped, and so is a `chunk` that is empty or too large. Bad input never reaches the log callback and never throws back at you.
+
+So a provider that wants live output just calls `ctx.execution.log("stdout", chunk)` (or `"stderr"`) each time it reads a new chunk from the running command, and a provider that doesn't stream can ignore the client entirely.
+
+#### Running a command outside the persistent session
+
+`PluginEnvironmentExecuteParams` carries an optional `bypassSession?: boolean`. It matters only if your driver opens a **persistent session** — one shell or connection it keeps alive across a lease's commands.
+
+The host sets `bypassSession: true` on a command that must run *before* the run's agent work — the workspace provision command is the canonical example. When you see the flag, run that command one-shot and leave the persistent session closed: don't open the session for it. The session then opens naturally on the first real in-run command instead, so provisioning never leaks into the session the agent works in.
+
+When the flag is absent or `false`, nothing changes — an ordinary in-run command opens and reuses the persistent session exactly as before. And a driver that doesn't keep a persistent session at all can ignore `bypassSession` entirely; there's no session to bypass.
 
 #### Sandbox file sync (optional)
 
