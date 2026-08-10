@@ -419,6 +419,7 @@ function decorateHeadings(article, file) {
 function decorateCodeBlocks(article) {
   const COPY_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>';
   const CHECK_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 3.5 3.5L13 5"/></svg>';
+  const DOWNLOAD_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8"/><path d="M4.5 7 8 10.5 11.5 7"/><path d="M3 13h10"/></svg>';
   article.querySelectorAll('pre').forEach(pre => {
     if (pre.parentElement?.classList.contains('code-wrap')) return;
     const wrap = document.createElement('div');
@@ -444,6 +445,40 @@ function decorateCodeBlocks(article) {
       } catch {}
     });
     wrap.appendChild(btn);
+
+    // Blocks that advertise a downloadable filename (the authoritative skill
+    // source) get a Download control beside Copy, sharing its dimensions,
+    // styling, and hover/focus visibility (see .code-download in styles.css).
+    const downloadable = pre.querySelector('code[data-skill-download]');
+    const filename = downloadable?.getAttribute('data-skill-download');
+    if (downloadable && filename) {
+      const dl = document.createElement('button');
+      dl.className = 'code-download';
+      dl.type = 'button';
+      dl.setAttribute('aria-label', `Download ${filename}`);
+      dl.title = `Download ${filename}`;
+      dl.innerHTML = DOWNLOAD_SVG;
+      dl.addEventListener('click', () => {
+        try {
+          const blob = new Blob([downloadable.textContent], { type: 'text/markdown' });
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = filename;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 0);
+          dl.classList.add('is-copied');
+          dl.innerHTML = CHECK_SVG;
+          setTimeout(() => {
+            dl.classList.remove('is-copied');
+            dl.innerHTML = DOWNLOAD_SVG;
+          }, 1200);
+        } catch {}
+      });
+      wrap.appendChild(dl);
+    }
   });
 }
 
@@ -1293,9 +1328,31 @@ function stripFrontmatter(md) {
   return rest.slice(closeMatch.index + closeMatch[0].length).replace(/^\r?\n/, '');
 }
 
+let skillAwareRenderer = null;
+// Mirror of the release build's code renderer (site/build-release.mjs): a fenced
+// block tagged `skill-source` renders as a standard markdown code block that also
+// advertises a downloadable filename via `data-skill-download`. Every other code
+// block is delegated to marked's default renderer, so existing snippets are
+// untouched. Keeping this in sync with the build keeps the Download control
+// available on SPA navigation as well as on the crawler-visible first render.
+function getSkillAwareRenderer(marked) {
+  if (skillAwareRenderer) return skillAwareRenderer;
+  const renderer = new marked.Renderer();
+  const defaultCode = renderer.code.bind(renderer);
+  renderer.code = (code, infostring, escaped) => {
+    const tokens = String(infostring || '').trim().split(/\s+/);
+    if (tokens.includes('skill-source')) {
+      return `<pre><code class="language-markdown" data-skill-download="SKILL.md">${escapeHtml(code)}\n</code></pre>\n`;
+    }
+    return defaultCode(code, infostring, escaped);
+  };
+  skillAwareRenderer = renderer;
+  return renderer;
+}
+
 async function renderMarkdown(md) {
   const renderer = await ensureMarkdownRenderer();
-  renderer.setOptions({ gfm: true, breaks: false });
+  renderer.setOptions({ gfm: true, breaks: false, renderer: getSkillAwareRenderer(renderer) });
   md = stripFrontmatter(md);
   md = preprocessTabs(md);
   return sanitizeMarkdownHtml(renderer.parse(md));
@@ -1318,7 +1375,7 @@ const TAG_MARKDOWN_ATTRS = {
   A: new Set(['href']),
   BUTTON: new Set(['type']),
   DETAILS: new Set(['open']),
-  CODE: new Set(['class']),
+  CODE: new Set(['class', 'data-skill-download']),
   IMG: new Set(['alt', 'height', 'loading', 'src', 'title', 'width']),
 };
 const SAFE_URL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);

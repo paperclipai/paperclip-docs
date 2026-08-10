@@ -51,22 +51,24 @@ This is an **optional** catalog skill — opt-in (install when you need it). For
 
 ## Full skill definition
 
-### Skill frontmatter
+The block below is the complete, authoritative `SKILL.md` for this skill — the exact file an agent loads at runtime. Use the controls in the top-right of the block to copy it or download it as `SKILL.md`.
 
-- **name:** design-critique
-- **description:** Give a structured product design critique — user job clarity, hierarchy, affordance, error states, accessibility, and consistency — focused on what to change, in what order, and why.
-- **key:** paperclipai/optional/product/design-critique
-- **recommendedForRoles:**
+````markdown skill-source
+---
+name: design-critique
+description: Give a structured product design critique — user job clarity, hierarchy, affordance, error states, accessibility, and consistency — focused on what to change, in what order, and why.
+key: paperclipai/optional/product/design-critique
+recommendedForRoles:
   - designer
   - product
   - engineer
-- **tags:**
+tags:
   - design
   - product
   - ux
   - review
+---
 
-### Skill instructions
 # Product Design Critique
 
 A structured critique pass for a screen, flow, or component. The output is a prioritized list of changes a designer or engineer can act on — not adjectives. Critique is not redesign; recommend, do not rebuild.
@@ -173,6 +175,7 @@ Always include the "strengths to keep" section. It is not flattery — it is sig
 - Suggesting net-new features under the guise of a critique.
 - Ignoring user context and grading on taste.
 - Treating a critique as approval. State approval explicitly if asked; otherwise critique is feedback, not sign-off.
+````
 
 ## See also
 

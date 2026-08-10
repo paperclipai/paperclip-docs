@@ -984,10 +984,26 @@ function preprocessTabs(markdown) {
   return output;
 }
 
-function renderStaticMarkdown(markdown) {
+// A fenced code block tagged `skill-source` (e.g. ```` ```markdown skill-source ````)
+// renders as a standard markdown code block that additionally advertises a
+// downloadable filename via `data-skill-download`. The client (app.js) reads
+// that attribute to offer a Download control beside the shared Copy button.
+// Every other code block is rendered exactly as marked's default renderer does.
+function isSkillSourceInfo(infostring) {
+  return String(infostring || "").trim().split(/\s+/).includes("skill-source");
+}
+
+export function renderStaticMarkdown(markdown) {
   const renderer = new marked.Renderer();
   const usedHeadingIds = new Set();
   renderer.image = releaseMarkdownImage;
+  const defaultCode = renderer.code.bind(renderer);
+  renderer.code = (code, infostring, escaped) => {
+    if (isSkillSourceInfo(infostring)) {
+      return `<pre><code class="language-markdown" data-skill-download="SKILL.md">${escapeHtml(code)}\n</code></pre>\n`;
+    }
+    return defaultCode(code, infostring, escaped);
+  };
   renderer.heading = (html, level, rawText) => {
     const baseId = slugifyHeadingText(rawText) || `h${level}`;
     let id = baseId;
