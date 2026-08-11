@@ -419,6 +419,7 @@ function decorateHeadings(article, file) {
 function decorateCodeBlocks(article) {
   const COPY_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>';
   const CHECK_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 3.5 3.5L13 5"/></svg>';
+  const DOWNLOAD_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8"/><path d="M4.5 7 8 10.5 11.5 7"/><path d="M3 13h10"/></svg>';
   article.querySelectorAll('pre').forEach(pre => {
     if (pre.parentElement?.classList.contains('code-wrap')) return;
     const wrap = document.createElement('div');
@@ -444,6 +445,40 @@ function decorateCodeBlocks(article) {
       } catch {}
     });
     wrap.appendChild(btn);
+
+    // Blocks that advertise a downloadable filename (the authoritative skill
+    // source) get a Download control beside Copy, sharing its dimensions,
+    // styling, and hover/focus visibility (see .code-download in styles.css).
+    const downloadable = pre.querySelector('code[data-skill-download]');
+    const filename = downloadable?.getAttribute('data-skill-download');
+    if (downloadable && filename) {
+      const dl = document.createElement('button');
+      dl.className = 'code-download';
+      dl.type = 'button';
+      dl.setAttribute('aria-label', `Download ${filename}`);
+      dl.title = `Download ${filename}`;
+      dl.innerHTML = DOWNLOAD_SVG;
+      dl.addEventListener('click', () => {
+        try {
+          const blob = new Blob([downloadable.textContent], { type: 'text/markdown' });
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = filename;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 0);
+          dl.classList.add('is-copied');
+          dl.innerHTML = CHECK_SVG;
+          setTimeout(() => {
+            dl.classList.remove('is-copied');
+            dl.innerHTML = DOWNLOAD_SVG;
+          }, 1200);
+        } catch {}
+      });
+      wrap.appendChild(dl);
+    }
   });
 }
 
@@ -541,16 +576,29 @@ window.addEventListener('resize', () => {
 });
 
 /* ─── Landing <-> article view switching ────────────────────────────────── */
+function docsRootUrl() {
+  return `${APP_BASE_URL.pathname.replace(/\/$/, '')}/`;
+}
+
 function showLanding() {
-  document.getElementById('landing').classList.add('is-active');
+  const landing = document.getElementById('landing');
+  // Interior documents ship without the homepage subtree, so there is no view
+  // to swap to — go to the real docs root instead.
+  if (!landing) {
+    window.location.assign(docsRootUrl());
+    return;
+  }
+  landing.classList.add('is-active');
   document.getElementById('article-view').classList.remove('is-active');
   document.getElementById('breadcrumb').innerHTML = '';
-  const basePath = APP_BASE_URL.pathname.replace(/\/$/, '');
-  history.replaceState(null, '', `${basePath}/`);
+  history.replaceState(null, '', docsRootUrl());
   updateLandingSeo();
 }
 function showArticleView() {
-  document.getElementById('landing').classList.remove('is-active');
+  // Only the docs root ships a homepage subtree, and once it hands off to an
+  // article the hero is dropped rather than hidden — otherwise the live DOM
+  // would keep a second H1 and the homepage headline on an interior route.
+  document.getElementById('landing')?.remove();
   document.getElementById('article-view').classList.add('is-active');
 }
 
@@ -559,6 +607,9 @@ document.addEventListener('click', e => {
   // Home nav (logo, back-to-all-docs)
   const home = e.target.closest('[data-nav="home"]');
   if (home) {
+    // Without a homepage subtree on this document, let the anchor's real root
+    // href navigate rather than intercepting into a view that does not exist.
+    if (!document.getElementById('landing')) return;
     e.preventDefault();
     closeDrawer();
     showLanding();
@@ -814,6 +865,9 @@ async function init() {
     if (!res.ok) throw new Error(`content.json ${res.status}`);
     navData = await res.json();
   } catch (e) {
+    // Server-rendered documents stay readable without the nav manifest; only
+    // report a failure when there is nothing on the page to fall back to.
+    if (document.getElementById('article')?.children.length) return;
     showError('Could not load content.json. Check that the release bundle was uploaded intact and the base path is correct.', e.message);
     return;
   }
@@ -848,6 +902,14 @@ async function init() {
 /* ─── Landing cards + quick links ───────────────────────────────────────── */
 function buildLanding() {
   const grid = document.getElementById('landing-cards');
+  // Interior documents have no homepage subtree at all.
+  if (!grid) return;
+  // The docs root ships the directory server-rendered from the same manifest.
+  // Keep that DOM — the delegated click handlers already wire it up.
+  if (grid.dataset.serverRendered === 'true') {
+    renderLucideIcons();
+    return;
+  }
   grid.innerHTML = '';
 
   // Group sections by tier, preserving original indices so data-nav-section still works.
@@ -1022,11 +1084,13 @@ async function loadPage(file, targetHeading = null, historyMode = 'push', option
   currentFile = file;
   showArticleView();
   setActiveState(file);
-  showLoading();
 
   let md;
   const article = document.getElementById('article');
   const useStaticArticle = Boolean(options.useStaticArticle && article?.children.length);
+  // Server-rendered content is already on screen; only a real client-side
+  // transition has anything to wait for.
+  if (!useStaticArticle) showLoading();
   if (useStaticArticle) {
     currentMarkdown = '';
   } else {
@@ -1264,9 +1328,31 @@ function stripFrontmatter(md) {
   return rest.slice(closeMatch.index + closeMatch[0].length).replace(/^\r?\n/, '');
 }
 
+let skillAwareRenderer = null;
+// Mirror of the release build's code renderer (site/build-release.mjs): a fenced
+// block tagged `skill-source` renders as a standard markdown code block that also
+// advertises a downloadable filename via `data-skill-download`. Every other code
+// block is delegated to marked's default renderer, so existing snippets are
+// untouched. Keeping this in sync with the build keeps the Download control
+// available on SPA navigation as well as on the crawler-visible first render.
+function getSkillAwareRenderer(marked) {
+  if (skillAwareRenderer) return skillAwareRenderer;
+  const renderer = new marked.Renderer();
+  const defaultCode = renderer.code.bind(renderer);
+  renderer.code = (code, infostring, escaped) => {
+    const tokens = String(infostring || '').trim().split(/\s+/);
+    if (tokens.includes('skill-source')) {
+      return `<pre><code class="language-markdown" data-skill-download="SKILL.md">${escapeHtml(code)}\n</code></pre>\n`;
+    }
+    return defaultCode(code, infostring, escaped);
+  };
+  skillAwareRenderer = renderer;
+  return renderer;
+}
+
 async function renderMarkdown(md) {
   const renderer = await ensureMarkdownRenderer();
-  renderer.setOptions({ gfm: true, breaks: false });
+  renderer.setOptions({ gfm: true, breaks: false, renderer: getSkillAwareRenderer(renderer) });
   md = stripFrontmatter(md);
   md = preprocessTabs(md);
   return sanitizeMarkdownHtml(renderer.parse(md));
@@ -1289,7 +1375,7 @@ const TAG_MARKDOWN_ATTRS = {
   A: new Set(['href']),
   BUTTON: new Set(['type']),
   DETAILS: new Set(['open']),
-  CODE: new Set(['class']),
+  CODE: new Set(['class', 'data-skill-download']),
   IMG: new Set(['alt', 'height', 'loading', 'src', 'title', 'width']),
 };
 const SAFE_URL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);
@@ -1750,26 +1836,55 @@ function renderPageNav(file) {
 }
 
 /* ─── Helpers ───────────────────────────────────────────────────────────── */
-function showLoading() {
-  resetToc();
-  document.getElementById('loading').style.display     = 'flex';
-  document.getElementById('error-state').style.display = 'none';
-  document.getElementById('article').style.display     = 'none';
-  document.getElementById('page-nav').style.display    = 'none';
+/* Runtime status is built on demand so a served document never ships loading or
+   error copy it cannot justify. Only real client-side transitions fill it in. */
+function renderRuntimeStatus(state, message, detail = '') {
+  const mount = document.getElementById('runtime-status');
+  if (!mount) return;
+  mount.textContent = '';
+  mount.dataset.state = state;
+  if (state === 'loading') {
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner';
+    mount.appendChild(spinner);
+  }
+  const messageEl = document.createElement('span');
+  messageEl.className = 'runtime-status-message';
+  messageEl.textContent = message;
+  mount.appendChild(messageEl);
+  if (detail) {
+    const detailEl = document.createElement('span');
+    detailEl.className = 'runtime-status-detail';
+    detailEl.textContent = detail;
+    mount.appendChild(detailEl);
+  }
+  mount.hidden = false;
 }
 
-function hideLoading() { document.getElementById('loading').style.display = 'none'; }
+function clearRuntimeStatus() {
+  const mount = document.getElementById('runtime-status');
+  if (!mount) return;
+  mount.hidden = true;
+  delete mount.dataset.state;
+  mount.textContent = '';
+}
+
+function showLoading() {
+  resetToc();
+  renderRuntimeStatus('loading', 'Loading…');
+  document.getElementById('article').style.display  = 'none';
+  document.getElementById('page-nav').style.display = 'none';
+}
+
+function hideLoading() { clearRuntimeStatus(); }
 
 function showError(msg, detail = '') {
   // Error state lives inside article-view; make sure the right view is showing.
   showArticleView();
   resetToc();
-  document.getElementById('loading').style.display     = 'none';
-  document.getElementById('article').style.display     = 'none';
-  document.getElementById('page-nav').style.display    = 'none';
-  document.getElementById('error-state').style.display = 'flex';
-  document.getElementById('error-state').querySelector('span').textContent = msg;
-  document.getElementById('error-detail').textContent  = detail;
+  document.getElementById('article').style.display  = 'none';
+  document.getElementById('page-nav').style.display = 'none';
+  renderRuntimeStatus('error', msg, detail);
 }
 
 function escapeHtml(s) {

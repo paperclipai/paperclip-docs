@@ -56,23 +56,25 @@ This is a **bundled** catalog skill — part of the bundled baseline kit. For ho
 
 ## Full skill definition
 
-### Skill frontmatter
+The block below is the complete, authoritative `SKILL.md` for this skill — the exact file an agent loads at runtime. Use the controls in the top-right of the block to copy it or download it as `SKILL.md`.
 
-- **name:** wireframe
-- **description:** Produce low-fidelity black-and-white UI wireframes as standalone SVG files, optionally bundled into a single-page HTML viewer and published via the here-now skill. Use when the user asks to "wireframe X", "sketch a screen for", "draft a layout", "low-fi mockup", "rough mock", "make a page to view the wireframes", "build a viewer for these screens", or to "deploy / publish / host the wireframes". Do NOT use when the user wants production UI code, branded designs, hi-fi mockups, or animated/interactive prototypes — use frontend-design or similar instead.
-- **key:** paperclipai/bundled/product/wireframe
-- **recommendedForRoles:**
+````markdown skill-source
+---
+name: wireframe
+description: Produce low-fidelity black-and-white UI wireframes as standalone SVG files, optionally bundled into a single-page HTML viewer and published via the here-now skill. Use when the user asks to "wireframe X", "sketch a screen for", "draft a layout", "low-fi mockup", "rough mock", "make a page to view the wireframes", "build a viewer for these screens", or to "deploy / publish / host the wireframes". Do NOT use when the user wants production UI code, branded designs, hi-fi mockups, or animated/interactive prototypes — use frontend-design or similar instead.
+key: paperclipai/bundled/product/wireframe
+recommendedForRoles:
   - designer
   - product
   - engineer
-- **tags:**
+tags:
   - design
   - wireframe
   - ux
   - prototyping
   - svg
+---
 
-### Skill instructions
 # Wireframe
 
 Produce low-fidelity, black-and-white UI wireframes as **standalone SVG files**. The goal is to communicate **structure** — what goes where, in what order, at roughly what size — without committing to colour, brand, or polish.
@@ -250,6 +252,7 @@ Things to remember when invoking it:
 - `assets/template.svg` — blank desktop canvas with hidden 8px-grid guides; copy as a starting point.
 - `assets/template-mobile.svg` — same for 375×812 mobile.
 - `assets/site-template.html` — minimal review-viewer page (sticky TOC + responsive collapse + lightbox). Copy to `design/<task-slug>/index.html` and fill in the sections when the user requests a website.
+````
 
 ## See also
 

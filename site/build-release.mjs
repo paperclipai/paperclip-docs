@@ -5,6 +5,7 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 import { transform } from "esbuild";
 import { marked } from "marked";
 
@@ -446,6 +447,14 @@ function getDeploymentBasePath(basePath) {
   return basePath === "auto" ? "/paperclip-docs/" : basePath;
 }
 
+function getPublicBasePath(basePath) {
+  return basePath === "auto" ? "/" : basePath;
+}
+
+function routePathForSlug(basePath, slug) {
+  return `${getPublicBasePath(basePath)}${normalizeRouteKey(slug)}/`;
+}
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -730,6 +739,27 @@ function buildCloudflareHeaders() {
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com; upgrade-insecure-requests
 
+# PAP-16990 cache policy. HTML shells must always revalidate so a returning
+# visitor never renders a stale document that points at a since-changed bundle.
+# Path routes are extensionless directories, so the docs root and every route
+# directory are matched explicitly. Fingerprinted JS/CSS carry a content hash in
+# the URL and are safe to cache immutably; content.json ships per release with
+# the exact-version bundle, so it revalidates alongside the HTML.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/app.*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/styles.*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/content.json
+  Cache-Control: public, max-age=0, must-revalidate
+
 /sitemap.xml
   Content-Type: application/xml; charset=utf-8
   X-Robots-Tag: noindex, nofollow
@@ -954,10 +984,26 @@ function preprocessTabs(markdown) {
   return output;
 }
 
-function renderStaticMarkdown(markdown) {
+// A fenced code block tagged `skill-source` (e.g. ```` ```markdown skill-source ````)
+// renders as a standard markdown code block that additionally advertises a
+// downloadable filename via `data-skill-download`. The client (app.js) reads
+// that attribute to offer a Download control beside the shared Copy button.
+// Every other code block is rendered exactly as marked's default renderer does.
+function isSkillSourceInfo(infostring) {
+  return String(infostring || "").trim().split(/\s+/).includes("skill-source");
+}
+
+export function renderStaticMarkdown(markdown) {
   const renderer = new marked.Renderer();
   const usedHeadingIds = new Set();
   renderer.image = releaseMarkdownImage;
+  const defaultCode = renderer.code.bind(renderer);
+  renderer.code = (code, infostring, escaped) => {
+    if (isSkillSourceInfo(infostring)) {
+      return `<pre><code class="language-markdown" data-skill-download="SKILL.md">${escapeHtml(code)}\n</code></pre>\n`;
+    }
+    return defaultCode(code, infostring, escaped);
+  };
   renderer.heading = (html, level, rawText) => {
     const baseId = slugifyHeadingText(rawText) || `h${level}`;
     let id = baseId;
@@ -971,10 +1017,192 @@ function renderStaticMarkdown(markdown) {
 }
 
 function inlineReleaseStyles(html, css) {
+  // Match the stylesheet link whether or not its href has been content-
+  // fingerprinted (styles.css or styles.<hash>.css) so inlining keeps working.
   return html.replace(
-    '<link rel="stylesheet" href="styles.css" />',
+    /<link rel="stylesheet" href="styles(?:\.[0-9a-f]+)?\.css" \/>/,
     `<style data-inline-release-css>${css}</style>`,
   );
+}
+
+// Derive a content-fingerprinted filename (e.g. app.js -> app.<hash>.js). The
+// hash is over the exact bytes that ship, so the URL changes if and only if the
+// asset's contents change. Exported for the fingerprint regression test.
+export function fingerprintAssetName(filename, content) {
+  const dot = filename.lastIndexOf(".");
+  const stem = filename.slice(0, dot);
+  const ext = filename.slice(dot);
+  const hash = createHash("sha256").update(content).digest("hex").slice(0, 12);
+  return `${stem}.${hash}${ext}`;
+}
+
+// Point the shell's external asset references at their fingerprinted URLs so
+// every generated route loads the exact bundle it was built with (PAP-16990).
+function rewriteAssetReferences(html, { appJsName, stylesName }) {
+  return html
+    .replace('src="app.js"', `src="${appJsName}"`)
+    .replace('href="styles.css"', `href="${stylesName}"`);
+}
+
+/* ─── Server-rendered homepage directory ──────────────────────────────────
+   The docs root is the only document that carries the `#landing` subtree, and
+   its directory is generated here from the same content.json tree that feeds
+   the sidebar, previous/next links, and the sitemap. Every entry is a real
+   `<a href>` so the whole manifest is reachable without JavaScript. */
+
+const LANDING_TIER_ORDER = ["Learn", "Administration", "Reference"];
+
+// app.js owns the icon set for the sidebar and drawer, so read it back out of
+// the shell source rather than keeping a second copy that can drift.
+function extractSectionIconPaths(appJsSource) {
+  const block = appJsSource.match(/const SECTION_ICON_PATHS = \{([\s\S]*?)\n\};/);
+  if (!block) {
+    throw new Error("Could not locate SECTION_ICON_PATHS in site/app.js.");
+  }
+  const iconPaths = {};
+  const entryRegex = /^\s*'?([\w-]+)'?:\s*'([^']*)',?\s*$/gm;
+  let match;
+  while ((match = entryRegex.exec(block[1])) !== null) {
+    iconPaths[match[1]] = match[2];
+  }
+  if (!iconPaths["book-open"]) {
+    throw new Error("SECTION_ICON_PATHS in site/app.js is missing the book-open fallback icon.");
+  }
+  return iconPaths;
+}
+
+function sectionIconTag(section, iconPaths) {
+  const icon = iconPaths[section?.icon] || iconPaths["book-open"];
+  return `<svg class="section-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;
+}
+
+function getSectionKind(section) {
+  return (section && typeof section === "object" && section.tier) || "Guides";
+}
+
+function countNavPages(nodes) {
+  return getNavChildren({ pages: nodes }).reduce((count, node) => {
+    if (isNavPage(node)) return count + 1;
+    return count + countNavPages(getNavChildren(node));
+  }, 0);
+}
+
+function getFirstNavPage(nodes) {
+  for (const node of getNavChildren({ pages: nodes })) {
+    if (isNavPage(node)) return node;
+    const firstChild = getFirstNavPage(getNavChildren(node));
+    if (firstChild) return firstChild;
+  }
+  return null;
+}
+
+function sectionsByTier(nav) {
+  const byTier = new Map();
+  (nav.sections || []).forEach((section, index) => {
+    const tier = getSectionKind(section);
+    if (!byTier.has(tier)) byTier.set(tier, []);
+    byTier.get(tier).push({ section, index });
+  });
+  const orderedTiers = [
+    ...LANDING_TIER_ORDER.filter((tier) => byTier.has(tier)),
+    ...[...byTier.keys()].filter((tier) => !LANDING_TIER_ORDER.includes(tier)),
+  ];
+  return orderedTiers.map((tier) => ({ tier, entries: byTier.get(tier) }));
+}
+
+// Mirrors the card grid app.js renders client-side, so the root document looks
+// identical whether or not the script runs.
+function buildLandingCardsHtml(nav, basePath, iconPaths) {
+  return sectionsByTier(nav).map(({ tier, entries }) => {
+    const columns = entries.length <= 3 ? entries.length : (entries.length === 4 ? 2 : 3);
+    const cards = entries.map(({ section, index }) => {
+      const firstPage = getFirstNavPage(section.pages);
+      const pageCount = countNavPages(section.pages);
+      const pageLabel = `${pageCount} page${pageCount === 1 ? "" : "s"}`;
+      const href = firstPage ? routePathForSlug(basePath, firstPage.slug) : getPublicBasePath(basePath);
+      const description = section.desc || `${pageLabel} in ${section.title}.`;
+      return `<a class="card" href="${escapeAttr(href)}" data-nav-section="${index}">`
+        + `<div class="card-icon">${sectionIconTag(section, iconPaths)}</div>`
+        + `<div class="card-title">${escapeHtml(section.title)}</div>`
+        + `<div class="card-desc">${escapeHtml(description)}</div>`
+        + `<div class="card-meta"><span>${escapeHtml(pageLabel)}</span><span class="dot"></span><span>${escapeHtml(tier)}</span></div>`
+        + `</a>`;
+    }).join("");
+    return `<section class="landing-tier" data-tier="${escapeAttr(tier)}">`
+      + `<h2>${escapeHtml(tier)}</h2>`
+      + `<div class="landing-tier-cards" style="--tier-cols:${columns}">${cards}</div>`
+      + `</section>`;
+  }).join("");
+}
+
+function landingDirectoryListHtml(nodes, basePath) {
+  const items = getNavChildren({ pages: nodes }).map((node) => {
+    if (isNavPage(node)) {
+      const href = routePathForSlug(basePath, node.slug);
+      return `<li><a href="${escapeAttr(href)}">${escapeHtml(node.title)}</a></li>`;
+    }
+    const children = getNavChildren(node);
+    if (!children.length) return "";
+    return `<li class="landing-directory-group">`
+      + `<span class="landing-directory-group-title">${escapeHtml(node.title || "Group")}</span>`
+      + landingDirectoryListHtml(children, basePath)
+      + `</li>`;
+  }).filter(Boolean).join("");
+  return items ? `<ul class="landing-directory-list">${items}</ul>` : "";
+}
+
+// Every document in the manifest, so crawlers and no-JS readers get the full
+// index rather than one entry point per section.
+function buildLandingDirectoryHtml(nav, basePath) {
+  const sections = sectionsByTier(nav).flatMap(({ entries }) => entries)
+    .map(({ section }) => {
+      const list = landingDirectoryListHtml(section.pages, basePath);
+      if (!list) return "";
+      return `<div class="landing-directory-section">`
+        + `<h3>${escapeHtml(section.title)}</h3>`
+        + list
+        + `</div>`;
+    })
+    .filter(Boolean)
+    .join("");
+  if (!sections) return "";
+  return `<nav id="landing-directory" aria-labelledby="landing-directory-title">`
+    + `<h2 id="landing-directory-title">Browse all documentation</h2>`
+    + `<div class="landing-directory-columns">${sections}</div>`
+    + `</nav>`;
+}
+
+function buildRootPageHtml(sourceIndex, nav, basePath, iconPaths) {
+  return sourceIndex
+    .replace('<section id="landing">', '<section id="landing" class="is-active">')
+    .replace(
+      '<div class="card-grid" id="landing-cards"></div>',
+      `<div class="card-grid" id="landing-cards" data-server-rendered="true">${buildLandingCardsHtml(nav, basePath, iconPaths)}</div>`
+        + buildLandingDirectoryHtml(nav, basePath),
+    );
+}
+
+// Interior documents must not carry the homepage subtree at all — hiding it
+// would still leave a second H1 and the homepage headline in the raw HTML.
+function removeLandingSubtree(html) {
+  const output = html.replace(/\n?<!-- ─── Landing page[^\n]*-->\n?/, "\n")
+    .replace(/<section id="landing">[\s\S]*?<\/section>\n?/, "");
+  if (output.includes('id="landing"') || output.includes('id="landing-title"')) {
+    throw new Error("Failed to remove the homepage landing subtree from an interior route.");
+  }
+  return output;
+}
+
+// Home links are plain anchors so they work without JavaScript; point them at
+// the base path this bundle is actually served from.
+function linkDocsRootAnchors(html, basePath) {
+  const rootHref = getPublicBasePath(basePath);
+  return html.replace(/<a\b[^>]*\bdata-nav="home"[^>]*>/g, (tag) => {
+    if (!/\bhref="[^"]*"/.test(tag)) {
+      throw new Error(`A data-nav="home" anchor in site/index.html is missing an href: ${tag}`);
+    }
+    return tag.replace(/\bhref="[^"]*"/, `href="${escapeAttr(rootHref)}"`);
+  });
 }
 
 function buildStaticPageNav(prev, next) {
@@ -989,11 +1217,11 @@ function buildStaticPageNav(prev, next) {
 
 function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles, prev, next) {
   const articleHtml = renderStaticMarkdown(markdown);
-  const routeBaseHref = basePath === "auto" ? "/" : basePath;
-  return inlineReleaseStyles(injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref }), releaseStyles)
-    .replace('<section id="landing">', '<section id="landing">')
+  const routeBaseHref = getPublicBasePath(basePath);
+  return removeLandingSubtree(
+    inlineReleaseStyles(injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref }), releaseStyles),
+  )
     .replace('<div id="article-view">', '<div id="article-view" class="is-active">')
-    .replace('<div id="loading">', '<div id="loading" style="display:none">')
     .replace('<article id="article" style="display:none"></article>', `<article id="article">${articleHtml}</article>`)
     .replace(
       '<div id="page-nav" style="display:none"></div>',
@@ -1097,13 +1325,24 @@ async function main() {
   await fs.rm(options.outDir, { recursive: true, force: true });
   await ensureDir(options.outDir);
 
-  const sourceIndex = await fs.readFile(sourceIndexPath, "utf8");
+  const rawSourceIndex = await fs.readFile(sourceIndexPath, "utf8");
   const sourceStyles = await fs.readFile(sourceStylesPath, "utf8");
   const sourceAppJs = await fs.readFile(sourceAppJsPath, "utf8");
+  const sectionIconPaths = extractSectionIconPaths(sourceAppJs);
   const releaseStyles = minifyCss(sourceStyles);
-  const releaseAppJs = rewriteAppJs(sourceAppJs, options.basePath);
-  await fs.writeFile(path.join(options.outDir, "styles.css"), releaseStyles);
-  await fs.writeFile(path.join(options.outDir, "app.js"), await minifyJs(releaseAppJs));
+  const releaseAppJs = await minifyJs(rewriteAppJs(sourceAppJs, options.basePath));
+  // Content-fingerprint the external client bundle so a returning browser can
+  // never combine freshly revalidated HTML with a stale cached app.js. Every
+  // generated route references this exact build's asset URL; a changed bundle
+  // gets a brand-new URL that no cache can satisfy with old bytes (PAP-16990).
+  const appJsName = fingerprintAssetName("app.js", releaseAppJs);
+  const stylesName = fingerprintAssetName("styles.css", releaseStyles);
+  const sourceIndex = rewriteAssetReferences(
+    linkDocsRootAnchors(rawSourceIndex, options.basePath),
+    { appJsName, stylesName },
+  );
+  await fs.writeFile(path.join(options.outDir, stylesName), releaseStyles);
+  await fs.writeFile(path.join(options.outDir, appJsName), releaseAppJs);
   if (await pathExists(sourceVendorDir)) {
     await copyDirRecursive(sourceVendorDir, path.join(options.outDir, "vendor"));
   }
@@ -1150,7 +1389,13 @@ async function main() {
     siteUrl: options.siteUrl,
     basePath: options.basePath,
   };
-  await fs.writeFile(path.join(options.outDir, "index.html"), inlineReleaseStyles(injectSeo(sourceIndex, rootMetadata), releaseStyles));
+  await fs.writeFile(
+    path.join(options.outDir, "index.html"),
+    inlineReleaseStyles(
+      injectSeo(buildRootPageHtml(sourceIndex, releaseNav, options.basePath, sectionIconPaths), rootMetadata),
+      releaseStyles,
+    ),
+  );
   await writeStaticRoutePages({
     outDir: options.outDir,
     sourceIndex,
