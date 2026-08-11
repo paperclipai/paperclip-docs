@@ -663,12 +663,14 @@
       gap: 2px;
     }
 
-    /* Loading / error */
-    #loading, #error-state {
+    /* Runtime status — populated by app.js only during a client transition. */
+    #runtime-status[data-state] {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 12px; padding: 80px 0;
       color: var(--ash); font-size: 14px;
     }
+    #runtime-status[hidden] { display: none; }
+    .runtime-status-detail { font-size: 12px; color: var(--ash); margin-top: 4px; }
     .spinner {
       width: 24px; height: 24px;
       border: 2px solid var(--stone); border-top-color: var(--green);
@@ -953,8 +955,8 @@
     /* Code block with copy button */
     .code-wrap { position: relative; margin-bottom: 20px; }
     .code-wrap pre { margin-bottom: 0; }
-    .code-copy {
-      position: absolute; top: 8px; right: 8px;
+    .code-copy, .code-download {
+      position: absolute; top: 8px;
       width: 30px; height: 30px;
       display: inline-flex; align-items: center; justify-content: center;
       border: 1px solid rgba(255,255,255,0.12);
@@ -964,12 +966,16 @@
       opacity: 0;
       transition: opacity var(--transition), background var(--transition), color var(--transition);
     }
-    .code-copy svg { width: 14px; height: 14px; }
+    .code-copy { right: 8px; }
+    .code-download { right: 46px; }
+    .code-copy svg, .code-download svg { width: 14px; height: 14px; }
     .code-wrap:hover .code-copy,
-    .code-copy:focus-visible { opacity: 1; }
-    .code-copy:hover { background: rgba(255,255,255,0.12); color: #fff; }
-    .code-copy.is-copied { opacity: 1; color: var(--green); border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.12); }
-    @media (hover: none) { .code-copy { opacity: 0.75; } }
+    .code-wrap:hover .code-download,
+    .code-copy:focus-visible,
+    .code-download:focus-visible { opacity: 1; }
+    .code-copy:hover, .code-download:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .code-copy.is-copied, .code-download.is-copied { opacity: 1; color: var(--green); border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.12); }
+    @media (hover: none) { .code-copy, .code-download { opacity: 0.75; } }
 
     #article p { margin-bottom: 16px; }
     #article a {
@@ -1015,6 +1021,14 @@
     #article pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit;
       /* Block code keeps its own horizontal scroll (pre is overflow-x:auto); don't force-wrap it. */
       overflow-wrap: normal; word-break: normal; }
+    /* A full SKILL.md is prose-like source rather than a short command snippet.
+       Preserve its line breaks and indentation, but wrap long lines so the
+       source stays readable without horizontal scrolling on narrow screens. */
+    #article pre code[data-skill-download="SKILL.md"] {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
 
     /* Tables */
     .table-wrap {
@@ -1416,4 +1430,68 @@
     }
     @media (max-width: 600px) {
       .landing-tier-cards { grid-template-columns: 1fr; }
+    }
+
+    /* Full manifest directory — server-rendered, so it reads and navigates
+       with JavaScript disabled. */
+    #landing-directory {
+      margin-top: 64px;
+      padding-top: 40px;
+      border-top: 1px solid var(--stone);
+    }
+    #landing-directory-title {
+      margin: 0 0 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ash);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .landing-directory-columns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px 24px;
+    }
+    .landing-directory-section > h3 {
+      margin: 0 0 10px;
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+    .landing-directory-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .landing-directory-list .landing-directory-list {
+      margin: 4px 0 8px;
+      padding-left: 12px;
+      border-left: 1px solid var(--stone);
+    }
+    .landing-directory-list a {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--graphite);
+      text-decoration: none;
+    }
+    .landing-directory-list a:hover { color: var(--ink); text-decoration: underline; }
+    .landing-directory-group-title {
+      display: block;
+      margin-top: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ash);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    @media (max-width: 900px) {
+      .landing-directory-columns { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .landing-directory-columns { grid-template-columns: 1fr; }
     }
