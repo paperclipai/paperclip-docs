@@ -183,6 +183,8 @@ A busy company with years of tasks and attachments makes a big package, and Pape
 
 Two guards protect you along the way. If any part of the upload goes missing in transit, the import refuses to run rather than importing a fragment, and asks you to retry. And every attachment in the package is checked against its content hash before a single record is written, so a corrupted or tampered-with package can't leave you with a half-imported company.
 
+By default the server accepts import packages up to **1 GB**. If your export is bigger, an operator can raise the cap by setting the `PAPERCLIP_IMPORT_ZIP_MAX_BYTES` environment variable (in bytes, up to 64 GiB) — see [Environment Variables](../../reference/deploy/environment-variables.md).
+
 ---
 
 ## Common use cases

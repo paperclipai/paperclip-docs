@@ -202,6 +202,7 @@ These values are covered in more detail in [Secrets](./secrets.md).
 | `PAPERCLIP_STORAGE_S3_ENDPOINT` | Custom S3-compatible endpoint for MinIO, R2, and similar providers. |
 | `PAPERCLIP_STORAGE_S3_PREFIX` | Optional object key prefix. |
 | `PAPERCLIP_STORAGE_S3_FORCE_PATH_STYLE` | Enable path-style S3 requests when the provider needs them. |
+| `PAPERCLIP_IMPORT_ZIP_MAX_BYTES` | Maximum size, in bytes, of a company-import `.zip` upload. Defaults to `1073741824` (1 GB). Set it higher to accept larger packages, or lower to tighten the cap. Values are clamped to the range 1 byte – 64 GiB; anything non-numeric, fractional-to-zero, or out of range falls back to the 1 GB default. |
 
 ---
 
