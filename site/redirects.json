@@ -40,6 +40,7 @@
   "user-guides/guides/administration/plugins": "administration/plugins",
   "start/quickstart": "guides/getting-started/five-minute-path",
   "start/core-concepts": "guides/welcome/key-concepts",
+  "start/what-is-paperclip": "guides/welcome/what-is-paperclip",
   "tutorials": "guides/getting-started/five-minute-path",
   "how-to": "how-to/enable-multi-user-login",
   "glossary": "guides/welcome/glossary",
