@@ -362,6 +362,63 @@ The upload response includes `assetId` and `contentPath`. `contentPath` points a
 
 ---
 
+## Onboarding seed
+
+When you sign up through Paperclip Cloud, the signup wizard asks a few questions — your company's mission, who your first agent should be, and an optional first task. This route is how those answers land in your stack. Paperclip Cloud collects the answers at signup and pushes them in when your company activates, so your dashboard opens with a mission and a lead agent already in place instead of an empty shell.
+
+You will rarely call this route by hand. It exists for the trusted Cloud-to-stack handoff, and it authenticates the same way as the company logo route: the `x-paperclip-cloud-*` headers resolve a company-scoped actor, and access fails closed for anyone else.
+
+```
+POST /api/companies/{companyId}/onboarding-seed
+{
+  "revision": "sha256:...",
+  "mission": "Grow our newsletter to 10k subscribers",
+  "agent": { "name": "Ada", "role": "Chief of Staff" },
+  "firstTask": { "title": "Draft the welcome email", "details": "Warm, short, one call to action" }
+}
+```
+
+The body carries the seed content — it is never read from a header:
+
+| Field | Required | Meaning |
+|---|---|---|
+| `revision` | yes | Content hash Cloud computed over the seed. Drives idempotency (1–128 chars). |
+| `mission` | no | Free-text mission, up to 2000 chars. Becomes the company-level goal. |
+| `agent.name` | with `agent` | Name of the first hire, 1–80 chars. |
+| `agent.role` | no | Free-text role such as `Chief of Staff`, up to 120 chars. Lands on the agent's title. |
+| `firstTask.title` | with `firstTask` | First task title, 1–200 chars. |
+| `firstTask.details` | no | First task details, up to 2000 chars. |
+
+Applying a seed does up to three things: it turns the mission into your company goal, creates (or updates) your lead agent, and drops the first task into an `Onboarding` project assigned to that agent.
+
+The route is idempotent on `revision`. Replaying a revision that already applied is a successful no-op — it will not create a second agent or a second task. If you edit your answers in Cloud, the new revision updates the goal, agent, and task the previous seed created rather than duplicating them.
+
+### Response
+
+```json
+{
+  "companyId": "company-1",
+  "revision": "sha256:...",
+  "applied": true,
+  "changed": true,
+  "goalId": "...",
+  "agentId": "...",
+  "issueId": "..."
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `companyId` | The company the seed was applied to |
+| `revision` | The applied revision |
+| `applied` | Always `true` on a `200` |
+| `changed` | `false` when the stored revision already matched and nothing was re-applied |
+| `goalId` | Id of the goal the mission created or updated, or `null` |
+| `agentId` | Id of the seeded lead agent, or `null` |
+| `issueId` | Id of the seeded first task, or `null` |
+
+---
+
 ## Company stats
 
 ```

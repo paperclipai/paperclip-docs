@@ -145,6 +145,8 @@ The UI's `Test Environment` button validates Claude Code before the adapter is s
 
 If the test fails, fix the command, path, or auth signal before trying again.
 
+> **Tip:** Running this agent in a sandbox where you can't sign Claude Code in interactively? Use the `setup-token` login flow to authenticate the CLI from the Board instead. See [Setup-Token & Device-Login Authentication](./setup-token-authentication.md).
+
 ---
 
 ## Example
