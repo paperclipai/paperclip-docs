@@ -261,6 +261,8 @@ eval "$(paperclipai agent local-cli codexcoder --company-id <company-id> --json 
 
 > **Warning:** The minted API key's plaintext token is shown **once**, in the command output. The exports embed it directly. Treat the output as a secret, and revoke the key with `token agent revoke` when the local session is done. See [Authentication](./authentication.md).
 
+> **Note:** The exports do **not** include `PAPERCLIP_RUN_ID`. Some agent-authenticated issue mutations (checkout, release, interactions, in-progress updates) are validated against a heartbeat run and fail with `401 Agent run id required` without one. If a local session hits that error, pass `--run-id <heartbeat-run-id>` on the failing command or export `PAPERCLIP_RUN_ID` — see the `--run-id` flag in [Common Options](./common-options.md).
+
 When skill installation runs, the command prints a per-tool summary (`linked` / `removed` / `skipped` / `failed` counts and the target directory). Broken symlinks are repaired and maintainer-only skills are removed, so re-running `local-cli` is safe and idempotent. Installation requires the bundled `skills` directory to be present in the checkout; if it cannot be found, the command fails rather than installing nothing silently.
 
 ---

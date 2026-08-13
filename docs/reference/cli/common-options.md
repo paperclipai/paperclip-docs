@@ -28,6 +28,12 @@ Company-scoped commands add one more flag:
 |---|---|
 | `-C, --company-id <id>` | Company ID. Overrides the profile's default company for this command. |
 
+Client commands also accept a run-scope flag:
+
+| Flag | Use |
+|---|---|
+| `--run-id <id>` | Heartbeat run ID attached to agent-authenticated mutations (issue checkout/release, interactions, in-progress updates). Falls back to the `PAPERCLIP_RUN_ID` environment variable. Without it, the server rejects those mutations with `401 Agent run id required`. Adapter/embodiment contexts export `PAPERCLIP_RUN_ID` automatically; `agent local-cli` does not. |
+
 > **Note:** The short alias `-C` for `--company-id` is registered by commands that opt into company scope. Not every command is company-scoped, so check the per-command reference page if you are unsure whether it applies.
 
 ---
@@ -80,6 +86,8 @@ If a command requires a company and none of these is set, it errors with:
 ```
 Company ID is required. Pass --company-id, set PAPERCLIP_COMPANY_ID, or set context profile companyId via `paperclipai context set`.
 ```
+
+> **Note:** Some commands declare `--company-id` as a *required option* instead of relying on this chain — for example `dashboard get`, `agent list`, `agent local-cli`, and the `token agent` commands. For those, the flag must be passed on the command line; the env var and profile fallbacks are never consulted, and omitting the flag fails with a missing-option error. The per-command reference pages call this out.
 
 ---
 
