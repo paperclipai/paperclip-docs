@@ -119,6 +119,8 @@ You are not limited to that list, though. OpenCode only resolves a `--model prov
 
 To spare you that, Paperclip registers whatever you put in `model` into the temporary `opencode.json` described above, adding it to that provider's `models` map when it is not already there. Models the catalog already knows keep all of their metadata, and an explicit definition — from your own OpenCode config or from `PAPERCLIP_OPENCODE_PROVIDERS` — always wins, so Paperclip never overwrites one. When it does add an entry, you will see a run note saying it registered the model. Like the rest of the runtime config on this page, this applies when `dangerouslySkipPermissions` is enabled and the target runs locally.
 
+Before a run, Paperclip pre-flights your configured model against `opencode models`. This probe is best-effort: if the model is present, the run proceeds; if the model is missing from a non-empty list, the run is rejected with an "unavailable" error listing a sample of available ids. But if the probe itself cannot run — a transient CLI error, a timeout, or an empty result — Paperclip logs a warning and proceeds with your configured model rather than aborting the run. The real `opencode run` invocation stays authoritative, so a probe that can't execute never discards a run mid-flight.
+
 ---
 
 ## Example

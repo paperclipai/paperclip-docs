@@ -131,3 +131,4 @@ If you're running sandbox workers, leave `engine` on `auto` so the adapter uses 
 - [Process](./process.md)
 - [HTTP](./http.md)
 - [External Adapters](./external-adapters.md)
+- [Setup-Token & Device-Login Authentication](./setup-token-authentication.md)

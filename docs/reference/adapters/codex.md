@@ -170,6 +170,8 @@ Each `codex_local` agent runs against its own managed Codex home, so one agent c
 - **Your own `CODEX_HOME` is left alone.** If you point the adapter at a `CODEX_HOME` outside Paperclip's managed company tree, Paperclip treats it as self-managed and never seeds or overwrites it.
 - **No silent credential-less runs.** If a managed home ends up with no usable login and no configured API key, the run fails fast with a clear adapter error instead of starting Codex and hitting a `401` from the provider.
 
+> **Tip:** Running this agent in a sandbox where you can't sign Codex in interactively? Use the device-login flow to authenticate the CLI from the Board and promote a subscription credential into the company slot. See [Setup-Token & Device-Login Authentication](./setup-token-authentication.md).
+
 ### CODEX_HOME sync into a sandbox
 
 When this agent runs in a Paperclip sandbox, the adapter does not copy your whole Codex home into the sandbox. Instead it stages an explicit allowlist, so only the material a run actually needs crosses the boundary and none of your host-local runtime state comes along for the ride. The synced entries are:
