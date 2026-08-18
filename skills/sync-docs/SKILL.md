@@ -31,6 +31,7 @@ The branch model is non-negotiable: end users on the latest *released* paperclip
 - `docs/user-guides/screenshots/registry.json` — read/write: screenshot dependency tracking.
 - `PENDING.md` (on `nightly` branch only) — **regenerated** from scratch each run (not appended) so it always reflects the current cumulative manifest. Stale entries from reverted commits never linger.
 - `SCREENSHOTS_PENDING.md` (committed) — regenerated each run, lists screenshots whose `depends_on` paths changed in the diff window.
+- `docs/reference/changelog.md` — **release mode only**: append one accordion entry per release (Phase 6.5). User-facing and linked from the nav; nothing else writes it.
 
 **Helper scripts called during the run:**
 
@@ -281,6 +282,61 @@ Capture is now automatable via the screenshot pipeline:
   ```
 
 Both commands spin up an isolated `local_trusted` / `loopback` Paperclip instance, seed it with demo data, capture light + dark variants at 1440×900 @2x, and stamp `captured_sha` / `captured_against` in `registry.json`. The output PNGs land in a PR for human review — they are **never auto-pushed**. See [`scripts/screenshots/README.md`](../../scripts/screenshots/README.md) for prerequisites and full details.
+
+### Phase 6.5 — Documentation changelog (release mode only)
+
+`docs/reference/changelog.md` is a changelog for **these docs** — pages added,
+rewritten, or expanded per release — not for the product. It is user-facing and
+linked from the nav, and nothing else writes it, so it silently goes stale unless
+this phase runs. (It did: the page was created in July 2026 with two backfilled
+entries and then missed the very next release.)
+
+Skip entirely in nightly mode — nightly pages are versionless until they merge to
+`main`, and a changelog entry for an unreleased tag would leak.
+
+1. Read the current top entry to match its shape. The format is a `<details>`
+   accordion, newest first:
+
+   ```html
+   <details class="accordion" open>
+   <summary>Docs for vYYYY.MDD.P <span class="accordion-meta">Month D, YYYY</span></summary>
+   <div class="accordion-body">
+
+   **New pages**
+
+   - [Title](relative/path.md) — one line on what it covers.
+
+   **Updated pages**
+
+   - [Title](relative/path.md) — one line on what changed.
+
+   </div>
+   </details>
+   ```
+
+2. **Only the newest entry carries `open`.** Remove `open` from the previous top
+   entry when you insert the new one, or the page renders with two expanded.
+
+3. Build the entry from the manifest you already have, not from a fresh diff:
+   - **New pages** — every page created this window. Link text is the page title.
+   - **Updated pages** — the substantive rewrites. Lead with the reader's benefit
+     ("what an agent may propose, and the board-side approve/reject flow"), not
+     the mechanics of the diff. Roll trivial one-liners into a single trailing
+     bullet rather than listing each.
+   - **Screenshots** — add a short block when a release recaptured them, saying
+     what was reshot and what gained first-time coverage.
+
+4. Links are relative to `docs/reference/`: a sibling is `api/secrets.md`, a page
+   elsewhere under `docs/` is `../guides/day-to-day/decisions.md`.
+
+5. Bump the page's own `paperclip_version` frontmatter to the release tag.
+
+6. Exclude maintenance files that are not user-facing pages (anything under
+   `docs/user-guides/screenshots/`, `SCREENSHOTS_*.md`, plan documents). They are
+   in the repo, not in the docs.
+
+Phase 7's `sync:check` catches a bad relative link here, so a typo fails the run
+rather than shipping.
 
 ### Phase 7 — Verify & commit
 
