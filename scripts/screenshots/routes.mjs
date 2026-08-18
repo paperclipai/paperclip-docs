@@ -50,6 +50,12 @@ const ID_TOKENS = [
   "runnerAgentId", // process agent with a completed run (transcript)
   "runnerRunId", // that run's id
   "longRunnerAgentId", // process agent left running during capture
+  // v2026.817.0 surfaces (written by seed-new-surfaces.mjs)
+  "darkModeDecisionId", // an open agent-proposed decision with three options
+  "rolloutDecisionId", // an open decision that collects input fields first
+  "decisionQueueKey", // a named decision queue's key (route segment, not a uuid)
+  "statusCardId", // a status card with a compiled query and a written summary
+  "reliabilityStatusCardId", // a second card, so the board is not a single tile
 ];
 
 /**
@@ -134,31 +140,31 @@ export const CAPTURE_TARGETS = [
   // ── Instance settings ──────────────────────────────────────────────────────
   {
     name: "settings/profile",
-    route: "/instance/settings/profile",
+    route: "/{prefix}/company/settings/instance/profile",
     dependsOn: ["ui/src/pages/ProfileSettings.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "settings/instance-general",
-    route: "/instance/settings/general",
+    route: "/{prefix}/company/settings/instance/general",
     dependsOn: ["ui/src/pages/InstanceGeneralSettings.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "settings/instance-access",
-    route: "/instance/settings/access",
+    route: "/{prefix}/company/settings/instance/access",
     dependsOn: ["ui/src/pages/InstanceAccess.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "settings/scheduler-heartbeats",
-    route: "/instance/settings/heartbeats",
+    route: "/{prefix}/company/settings/instance/heartbeats",
     dependsOn: ["ui/src/pages/InstanceSettings.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "settings/experimental",
-    route: "/instance/settings/experimental",
+    route: "/{prefix}/company/settings/instance/experimental",
     dependsOn: ["ui/src/pages/InstanceExperimentalSettings.tsx"],
     themes: ["light", "dark"],
   },
@@ -166,7 +172,7 @@ export const CAPTURE_TARGETS = [
   // ── Plugins ────────────────────────────────────────────────────────────────
   {
     name: "plugins/list",
-    route: "/instance/settings/plugins",
+    route: "/{prefix}/company/settings/instance/plugins",
     dependsOn: ["ui/src/pages/PluginManager.tsx"],
     themes: ["light", "dark"],
   },
@@ -174,26 +180,26 @@ export const CAPTURE_TARGETS = [
   // of scope for the automated batch, but the base page is captured.
   {
     name: "plugins/install",
-    route: "/instance/settings/plugins",
+    route: "/{prefix}/company/settings/instance/plugins",
     dependsOn: ["ui/src/pages/PluginManager.tsx"],
     themes: ["light", "dark"],
     wait: 1500, // extra settle to allow plugin list to render
   },
   {
     name: "plugins/detail",
-    route: "/instance/settings/plugins",
+    route: "/{prefix}/company/settings/instance/plugins",
     dependsOn: ["ui/src/pages/PluginPage.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "plugins/settings",
-    route: "/instance/settings/plugins",
+    route: "/{prefix}/company/settings/instance/plugins",
     dependsOn: ["ui/src/pages/PluginSettings.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "plugins/jobs-log",
-    route: "/instance/settings/plugins",
+    route: "/{prefix}/company/settings/instance/plugins",
     dependsOn: ["ui/src/pages/PluginSettings.tsx"],
     themes: ["light", "dark"],
   },
@@ -313,6 +319,15 @@ export const CAPTURE_TARGETS = [
     route: "/{prefix}/issues/{issueId}",
     dependsOn: ["ui/src/pages/IssueDetail.tsx"],
     themes: ["light", "dark"],
+    // The issue page opens at the top, where the description and sub-tasks
+    // table live; the chat thread this shot is *about* sits below the fold and
+    // was almost entirely cropped out. Scrolling to the Chat tab itself is a
+    // no-op (it is already just inside a 900px viewport), so scroll to the last
+    // message in the thread — that lands the conversation on screen.
+    steps: [
+      { scrollTo: { text: "Ship the desktop version" } },
+      { waitMs: 900 },
+    ],
   },
   // Activity tab — same route, manual tab click needed; captured as a separate target.
   {
@@ -366,10 +381,13 @@ export const CAPTURE_TARGETS = [
       "ui/src/components/NewIssueDialog.tsx",
       "ui/src/lib/work-mode-meta.ts",
     ],
+    // The "c" keyboard shortcut no longer opens the composer; the sidebar
+    // "New Task" button does. The mode chip inside the dialog is unchanged.
     steps: [
-      { press: "c" },
-      { waitMs: 600 },
+      { click: { role: "button", name: "New Task" } },
+      { waitMs: 1200 },
       { click: { css: "[data-issue-work-mode-chip]" } },
+      { waitMs: 700 },
     ],
     themes: ["light", "dark"],
   },
@@ -472,19 +490,19 @@ export const CAPTURE_TARGETS = [
   // ── Adapters ───────────────────────────────────────────────────────────────
   {
     name: "adapters/list",
-    route: "/instance/settings/adapters",
+    route: "/{prefix}/company/settings/instance/adapters",
     dependsOn: ["ui/src/pages/AdapterManager.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "adapters/install",
-    route: "/instance/settings/adapters",
+    route: "/{prefix}/company/settings/instance/adapters",
     dependsOn: ["ui/src/pages/AdapterManager.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "adapters/detail",
-    route: "/instance/settings/adapters",
+    route: "/{prefix}/company/settings/instance/adapters",
     dependsOn: ["ui/src/pages/AdapterManager.tsx"],
     themes: ["light", "dark"],
   },
@@ -541,13 +559,15 @@ export const CAPTURE_TARGETS = [
     name: "dashboard/activity-feed",
     route: "/{prefix}/dashboard",
     dependsOn: ["ui/src/pages/Dashboard.tsx"],
-    clip: { css: 'xpath=//h3[contains(.,"Recent Activity")]/ancestor::div[contains(@class,"rounded")][1]' },
+    // The heading's Card is a sibling now, not an ancestor — the old
+    // ancestor-div[rounded] xpath matched nothing and fell back to full page.
+    clip: { css: 'xpath=//h3[contains(.,"Recent Activity")]/parent::div' },
   },
   {
     name: "dashboard/task-breakdown-panel",
     route: "/{prefix}/dashboard",
     dependsOn: ["ui/src/pages/Dashboard.tsx"],
-    clip: { css: 'xpath=//h3[contains(.,"Recent Tasks")]/ancestor::div[contains(@class,"rounded")][1]' },
+    clip: { css: 'xpath=//h3[contains(.,"Recent Tasks")]/parent::div' },
   },
 
   // ── Tasks / inbox ─────────────────────────────────────────────────────────
@@ -561,21 +581,29 @@ export const CAPTURE_TARGETS = [
     name: "issues/detail-sidebar",
     route: "/{prefix}/issues/{issueId}",
     dependsOn: ["ui/src/pages/IssueDetail.tsx"],
-    steps: [{ click: { title: "Show properties" } }, { waitMs: 600 }],
+    // The properties pane is open by default now, so the old "Show properties"
+    // toggle is hidden and clicking it timed out. Just land on the page.
+    wait: 2000,
   },
 
   // ── Activity ────────────────────────────────────────────────────────────────
-  { name: "activity/activity-log-full", route: "/{prefix}/activity", dependsOn: ["ui/src/pages/Activity.tsx"] },
+  {
+    name: "activity/activity-log-full",
+    route: "/{prefix}/activity",
+    // Activity.tsx was deleted in v2026.817.0; /activity now renders the merged
+    // audit + activity page (and /audit redirects here with ?mode=agents).
+    dependsOn: ["ui/src/pages/audit/CompanyActivity.tsx", "ui/src/pages/audit/AuditFeed.tsx"],
+  },
   {
     name: "activity/activity-filters",
     route: "/{prefix}/activity",
-    dependsOn: ["ui/src/pages/Activity.tsx"],
+    dependsOn: ["ui/src/pages/audit/CompanyActivity.tsx", "ui/src/pages/audit/AuditFeed.tsx"],
     steps: [{ click: { role: "combobox" } }, { waitMs: 500 }],
   },
   {
     name: "activity/activity-filtered-by-agent",
     route: "/{prefix}/activity",
-    dependsOn: ["ui/src/pages/Activity.tsx"],
+    dependsOn: ["ui/src/pages/audit/CompanyActivity.tsx", "ui/src/pages/audit/AuditFeed.tsx"],
     steps: [{ click: { role: "combobox" } }, { waitMs: 400 }, { click: { role: "option", name: "Agent" } }, { waitMs: 600 }],
   },
 
@@ -601,9 +629,13 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "routines/cron-picker",
-    route: "/{prefix}/routines/{routineId}",
-    dependsOn: ["ui/src/pages/RoutineDetail.tsx", "ui/src/components/ScheduleEditor.tsx"],
-    steps: [{ click: { role: "combobox" } }, { waitMs: 500 }],
+    // RoutineDetail is tabbed now (Overview / Triggers / Variables / …) and the
+    // schedule editor lives under Triggers, which has its own URL. Navigating
+    // straight there beats clicking a combobox that no longer exists.
+    route: "/{prefix}/routines/{routineId}/triggers",
+    dependsOn: ["ui/src/pages/RoutineDetail.tsx"],
+    themes: ["light", "dark"],
+    wait: 2000,
   },
 
   // ── Skills ──────────────────────────────────────────────────────────────────
@@ -611,14 +643,15 @@ export const CAPTURE_TARGETS = [
     name: "skills/assign-to-agent",
     route: "/{prefix}/skills/{skillId}",
     dependsOn: ["ui/src/pages/CompanySkills.tsx"],
-    steps: [{ click: { role: "button", name: "Attach to agents" } }, { waitMs: 600 }],
+    // Renamed from "Attach to agents" to "Add to agent".
+    steps: [{ click: { role: "button", name: "Add to agent" } }, { waitMs: 800 }],
   },
 
   // ── Workspaces ──────────────────────────────────────────────────────────────
   { name: "workspaces/list", route: "/{prefix}/workspaces", dependsOn: ["ui/src/pages/Workspaces.tsx"] },
 
   // ── Settings ────────────────────────────────────────────────────────────────
-  { name: "settings/instance-adapters", route: "/instance/settings/adapters", dependsOn: ["ui/src/pages/AdapterManager.tsx"] },
+  { name: "settings/instance-adapters", route: "/{prefix}/company/settings/instance/adapters", dependsOn: ["ui/src/pages/AdapterManager.tsx"] },
 
   // ── Costs ─────────────────────────────────────────────────────────────────
   { name: "costs/costs-dashboard-overview", route: "/{prefix}/costs", dependsOn: ["ui/src/pages/Costs.tsx"] },
@@ -697,7 +730,8 @@ export const CAPTURE_TARGETS = [
     name: "onboarding/sidebar-new-company-button",
     route: "/{prefix}/dashboard",
     dependsOn: ["ui/src/components/SidebarCompanyMenu.tsx"],
-    steps: [{ click: { role: "button", name: /workspace switcher/i } }, { waitMs: 500 }],
+    // The switcher is labelled "Open <Company> company switcher".
+    steps: [{ click: { role: "button", name: /company switcher/i } }, { waitMs: 700 }],
   },
   {
     // Captured pre-seed: the company-less instance redirects to /onboarding,
@@ -739,7 +773,7 @@ export const CAPTURE_TARGETS = [
   },
 
   // ── Adapter "health" — the adapter rows (type · package · N models) ─────────
-  { name: "adapters/health", route: "/instance/settings/adapters", dependsOn: ["ui/src/pages/AdapterManager.tsx"] },
+  { name: "adapters/health", route: "/{prefix}/company/settings/instance/adapters", dependsOn: ["ui/src/pages/AdapterManager.tsx"] },
 
   // ── Onboarding goal field (wizard step 1) ───────────────────────────────────
   {
@@ -866,12 +900,6 @@ export const CAPTURE_TARGETS = [
     dependsOn: ["ui/src/pages/Dashboard.tsx"],
     clip: { css: 'xpath=(//*[contains(text(),"Cost") or contains(text(),"Spend")]/ancestor::div[contains(@class,"rounded")])[1]' },
   },
-  {
-    name: "dashboard/stale-tasks-panel",
-    route: "/{prefix}/dashboard",
-    dependsOn: ["ui/src/pages/Dashboard.tsx"],
-    clip: { css: 'xpath=(//*[contains(text(),"Stale")]/ancestor::div[contains(@class,"rounded")])[1]' },
-  },
 
   // Export / import — full pages double as the dialog surfaces.
   {
@@ -890,7 +918,8 @@ export const CAPTURE_TARGETS = [
     name: "org/org-chart-add-agent",
     route: "/{prefix}/org",
     dependsOn: ["ui/src/pages/OrgChart.tsx"],
-    steps: [{ click: { role: "button", name: /Add agent/i } }, { waitMs: 600 }],
+    // The org chart's create button is labelled "New agent".
+    steps: [{ click: { role: "button", name: /New agent/i } }, { waitMs: 800 }],
   },
   {
     // Seed assigns Bob → Ada (manager), so the plain chart shows the assignment.
@@ -962,13 +991,19 @@ export const CAPTURE_TARGETS = [
   // their real content rather than the disabled stubs.
   {
     name: "experimental/environments",
-    route: "/instance/settings/environments",
+    route: "/{prefix}/company/settings/instance/environments",
     dependsOn: ["ui/src/pages/CompanyEnvironments.tsx"],
   },
   {
+    // PAP-era rename: `ui/src/pages/CloudUpstream.tsx` was deleted in
+    // v2026.817.0 and `/company/settings/cloud-upstream` is now a redirect to
+    // `/company/export`, where cloud sync lives. Pointing at the old route
+    // would have captured the export page under the wrong name; point at the
+    // real surface instead so the shot and its depends_on agree.
     name: "experimental/cloud-upstream",
-    route: "/{prefix}/company/settings/cloud-upstream",
-    dependsOn: ["ui/src/pages/CloudUpstream.tsx"],
+    route: "/{prefix}/company/export",
+    dependsOn: ["ui/src/pages/CompanyExport.tsx", "ui/src/api/cloud.ts"],
+    wait: 2000,
   },
   {
     name: "experimental/file-viewer-browse",
@@ -990,9 +1025,171 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "experimental/recovery-preview",
-    route: "/instance/settings/experimental",
+    route: "/{prefix}/company/settings/instance/experimental",
     dependsOn: ["ui/src/pages/InstanceExperimentalSettings.tsx"],
     steps: [{ click: { role: "button", name: "Preview" } }, { waitMs: 1500 }],
+  },
+
+  // ── Decisions (docs/guides/day-to-day/decisions.md) ─────────────────────────
+  // New in v2026.817.0. The whole surface is gated on `enableDecisions`, which
+  // seed.mjs turns on, and the queue only has content because
+  // seed-new-surfaces.mjs proposes decisions through a real agent run.
+  //
+  // These pages resolve their gate from an async experimental-settings fetch,
+  // and the sidebar/feed paint in two passes — a 1200 ms settle reliably caught
+  // the pre-flag render. Hence the longer `wait` on every target here.
+  {
+    name: "decisions/queue-overview",
+    route: "/{prefix}/decisions",
+    dependsOn: ["ui/src/pages/WhatNeedsMe.tsx", "ui/src/components/AttentionQueueRow.tsx"],
+    wait: 4000,
+  },
+  {
+    name: "decisions/decision-card",
+    route: "/{prefix}/decisions",
+    dependsOn: [
+      "ui/src/components/DecisionCard.tsx",
+      "ui/src/components/DecisionResolver.tsx",
+      "ui/src/components/DecisionTriageStrip.tsx",
+    ],
+    // The feed selects and expands its first row, which is the newest decision.
+    // Click it explicitly anyway so the shot does not depend on that default.
+    wait: 4000,
+    steps: [{ click: { text: "Ship dark mode with the system-preference default?" } }, { waitMs: 1500 }],
+  },
+  {
+    name: "decisions/triage-chips",
+    route: "/{prefix}/decisions",
+    dependsOn: ["ui/src/components/DecisionTriageStrip.tsx", "ui/src/components/DecisionDateChips.tsx"],
+    wait: 4000,
+    steps: [{ click: { text: "Ship dark mode with the system-preference default?" } }, { waitMs: 1500 }],
+    // Just the triage strip — the decide-by chips, queue picker and snooze —
+    // rather than the whole row, which the decision-card shot already covers.
+    // ancestor::div[2] is the strip's own bordered panel; [3] is the row and
+    // pulls the whole decision card in with it.
+    clip: { css: 'xpath=//*[contains(text(),"When to decide")]/ancestor::div[2]' },
+  },
+  {
+    name: "decisions/toolbar-filters",
+    route: "/{prefix}/decisions",
+    dependsOn: ["ui/src/components/DecisionsToolbar.tsx", "ui/src/components/DecisionDateChips.tsx"],
+    wait: 4000,
+    steps: [{ click: { role: "button", name: "Filter" } }, { waitMs: 900 }],
+  },
+  {
+    name: "decisions/named-queue",
+    route: "/{prefix}/decisions/queues/{decisionQueueKey}",
+    dependsOn: ["ui/src/pages/DecisionQueuePage.tsx", "ui/src/components/DecisionQueueRail.tsx"],
+    wait: 4000,
+  },
+  {
+    name: "decisions/history-curtains",
+    route: "/{prefix}/decisions",
+    dependsOn: ["ui/src/components/DecisionShelf.tsx", "ui/src/pages/WhatNeedsMe.tsx"],
+    // "Decided" and "Expired" are collapsed by default; open Decided so the
+    // curtain shows the decision seed-new-surfaces.mjs resolved.
+    wait: 4000,
+    steps: [{ click: { text: "Decided" } }, { waitMs: 1200 }],
+  },
+  {
+    name: "decisions/empty-state",
+    // The second, empty company has no attention items at all — the only place
+    // "You're all caught up" is reachable without emptying the demo board.
+    route: "/{emptyPrefix}/decisions",
+    dependsOn: ["ui/src/pages/WhatNeedsMe.tsx"],
+    wait: 4000,
+  },
+
+  // ── Status cards (docs/experimental/status-cards.md) ────────────────────────
+  // Gated on `enableStatusCards` + a `ready` built-in Summarizer; both are set
+  // up by the seed. Cards carry a real compiled query and a written summary, so
+  // the tiles render Fresh rather than an endless "Setting up".
+  {
+    name: "status-cards/board",
+    route: "/{prefix}/status",
+    dependsOn: ["ui/src/pages/StatusCards/index.tsx", "ui/src/pages/StatusCards/StatusCardTile.tsx"],
+    wait: 4000,
+  },
+  {
+    name: "status-cards/new-card-dialog",
+    route: "/{prefix}/status",
+    dependsOn: ["ui/src/pages/StatusCards/CreateStatusCardDialog.tsx"],
+    wait: 4000,
+    steps: [{ click: { role: "button", name: "New card" } }, { waitMs: 1200 }],
+  },
+  {
+    name: "status-cards/detail-summary",
+    route: "/{prefix}/status/{statusCardId}",
+    dependsOn: ["ui/src/pages/StatusCards/StatusCardDetailDrawer.tsx"],
+    wait: 4000,
+  },
+  {
+    name: "status-cards/detail-settings",
+    route: "/{prefix}/status/{statusCardId}",
+    dependsOn: ["ui/src/pages/StatusCards/StatusCardSettingsForm.tsx"],
+    wait: 4000,
+    steps: [{ click: { role: "tab", name: "Settings" } }, { waitMs: 1200 }],
+  },
+  {
+    name: "status-cards/detail-watched-issues",
+    route: "/{prefix}/status/{statusCardId}",
+    dependsOn: ["ui/src/pages/StatusCards/StatusCardDetailDrawer.tsx"],
+    wait: 4000,
+    steps: [{ click: { role: "tab", name: "Watched issues" } }, { waitMs: 1500 }],
+  },
+  {
+    name: "status-cards/detail-history",
+    route: "/{prefix}/status/{statusCardId}",
+    dependsOn: ["ui/src/pages/StatusCards/StatusCardDetailDrawer.tsx"],
+    wait: 4000,
+    steps: [{ click: { role: "tab", name: "History" } }, { waitMs: 1500 }],
+  },
+
+  // ── Agent secret proposals (docs/administration/secret-scopes.md) ───────────
+  // The Proposals tab is local component state, not a URL param, so it can only
+  // be reached with a click.
+  {
+    name: "secrets/proposals-tab",
+    route: "/{prefix}/company/settings/secrets",
+    dependsOn: ["ui/src/pages/secrets/ProposalsTab.tsx"],
+    wait: 3000,
+    steps: [{ click: { role: "tab", name: "Proposals" } }, { waitMs: 1500 }],
+  },
+
+  // ── Chat-style tasks (docs/experimental/task-chat.md) ───────────────────────
+  // `phase: "task-chat"` — captured in a separate pass. `enableTaskChatRedesign`
+  // is instance-wide and replaces the ordinary task detail page, so if it were
+  // on during the main pass every classic issue/task/work-mode shot would come
+  // back as the redesigned chat. run.mjs turns the flag on for this phase only
+  // and turns it back off afterwards.
+  {
+    name: "task-chat/thread",
+    route: "/{prefix}/issues/{issueId}",
+    dependsOn: [
+      "ui/src/components/TaskChatThread.tsx",
+      "ui/src/components/task-chat/TaskChatBubble.tsx",
+      "ui/src/components/task-chat/TaskChatTurn.tsx",
+    ],
+    phase: "task-chat",
+    wait: 4000,
+  },
+  {
+    name: "task-chat/composer-modes",
+    route: "/{prefix}/issues/{issueId}",
+    dependsOn: ["ui/src/components/task-chat/TaskChatComposer.tsx"],
+    phase: "task-chat",
+    wait: 4000,
+    steps: [{ click: { role: "button", name: "Agent mode" } }, { waitMs: 1000 }],
+  },
+  {
+    name: "task-chat/side-pane",
+    route: "/{prefix}/issues/{issueId}",
+    dependsOn: [
+      "ui/src/components/issue-properties/IssuePropertiesPlansTab.tsx",
+      "ui/src/components/issue-properties/IssuePropertiesArtifactsTab.tsx",
+    ],
+    phase: "task-chat",
+    wait: 4000,
   },
 ];
 

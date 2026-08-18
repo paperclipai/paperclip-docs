@@ -15,6 +15,7 @@ For the catalog mechanics, start with the [Skills reference](../skills.md#3-app-
 ## Paperclip operations
 
 - [Issue Triage](./bundled/paperclip-operations/issue-triage.md) — classify stale, blocked, in-review, or stalled Paperclip issues and choose the next action.
+- [Status Card Query](./bundled/paperclip-operations/status-card-query.md) — author Paperclip status cards, and compile a card's prose prompt into bounded search queries and its first summary.
 - [Task Planning](./bundled/paperclip-operations/task-planning.md) — turn approved plans into Paperclip issues with ownership, dependencies, and acceptance criteria.
 
 ## Product

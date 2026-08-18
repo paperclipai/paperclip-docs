@@ -356,6 +356,64 @@ Manual follow-ups after the batch:
 
 ---
 
+## Target paths and routes (v2026.817.0 release batch)
+
+New surfaces that shipped in v2026.817.0. All of these are seeded automatically —
+`seed-new-surfaces.mjs` proposes the decisions, writes the status-card summaries,
+and raises the secret proposals through genuine agent runs — so the routes below
+render real content rather than empty states. `routes.mjs` is the authoritative
+machine-readable copy; keep the two in step.
+
+### Decisions (`screenshots/light/decisions/`)
+
+Requires the `enableDecisions` experimental flag (set by `seed.mjs`).
+
+| File | Route | Notes |
+|---|---|---|
+| `queue-overview.png` | `/{slug}/decisions` | The ranked feed. |
+| `decision-card.png` | `/{slug}/decisions` | Expand the "Ship dark mode…" row. |
+| `triage-chips.png` | `/{slug}/decisions` | Clipped to the triage strip only. |
+| `toolbar-filters.png` | `/{slug}/decisions` | Click **Filter** to open the panel. |
+| `named-queue.png` | `/{slug}/decisions/queues/launch-blockers` | A named lane with two items. |
+| `history-curtains.png` | `/{slug}/decisions` | Open the **Decided** curtain. |
+| `empty-state.png` | `/{emptySlug}/decisions` | "You're all caught up" — needs the empty second company. |
+
+### Status cards (`screenshots/light/status-cards/`)
+
+Requires `enableStatusCards` **and** a `ready` built-in Summarizer. The seed
+switches the Summarizer to a long-running `process` adapter and clears its
+`pausedAt`, then writes each card's compiled query and summary as the agent.
+
+| File | Route | Notes |
+|---|---|---|
+| `board.png` | `/{slug}/status` | Two Fresh tiles. |
+| `new-card-dialog.png` | `/{slug}/status` | Click **New card**. |
+| `detail-summary.png` | `/{slug}/status/{cardId}` | Drawer, Summary tab. |
+| `detail-settings.png` | `/{slug}/status/{cardId}` | Settings tab. |
+| `detail-watched-issues.png` | `/{slug}/status/{cardId}` | Watched issues tab. |
+| `detail-history.png` | `/{slug}/status/{cardId}` | History tab. |
+
+### Secret proposals (`screenshots/light/secrets/`)
+
+| File | Route | Notes |
+|---|---|---|
+| `proposals-tab.png` | `/{slug}/company/settings/secrets` | Click the **Proposals** tab; one pending, one approved, one rejected. |
+
+### Chat-style tasks (`screenshots/light/task-chat/`)
+
+Captured in a **separate pass**. `enableTaskChatRedesign` is instance-wide and
+replaces the ordinary task page, so leaving it on would turn every classic
+issue/task/work-mode shot into the redesigned chat. `run.mjs` enables it, shoots
+only the `phase: "task-chat"` targets, and disables it again.
+
+| File | Route | Notes |
+|---|---|---|
+| `thread.png` | `/{slug}/issues/{issueId}` | The conversation view. |
+| `composer-modes.png` | `/{slug}/issues/{issueId}` | Open the Agent · Plan · Ask picker. |
+| `side-pane.png` | `/{slug}/issues/{issueId}` | Properties · Plan · Artifacts pane. |
+
+---
+
 ## After capture
 
 - Verify no real user data (avatars, company names, task titles, emails) is visible in any PNG.

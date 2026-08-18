@@ -15,6 +15,7 @@ For the catalog mechanics, start with the [Skills reference](../skills.md#3-app-
 ## Content
 
 - [Release Announcement](./optional/content/release-announcement.md) — turn release changes into concise public-facing announcement copy.
+- [Simplified English](./optional/content/simplified-english.md) — write user-facing comments, plans, and documents in ASD-STE100 Simplified Technical English so readers understand them the first time.
 
 ## Finance
 
@@ -27,6 +28,10 @@ For the catalog mechanics, start with the [Skills reference](../skills.md#3-app-
 ## Research
 
 - [Last30Days](./optional/research/last30days.md) — research recent public discussion about a topic across Reddit, X, YouTube, and the web.
+
+## Software Development
+
+- [Prepare MCP Integration](./optional/software-development/prepare-mcp-integration.md) — research a new MCP or vendor integration, gate it on exact-revision human approval, then ship one governed Paperclip connector per approved connection.
 
 ## See also
 

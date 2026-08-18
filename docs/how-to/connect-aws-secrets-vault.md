@@ -14,7 +14,7 @@ If you only need the conceptual model — strict mode, the local encrypted provi
 
 You need three things on the host running the Paperclip server:
 
-- AWS credentials the process can read (the usual chain: env vars, instance role, or `~/.aws/credentials`). The credentials need `secretsmanager:ListSecrets` — that's the only call discovery makes. Reading and writing secret values at runtime uses the usual `GetSecretValue` / `PutSecretValue` permissions on whatever ARNs the secrets resolve to.
+- AWS credentials the process can read (the usual chain: env vars, instance role, or `~/.aws/credentials`). The credentials need `secretsmanager:ListSecrets` — that's the only call discovery makes. Reading and writing secret values at runtime uses the usual `GetSecretValue` / `PutSecretValue` permissions on whatever ARNs the secrets resolve to, plus `secretsmanager:UpdateSecretVersionStage` if you want to [write values through to linked secrets](#change-the-value-of-a-linked-aws-secret) — that one backs the rollback on a failed write.
 - A region you intend to read from, for example `us-east-1`.
 - An owner role on the company in Paperclip — only owners can write `secret_provider_config` rows.
 
@@ -77,10 +77,32 @@ The server runs a health check on save (the same one bound to the per-vault heal
 Now that the vault exists, any secret on this company can use it.
 
 1. Switch back to the **Secrets** tab.
-2. On any existing AWS-backed secret, open the update dialog and click **Update value** (or **Update reference** if the secret is an external reference). The dialog has a **Provider vault** dropdown — pick the vault you just created and Paperclip writes the new version to AWS through it. The dropdown's default option is labeled **Deployment default**, and any vault with a `blockReason` (Disabled, failed health) is listed but not selectable.
+2. On any existing AWS-backed secret, open the update dialog and click **Update value** (or **Update reference** if the secret is an external reference that can't take a value write — see below). The dialog has a **Provider vault** dropdown — pick the vault you just created and Paperclip writes the new version to AWS through it. The dropdown's default option is labeled **Deployment default**, and any vault with a `blockReason` (Disabled, failed health) is listed but not selectable.
 3. For new secrets, the same vault picker appears in the create dialog.
 
 Existing secrets that were created before this vault stay on whichever vault they already pointed at. Re-point them via **Update value** the next time you turn the key.
+
+---
+
+## Change the value of a linked AWS secret
+
+Linking a secret used to be a one-way street: Paperclip could read the AWS value and repoint the link, but if the credential itself changed you had to go to the AWS console and put the new value there yourself. You don't anymore. AWS Secrets Manager supports writing values through to linked secrets, so you can rotate the credential from the Secrets page.
+
+Open the update dialog on a linked AWS secret and you get two tabs:
+
+- **Write new value** — paste the new credential. Paperclip writes it into the AWS secret your reference already points at. The field shows the exact reference it will write to underneath, so you can double-check the target before you commit.
+- **Change reference** — the original behavior. Point the secret at a different AWS secret without writing anything to AWS.
+
+The detail pane tells you which of these the secret can do. A linked secret that supports value writes reads *"Paperclip resolves this provider reference and can write new values to it via Update value."* One that doesn't reads *"Paperclip resolves this provider reference but does not rotate the provider value."* — and its menu action stays labeled **Update reference** rather than **Update value**.
+
+Two things to know before you use it:
+
+- **The new value becomes current for everyone.** Paperclip writes a new AWS version and makes it `AWSCURRENT`, exactly as a rotation in the AWS console would. Anything else reading that AWS secret — Lambdas, ECS tasks, another team's service — picks up the new value too. That is usually the point, but it means this is not a Paperclip-only change.
+- **You can't do both at once.** Writing a value and repointing the reference are separate operations. Pick one tab, save, and run the second change as its own update if you need it.
+
+Writing a value uses `PutSecretValue` on the target ARN, on top of the `GetSecretValue` that resolution already needed. Grant `secretsmanager:UpdateSecretVersionStage` as well: if the write fails partway, Paperclip moves `AWSCURRENT` back to the version that was current before, and without that permission the rollback can't run — leaving the new version live even though the update reported a failure.
+
+> **Tip:** Paperclip keeps tracking `AWSCURRENT` rather than pinning the version it just wrote. Rotate the same secret directly in AWS later and Paperclip still resolves the newest value — the write-through path doesn't lock the link to one version.
 
 ---
 
@@ -108,9 +130,16 @@ Secrets that referenced the removed vault lose the association and fall back to 
 
 **You want to test against AWS without writing to it** — Save the vault with status **Disabled**. The metadata is stored, discovery results remain visible on edit, and no rotation can target it until you flip the status back.
 
+**"… does not support writing values to external reference secrets"** — The message names the provider that refused the write. AWS Secrets Manager implements write-through, so seeing this means the secret is backed by a provider that doesn't — GCP Secret Manager and HashiCorp Vault are placeholders in the current build. Move the credential to an AWS-backed secret, or change the value in that provider's own console and leave the Paperclip secret as a plain reference.
+
+**"Provide either a new value or a new external reference, not both"** — The update carried a new value *and* pointed at a different reference. Do them one at a time: write the value, save, then change the reference in a second update (or the other way round).
+
+**The linked secret only offers "Update reference"** — Either the secret has no external reference stored yet, or its provider doesn't advertise value writes. Only providers that support it get the **Write new value** tab.
+
 ---
 
 ## Related
 
 - [Secrets](../reference/deploy/secrets.md) — the secret-store model, strict mode, and how secret refs resolve at runtime.
+- [Secrets API](../reference/api/secrets.md#rotating-an-external-reference-secret) — the same value write from the API, including every validation rule.
 - [Update or rotate a provider API key](rotate-provider-api-key.md) — Path B uses provider vaults like the one created above.

@@ -259,7 +259,7 @@ Each flag has its own page in the [Experimental](../experimental/overview.md) se
 - **[Enable External Objects](../experimental/external-objects.md)** — detects external URLs in issues and shows live status for referenced pull requests and tickets.
 - **[Task Plan Decomposition Panel](../experimental/plan-decomposition-panel.md)** — accepted-plan decomposition history on task detail pages, for debugging sub-task creation.
 - **[Task Watchdogs](../experimental/task-watchdogs.md)** — per-task watchdog agents that verify stopped task subtrees and restore live paths.
-- **[Cloud Sync](../experimental/cloud-sync.md)** — connect a local instance to a Paperclip Cloud upstream: preview, push, and activation review.
+- **[Cloud Sync](../experimental/cloud-sync.md)** — **retired.** Removed upstream together with its experimental toggle, so it no longer appears in this list on a current build. To move a company between instances, use [company Import/Export](../how-to/back-up-and-restore-a-company.md).
 - **[Server Info Debug View](../experimental/server-info-debug-view.md)** — a "Server" section in the account drawer with restart time, running commit, and checkout state.
 - **[Auto-Restart Dev Server When Idle](../experimental/auto-restart-dev-server.md)** — only relevant under `pnpm dev:once`; restarts a stale dev boot once all local agent runs finish. For development on Paperclip itself, not production.
 - **[Auto-Create Recovery Tasks](../experimental/auto-create-recovery-tasks.md)** — lets the heartbeat scheduler create recovery tasks for stalled task dependency chains, with a lookback window and preview.

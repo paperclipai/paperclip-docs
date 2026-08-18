@@ -203,6 +203,29 @@ If you started from a folder — say, from inside **My Skills** — the new skil
 
 ---
 
+## Renaming a skill
+
+Names age. The `code-review` skill you wrote in week one turns out to be your PR triage procedure, and every agent that uses it is now working from a name that misleads whoever reads the roster next. You can rename it without unpicking anything.
+
+Renaming changes three things at once, because in Paperclip they travel together:
+
+- The **name** — what you and your team see in the library. The `name:` line in the skill's `SKILL.md` frontmatter is rewritten to match, so the file and the library never disagree.
+- The **slug** — the `kebab-case` shortname used in URLs. Give it explicitly if you want to, or leave it out and Paperclip derives it from the new name.
+- The **key** — the stable identifier agents reference. It follows the slug, so a new slug means a new key.
+
+That last one is where renaming would normally hurt, and it's the part Paperclip handles for you. **Every agent that had the old skill attached is moved to the new key automatically**, keeping any pinned skill version as it was. Nothing silently detaches, and nobody has to go around the Agents list re-ticking checkboxes.
+
+A few things worth knowing before you rename:
+
+- **Only Paperclip-managed skills can be renamed.** Skills from the built-in catalog, GitHub, skills.sh, or a project scan are read-only for the same reason their contents are — see [Editing a skill that isn't yours to edit](#editing-a-skill-that-isnt-yours-to-edit) if you want an editable copy you *can* rename.
+- **The new slug has to be free.** If another skill in the company already uses it, the rename is refused rather than overwriting anything, and you'll be told which one clashed.
+- **It's audited.** The rename is written to the company activity log as `company.skill_renamed`, recording the previous and new name, slug, and key, plus every agent that was reassigned.
+- **It obeys the skill policy.** Renaming counts as an edit, so if your company restricts who may change skills, the same rule applies here — see [Who is allowed to change skills](#who-is-allowed-to-change-skills).
+
+If you'd rather script it, the endpoint is `POST /api/companies/{companyId}/skills/{skillId}/rename`. It takes a `name` (required, and it has to be a single line) and an optional `slug`; leave the slug out and it's derived from the name. The response hands back the renamed skill along with the previous name, slug, and key, and the list of agents that were reassigned.
+
+---
+
 ## Editing a skill that isn't yours to edit
 
 Plenty of good skills come from somewhere you don't control: a GitHub repository, skills.sh, the built-in catalog. Those are read-only on purpose, so nobody quietly rewrites a pinned skill under your agents' feet. Open one in Studio and you'll see a **Read-only** badge, an explanation of why, and a **Edit a copy** button.
@@ -279,6 +302,37 @@ A **View company skills library** link at the top of the tab jumps back to the c
 
 ---
 
+## Pinning a beta release of the Paperclip skill
+
+The bundled `paperclip` skill — the base procedure every agent follows on each run — keeps moving. Most of the time that is exactly what you want: better guidance ships and every agent picks it up. But sometimes you want one agent held still, either because you are comparing how two versions of the procedure behave or because a particular snapshot suits a run you would rather not disturb while you evaluate a newer one.
+
+**Beta releases** let you do that. A release is a frozen snapshot of the Paperclip core skill, seeded into your company library alongside the live version. Pin an agent to one and that agent runs the snapshot; every other agent keeps running the live default.
+
+### Turn it on first
+
+The picker stays hidden until someone enables it. Open **Settings → Instance settings → Experimental** and flip the **Beta skills** card: *"Allow agents to pin beta releases of the Paperclip core skill. Disabling this returns every agent to the default live skill without removing saved pins."*
+
+It is off by default everywhere — cloud and self-hosted alike — and it is not one of the cloud-managed flags, so it stays yours to turn on and off on any instance. See [Experimental features](../../experimental/overview.md) for how that page behaves.
+
+### Pick a release
+
+Open the agent, go to the **Skills** tab, and find the Paperclip core skill row — it needs to be enabled for that agent. A **Skill release** dropdown appears alongside it:
+
+- **Default — current (recommended)** — no pin at all. The agent runs the live skill and picks up every future change. This is where every agent starts.
+- Each frozen release, shown as its name plus the day it was cut — for example **V7 — Roster champion · released 2026-07-21** — carrying a small **Beta** badge.
+
+Two releases ship today: **V0 — Original**, the original snapshot of the core skill, and **V7 — Roster champion**. Both are historical by design. **V7 — Roster champion** predates three later edits to `SKILL.md`, `references/api-reference.md`, and `references/company-skills.md`, and the live default keeps that newer guidance — which is the trade-off worth holding in mind. A pin buys you a procedure that will not move, and costs you every improvement made since it was cut. That is why the default option says *recommended*.
+
+Choosing a release saves immediately rather than waiting for the usual autosave, and the skill row picks up a **Beta · V7** style badge so you can see at a glance which agents are pinned. Switch back to **Default — current (recommended)** to clear the pin.
+
+### What happens when the flag is off
+
+Turning **Beta skills** back off erases nothing. Saved pins stay on the agent — they are simply ignored, and every agent goes back to the live default skill on its next run. Turn the flag on again and those pins apply again.
+
+The same rule holds over the API: saving a version pin while the flag is off is rejected with *"Beta skill version pins require the Beta skills experimental setting to be enabled."* For the request shape, the release fields, and where the snapshots come from, see [Skills reference → Beta releases of the bundled `paperclip` skill](../../reference/skills.md#beta-releases-of-the-bundled-paperclip-skill).
+
+---
+
 ## Trust level
 
 Skills are loaded into agent runs as additional instructions, so where they come from matters. Paperclip uses the **Source** badge on every skill row to make that provenance obvious:
@@ -323,7 +377,7 @@ You can also scan and import skills from project workspaces when you already hav
 Most of the time you will manage skills from the UI, but the same operations are available as REST endpoints when you want to script onboarding or reproduce a known agent setup from another company.
 
 - **List the skills attached to an agent**: `GET /api/agents/{agentId}/skills`
-- **Sync the attached set**: `POST /api/agents/{agentId}/skills/sync` with `{ "desiredSkills": [...] }`. Each entry is a skill UUID, canonical key, or unique slug. The server reconciles attachments to match — adding any missing and removing any not in the list.
+- **Sync the attached set**: `POST /api/agents/{agentId}/skills/sync` with `{ "desiredSkills": [...], "mode": "add" | "remove" | "replace" }`. Each `desiredSkills` entry is a skill UUID, canonical key, or unique slug. The required `mode` chooses how the list applies: `add` unions the named skills into the current set, `remove` drops only the named skills, and `replace` reconciles the set to match exactly — adding any missing and removing any not in the list.
 - **Provision skills at hire time**: pass `desiredSkills` on `POST /api/companies/{companyId}/agents` so the agent comes online with the right set already attached.
 
 The skills must already be installed at the company level before you can attach them. For the full reference — file shape, install pipeline, canonical keys, versioning, and troubleshooting — see:

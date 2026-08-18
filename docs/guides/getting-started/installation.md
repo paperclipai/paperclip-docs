@@ -79,7 +79,20 @@ Paperclip opens automatically in your browser. If it doesn't, navigate to [http:
 
 You'll land in Paperclip ready to start onboarding. You haven't created a company yet — that's the next step.
 
-> **Note:** To run Paperclip again after restarting your machine, run `npx paperclipai run` from your terminal. For persistent background runs, see the [advanced deployment docs](../../reference/deploy/overview.md).
+> **Note:** To run Paperclip again after restarting your machine, run `npx paperclipai run` from your terminal.
+
+### Keeping Paperclip running
+
+The command above holds your terminal open — close the window and Paperclip stops. That's fine while you're finding your feet, but once Paperclip is something you use daily, let your computer look after it instead:
+
+```bash
+npx paperclipai install
+paperclipai service install
+```
+
+The first command installs Paperclip properly (so you can also update and roll it back later) and offers to add it to your shell's `PATH` — say yes, then open a new terminal window so the `paperclipai` command is available. The second registers Paperclip as a background service that starts when you log in and restarts itself if it crashes. Nothing needs administrator rights, and `paperclipai service status` tells you how it's doing.
+
+See [Service](../../reference/cli/service.md) for the full set of commands, and the [advanced deployment docs](../../reference/deploy/overview.md) for server-side deployment patterns.
 
 ---
 

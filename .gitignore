@@ -7,3 +7,6 @@ node_modules/
 
 # Screenshot pipeline — ephemeral seed state and scratch outputs
 scripts/screenshots/.seed-ids.json
+
+# Local scratch area (probe scripts, throwaway captures)
+scratchpad/
