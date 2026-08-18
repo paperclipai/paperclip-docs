@@ -25,6 +25,7 @@
     "screenshots:capture": "node scripts/screenshots/capture.mjs",
     "screenshots:sync-registry": "node scripts/screenshots/sync-registry.mjs",
     "screenshots:refresh": "node scripts/screenshots/run.mjs",
+    "screenshots:serve": "node scripts/screenshots/run.mjs --serve",
     "screenshots:refresh:all": "node scripts/screenshots/run.mjs --all"
   },
   "devDependencies": {

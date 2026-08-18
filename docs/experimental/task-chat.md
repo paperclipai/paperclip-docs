@@ -26,6 +26,8 @@ With the flag on, the thread *is* the page. Open any task and you'll notice:
 
 Everything is still there. It just moved.
 
+![The task page with Chat-Style Tasks on: the thread fills the centre column as a conversation, with the properties pane on the right](../user-guides/screenshots/light/task-chat/thread.png)
+
 ## Reading the thread
 
 ### Bubbles
@@ -94,6 +96,8 @@ The composer sits pinned at the bottom of the thread: a text box over a row of c
 
 The placeholder text follows your choice, so you can tell at a glance what will happen — *"Message Ada — describe what you want done…"*, *"Plan with Ada — shapes the plan doc, no code changes…"*, or *"Ask Ada a question — read-only, nothing runs…"*. Press **Shift+Tab** in the text box to cycle through the three. The mode is applied when you send, not when you pick it.
 
+![The composer's mode picker open, offering Agent mode, Plan mode, and Ask mode](../user-guides/screenshots/light/task-chat/composer-modes.png)
+
 **Attach files** with the **+** button, by pasting them, or by dropping them onto the composer. Each file becomes a chip that reads *Uploading…* and then *Attached*, with a thumbnail for images, and a link to it is added to your message.
 
 **Reassign as you reply.** When reassignment is available, a control on the right names the current assignee and lets you hand the task to someone else with the same message. Sending to an agent on a task that's `done`, `cancelled`, or `blocked` reopens it.
@@ -113,6 +117,8 @@ Its header holds up to three tabs, and a tab only appears when it has something 
 - **Artifacts** — a read-only list of the task's attachments and work products with their file sizes, each one a link. Empty, it reads *"No artifacts yet. Attachments and work products will appear here."*
 
 With neither a plan nor artifacts, the header just says **Properties** rather than showing a one-tab strip.
+
+![The side pane on the right of the task page, with its Properties, Plan, and Artifacts tabs](../user-guides/screenshots/light/task-chat/side-pane.png)
 
 One nice touch on the Plan tab: while a plan is waiting on your confirmation, its **accept** and **send back** buttons pin to the bottom of the pane and stay there while you scroll the plan itself — so you can read the whole thing and decide without hunting for the card back in the thread.
 

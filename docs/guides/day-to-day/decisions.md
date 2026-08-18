@@ -8,6 +8,8 @@ The **Decisions** page gives you one place to see work that needs a human call. 
 
 Open it from the sidebar, or go directly to `/decisions`.
 
+![The Decisions page: a ranked queue of items needing a human call, each row naming why it needs you and linking to the work behind it](../../user-guides/screenshots/light/decisions/queue-overview.png)
+
 The Training library lives with this page. Click the graduation-cap **Training** button in the page header, or go directly to `/decisions/training`, to browse the decisions your company has kept as training examples. Older `/training` links still resolve — they redirect to the new address.
 
 ---
@@ -28,6 +30,8 @@ Some rows are more than a notification. When an agent works out what should happ
 
 You answer it right in the row. Options that need a little context from you show up to four fields first; a required field is marked, and the options stay disabled until you fill it in.
 
+![An agent-proposed decision expanded in the queue: the question, who proposed it and during which task, and each option as its own button](../../user-guides/screenshots/light/decisions/decision-card.png)
+
 A few things make this safe to do quickly:
 
 - **Nothing has drifted behind your back.** When the agent proposed the decision, Paperclip recorded what the affected issues looked like. If one of them has moved since, the row says so — *"1 target changed since this was proposed"* — and disables any option that depends on the old state.
@@ -38,6 +42,8 @@ A few things make this safe to do quickly:
 Once you answer, Paperclip runs the option's changes one at a time and shows you the outcome, including anything it had to skip because a target had moved. If an agent asked to be woken when the decision resolves, that happens automatically.
 
 Two collapsible sections at the bottom of the page, **Decided** and **Expired**, keep the recent history so you can look back at what was chosen and what it did.
+
+![The Decided section expanded at the bottom of the queue, showing a resolved decision and the option that was chosen](../../user-guides/screenshots/light/decisions/history-curtains.png)
 
 You may also meet a decision from the other direction. When a proposal raised elsewhere would change an issue you are looking at, that issue shows a strip saying so and links you back here — decisions are always answered from this one page.
 
@@ -50,6 +56,8 @@ Use the toolbar to make a busy queue manageable:
 - **Type**, **Severity**, **Project**, and **Workspace** filters narrow the queue to the work you own right now.
 - **Group by** offers `none`, `date`, `type`, `project`, and `severity`.
 - **Sort** offers `newest` and `oldest`.
+
+![The Decisions toolbar with the filter panel open, showing the Type, Severity, Project, and Workspace sections](../../user-guides/screenshots/light/decisions/toolbar-filters.png)
 
 Your filter, grouping, and sort choices stay with your current browser, so you can set up the view that fits your review rhythm.
 
@@ -73,6 +81,8 @@ You can turn that automatic filling off per queue if you would rather curate a l
 
 You can also create queues of your own, add and remove items, and read a queue's contents through the [Decisions API](../../reference/api/decisions.md). One thing worth knowing: a queue only ever shows you items you are allowed to see, and its item count is counted the same way, so two people can look at the same queue and see different totals.
 
+![A named decision queue showing only the items routed into that lane](../../user-guides/screenshots/light/decisions/named-queue.png)
+
 ---
 
 ## Say when something needs you
@@ -80,6 +90,8 @@ You can also create queues of your own, add and remove items, and read a queue's
 Filters tidy your view. **Triage** does something different: it records, for everyone, when a piece of work actually needs a decision.
 
 You can give any item a decide-by target of **today**, **this week**, **whenever**, or a specific calendar date, and you can snooze it until a moment in the future. Both stick to the item itself rather than to your browser, so the deadline your colleague set is the deadline you see. Paperclip keeps a history of who changed what.
+
+![The triage strip on an expanded row: a When to decide row offering Today, This week, Whenever, and Pick date, alongside Queues and Snooze controls](../../user-guides/screenshots/light/decisions/triage-chips.png)
 
 Triage changes how the queue reads in two ways. The feed can rank by deadline instead of recent activity — soonest first, then the *whenever* pile, then everything nobody has triaged yet. And the sidebar badge deliberately counts only what is due today, so it stays a signal about this morning rather than a running total of everything outstanding.
 
@@ -102,6 +114,8 @@ These choices are personal to your board user. They tidy your queue without chan
 ## When the queue is empty
 
 **You're all caught up** means Paperclip has no visible item that needs a decision from you. If you have filters turned on, **No decisions match your filters** means the work may still exist — broaden the filters before assuming nothing needs attention.
+
+![The empty Decisions queue reading You're all caught up](../../user-guides/screenshots/light/decisions/empty-state.png)
 
 ---
 

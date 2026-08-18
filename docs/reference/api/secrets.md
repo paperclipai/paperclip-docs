@@ -805,6 +805,10 @@ Only the original proposer may withdraw, and only a pending proposal can be reso
 GET /api/companies/{companyId}/secret-proposals
 ```
 
+The same list is what the board sees under **Company settings → Secrets → Proposals**, where the tab carries a count badge while anything is pending:
+
+![The Proposals tab in company secrets settings: one pending proposal showing its path-style name, the proposing agent, the value's fingerprint and byte length, its expiry, the agent's stated reason, and Approve and Reject buttons](../../user-guides/screenshots/light/secrets/proposals-tab.png)
+
 The board-side list. Returns proposals for the company, newest first, as a plain array (not wrapped). Add `?status=` to filter by one of `pending`, `approved`, `rejected`, `withdrawn`, or `expired`. It takes the same `limit`/`offset` paging and the same `X-Page-*` headers as the agent list.
 
 Each row is enriched for review: alongside the proposal fields it carries `proposedBy`, the `target` agent (for bindings), the `originIssue` it came from, and the resolved names of any referenced secret (`secretName`) or prerequisite secret proposal (`secretProposalName`). It also carries two review hints:

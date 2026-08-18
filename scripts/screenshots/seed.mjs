@@ -37,8 +37,9 @@
  */
 
 import { writeFileSync } from "node:fs";
-import { BASE_URL, COMPANY_NAME, SEED_IDS_PATH } from "./config.mjs";
+import { BASE_URL, COMPANY_NAME, SEED_IDS_PATH, mintAgentJwt, openInstanceDb } from "./config.mjs";
 import { seedExecutionWorkspace } from "./seed-execution-workspace.mjs";
+import { seedNewSurfaces } from "./seed-new-surfaces.mjs";
 
 // ── HTTP helpers ────────────────────────────────────────────────────────────
 
@@ -80,6 +81,24 @@ const DEMO_AGENT_CONFIG = {
   ],
   timeoutSec: 30,
 };
+
+/**
+ * The demo board's intended issue statuses.
+ *
+ * Module-level because two things need them: the initial seed, and
+ * `reassertIssueStatuses()` below, which run.mjs calls on a timer while
+ * capture is in flight.
+ */
+const ISSUE_SPECS = [
+    { title: "Design the homepage hero section", status: "in_progress", priority: "high", assignee: "Cleo", project: "Website", goal: true },
+    { title: "Set up CI/CD pipeline", status: "done", priority: "medium", assignee: "Bob", project: "Website" },
+    { title: "Write onboarding docs", status: "todo", priority: "low", assignee: "Eve", project: "Website" },
+    { title: "Fix flaky integration test", status: "in_review", priority: "high", assignee: "Dax", project: "Website" },
+    { title: "Add dark mode to the portal", status: "todo", priority: "medium", assignee: "Bob", project: "Website" },
+    { title: "Investigate battery telemetry spike", status: "blocked", priority: "critical", assignee: "Eve", project: "Mobile App" },
+    { title: "Mobile: implement push notifications", status: "backlog", priority: "medium", assignee: "Bob", project: "Mobile App" },
+    { title: "Accessibility audit of checkout flow", status: "todo", priority: "high", assignee: "Cleo", project: "Website" },
+];
 
 /**
  * Run a labelled step, swallowing and logging errors so the seed continues.
@@ -382,16 +401,7 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
   }
 
   // ── 8. Issues (mixed statuses, assignees, a parent with sub-issues) ─────────
-  const issueSpecs = [
-    { title: "Design the homepage hero section", status: "in_progress", priority: "high", assignee: "Cleo", project: "Website", goal: true },
-    { title: "Set up CI/CD pipeline", status: "done", priority: "medium", assignee: "Bob", project: "Website" },
-    { title: "Write onboarding docs", status: "todo", priority: "low", assignee: "Eve", project: "Website" },
-    { title: "Fix flaky integration test", status: "in_review", priority: "high", assignee: "Dax", project: "Website" },
-    { title: "Add dark mode to the portal", status: "todo", priority: "medium", assignee: "Bob", project: "Website" },
-    { title: "Investigate battery telemetry spike", status: "blocked", priority: "critical", assignee: "Eve", project: "Mobile App" },
-    { title: "Mobile: implement push notifications", status: "backlog", priority: "medium", assignee: "Bob", project: "Mobile App" },
-    { title: "Accessibility audit of checkout flow", status: "todo", priority: "high", assignee: "Cleo", project: "Website" },
-  ];
+  const issueSpecs = ISSUE_SPECS;
   const existingIssues = asList(await step("list issues", () => get(C("/issues"), baseUrl), []));
   const issues = {};
   for (const spec of issueSpecs) {
@@ -449,19 +459,89 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
   }
 
   // ── 9. Comments / chat on the primary issue (fresh runs only) ───────────────
+  // A real two-sided thread. The board actor can only post `authorType: "user"`
+  // comments — the server rejects "agent" from a human actor — which used to
+  // make the captured chat a monologue of four board messages, and the
+  // chat-style task page render every bubble on the same side. The agent's
+  // replies are therefore posted with a genuine run-bound agent JWT, exactly as
+  // a real adapter run would, so they carry the agent as author and render as
+  // agent bubbles with an author header.
   if (issueId && !companyExisted) {
-    // The authenticated actor is the local board user, so comments must use
-    // authorType "user" (the server rejects "agent"/"system" from a human actor).
-    const comments = [
-      { body: "Kicking this off — let's get three headline directions up for review.", authorType: "user" },
-      { body: "Keep it under eight words and lead with the autonomy angle.", authorType: "user" },
-      { body: "Drafted layouts for desktop and mobile — preview is pushed to the workspace.", authorType: "user" },
-      { body: "Looks great. Ship the desktop version and we'll iterate on mobile spacing.", authorType: "user" },
+    const assigneeAgentId = agents.Cleo?.id ?? workerAgentId;
+    const thread = [
+      { as: "user", body: "Kicking this off — let's get three headline directions up for review." },
+      {
+        as: "agent",
+        body:
+          "Three directions are up in the workspace:\n\n"
+          + "1. *Build with Acme Robotics* — plain, safe, reads like everyone else.\n"
+          + "2. *Your warehouse, running itself* — leads with autonomy.\n"
+          + "3. *Ship faster with autonomous teams* — benefit-first.\n\n"
+          + "My pick is the second. It fits on one line at 375px, which the third doesn't.",
+      },
+      { as: "user", body: "Agreed on the second. Keep it under eight words and lead with the autonomy angle." },
+      {
+        as: "agent",
+        body:
+          "Done — desktop and mobile layouts are pushed to the workspace branch. "
+          + "Desktop is ready to review; mobile still has a spacing issue between the headline and the CTA at 375px.",
+      },
+      { as: "user", body: "Looks great. Ship the desktop version and we'll iterate on mobile spacing separately." },
     ];
-    for (const c of comments) {
-      await step("add issue comment", () => post(`/api/issues/${issueId}/comments`, c, baseUrl));
+
+    // One JWT for the whole thread — minting needs an issue-scoped run for the
+    // agent, which its issue assignment above has already produced.
+    let agentAuth = null;
+    if (assigneeAgentId) {
+      agentAuth = await step("resolve agent thread identity", async () => {
+        const sql = openInstanceDb();
+        try {
+          // The assignment wakeups from step 8 are dispatched asynchronously, so
+          // the run this token binds to may not exist yet. Poll briefly rather
+          // than silently falling back to a one-sided thread.
+          let runId = null;
+          for (let attempt = 0; attempt < 20 && !runId; attempt++) {
+            const rows = await sql`
+              select id from heartbeat_runs
+              where agent_id = ${assigneeAgentId} and context_snapshot->>'issueId' is not null
+              order by created_at desc limit 1`;
+            runId = rows[0]?.id ?? null;
+            if (!runId) await new Promise((r) => setTimeout(r, 500));
+          }
+          if (!runId) {
+            console.warn("[seed] no issue-scoped run for the assignee — thread falls back to board-only comments");
+            return null;
+          }
+          const token = mintAgentJwt({ agentId: assigneeAgentId, companyId, runId });
+          return token ? { token } : null;
+        } finally {
+          await sql.end().catch(() => {});
+        }
+      });
     }
-    console.log("[seed] added chat comments to primary issue");
+
+    for (const entry of thread) {
+      if (entry.as === "agent" && agentAuth) {
+        await step("add agent reply", async () => {
+          const res = await fetch(`${baseUrl}/api/issues/${issueId}/comments`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${agentAuth.token}`,
+            },
+            body: JSON.stringify({ body: entry.body, authorType: "agent" }),
+          });
+          if (!res.ok) throw new Error(`agent comment → HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
+        });
+      } else {
+        // Falls back to a board comment when no agent identity is available, so
+        // the thread still has content rather than gaps.
+        await step("add issue comment", () =>
+          post(`/api/issues/${issueId}/comments`, { body: entry.body, authorType: "user" }, baseUrl),
+        );
+      }
+    }
+    console.log(`[seed] added a ${thread.length}-message thread to the primary issue`);
   }
 
   // ── 10. Routine + an execution-history row ──────────────────────────────────
@@ -512,12 +592,24 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
   }
 
   // ── 12. Plugins (install bundled examples) ──────────────────────────────────
+  // The "kitchen sink" example is deliberately excluded. It is a developer
+  // demo that mounts itself into every contextual surface it can find, and on
+  // the issue detail page it injects a "Task Detail View" panel that dumps the
+  // raw issue JSON plus Action/Context/Modal buttons. That panel dominated the
+  // shipped issues/detail-chat.png and tasks/* screenshots, so the guides were
+  // illustrating plugin debug output instead of the task page. Every other
+  // example still installs, which is all the plugin-list shots need.
+  const EXCLUDED_PLUGIN_MATCH = /kitchen-sink/i;
   await step("install bundled plugins", async () => {
     const examples = asList(await get("/api/plugins/examples", baseUrl));
     const installed = asList(await get("/api/plugins", baseUrl));
     const installedKeys = new Set(installed.map((p) => p.pluginKey ?? p.packageName));
     let count = 0;
     for (const ex of examples) {
+      if (EXCLUDED_PLUGIN_MATCH.test(ex.pluginKey ?? ex.packageName ?? "")) {
+        console.log(`[seed] skipping plugin ${ex.displayName ?? ex.packageName} (injects debug panels into captured surfaces)`);
+        continue;
+      }
       if (installedKeys.has(ex.pluginKey) || installedKeys.has(ex.packageName)) continue;
       const ok = await step(`install plugin ${ex.displayName ?? ex.packageName}`, async () => {
         await post("/api/plugins/install", { packageName: ex.localPath, isLocalPath: true }, baseUrl);
@@ -676,6 +768,12 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
   // flags documented in docs/experimental/. Auto-recovery is left off so the
   // seeded board doesn't grow recovery tasks mid-capture.
   // Endpoint: PATCH /api/instance/settings/experimental.
+  // `enableTaskChatRedesign` is deliberately NOT set here. It is instance-wide
+  // and rewrites the ordinary task detail page, so turning it on would make
+  // every classic issue-detail shot (issues/*, tasks/*, work-modes/*,
+  // watchdogs/*) capture the redesigned chat instead of the page those guides
+  // describe. run.mjs flips it on only for the `phase: "task-chat"` targets and
+  // flips it back afterwards.
   await step("enable experimental flags", async () => {
     await api("PATCH", "/api/instance/settings/experimental", {
       enableIsolatedWorkspaces: true,
@@ -683,9 +781,15 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
       enableExperimentalFileViewer: true,
       enableExternalObjects: true,
       enableTaskWatchdogs: true,
-      enableCloudSync: true,
       enableServerInfoDebugView: true,
       enableIssuePlanDecompositions: true,
+      // v2026.817.0 surfaces. `enableDecisions` and `enableStatusCards` gate the
+      // /decisions and /status routes (and the whole status-card API); the
+      // built-in Summarizer that status cards require is enabled alongside.
+      enableDecisions: true,
+      enableStatusCards: true,
+      enableSummaries: true,
+      enableBuiltInAgents: true,
     }, baseUrl);
     console.log("[seed] enabled experimental flags");
   });
@@ -864,6 +968,25 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     }
   }
 
+  // ── 14h. v2026.817.0 surfaces (decisions, status cards, secret proposals) ──
+  // Runs last: every one of these is agent-authored and needs the issue-scoped
+  // agent runs that the issue assignments above produce.
+  let newSurfaceIds = {};
+  await step("seed v2026.817.0 surfaces", async () => {
+    newSurfaceIds = await seedNewSurfaces({
+      companyId,
+      // Most-preferred origin agent first — the decision's provenance line reads
+      // "Proposed by <name> while running <ISSUE>", so a worker agent reads best.
+      agentIds: [workerAgentId, agents.Cleo?.id, agents.Eve?.id, managerAgentId],
+      baseUrl,
+    });
+  });
+
+  // ── 14i. Re-assert the intended issue statuses ─────────────────────────────
+  // See reassertIssueStatuses() for why this is needed. Run once here so the
+  // board is correct the moment capture starts; run.mjs keeps it correct.
+  await step("re-assert issue statuses", () => reassertIssueStatuses({ companyId, baseUrl }));
+
   // ── 15. Persist ids ─────────────────────────────────────────────────────────
   const ids = {
     companyPrefix,
@@ -885,12 +1008,52 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     longRunnerAgentId,
     ...budgetIds,
     ...approvalIds,
+    ...newSurfaceIds,
   };
 
   writeFileSync(SEED_IDS_PATH, JSON.stringify(ids, null, 2) + "\n", "utf-8");
   console.log(`[seed] wrote ids to ${SEED_IDS_PATH}`);
   console.log("[seed] done:", JSON.stringify(ids, null, 2));
   return ids;
+}
+
+/**
+ * Put the demo board's issue statuses back to the ones ISSUE_SPECS declares.
+ *
+ * Why this exists: the demo agents are `process` adapters that echo a line and
+ * exit. They complete *successfully* without declaring what happened to the
+ * issue they were woken for, and Paperclip treats a successful run with no
+ * disposition as work that stalled — it moves the issue to `blocked` and posts
+ * a "Successful run missing issue disposition" notice into the thread
+ * (server/src/services/issues.ts, heartbeat.ts). That is right for a real agent
+ * that went quiet, but on the demo board it means the hero task the guides
+ * point at renders as Blocked under an error banner.
+ *
+ * Disabling the agents' timer heartbeats does not stop it: the sweep runs over
+ * the *existing* dispositionless runs, so it re-blocks within a few minutes and
+ * keeps doing so. A full capture takes far longer than that, which is why this
+ * is a keeper rather than a one-shot — run.mjs calls it on an interval for the
+ * duration of the capture.
+ *
+ * @param {{ companyId: string, baseUrl?: string }} input
+ * @returns {Promise<number>} how many issues were corrected
+ */
+export async function reassertIssueStatuses({ companyId, baseUrl = BASE_URL }) {
+  const wanted = new Map(ISSUE_SPECS.map((spec) => [spec.title, spec.status]));
+  let restored = 0;
+  const all = asList(await get(`/api/companies/${companyId}/issues`, baseUrl));
+  for (const issue of all) {
+    const target = wanted.get(issue.title);
+    if (!target || issue.status === target) continue;
+    try {
+      await patch(`/api/issues/${issue.id}`, { status: target }, baseUrl);
+      restored++;
+    } catch (err) {
+      console.warn(`[seed] could not restore "${issue.title}" to ${target}: ${err.message}`);
+    }
+  }
+  if (restored) console.log(`[seed] re-asserted ${restored} drifted issue status(es)`);
+  return restored;
 }
 
 // ── CLI entry-point ─────────────────────────────────────────────────────────

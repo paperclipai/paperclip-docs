@@ -27,6 +27,8 @@ That one message does double duty, and this is the part worth internalising: it'
 
 Under it, **Agent** picks who runs the card. Leave it on *Summarizer (default)* unless another agent in the company should own this one.
 
+![The New card dialog: a single What do you want to keep an eye on? field with worked examples beneath it, and an Agent picker](../user-guides/screenshots/light/status-cards/new-card-dialog.png)
+
 Click **Create card** and the card appears immediately in a *Setting up* state while the agent works. Behind the scenes Paperclip creates a real task, assigns it to that agent, and the agent:
 
 1. Compiles your message into structured company-search queries and writes them back with an auto-generated card title.
@@ -38,10 +40,18 @@ Give it a moment and the tile fills in. If you want to watch it happen, the tile
 
 Each tile shows the card's title, a state dot, the current summary, and a footer with how fresh it is, its update policy, and today's token and cost totals. Click a tile to open the detail drawer, which has four tabs:
 
+![The Status board: one tile per card, each with a state dot, its title, the live summary, and a footer showing freshness, update policy, and today's tokens and cost](../user-guides/screenshots/light/status-cards/board.png)
+
 - **Summary** — the current summary, plus a revision picker to read earlier ones and a list of the changes each update integrated.
+
+![The card detail drawer on the Summary tab, showing the current summary and its revision picker](../user-guides/screenshots/light/status-cards/detail-summary.png)
 - **Settings** — the card name, the message that drives it, the agent, the update policy, and a read-only **Query debug** section showing the compiled query JSON and its version.
 - **Watched issues** — the issues the compiled query matches right now, live.
+
+![The Watched issues tab listing the issues the compiled query matches right now](../user-guides/screenshots/light/status-cards/detail-watched-issues.png)
 - **History** — every update with its trigger, tokens, cost, model, and any error.
+
+![The History tab, one row per update with its trigger, tokens, cost, and model](../user-guides/screenshots/light/status-cards/detail-history.png)
 
 Naming is automatic: leave **Card name** blank and the agent names the card when it compiles. Type a name and it's pinned — later recompiles won't overwrite it.
 
@@ -74,6 +84,8 @@ You choose how eager the card is in **Settings → Auto-update policy**:
 | `manual` | The default. Changes mark the card **Stale**; nothing runs until you press Refresh. | Nothing. |
 | `interval` | Checks on a schedule and updates only if something changed. | An interval — the UI offers 5, 15, 30, or 60 minutes. |
 | `reactive` | Updates as soon as something changes, after a debounce window. | A debounce — the UI offers 30, 60, 120, or 300 seconds — plus a cap on updates per hour (6 by default). |
+
+![The Settings tab showing the auto-update policy modes and the Advanced section of change triggers](../user-guides/screenshots/light/status-cards/detail-settings.png)
 
 ### What counts as a change
 
