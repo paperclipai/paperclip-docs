@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.817.0
 ---
 
 # Claude Code
@@ -144,8 +144,6 @@ The UI's `Test Environment` button validates Claude Code before the adapter is s
 - The hello probe can run `claude --print - --output-format stream-json --verbose` with the prompt `Respond with hello.`
 
 If the test fails, fix the command, path, or auth signal before trying again.
-
-> **Tip:** Running this agent in a sandbox where you can't sign Claude Code in interactively? Use the `setup-token` login flow to authenticate the CLI from the Board instead. See [Setup-Token & Device-Login Authentication](./setup-token-authentication.md).
 
 ---
 

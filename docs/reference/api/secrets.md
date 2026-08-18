@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.722.0
+paperclip_version: v2026.817.0
 ---
 
 # Secrets
@@ -664,6 +664,309 @@ Returns the plaintext value for a single granted alias. The `{key}` path paramet
 If the alias is not granted to the calling agent, the request is rejected with a forbidden error. Every successful value read is written to both the security audit trail and the operator activity log, so each fetch is tied to a specific agent and run.
 
 Full request and response examples for both routes live on the [Agents reference](agents.md#fetch-granted-secrets) page, since they are agent-run-scoped.
+
+## Secret proposals
+
+Secrets and their bindings are board-only to create — but the agent doing the work is often the one who first knows a credential is missing. Secret proposals close that gap. A running agent can *propose* the secret it needs, or *propose a binding* that wires an existing secret into an agent's config, and then a person on the board approves, rejects, or lets it expire. The agent never gets to create the secret itself; it only asks.
+
+> **Agents propose, people decide.** An agent can raise a proposal and watch its status, but only a board member can approve it. Approval is the moment the secret is actually created or the binding is actually applied — nothing sensitive changes on the strength of a proposal alone.
+
+There are two kinds of proposal, and the `kind` field picks between them:
+
+- `secret` — "please create this company secret." The agent supplies a name, a value, and a justification. On approval the board creates a real company secret from the proposed value.
+- `binding` — "please wire a secret into an agent's config." The agent points at an existing secret (`secretId`) or at another pending secret proposal (`secretProposalId`), and names the `configPath` to bind it to. On approval the board writes a `secret_ref` into the target agent's adapter config.
+
+A binding can depend on a secret proposal that hasn't been approved yet, so an agent can raise both in one go: propose the secret, then propose a binding that references the secret proposal by ID. The board can approve them together (see [Approve a proposal](#approve-a-proposal)).
+
+### Who can propose
+
+The agent-side routes require a **verified run-bound agent token** — the same live-heartbeat requirement as [Run-Bound Agent Secret Access](#run-bound-agent-secret-access), plus a real signed agent JWT. Task-bridge and skill-test tokens are refused, and the run is checked against the `secrets:propose` authorization action.
+
+```json
+403 Forbidden
+{ "error": "Secret proposals require a verified run-bound agent token" }
+```
+
+### Propose a secret or binding
+
+```http
+POST /api/agents/me/secret-proposals
+Content-Type: application/json
+```
+
+The body is discriminated by `kind`.
+
+**Proposing a `secret`:**
+
+| Field | Required | Notes |
+|---|---|---|
+| `kind` | Yes | `"secret"`. |
+| `name` | Yes | A slash-separated path with no empty segments, e.g. `anthropic/api-key`. |
+| `value` | Yes | The plaintext value. At most `65536` bytes. It is encrypted immediately and registered for run-log redaction. |
+| `justification` | Yes | Why the agent needs it. Shown to the board. |
+| `key` | No | The environment-style key. Defaults to the last segment of `name`, normalised. |
+| `description` | No | Operator-facing note carried onto the created secret. |
+
+**Proposing a `binding`:**
+
+| Field | Required | Notes |
+|---|---|---|
+| `kind` | Yes | `"binding"`. |
+| `configPath` | Yes | Where to bind it. Must be `env.<KEY>` or `access.<ALIAS>`. |
+| `secretId` | One of | An existing active company secret to bind. |
+| `secretProposalId` | One of | A still-pending `secret` proposal to bind once it's approved. Send exactly one of `secretId` or `secretProposalId`. |
+| `targetAgentId` | No | The agent to bind onto. Defaults to the proposing agent, and may only be the proposer itself or one of its reports. |
+| `justification` | Yes | Why the binding is needed. |
+
+The binding target policy is fixed server-side to `self_and_reports`: an agent can bind onto itself or an agent below it in the chain of command, and nothing higher. A target outside that chain is rejected:
+
+```json
+403 Forbidden
+{ "error": "Binding proposals may target only the proposing agent or its reports" }
+```
+
+On success you get `201 Created` with the proposal record (see [Proposal fields](#proposal-fields)). The proposed value is never echoed back — the agent-facing view strips the value fingerprint and length as well.
+
+```bash
+# Propose a secret
+curl -X POST "http://localhost:3100/api/agents/me/secret-proposals" \
+  -H "Authorization: Bearer <agent-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "kind": "secret",
+    "name": "anthropic/api-key",
+    "value": "sk-ant-...",
+    "justification": "Needed to call the Anthropic API for this issue"
+  }'
+```
+
+```bash
+# Propose a binding onto this agent's env
+curl -X POST "http://localhost:3100/api/agents/me/secret-proposals" \
+  -H "Authorization: Bearer <agent-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "kind": "binding",
+    "secretId": "secret-uuid",
+    "configPath": "env.ANTHROPIC_API_KEY",
+    "justification": "Wire the shared key into my runtime"
+  }'
+```
+
+There are guardrails on how fast and how many an agent can raise. An agent may hold at most `20` pending proposals and create at most `20` per minute; crossing either line returns `422`:
+
+```json
+422 Unprocessable Entity
+{ "error": "Agents may have at most 20 pending secret proposals" }
+```
+
+### List your proposals
+
+```http
+GET /api/agents/me/secret-proposals
+```
+
+Returns the proposals this agent raised, plus any `binding` proposals that target this agent, newest first. Values are never included.
+
+The response wraps the rows and echoes the next page offset:
+
+```json
+{
+  "proposals": [ /* proposal records */ ],
+  "nextOffset": 100
+}
+```
+
+Pagination is by `limit` (default `100`, capped at `200`) and `offset` query parameters. The same paging is also reported in `X-Page-Limit`, `X-Page-Offset`, and — when there's more to fetch — `X-Next-Offset` response headers. `nextOffset` is `null` on the last page. A non-numeric `limit` or `offset` is rejected with `422` (`limit must be a positive integer` / `offset must be a non-negative integer`).
+
+### Withdraw a proposal
+
+```http
+DELETE /api/agents/me/secret-proposals/{id}
+```
+
+The agent that raised a proposal can withdraw it while it is still pending. Withdrawing moves it to status `withdrawn`, scrubs the stored ciphertext, and — if it was a `secret` proposal — cascades any pending `binding` proposals that depended on it to `rejected`.
+
+Only the original proposer may withdraw, and only a pending proposal can be resolved:
+
+```json
+403 Forbidden
+{ "error": "Only the proposer can withdraw this proposal" }
+```
+
+```json
+409 Conflict
+{ "error": "Only pending proposals can be resolved" }
+```
+
+### Review proposals
+
+```http
+GET /api/companies/{companyId}/secret-proposals
+```
+
+The board-side list. Returns proposals for the company, newest first, as a plain array (not wrapped). Add `?status=` to filter by one of `pending`, `approved`, `rejected`, `withdrawn`, or `expired`. It takes the same `limit`/`offset` paging and the same `X-Page-*` headers as the agent list.
+
+Each row is enriched for review: alongside the proposal fields it carries `proposedBy`, the `target` agent (for bindings), the `originIssue` it came from, and the resolved names of any referenced secret (`secretName`) or prerequisite secret proposal (`secretProposalName`). It also carries two review hints:
+
+- `viewerCanApprove` — whether *you*, the calling board member, are allowed to approve this one.
+- `approveBlockReason` — when you can't, a short reason why; `null` when you can.
+
+For a `secret` proposal, approving requires company admin access, so a non-admin board member sees:
+
+```json
+{
+  "viewerCanApprove": false,
+  "approveBlockReason": "Company admin access required"
+}
+```
+
+For a `binding` proposal, approval is gated on your permission to change the *target agent's* config (an `agent_config:update` change grant), so the block reason mirrors that authorization decision. Any proposal that is no longer pending reports `viewerCanApprove: false` with `approveBlockReason: "Proposal is no longer pending"`.
+
+### Approve a proposal
+
+```http
+POST /api/companies/{companyId}/secret-proposals/{id}/approve
+Content-Type: application/json
+```
+
+Approval is where the proposal takes effect. For a `secret` proposal, the board creates a real company secret from the proposed value and records its ID as `createdSecretId`. For a `binding` proposal, the board writes a `secret_ref` into the target agent's adapter config at the proposed `configPath` and records it as `appliedBindingConfigPath`. Either way the proposal moves to `approved`, the stored ciphertext is scrubbed, and `resolvedByUserId`/`resolvedAt` are stamped.
+
+| Field | Required | Notes |
+|---|---|---|
+| `cascade` | No | When a binding depends on a still-pending `secret` proposal, `cascade: true` approves that prerequisite in the same transaction and binds the secret it creates. |
+| `overrides.name` | No | Rename the created secret at approval time. |
+| `overrides.description` | No | Override the description on the created secret. |
+| `overrides.providerConfigId` | No | Store the created secret in a specific provider vault instead of `local_encrypted`. |
+
+Who is allowed to approve depends on the kind, exactly as `viewerCanApprove` advertises: a `secret` proposal needs company admin access, and a `binding` proposal needs change-grant permission on the target agent.
+
+```bash
+curl -X POST "http://localhost:3100/api/companies/company-1/secret-proposals/proposal-uuid/approve" \
+  -H "Authorization: Bearer <board-token>" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+Approval fails safely if the situation has shifted since the proposal was raised. A proposal past its expiry can't be approved (`Expired proposals cannot be approved`), a binding whose prerequisite is still pending needs the cascade flag (`Binding proposal requires pending secret proposal <id>; retry with cascade=true`), and a binding whose target has since moved out of the proposer's chain of command is refused (`Binding proposal target is no longer allowed by its proposal-time and current chain-of-command policy`). These come back as `409 Conflict`.
+
+### Reject a proposal
+
+```http
+POST /api/companies/{companyId}/secret-proposals/{id}/reject
+Content-Type: application/json
+```
+
+Rejecting moves the proposal to `rejected`, scrubs the ciphertext, and records the reason. A reason is required:
+
+| Field | Required | Notes |
+|---|---|---|
+| `reason` | Yes | Non-empty. Stored on the proposal and shown back to the origin issue. |
+
+Rejecting a `secret` proposal also cascades any pending `binding` proposals that depended on it to `rejected`, so a declined secret can't leave dangling bindings behind.
+
+```bash
+curl -X POST "http://localhost:3100/api/companies/company-1/secret-proposals/proposal-uuid/reject" \
+  -H "Authorization: Bearer <board-token>" \
+  -H "Content-Type: application/json" \
+  -d '{ "reason": "Use the shared vault key instead" }'
+```
+
+An empty reason is rejected with `422`:
+
+```json
+422 Unprocessable Entity
+{ "error": "Rejection reason is required" }
+```
+
+### When a proposal resolves
+
+Proposals usually start life inside a piece of work. When a proposal is raised, Paperclip resolves the issue behind the current run — the issue whose execution or checkout run matches — and stores it as `originIssueId`.
+
+That link pays off when the board decides. On approval or rejection, if the proposal has an `originIssueId`, Paperclip posts a resolution comment back onto that issue and wakes the assignment so the agent picks the outcome up. The comment names the proposal and its new status, for example:
+
+```
+Secret proposal resolution
+
+- Proposal: secret proposal `anthropic/api-key`
+- Status: **approved**
+```
+
+A rejection appends the reason. The notification is best-effort: if the comment or wakeup fails it is logged and the resolution still stands.
+
+### Statuses and expiry
+
+A proposal's `status` is always one of:
+
+- `pending` — awaiting a decision. The only state that can be approved, rejected, or withdrawn.
+- `approved` — the secret was created or the binding applied.
+- `rejected` — declined by the board, or cascaded from a rejected prerequisite.
+- `withdrawn` — pulled by the proposing agent.
+- `expired` — a pending proposal aged out. Proposals expire `14` days after they are raised, and a background sweep transitions them to `expired`.
+
+Whenever a proposal leaves `pending`, the encrypted value is scrubbed and `ciphertextScrubbedAt` is stamped — an approved secret keeps living as a real company secret, and nothing sensitive lingers on the proposal record.
+
+### Proposal fields
+
+Every proposal record carries the same shape; unused fields are `null` for the kind that doesn't use them. A `secret` proposal seen through the agent view looks like this:
+
+```json
+{
+  "id": "proposal-uuid",
+  "companyId": "company-1",
+  "kind": "secret",
+  "status": "pending",
+  "proposedName": "anthropic/api-key",
+  "proposedKey": "API_KEY",
+  "proposedDescription": "Key the billing agent needs",
+  "justification": "Needed to call the Anthropic API for this issue",
+  "secretId": null,
+  "secretProposalId": null,
+  "targetType": null,
+  "targetId": null,
+  "configPath": null,
+  "projectionClass": "unclassified",
+  "proposedByAgentId": "agent-uuid",
+  "originIssueId": "issue-uuid",
+  "originRunId": "run-uuid",
+  "resolvedByUserId": null,
+  "resolvedAt": null,
+  "resolutionReason": null,
+  "createdSecretId": null,
+  "appliedBindingConfigPath": null,
+  "ciphertextScrubbedAt": null,
+  "expiresAt": "2026-09-01T12:00:00.000Z",
+  "createdAt": "2026-08-18T12:00:00.000Z",
+  "updatedAt": "2026-08-18T12:00:00.000Z",
+  "secretName": null,
+  "secretProposalName": null,
+  "proposedBy": { "id": "agent-uuid", "name": "Billing", "icon": "…" },
+  "target": null,
+  "originIssue": { "id": "issue-uuid", "key": "PC-42", "title": "Wire up billing" }
+}
+```
+
+| Field | Notes |
+|---|---|
+| `id` | The proposal ID. |
+| `companyId` | Owning company. |
+| `kind` | `secret` or `binding`. |
+| `status` | One of the statuses above. |
+| `proposedName` / `proposedKey` / `proposedDescription` | The requested secret's name, key, and note. Set only for `secret` proposals. |
+| `justification` | The agent's stated reason. |
+| `secretId` | For a `binding` on an existing secret. |
+| `secretProposalId` | For a `binding` on a still-pending secret proposal. |
+| `targetType` / `targetId` / `configPath` | The bind target: `agent`, the agent ID, and the `env.<KEY>` / `access.<ALIAS>` path. Set only for `binding` proposals. |
+| `originIssueId` / `originRunId` | The issue and run the proposal came from. |
+| `resolvedByUserId` / `resolvedAt` / `resolutionReason` | Who resolved it, when, and why (rejections). |
+| `createdSecretId` | The company secret created when a `secret` proposal is approved. |
+| `appliedBindingConfigPath` | The path written when a `binding` proposal is approved. |
+| `ciphertextScrubbedAt` | When the stored value was wiped (any non-pending proposal). |
+| `expiresAt` / `createdAt` / `updatedAt` | Lifecycle timestamps. |
+| `secretName` / `secretProposalName` | Resolved display names for the referenced secret or prerequisite proposal. |
+| `proposedBy` / `target` / `originIssue` | Enriched summaries of the proposing agent, the target agent, and the origin issue. |
+
+The board view adds `viewerCanApprove` and `approveBlockReason`, and — unlike the agent view — keeps `valueFingerprintSha256` and `valueLength` so reviewers can sanity-check a proposed value without ever seeing it. The raw ciphertext and the chain-of-command snapshots are never returned to either audience.
 
 ## `secret-ref` form fields
 

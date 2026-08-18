@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.817.0
 ---
 
 # Routines
@@ -626,7 +626,7 @@ Accepted headers depend on signing mode:
 - `github_hmac` uses `X-Hub-Signature-256` or `X-Paperclip-Signature` plus `X-Paperclip-Timestamp`
 - `none` does not require a signature
 
-For timestamped HMAC validation, the server enforces the replay window from the trigger. It also guards against replays inside that window: the first accepted `hmac_sha256` request is remembered by its trigger, timestamp, and signature, so if the exact same signed request arrives again the server rejects it with `409 Conflict` and the message `Webhook replay detected` instead of firing a second run. Resend with a fresh timestamp and signature if you genuinely want to trigger again.
+For timestamped HMAC validation, the server enforces the replay window from the trigger.
 
 ### Example
 

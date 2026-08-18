@@ -826,10 +826,6 @@
           "file": "../docs/reference/adapters/overview.md"
         },
         {
-          "title": "Setup-Token & Device-Login Authentication",
-          "file": "../docs/reference/adapters/setup-token-authentication.md"
-        },
-        {
           "title": "Claude Code",
           "file": "../docs/reference/adapters/claude-code.md"
         },

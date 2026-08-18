@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.722.0
+paperclip_version: v2026.817.0
 ---
 
 # Codex
@@ -169,8 +169,6 @@ Each `codex_local` agent runs against its own managed Codex home, so one agent c
 - **A per-agent API key wins when you set one.** If the agent's `env` carries an `OPENAI_API_KEY`, Paperclip writes that key into the managed home as API-key auth instead of borrowing the host login.
 - **Your own `CODEX_HOME` is left alone.** If you point the adapter at a `CODEX_HOME` outside Paperclip's managed company tree, Paperclip treats it as self-managed and never seeds or overwrites it.
 - **No silent credential-less runs.** If a managed home ends up with no usable login and no configured API key, the run fails fast with a clear adapter error instead of starting Codex and hitting a `401` from the provider.
-
-> **Tip:** Running this agent in a sandbox where you can't sign Codex in interactively? Use the device-login flow to authenticate the CLI from the Board and promote a subscription credential into the company slot. See [Setup-Token & Device-Login Authentication](./setup-token-authentication.md).
 
 ### CODEX_HOME sync into a sandbox
 
