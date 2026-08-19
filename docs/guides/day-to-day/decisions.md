@@ -10,8 +10,6 @@ Open it from the sidebar, or go directly to `/decisions`.
 
 ![The Decisions page: a ranked queue of items needing a human call, each row naming why it needs you and linking to the work behind it](../../user-guides/screenshots/light/decisions/queue-overview.png)
 
-The Training library lives with this page. Click the graduation-cap **Training** button in the page header, or go directly to `/decisions/training`, to browse the decisions your company has kept as training examples. Older `/training` links still resolve — they redirect to the new address.
-
 ---
 
 ## Read the queue

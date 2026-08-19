@@ -964,6 +964,10 @@
         {
           "title": "Tailscale Private Access",
           "file": "../docs/reference/deploy/tailscale-private-access.md"
+        },
+        {
+          "title": "Tailscale HTTPS Broker",
+          "file": "../docs/reference/deploy/tailscale-https-broker.md"
         }
       ]
     },

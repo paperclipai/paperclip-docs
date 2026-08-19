@@ -96,6 +96,41 @@ To start services for a workspace:
 
 ---
 
+## HTTPS previews for runtime services
+
+When a runtime service runs a dev server, you usually reach it on a loopback URL. On a managed workspace, Paperclip can also publish that same service on your tailnet at a real, cert-valid `https://<node>.<tailnet>.ts.net:<port>` URL — the public port matches the loopback app port — so you can open the preview from another device or share it with a teammate on the same tailnet.
+
+### Reading the HTTPS states
+
+The Services control bar tracks HTTPS exposure as its own lifecycle, **separate from the service's process health**. That separation is deliberate: a service can be up and running while its HTTPS preview is still being provisioned or has failed. A preview is only ever reported ready once an external HTTPS probe actually passes, so a green service light on its own doesn't mean the public URL is live yet.
+
+You'll see these states next to a service:
+
+- **Provisioning HTTPS…** — the service is up and Paperclip is bringing the HTTPS mapping online.
+- **HTTPS ready** — the preview is live. You get the public URL with a copy-URL button and an open-in-new-tab button.
+- **HTTPS unavailable** — provisioning failed. The bar shows remediation text ("Check the Tailscale broker and node HTTPS configuration.").
+- **HTTPS cleanup pending** — a previous mapping still needs tearing down before the port can be reused ("Restart the host broker before reusing this port.").
+
+Because HTTPS is fail-closed, Paperclip never falls back to plain HTTP and calls it ready — if the probe doesn't pass, the preview stays unavailable rather than silently downgrading.
+
+### Opting a service in
+
+Most of the time you don't have to do anything: eligible runtimes are opted in automatically, so a typical dev-server service gets an HTTPS preview without any config.
+
+When you do want to be explicit, add an `expose` block to the service with `type: "tailscale_https"`. Nearly every field defaults, so the shorthand is a complete declaration:
+
+```json
+{
+  "expose": { "type": "tailscale_https" }
+}
+```
+
+The recognized fields — `hostname` (`"auto"`, resolved from the local Tailscale node), `publicPort` (`"same"`, matching the loopback app port), `includePaperclipViteHmr`, and `failurePolicy` (`"fail_closed"`) — all fall back to their defaults if you omit them. `includePaperclipViteHmr` defaults to on, which exposes a companion HMR port so Vite hot reload keeps working over the HTTPS origin. To opt a service out, set `type: "none"` (or `tailscaleHttps: false`) on the block.
+
+> **Prerequisite:** HTTPS previews only work when the instance is on a tailnet with the HTTPS broker installed. If you see **HTTPS unavailable**, that host-side helper is usually what needs attention — see [Tailscale HTTPS Broker](../../reference/deploy/tailscale-https-broker.md) for the operator setup.
+
+---
+
 ## Workspace inheritance
 
 When you create a project, you can define a base runtime configuration for it — how services should be started, what environment variables they need, what commands to run.

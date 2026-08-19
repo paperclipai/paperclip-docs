@@ -129,6 +129,40 @@ Each file row shows a **download button** when the file can be downloaded. Click
 
 ---
 
+## Commenting on documents
+
+Some artifacts aren't just for reading — you want to react to them, line by line. When an agent hands back a written document (a **Plan** or an **Artifact** document on a task), you can leave inline comments right on the text, the way you would in Google Docs. Pick out the exact sentence you're reacting to, attach a note, and start a conversation anchored to that spot.
+
+### Leave a comment on a passage
+
+Open the **Plan** or **Artifacts** tab in a task's properties panel and select the run of text you want to comment on. A small **Comment** affordance appears next to your selection — click it, or press **⌘⇧M** (**Ctrl+Shift+M** on Windows and Linux), and a composer opens. Type your note and post it (⌘↵ posts without reaching for the mouse). Your selected span lights up as a highlight, and a new thread is born.
+
+You can start a comment anywhere there's text to select — this works the same across **issue**, **routine**, and **case** documents.
+
+### The thread panel
+
+Each comment opens a **threaded panel** where you and everyone else can reply back and forth. Where that panel lives adapts to your screen: on desktop it docks as a **side panel** (a comment gutter alongside the document), and on a phone it slides up as a **bottom sheet** so the conversation doesn't crowd the text.
+
+Both **teammates and agents** can author comments and replies. Agent authors are labelled as such in the thread, so it's always clear whether a note came from a person or from one of your agents reviewing the work.
+
+### Resolve, reopen, and the count chip
+
+Every thread has a status: it starts **open** and can be marked **resolved** once it's been dealt with. Hit **Resolve** to close it out; a resolved thread dims down and its highlight quiets, but it's never lost — hit **Reopen** to bring it back to **open** and pick the conversation up again.
+
+Each document carries a small **comment count chip** in its header showing how many unresolved comments it has, so you can tell at a glance which documents still have open questions waiting on you. Click the chip to open the panel and work through them.
+
+### Highlights that survive edits
+
+Comments stay pinned to the text they're about, even as the document keeps changing underneath them. Paperclip re-anchors each highlight as agents revise the document, so a note you left yesterday still points at the right passage today. An anchor that's holding firmly is **active**.
+
+When the underlying text shifts enough that Paperclip is no longer certain, the anchor degrades gracefully rather than pointing at the wrong words. A highlight whose text has moved or changed is flagged **stale** (its highlight is muted and marked as needing review), and if the anchored passage disappears entirely the thread becomes **orphaned** — its conversation is preserved in the panel, it just no longer has a span to sit on. Either way you keep the discussion; you never lose a comment because the document moved on.
+
+### Share a single comment
+
+Every comment is addressable. Open a thread and use **Copy link** to grab a deep link that points straight back to that exact comment. Paste it into a task discussion or a message, and whoever opens it lands on the document with the right thread focused — no "scroll down to the third paragraph" needed.
+
+---
+
 ## A quick mental model
 
 - **Artifacts page** — every output your agents produced, company-wide, in one place.
@@ -137,5 +171,6 @@ Each file row shows a **download button** when the file can be downloaded. Click
 - **Cards** — previews you can read or watch in place, each linking back to the issue it came from.
 - **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from a file artifact or from an inline file chip an agent left in its writing.
 - **Artifacts tab on a task** — with **Chat-Style Tasks** enabled, one task's files listed in its properties panel.
+- **Document comments** — inline, Google-Docs-style threads anchored to a passage in a Plan or Artifact document; open or resolved, authored by people or agents, and shareable by deep link.
 
 You now know how to find, filter, and review everything your agents have made. When you want to dig into the work behind a given artifact, follow its link back to the issue and pick up the thread there.

@@ -1146,7 +1146,7 @@ Request body fields:
 - `payload` — interaction-specific structured data (the list of suggested tasks, the questions, or the confirmation summary).
 - `idempotencyKey` — optional. Recommended for `request_confirmation` interactions tied to a plan revision (e.g. `confirmation:{issueId}:plan:{revisionId}`) so re-sends do not double-create.
 - `continuationPolicy` — one of `none`, `wake_assignee`, or `wake_assignee_on_accept`. It defaults to `wake_assignee` for every kind except `request_confirmation`, which defaults to `none`.
-- `resolverPolicy` — optional. One of `board_only` or `board_or_agents`. Controls whether an eligible agent may resolve the card, or only the board. See [Agent-addressed interactions](./attention.md#agent-addressed-issue-thread-interactions).
+- `resolverPolicy` — optional. One of `anyone`, `not_creator`, or `human_only` (the deprecated aliases `board_or_agents` and `board_only` still write, normalizing to `anyone` and `human_only`). Names the card's audience — who may resolve it. When omitted, it falls back to the company's per-kind `defaultPolicy`, else the built-in default, which is `anyone` for every kind. A governed action forces `human_only`, and a company `cap` can only narrow it further. See [Agent-addressed interactions](./attention.md#agent-addressed-issue-thread-interactions).
 - `addresseeAgentId` — optional agent UUID (or `null`). Addresses the card to a specific agent, which is then woken to resolve it. Must reference an invokable agent in the same company. See [Agent-addressed interactions](./attention.md#agent-addressed-issue-thread-interactions).
 
 Permissions:
