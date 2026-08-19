@@ -347,6 +347,10 @@
               "file": "../docs/how-to/deploy-to-vps-or-fly.md"
             },
             {
+              "title": "Deploy on Sealos",
+              "file": "../docs/how-to/deploy-on-sealos.md"
+            },
+            {
               "title": "Update Paperclip to the Latest Version",
               "file": "../docs/how-to/update-paperclip.md"
             },
