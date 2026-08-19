@@ -81,6 +81,30 @@ If the restarted service fails to come back healthy at the new version, the upda
 
 ---
 
+## See which channel you're on
+
+Before you switch, it helps to know where you are. `paperclipai channels` shows the four release channels and marks which one this install follows.
+
+```bash
+paperclipai channels
+paperclipai channels --json    # machine-readable output
+```
+
+The channels print from most to least stable, each with its currently published version and a one-line install hint:
+
+| Channel | npm dist-tag | What it is |
+|---|---|---|
+| `stable` | `latest` | Manual, soaked in beta for 3+ days — the recommended release for almost everyone. |
+| `beta` | `beta` | Manual promotion behind an approval gate — release candidates: what stable becomes a few days later. |
+| `nightly` | `nightly` | Once a night, smoke-gated — yesterday's merges, tested as a unit. |
+| `canary` | `canary` | Every merge to master — the bleeding edge. |
+
+At the bottom it tells you which channel this install is on. A source checkout reports a placeholder version that does not map to a published channel, so you'll see that noted instead. The same names apply to the Docker images: `ghcr.io/paperclipai/paperclip:{latest,beta,nightly,canary}`.
+
+To move onto a new build, use the update command with a channel flag.
+
+---
+
 ## Switch channels
 
 Without a channel flag, `update` stays wherever you already are: stable stays stable, canary stays canary, and a pinned version stays pinned. Pass a flag to move.

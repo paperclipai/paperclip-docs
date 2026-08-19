@@ -106,34 +106,53 @@ The full interaction lifecycle (create, respond, withdraw, expiry) lives in the 
 
 ### Resolver policy
 
-Two fields set on create, both exposed on every interaction record, decide who may resolve a card:
+Every card carries a resolver policy that names its audience — who is allowed to answer it. The canonical values are:
+
+| Value | Audience |
+|---|---|
+| `anyone` | Anyone in the company can respond — the board or any agent, including the one that asked. |
+| `not_creator` | Anyone in the company except the agent that created the card, and its creating run. |
+| `human_only` | Only a person on the board can respond. Agents are turned away. |
+
+Two older values, `board_or_agents` and `board_only`, are **deprecated compatibility aliases** kept writable for one migration window. On write they normalize to canonical values — `board_or_agents` → `anyone`, `board_only` → `human_only` — and every record you read back reports the canonical value. For back-compatibility each record also carries `legacyResolverPolicyAliases` with the alias form of the requested and effective policies (`anyone` and `human_only` map back to `board_or_agents` and `board_only`; `not_creator` has no alias and reports `null`).
+
+Two fields set on create decide routing:
 
 | Field | Values | Meaning |
 |---|---|---|
-| `resolverPolicy` | `board_only`, `board_or_agents` | The policy requested when the card was created. Optional on create. |
+| `resolverPolicy` | `anyone`, `not_creator`, `human_only` (or a deprecated alias) | The policy requested when the card was created. Optional on create. |
 | `addresseeAgentId` | agent UUID or `null` | Optional. Addresses the card to one specific agent, which is woken to resolve it. Must reference an invokable agent in the same company. |
 
-The server resolves the requested policy against **company governance** and stores the result as three fields on the interaction:
+The server resolves the requested policy against **company governance** and stores the result on the interaction:
 
 | Field | Meaning |
 |---|---|
-| `resolverPolicy` | Mirrors `requestedResolverPolicy` for compatibility. |
-| `requestedResolverPolicy` | The policy asked for: the create request's `resolverPolicy`, else the company's per-kind `defaultPolicy`, else the built-in default for that kind (`ask_user_questions` defaults to `board_or_agents`; all other kinds default to `board_only`). |
-| `effectiveResolverPolicy` | What is actually enforced. Forced to `board_only` when the card carries a tool action, or when the company's per-kind governance `cap` is `board_only`; otherwise equal to `requestedResolverPolicy`. |
+| `resolverPolicy` | Deprecated mirror of `requestedResolverPolicy`, kept for API compatibility. |
+| `requestedResolverPolicy` | The policy asked for, canonicalized: the create request's `resolverPolicy`, else the company's per-kind `defaultPolicy`, else the built-in per-kind default — which is `anyone` for every interaction kind (`suggest_tasks`, `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`, `request_item_verdicts`). A card created without an explicit policy is open by default. |
+| `effectiveResolverPolicy` | What is actually enforced. Equals `requestedResolverPolicy` unless a rule tightens it (see below). |
+| `resolverPolicyProvenance` | How the requested policy was chosen: `explicit` (the request named one) or `inherited` (it fell back to governance or the built-in default). A pre-migration row whose restriction was inherited under the old model reports `legacy_inherited_restriction`. |
+| `effectiveResolverPolicySource` | Why the effective policy is what it is: `requested`, `company_cap`, or `governed_action`. |
 
-Company governance lives on the company setting `interactionResolverGovernance` — a per-kind map of `{ defaultPolicy?, cap? }`, each value being `board_only` or `board_or_agents`. `defaultPolicy` sets the fallback when a create request omits `resolverPolicy`; `cap` is a ceiling that can only tighten a card down to `board_only`.
+Tightening is one-directional along the order `anyone` → `not_creator` → `human_only` (least to most restrictive). Two rules can tighten:
+
+- **Governed action** — a card that carries a tool action is forced to `human_only` (`effectiveResolverPolicySource` `governed_action`), whatever audience was requested.
+- **Company cap** — if the company's per-kind governance sets a `cap`, and that cap is more restrictive than the requested policy, the card is tightened to the cap (`effectiveResolverPolicySource` `company_cap`). A cap can only narrow; it never widens a card.
+
+Company governance lives on the company setting `interactionResolverGovernance` — a per-kind map of `{ defaultPolicy?, cap? }`, each value being one of the canonical policies (or a deprecated alias). `defaultPolicy` sets the fallback audience when a create request omits `resolverPolicy`; `cap` is a ceiling that can only tighten. This map is **narrowing-only**: it can lower the audience but never raise it above what a card asked for.
 
 ### Who may resolve
 
-A board user may always resolve a card. An **agent** may resolve one only when every check passes:
+A board user (a human) may always resolve a card — subject only to `not_creator`, which excludes the human who created it. An **agent** may resolve one only when every check passes, evaluated in this order:
 
-- `effectiveResolverPolicy` is `board_or_agents` — otherwise `403` `This issue-thread interaction is board-only`.
-- If `addresseeAgentId` is set, the calling agent must be that addressee — otherwise `403` `Only the addressed agent or a board user may resolve this issue-thread interaction`.
-- The calling agent is not the card's creator (`createdByAgentId`) — otherwise `403` `Agents cannot resolve interactions they created`.
-- The call is not from the same run that created the card (`sourceRunId`) — otherwise `403` `Agents cannot resolve interactions created by the same run`.
-- The call carries an active run id — otherwise `401` `Agent run id required`.
+- The call carries an authenticated agent run (an agent id and a non-empty run id) — otherwise `422` `interaction_run_attribution_required` (`A valid authenticated agent run is required to resolve this issue-thread interaction`).
+- The card is not bound to a governed action — otherwise `403` `interaction_governed_action_denied` (`This interaction is bound to a governed action that requires independent authorization`).
+- `effectiveResolverPolicy` is not `human_only` — otherwise `403` `interaction_human_only` (`This issue-thread interaction is human-only`).
+- If `addresseeAgentId` is set, the calling agent must be that addressee — otherwise `403` `interaction_addressee_mismatch` (`Only the addressed agent or an authorized human may resolve this issue-thread interaction`).
+- Under `not_creator`, the caller is neither the creating agent (`createdByAgentId`) nor the creating run (`sourceRunId`) — otherwise `403` `interaction_creator_excluded` (`This issue-thread interaction requires a resolver other than its creator or creating run`). For a human caller under `not_creator`, the parallel denial is `This issue-thread interaction requires a resolver other than its creator`.
 
-Tool-action confirmations are always board-only, and task-watchdog runs can never resolve interactions.
+Governed-action confirmations are always human-only — the agent path is refused before the audience check, and even a human resolves them only through the action's own independent authorization. Task-watchdog and other system runs are treated as `system` actors and are always allowed.
+
+The full denial-code catalog for resolution is: `interaction_not_found`, `interaction_run_attribution_required`, `interaction_scope_denied`, `interaction_human_only`, `interaction_creator_excluded`, `interaction_addressee_mismatch`, `interaction_stale_target`, `interaction_superseded`, `interaction_already_resolved`, `interaction_issue_closed`, `interaction_governed_action_denied`, and `review_policy_denied`. Each denial response carries the offending `effectiveResolverPolicy` in its details.
 
 ### Attention-feed filtering
 
