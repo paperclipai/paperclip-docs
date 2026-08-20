@@ -91,13 +91,39 @@ Filters tidy your view. **Triage** does something different: it records, for eve
 
 You can give any item a decide-by target of **today**, **this week**, **whenever**, or a specific calendar date, and you can snooze it until a moment in the future. Both stick to the item itself rather than to your browser, so the deadline your colleague set is the deadline you see. Paperclip keeps a history of who changed what.
 
-![The triage strip on an expanded row: a When to decide row offering Today, This week, Whenever, and Pick date, alongside Queues and Snooze controls](../../user-guides/screenshots/light/decisions/triage-chips.png)
+![The triage strip on an expanded row: a When to decide row offering Today, This week, Whenever, and Pick date, above Queues, with Snooze and Ask agent for recommendation controls below](../../user-guides/screenshots/light/decisions/triage-chips.png)
 
 Triage changes how the queue reads in two ways. The feed can rank by deadline instead of recent activity — soonest first, then the *whenever* pile, then everything nobody has triaged yet. And the sidebar badge deliberately counts only what is due today, so it stays a signal about this morning rather than a running total of everything outstanding.
 
 Set triage in the UI with the **When to decide** row on an expanded item. You can also set it through the [Decisions API](../../reference/api/decisions.md).
 
 > Triage snoozing is not the same as the personal snooze below. A triage snooze hides the item for the whole company; the snooze in your queue is yours alone.
+
+---
+
+## Ask an agent for a recommendation
+
+Most of this page describes agents bringing work to you. This control runs the other way: it asks a named agent to go and look at something on the desk and come back with a view on it.
+
+**Ask agent for recommendation** sits in the same triage strip as **When to decide**, beside **Snooze**, on an expanded row. Open it and pick an agent from the list.
+
+Paperclip then posts one comment on the task behind the item. The comment mentions the agent you picked, asks it to look at the decision, prepare a recommendation, and re-surface it on the decisions desk, and notes that the request came from here. It is attributed to you like any other comment you write, and it lands in the task thread where the agent and anyone else following that work will see it.
+
+That comment is the whole of what Paperclip does. In particular:
+
+- **It does not reassign the task.** Whoever the task was assigned to before still owns it, and the agent you asked does not become the assignee.
+- **It does not answer the decision.** Nothing is decided, dismissed, or resolved, and no option is chosen on your behalf.
+- **It does not move the item on the desk.** Its queues, decide-by target, and snooze are left exactly as they were.
+
+So you are sending a request, not handing over the call. What comes back — a comment weighing the options, a question, a proposed decision of its own — is up to the agent you asked, and you still make the final decision here.
+
+The button is greyed out in three cases:
+
+- **The item has no task behind it.** Budget alerts and join requests often have nothing to comment on; hovering the button explains why with *No linked task to ask about*.
+- **There is no agent to ask.** The list covers your company's active agents, so a company with none available has nobody to route to. Terminated agents are never offered.
+- **Your last request is still going out.** The button settles once the comment has posted, and a confirmation names the agent you asked.
+
+You will find the control on rows in your active queue. Rows you have already dismissed or snoozed collapse into their own sections without the triage strip, so restore a row first if you want to ask about it.
 
 ---
 

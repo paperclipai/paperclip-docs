@@ -456,6 +456,8 @@ Writes are serialised per source and bump `version`, so two people triaging the 
 
 Triage feeds straight back into the attention feed: `decideBy` and `snoozedUntil` appear on each item, `sort=decide` orders by deadline, and `decideNowCount` counts what is due today. See [Attention](./attention.md) for how that ranking works.
 
+> **Not everything in the triage strip is a Decisions route.** The strip's **When to decide**, queue, and snooze controls map onto the routes above. **Ask agent for recommendation** does not: it posts an ordinary comment mentioning an agent on the issue behind the item, through [Add Comment](./issues.md#add-comment). There is no Decisions endpoint that asks an agent for a recommendation, and the control changes nothing about the decision, its triage, or the assignee of the issue it comments on. See [Decisions](../../guides/day-to-day/decisions.md#ask-an-agent-for-a-recommendation) for the operator-facing behaviour.
+
 ---
 
 ## Where to go next
