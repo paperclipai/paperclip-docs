@@ -95,7 +95,7 @@ You can give any item a decide-by target of **today**, **this week**, **whenever
 
 Triage changes how the queue reads in two ways. The feed can rank by deadline instead of recent activity — soonest first, then the *whenever* pile, then everything nobody has triaged yet. And the sidebar badge deliberately counts only what is due today, so it stays a signal about this morning rather than a running total of everything outstanding.
 
-Triage is set through the [Decisions API](../../reference/api/decisions.md) today.
+Set triage in the UI with the **When to decide** row on an expanded item. You can also set it through the [Decisions API](../../reference/api/decisions.md).
 
 > Triage snoozing is not the same as the personal snooze below. A triage snooze hides the item for the whole company; the snooze in your queue is yours alone.
 
