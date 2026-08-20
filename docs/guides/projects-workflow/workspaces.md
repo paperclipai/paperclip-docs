@@ -131,6 +131,37 @@ The recognized fields — `hostname` (`"auto"`, resolved from the local Tailscal
 
 ---
 
+## Opening a workspace
+
+When you want to look inside a workspace as a board member — to poke at its running app, check what the agent built, or see why it won't come up — you open it from the workspace detail screen (**Projects → project → Workspaces → workspace**, behind the same **Enable Isolated Workspaces** toggle described above). The **Workspace access** card there is the honest front door: it tells you the workspace's current state, why it's in that state, and offers the one safe action that makes sense right now.
+
+That card exists because a plain "Open" link used to lie. A workspace whose database had gone missing still showed an **Open** link that then failed when you clicked it. The Workspace access card replaces that with a real state plus the right next step, so you never chase a dead link.
+
+### Reading the access states
+
+The card shows a badge, a title, and a single primary action. The primary action is either a button you can click now or a disabled wait state while Paperclip finishes something:
+
+- **Provisioning** → "Workspace is not running" → **Start workspace** (or a disabled **Provisioning** / **Repair in progress** while it settles).
+- **Validating clone** → disabled **Validating** — wait for the clone to be checked.
+- **Ready** (or "Ready — snapshot-local sign-in") → **Open workspace**.
+- **Degraded** → "Workspace is degraded" → **Repair workspace** (or **Start workspace** when no service is serving yet).
+- **Repairing** → "Repairing workspace database" → disabled **Repair in progress** — wait.
+- **Failed** → "Database provisioning failed" / "Repair failed" → **Repair workspace**, or for a failed repair a **View repair log** link. A failed repair keeps your data — "The pre-repair backup was kept."
+
+The human-readable cause under the title tells you *why* you're seeing a repair or start action instead of **Open workspace**. Causes the card surfaces include: no healthy runtime service is publishing a URL yet; the runtime is publishing a URL Paperclip can't open; the cloned database isn't ready to accept a login yet; the isolated database isn't answering; the clone restored no company or issue rows; the cloned product tables couldn't be read; or no cloned user has an active company membership. Each of these maps you to **Repair workspace** or **Start workspace** rather than a link that would just fail.
+
+### What "Open workspace" does — the single-use handoff
+
+When the workspace is **Ready** and a login handoff is available, the card notes: "Uses a single-use login handoff — no password needed." Clicking **Open workspace** calls `POST /api/execution-workspaces/{id}/login-handoff`, which mints a short-lived, **single-use** ticket. The isolated workspace exchanges that ticket for its own instance-scoped session, so opening a managed workspace doesn't depend on a cloned password.
+
+The endpoint returns a `url` you navigate to — you don't store it. The workspace answers that URL with a redirect, so the ticket never lands in your browser history. If you want to control where you land inside the workspace, pass an optional request body `{ "next": "<same-origin path>" }`; anything that isn't a same-origin path collapses to `/`.
+
+### The snapshot-local fallback
+
+If the instance has no login handoff configured, or your session has no cloned user to sign in as, the card instead notes it "Signs in with the snapshot-local credentials captured when this clone was made." Two refusal reasons drive this fallback: there's no workspace login handoff configured on the instance, and there's no cloned board identity in your session. In that case you're signing in with the credentials frozen into the clone, not through the single-use ticket.
+
+---
+
 ## Workspace inheritance
 
 When you create a project, you can define a base runtime configuration for it — how services should be started, what environment variables they need, what commands to run.
