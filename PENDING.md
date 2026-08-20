@@ -2,47 +2,47 @@
 
 > Regenerated from scratch each nightly run (never appended). Reflects the current cumulative diff window.
 >
-> **Window:** parent `v2026.817.0` (`213dabab`) → `b446ff5` (24h-quarantine boundary; parent `master` HEAD `536d588` is newer but quarantined).
-> **Scope:** first nightly since the v2026.817.0 docs release — 176 parent commits, 852 changed files.
-> **Drift (Phase 1.5):** none. **Truncation:** none (`truncated_leaves = 0`).
-
-All edits below are drafted on branch `nightly-draft/b446ff5-post-release-catchup` (against `nightly`). Nightly drafts are versionless — no `paperclip_version` frontmatter.
+> **Window:** parent `v2026.817.0` (`213dabab`) → `e1df4c60` (24h-quarantine boundary; parent `master` HEAD `a9d1f74` is newer but quarantined).
+> **Scope:** cumulative since the v2026.817.0 docs release — 200 parent commits, 925 changed files. This run's new slice (`b446ff5` → `e1df4c60`) is 24 commits / 92 non-test files on top of the previously-drafted catch-up (#98).
+> **Drift (Phase 1.5):** none against `master` / `e1df4c60`. **Reconcile (Phase 3.5):** none (cumulative window is a superset of the prior run — nothing disappeared). **Truncation:** none (`truncated_leaves = 0`).
 
 ## ✅ Auto-merge tier (mechanical, applied)
 
-- **Workspace Git-scan tuning env vars** → `docs/reference/deploy/environment-variables.md`
-  - Append-only: `PAPERCLIP_WORKSPACE_GIT_SCAN_CONCURRENCY`, `PAPERCLIP_WORKSPACE_GIT_SCAN_QUEUE_CAPACITY`, `PAPERCLIP_WORKSPACE_GIT_SCAN_TIMEOUT_MS`, `PAPERCLIP_WORKSPACE_GIT_SCAN_CACHE_TTL_MS` (commented defaults in `.env.example`; read by `server/src/services/workspace-git-operation-scheduler.ts` with defaults 2 / 32 / 8000 / 10000 and clamped ranges).
+- **Terminal-workspace reaper cooldown env var** → `docs/reference/deploy/environment-variables.md`
+  - Append-only row: `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` (default `7`; `0` disables and restores immediate reaping; negative/non-numeric falls back to default). Read from `process.env` in `server/src/config.ts` (`workspaceReaperCooldownDays`). Not present in `.env.example` — process-env read only.
+- **Workspace Git-scan tuning env vars** *(from the prior slice, still in-window)* → `docs/reference/deploy/environment-variables.md`
+  - `PAPERCLIP_WORKSPACE_GIT_SCAN_CONCURRENCY` / `_QUEUE_CAPACITY` / `_TIMEOUT_MS` / `_CACHE_TTL_MS`.
 
 ## 📝 PR tier (authored drafts)
 
+**New this slice (`b446ff5` → `e1df4c60`):**
+
+7. **Workspace access card + single-use login handoff** → `docs/guides/projects-workflow/workspaces.md` (new **## Opening a workspace** section)
+   - The **Workspace access** card on the workspace detail screen names the access state (Provisioning / Validating clone / Ready / Degraded / Repairing / Failed), the cause, and the one safe action, replacing the old "Open link that lies". **Open workspace** calls `POST /api/execution-workspaces/{id}/login-handoff` — a short-lived, single-use ticket the isolated workspace swaps for its own instance-scoped session (no cloned password); the response `url` is navigated to (redirect, never stored). Snapshot-local-credentials fallback when no handoff is configured / no cloned board identity. Board actors only; behind the Isolated Workspaces experimental toggle. Verified clean (0 unverified). Source: `ui/src/components/WorkspaceAccessCard.tsx`, `ui/src/lib/workspace-access-state.ts`, `ui/src/pages/ExecutionWorkspaceDetail.tsx`, `server/src/auth/workspace-login-handoff*.ts`, `server/src/services/workspace-login-handoff-issuer.ts`, `server/src/services/workspace-readiness.ts`, `server/src/services/managed-workspace-identity.ts`, `server/src/routes/openapi.ts`.
+
+**From the prior slice (already drafted in #98, still in the cumulative window):**
+
 1. **`paperclipai channels` — new CLI command** → `docs/how-to/update-paperclip.md`, `docs/reference/cli/installation.md`
-   - New command + `--json` flag listing the four release channels (`stable`/`beta`/`nightly`/`canary`) and which one the install follows. Source: `cli/src/commands/channels.ts`, `cli/src/index.ts`.
-
-2. **HTTPS previews for workspace runtime services** → `docs/guides/projects-workflow/workspaces.md` (+ **new page** `docs/reference/deploy/tailscale-https-broker.md`, registered in nav)
-   - Per-service `expose` block (`type: "tailscale_https"`), Services-bar HTTPS lifecycle states independent of process health, fail-closed probe. Operator broker install with `BROKER_*` env file. Source: `packages/tailscale-https-broker/`, `server/src/services/runtime-exposure/`, `ui/src/components/WorkspaceRuntimeControls.tsx`.
-
-3. **Interaction resolver-audience model — CORRECTION (docs were wrong)** → `docs/reference/api/attention.md`, `docs/reference/api/issues.md`, `docs/guides/day-to-day/issues.md`
-   - Canonical policies changed to `anyone` / `not_creator` / `human_only`; old `board_only` / `board_or_agents` are now deprecated aliases; default flipped to **open** (`anyone`) for all five interaction kinds. New Company Settings governance panel (`{ defaultPolicy?, cap? }`, narrowing-only) + "Who may resolve" audience line. Full denial-code catalog documented. Source: `packages/shared/src/constants.ts`, `server/src/services/issue-thread-interaction-resolution.ts`.
-
+2. **HTTPS previews for workspace runtime services** → `docs/guides/projects-workflow/workspaces.md` (+ new page `docs/reference/deploy/tailscale-https-broker.md`)
+3. **Interaction resolver-audience model — correction** → `docs/reference/api/attention.md`, `docs/reference/api/issues.md`, `docs/guides/day-to-day/issues.md`
 4. **Onboarding wizard overhaul** → `docs/guides/getting-started/your-first-company.md`, `docs/guides/getting-started/your-first-agent.md`
-   - Single guided wizard (Front Door → name → mission → team lead → connect model → review) replacing the old New-Company modal; auto-open launcher for agentless companies; seeded "Onboarding" project + first task + agent-authored greeting. Source: `ui/src/components/OnboardingWizard.tsx`, `ui/src/lib/onboarding-*.ts`, `server/src/services/onboarding-greeting.ts`.
-
 5. **Document annotations (inline comments on task documents)** → `docs/guides/day-to-day/artifacts.md`
-   - Select text in a Plan/Artifact document → threaded comment (⌘⇧M), status `open`/`resolved`, anchor states `active`/`stale`/`orphaned`, per-doc count chip, deep links; works across issue/routine/case documents. Source: `ui/src/components/DocumentAnnotation*`, `packages/shared/src/constants.ts`.
-
 6. **Company import: resumable chunked uploads** → `docs/guides/power/export-import.md`
-   - Large imports upload in ~32 MB parts (auto, no new flag), resume on interruption, show `Uploading part X of Y …`, and no-op re-imports of a completed package. Source: `ui/src/pages/CompanyImport.tsx`, `server/src/services/company-import-transfers.ts`, `cli/src/commands/client/company.ts`.
 
-## ⚠ Reconcile (upstream removal — human review)
+## ⏸ Deferred / not documented (reviewed, no edit this run)
 
-- **Decision Training UI removed** → `docs/guides/day-to-day/decisions.md`
-  - Parent PR "Remove decision training UI" deleted the graduation-cap **Training** button, the Training library page, and the `/decisions/training` route. **The server API and stored data are unchanged** — `docs/reference/api/decision-training.md` and its inbound links were intentionally left intact. Action taken: removed the stale UI paragraph at `decisions.md:13` only. Confirm this is the intended scope.
+- **Custom-image template relink** (`POST /api/environments/{environmentId}/custom-image-template/relink`, classification `knob_only`/`boot_source_drift`/`unclassified`) — **half-built at this boundary.** The API + client landed in-window, but the paired UI ("boot-relevant drift attribution in the custom-image overview", parent `b8a76081e`) is **quarantined** (newer than `e1df4c60`). `custom-sandbox-images.md` is a pure UI walkthrough, so relink is deferred to the next release run, when the API and its UI land together.
+- **Secret-proposal resolution refactor** (`secret-proposal-authorization.ts`, `secret-proposal-notifications.ts`, `secret-proposals.ts` +258) — the resolve-authorization rules (secret → company admin; binding → `agent_config:update` change grant on the target) and the origin-issue resolution comment are **already documented** in `docs/reference/api/secrets.md` (lines 816–899). This slice extracts that behaviour into dedicated modules; no user-visible change. The new `interactionId` FK on `company_secret_proposals` links a proposal to an issue-thread interaction — internal plumbing.
+- **CLI `paperclipai worktree`** (`cli/src/commands/worktree.ts` +786, new `--preserve-live-work` / `--backup-target` flags) — Paperclip's **own monorepo dev tooling** for seeding local dev worktrees, not a documented user/operator surface. No doc page exists for it by design.
+- **Embedded-Postgres lifecycle / worktree-seed / provision scripts** (`packages/db/embedded-postgres-lifecycle.ts`, `server/src/embedded-postgres-supervisor.ts`, `packages/shared/src/worktree-seed-source.ts`, `scripts/provision-worktree*.sh`) — internal dev/test infra. The only user-facing knob is the reaper cooldown env var above.
+- **Issue-thread-interactions continuation** (`server/src/services/issue-thread-interactions.ts` +263, `ui/src/components/IssueThreadInteractionCard.tsx` +346) — continues the resolver-audience model already drafted as item 3; no new endpoint or user-facing contract.
 
 ## Screenshots
 
-See `SCREENSHOTS_PENDING.md` — 192 of 342 entries flagged (window touches 255 `ui/src/**` files). Recaptured on the release/frozen branch, not during nightly. The `onboarding/`+`company/` new-company shots now depict a **removed** modal flow → recapture first at next release.
+See `SCREENSHOTS_PENDING.md`. Recaptured on the release/frozen branch, not during nightly. The new **Workspace access** card lives on the workspace detail screen but is not depicted in any existing `workspaces/*` capture; no new capture target added this run — reassess at release.
 
-## Not documented (reviewed, no action)
+## Verification (Phase 5.5)
 
-- **Adapter auth churn** (`claude-local`/`codex-local` `auth-check`, `probe-diagnostics`, `adapter-auth-promotion`, setup-token internals): internal security/robustness refactor of already-documented flows; no new user-facing surface.
-- **Skill bundle edits** (`skills/paperclip/SKILL.md`, `skills/paperclip-board/SKILL.md`, `summarize-status/SKILL.md`): not in the vendored docs catalog tree → no re-vendoring. `paperclip-board` change is a `pnpm`→`npx` one-liner. (The `paperclip` SKILL edit corroborates the resolver-audience change already handled in item 3.)
+- `docs/guides/projects-workflow/workspaces.md` — 0 unverified, 0 suspicious against `e1df4c60`.
+- `docs/reference/deploy/environment-variables.md` — the `REAPER_COOLDOWN` row verified clean against `e1df4c60`. One pre-existing unverified row (`PAPERCLIP_CLOUD_PROD_PROVIDER_RAILWAY_TOKEN:315`, a dynamically-named cloud provider token) is unrelated to this run's edits.
+- `sync:check` drift flags the new `REAPER_COOLDOWN` row only because it runs against the stale `b446ff5` ref where the var didn't yet exist — a false positive; the var exists at `e1df4c60` and `master`.
