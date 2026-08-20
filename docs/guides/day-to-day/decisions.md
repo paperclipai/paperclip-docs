@@ -117,7 +117,7 @@ That comment is the whole of what Paperclip does. In particular:
 
 So you are sending a request, not handing over the call. What comes back — a comment weighing the options, a question, a proposed decision of its own — is up to the agent you asked, and you still make the final decision here.
 
-One thing the list does not tell you is whether the agent can reply yet. Every agent that has not been terminated is offered, including ones you have paused or have not approved yet; those receive the comment but are not woken to act on it until you resume or approve them. If you want an answer soon, pick an agent that is idle or running.
+One thing the list does not tell you is whether the agent can reply yet. Every agent that has not been terminated is offered, including ones you have paused or have not approved yet. Those agents get the comment, but nothing wakes them to act on it, and resuming or approving the agent later does not replay the request: no part of Paperclip re-delivers that comment when the agent comes back. Resume or approve the agent first, then ask. If you want an answer soon, pick an agent that is idle or running.
 
 The button is greyed out in three cases:
 
