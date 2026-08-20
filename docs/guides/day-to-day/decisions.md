@@ -117,10 +117,12 @@ That comment is the whole of what Paperclip does. In particular:
 
 So you are sending a request, not handing over the call. What comes back — a comment weighing the options, a question, a proposed decision of its own — is up to the agent you asked, and you still make the final decision here.
 
+One thing the list does not tell you is whether the agent can reply yet. Every agent that has not been terminated is offered, including ones you have paused or have not approved yet; those receive the comment but are not woken to act on it until you resume or approve them. If you want an answer soon, pick an agent that is idle or running.
+
 The button is greyed out in three cases:
 
-- **The item has no task behind it.** Budget alerts and join requests often have nothing to comment on; hovering the button explains why with *No linked task to ask about*.
-- **There is no agent to ask.** The list covers your company's active agents, so a company with none available has nobody to route to. Terminated agents are never offered.
+- **The item has no task behind it.** Agent alerts, budget alerts, and join requests often have nothing to comment on; hovering the button explains why with *No linked task to ask about*.
+- **There is no agent to ask.** The list covers every agent in your company that has not been terminated, so a company with no other agents has nobody to route to.
 - **Your last request is still going out.** The button settles once the comment has posted, and a confirmation names the agent you asked.
 
 You will find the control on rows in your active queue. Rows you have already dismissed or snoozed collapse into their own sections without the triage strip, so restore a row first if you want to ask about it.
