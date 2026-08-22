@@ -174,7 +174,7 @@ curl "$PAPERCLIP_API_URL/api/agents/$CODER_AGENT_ID/skills" \
   -H "Authorization: Bearer $PAPERCLIP_API_KEY"
 ```
 
-The response (an `AgentSkillSnapshot`) lists every entry the agent currently has, with `state` (`configured`, `installed`, `available`, etc.) and `mode` (the runtime sync strategy — see below). The full schema is at [Skills reference → Assigning skills to agents](../reference/skills.md#3-assigning-skills-to-agents).
+The response (an `AgentSkillSnapshot`) lists every entry the agent currently has, with `state` (`configured`, `installed`, `available`, etc.) and `mode` (the runtime sync strategy — see below). The full schema is at [Skills reference → Assigning skills to agents](../reference/skills.md#4-assigning-skills-to-agents).
 
 Each `desiredSkills` entry can be:
 
@@ -255,7 +255,7 @@ On the agent's next heartbeat, open its run viewer (**Agents → `<agent>` → R
 - the `SKILL.md` body in the run's tool/context output, or
 - the agent's response visibly following the skill's section order and voice rules.
 
-If neither is true, walk down the troubleshooting checklist in the [Skills reference](../reference/skills.md#8-troubleshooting-why-a-skill-isnt-loading). The two most common failures: the routing description is too vague for the agent to match, or the adapter's sync mode is `unsupported`.
+If neither is true, walk down the troubleshooting checklist in the [Skills reference](../reference/skills.md#9-troubleshooting-why-a-skill-isnt-loading). The two most common failures: the routing description is too vague for the agent to match, or the adapter's sync mode is `unsupported`.
 
 > **Tightening the description is the lever, not the body.** If the agent doesn't load the skill when it should, the body is rarely the problem. Rewrite the `description` to name the trigger more concretely ("Use when the user asks for *release notes* or a *changelog*…"). The body only matters once the skill is actually loaded.
 
@@ -313,7 +313,7 @@ Local-path skills aren't pinned, so they don't expose `update-status` — the re
 - **Bundled skills are forced on.** `paperclipai/paperclip/*` skills are unioned into every resolved set; you can't drop them.
 - **Adapter sync mode is the runtime gate.** If `mode: "unsupported"`, the assignment exists but no files reach the runtime. Either switch adapters or manage skills in the remote runtime.
 
-The full set of rules — required vs. optional, bundled-required, materialisation strategy, conflict resolution — is at [Skills reference → Scoping rules](../reference/skills.md#4-scoping-rules).
+The full set of rules — required vs. optional, bundled-required, materialisation strategy, conflict resolution — is at [Skills reference → Scoping rules](../reference/skills.md#5-scoping-rules).
 
 ---
 
@@ -340,7 +340,7 @@ Re-import from the parent folder that contains the skill directory (`/Users/me/s
 **Bundled skill keeps re-appearing after I delete it.**
 That's by design — `paperclip` and the other `paperclipai/paperclip/*` skills are re-imported on every list call. To suppress one, run a forked Paperclip build that doesn't ship it.
 
-For deeper debugging — wrong tool list, sync mode confusion, GitHub pin stuck on an old commit — walk the [full troubleshooting list](../reference/skills.md#8-troubleshooting-why-a-skill-isnt-loading).
+For deeper debugging — wrong tool list, sync mode confusion, GitHub pin stuck on an old commit — walk the [full troubleshooting list](../reference/skills.md#9-troubleshooting-why-a-skill-isnt-loading).
 
 ---
 

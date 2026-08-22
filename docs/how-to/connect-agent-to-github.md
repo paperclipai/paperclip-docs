@@ -170,7 +170,7 @@ This means a task worded like *"Fix the null org id crash, then open a pull requ
 
 ## 4. The agent instructions: PR-driven work
 
-The agent's `AGENTS.md` is what turns "do the task" into "do the task on a branch and open a PR". You don't need a special template — you need three rules in the entry file that the agent reads on every heartbeat. See [Agents → Recommended bundle structure](../guides/org/agents.md#recommended-bundle-structure-agents--soul--heartbeat--tools) for the full bundle layout; this snippet drops into the working-rules section of `AGENTS.md` for any coder role.
+The agent's `AGENTS.md` is what turns "do the task" into "do the task on a branch and open a PR". You don't need a special template — you need three rules in the entry file that the agent reads on every heartbeat. See [Agents → Recommended bundle structure](../guides/org/agents.md#recommended-bundle-structure-agents-soul-heartbeat-tools) for the full bundle layout; this snippet drops into the working-rules section of `AGENTS.md` for any coder role.
 
 ```md
 ## Working rules: PR-driven
@@ -274,7 +274,7 @@ For deeper heartbeat-level debugging — the agent isn't waking, the heartbeat f
 ## See also
 
 - [Workspaces](../guides/projects-workflow/workspaces.md) — full reference for `cwd`, `repoUrl`, `branchName`, and worktree lifecycle.
-- [Agents → Recommended bundle structure](../guides/org/agents.md#recommended-bundle-structure-agents--soul--heartbeat--tools) — how `AGENTS.md` works alongside `SOUL.md`, `HEARTBEAT.md`, and `TOOLS.md`.
+- [Agents → Recommended bundle structure](../guides/org/agents.md#recommended-bundle-structure-agents-soul-heartbeat-tools) — how `AGENTS.md` works alongside `SOUL.md`, `HEARTBEAT.md`, and `TOOLS.md`.
 - [Claude Code](../reference/adapters/claude-code.md) — adapter fields, env vars, and session persistence.
 - [Codex](../reference/adapters/codex.md) — same recipe, OpenAI's Codex CLI instead.
 - [Execution Policy](../guides/power/execution-policy.md) — staged review with named participants.
