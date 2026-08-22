@@ -28,6 +28,22 @@ Cloudflare Pages is connected directly to `paperclipai/paperclip-docs` through G
 - Pushes to other branches create Cloudflare Pages preview/canary deployments.
 - Canary URLs are created by Cloudflare for each deployment, for example `https://92b9a99c.paperclip-docs-74t.pages.dev`. Use the URL shown in the Cloudflare Pages deployment row or GitHub deployment/check for the pushed branch and commit.
 
+### When Cloudflare gives you no preview
+
+Cloudflare owns preview builds, so when its git integration stops firing there
+is nothing in this repo to fix, and a reviewer loses the clickable URL. To
+publish an equivalent preview yourself, without any Cloudflare credential:
+
+```bash
+npm install --include=dev
+scripts/publish-preview-page.sh              # slug defaults to the branch name
+```
+
+That prints a `https://pages.paperclip.ing/<slug>/` URL you can paste into the
+PR. Re-run it after new commits to refresh the same URL in place. Previews are
+published `noindex, nofollow` with an empty sitemap so they can never compete
+with `docs.paperclip.ing` in search results.
+
 ## Contributing
 
 Spotted a typo, a broken link, or something that could be clearer? There are two easy paths, both linked from the footer of every docs page:
