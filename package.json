@@ -7,6 +7,7 @@
     "docs:build:github-subpath": "node site/build-release.mjs --base-path /paperclip-docs/ --out-dir .site",
     "docs:build:auto": "node site/build-release.mjs --base-path auto --out-dir .site",
     "docs:test:static-routes": "node scripts/verify-static-routes.mjs",
+    "docs:test:sitemap-lastmod-history": "node scripts/verify-sitemap-lastmod-history.mjs",
     "docs:test:asset-fingerprints": "node scripts/verify-asset-fingerprints.mjs",
     "docs:test:hierarchical-skills-nav": "node scripts/verify-hierarchical-skills-nav.mjs",
     "docs:test:skill-source-blocks": "node scripts/verify-skill-source-blocks.mjs",
