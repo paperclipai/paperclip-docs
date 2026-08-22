@@ -307,6 +307,19 @@ function slugifyHeadingText(text) {
     .replace(/-+/g, '-');
 }
 
+/* Strip the deployment base path off a same-origin href so it can be matched
+   against a nav slug. Returns '' for anything outside this bundle's base path. */
+function routeKeyFromHref(href) {
+  let pathname;
+  try {
+    pathname = new URL(href, window.location.href).pathname;
+  } catch {
+    return '';
+  }
+  if (!pathname.startsWith(APP_BASE_PATH)) return '';
+  return normalizeRouteKey(pathname.slice(APP_BASE_PATH.length)).replace(/\/index\.html$/, '');
+}
+
 function findPageByRoute(route) {
   const decoded = decodeURIComponent((route || '').trim());
   const normalizedRoute = normalizeRouteKey(decoded);
@@ -848,6 +861,11 @@ function initSearch() {
 }
 
 /* ─── Boot ──────────────────────────────────────────────────────────────── */
+/* Legacy path routes are 301'd by Cloudflare (_redirects) before this script
+   ever boots. This map only exists for the two legacy shapes a server cannot
+   see: the `?page=` query route and the `#/slug` hash route. It ships inside
+   content.json rather than as its own redirects.json request, which used to
+   404 on every page load (PAP-17913). */
 let redirectMap = {};
 
 function applyRedirect(route) {
@@ -872,11 +890,10 @@ async function init() {
     return;
   }
 
-  // Optional: load redirect map for moved pages (old → new slug).
-  try {
-    const rRes = await fetch(resolveContentUrl('redirects.json'));
-    if (rRes.ok) redirectMap = await rRes.json();
-  } catch { /* no redirects file is fine */ }
+  // Redirect map for moved pages (old → new slug), carried by the manifest.
+  if (navData.redirects && typeof navData.redirects === 'object') {
+    redirectMap = navData.redirects;
+  }
 
   buildFlatList();
   buildLanding();
@@ -1636,6 +1653,10 @@ function postProcessInternalLinks(root) {
     }
 
     const [docHref, headingHref] = href.split('#');
+
+    // Released documents ship final route hrefs (PAP-17913). Client-rendered
+    // markdown still carries author-relative `.md` paths, so both shapes are
+    // resolved back to a nav page and navigated without a full reload.
     if (docHref && docHref.endsWith('.md')) {
       const baseDir = currentFile.replace(/\/[^/]+$/, '/');
       const targetFile = normalizeDocPath(baseDir + docHref);
@@ -1646,6 +1667,16 @@ function postProcessInternalLinks(root) {
       a.addEventListener('click', e => {
         e.preventDefault();
         loadPage(targetFile, headingHref || null);
+      });
+      return;
+    }
+
+    const routePage = docHref ? findPageByRoute(routeKeyFromHref(docHref)) : null;
+    if (routePage) {
+      a.addEventListener('click', e => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        e.preventDefault();
+        loadPage(routePage.file, headingHref || null);
       });
     }
   });

@@ -9,6 +9,7 @@
     "docs:test:static-routes": "node scripts/verify-static-routes.mjs",
     "docs:test:asset-fingerprints": "node scripts/verify-asset-fingerprints.mjs",
     "docs:test:hierarchical-skills-nav": "node scripts/verify-hierarchical-skills-nav.mjs",
+    "docs:test:crawlable-link-graph": "node scripts/verify-crawlable-link-graph.mjs",
     "docs:test:skill-source-blocks": "node scripts/verify-skill-source-blocks.mjs",
     "docs:serve": "python3 -m http.server 4321 --directory .site",
     "sync:lint-links": "node scripts/sync/lint-links.mjs",
