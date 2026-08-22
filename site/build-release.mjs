@@ -993,7 +993,53 @@ function isSkillSourceInfo(infostring) {
   return String(infostring || "").trim().split(/\s+/).includes("skill-source");
 }
 
-export function renderStaticMarkdown(markdown) {
+/* ─── Crawlable in-article link graph (PAP-17913) ─────────────────────────
+   Authors link sibling documents by relative markdown path (`./common-options.md`).
+   A document's HTML route lives one directory deeper than its copied markdown
+   (`/reference/cli/agent/index.html` vs `/reference/cli/agent.md`), so those
+   author-relative hrefs resolve one level too deep and 404 for anything that
+   reads the initial HTML. app.js repairs them at runtime, which leaves the link
+   graph invisible to a crawler and to a JavaScript-disabled reader.
+
+   Translate every same-origin `.md` link into its canonical trailing-slash
+   route during generation, using the same content.json manifest that already
+   feeds the sidebar, the homepage directory, prev/next, and the sitemap. */
+
+function buildDocRouteManifest(nav, basePath) {
+  const routesByDocPath = new Map();
+  for (const { page } of flattenNavPages(nav)) {
+    routesByDocPath.set(path.resolve(docsRoot, page.file), routePathForSlug(basePath, page.slug));
+  }
+  return routesByDocPath;
+}
+
+/* Resolve an author-relative markdown href from `sourceFile` into its final
+   route. Returns null for anything that is not a same-origin `.md` link so the
+   caller can leave it untouched, and throws when a `.md` link has no route —
+   silently shipping such an href is the exact defect this replaces. */
+function createDocLinkResolver({ routesByDocPath, sourceFile }) {
+  const sourceDir = path.dirname(path.resolve(docsRoot, sourceFile));
+  return (href) => {
+    if (typeof href !== "string" || !isLocalDocHref(href)) return null;
+    const hashIndex = href.indexOf("#");
+    const docHref = hashIndex === -1 ? href : href.slice(0, hashIndex);
+    const fragment = hashIndex === -1 ? "" : href.slice(hashIndex);
+    if (!docHref.endsWith(".md")) return null;
+
+    const targetPath = path.resolve(sourceDir, docHref);
+    const route = routesByDocPath.get(targetPath);
+    if (!route) {
+      throw new Error(
+        `Unroutable in-article link in ${sourceFile}: "${href}" resolves to ` +
+        `${toPosixPath(path.relative(repoRoot, targetPath))}, which has no route in content.json. ` +
+        "Add the document to the nav manifest or point the link at a document that is in it.",
+      );
+    }
+    return `${route}${fragment}`;
+  };
+}
+
+export function renderStaticMarkdown(markdown, { resolveDocLink = null } = {}) {
   const renderer = new marked.Renderer();
   const usedHeadingIds = new Set();
   renderer.image = releaseMarkdownImage;
@@ -1004,6 +1050,10 @@ export function renderStaticMarkdown(markdown) {
     }
     return defaultCode(code, infostring, escaped);
   };
+  // Emit the final route for same-origin markdown links so the server-rendered
+  // HTML carries a followable link graph with no client JavaScript (PAP-17913).
+  const defaultLink = renderer.link.bind(renderer);
+  renderer.link = (href, title, text) => defaultLink(resolveDocLink?.(href) ?? href, title, text);
   renderer.heading = (html, level, rawText) => {
     const baseId = slugifyHeadingText(rawText) || `h${level}`;
     let id = baseId;
@@ -1215,8 +1265,8 @@ function buildStaticPageNav(prev, next) {
   return `${prevHtml}${nextHtml}`;
 }
 
-function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles, prev, next) {
-  const articleHtml = renderStaticMarkdown(markdown);
+function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles, prev, next, resolveDocLink) {
+  const articleHtml = renderStaticMarkdown(markdown, { resolveDocLink });
   const routeBaseHref = getPublicBasePath(basePath);
   return removeLandingSubtree(
     inlineReleaseStyles(injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref }), releaseStyles),
@@ -1229,9 +1279,10 @@ function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseS
     );
 }
 
-async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodiesByFile, basePath, releaseStyles }) {
+async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodiesByFile, basePath, releaseStyles, routesByDocPath }) {
   for (const [index, metadata] of pages.entries()) {
     const { page } = metadata;
+    const resolveDocLink = createDocLinkResolver({ routesByDocPath, sourceFile: page.file });
     const markdown = markdownBodiesByFile.get(page.file);
     if (!markdown) continue;
     const routePath = path.join(outDir, ...page.slug.split("/"), "index.html");
@@ -1249,6 +1300,7 @@ async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodie
         releaseStyles,
         pages[index - 1],
         pages[index + 1],
+        resolveDocLink,
       ),
     );
   }
@@ -1374,6 +1426,12 @@ async function main() {
     const fm = frontmatterByFile.get(page.file);
     if (fm) page.frontmatter = fm;
   }
+  // The legacy slug map ships inside the manifest the client already fetches.
+  // It used to be a separate redirects.json request that was never copied into
+  // the release, so every page load spent a 404 on it (PAP-17913). Cloudflare
+  // `_redirects` still owns legacy *path* routes; this copy exists only for the
+  // `?page=` and `#/slug` shapes a server never sees.
+  releaseNav.redirects = sourceRedirects;
   await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav)}\n`);
 
   const pageMetadata = await pageMetadataForNav(releaseNav, options.outDir, options.siteUrl, options.basePath);
@@ -1403,6 +1461,7 @@ async function main() {
     markdownBodiesByFile,
     basePath: options.basePath,
     releaseStyles,
+    routesByDocPath: buildDocRouteManifest(releaseNav, options.basePath),
   });
 
   await fs.writeFile(path.join(options.outDir, "sitemap.xml"), buildSitemap({
