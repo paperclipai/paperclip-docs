@@ -8,7 +8,7 @@ The mental model is unchanged: Paperclip is the control plane, the adapter launc
 
 ## What MCP is
 
-[Model Context Protocol](https://modelcontextprotocol.io) (see also: [glossary](../guides/welcome/glossary.md)) is an open standard for connecting language-model runtimes to external tools and data sources over a small JSON-RPC contract. An MCP server exposes a set of tools (and optionally resources and prompts) over `stdio` (local) or HTTP/SSE (remote). An MCP-aware runtime — like Claude Code or Hermes Agent — lists those tools and lets the agent call them mid-run.
+[Model Context Protocol](https://modelcontextprotocol.io) (see also: [glossary entry](../guides/welcome/glossary.md#mcp-model-context-protocol)) is an open standard for connecting language-model runtimes to external tools and data sources over a small JSON-RPC contract. An MCP server exposes a set of tools (and optionally resources and prompts) over `stdio` (local) or HTTP/SSE (remote). An MCP-aware runtime — like Claude Code or Hermes Agent — lists those tools and lets the agent call them mid-run.
 
 For Paperclip, MCP is how you give an agent a capability that doesn't fit a [skill](../reference/skills.md) (which is a markdown bundle, not executable) and that you don't want to teach the agent to call as raw HTTP. If the tool already speaks MCP, prefer that path.
 
