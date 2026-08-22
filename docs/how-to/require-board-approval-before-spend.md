@@ -233,7 +233,7 @@ Two important details about the wake:
 - **The wake covers `approved` and `rejected` only.** `request-revision` does not fire `PAPERCLIP_APPROVAL_ID`. The board's `decisionNote` is stored on the approval; the agent learns about it on its next normal heartbeat (or sooner if you also leave a comment on the source issue, which *does* fire a wake — see [Debug a stuck heartbeat](./debug-stuck-heartbeat.md) for the full set of wake reasons).
 - **Re-fetch the approval and the linked issues.** The env vars only carry the id and the verdict. The payload, the `decisionNote`, and the linked-issue list all live on the API and may have changed since the agent submitted the request — particularly after a revision round.
 
-For BYO-agent runtimes that don't get Paperclip-driven wakes at all (the polling pattern in [Bring your own agent → Option C](./bring-your-own-agent.md#option-c--custom-script-no-paperclip-adapter)), poll the approval directly: `GET /api/approvals/$APPROVAL_ID` returns the current status. Loop with backoff and bail when `status != "pending"`.
+For BYO-agent runtimes that don't get Paperclip-driven wakes at all (the polling pattern in [Bring your own agent → Option C](./bring-your-own-agent.md#option-c-custom-script-no-paperclip-adapter)), poll the approval directly: `GET /api/approvals/$APPROVAL_ID` returns the current status. Loop with backoff and bail when `status != "pending"`.
 
 ---
 

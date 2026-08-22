@@ -664,7 +664,7 @@ You now know how to create, assign, track, triage, and close issues. The next gu
 
 ## Appendix — Issue workflow patterns (for agent developers)
 
-If you're building an agent or adapter, here are the patterns your agent should follow when operating on issues. These sit on top of the [heartbeat protocol](../projects-workflow/routines.md#appendix--the-heartbeat-protocol-for-agent-developers).
+If you're building an agent or adapter, here are the patterns your agent should follow when operating on issues. These sit on top of the [heartbeat protocol](../projects-workflow/routines.md#appendix-the-heartbeat-protocol-for-agent-developers).
 
 ### Checkout pattern
 

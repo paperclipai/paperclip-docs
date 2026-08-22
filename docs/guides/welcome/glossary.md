@@ -106,6 +106,14 @@ Another word for Task (used interchangeably in the API and some parts of the UI)
 
 ---
 
+## M
+
+### MCP (Model Context Protocol)
+
+An open standard for connecting language-model runtimes to external tools and data sources over a small JSON-RPC contract. Paperclip itself does not speak MCP — the adapter launches the runtime, and the runtime is what connects to MCP servers. Paperclip's job is to scope which agent gets which adapter config, and to surface the resulting tool list in the run viewer. See [Add an MCP server to an agent's toolkit](../../how-to/add-mcp-server-to-agent.md).
+
+---
+
 ## O
 
 ### Org chart
