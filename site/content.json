@@ -295,6 +295,10 @@
           "file": "../docs/reference/api/issues.md"
         },
         {
+          "title": "Task Watchdog",
+          "file": "../docs/reference/api/task-watchdog.md"
+        },
+        {
           "title": "Approvals",
           "file": "../docs/reference/api/approvals.md"
         },
