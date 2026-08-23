@@ -53,7 +53,7 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
    You can update or add goals later from the **Goals** section. If your priorities change, revise the goal there and the CEO will factor it into its next strategy cycle.
 
-4. **Save and continue**
+4. **Create the company**
 
    Click **Create Company**. Paperclip creates the company and takes you to its dashboard.
 

@@ -50,20 +50,22 @@ This is a **bundled** catalog skill — part of the bundled baseline kit. For ho
 
 ## Full skill definition
 
-### Skill frontmatter
+The block below is the complete, authoritative `SKILL.md` for this skill — the exact file an agent loads at runtime. Use the controls in the top-right of the block to copy it or download it as `SKILL.md`.
 
-- **name:** github-pr-workflow
-- **description:** Prepare a GitHub pull request from a feature branch — branch hygiene, commit shape, title/body, verification notes, screenshots for UI work, and replies to review comments.
-- **key:** paperclipai/bundled/software-development/github-pr-workflow
-- **recommendedForRoles:**
+````markdown skill-source
+---
+name: github-pr-workflow
+description: Prepare a GitHub pull request from a feature branch — branch hygiene, commit shape, title/body, verification notes, screenshots for UI work, and replies to review comments.
+key: paperclipai/bundled/software-development/github-pr-workflow
+recommendedForRoles:
   - engineer
-- **tags:**
+tags:
   - github
   - pull-requests
   - code-review
   - release
+---
 
-### Skill instructions
 # GitHub Pull Request Workflow
 
 Ship a PR a reviewer can land without follow-up clarifying questions. The aim is high signal in the title and body, evidence the change works, and clean replies when feedback comes in.
@@ -144,6 +146,7 @@ Skip the `Risk and rollback` section only for clearly trivial PRs (typos, docs).
 - Mixing refactor and behavior change in the same PR with no separation in the body.
 - "Address feedback" commits that bundle unrelated edits. One commit per round of feedback is fine; one commit for everything in flight is not.
 - Force-pushing during active review without telling the reviewer.
+````
 
 ## See also
 

@@ -2,17 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Paperclip Docs</title>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0JGE5X0HMM"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-0JGE5X0HMM');
-  </script>
+  <meta name="description" data-seo-managed content="Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows." />
+  <meta name="robots" data-seo-managed content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <link rel="canonical" data-seo-managed href="https://docs.paperclip.ing/" />
+  <meta property="og:type" data-seo-managed content="website" />
+  <meta property="og:site_name" data-seo-managed content="Paperclip Docs" />
+  <meta property="og:title" data-seo-managed content="Paperclip Docs" />
+  <meta property="og:description" data-seo-managed content="Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows." />
+  <meta property="og:url" data-seo-managed content="https://docs.paperclip.ing/" />
+  <meta name="twitter:card" data-seo-managed content="summary" />
+  <meta name="twitter:title" data-seo-managed content="Paperclip Docs" />
+  <meta name="twitter:description" data-seo-managed content="Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows." />
   <script>
     /* Apply theme before first paint (dark by default) to avoid a flash. */
     (function () {
@@ -20,12 +22,7 @@
       if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
     })();
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&family=Inter:ital,wght@0,100..900;1,100..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48'/></svg>" />
-  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js" integrity="sha384-hJnF5AwidE18GSWTAGHv3ByzzvfNZ1Tcx5y1UUV3WkauuMCEzBJBMSwSt/PUPXnM" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -44,7 +41,7 @@
         </svg>
       </button>
       <a href="https://paperclip.ing/blog" class="navbar-link">Blog</a>
-      <a href="#" class="navbar-link" data-nav="home">Docs</a>
+      <a href="/" class="navbar-link" data-nav="home">Docs</a>
       <a href="https://github.com/paperclipai/paperclip" class="navbar-link navbar-link--icon" target="_blank" rel="noopener" aria-label="GitHub">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
         GitHub
@@ -108,14 +105,14 @@
 </button>
 
 <div id="drawer-backdrop"></div>
-<aside id="drawer" aria-label="Mobile navigation" aria-hidden="true">
+<aside id="drawer" aria-label="Mobile navigation" aria-hidden="true" inert>
   <div id="drawer-head">
     <span class="label">Documentation</span>
     <button class="icon-btn" id="drawer-close" aria-label="Close menu">
       <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 10 10M14 4 4 14"/></svg>
     </button>
   </div>
-  <a class="sb-back" data-nav="home">
+  <a class="sb-back" href="/" data-nav="home">
     <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2 4 6l4 4"/></svg>
     All docs
   </a>
@@ -137,7 +134,7 @@
 <div id="article-view">
   <div id="body">
     <nav id="sidebar" aria-label="Documentation">
-      <a class="sb-back" data-nav="home">
+      <a class="sb-back" href="/" data-nav="home">
         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2 4 6l4 4"/></svg>
         All docs
       </a>
@@ -146,11 +143,10 @@
 
     <main id="content">
       <div id="breadcrumb" aria-label="Breadcrumb"></div>
-      <div id="loading"><div class="spinner"></div><span>Loading…</span></div>
-      <div id="error-state" style="display:none">
-        <span>Could not load this guide.</span>
-        <span id="error-detail" style="font-size:12px;color:var(--ash);margin-top:4px"></span>
-      </div>
+      <!-- Empty on every served document. Loading and error text is written here
+           by app.js only during a real client-side transition, so raw HTML never
+           claims a page is loading or broken. -->
+      <div id="runtime-status" role="status" aria-live="polite" hidden></div>
       <article id="article" style="display:none"></article>
       <div id="page-nav" style="display:none"></div>
     </main>
@@ -170,28 +166,28 @@
   </div>
   <div class="footer-columns footer-container">
     <div class="footer-col">
-      <h4 class="footer-col-heading">Product</h4>
+      <div class="footer-col-heading">Product</div>
       <a href="https://paperclip.ing/#get-started" target="_blank" rel="noopener">Get started</a>
-      <a href="https://paperclip.ing/#get-started" target="_blank" rel="noopener">Quickstart</a>
+      <a href="/guides/getting-started/five-minute-path/" data-nav="link">Quickstart</a>
     </div>
     <div class="footer-col">
-      <h4 class="footer-col-heading">Platform</h4>
-      <a href="https://paperclip.ing/#orgchart-section" target="_blank" rel="noopener">Agents</a>
+      <div class="footer-col-heading">Platform</div>
+      <a href="/guides/org/agents/" data-nav="link">Agents</a>
       <a href="https://paperclip.ing/#governance-section" target="_blank" rel="noopener">Governance</a>
-      <a href="https://paperclip.ing/#orgchart-section" target="_blank" rel="noopener">Integrations</a>
+      <a href="/guides/org/adapters/" data-nav="link">Integrations</a>
     </div>
     <div class="footer-col">
-      <h4 class="footer-col-heading">Developers</h4>
-      <a href="#" data-nav="home">Documentation</a>
+      <div class="footer-col-heading">Developers</div>
+      <a href="/" data-nav="home">Documentation</a>
       <a href="/reference/api/overview" data-nav="link">API reference</a>
       <a href="https://github.com/paperclipai/paperclip" target="_blank" rel="noopener">GitHub</a>
     </div>
     <div class="footer-col">
-      <h4 class="footer-col-heading">Resources</h4>
+      <div class="footer-col-heading">Resources</div>
       <a href="https://paperclip.ing/blog" target="_blank" rel="noopener">Blog</a>
       <a href="https://paperclip.ing/changelog" target="_blank" rel="noopener">Changelog</a>
-      <a href="https://github.com/paperclipai/paperclip" target="_blank" rel="noopener">Contributing</a>
-      <a href="https://github.com/paperclipai/paperclip" target="_blank" rel="noopener">License</a>
+      <a href="https://github.com/paperclipai/paperclip/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing</a>
+      <a href="https://github.com/paperclipai/paperclip/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
       <a href="https://discord.gg/m4HZY7xNG3" target="_blank" rel="noopener">Discord</a>
     </div>
   </div>

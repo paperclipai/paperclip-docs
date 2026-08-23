@@ -1,220 +1,363 @@
+# Task Watchdog
+
+The task watchdog watches an issue and its descendants, and when no path through that subtree is still live, it opens a review issue and wakes a nominated agent.
+
+## Overview
+
+Three separate mechanisms in Paperclip are called "watchdog". They have different triggers, different storage, and different API surfaces. This page documents the first one.
+
+| Mechanism | Watches | Stored in | Client-visible as |
+|---|---|---|---|
+| **Task watchdog** | An issue subtree with no live execution path | `issue_watchdogs` | `watchdog` on the issue payload |
+| Active-run output silence | A single running heartbeat run that has stopped producing output | `heartbeat_run_watchdog_decisions` | `outputSilence` on run payloads |
+| Stranded/liveness recovery | Issues and runs abandoned by a dead process | `issue_recovery_actions` | `activeRecoveryAction` on the issue payload |
+
+A task watchdog is configured per issue. At most one may exist for any `(companyId, issueId)` pair. It nominates a watchdog agent, which is woken when the watched subtree stops.
+
 ---
-paperclip_version: v2026.817.0
----
 
-# Task Watchdog API
+## Configuration
 
-A task watchdog is an agent assigned to re-check a stopped issue subtree. It is opt-in per issue, and it runs only after the subtree has come to rest. For the conceptual walkthrough, see [Task Watchdogs](../../guides/projects-workflow/task-watchdogs.md). This page is the lookup reference: routes, payload shapes, status codes, and scope rules.
+### Get the active watchdog
 
-## Three mechanisms, not one
-
-Paperclip keeps three stall-related mechanisms separate. They have separate triggers, separate state, and separate APIs. Conflating them is the most common mistake when reading this area of the API.
-
-| Mechanism | Trigger | What it watches | Where state lives |
-| --- | --- | --- | --- |
-| **Task watchdog** | Subtree has stopped moving | A configured source issue plus its non-watchdog descendants | `issue_watchdogs` table |
-| **Silent active-run watchdog** | Elapsed output silence on a live process | A still-running heartbeat run that stopped producing output | Issue recovery actions |
-| **Checkout / execution locking** | Every checkout attempt | Which heartbeat run currently owns an issue | `issues.checkout_run_id` |
-
-Checkout locking is not a watchdog. It is documented here because lock ownership determines what a watchdog run is allowed to mutate.
-
-## Task watchdog configuration
-
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/api/issues/{id}/watchdog` | Read the watchdog attached to an issue |
-| `PUT` | `/api/issues/{id}/watchdog` | Create or update the watchdog (upsert) |
-| `DELETE` | `/api/issues/{id}/watchdog` | Detach the watchdog |
-
-Stored fields include `watchdogAgentId`, `instructions`, `status` (defaults to `active`), `watchdogIssueId`, the observed/reviewed fingerprint pair (`lastObservedFingerprint`, `lastReviewedFingerprint`), the observed/reviewed stop snapshots, `lastTriggeredAt`, `lastCompletedAt`, and `triggerCount`.
-
-A watchdog cannot edit its own configuration. A watchdog-scoped run that attempts a config mutation is rejected with `403`.
-
-## Classifier states
-
-Each scan resolves the subtree to exactly one state. Only `stopped` wakes the watchdog with new work.
-
-| State | Meaning |
-| --- | --- |
-| `not_applicable` | The subtree is out of scope for watchdog review |
-| `live` | At least one issue still has a live path (`liveIssueIds`) |
-| `pending_first_run` | Included issues have never run yet (`pendingIssueIds`) |
-| `already_reviewed` | The subtree stopped, but this exact stop fingerprint was already reviewed |
-| `stopped` | The subtree stopped at a fingerprint that has not been reviewed |
-
-Every state carries `reason` (a human-readable string) and `includedIssueIds`. The `already_reviewed` and `stopped` states additionally carry `stopFingerprint`, `stoppedLeaves`, `stopSnapshot`, and `pendingInteractionsByIssueId`.
-
-The fingerprint is what makes review idempotent: the watchdog is not re-woken for a stop it has already judged. It is re-woken when the subtree stops at a *different* fingerprint.
-
-## Stop snapshot and stopped leaves
-
-`stopSnapshot` is the persisted record of a stop:
-
-```json
-{
-  "version": 2,
-  "fingerprint": "<opaque string>",
-  "materialLeaves": [],
-  "waitsByIssueId": {}
-}
+```http
+GET /api/issues/{issueId}/watchdog
 ```
 
-Each entry in `stoppedLeaves` describes one resting leaf issue:
+Returns the watchdog record, or the literal `null` when the issue has no active watchdog. It does not return `404` in that case.
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `issueId` | `string` | |
-| `identifier` | `string \| null` | e.g. `PAP-12127` |
-| `title` | `string` | |
-| `status` | `string` | Issue status at the time of the scan |
-| `assigneeAgentId` | `string \| null` | |
-| `assigneeUserId` | `string \| null` | |
-| `blockerIssueIds` | `string[]` | Read from first-class issue blockers |
-| `pendingInteractionIds` | `string[]` | |
-| `pendingApprovalIds` | `string[]` | |
-| `updatedAt` | `string` | |
-| `latestCommentAt` | `string \| null` | |
-| `latestDocumentAt` | `string \| null` | |
-| `latestWorkProductAt` | `string \| null` | |
+Only watchdogs with `status: "active"` are returned. A disabled watchdog reads as `null` here and as `null` in the `watchdog` field of the issue payload.
 
-`materialLeaves` is the subset of those fields used for fingerprinting: `issueId`, `status`, `assigneeAgentId`, `assigneeUserId`, `blockerIssueIds`, `pendingInteractionIds`, and `pendingApprovalIds`. `waitsByIssueId` maps an issue id to its `pendingInteractionIds` and `pendingApprovalIds`.
+### Create or update a watchdog
 
-The comment, document, and work-product timestamps are deliberately *not* part of the fingerprint. Posting a comment does not clear a stop.
+```http
+PUT /api/issues/{issueId}/watchdog
+```
 
-## Scope enforcement
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `agentId` | string (uuid) | Yes | The agent woken when the subtree stops. |
+| `instructions` | string \| null | No | Custom instructions passed to the watchdog agent on wake. Truncated to 4000 characters in the wake payload. |
 
-A watchdog-scoped run may mutate only the watched issue subtree. Scope is derived from persisted state, not from the request: the run's context snapshot must match an `issue_watchdogs` row whose `status` is `active` and whose `watchdogAgentId` equals the acting agent.
+The body is strict; unknown fields are rejected. Returns the full watchdog record.
 
-In scope:
+The call is an upsert. Because of the unique index on `(company_id, issue_id)`, a second `PUT` updates the existing row rather than creating a second watchdog.
 
-- the watched issue and its descendants, resolved by walking `parentId` (bounded at depth 100)
-- the reusable watchdog issue itself, unless the caller opts out
+### Remove a watchdog
 
-Out of scope:
+```http
+DELETE /api/issues/{issueId}/watchdog
+```
 
-- any issue in another company
-- any issue whose `originKind` is `task_watchdog`, or that sits beneath one — this is the anti-recursion rule that stops watchdogs from reviewing watchdog work
+Returns `{ "ok": true }`, not the modified record. This is a soft disable: the row is retained with `status: "disabled"`, so `triggerCount` and fingerprint history survive.
 
-A violation returns `403`:
+### At issue creation
+
+`POST /api/issues` accepts a `watchdog` object with the same `agentId` and `instructions` fields. Child creation via `POST /api/issues/{issueId}/children` does not accept it.
+
+### Record fields
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | Watchdog id. |
+| `companyId` | string | Owning company. |
+| `issueId` | string | The watched issue. |
+| `watchdogAgentId` | string | Agent woken on trigger. Never null. |
+| `instructions` | string \| null | Custom instructions. |
+| `status` | `"active"` \| `"disabled"` | Defaults to `active`. |
+| `watchdogIssueId` | string \| null | The reusable review issue, once one has been created. |
+| `lastObservedFingerprint` | string \| null | Stop fingerprint at the most recent trigger. |
+| `lastReviewedFingerprint` | string \| null | Stop fingerprint the watchdog agent has already reviewed. |
+| `lastTriggeredAt` | timestamp \| null | Most recent trigger. |
+| `lastCompletedAt` | timestamp \| null | Most recent completed review. |
+| `triggerCount` | integer | Lifetime trigger count. Defaults to `0`. |
+| `createdAt` / `updatedAt` | timestamp | Record timestamps. |
+
+`GET` and `PUT` also return the audit columns `createdByAgentId`, `createdByUserId`, `createdByRunId`, `updatedByAgentId`, `updatedByUserId`, and `updatedByRunId`.
+
+The stop snapshots stored alongside these columns (`last_observed_stop_snapshot`, `last_reviewed_stop_snapshot`) are not exposed by any endpoint.
+
+---
+
+## Detection
+
+### Subtree
+
+Evaluation walks the watched issue and its descendants through `parentId`, to a maximum depth of 100. Three classes of issue are excluded from the walk: hidden issues, harness issues, and issues whose `originKind` is `task_watchdog`. The last exclusion is what stops a watchdog from observing its own review issues and re-triggering on them.
+
+Issues with status `done` or `cancelled` are not counted as material leaves.
+
+### States
+
+Each evaluation produces exactly one state.
+
+| State | Meaning |
+|---|---|
+| `stopped` | No issue in the subtree has a live execution path. **This is the only state that triggers.** |
+| `live` | At least one issue has a live run, queued wake, or scheduled retry. |
+| `pending_first_run` | A watched issue was created inside the first-run grace window and has not completed a run yet. |
+| `already_reviewed` | The current stop fingerprint was already reviewed. |
+| `not_applicable` | The watched issue is missing, is itself a watchdog-origin issue, or the subtree contains no non-watchdog issues. |
+
+A path counts as live if any of the following hold:
+
+- A heartbeat run with status `queued`, `running`, or `scheduled_retry` references a subtree issue.
+- A subtree issue's `executionRunId` points at a live run.
+- An agent wakeup request with status `queued` or `deferred_issue_execution` targets a subtree issue.
+
+### Stop fingerprint
+
+When the subtree is stopped, its state is hashed into a fingerprint of the form `task_watchdog_stop:<sha256>`. The hashed payload covers the company, the watched issue, the material leaves, and the pending waits per issue. It does not cover the watchdog's own configuration, so editing `instructions` does not re-arm a trigger.
+
+The fingerprint is what makes the watchdog quiet. A stopped subtree whose fingerprint matches `lastReviewedFingerprint` classifies as `already_reviewed` and does not fire again. A snapshot that is a strict subset of the reviewed one is suppressed the same way.
+
+### Timing
+
+| Setting | Value | Configurable |
+|---|---|---|
+| First-run grace window | 15000 ms | No. Hard-coded. |
+| Reconcile interval | `HEARTBEAT_SCHEDULER_INTERVAL_MS`, default 30000 ms, floor 10000 ms | Yes, by environment variable. |
+| Scheduler enabled | `HEARTBEAT_SCHEDULER_ENABLED`, disabled only when set to `false` | Yes, by environment variable. |
+| Subtree depth cap | 100 | No. Hard-coded. |
+
+Evaluation runs at server startup, on each scheduler tick, and on demand after issue mutations.
+
+---
+
+## Trigger effects
+
+A `stopped` verdict produces five effects.
+
+1. A review issue is created, or an existing one reopened. It is a child of the watched issue with `status: "todo"`, `originKind: "task_watchdog"`, `originId` set to the watched issue, `originFingerprint` set to the stop fingerprint, and a title of the form `Watchdog review for {identifier}`. One active review issue exists per watched issue.
+2. The watchdog row is updated: `watchdogIssueId`, `lastObservedFingerprint`, `lastObservedStopSnapshot`, `lastTriggeredAt`, and `triggerCount` incremented.
+3. A system comment is posted to the review issue describing the stopped leaves.
+4. An activity record is written with action `issue.task_watchdog_triggered`.
+5. A wake is enqueued for the watchdog agent with reason `task_watchdog_stopped_subtree`, keyed `task_watchdog:{watchdogId}:{stopFingerprint}` for idempotency.
+
+### What a trigger does not do
+
+The watched issue is not modified. Its status does not change, no blocker is set, no `unblockDescriptor` is written, and no recovery-action record is created. Clients polling the watched issue for a status change or a blocker payload will not observe one; the observable signal is the new child review issue and the `issue.task_watchdog_triggered` activity record.
+
+Blocked-state fields on the issue payload are a separate surface. `unblockDescriptor` is supplied by a caller on `PATCH /api/issues/{issueId}` and is rejected with `422` unless the target status is `blocked`; `activeRecoveryAction` is written by the stranded-issue recovery path, not by the task watchdog.
+
+---
+
+## Watchdog run scope
+
+A run woken by a task watchdog is scope-restricted. Mutation routes resolve that scope from two persisted sources, and both must agree:
+
+- The run's `contextSnapshot.taskWatchdog`, which carries the watched issue id and the stop fingerprint.
+- An `issue_watchdogs` row matching the company, watched issue, and acting agent, with `status: "active"`.
+
+Subtree membership is recomputed on every request by walking the parent chain, to a depth cap of 100. Any ancestor whose `originKind` is `task_watchdog` terminates the walk, which is what prevents one watchdog run from mutating another watchdog's review tree.
+
+### Wake context
+
+The `taskWatchdog` object on the agent wake payload carries the scope and the capability list.
+
+| Field | Type | Description |
+|---|---|---|
+| `watchedIssueId` | string \| null | The watched issue. |
+| `watchedIssueIdentifier` | string \| null | Its human identifier. |
+| `watchedIssueTitle` | string \| null | Its title. |
+| `stopFingerprint` | string \| null | The fingerprint under review. |
+| `terminalLeafSummaries` | array | Stopped leaves, capped at 25 entries. |
+| `customInstructions` | string \| null | Configured instructions, capped at 4000 characters. |
+| `capabilities` | object \| null | `operations`, `deniedOperations`, and `targetScope`. |
+
+`capabilities.targetScope` contains `watchedIssueId`, `watchedIssueIdentifier`, `watchdogIssueId`, `includeNonWatchdogDescendants`, and `excludedOriginKinds`.
+
+Permitted operations are `comment_on_watched_subtree_issues`, `transition_watched_subtree_issue_status`, `reassign_watched_subtree_issues`, `create_child_issues_under_non_watchdog_watched_subtree`, `create_product_bug_followups_outside_watched_subtree`, `resolve_issue_thread_interactions_through_ordinary_audience_policy`, and `update_reusable_watchdog_issue`.
+
+Denied operations are `create_visible_probe_issues_or_throwaway_tasks`, `create_product_bug_followups_as_source_tree_children`, `mutate_task_watchdog_descendants`, `mutate_outside_watched_subtree`, `resolve_human_only_interactions_or_security_sensitive_approvals`, and `create_nested_task_watchdogs`.
+
+### Enforced routes
+
+Scope is checked on these routes when the caller is a watchdog run.
+
+| Route |
+|---|
+| `PATCH /api/issues/{id}` |
+| `DELETE /api/issues/{id}` |
+| `POST /api/issues/{id}/comments` |
+| `DELETE /api/issues/{id}/comments/{commentId}` |
+| `POST /api/issues/{id}/interactions` |
+| `POST /api/issues/{id}/interactions/{interactionId}/{accept\|reject\|respond\|verdicts\|withdraw\|cancel}` |
+| `POST /api/issues/{id}/approvals` |
+| `DELETE /api/issues/{id}/approvals/{approvalId}` |
+| `PUT /api/issues/{id}/documents/{key}` |
+| `GET /api/issues/{id}/documents/{key}/annotations` |
+| `GET /api/issues/{id}/documents/{key}/revisions` |
+| `POST /api/issues/{id}/work-products` |
+| `PATCH /api/work-products/{id}` |
+| `DELETE /api/work-products/{id}` |
+| `POST /api/issues/{id}/work-products/{workProductId}/review-document` |
+| `POST /api/issues/{id}/low-trust/promotions` |
+| `POST /api/issues/{id}/accepted-plan-decompositions` |
+| `POST /api/issues/{id}/external-objects/refresh` |
+| `POST /api/issues/{id}/release` |
+| `PUT /api/issues/{id}/watchdog` |
+| `DELETE /api/issues/{id}/watchdog` |
+| `POST /api/issues/{id}/children` |
+| `POST /api/companies/{companyId}/issues` |
+| `POST /api/companies/{companyId}/issues/{issueId}/attachments` |
+| `DELETE /api/attachments/{attachmentId}` |
+
+`POST /api/issues/{id}/checkout` is not scope-enforced.
+
+### Rejections
+
+| Status | `error` | When |
+|---|---|---|
+| `403` | `Task-watchdog runs can only mutate the watched issue subtree.` | Target is outside the watched subtree. |
+| `403` | `Task-watchdog mutation target is outside the watchdog company.` | Cross-company target. |
+| `403` | `Task-watchdog run context does not belong to this agent.` | Run context agent mismatch. |
+| `403` | `Task-watchdog run context is missing a persisted watched issue id.` | Malformed run context. |
+| `403` | `Task-watchdog run context is not backed by an active persisted watchdog.` | No matching active row. |
+| `403` | `Task-watchdog runs cannot change watchdog configuration.` | `PUT`/`DELETE` on a watchdog config route. |
+| `403` | `Task-watchdog runs must create issues inside the watched issue subtree.` | Issue creation with no parent. |
+| `409` | Stale-review messages, below. | The subtree moved since the run was woken. |
+
+Except on interaction routes, these responses carry no `code` field. The body is:
 
 ```json
 {
   "error": "Task-watchdog runs can only mutate the watched issue subtree.",
   "details": {
-    "issueId": "<issue id>",
+    "issueId": "…",
     "securityPrinciples": ["Least Privilege", "Complete Mediation", "Fail Securely"]
   }
 }
 ```
 
-The `error` string is prose and varies by cause. There is no machine-readable enum code on this response — branch on the status code, not on the message text.
+Interaction resolution routes are the exception and do carry a code, `interaction_scope_denied`, both at the top level and inside `details`.
 
-Staleness is enforced separately and returns `409`, not `403`: if the stop fingerprint moved between the scan and the mutation, the write is rejected so a watchdog cannot act on a stop that no longer exists.
+### Stale review
 
-## Checkout and execution locking
+A watchdog run is woken to review one fingerprint. If the subtree changes before the run mutates it, mutation is refused with `409` and one of:
 
+- `Task-watchdog run context is missing the stopped fingerprint required for mutation revalidation.`
+- `Task-watchdog run context is not backed by an active persisted watchdog.`
+- `Task-watchdog review is stale because the watched subtree stop fingerprint changed; refresh the source state before mutating it.`
+- `Task-watchdog review is stale because the watched subtree now has a live, waiting, already-reviewed, or not-applicable path; refresh the source state before mutating it.`
+
+The `details` object carries `watchedIssueId`, `watchdogId`, `runStopFingerprint`, `currentState`, and `currentStopFingerprint`.
+
+---
+
+## Checkout locks
+
+Checkout is the ownership lock the watchdog's liveness model is built on. A subtree looks live because a run holds a lock and is producing runs against it.
+
+### Acquire
+
+```http
+POST /api/issues/{issueId}/checkout
 ```
-POST /api/issues/{id}/checkout
-```
 
-The path parameter is `id`. Request body — both fields required:
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `agentId` | string (uuid) | Yes | The claiming agent. Must be the caller unless the caller may assign tasks. |
+| `expectedStatuses` | array of issue status | Yes | Non-empty. The checkout fails if the issue is not in one of these statuses. |
 
-```json
-{
-  "agentId": "<agent uuid>",
-  "expectedStatuses": ["todo", "in_progress"]
-}
-```
+The caller must present an agent run id. Returns the updated issue with `assigneeAgentId` set, `assigneeUserId` cleared, `checkoutRunId` and `executionRunId` set to the calling run, `status` set to `in_progress`, and `startedAt` stamped. Emits an `issue.checked_out` activity record and wakes the assignee.
 
-`expectedStatuses` must be non-empty. The run id is **not** a body field; it is read from the run JWT. An agent may only check out as itself — otherwise the response is `403 "Agent can only checkout as itself"`.
+### Ownership and expiry
 
-On success the response is the full updated issue row, not a lock receipt.
+Ownership is the pair `(assigneeAgentId, checkoutRunId)`. There is no lock token.
 
-### Ownership
+**There is no time-based expiry.** A lock has no TTL, no lease, and no configurable duration. A run owns `checkoutRunId` for exactly as long as that run is non-terminal. When the run reaches `succeeded`, `failed`, `cancelled`, `interrupted`, or `timed_out`, finalization compares and clears the lock columns that still point at it. A lock already reacquired by a successor run is left alone.
 
-The lock is a pair of columns, `checkoutRunId` and `executionRunId`, both set to the acquiring run's id, alongside `assigneeAgentId`. Ownership is therefore held by a **heartbeat run**, not by an agent in the abstract. There is no `checkoutAgentId` column.
+Re-checkout by the run that already holds the lock returns `200`, not `409`.
 
-### Conflict
-
-A competing owner yields `409`:
+### Conflict responses
 
 ```json
 {
   "error": "Issue checkout conflict",
   "details": {
-    "issueId": "...",
-    "status": "...",
-    "assigneeAgentId": "...",
-    "checkoutRunId": "...",
-    "executionRunId": "..."
+    "issueId": "…",
+    "status": "in_progress",
+    "assigneeAgentId": "…",
+    "checkoutRunId": "…",
+    "executionRunId": "…"
   }
 }
 ```
 
-This response carries no error code field. Clients must not automatically retry a `409` — the task belongs to another run.
+There is no `code`, no `currentOwner`, and no `expiresAt` field on this response. Ownership is read from `assigneeAgentId` and `checkoutRunId` in `details`.
 
-Other `409` responses on the same route are distinguishable only by message, including `"Project is paused"`, `"Another execution for this routine is already in progress"`, and `"Issue checkout blocked by active subtree pause hold"`.
+| Status | `error` | Meaning |
+|---|---|---|
+| `409` | `Issue checkout conflict` | Another run owns the lock, or the status/assignee did not match `expectedStatuses`. |
+| `409` | `Issue checkout blocked by active subtree pause hold` | A pause hold covers this subtree. `details` carries `holdId`, `rootIssueId`, and `mode`. |
+| `409` | `Another execution for this routine is already in progress` | Routine uniqueness violation. No `details`. |
+| `422` | `Issue is blocked by unresolved blockers` | `details` carries `unresolvedBlockerIssueIds` and `unresolvedBlockers`. |
+| `403` | `Agent can only checkout as itself` | `agentId` is not the caller and the caller may not assign tasks. |
+| `401` | `Agent run id required` | No run id on the request. |
 
-### There is no lock TTL
+**Do not retry a `409`.** Stale-lock recovery is crash recovery, not a retry loop; locks held by non-terminal runs are never cleared or adopted. After stale cleanup has run, a `409` means a real live owner, a status or assignee mismatch, an unresolved blocker, or an active gate. Treat it as an ownership conflict and stop.
 
-Checkout locks do not expire on a timer. There is no lease, no timeout constant, and no scheduled reaper for them. A lock held by a dead run is cleared **lazily, on the next checkout attempt**, by a helper that inspects the referenced run's status:
+The `409` responses are not described in the OpenAPI document, which declares only `200`, `400`, and `401` for this route.
 
-- the gate is the run's *status* being terminal (or the run row being absent), not elapsed time
-- a terminal run holds no claim regardless of the issue's assignee or status
-- it is invoked only from the checkout path and the checkout-owner assertion — nothing calls it on a schedule
+### Release
 
-So a stale lock persists in the database until something tries to check the issue out again. Do not design around an expiry deadline.
-
-Three paths hand over a held lock:
-
-| Path | Mechanism |
-| --- | --- |
-| Next checkout | Terminal-run clearing, then stale-run adoption |
-| `POST /api/issues/{id}/release` | Explicit release by the owning run |
-| `POST /api/issues/{id}/admin/force-release` | Board-only seizure |
-
-`release` returns `409 "Only checkout run can release issue"` when a non-owner calls it.
-
-## Silent active-run watchdog
-
-This mechanism is time-based, and it is the only one here that is. It watches a run that is still alive but has gone quiet:
-
-| Threshold | Value |
-| --- | --- |
-| Suspicion | 1 hour of output silence |
-| Critical | 4 hours of output silence |
-
-Crossing a threshold opens a recovery action of kind `active_run_watchdog`. Decisions are submitted to:
-
-```
-POST /api/heartbeat-runs/{runId}/watchdog-decisions
+```http
+POST /api/issues/{issueId}/release
+POST /api/issues/{issueId}/admin/force-release
 ```
 
-This mechanism never releases a checkout lock. It opens a recovery action; lock ownership changes only through the three paths in the previous section.
+`force-release` is board-only and returns `403` with `{"error": "Board access required"}` otherwise.
 
-### Evidence redaction
+### Stranded lock recovery
 
-Evidence gathered for a watchdog decision — the run output tail, recent event messages, and the latest run's error summary — is redacted before it is surfaced.
+Three paths clear a lock whose owning run is terminal or missing. None of them changes the issue status, and none posts a comment to the issue.
 
-Redaction is a **denylist of key-name patterns**, not an allowlist. Matched values are replaced with `***REDACTED***`. Covered patterns include `api_key`, `access_token`, `auth_token`, `token`, `authorization`, `bearer`, `secret`, `password`, `passwd`, `credential`, `jwt`, `private_key`, `cookie`, `connectionstring`, `browser_code`, and `login_url`. Also redacted: JSON and escaped-JSON key/value pairs, command text and CLI secret flags, JWT-shaped values, per-run registered secret literals, and the acting user's name and email. The keys `authorizationReason` and `surface` are explicitly allowlisted back in.
+| Path | Trigger | Observable effect |
+|---|---|---|
+| Recovery sweep | Periodic scan of all issues holding lock columns | Activity record `issue.stale_lock_cleared`, with `clearedCheckoutRunId`, `clearedExecutionRunId`, and `referencedRunStatuses` in `details` |
+| Per-issue self-heal | Runs at the top of every checkout attempt | None. Silent. |
+| Run finalization | A run reaching a terminal status | None. Silent. |
 
-Two things are **not** redacted, and callers should not assume otherwise:
+All three clear `checkoutRunId`, `executionRunId`, `executionAgentNameKey`, and `executionLockedAt`, guarded by a compare-and-swap so a successor run's lock is never clobbered.
 
-- **IP addresses.** No address or CIDR pattern is matched anywhere in the redaction layer.
-- **Stack traces.** No stack-trace stripping exists. The 5xx error path deliberately captures `err.stack` into error context.
+A newer run belonging to the same agent may adopt a stale lock rather than waiting for the sweep. Adoption is recorded as an `issue.checkout_lock_adopted` activity record with `reason: "stale_checkout_run"`.
 
-## Issue blockers are a different concept
+---
 
-Paperclip's first-class issue blockers are unrelated to watchdog stall output, despite both using the word "blocker".
+## Redaction
 
-- Write blockers with `blockedByIssueIds` — a write-only input array that *replaces* the current set. Send `[]` to clear.
-- Read them back as `blockedBy` and `blocks`, each an array of issue summaries (`id`, `identifier`, `title`, `status`, `priority`, `assigneeAgentId`, `assigneeUserId`).
-- They are stored as issue relations of type `blocks`.
+Watchdog and recovery output passes through the platform's general redaction, not a watchdog-specific field list.
 
-A task watchdog only *reads* these, into the `blockerIssueIds` field of each stopped leaf. It does not create or resolve them as part of classification.
+- Run payloads returned by the run endpoints have registered secret values replaced with `***REDACTED***`. Field names are matched against a pattern covering `api_key`, `access_token`, `token`, `authorization`, `bearer`, `secret`, `password`, `credential`, `jwt`, `private_key`, `cookie`, `connectionstring`, `browser_code`, and `login_url`, with `authorizationReason` and `surface` explicitly exempt.
+- Retry failure details are withheld wholesale from recovery comments rather than field-filtered. When a run carries an error, the comment reads `Latest retry failure details were withheld from the issue thread; inspect the linked run for evidence.` and the underlying `error` and `errorCode` are not reproduced.
+- Blocked-inbox attention payloads carry a `redaction` object with `externalDetailsRedacted` (boolean) and `secretFieldsOmitted` (always `true`). When `externalDetailsRedacted` is true, the issue description is suppressed from the payload.
+- Evidence text captured by the active-run silence watchdog is redacted for secrets and current-user identifiers, then truncated to 4000 characters.
 
-## See also
+---
 
-- [Task Watchdogs guide](../../guides/projects-workflow/task-watchdogs.md) — concepts and setup
-- [Issues API](./issues.md) — checkout, release, blockers, and issue lifecycle
-- [Agents API](./agents.md#scoped-permissions-and-authorization) — run scoping and authorization
+## Constraints
+
+- One watchdog per `(companyId, issueId)`, enforced by unique index. `PUT` upserts rather than failing.
+- One active review issue per watched issue, enforced by unique index. Repeat triggers reuse or reopen it.
+- The watchdog agent must be invokable. Assigning a non-invokable agent returns `409` with `Cannot assign watchdog to an agent that is not invokable`; an unknown agent returns `404`.
+- Watchdogs cannot nest. A watchdog cannot be placed on a `task_watchdog`-origin issue, and watchdog runs may not create new watchdogs.
+- Subtree walks stop at depth 100, in both detection and scope enforcement.
+- `DELETE` disables rather than deletes. A subsequent `PUT` reactivates the same row, retaining `triggerCount`.
+- The OpenAPI document registers the three watchdog routes without response schemas, so generated clients will not have typed responses for them.
+
+---
+
+## Common errors
+
+| Code | Meaning | When it happens |
+|---|---|---|
+| `401` | Agent run id required | A checkout was attempted without a run id on the request. |
+| `403` | Forbidden | A watchdog run mutated outside its scope, an agent checked out as another agent without assignment rights, or `force-release` was called without board access. |
+| `404` | Not found | The watchdog agent does not exist, or the issue is outside your company. `GET .../watchdog` is the exception: it returns `null` rather than `404`. |
+| `409` | Conflict | Another run owns the checkout lock, a pause hold covers the subtree, a routine execution is already running, the watchdog agent is not invokable, or a watchdog review is stale. |
+| `422` | Unprocessable | The issue has unresolved blockers, or `unblockDescriptor` was sent without `blocked` status. |
+
+> **Note:** A `409` on checkout is never a retry signal. Stale locks are cleared by recovery before a conflict can surface, so a conflict that reaches you reflects a real owner or gate.
+
+For the workflow view of how watchdogs are configured and reviewed in the UI, see the [task watchdogs guide](../../guides/projects-workflow/task-watchdogs.md). Issue payload and `PATCH` semantics are in [Issues](./issues.md); the activity records emitted above are described in [Activity](./activity.md).

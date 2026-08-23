@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.720.0
 ---
 
 # Access, Profile & Instance Admin
@@ -192,6 +192,7 @@ paperclipai sidebar badges --company-id <company-id>
 
 paperclipai inbox dismissals --company-id <company-id>
 paperclipai inbox dismiss --company-id <company-id> --payload-json '{"itemKey":"run:<run-id>"}'
+paperclipai inbox dismiss --company-id <company-id> --payload-json '{"itemKey":"attention:<attention-key>","kind":"snooze","snoozedUntil":"2026-07-13T09:00:00.000Z"}'
 ```
 
 | Command | Method & path | Notes |
@@ -202,7 +203,9 @@ paperclipai inbox dismiss --company-id <company-id> --payload-json '{"itemKey":"
 | `sidebar project-preferences:update` | `PUT /api/companies/<company-id>/sidebar-preferences/me` | Company-scoped. Requires `--payload-json`. |
 | `sidebar badges` | `GET /api/companies/<company-id>/sidebar-badges` | Company-scoped badge counts. |
 | `inbox dismissals` | `GET /api/companies/<company-id>/inbox-dismissals` | Company-scoped. |
-| `inbox dismiss` | `POST /api/companies/<company-id>/inbox-dismissals` | Company-scoped. Requires `--payload-json`. |
+| `inbox dismiss` | `POST /api/companies/<company-id>/inbox-dismissals` | Company-scoped. Requires `--payload-json`; it can dismiss or snooze an item. |
+
+`inbox dismiss` is the one CLI command for both actions. Its payload needs an `itemKey` beginning with `approval:`, `join:`, `run:`, or `attention:`. Omit `kind` (or set it to `dismiss`) to hide the item until newer activity makes it relevant again. To snooze it, set `kind` to `snooze` and provide a future ISO timestamp in `snoozedUntil`. A dismissal must not include `snoozedUntil`.
 
 ---
 

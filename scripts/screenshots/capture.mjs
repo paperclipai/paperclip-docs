@@ -63,20 +63,57 @@ async function parentHeadSha() {
   }
 }
 
-/** Get the current branch name of the parent repo. */
-async function parentRefName() {
+/** Run a git command in the parent repo; returns trimmed stdout, or "" on failure. */
+async function parentGit(args) {
   try {
-    const { stdout } = await execFileAsync("git", [
-      "-C",
-      PARENT_REPO,
-      "rev-parse",
-      "--abbrev-ref",
-      "HEAD",
-    ]);
+    const { stdout } = await execFileAsync("git", ["-C", PARENT_REPO, ...args]);
     return stdout.trim();
   } catch {
-    return null;
+    return "";
   }
+}
+
+/**
+ * Human-meaningful name for the parent revision being captured.
+ *
+ * Release captures run against a *detached* checkout of the release commit, and
+ * `rev-parse --abbrev-ref HEAD` answers the literal string "HEAD" in that state —
+ * which is what every pre-2026.817 registry entry recorded, making it impossible
+ * to tell from the registry alone which release a shot belongs to. So: use the
+ * branch name when we are on one, and otherwise resolve the most descriptive ref
+ * that contains the commit (tag → describe → containing branch), falling back to
+ * the short SHA. `captured_sha` still pins the exact commit either way.
+ */
+async function parentRefName() {
+  const branch = await parentGit(["symbolic-ref", "--quiet", "--short", "HEAD"]);
+  if (branch) return branch;
+
+  // Detached. A tag pointing exactly at HEAD is the best answer.
+  const tag = (await parentGit(["tag", "--points-at", "HEAD"])).split("\n")[0];
+  if (tag) return tag;
+
+  // Otherwise the nearest tag-ish description (e.g. "beta/v2026.811.0-beta.0-4-g213dabab4").
+  const described = await parentGit(["describe", "--tags", "--always"]);
+
+  // A release candidate usually lives only on a release branch — prefer that name
+  // when one contains the commit, since it identifies the release.
+  const containing = await parentGit([
+    "branch",
+    "--all",
+    "--contains",
+    "HEAD",
+    "--format=%(refname:short)",
+  ])
+    .then((out) =>
+      out
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line && !line.includes("HEAD detached")),
+    );
+  const release = containing.find((ref) => /release|candidate/.test(ref)) ?? containing[0];
+  if (release) return release;
+
+  return described || (await parentGit(["rev-parse", "--short", "HEAD"])) || null;
 }
 
 /**
@@ -127,7 +164,10 @@ function locate(page, sel) {
  * is logged and skipped so we still screenshot whatever state was reached
  * (a partial capture beats no capture, and surfaces selector drift in the log).
  *
- * Step shapes: { click }, { fill, value }, { waitFor }, { waitMs }, { press }.
+ * Step shapes: { click }, { fill, value }, { waitFor }, { waitMs }, { press },
+ * { scrollTo } (bring an element into view — long pages like issue detail put
+ * the interesting section below the fold, and a 1440×900 shot of the top of the
+ * page misses it entirely).
  *
  * @param {import('@playwright/test').Page} page
  * @param {Array<object>} steps
@@ -140,6 +180,8 @@ async function runSteps(page, steps, label) {
         await page.waitForTimeout(stepObj.waitMs);
       } else if (stepObj.waitFor) {
         await locate(page, stepObj.waitFor).waitFor({ state: "visible", timeout: 8_000 });
+      } else if (stepObj.scrollTo) {
+        await locate(page, stepObj.scrollTo).scrollIntoViewIfNeeded({ timeout: 8_000 });
       } else if (stepObj.click) {
         await locate(page, stepObj.click).click({ timeout: 8_000 });
       } else if (stepObj.fill) {
@@ -162,6 +204,10 @@ async function runSteps(page, steps, label) {
  * @property {"light"|"dark"|"both"} [theme] - Which theme(s). Default "both".
  * @property {string[]} [staleFiles] - Registry file list to restrict capture.
  * @property {string}   [baseUrl]   - Base URL override.
+ * @property {"pre-seed"|"post-seed"} [phase] - Which capture phase to run.
+ *   Targets default to "post-seed"; targets marked `phase: "pre-seed"` in
+ *   routes.mjs are shot against the company-less instance (before seed.mjs
+ *   runs) so onboarding-wizard states are reachable. Default "post-seed".
  */
 
 /**
@@ -175,6 +221,7 @@ export default async function capture(opts = {}) {
     theme: themeFilter = "both",
     staleFiles,
     baseUrl = BASE_URL,
+    phase = "post-seed",
   } = opts;
 
   const seedIds = await loadSeedIds();
@@ -189,7 +236,7 @@ export default async function capture(opts = {}) {
   const staleSet = staleFiles ? new Set(staleFiles) : null;
 
   // Filter targets.
-  let targets = CAPTURE_TARGETS;
+  let targets = CAPTURE_TARGETS.filter((t) => (t.phase ?? "post-seed") === phase);
   if (only) {
     targets = targets.filter((t) => t.name.includes(only));
   }
@@ -251,14 +298,33 @@ export default async function capture(opts = {}) {
 
       const page = await context.newPage();
 
-      try {
-        await page.goto(url, { waitUntil: "networkidle", timeout: 20_000 });
-      } catch {
-        // Timeout or navigation error — best-effort screenshot of whatever rendered.
-      }
-
       const wait = target.wait ?? 1200;
-      await page.waitForTimeout(wait);
+      // The pipeline serves the UI through vite dev middleware, which compiles
+      // route chunks lazily on first request. `networkidle` can fire before the
+      // SPA has mounted, yielding a pure-white blank. Navigate, then poll until
+      // the app has actually rendered real content; reload-and-retry if not.
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          await page.goto(url, { waitUntil: "networkidle", timeout: 20_000 });
+        } catch {
+          // Timeout or navigation error — best-effort; the content poll decides.
+        }
+        await page.waitForTimeout(wait);
+        let contentLen = 0;
+        try {
+          contentLen = await page.evaluate(
+            () => (document.body?.innerText || "").trim().length,
+          );
+        } catch {
+          // evaluate can race a navigation; treat as not-yet-rendered.
+        }
+        if (contentLen > 40) break;
+        if (attempt < 3) {
+          console.warn(
+            `capture:   [${theme}] ${target.name} rendered blank (len=${contentLen}); retry ${attempt + 1}/3`,
+          );
+        }
+      }
 
       // Optional interaction steps (open a dialog, switch a tab, fill a field…).
       if (Array.isArray(target.steps) && target.steps.length) {
@@ -327,6 +393,7 @@ if (process.argv[1] && new URL(import.meta.url).pathname === process.argv[1]) {
     staleFiles: staleRaw ? staleRaw.split(",") : undefined,
     baseUrl: get("--base-url") ?? BASE_URL,
     keep: has("--keep"),
+    phase: get("--phase") ?? "post-seed",
   };
 
   capture(opts).catch((err) => {

@@ -126,6 +126,60 @@ In the UI, any `env` value with `type: "secret_ref"` is rendered through a secre
 
 ---
 
+## 5. (Optional) Don't run on a dead week
+
+A daily routine on a quiet project is mostly noise — thirty standups in a row that all say "nothing changed". The activity gate turns that off: a scheduled tick only fires if something actually happened since the routine last ran.
+
+### Turn it on from the routine page
+
+Open the routine and go to its **Delivery** section — the same place you set concurrency and catch-up. Under those, you'll find **Advanced run policy** with two cards:
+
+- **Run on every scheduled tick** — "Fire on the schedule no matter what — the default behavior."
+- **Skip when there's been no activity since the last run** — "On a scheduled tick, only run if something happened since the last run that finished. Lets a watcher-style routine stay asleep while the system is settled instead of burning tokens."
+
+Pick the second card and an **Activity scope** picker appears underneath it, with two more cards:
+
+- **Company-wide** — "Any activity across the company counts as a reason to run."
+- **This project** — "Only activity in the routine's project counts as a reason to run."
+
+Save the routine and the gate is live from the next tick.
+
+If the routine doesn't have a schedule trigger yet, you'll see the cards greyed out rather than missing, with the reason spelled out: "Add a schedule trigger to gate runs on activity. Webhook, manual, and API fires always run." Add a schedule trigger (step 2) and the control wakes up.
+
+### Or set it from the API
+
+The two fields behind those cards are `activityGatePolicy` and `activityGateScope`, so you can script the whole thing:
+
+```bash
+curl -X PATCH "$PAPERCLIP_API_URL/api/routines/$ROUTINE_ID" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "activityGatePolicy": "require_external_activity",
+    "activityGateScope": "project"
+  }'
+```
+
+Both fields also work at create time, alongside `concurrencyPolicy` and `catchUpPolicy` in step 1. The defaults are `activityGatePolicy: "always"` — fire on every tick, which is what you get if you never touch this — and `activityGateScope: "company"`.
+
+### What counts as activity
+
+"Something happened" means an entry in the company's activity log recorded after the routine's last dispatched run: someone commented, an issue moved, an agent finished a piece of work. Three kinds of entries deliberately don't count:
+
+- Read and inbox bookkeeping — `issue.read_marked`, `issue.read_unmarked`, `issue.inbox_archived`, `issue.inbox_unarchived`. Opening your inbox isn't news.
+- Anything the scheduler logged about this routine, including its own skip records.
+- Anything an agent did while working on an execution issue this routine created.
+
+Those last two matter more than they look. Without them a routine would keep re-arming itself on its own output, and the gate would never close.
+
+`activityGateScope` decides how wide to look. `company` counts activity anywhere in the company; `project` counts only activity tied to the routine's project — its issues, its routines and their runs, and agent runs working on its issues. Reach for `project` on the standup and triage patterns below, where a busy neighbouring project shouldn't wake up a quiet one. One catch: a routine with `activityGateScope: "project"` and no `projectId` can never match anything, so it will never fire on a schedule.
+
+A gated-off tick is not an error and not a backlog. It shows up in the run history as a `skipped` run with `failureReason: "no_external_activity"` — labelled **Skipped — no activity since last run** on the run row — the schedule advances to the next tick, and nothing is backfilled when the project wakes up again.
+
+The gate only applies to schedule triggers. Webhook firings and `POST /api/routines/{routineId}/run` always dispatch — if an external system took the trouble to call you, that call *is* the activity.
+
+---
+
 ## Pattern 1 — Daily standup
 
 The agent reads what changed since the previous standup and comments on a parent project issue with a short summary. Use `coalesce_if_active`: if the agent is still writing yesterday's standup when today's tick lands, merge the work — there's no value in two standup issues for the same morning.
@@ -307,9 +361,19 @@ The runs you'll see:
 | `received` | The tick was accepted; dispatch is in flight. |
 | `issue_created` | A fresh execution issue was created and assigned. |
 | `coalesced` | An active run already existed; this tick linked to it. |
-| `skipped` | An active run already existed; concurrency policy dropped this tick. |
+| `skipped` | The tick didn't create work — an active run already existed and the concurrency policy dropped it, the project was paused, or the activity gate found nothing new. `failureReason` says which. |
 | `completed` | The execution issue reached `done`. |
 | `failed` | The execution issue failed, was cancelled, or dispatch errored. The `failureReason` field tells you which. |
+
+In the UI you don't have to read `failureReason` yourself — the routine's **Runs** list writes the reason straight onto a skipped row as a one-line subtitle:
+
+| Row subtitle | `failureReason` |
+|---|---|
+| Skipped — no activity since last run | `no_external_activity` |
+| Skipped — routine paused | `paused` |
+| Skipped — worktree execution cutoff | `worktree_execution_cutoff` |
+
+Those three are the reasons with a label. A skipped run whose reason isn't one of them — a `skip_if_active` routine dropping a tick because the previous execution issue is still open, for instance — falls back to the normal row subtitle, the run's resolved variable values. That case isn't a mystery either: the row links to the execution issue that caused the skip.
 
 For a deeper look at what the agent actually did, follow `linkedIssueId` to the execution issue and read its comments.
 

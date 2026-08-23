@@ -554,6 +554,84 @@ test("check-drift: env var drift caught (high confidence)", () => {
   rmSync(root, { recursive: true, force: true });
 });
 
+const PERM_DOC = "docs/administration/roles-and-permissions.md";
+function permB64(s) {
+  return { status: 200, content_base64: Buffer.from(s).toString("base64") };
+}
+
+test("check-drift: permission catalog + role-grant drift caught (high confidence)", () => {
+  const { root, fixtures, scriptInRoot } = makeDriftFixture();
+  // Doc: catalog table omits `joins:approve`; owner grants omit `environments:manage`.
+  const doc = [
+    "# Roles & Permissions",
+    "",
+    "| Role | Who | Implicit grants |",
+    "|---|---|---|",
+    "| **Owner** | run | `agents:create`, `users:invite` |",
+    "| **Viewer** | read | *(none)* |",
+    "",
+    "| Permission key | What it allows | In which role |",
+    "|---|---|---|",
+    "| `agents:create` | make agents | Owner |",
+    "| `users:invite` | invite | Owner |",
+    "",
+  ].join("\n");
+  writeFile(root, PERM_DOC, doc);
+  writeFixtureContents(fixtures, "packages/shared/src/constants.ts", "master",
+    permB64('export const PERMISSION_KEYS = [\n  "agents:create",\n  "users:invite",\n  "joins:approve",\n] as const;\n'));
+  writeFixtureContents(fixtures, "server/src/services/company-member-roles.ts", "master",
+    permB64('export function grantsForHumanRole(role) {\n  switch (role) {\n    case "owner":\n      return [\n        { permissionKey: "agents:create", scope: null },\n        { permissionKey: "users:invite", scope: null },\n        { permissionKey: "environments:manage", scope: null },\n      ];\n    case "viewer":\n      return [];\n  }\n}\nexport function other() {}\n'));
+
+  const r = spawnSync(process.execPath, [scriptInRoot, "--json", "--against", "master"], {
+    encoding: "utf8",
+    env: { ...process.env, PAPERCLIP_SYNC_FIXTURE_DIR: fixtures },
+  });
+  assert(r.status === 0, `expected exit 0, got ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  const pc = out.drift.filter((d) => d.kind === "permission-catalog-drift");
+  assert(pc.length === 2, `expected 2 permission-catalog-drift, got ${pc.length}: ${JSON.stringify(pc)}`);
+  assert(pc.some((d) => /joins:approve/.test(d.documented)), `expected joins:approve catalog drift: ${JSON.stringify(pc)}`);
+  assert(pc.some((d) => /owner/.test(d.documented) && /environments:manage/.test(d.documented)), `expected owner role-grant drift: ${JSON.stringify(pc)}`);
+  assert(pc.every((d) => d.confidence === "high"), "expected all high confidence");
+
+  rmSync(root, { recursive: true, force: true });
+});
+
+test("check-drift: no permission drift when docs match parent", () => {
+  const { root, fixtures, scriptInRoot } = makeDriftFixture();
+  const doc = [
+    "# Roles & Permissions",
+    "",
+    "| Role | Who | Implicit grants |",
+    "|---|---|---|",
+    "| **Owner** | run | `agents:create`, `joins:approve` |",
+    "| **Viewer** | read | *(none)* |",
+    "",
+    "| Permission key | What it allows | In which role |",
+    "|---|---|---|",
+    "| `agents:create` | make agents | Owner |",
+    "| `joins:approve` | approve | Owner |",
+    "",
+  ].join("\n");
+  writeFile(root, PERM_DOC, doc);
+  writeFixtureContents(fixtures, "packages/shared/src/constants.ts", "master",
+    permB64('export const PERMISSION_KEYS = [\n  "agents:create",\n  "joins:approve",\n] as const;\n'));
+  writeFixtureContents(fixtures, "server/src/services/company-member-roles.ts", "master",
+    permB64('export function grantsForHumanRole(role) {\n  switch (role) {\n    case "owner":\n      return [\n        { permissionKey: "agents:create", scope: null },\n        { permissionKey: "joins:approve", scope: null },\n      ];\n    case "viewer":\n      return [];\n  }\n}\n'));
+
+  const r = spawnSync(process.execPath, [scriptInRoot, "--json", "--against", "master"], {
+    encoding: "utf8",
+    env: { ...process.env, PAPERCLIP_SYNC_FIXTURE_DIR: fixtures },
+  });
+  assert(r.status === 0, `expected exit 0, got ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  const pc = out.drift.filter((d) => d.kind === "permission-catalog-drift");
+  assert(pc.length === 0, `expected no permission drift, got ${pc.length}: ${JSON.stringify(pc)}`);
+  assert(out.stats.permission_keys_checked === 2, `expected 2 keys checked, got ${out.stats.permission_keys_checked}`);
+
+  rmSync(root, { recursive: true, force: true });
+});
+
 test("check-drift: REST route drift caught (medium confidence)", () => {
   const { root, fixtures, scriptInRoot } = makeDriftFixture();
   const apiDoc = [
@@ -676,6 +754,78 @@ test("check-drift: env vars can verify against tree-discovered package sources",
   const out = JSON.parse(r.stdout);
   const ev = out.drift.filter((d) => d.kind === "env-var-missing");
   assert(ev.length === 0, `expected 0 env-var-missing, got ${ev.length}: ${JSON.stringify(ev)}`);
+
+  rmSync(root, { recursive: true, force: true });
+});
+
+test("check-drift: cache is keyed by resolved SHA, never a moving ref name", () => {
+  // Regression guard for the stale-`master` cache bug: `--against master`
+  // resolves to an immutable SHA, and the cache directory is keyed by that SHA
+  // (drift-<sha>), never by the moving branch name (drift-master). Fetches also
+  // use the resolved SHA — proven below by foo.ts resolving with no drift even
+  // though its content fixture is keyed by the SHA, not "master".
+  const { root, fixtures, scriptInRoot } = makeDriftFixture();
+  const SHA = "0123456789abcdef0123456789abcdef01234567"; // 40 hex
+  writeFile(root, "docs/reference/sample.md", "See cli/src/commands/foo.ts for details.\n");
+  // Resolve `master` → SHA via the commit stub.
+  writeFile(root, "_fixtures/commit-master.json", JSON.stringify({ sha: SHA }));
+  // Content fixture keyed by the RESOLVED SHA (not "master").
+  writeFixtureContents(fixtures, "cli/src/commands/foo.ts", SHA, { status: 200 });
+
+  const cacheDir = join(root, "_cache");
+  const r = spawnSync(process.execPath, [scriptInRoot, "--json", "--against", "master"], {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      PAPERCLIP_SYNC_FIXTURE_DIR: fixtures,
+      PAPERCLIP_SYNC_CACHE_DIR: cacheDir,
+    },
+  });
+  assert(r.status === 0, `expected exit 0, got ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  assert(
+    out.checked_against === `master (${SHA.slice(0, 7)})`,
+    `expected checked_against "master (${SHA.slice(0, 7)})", got ${out.checked_against}`
+  );
+  const pp = out.drift.filter((d) => d.kind === "parent-path-missing");
+  assert(pp.length === 0, `expected no parent-path drift (fetch used SHA), got ${JSON.stringify(pp)}`);
+  assert(existsSync(join(cacheDir, `drift-${SHA}`)), `expected cache dir drift-${SHA}`);
+  assert(
+    !existsSync(join(cacheDir, "drift-master")),
+    "cache must NOT be keyed by the moving ref name 'master'"
+  );
+
+  rmSync(root, { recursive: true, force: true });
+});
+
+test("check-drift: ref comes from .sync-state.json when --against is absent", () => {
+  // Mode-awareness: with no --against, the ref is taken from .sync-state.json
+  // (nightly → last_seen_parent_sha), not the moving default branch. repo.json
+  // still says the default branch is "master", so if mode-awareness were
+  // ignored the fetch would use "master" and foo.ts (keyed by the state SHA)
+  // would 404 into drift.
+  const { root, fixtures, scriptInRoot } = makeDriftFixture();
+  const SHA = "89abcdef0123456789abcdef0123456789abcdef"; // 40 hex
+  writeFile(
+    root,
+    ".sync-state.json",
+    JSON.stringify({ branch_mode: "nightly", last_seen_parent_sha: SHA })
+  );
+  writeFile(root, "docs/reference/sample.md", "See cli/src/commands/foo.ts for details.\n");
+  writeFixtureContents(fixtures, "cli/src/commands/foo.ts", SHA, { status: 200 });
+
+  const r = spawnSync(process.execPath, [scriptInRoot, "--json"], {
+    encoding: "utf8",
+    env: { ...process.env, PAPERCLIP_SYNC_FIXTURE_DIR: fixtures },
+  });
+  assert(r.status === 0, `expected exit 0, got ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  assert(
+    out.checked_against === SHA.slice(0, 7),
+    `expected checked_against ${SHA.slice(0, 7)}, got ${out.checked_against}`
+  );
+  const pp = out.drift.filter((d) => d.kind === "parent-path-missing");
+  assert(pp.length === 0, `expected no parent-path drift (fetch used state SHA), got ${JSON.stringify(pp)}`);
 
   rmSync(root, { recursive: true, force: true });
 });
@@ -985,7 +1135,10 @@ test("screenshots: instance env does not forward host credentials", () => {
 
     assert(env.HOME === home, `HOME should point at scratch home, got ${env.HOME}`);
     assert(env.PAPERCLIP_HOME === home, `PAPERCLIP_HOME should point at scratch home, got ${env.PAPERCLIP_HOME}`);
-    assert(!("DATABASE_URL" in env), "DATABASE_URL must not be forwarded");
+    // DATABASE_URL is pinned to "" (not omitted) so it wins over the parent
+    // repo's `.env`, which dotenv loads with `override: false`. The host's real
+    // value must never leak through — an empty pin is what forces embedded Postgres.
+    assert(env.DATABASE_URL === "", `DATABASE_URL must be pinned empty, not forwarded from host, got ${JSON.stringify(env.DATABASE_URL)}`);
     assert(!("OPENAI_API_KEY" in env), "OPENAI_API_KEY must not be forwarded");
     assert(!("GITHUB_TOKEN" in env), "GITHUB_TOKEN must not be forwarded");
   } finally {

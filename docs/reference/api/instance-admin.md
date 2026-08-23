@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.529.0
+paperclip_version: v2026.720.0
 ---
 
 # Instance Admin API
@@ -25,6 +25,8 @@ These surfaces are stable enough to call from your own tooling, but they are int
 
 The experimental "issue-graph-liveness auto-recovery" routes are paired: preview produces a dry-run summary; run applies the same changes. Both share the `issueGraphLivenessAutoRecoveryRequestSchema` body shape.
 
+The experimental-settings response and patch body include `enableBuiltInAgents` as a boolean. Set it to `true` before using the [Built-in Agents API](./built-in-agents.md); while it is off, those routes return `404 Not Found`.
+
 ---
 
 ## Database backups
@@ -48,6 +50,8 @@ POST /api/bootstrap/claim
 On a brand-new private instance that requires login, this lets the first person to sign in promote themselves to `instance_admin` — no manual database seeding. The first caller to claim wins; everyone after them is locked out.
 
 **Availability.** This route only exists when the instance runs with `deploymentMode` set to `authenticated` **and** `deploymentExposure` set to `private`. On any other configuration it returns `404` with `Browser first-admin claim is not available`.
+
+**Cloud-managed instances.** If your instance is managed by a Paperclip control plane rather than run by you, you never meet this claim screen at all — the instance comes up ready to use. The control plane owns identity there, and the users it signs in are deliberately never given the `instance_admin` role, so `GET /api/health` skips the first-admin check entirely and always reports `bootstrapStatus: "ready"`. Self-hosted instances are unaffected: if you run the server yourself, the claim flow behaves exactly as described here.
 
 **Authentication.** The caller must be a signed-in browser session (a board actor whose session source is the browser). Other callers — agents, CLI tokens, unauthenticated requests — get `401` with `Sign in from a browser session before claiming first admin`.
 

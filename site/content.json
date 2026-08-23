@@ -51,8 +51,16 @@
           "file": "../docs/guides/day-to-day/dashboard.md"
         },
         {
+          "title": "Command Palette",
+          "file": "../docs/guides/day-to-day/command-palette.md"
+        },
+        {
           "title": "Issues",
           "file": "../docs/guides/day-to-day/issues.md"
+        },
+        {
+          "title": "Work Modes",
+          "file": "../docs/guides/day-to-day/work-modes.md"
         },
         {
           "title": "Artifacts",
@@ -61,6 +69,10 @@
         {
           "title": "Blocked Inbox",
           "file": "../docs/guides/day-to-day/blocked-inbox.md"
+        },
+        {
+          "title": "Decisions",
+          "file": "../docs/guides/day-to-day/decisions.md"
         },
         {
           "title": "Approvals",
@@ -73,6 +85,10 @@
         {
           "title": "Activity Log",
           "file": "../docs/guides/day-to-day/activity-log.md"
+        },
+        {
+          "title": "Work Timeline",
+          "file": "../docs/guides/day-to-day/work-timeline.md"
         },
         {
           "title": "Feedback & Voting",
@@ -101,6 +117,10 @@
         {
           "title": "Org Structure",
           "file": "../docs/guides/org/org-structure.md"
+        },
+        {
+          "title": "Members & Access",
+          "file": "../docs/guides/org/members-and-access.md"
         },
         {
           "title": "Delegation",
@@ -139,6 +159,10 @@
           "file": "../docs/guides/projects-workflow/workspaces.md"
         },
         {
+          "title": "Custom Sandbox Images",
+          "file": "../docs/guides/projects-workflow/custom-sandbox-images.md"
+        },
+        {
           "title": "Task Watchdogs",
           "file": "../docs/guides/projects-workflow/task-watchdogs.md"
         }
@@ -166,77 +190,187 @@
     },
     {
       "tier": "Learn",
+      "title": "Experimental",
+      "icon": "flask-conical",
+      "desc": "Opt-in features that ship behind flags — what each one does, why it exists, and how to turn it on.",
+      "pages": [
+        {
+          "title": "Overview",
+          "file": "../docs/experimental/overview.md"
+        },
+        {
+          "title": "Connections v3 (Apps)",
+          "file": "../docs/experimental/connections-apps.md"
+        },
+        {
+          "title": "Environments",
+          "file": "../docs/experimental/environments.md"
+        },
+        {
+          "title": "Isolated Workspaces",
+          "file": "../docs/experimental/isolated-workspaces.md"
+        },
+        {
+          "title": "Experimental File Viewer",
+          "file": "../docs/experimental/file-viewer.md"
+        },
+        {
+          "title": "External Objects",
+          "file": "../docs/experimental/external-objects.md"
+        },
+        {
+          "title": "Task Plan Decomposition Panel",
+          "file": "../docs/experimental/plan-decomposition-panel.md"
+        },
+        {
+          "title": "Chat-Style Tasks",
+          "file": "../docs/experimental/task-chat.md"
+        },
+        {
+          "title": "Task Watchdogs",
+          "file": "../docs/experimental/task-watchdogs.md"
+        },
+        {
+          "title": "Status Cards",
+          "file": "../docs/experimental/status-cards.md"
+        },
+        {
+          "title": "Cloud Sync",
+          "file": "../docs/experimental/cloud-sync.md"
+        },
+        {
+          "title": "Server Info Debug View",
+          "file": "../docs/experimental/server-info-debug-view.md"
+        },
+        {
+          "title": "Auto-Restart Dev Server",
+          "file": "../docs/experimental/auto-restart-dev-server.md"
+        },
+        {
+          "title": "Auto-Create Recovery Tasks",
+          "file": "../docs/experimental/auto-create-recovery-tasks.md"
+        }
+      ]
+    },
+    {
+      "tier": "Learn",
       "title": "How-to Guides",
       "icon": "wrench",
       "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",
       "pages": [
         {
-          "title": "Set a Monthly Budget",
-          "file": "../docs/how-to/set-monthly-budget.md"
+          "title": "Members & Access",
+          "pages": [
+            {
+              "title": "Enable Multi-User Login",
+              "file": "../docs/how-to/enable-multi-user-login.md"
+            },
+            {
+              "title": "Add a Human Teammate",
+              "file": "../docs/how-to/add-a-human-teammate.md"
+            },
+            {
+              "title": "Offboard a Member",
+              "file": "../docs/how-to/offboard-a-member.md"
+            }
+          ]
         },
         {
-          "title": "Require Approval Before Spend",
-          "file": "../docs/how-to/require-board-approval-before-spend.md"
+          "title": "Governance & Budget",
+          "pages": [
+            {
+              "title": "Set a Monthly Budget",
+              "file": "../docs/how-to/set-monthly-budget.md"
+            },
+            {
+              "title": "Require Approval Before Spend",
+              "file": "../docs/how-to/require-board-approval-before-spend.md"
+            },
+            {
+              "title": "Handle Board Approvals for Hires",
+              "file": "../docs/how-to/handle-board-approvals-for-hires.md"
+            }
+          ]
         },
         {
-          "title": "Create a Daily Routine",
-          "file": "../docs/how-to/create-a-daily-routine.md"
+          "title": "Agents & Skills",
+          "pages": [
+            {
+              "title": "Bring Your Own Agent",
+              "file": "../docs/how-to/bring-your-own-agent.md"
+            },
+            {
+              "title": "Connect an Agent to GitHub",
+              "file": "../docs/how-to/connect-agent-to-github.md"
+            },
+            {
+              "title": "Add an MCP Server to an Agent",
+              "file": "../docs/how-to/add-mcp-server-to-agent.md"
+            },
+            {
+              "title": "Write a Company Skill",
+              "file": "../docs/how-to/write-a-company-skill.md"
+            }
+          ]
         },
         {
-          "title": "Connect an Agent to GitHub",
-          "file": "../docs/how-to/connect-agent-to-github.md"
+          "title": "Automation & Notifications",
+          "pages": [
+            {
+              "title": "Create a Daily Routine",
+              "file": "../docs/how-to/create-a-daily-routine.md"
+            },
+            {
+              "title": "Wire Slack/Discord Notifications",
+              "file": "../docs/how-to/wire-slack-discord-notifications.md"
+            }
+          ]
         },
         {
-          "title": "Update or Rotate a Provider API Key",
-          "file": "../docs/how-to/rotate-provider-api-key.md"
+          "title": "Secrets & Providers",
+          "pages": [
+            {
+              "title": "Update or Rotate a Provider API Key",
+              "file": "../docs/how-to/rotate-provider-api-key.md"
+            },
+            {
+              "title": "Connect an AWS Secrets Manager Vault",
+              "file": "../docs/how-to/connect-aws-secrets-vault.md"
+            }
+          ]
         },
         {
-          "title": "Update Paperclip to the Latest Version",
-          "file": "../docs/how-to/update-paperclip.md"
-        },
-        {
-          "title": "Add an MCP Server to an Agent",
-          "file": "../docs/how-to/add-mcp-server-to-agent.md"
-        },
-        {
-          "title": "Write a Company Skill",
-          "file": "../docs/how-to/write-a-company-skill.md"
-        },
-        {
-          "title": "Bring Your Own Agent",
-          "file": "../docs/how-to/bring-your-own-agent.md"
-        },
-        {
-          "title": "Deploy to a VPS or Fly.io",
-          "file": "../docs/how-to/deploy-to-vps-or-fly.md"
-        },
-        {
-          "title": "Back Up and Restore a Company",
-          "file": "../docs/how-to/back-up-and-restore-a-company.md"
-        },
-        {
-          "title": "Debug a Stuck Heartbeat",
-          "file": "../docs/how-to/debug-stuck-heartbeat.md"
-        },
-        {
-          "title": "Handle Board Approvals for Hires",
-          "file": "../docs/how-to/handle-board-approvals-for-hires.md"
-        },
-        {
-          "title": "Wire Slack/Discord Notifications",
-          "file": "../docs/how-to/wire-slack-discord-notifications.md"
-        },
-        {
-          "title": "Develop a plugin locally",
-          "file": "../docs/how-to/develop-a-plugin-locally.md"
-        },
-        {
-          "title": "Sync to Cloud Upstream",
-          "file": "../docs/how-to/sync-to-cloud-upstream.md"
-        },
-        {
-          "title": "Connect an AWS Secrets Manager Vault",
-          "file": "../docs/how-to/connect-aws-secrets-vault.md"
+          "title": "Deploy & Maintain",
+          "pages": [
+            {
+              "title": "Deploy to a VPS or Fly.io",
+              "file": "../docs/how-to/deploy-to-vps-or-fly.md"
+            },
+            {
+              "title": "Update Paperclip to the Latest Version",
+              "file": "../docs/how-to/update-paperclip.md"
+            },
+            {
+              "title": "Back Up and Restore a Company",
+              "file": "../docs/how-to/back-up-and-restore-a-company.md"
+            },
+            {
+              "title": "Debug a Stuck Heartbeat",
+              "file": "../docs/how-to/debug-stuck-heartbeat.md"
+            },
+            {
+              "title": "Sync to Cloud Upstream",
+              "file": "../docs/how-to/sync-to-cloud-upstream.md"
+            },
+            {
+              "title": "Develop a plugin locally",
+              "file": "../docs/how-to/develop-a-plugin-locally.md"
+            },
+            {
+              "title": "Community Desktop App (unofficial)",
+              "file": "../docs/how-to/community-desktop-app.md"
+            }
+          ]
         }
       ]
     },
@@ -249,6 +383,18 @@
         {
           "title": "Company",
           "file": "../docs/administration/company.md"
+        },
+        {
+          "title": "Roles & Permissions",
+          "file": "../docs/administration/roles-and-permissions.md"
+        },
+        {
+          "title": "Secret Scopes",
+          "file": "../docs/administration/secret-scopes.md"
+        },
+        {
+          "title": "Secret Folders",
+          "file": "../docs/administration/secret-folders.md"
         },
         {
           "title": "Settings",
@@ -291,12 +437,32 @@
           "file": "../docs/reference/api/agents.md"
         },
         {
+          "title": "Built-in Agents",
+          "file": "../docs/reference/api/built-in-agents.md"
+        },
+        {
           "title": "Issues",
           "file": "../docs/reference/api/issues.md"
         },
         {
+          "title": "Cases",
+          "file": "../docs/reference/api/cases.md"
+        },
+        {
+          "title": "Attention",
+          "file": "../docs/reference/api/attention.md"
+        },
+        {
           "title": "Task Watchdog",
           "file": "../docs/reference/api/task-watchdog.md"
+        },
+        {
+          "title": "Decisions",
+          "file": "../docs/reference/api/decisions.md"
+        },
+        {
+          "title": "Checkbox Confirmations",
+          "file": "../docs/reference/api/checkbox-confirmations.md"
         },
         {
           "title": "Approvals",
@@ -311,6 +477,18 @@
           "file": "../docs/reference/api/resource-memberships.md"
         },
         {
+          "title": "Folders",
+          "file": "../docs/reference/api/folders.md"
+        },
+        {
+          "title": "Company Skill Policy",
+          "file": "../docs/reference/api/company-skill-policy.md"
+        },
+        {
+          "title": "Inbox Agent Policy",
+          "file": "../docs/reference/api/inbox-agent-policy.md"
+        },
+        {
           "title": "Costs",
           "file": "../docs/reference/api/costs.md"
         },
@@ -321,6 +499,18 @@
         {
           "title": "Activity",
           "file": "../docs/reference/api/activity.md"
+        },
+        {
+          "title": "Decision Training",
+          "file": "../docs/reference/api/decision-training.md"
+        },
+        {
+          "title": "Summary Slots",
+          "file": "../docs/reference/api/summary-slots.md"
+        },
+        {
+          "title": "Status Cards",
+          "file": "../docs/reference/api/status-cards.md"
         },
         {
           "title": "Dashboard",
@@ -341,6 +531,10 @@
         {
           "title": "Plugins",
           "file": "../docs/reference/api/plugins.md"
+        },
+        {
+          "title": "Tool Gateway",
+          "file": "../docs/reference/api/tool-gateway.md"
         },
         {
           "title": "Instance Admin",
@@ -373,6 +567,10 @@
         {
           "title": "Setup Commands",
           "file": "../docs/reference/cli/setup-commands.md"
+        },
+        {
+          "title": "Service",
+          "file": "../docs/reference/cli/service.md"
         },
         {
           "title": "Dev Environments",
@@ -514,6 +712,10 @@
                   "file": "../docs/reference/skills/bundled/paperclip-operations/issue-triage.md"
                 },
                 {
+                  "title": "Status Card Query",
+                  "file": "../docs/reference/skills/bundled/paperclip-operations/status-card-query.md"
+                },
+                {
                   "title": "Task Planning",
                   "file": "../docs/reference/skills/bundled/paperclip-operations/task-planning.md"
                 }
@@ -570,6 +772,19 @@
                 {
                   "title": "Release Announcement",
                   "file": "../docs/reference/skills/optional/content/release-announcement.md"
+                },
+                {
+                  "title": "Simplified English",
+                  "file": "../docs/reference/skills/optional/content/simplified-english.md"
+                }
+              ]
+            },
+            {
+              "title": "Finance",
+              "pages": [
+                {
+                  "title": "Ramp",
+                  "file": "../docs/reference/skills/optional/finance/ramp.md"
                 }
               ]
             },
@@ -590,6 +805,15 @@
                   "file": "../docs/reference/skills/optional/research/last30days.md"
                 }
               ]
+            },
+            {
+              "title": "Software Development",
+              "pages": [
+                {
+                  "title": "Prepare MCP Integration",
+                  "file": "../docs/reference/skills/optional/software-development/prepare-mcp-integration.md"
+                }
+              ]
             }
           ]
         }
@@ -606,16 +830,16 @@
           "file": "../docs/reference/adapters/overview.md"
         },
         {
-          "title": "Claude Local",
-          "file": "../docs/reference/adapters/claude-local.md"
+          "title": "Claude Code",
+          "file": "../docs/reference/adapters/claude-code.md"
         },
         {
-          "title": "Codex Local",
-          "file": "../docs/reference/adapters/codex-local.md"
+          "title": "Codex",
+          "file": "../docs/reference/adapters/codex.md"
         },
         {
-          "title": "Gemini Local",
-          "file": "../docs/reference/adapters/gemini-local.md"
+          "title": "Gemini CLI",
+          "file": "../docs/reference/adapters/gemini-cli.md"
         },
         {
           "title": "Cursor Local",
@@ -626,20 +850,20 @@
           "file": "../docs/reference/adapters/cursor-cloud.md"
         },
         {
-          "title": "ACPX Local",
+          "title": "ACPX Local (retired)",
           "file": "../docs/reference/adapters/acpx-local.md"
         },
         {
-          "title": "OpenCode Local",
-          "file": "../docs/reference/adapters/opencode-local.md"
+          "title": "OpenCode",
+          "file": "../docs/reference/adapters/opencode.md"
         },
         {
-          "title": "Pi Local",
-          "file": "../docs/reference/adapters/pi-local.md"
+          "title": "Pi",
+          "file": "../docs/reference/adapters/pi.md"
         },
         {
-          "title": "Hermes Local",
-          "file": "../docs/reference/adapters/hermes-local.md"
+          "title": "Hermes",
+          "file": "../docs/reference/adapters/hermes.md"
         },
         {
           "title": "Hermes Gateway",
@@ -744,6 +968,18 @@
         {
           "title": "Tailscale Private Access",
           "file": "../docs/reference/deploy/tailscale-private-access.md"
+        }
+      ]
+    },
+    {
+      "tier": "Reference",
+      "title": "Changelog",
+      "icon": "history",
+      "desc": "What changed in these docs — pages added, rewritten, or expanded — with each documentation update.",
+      "pages": [
+        {
+          "title": "Docs",
+          "file": "../docs/reference/changelog.md"
         }
       ]
     }

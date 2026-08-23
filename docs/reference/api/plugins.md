@@ -57,6 +57,46 @@ Each entry has this shape:
 | `GET /api/plugins/:pluginId/health` | Read the current health diagnostics reported by the plugin worker. |
 | `GET /api/plugins/:pluginId/logs` | Read the plugin's recent worker logs. |
 
+### Installing a plugin
+
+`POST /api/plugins/install` handles two kinds of install through one route, and the request body is what tells Paperclip which one you mean. Either way it's an instance-admin operation, because the install flow fetches and inspects package contents on the host.
+
+| Field | Type | Purpose |
+|---|---|---|
+| `packageName` | string | Required. An npm package name for a registry install, or a filesystem path for a local install. |
+| `version` | string | Optional. Target version for npm installs; defaults to latest. |
+| `isLocalPath` | boolean | Optional. Set `true` when `packageName` is a filesystem path rather than an npm package name. |
+
+A successful install responds with the plugin record, the same shape `GET /api/plugins/:pluginId` returns.
+
+For npm installs, a `packageName` containing any of `< > : " | ? *` is rejected with `400` and `packageName contains invalid characters`. That check is skipped for local paths, which need those characters on some platforms — local paths get the stricter treatment described next instead.
+
+### How local install paths are checked
+
+When you set `isLocalPath: true`, Paperclip canonicalizes the `packageName` value before anything else touches it: it resolves the string to an absolute path, then to its real path — collapsing `..` traversal segments and following every symlink — and requires the result to be an existing, readable directory. The loader only ever receives that canonical path, as its `localPath` install option, so two different spellings of the same folder can never reach different decisions.
+
+This is worth knowing for two practical reasons. Symlinked plugin folders install as their real target, so that's the path Paperclip records and watches. And a path that doesn't exist yet fails immediately with a clear message instead of surfacing later as a confusing manifest error.
+
+A path that fails canonicalization comes back as `400`, with the reason in the `error` field:
+
+| `error` | Meaning |
+|---|---|
+| `Invalid localPath: path contains a null byte` | The submitted string contained a `\0` byte. |
+| `Invalid localPath: path does not exist: <absolute path>` | Nothing is at the resolved path. Usually a typo, or a folder that hasn't been created yet. |
+| `Invalid localPath: path is not a directory: <canonical path>` | The path resolves to a file. Point at the package folder, not at a file inside it. |
+| `Invalid localPath: path is not readable: <canonical path>` | The directory exists but the server process can't read it. |
+
+### Install sources on cloud-managed instances
+
+If your instance is managed by a Paperclip control plane rather than run by you, plugin installation is narrowed to a positive allowlist: only plugins bundled with the application itself can be installed. Everything else is rejected with `403`.
+
+| `error` | When |
+|---|---|
+| `npm installs are disabled on cloud-managed instances; only plugins bundled with the application may be installed` | The request had no `isLocalPath: true`, so it's a registry install. |
+| `cloud-managed instances may only install plugins from the bundled plugin catalog` | A local path was given, but its canonical form falls outside the bundled plugin catalog root (`packages/plugins` in the application bundle). The catalog root itself doesn't count — the source has to be a package directory inside it. |
+
+[`GET /api/plugins/examples`](#bundled-plugin-discovery) is the practical way to see what's installable there — it scans that same catalog root, and each entry's `localPath` is a path the allowlist accepts. Self-hosted instances are unaffected: any readable directory on the server's filesystem is a valid local install source, and npm installs work normally. The canonicalization above still applies everywhere.
+
 ## Config
 
 | Endpoint | Purpose |

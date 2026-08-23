@@ -181,7 +181,8 @@ flowchart LR
         direction TB
         docsmain["main<br/>(docs.paperclip.ing — released)"]
         nightly["nightly<br/>(preview URL — draft state)"]
-        nightly -- "release PR<br/>(when parent tags)" --> docsmain
+        nightly -- "release PR (squash-merged)<br/>(when parent tags)" --> docsmain
+        docsmain -- "realign-nightly.mjs<br/>(required after every release —<br/>squash severs ancestry)" --> nightly
         docsmain -- "merge main → nightly<br/>(at every nightly run,<br/>absorbs hot-fix typos)" --> nightly
     end
 
@@ -335,6 +336,7 @@ Both modes use **cumulative diffs** — always from `base_release_tag` in `.sync
 - Diffs `base_release_tag → new_tag`.
 - Most of the work is already done by nightly drafts; this mode mainly verifies completeness, stamps `paperclip_version` frontmatter, and opens a single PR: `Release docs for paperclip vX.Y.Z` (merges `nightly` → `main`).
 - On merge to `main`, tag this repo `docs/vX.Y.Z`, Cloudflare deploys live.
+- **Immediately after the squash-merge, run `node scripts/sync/realign-nightly.mjs release/vX.Y.Z --push`.** The repo is squash-only, so the merge severs `main`↔`nightly` ancestry; the realign fast-forwards `nightly` onto the shipped content and re-anchors the merge-base. Skipping it makes the next nightly run fail with add/add conflicts on every page drafted that cycle.
 
 ### Running the skill
 
@@ -375,6 +377,38 @@ The full list with example invocations lives in [Runbook → Helper scripts (ful
 - `sync:verify-nav` reports two classes of issue: **dangling** nav entries (in `content.json` but not on disk — error, exit 1) and **orphan** files (on disk but missing from `content.json` — warning, exit 0). Pass `--strict` to fail on orphans too.
 
 See [`skills/sync-docs/SKILL.md`](skills/sync-docs/SKILL.md) for the full operational playbook.
+
+### Gotcha: `detect-renames.mjs` cannot see cross-package moves
+
+`scripts/sync/detect-renames.mjs` matches **top-level directories** under the watched roots. It cannot see a move that crosses a package boundary into a *nested* path, so it reports one as `removed_dirs_no_match` — which reads as "this surface was deleted, consider removing its doc page."
+
+That failure mode is silent and it points the wrong way: toward deleting docs that should be kept. **Always confirm a `removed_dirs_no_match` against the parent commit before acting on it.**
+
+The case that exposed this (parent `eedc7dd`, #9238) had three layers the helper could not report:
+
+1. **The runtime moved** — `packages/adapters/acpx-local/` → `packages/adapter-utils/src/acpx-engine/`. Different package, nested path, so no match.
+2. **The identifier stayed registered on purpose** — `server/src/adapters/registry.ts` keeps a retired `acpx_local` entry so stale DB rows fail loudly instead of falling back to the `process` adapter. Gone from `AGENT_ADAPTER_TYPES`, still resolvable at runtime.
+3. **Existing rows were migrated** — `packages/db/src/migrations/0136_acpx_default_engine_migration.sql`.
+
+How to check, before you touch a page:
+
+```sh
+# What actually happened to the directory?
+gh api "repos/paperclipai/paperclip/commits?path=<removed-path>/src/index.ts&sha=master&per_page=3" \
+  -q '.[] | "\(.sha[0:9]) \(.commit.message | split("\n")[0])"'
+
+# Did the basename reappear as a nested path elsewhere in the window?
+node -e "require('/tmp/paperclip-sync/window.json').files
+  .filter(f => f.filename.includes('<basename>') && f.status === 'added')
+  .forEach(f => console.log(f.filename))"
+
+# Is the identifier still registered anywhere?
+gh api "search/code?q=<identifier>+repo:paperclipai/paperclip" -q '.items[].path'
+```
+
+**When a user-facing surface is retired, keep the page and convert it to a stub.** Do not delete it and do not duplicate its body forward under a new name — retired pages usually document config fields that a migration has already rewritten, so copying them propagates dead config. The stub should say what replaced the surface, link to the pages that now cover it, and describe the migration path. Keep the `content.json` entry and mark the title (e.g. `ACPX Local (retired)`) so someone who meets the old identifier in a runtime error can still find it by browsing.
+
+`docs/reference/adapters/acpx-local.md` is the worked example. `docs/reference/cli/commands.md` is the same pattern for a page that split rather than retired — that one is intentionally orphaned from `content.json`, since its readers arrive by direct URL rather than by browsing.
 
 ### Hot-fixes on released docs
 

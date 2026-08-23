@@ -6,6 +6,9 @@
 
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
+import { createHmac } from "node:crypto";
 import os from "node:os";
 import net from "node:net";
 
@@ -133,6 +136,14 @@ export function instanceEnv(home) {
     DATABASE_URL: "",
     DATABASE_MIGRATION_URL: "",
     SERVE_UI: "true",
+    // The server resolves its config by walking UP from cwd for a
+    // `.paperclip/config.json` (see server/src/paths.ts) BEFORE honoring
+    // PAPERCLIP_HOME. Since onboard runs with cwd = PARENT_REPO, a developer's
+    // real `.paperclip/config.json` in the parent repo would be picked up,
+    // binding the screenshot run to the real instance's DB. Pin PAPERCLIP_CONFIG
+    // to the scratch instance's config path so onboard reads/writes the
+    // isolated config instead.
+    PAPERCLIP_CONFIG: instanceConfigPath(home),
   };
 }
 
@@ -177,4 +188,119 @@ export async function findFreeEmbeddedPostgresPort(
   throw new Error(
     `No free port found in [${start}, ${start + attempts}) for the screenshot instance's embedded Postgres`,
   );
+}
+
+// ── Direct instance access (DB + agent JWT) ──────────────────────────────────
+// Some demo state has no board-facing REST path (execution workspaces) or is
+// deliberately agent-only (decisions, secret proposals). These helpers give the
+// seed the same two doors a real agent run has, pointed strictly at the
+// throw-away instance.
+
+/**
+ * Work out which port the screenshot instance's embedded Postgres is listening
+ * on. run.mjs pins it to a free port (written into config.json), and the live
+ * cluster records the same value in `postmaster.pid` (line 4 is the port). We
+ * read the running value first, then config.json.
+ *
+ * There is deliberately NO compiled-in fallback to 54329: that is the default a
+ * developer's real local Paperclip uses, so guessing it could connect a direct
+ * write into the real database. If neither source yields a port we throw — a
+ * loud failure is far safer than a silent write to the wrong cluster.
+ */
+export function resolvePostgresPort(home = scratchHome()) {
+  const instanceRoot = resolve(home, "instances", INSTANCE_ID);
+
+  try {
+    const lines = readFileSync(resolve(instanceRoot, "db", "postmaster.pid"), "utf8").split("\n");
+    const port = Number.parseInt(lines[3]?.trim() ?? "", 10);
+    if (Number.isInteger(port) && port > 0) return port;
+  } catch {
+    /* fall through */
+  }
+
+  try {
+    const cfg = JSON.parse(readFileSync(resolve(instanceRoot, "config.json"), "utf8"));
+    const port = cfg?.database?.embeddedPostgresPort;
+    if (Number.isInteger(port) && port > 0) return port;
+  } catch {
+    /* fall through */
+  }
+
+  throw new Error(
+    `could not resolve the screenshot instance's Postgres port from ` +
+      `${resolve(instanceRoot, "db", "postmaster.pid")} or ${resolve(instanceRoot, "config.json")}. ` +
+      "Refusing to guess (54329 may be your real local instance).",
+  );
+}
+
+/**
+ * Open a postgres.js connection to the screenshot instance's embedded database.
+ * The `postgres` client is resolved from the parent repo's node_modules (it is
+ * not a dependency of paperclip-docs). Caller must `await sql.end()`.
+ */
+export function openInstanceDb(home = scratchHome()) {
+  const port = resolvePostgresPort(home);
+  // Base the require on a path inside the parent's db package so pnpm's
+  // node_modules layout resolves `postgres` correctly.
+  const requireFromParent = createRequire(resolve(PARENT_REPO, "packages/db/package.json"));
+  const postgres = requireFromParent("postgres");
+  return postgres(`postgres://paperclip:paperclip@127.0.0.1:${port}/paperclip`, {
+    max: 1,
+    idle_timeout: 5,
+    onnotice: () => {},
+  });
+}
+
+/**
+ * Mint a local agent JWT for the screenshot instance — the same token the
+ * server hands a real adapter run.
+ *
+ * A handful of endpoints are gated on `actor.source === "agent_jwt"`
+ * specifically and reject the simpler agent API key (secret proposals, for
+ * one: "Secret proposals require a verified run-bound agent token"). Rather
+ * than insert those rows behind the API's back, the seed signs a genuine token
+ * and drives the real endpoint.
+ *
+ * Mirrors `server/src/agent-auth-jwt.ts` → `createLocalAgentJwt()`: HS256 over
+ * a per-instance, per-company derived key, so a token minted here is valid only
+ * against this throw-away instance and only for the company it names. The
+ * master secret is read from the instance's own generated `.env`.
+ *
+ * @returns {string|null} the token, or null when the instance has no secret.
+ */
+export function mintAgentJwt(
+  { agentId, companyId, runId, adapterType = "process", responsibleUserId = "local-board" },
+  home = scratchHome(),
+) {
+  let secret;
+  try {
+    const env = readFileSync(resolve(home, "instances", INSTANCE_ID, ".env"), "utf8");
+    secret = /^PAPERCLIP_AGENT_JWT_SECRET=(.*)$/m.exec(env)?.[1]?.trim();
+  } catch {
+    return null;
+  }
+  if (!secret) return null;
+
+  const b64 = (value) => Buffer.from(value, "utf8").toString("base64url");
+  const now = Math.floor(Date.now() / 1000);
+  const claims = {
+    sub: agentId,
+    company_id: companyId,
+    adapter_type: adapterType,
+    run_id: runId,
+    responsible_user_id: responsibleUserId,
+    iat: now,
+    exp: now + 3600,
+    iss: "paperclip",
+    aud: "paperclip-api",
+    instance_id: INSTANCE_ID,
+  };
+  const signingInput = `${b64(JSON.stringify({ alg: "HS256", typ: "JWT" }))}.${b64(JSON.stringify(claims))}`;
+  // Domain-separated per-company/per-instance key derivation — see
+  // deriveCompanySigningKey() in the parent's agent-auth-jwt.ts.
+  const signingKey = createHmac("sha256", secret)
+    .update(`jwt:${INSTANCE_ID}:${companyId}`)
+    .digest("hex");
+  const signature = createHmac("sha256", signingKey).update(signingInput).digest("base64url");
+  return `${signingInput}.${signature}`;
 }

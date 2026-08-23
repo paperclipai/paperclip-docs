@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Settings
 
 Paperclip has two settings surfaces, and it matters which one you're looking at.
@@ -247,11 +251,22 @@ Turning one on is not dangerous in the "this will break your data" sense — but
 
 ### The available flags
 
-- **Enable Isolated Workspaces** — shows the execution-workspace controls in project configuration and allows isolated workspace behavior for new and existing issue runs. If you're not using isolated workspaces, leave this off; turning it on exposes extra UI you don't need.
-- **Auto-Restart Dev Server When Idle** — only relevant under `pnpm dev:once`. When the backend detects a stale boot (code changes, new migrations), it waits for queued and running local agent runs to finish and then restarts the dev server automatically. Useful during active development on Paperclip itself, not intended for production.
+Each flag has its own page in the [Experimental](../experimental/overview.md) section with motivation, setup, and usage instructions. In brief:
+
+- **[Enable Environments](../experimental/environments.md)** — environment management in instance settings, plus project and agent environment assignment (including custom sandbox images).
+- **[Enable Isolated Workspaces](../experimental/isolated-workspaces.md)** — execution-workspace controls in project configuration and isolated (git-worktree) checkouts for task runs. If you're not using isolated workspaces, leave this off; turning it on exposes extra UI you don't need.
+- **[Experimental File Viewer](../experimental/file-viewer.md)** — task-detail controls for browsing and previewing workspace files.
+- **[Enable External Objects](../experimental/external-objects.md)** — detects external URLs in issues and shows live status for referenced pull requests and tickets.
+- **[Task Plan Decomposition Panel](../experimental/plan-decomposition-panel.md)** — accepted-plan decomposition history on task detail pages, for debugging sub-task creation.
+- **[Task Watchdogs](../experimental/task-watchdogs.md)** — per-task watchdog agents that verify stopped task subtrees and restore live paths.
+- **[Cloud Sync](../experimental/cloud-sync.md)** — **retired.** Removed upstream together with its experimental toggle, so it no longer appears in this list on a current build. To move a company between instances, use [company Import/Export](../how-to/back-up-and-restore-a-company.md).
+- **[Server Info Debug View](../experimental/server-info-debug-view.md)** — a "Server" section in the account drawer with restart time, running commit, and checkout state.
+- **[Auto-Restart Dev Server When Idle](../experimental/auto-restart-dev-server.md)** — only relevant under `pnpm dev:once`; restarts a stale dev boot once all local agent runs finish. For development on Paperclip itself, not production.
+- **[Auto-Create Recovery Tasks](../experimental/auto-create-recovery-tasks.md)** — lets the heartbeat scheduler create recovery tasks for stalled task dependency chains, with a lookback window and preview.
+- **Enable Built-in Agents** — makes the built-in-agent controls and API available. Turn it on before you provision `briefs`, `learning`, or `reflection-coach`; with it off, the built-in-agent routes return `404 Not Found`.
 - **Streamlined Left Navigation Bar** — **on by default now**, so you don't need to flip anything to get it. It trims the sidebar: Projects move under the **Work** section as a single **Projects** link with its own page, and the agents list shows only your active agents (the five most recently active). Turning this flag **off** is the opt-out — it restores the classic sidebar, where each project gets its own collapsible entry and there's no top-level Projects link.
 
-Both toggles take effect immediately on save. If one misbehaves, flip it back off — no migration is required.
+Toggles take effect immediately on save. If one misbehaves, flip it back off — no migration is required.
 
 ---
 

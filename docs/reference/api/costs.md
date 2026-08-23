@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.720.0
+---
+
 # Costs
 
 Use this API when you want to answer four questions:
@@ -36,6 +40,7 @@ Common optional fields:
 - `billingCode` for your own accounting label
 - `biller` if the charge came from a billing entity different from `provider`
 - `billingType` if you want to distinguish `metered_api`, `subscription_included`, `subscription_overage`, `credits`, `fixed`, or `unknown`
+- `costStatus` to mark whether the usage is priced — `reported` for normal spend, or `unpriced` when you recorded token usage but no dollar cost was available
 - `inputTokens`, `cachedInputTokens`, `outputTokens` for token-level reporting
 
 Rules from the implementation:
@@ -45,7 +50,10 @@ Rules from the implementation:
 - Agent-authenticated calls can only report that agent’s own costs.
 - `biller` defaults to `provider` when omitted.
 - `billingType` defaults to `unknown` when omitted.
+- `costStatus` defaults to `reported` when omitted.
 - `occurredAt` must be an ISO datetime string.
+
+> **Priced vs. unpriced usage.** Most cost events carry a real `costCents` amount, so they stay `reported`. When an agent run uses tokens but Paperclip can't determine a dollar cost — for example a local CLI whose per-token pricing isn't known — the usage is recorded with `costStatus` set to `unpriced` instead of being logged as if it cost nothing. That keeps the token counts on the record while flagging that the money figure is an unknown rather than a real zero.
 
 When the event is accepted, Paperclip:
 
@@ -124,6 +132,30 @@ requests.post(
 <!-- /tabs -->
 
 > **Tip:** If you already know the issue, project, or run that caused the spend, send those IDs. They make the breakdown views much more useful later.
+
+### Cache-adjusted cost
+
+Prompt caching means the amount a provider actually bills for a run is often well below what its raw token counts imply. Paperclip records the billed amount rather than the nominal one, so the dollars in the ledger match the dollars on your invoice.
+
+Adapters express this through their execution result:
+
+- `costUsd` — the cost the adapter reports for the run, in US dollars.
+- `cacheAdjustedCostUsd` — the provider-billed cost after prompt-cache discounts, in US dollars. Adapters set this when they expose it separately from `costUsd`.
+
+Paperclip resolves the two into a single billed figure:
+
+- If `cacheAdjustedCostUsd` is a finite number that is zero or greater, that value is the billed cost.
+- Otherwise, if `costUsd` is a finite number that is zero or greater, that value is the billed cost — a provider-reported `costUsd` is treated as already cache-adjusted.
+- Otherwise there is no billed cost for the run.
+
+That resolved figure is what Paperclip converts into the `costCents` of the cost event it records for the run, so it is the number that flows into every summary, breakdown, and budget policy described below. It is also the figure used to decide `costStatus`: a run with token usage but no resolvable cost is recorded as `unpriced` rather than as a real zero.
+
+The run keeps both numbers. The heartbeat run's `usageJson` carries `costUsd` when the adapter reported one and `cacheAdjustedCostUsd` when a cache-adjusted amount was resolved, alongside the token counts and the `provider`, `biller`, `model`, `costStatus`, and `billingType` fields. Read them from either of:
+
+- `GET /api/companies/{companyId}/heartbeat-runs`
+- `GET /api/heartbeat-runs/{runId}`
+
+> **Note:** `cacheAdjustedCostUsd` and `costUsd` are in dollars, while `costCents` on cost events is in cents. Don't mix the two units when you reconcile a run against its ledger entry.
 
 ---
 

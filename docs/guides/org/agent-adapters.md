@@ -26,7 +26,7 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 ---
 
-## Claude Local (`claude_local`)
+## Claude Code (`claude_local`)
 
 The `claude_local` adapter runs your agent using Claude Code — Anthropic's command-line AI tool — directly on your Mac. When Paperclip triggers a heartbeat, it launches Claude Code with the agent's context and task, waits for the run to complete, and reads back what Claude did.
 
@@ -69,7 +69,7 @@ How long a single heartbeat run is allowed to take before Paperclip cuts it off.
 
 ---
 
-## Codex Local (`codex_local`)
+## Codex (`codex_local`)
 
 The `codex_local` adapter runs your agent using OpenAI's Codex CLI on your Mac. It works the same way as `claude_local` but uses OpenAI models instead of Anthropic.
 
@@ -90,7 +90,7 @@ The fields are the same as `claude_local` — mainly model selection and environ
 
 ---
 
-## OpenCode Local (`opencode_local`)
+## OpenCode (`opencode_local`)
 
 The `opencode_local` adapter runs your agent using OpenCode — a flexible, open-source AI terminal tool that supports multiple providers. It lets you configure exactly which model and provider to use via the `adapterConfig.model` field in `provider/model` format.
 

@@ -1,10 +1,14 @@
----
-paperclip_version: v2026.525.0
----
-
 # Update Paperclip to the latest version
 
-A new Paperclip release has dropped — maybe you saw it on the [releases page](https://github.com/paperclipai/paperclip/releases), maybe an agent flagged a bug that's already fixed upstream, maybe you just want the newest UI. This guide walks you through updating an existing install. The steps depend on how you originally installed Paperclip, so pick the path that matches.
+A new Paperclip release has dropped — maybe you saw it on the [releases page](https://github.com/paperclipai/paperclip/releases), maybe an agent flagged a bug that's already fixed upstream, maybe you just want the newest UI. This guide walks you through updating an existing install.
+
+The short version, if you installed Paperclip with `paperclipai install`:
+
+```bash
+paperclipai update
+```
+
+That checks npm, takes a database backup, swaps in the new version, restarts your background service if you have one, and leaves the previous version sitting there ready for an instant rollback. The rest of this page unpacks what that means, and covers the other ways you might have installed Paperclip.
 
 If you're installing for the first time instead, follow [Installation](../guides/getting-started/installation.md).
 
@@ -16,133 +20,153 @@ Paperclip uses **calendar versioning**: `YYYY.MDD.P`. The pieces are the year, t
 
 Every stable release has notes at `releases/vYYYY.MDD.P.md` in the parent repo and on the [GitHub releases page](https://github.com/paperclipai/paperclip/releases). Skim those before updating — they call out breaking changes, migrations, and new env vars.
 
----
-
-## Which install do you have?
-
-| Install path | How to tell | Which section below |
-|---|---|---|
-| Desktop App (macOS) | You launch Paperclip from the Applications folder. | [Path A](#path-a--desktop-app-macos) |
-| Terminal (`npx paperclipai`) | You run `npx paperclipai run` (or it's wrapped by systemd). | [Path B](#path-b--terminal--npx) |
-| Git clone | You ran `git clone`, then `pnpm install && pnpm dev`. | [Path C](#path-c--git-clone--self-hosted) |
+Paperclip also nudges you. `paperclipai run` and `paperclipai doctor` do a cached, once-a-day check against npm and print a one-line notice when a newer version exists on your channel. Set `PAPERCLIP_UPDATE_CHECK=0`, or `updates.checkEnabled` to `false` in your config, to turn that off.
 
 ---
 
-## Path A — Desktop App (macOS)
+## Check before you commit
 
-The desktop app auto-updates. You don't run any commands.
-
-1. Open Paperclip. On launch, it checks GitHub Releases for a newer build of [`paperclip-desktop`](https://github.com/aronprins/paperclip-desktop/releases).
-2. If a newer version exists, Paperclip prompts you to download it. Approve the download.
-3. The update installs **the next time you quit Paperclip**. Quit and reopen to land on the new version.
-
-> **Note:** Auto-download is opt-in (you have to click the prompt), but install-on-quit is automatic once the download is approved. If you skipped the download prompt, Paperclip will offer it again on the next launch.
-
-**To force an immediate check**, open the **Paperclip** menu in the macOS menu bar and click **Check for Updates**. The updater runs the same check that fires on launch and prompts you if something newer is available.
-
-**To verify your current version**, open the **Paperclip** menu → **About Paperclip**.
-
-> **Tip:** Desktop App releases follow the same calendar version as the CLI, but they're packaged separately. The desktop release may lag the CLI by a day or two while installers are notarised.
-
----
-
-## Path B — Terminal / `npx`
-
-The `paperclipai` CLI is a regular npm package. Updating means refreshing what `npx` (or your global install) resolves.
-
-### Step 1 — Check what you're on
+`--check` looks up your channel on npm, compares it against what you're running, and tells you what it found — without touching anything.
 
 ```bash
-npx paperclipai --version
+paperclipai update --check
+paperclipai update --check --json
 ```
 
-This prints the version of the resolved binary. Compare it against [npm](https://www.npmjs.com/package/paperclipai) or the [releases page](https://github.com/paperclipai/paperclip/releases).
+It exits with code `10` when an update is available and `0` when you're already current, which makes it easy to script:
 
-### Step 2 — Pull the latest
+```bash
+paperclipai update --check || paperclipai update --yes
+```
 
-The fix depends on how you invoke Paperclip day to day:
+`--dry-run` goes one step further and describes the exact action it *would* take — including whether a backup would be taken — without doing any of it.
 
-**If you run `npx paperclipai …`:**
+```bash
+paperclipai update --dry-run
+```
+
+---
+
+## Apply the update
+
+```bash
+paperclipai update
+```
+
+`upgrade` is an alias, if that's the word your fingers reach for.
+
+Here's the sequence, so nothing is a surprise:
+
+1. **It works out how you installed Paperclip.** Managed install, global npm, `npx`, or a source checkout — each gets different treatment, covered below.
+2. **It takes a database backup.** This happens before anything is swapped, using the same machinery as [`paperclipai db:backup`](../reference/cli/setup-commands.md#paperclipai-dbbackup). If the instance was never onboarded and has no data, the backup is skipped with a note.
+3. **It downloads and verifies the new version**, then flips the active payload over to it atomically. Your previous version stays on disk.
+4. **It restarts your background service**, if one is active for this instance, using the [hot restart](../reference/cli/service.md#restart-without-losing-work) that hands active agent runs over to the new process rather than dropping them.
+5. **It prunes old payloads** it no longer needs to keep.
+
+If the restarted service fails to come back healthy at the new version, the update rolls itself back to the previous payload and restarts that instead, then reports the failure. You should not end up on a broken build.
+
+| Flag | Use |
+|---|---|
+| `--check` | Check for an available update without applying it. |
+| `--dry-run` | Print the action without changing anything. |
+| `--latest` | Switch to the latest stable channel. |
+| `--canary` | Switch to the canary channel. |
+| `--version <version>` | Install an exact published version. |
+| `--rollback` | Flip back to the retained previous managed payload. |
+| `--no-backup` | Skip the pre-update database backup. |
+| `-y`, `--yes` | Confirm an explicit downgrade without a prompt. |
+| `--json` | Print machine-readable output. |
+
+`--latest`, `--canary`, and `--version` are mutually exclusive — pick at most one.
+
+---
+
+## Switch channels
+
+Without a channel flag, `update` stays wherever you already are: stable stays stable, canary stays canary, and a pinned version stays pinned. Pass a flag to move.
+
+```bash
+paperclipai update --canary                # try the canary channel
+paperclipai update --latest                # come back to stable
+paperclipai update --version 2026.609.0    # pin to one exact version
+```
+
+Canary builds get new features earlier but can be rougher, and switching back to `--latest` is always available.
+
+Moving to an older version is a downgrade, and the CLI asks you to confirm it before proceeding. Pass `--yes` to confirm up front in a script. Bear in mind that going back in code does not go back in database schema — see the warning below.
+
+---
+
+## Roll back
+
+If an update goes badly, you do not have to re-download anything. The managed install keeps your previous payload on disk, and `--rollback` flips straight back to it.
+
+```bash
+paperclipai update --rollback
+paperclipai update --rollback --dry-run    # see which version you'd land on
+```
+
+It restarts an active service as part of the rollback, so you're back on the old version and serving within seconds.
+
+> **Warning:** Rollback reverses the *code*, not your *data*. Database migrations that ran during the update are not undone. If the new version migrated your database and you need to go all the way back, restore the pre-update backup — that's exactly why `update` takes one by default.
+
+`--rollback` is only available for managed installs. Other install types have no retained payload to flip back to.
+
+---
+
+## About the pre-update backup
+
+Every managed update starts with a database snapshot, using your instance's configured backup directory and retention settings. You don't have to remember to do it.
+
+Two things are worth knowing:
+
+- **If the database isn't reachable, the update stops.** Paperclip won't quietly update without the safety net. The error tells you to start the service with `paperclipai service start` and retry, or to skip the backup deliberately with `--no-backup`.
+- **`--no-backup` is a real option, not a trap.** On a throwaway dev instance, or when you've just taken a snapshot yourself, skipping it is reasonable. On anything you care about, let it run.
+
+To take a snapshot outside of an update, use [`paperclipai db:backup`](../reference/cli/setup-commands.md#paperclipai-dbbackup).
+
+---
+
+## If you didn't use the managed install
+
+`paperclipai update` recognizes how you installed Paperclip and does the right thing — which sometimes means telling you it isn't going to touch your setup.
+
+### Global npm install
+
+`update` runs the `npm install -g` for you against the version you asked for, and prompts before an explicit downgrade. `--dry-run` prints the exact npm command without running it.
+
+```bash
+paperclipai update
+paperclipai update --version 2026.609.0
+```
+
+### `npx`
+
+An `npx` run is ephemeral by definition — there's nothing installed to update. `update` says so and points you at the durable path:
+
+```bash
+npx paperclipai install     # move to a managed install
+paperclipai update          # from then on, this works
+```
+
+If you'd rather keep using `npx`, just add `@latest` to force a fresh resolve instead of the cached copy:
 
 ```bash
 npx paperclipai@latest run
 ```
 
-The `@latest` suffix forces npx to fetch the newest published version instead of reusing a cached older one. Once you've run it once, plain `npx paperclipai run` will pick up the cached new version on subsequent runs — until the next release.
+### Source checkout
 
-**If you have it installed globally:**
-
-```bash
-npm install -g paperclipai@latest
-```
-
-Then `paperclipai --version` should show the new version on the next invocation.
-
-**If you're on the canary channel:**
+Paperclip will not mutate a git repository you're working in. `update` detects the checkout and hands it back to you:
 
 ```bash
-npx paperclipai@canary run
-# or
-npm install -g paperclipai@canary
+git pull
+pnpm install
+pnpm db:migrate
+pnpm dev
 ```
 
-Canary builds get new features earlier but can be rougher. Switch back to stable any time with `@latest`.
-
-### Step 3 — Restart Paperclip
-
-A running Paperclip process keeps using the version it booted with. Stop the process (Ctrl+C in the terminal it's running in) and start it again:
-
-```bash
-npx paperclipai run
-```
-
-### Step 4 — If you run under systemd on a VPS
-
-The systemd unit from [Installation](../guides/getting-started/installation.md) uses `ExecStart=/usr/bin/npx paperclipai run`, which means a restart is enough to pick up a newer npx cache — but only if you also refreshed that cache. Do both:
-
-```bash
-# As the paperclip user
-npx paperclipai@latest --version    # refresh the cache
-sudo systemctl restart paperclip    # restart the service
-```
-
-Check the service came back cleanly:
-
-```bash
-sudo systemctl status paperclip
-sudo journalctl -u paperclip -n 50 --no-pager
-```
-
-> **Warning:** If your service unit pins a specific version (`npx paperclipai@2026.318.0 run`), changing it requires editing the unit file and running `sudo systemctl daemon-reload` before the restart.
-
----
-
-## Path C — Git clone / self-hosted
-
-This is the developer path — you ran `git clone https://github.com/paperclipai/paperclip` and run `pnpm dev` directly.
-
-1. **Stop Paperclip.** Ctrl+C the dev process. Any agents currently mid-heartbeat will pick up where they left off after the restart.
-2. **Pull the new code.**
-   ```bash
-   git pull
-   ```
-   If you've made local commits or have a dirty tree, resolve those first (`git status`).
-3. **Reinstall dependencies.** Updates frequently bump package versions and pnpm needs to refresh `node_modules`.
-   ```bash
-   pnpm install
-   ```
-4. **Run database migrations.** New releases sometimes add columns or tables. Run migrations before starting the server.
-   ```bash
-   pnpm db:migrate
-   ```
-5. **Restart.**
-   ```bash
-   pnpm dev
-   ```
-
-> **Tip:** Before pulling, glance at the [releases notes](https://github.com/paperclipai/paperclip/releases) for the versions between yours and the latest. Anything labelled **breaking** or **migration** is worth reading first.
-
-### If you want to pin to a tagged release rather than `master`
+Stop the dev process before pulling, and resolve a dirty tree first. To pin to a tagged release instead of tracking `master`:
 
 ```bash
 git fetch --tags
@@ -152,26 +176,32 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Switching back to tracking `master`:
+### Managed install built from a git ref
 
-```bash
-git checkout master
-git pull
-```
+If you installed with `paperclipai install --ref <branch-or-tag>`, `update` re-resolves that ref on GitHub and rebuilds if the commit moved. It warns you first, because building from source executes that repository's build scripts, and requires confirmation (or `--yes`) before it does. If you pinned to an exact commit SHA, there is nothing to move to and `update` tells you the install is pinned.
 
 ---
 
 ## Verify the update worked
 
-Regardless of path:
-
-1. **Check the running version.** In the UI, hover the small **`v`** badge at the bottom of the left sidebar (next to the Documentation link and the settings/theme icons) — the tooltip shows the full server version, e.g. `v2026.525.0`. Desktop App users can also open the **Paperclip** menu → **About Paperclip**. CLI users can run `paperclipai --version`.
-2. **Open the dashboard.** Confirm the UI loads, your companies and agents are present, and nothing renders as an error state.
-3. **Trigger one heartbeat.** Assign a small task to an existing agent or wait for the next scheduled heartbeat. Watch the run log for a successful turn. This confirms adapters still launch under the new binary.
+1. **Check the running version.** In the UI, hover the small **`v`** badge at the bottom of the left sidebar (next to the Documentation link and the settings/theme icons) — the tooltip shows the full server version. From the terminal, `paperclipai --version` reports the CLI and `paperclipai service status` reports what the running server is actually serving.
+2. **Run `paperclipai doctor`.** It checks the managed install and the background service, including whether the running server's version matches the version you just installed.
+3. **Open the dashboard.** Confirm the UI loads, your companies and agents are present, and nothing renders as an error state.
+4. **Trigger one heartbeat.** Assign a small task to an existing agent or wait for the next scheduled heartbeat. Watch the run log for a successful turn. This confirms adapters still launch under the new build.
 
 ---
 
 ## Troubleshooting
+
+**`doctor` reports a version mismatch between the server and the managed install** — the service is still running the old build. Restart it and require the new version:
+
+```bash
+paperclipai service restart --expected-version <version>
+```
+
+**The update stopped with "the pre-update backup cannot be taken"** — the database isn't running or isn't reachable. Start it (`paperclipai service start`, or `paperclipai run` in a terminal), then retry. Use `--no-backup` only if you're deliberately skipping the snapshot.
+
+**"Another restart for instance … is still running"** — a previous restart didn't finish and left its lock behind. The message includes the lock file path; once you've confirmed nothing else is restarting, remove it and retry.
 
 **`npx paperclipai` still reports the old version after `@latest`** — npx caches by name and falls back to the cache if the registry lookup is rate-limited or offline. Clear it and retry:
 
@@ -180,20 +210,20 @@ npx clear-npx-cache         # or: rm -rf ~/.npm/_npx
 npx paperclipai@latest --version
 ```
 
-**Database migration fails on a git-clone install** — Don't roll forward against a half-migrated database. Restore your last `pnpm db:backup` snapshot, file an issue with the migration error, and stay on the previous tag until it's resolved. See [Back Up and Restore a Company](./back-up-and-restore-a-company.md).
+**Database migration fails on a source checkout** — Don't roll forward against a half-migrated database. Restore your last snapshot, file an issue with the migration error, and stay on the previous tag until it's resolved. See [Back Up and Restore a Company](./back-up-and-restore-a-company.md).
 
-**The dev server boots but the UI is blank or shows old assets** — Hard-refresh the browser (Cmd+Shift+R) to bypass cached UI bundles. If you're behind a reverse proxy, also flush its cache.
+**The server boots but the UI is blank or shows old assets** — Hard-refresh the browser (Cmd+Shift+R) to bypass cached UI bundles. If you're behind a reverse proxy, also flush its cache.
 
 **Agents stop running after the update** — Check the run log for adapter errors. New releases occasionally tighten env-var validation or require a newer adapter binary (Claude Code, Codex, etc.). Update those binaries on the host and re-test.
 
-**Desktop App never prompts for an update** — Make sure you're on the network and that a newer release actually exists at [paperclip-desktop/releases](https://github.com/aronprins/paperclip-desktop/releases). If the desktop release feed is empty, the updater logs a warning and skips silently. Reopen the app on a new release day.
-
-**You updated but want to roll back** — For npm: `npm install -g paperclipai@<previous-version>` or `npx paperclipai@<previous-version> run`. For git clone: `git checkout <previous-tag>`, then `pnpm install` and restart. For the Desktop App: download the previous installer from the [releases page](https://github.com/aronprins/paperclip-desktop/releases) and reinstall over the current app. Rollback is safe for code, but a forward-only migration may have already rewritten your database — restore the pre-update DB backup if so.
+> **Note:** Using the unofficial, community-maintained desktop app? It updates itself — see [Community Desktop App](./community-desktop-app.md#updating).
 
 ---
 
 ## Related
 
-- [Installation](../guides/getting-started/installation.md) — fresh install for each channel.
+- [Installing the CLI](../reference/cli/installation.md) — the managed install store, channels, and `paperclipai uninstall`.
+- [Service](../reference/cli/service.md) — running Paperclip in the background, and hot restarts.
+- [Installation](../guides/getting-started/installation.md) — fresh install for each path.
 - [Back Up and Restore a Company](./back-up-and-restore-a-company.md) — take a snapshot before updating a production install.
 - [Deploy to a VPS or Fly.io](./deploy-to-vps-or-fly.md) — production deploy patterns that influence how you restart.

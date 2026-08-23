@@ -111,7 +111,7 @@ curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/secrets" \
   }'
 ```
 
-Then reference the secret on the coder agent's adapter config — the same `env` block used in [Claude Local → Example](../reference/adapters/claude-local.md#example):
+Then reference the secret on the coder agent's adapter config — the same `env` block used in [Claude Code → Example](../reference/adapters/claude-code.md#example):
 
 ```json
 "env": {
@@ -150,6 +150,21 @@ It is fine for **local development on a single host**. It is not fine for:
 - **Anything you'd want to revoke without logging that human out.** A PAT or App can be revoked in seconds; `gh auth logout` is heavier-handed.
 
 Treat host-keyring auth as the smoke-test option. Promote to Option A as soon as you have a second agent or move past your laptop.
+
+### The credential preflight catches a missing token before the work
+
+Getting told about a missing token *after* the agent has implemented and reviewed a change is the worst possible time to hear it. So before dispatching a run on a local, git-sensitive adapter, Paperclip checks whether the run is going to need push credentials — and if it does, whether `GH_TOKEN` or `GITHUB_TOKEN` is actually bound at agent or project scope. If neither is, the run is blocked up front with the reason `push_write_credential_missing` and this remediation:
+
+> GitHub PR workflow requires GH_TOKEN or GITHUB_TOKEN bound at project or agent scope.
+
+There are two ways a run gets flagged as needing push credentials:
+
+1. **The issue mentions the GitHub PR workflow skill.** The explicit signal.
+2. **The issue's title or description states a PR deliverable in plain text.** Routine-created tasks and agent-to-agent hand-offs rarely name the skill, even when the text literally says to push a branch and open a PR — so Paperclip reads the text too.
+
+The text check is deliberately conservative: it looks for a **verb** attached to the deliverable — opening, creating, raising, or submitting a pull request, or pushing a branch or pushing to a remote. A passing mention like "the PR merged yesterday" or "PR feedback addressed" won't trigger it, and neither will "push back on the upstream dependency change".
+
+This means a task worded like *"Fix the null org id crash, then open a pull request"* asks you for a token before a single run is spent. If you ever do get a false positive — a configuration-incomplete blocker asking for a GitHub token on work that genuinely doesn't need one — bind the token anyway or reword the task; the blocker names the exact remediation either way.
 
 ---
 
@@ -234,6 +249,9 @@ If your team uses Paperclip's [Execution Policy](../guides/power/execution-polic
 **`Permission denied (publickey)` on push.**
 The worktree's remote is HTTPS, but the agent's environment doesn't have `GITHUB_TOKEN` set. Check the agent's adapter config and confirm the `env` block resolves the secret. The hello-world test for this: `cd <worktree> && env | grep -E 'GH_TOKEN|GITHUB_TOKEN'` from the same shell the heartbeat runs in.
 
+**The run never started — it's blocked with `push_write_credential_missing`.**
+The preflight decided this run needs push credentials and couldn't find `GH_TOKEN` or `GITHUB_TOKEN` bound at agent or project scope. Bind one (Step 3) and the run dispatches. If the task genuinely doesn't need to push, check whether its title or description reads like a PR deliverable — that's the second trigger.
+
 **`gh: command not found`.**
 The agent host doesn't have the GitHub CLI installed. `brew install gh` or pull it from the [official releases](https://github.com/cli/cli/releases). The Claude Code adapter does not bundle `gh` — it has to be on `PATH` for the heartbeat process.
 
@@ -257,8 +275,8 @@ For deeper heartbeat-level debugging — the agent isn't waking, the heartbeat f
 
 - [Workspaces](../guides/projects-workflow/workspaces.md) — full reference for `cwd`, `repoUrl`, `branchName`, and worktree lifecycle.
 - [Agents → Recommended bundle structure](../guides/org/agents.md#recommended-bundle-structure-agents--soul--heartbeat--tools) — how `AGENTS.md` works alongside `SOUL.md`, `HEARTBEAT.md`, and `TOOLS.md`.
-- [Claude Local](../reference/adapters/claude-local.md) — adapter fields, env vars, and session persistence.
-- [Codex Local](../reference/adapters/codex-local.md) — same recipe, OpenAI's Codex CLI instead.
+- [Claude Code](../reference/adapters/claude-code.md) — adapter fields, env vars, and session persistence.
+- [Codex](../reference/adapters/codex.md) — same recipe, OpenAI's Codex CLI instead.
 - [Execution Policy](../guides/power/execution-policy.md) — staged review with named participants.
 - [Debug a stuck heartbeat](./debug-stuck-heartbeat.md) — first stop when the agent doesn't push.
 - [Handle board approvals for hires](./handle-board-approvals-for-hires.md) — when to require approval for new agents that get repo write access.

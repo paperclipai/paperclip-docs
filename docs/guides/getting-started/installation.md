@@ -4,61 +4,95 @@ paperclip_version: v2026.529.0
 
 # Installation
 
-There are three ways to install Paperclip. Choose the one that fits how you work:
+There are two ways to install Paperclip. Choose the one that fits how you work:
 
-- **Desktop App** — a regular macOS application. Download it, open it, done. No terminal, no developer tools, no configuration files. This is the right choice if you're not a developer.
-- **Terminal** — install and run Paperclip locally from the command line. For developers who want full control over configuration and hosting on their own machine.
+- **Terminal** — install and run Paperclip locally with a single command. This is the standard way to run Paperclip on your own machine.
 - **Server / VPS** — deploy Paperclip to a cloud server (AWS, GCP, DigitalOcean, Hetzner, etc.) behind a custom domain with HTTPS. For teams and anyone who wants their instance reachable from anywhere.
 
-All three paths end up in the same place: a running Paperclip instance and the onboarding flow where you create your first company, first agent, and first piece of work.
+Both paths end up in the same place: a running Paperclip instance and the onboarding flow where you create your first company, first agent, and first piece of work.
 
 ---
 
-<!-- tabs: Desktop App (macOS), Terminal (Developer), Server / VPS -->
+<!-- tabs: Terminal, Server / VPS -->
 
-<!-- tab: Desktop App (macOS) -->
+<!-- tab: Terminal -->
 
-## Step 1 — Check which Mac you have
-
-Paperclip Desktop comes in two versions depending on your Mac's chip. If you're not sure which one you have:
-
-1. Click the **Apple menu** () in the top-left corner of your screen
-2. Click **About This Mac**
-3. Look at the line that says **Chip** or **Processor**
-   - If it says **Apple M1**, **M2**, **M3**, or **M4** — you have Apple Silicon
-   - If it says **Intel Core** — you have an Intel Mac
+> **Note:** Don't worry if you don't think of yourself as a terminal person — this path is one command, and the steps below walk through everything it needs.
 
 ---
 
-## Step 2 — Download Paperclip Desktop
+## Step 1 — Install Node.js 20 or later
 
-Go to the [Paperclip Desktop releases page](https://github.com/aronprins/paperclip-desktop/releases/latest) and download the installer for your Mac:
+If you don't have Node.js installed, download the installer from [nodejs.org](https://nodejs.org) and run it. Choose the **LTS** version.
 
-| My Mac has… | Download this file |
-|---|---|
-| Apple Silicon (M1/M2/M3/M4) | `Paperclip.Desktop-[version]-arm64.dmg` |
-| Intel | `Paperclip.Desktop-[version].dmg` |
+To check if Node.js is already installed and at the right version:
 
-> **Note:** The version number in the filename will match the latest release. If you see multiple `.dmg` files, the one with `arm64` in the name is for Apple Silicon. The one without is for Intel.
+```bash
+node --version
+# Should print v20.x.x or higher
+```
 
 ---
 
-## Step 3 — Install the app
+## Step 2 — Install pnpm
 
-1. Open the `.dmg` file you downloaded — it will mount like a disk image and open a window
-2. Drag the **Paperclip** icon into the **Applications** folder
+```bash
+npm install -g corepack
+corepack enable
+corepack prepare pnpm@latest --activate
+```
 
-That's the whole installation. You can eject the `.dmg` and move it to the trash once the drag is done.
+---
+
+## Step 3 — Run the onboarding command
+
+> **Warning:** Do not run this command with `sudo` or from a root/admin shell. The default setup starts embedded PostgreSQL, and PostgreSQL refuses to run as an administrative user. Run it as your normal user on a local machine. On a server, first switch to the dedicated `paperclip` user with `sudo -iu paperclip`, then run the command.
+
+```bash
+npx paperclipai onboard --yes
+```
+
+This single command handles everything: it downloads Paperclip, creates a configuration directory at `~/.paperclip/`, initialises an embedded database, and starts the server at `http://localhost:3100`. The `--yes` flag accepts all defaults — you can run without it to customise deployment mode, database, and storage.
+
+```
+✓ Created config at ~/.paperclip/instances/default/config.json
+✓ Initialised database
+✓ Server running at http://localhost:3100
+→ Opening Paperclip in your browser...
+```
+
+> **Troubleshooting (macOS, Apple Silicon):** If onboarding fails while starting the embedded PostgreSQL, it's usually a missing library symlink. The bundled Postgres (`@embedded-postgres/darwin-arm64`) ships versioned compression libraries — for example `libzstd.1.5.7.dylib` and `liblz4.1.10.0.dylib` — but not the shorter compatibility symlinks (`libzstd.1.dylib`, `liblz4.1.dylib`) that Postgres looks for, so it won't start until you add them. Find the versioned files under the embedded-postgres package (inside its `.../lib` directory in `node_modules`) and create the missing symlinks, then re-run `npx paperclipai run`:
+>
+> ```bash
+> cd "$(dirname "$(find ~ -path '*@embedded-postgres/darwin-arm64*/lib/libzstd.*.dylib' 2>/dev/null | head -1)")"
+> ln -sf libzstd.*.dylib libzstd.1.dylib
+> ln -sf liblz4.*.dylib liblz4.1.dylib
+> ```
+>
+> Version numbers vary between releases — match whichever versioned `.dylib` files are actually present.
 
 ---
 
 ## Step 4 — Open Paperclip
 
-Open Paperclip from your Applications folder, or press **Cmd+Space** and type **Paperclip**.
+Paperclip opens automatically in your browser. If it doesn't, navigate to [http://localhost:3100](http://localhost:3100).
 
-> **Warning:** The first time you open Paperclip, macOS may show a prompt saying it can't verify the developer. This is a standard macOS warning for apps downloaded outside the App Store. Click **Open** to proceed — Paperclip is safe to run.
+You'll land in Paperclip ready to start onboarding. You haven't created a company yet — that's the next step.
 
-The first launch takes 10–30 seconds while Paperclip starts its local server in the background. You'll see a loading indicator. Subsequent launches are faster.
+> **Note:** To run Paperclip again after restarting your machine, run `npx paperclipai run` from your terminal.
+
+### Keeping Paperclip running
+
+The command above holds your terminal open — close the window and Paperclip stops. That's fine while you're finding your feet, but once Paperclip is something you use daily, let your computer look after it instead:
+
+```bash
+npx paperclipai install
+paperclipai service install
+```
+
+The first command installs Paperclip properly (so you can also update and roll it back later) and offers to add it to your shell's `PATH` — say yes, then open a new terminal window so the `paperclipai` command is available. The second registers Paperclip as a background service that starts when you log in and restarts itself if it crashes. Nothing needs administrator rights, and `paperclipai service status` tells you how it's doing.
+
+See [Service](../../reference/cli/service.md) for the full set of commands, and the [advanced deployment docs](../../reference/deploy/overview.md) for server-side deployment patterns.
 
 ---
 
@@ -104,81 +138,9 @@ You don't need to enter the key into Paperclip yet. You'll wire it up when you c
 
 ---
 
-## Step 6 — Choose Local or Remote mode
-
-When Paperclip Desktop opens, it asks how you want to connect:
-
-**Local mode** runs a complete Paperclip instance directly on your Mac. Your agents run on your machine, all data stays local, and nothing is sent to an external server (beyond the API calls your agents make to Anthropic or OpenAI). This is the right choice when you're getting started.
-
-**Remote mode** connects the Desktop app to a Paperclip instance running on another machine — a team server, a cloud host, or a colleague's computer. You'll only need this if someone has already set up a shared Paperclip instance that you're connecting to.
-
-For now, choose **Local**. You can always connect to a remote instance later from the app's settings.
-
-After selecting Local, Paperclip finishes starting up and takes you into onboarding (or a start screen with a **New Company** button). That's expected. You haven't created a company yet.
-
----
-
-<!-- tab: Terminal (Developer) -->
-
-> **Note:** This path is for developers who are comfortable working in a terminal. If that's not you, use the **Desktop App** tab instead — it covers the same ground without any of this.
-
----
-
-## Step 1 — Install Node.js 20 or later
-
-If you don't have Node.js installed, download the installer from [nodejs.org](https://nodejs.org) and run it. Choose the **LTS** version.
-
-To check if Node.js is already installed and at the right version:
-
-```bash
-node --version
-# Should print v20.x.x or higher
-```
-
----
-
-## Step 2 — Install pnpm
-
-```bash
-npm install -g corepack
-corepack enable
-corepack prepare pnpm@latest --activate
-```
-
----
-
-## Step 3 — Run the onboarding command
-
-> **Warning:** Do not run this command with `sudo` or from a root/admin shell. The default setup starts embedded PostgreSQL, and PostgreSQL refuses to run as an administrative user. Run it as your normal user on a local machine. On a server, first switch to the dedicated `paperclip` user with `sudo -iu paperclip`, then run the command.
-
-```bash
-npx paperclipai onboard --yes
-```
-
-This single command handles everything: it downloads Paperclip, creates a configuration directory at `~/.paperclip/`, initialises an embedded database, and starts the server at `http://localhost:3100`. The `--yes` flag accepts all defaults — you can run without it to customise deployment mode, database, and storage.
-
-```
-✓ Created config at ~/.paperclip/instances/default/config.json
-✓ Initialised database
-✓ Server running at http://localhost:3100
-→ Opening Paperclip in your browser...
-```
-
----
-
-## Step 4 — Open Paperclip
-
-Paperclip opens automatically in your browser. If it doesn't, navigate to [http://localhost:3100](http://localhost:3100).
-
-You'll land in Paperclip ready to start onboarding. You haven't created a company yet — that's the next step.
-
-> **Note:** To run Paperclip again after restarting your machine, run `npx paperclipai run` from your terminal. For persistent background runs, see the [advanced deployment docs](../../reference/deploy/overview.md).
-
----
-
 <!-- tab: Server / VPS -->
 
-> **Note:** This path is for deploying Paperclip to an internet-facing server behind a domain name, with login required. You'll need SSH access to a Linux VPS, a registered domain name, and a little comfort with the command line. If you only need Paperclip for yourself on your own Mac, use the **Desktop App** tab instead.
+> **Note:** This path is for deploying Paperclip to an internet-facing server behind a domain name, with login required. You'll need SSH access to a Linux VPS, a registered domain name, and a little comfort with the command line. If you only need Paperclip for yourself on your own machine, use the **Terminal** tab instead.
 
 Any Linux VPS with 1 vCPU and 2 GB of RAM is enough to get started. These instructions use **Ubuntu 22.04 / 24.04 LTS** as the reference distribution — commands on AWS EC2, Google Cloud Compute Engine, DigitalOcean Droplets, Hetzner Cloud, Linode, and similar providers are effectively identical.
 
@@ -453,7 +415,7 @@ Optional flags: `--expires-hours N` to change link lifetime, `--base-url <URL>` 
 
 ## Step 10 — Get your API key
 
-You still need an Anthropic or OpenAI key for your agents to do any work. Follow the **Get your API key** step in the Desktop App tab — it's identical for server deployments. Paste the key into Paperclip's Secrets UI once you're signed in; it will be encrypted with the master key from Step 5 and referenced by the adapter config.
+You still need an Anthropic or OpenAI key for your agents to do any work. Follow the **Get your API key** step in the Terminal tab — it's identical for server deployments. Paste the key into Paperclip's Secrets UI once you're signed in; it will be encrypted with the master key from Step 5 and referenced by the adapter config.
 
 ---
 
@@ -485,19 +447,6 @@ Common errors:
 
 ---
 
-## Connecting the Desktop app to your server
-
-Once your server is live, anyone on the team can use the macOS Desktop app as a thin client:
-
-1. Install the Desktop app (see the Desktop App tab).
-2. On the first-launch screen, choose **Remote**.
-3. Enter `https://paperclip.example.com` as the instance URL.
-4. Sign in with the account you created during the board claim.
-
-The Desktop app becomes a UI shell over your VPS — everyone on the team sees the same companies, agents, and issues.
-
----
-
 <!-- /tabs -->
 
 ---
@@ -507,3 +456,7 @@ The Desktop app becomes a UI shell over your VPS — everyone on the team sees t
 Paperclip is running. The next guide walks you through creating your first company, setting a goal if you have one ready, and getting it ready for agents.
 
 [Create Your First Company →](./your-first-company.md)
+
+---
+
+> **Note:** There is also an **unofficial, community-maintained desktop app** for macOS that wraps Paperclip in a regular Mac application. It is not built or supported by the Paperclip team. If you're curious, see [Community Desktop App](../../how-to/community-desktop-app.md).

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.722.0
 ---
 
 # Company Commands
@@ -83,6 +83,10 @@ paperclipai company archive <company-id>
 
 Paperclip companies are portable. `company export` writes a company to a folder of markdown-backed files (plus a `.paperclip.yaml` manifest and any binary assets), and `company import` reads that package back — from a local path, a `.zip`, or a GitHub repository — into a new or existing company.
 
+The package is full-fidelity: alongside the company record, agents, projects, and skills, it carries tasks with their comments, labels, blocked-by relationships, documents, work products, and monitors, plus routines with their schedule triggers, and attachments as content-addressed files. Approvals, cost history, and activity log entries stay behind on the source instance — they describe what happened there rather than how the company is configured.
+
+> **Note:** This pair of commands is how you move a company between instances. It replaces the retired host-to-host Cloud Sync, so there is no longer any need to connect one instance to another first. See [Export & Import](../../guides/power/export-import.md) for the walkthrough.
+
 ### Export a portable package
 
 ```sh
@@ -100,8 +104,9 @@ paperclipai company export <company-id> \
 | `--issues <values>` | Comma-separated issue identifiers/IDs to include. |
 | `--project-issues <values>` | Comma-separated project shortnames/IDs whose issues should be exported. |
 | `--expand-referenced-skills` | Vendor skill contents into the package instead of exporting upstream references. Defaults to off. |
+| `--force` | Overwrite a non-empty output directory without the interactive confirmation. Defaults to off. |
 
-The default `--include` is deliberately small (`company,agents`) so a quick export does not drag along every task. Widen it explicitly when you want a full clone. If the output directory already contains files, the command asks you to confirm an overwrite in an interactive terminal, and refuses outright in a non-interactive one — choose an empty directory for headless runs.
+The default `--include` is deliberately small (`company,agents`) so a quick export does not drag along every task. Widen it explicitly when you want a full clone. If the output directory already contains files, the command asks you to confirm an overwrite in an interactive terminal, and refuses outright in a non-interactive one — pass `--force` to overwrite anyway, or choose an empty directory for headless runs. `--force` is what you want for automated exports (for example the nightly backup routine) that write into a directory that legitimately still holds files.
 
 On success the command prints the resolved output path, the package root, the number of files written, the `.paperclip.yaml` extension path, and a warning count.
 
@@ -137,6 +142,10 @@ The import always runs a server-side preview first and shows you the plan — pa
 > **Warning:** Applying an import is gated. With `--json` you must pass `--yes` (run `--dry-run` first to inspect the preview as JSON). From a non-interactive terminal you must also pass `--yes`. Without `--yes` in an interactive terminal, the CLI prompts for explicit confirmation before applying.
 
 When an imported agent has a `process` adapter with no explicit adapter, the CLI currently falls back to the `claude-local` adapter and tells you so in the preview/result info block.
+
+Before any record is written, the server verifies every attachment in the package against the content hash it is filed under. A mismatch aborts the whole import with a message naming the offending file, so a corrupted or tampered-with package cannot leave a half-imported company behind. The CLI's folder import is also the recommended path for a very large company — the UI itself points you here when an upload is too big to preview in the browser.
+
+Imported agents always come in with their timer heartbeats switched off, regardless of what the package says, so nothing starts spending before you have reviewed it.
 
 ### Raw API passthrough variants
 

@@ -1,12 +1,12 @@
 ---
-paperclip_version: v2026.618.0
+paperclip_version: v2026.720.0
 ---
 
 # Sandbox Providers
 
 Sandbox provider plugins let Paperclip provision external compute as the execution environment for agent runs. They live in the parent repo under `packages/plugins/sandbox-providers/` and ship as published npm packages you install from the Plugin Manager (see [Plugins](../../administration/plugins.md)).
 
-A sandbox provider plugin registers an `environmentDriver` of kind `sandbox_provider`. Once installed, the provider is available when you configure a sandbox environment under **Company Settings → Environments**.
+A sandbox provider plugin registers an `environmentDriver` of kind `sandbox_provider`. Once installed, the provider is available when you configure a sandbox environment under **Settings → Instance settings → Environments**.
 
 > ⚠ TODO: expand each provider section with a full `configSchema` field reference once a stable cross-provider schema reference is published. The fields below come from each provider's `README.md` in the parent repo at `v2026.512.0`.
 
@@ -16,7 +16,7 @@ A sandbox provider plugin registers an `environmentDriver` of kind `sandbox_prov
 
 Package: `@paperclipai/plugin-cloudflare-sandbox`
 
-Configure from **Company Settings → Environments** with core `driver: "sandbox"` and `provider: "cloudflare"`.
+Configure from **Settings → Instance settings → Environments** with core `driver: "sandbox"` and `provider: "cloudflare"`.
 
 Required fields: `bridgeBaseUrl`, `bridgeAuthToken`.
 
@@ -36,7 +36,7 @@ The Cloudflare bridge gained a batch of hardening fixes in v2026.517.0:
 - **SSE keepalives on streaming exec.** The execution-streaming endpoint now emits a `: keepalive\n\n` SSE comment every 15 seconds while a command is running, so intermediate proxies and Cloudflare's edge no longer idle-time out during silent stretches (for example, an `npm install` that downloads quietly for a minute).
 - **Bridge control traffic skips streaming.** Commands tagged as bridge-channel (readiness probes, file payload reads, queue responses — anything where Paperclip consumes the stdout machine-side) now use the non-streaming `exec` path. The `@cloudflare/sandbox` SDK's streaming mode could drop the final stdout chunk when a short shell exited the same tick as it wrote, which surfaced as opaque `"invalid readiness JSON"` errors. Adapter sessions still stream so live logs flow as before.
 - **Default bridge request timeout raised to 5 minutes.** `DEFAULT_BRIDGE_REQUEST_TIMEOUT_MS` jumped from 30,000 to 300,000 ms, matching the default sandbox `timeoutMs` so longer agent commands no longer hit the request budget before the inner timeout.
-- **Sandbox-aware environment-test timeouts.** The `helloProbeTimeoutSec` used by `testEnvironment()` on Claude Local, Cursor Local, and OpenCode Local now branches on whether the run targets a sandbox: **90 s for sandbox targets**, and **45 s** (Claude, Cursor) or **60 s** (OpenCode) otherwise. Cursor's preliminary `versionProbeTimeoutSec` follows the same pattern (60 s sandbox, 45 s otherwise). The extra runway covers Cloudflare's `standard-2` cold-start without masking real hangs on local runs. (Grok Local ships its own `testEnvironment` in this release with a flat 45 s probe; sandbox awareness for Grok is on the follow-up list.)
+- **Sandbox-aware environment-test timeouts.** The `helloProbeTimeoutSec` used by `testEnvironment()` on Claude Code, Cursor Local, and OpenCode now branches on whether the run targets a sandbox: **90 s for sandbox targets**, and **45 s** (Claude, Cursor) or **60 s** (OpenCode) otherwise. Cursor's preliminary `versionProbeTimeoutSec` follows the same pattern (60 s sandbox, 45 s otherwise). The extra runway covers Cloudflare's `standard-2` cold-start without masking real hangs on local runs. (Grok Local ships its own `testEnvironment` in this release with a flat 45 s probe; sandbox awareness for Grok is on the follow-up list.)
 - **Pi adapter install command corrected.** `pi_local`'s `SANDBOX_INSTALL_COMMAND` now points at `@earendil-works/pi-coding-agent@0.74.0` (pinned) instead of the previous unmaintained namespace, so Pi agents running inside a Cloudflare sandbox install cleanly on first run.
 
 There's nothing to configure on the Paperclip side — upgrade the bridge worker image and the host to match this release and the fixes apply.
@@ -47,7 +47,7 @@ There's nothing to configure on the Paperclip side — upgrade the bridge worker
 
 Package: `@paperclipai/plugin-daytona`
 
-Configure from **Company Settings → Environments**. Put the Daytona API key on the sandbox environment itself — Paperclip stores pasted API keys as company secrets. `DAYTONA_API_KEY` remains an optional host-level fallback when an environment omits the key.
+Configure from **Settings → Instance settings → Environments**. Put the Daytona API key on the sandbox environment itself — Paperclip stores pasted API keys as company secrets. `DAYTONA_API_KEY` remains an optional host-level fallback when an environment omits the key.
 
 Optional `apiUrl` and `target` settings map directly to the Daytona SDK or client configuration. The driver supports both `snapshot`-based and `image`-based sandbox creation; setting both is rejected as ambiguous. Reusable leases map to Daytona stop/start semantics; non-reusable leases are deleted on release.
 
@@ -81,7 +81,7 @@ Optional `cpu` (cores), `memory` (GiB; one of `1`, `2`, `4`, `8`), `disk` (GiB),
 
 Package: `@paperclipai/plugin-exe-dev`
 
-Configure from **Company Settings → Environments**. Put the exe.dev API token on the sandbox environment itself — Paperclip stores pasted API keys and pasted SSH private keys as company secrets. `EXE_API_KEY` remains an optional host-level fallback when an environment omits the token.
+Configure from **Settings → Instance settings → Environments**. Put the exe.dev API token on the sandbox environment itself — Paperclip stores pasted API keys and pasted SSH private keys as company secrets. `EXE_API_KEY` remains an optional host-level fallback when an environment omits the token.
 
 The provider provisions VMs through exe.dev's HTTPS API and runs commands through direct SSH to the created VM. You need:
 
@@ -95,7 +95,7 @@ The provider provisions VMs through exe.dev's HTTPS API and runs commands throug
 
 Package: `@paperclipai/plugin-e2b-sandbox` (shipped since `v2026.427.0`).
 
-Configure from **Company Settings → Environments**. The plugin manifest declares a `configSchema` with `template`, `apiKey` (a Paperclip secret reference; falls back to `E2B_API_KEY`), and `timeoutMs`.
+Configure from **Settings → Instance settings → Environments**. The plugin manifest declares a `configSchema` with `template`, `apiKey` (a Paperclip secret reference; falls back to `E2B_API_KEY`), and `timeoutMs`.
 
 ---
 
@@ -119,7 +119,7 @@ Provisions Novita Agent Sandbox instances for Paperclip agent runs. Install it l
 
 The host runs `npm install` into its managed plugin directory at install time, so the provider's own dependencies (such as `novita-sandbox`) are pulled in for you.
 
-Configure Novita from **Company Settings → Environments**. Put the Novita API key on the sandbox environment itself — Paperclip stores pasted API keys as company secrets. `NOVITA_API_KEY` remains an optional host-level fallback when an environment omits the key.
+Configure Novita from **Settings → Instance settings → Environments**. Put the Novita API key on the sandbox environment itself — Paperclip stores pasted API keys as company secrets. `NOVITA_API_KEY` remains an optional host-level fallback when an environment omits the key.
 
 The driver's `configSchema` exposes:
 
@@ -193,7 +193,7 @@ For the `job` backend you only need a 1.27+ cluster and cluster access from Pape
 
 ### Configure
 
-Create a sandbox environment under **Company Settings → Environments** with `driver: kubernetes`. Exactly one auth field is required:
+Create a sandbox environment under **Settings → Instance settings → Environments** with `driver: kubernetes`. Exactly one auth field is required:
 
 - `inCluster: true` — use the in-pod ServiceAccount credentials, when Paperclip-server runs inside the same cluster.
 - `kubeconfig: <YAML>` — an inline kubeconfig, stored as a company secret.
@@ -204,7 +204,7 @@ Common optional fields:
 | Field | Default | Purpose |
 |---|---|---|
 | `backend` | `"sandbox-cr"` | `sandbox-cr` (alpha, requires the agent-sandbox controller) or `job` (stable, one-shot entrypoint). |
-| `adapterType` | `"claude_local"` | One of the supported adapter types (`claude_local`, `codex_local`, `gemini_local`, `cursor_local`, `opencode_local`, `acpx_local`, `pi_local`). Determines the runtime image, env keys, and egress allow-list. |
+| `adapterType` | `"claude_local"` | One of the supported adapter types (`claude_local`, `codex_local`, `gemini_local`, `cursor_local`, `opencode_local`, `pi_local`). Determines the runtime image, env keys, and egress allow-list. |
 | `namespacePrefix` | `"paperclip-"` | Prefix for the per-company tenant namespace. |
 | `companySlug` | derived from companyId | Override the auto-derived company slug. |
 | `imageRegistry` | (none) | Override the default registry for agent runtime images. |
@@ -238,9 +238,92 @@ NetworkPolicy      paperclip-egress-allow    (DNS + paperclip-server callback + 
 
 Each run then gets its own short-lived resources, named `pc-{ulid}`, that cascade-delete when the lease is released (a `Sandbox` CR + pod + `pc-{ulid}-env` secret under `sandbox-cr`, or a `batch/v1` Job + pod + secret under `job`).
 
+### Task-scoped egress grants
+
+The `egressAllowFqdns` and `egressAllowCidrs` you set in the `Configure` table apply to every run in the environment, which quietly pushes you toward making them wide enough for your most demanding task. Task-scoped grants let you avoid that trade. Keep the environment's allow-list as tight as you like, then open the extra destinations one individual task needs, for the length of that task's run only.
+
+You set the grant on the task itself, inside its `executionWorkspaceSettings` (one of the execution fields described on the [Issues](../api/issues.md) API page):
+
+```json
+{
+  "executionWorkspaceSettings": {
+    "networkEgress": {
+      "allowFqdns": ["registry.npmjs.org", "files.pythonhosted.org"],
+      "allowCidrs": ["203.0.113.0/24"]
+    }
+  }
+}
+```
+
+Both lists are optional. Paperclip trims each entry, drops blanks and duplicates, and lowercases the FQDNs; CIDRs are kept exactly as you wrote them. If both lists come out empty, nothing extra is created and the run simply uses the namespace's normal egress allow-list.
+
+When there is something to grant, the provider creates one more policy alongside the run's other resources, named after the run's workload as `pc-{ulid}-egress`. (If a workload name would push that past Kubernetes' 253-character name limit, the middle is shortened to fit.) Two details make it safe to hand out per task:
+
+- It selects only the pod carrying that run's `paperclip.io/run-id` label, so the extra destinations never become reachable from other agent pods sharing the tenant namespace.
+- It carries an owner reference to the run's `Sandbox` CR or `Job`, so it's cleaned up along with the run.
+
+The per-run policy carries only the granted destinations. DNS and the callback to paperclip-server keep coming from the namespace-level policy, so a grant adds to the baseline rather than replacing it. The grant is read once, when the sandbox is claimed for the run — editing the task afterwards won't rewrite a policy that's already live. And if the policy can't be created, Paperclip releases the workload it just claimed and lease acquisition fails, so a run never starts with a grant that didn't actually get applied.
+
+#### What each egress mode really enforces
+
+This is where the `egressMode` you picked matters, because the two modes are not equivalent and the difference is worth understanding before you rely on one.
+
+With `egressMode: "cilium"`, the grant becomes a `CiliumNetworkPolicy`. Your `allowFqdns` are enforced as names: each one becomes an exact-name `toFQDNs` match, allowed on TCP 443. Your `allowCidrs` become a `toCIDRSet` entry with no port restriction.
+
+With `egressMode: "standard"` (the default), the grant becomes a plain `networking.k8s.io/v1` NetworkPolicy — and a Kubernetes NetworkPolicy has no way to express a hostname at all. It can only match IP blocks. So:
+
+- `allowCidrs` behave exactly as you'd expect: one `ipBlock` rule per CIDR, with no port restriction.
+- `allowFqdns` are **not** enforced. If you grant FQDNs and leave `allowCidrs` empty, the policy falls back to allowing all public IPv4 on TCP 80 and 443 so the hosts you named are at least reachable, with `0.0.0.0/8`, `10.0.0.0/8`, `100.64.0.0/10`, `127.0.0.0/8`, `169.254.0.0/16`, `172.16.0.0/12`, `192.168.0.0/16`, and `224.0.0.0/4` carved out. Cluster internals, loopback, and the link-local metadata endpoint stay blocked — but every *other* public host on 80/443 becomes reachable too, not just the ones you listed.
+- If you grant FQDNs **and** CIDRs together in standard mode, that fallback does not fire. Only your CIDRs are allowed, and the FQDNs you named are reachable only if they happen to resolve inside those CIDRs.
+
+The short version: under `standard`, treat `allowFqdns` as a statement of intent that buys the run public HTTP/HTTPS, and treat `allowCidrs` as the part that's genuinely enforced. If you need a grant to mean "this hostname and nothing else", run Cilium and set `egressMode: "cilium"`.
+
+#### When a request gets blocked
+
+Two things make a denied request diagnosable from inside the run instead of leaving the agent guessing.
+
+First, every sandbox is handed the effective grant through its environment:
+
+| Variable | Value |
+|---|---|
+| `PAPERCLIP_NETWORK_EGRESS_POLICY` | `kubernetes-default-deny` |
+| `PAPERCLIP_NETWORK_EGRESS_GRANT_PATH` | `executionWorkspaceSettings.networkEgress` |
+| `PAPERCLIP_NETWORK_EGRESS_ALLOW_FQDNS` | The granted FQDNs, comma-separated (empty when there are none) |
+| `PAPERCLIP_NETWORK_EGRESS_ALLOW_CIDRS` | The granted CIDRs, comma-separated (empty when there are none) |
+
+Second, when a command's stderr looks like a blocked network call — `could not resolve host`, `network is unreachable`, `connection timed out`, `failed to connect`, or `temporary failure in name resolution` — Paperclip appends a note to it saying the network policy denied or couldn't route the request, listing what the task currently has granted (or saying that nothing is granted), and pointing at `executionWorkspaceSettings.networkEgress` as the place to request access. That's usually enough for an agent to tell a flaky endpoint apart from a destination nobody opened for it.
+
+### Workspace file sync
+
+Every agent run moves files both ways: Paperclip pushes the workspace and the run's asset files into the sandbox before the agent starts, then pulls changed files and outputs back to the host afterwards. On the default `sandbox-cr` backend the provider now does that transfer itself, natively over the pod exec channel, and there's nothing for you to switch on.
+
+The provider implements the two file-sync lifecycle hooks, `onEnvironmentSyncIn` (host → pod) and `onEnvironmentSyncOut` (pod → host). Defining them makes the plugin worker advertise the `environmentSyncIn` and `environmentSyncOut` verbs, and Paperclip then routes each sync operation through **one** pod exec that streams a tar archive — instead of the generic base64 fallback, which pays a fresh exec (a fresh WebSocket to the API server) per chunk. Inbound, the host builds a tarball on disk and streams its raw bytes into the pod's stdin; outbound, the pod tars straight to stdout and the host streams that into a file. Nothing buffers the whole payload, so the fallback's 100 MB in-memory ceiling no longer applies — but the Paperclip host does need ephemeral disk for the archive, which it stages in a `paperclip-k8s-sync-*` directory under the system temp dir.
+
+Two limits worth knowing about, because the sandbox is untrusted and both fail closed rather than letting a hostile pod exhaust the host:
+
+- An outbound transfer aborts the moment the pod has streamed more than 8 GiB to host disk.
+- The pod's stderr for a sync exec is capped at 1 MiB.
+
+Neither is exposed as an environment config field, and there are no new fields in the `Configure` table for this — the one setting that does affect sync is the existing `podActivityDeadlineSec`, which each sync exec inherits (in milliseconds) as its timeout. If you tightened that deadline, remember that large transfers now draw on the same budget as the run itself.
+
+Sync needs a workspace remote dir on the lease (`remoteCwd`, `/workspace` unless you set a `remotePath`), and that directory is the confinement root: every sandbox-side path must resolve inside it. Paperclip checks each path on the host first, then re-checks it in the pod through `realpath` and a `/proc/self/fd` pin so a symlink swapped in mid-transfer can't redirect a write outside the root. Outbound archives are sandbox-authored, so the host inspects every tar member (and every symlink and hardlink target) and refuses the archive before extracting if any of them would land outside the extraction directory.
+
+The `job` backend has no exec path at all, so it can't do native sync. Those leases are marked `nativeFileSyncUnsupported`, and Paperclip's per-lease capability gate keeps them on the byte-identical base64 fallback — you don't lose file transfer by choosing `job`, it's just slower.
+
+#### When a transfer fails
+
+Failures are loud. A non-zero exit from the in-pod script fails the whole transfer with the captured stderr attached, so you never get a silent partial success:
+
+- **Single files land atomically.** Each file is staged in a `0700` directory directly under the workspace root, gets its requested mode applied *before* the rename, then is moved onto its target with `mv -f`. An interrupted transfer can't leave a truncated file behind, and a secret file is never briefly world-readable.
+- **Directory mappings extract in place** and are not atomic, matching what the base64 fallback's tar did.
+- **Scratch is always swept.** Staging directories (named with the reserved `.paperclip-upload` prefix) are removed by a shell `trap` on any exit, including a failed one.
+- **A confinement violation rejects before any byte moves,** as does a source file that gets replaced between validation and copy.
+
+One image prerequisite comes with this: the in-pod scripts need a path canonicalizer, either `realpath` or `readlink -f`. If your image has neither, sync fails closed rather than proceeding with the host check as its only defense. They also use `sh`, `tar`, `head`, `mkdir`, `chmod`, `mv`, `cp`, `dirname`, and `dd`, and read `/proc/self/fd`. The scripts are plain POSIX `sh` and deliberately avoid GNU-only flags, so BusyBox-based images are fine — but an image with no shell or no `tar` can't be a sync target. The first-party `ghcr.io/paperclipai/agent-runtime-*` images build on `ubuntu:22.04` and already carry all of this, so they need no changes.
+
 ### Security baseline
 
-Every agent pod runs non-root (`runAsUser: 1000`, `runAsNonRoot: true`), drops all Linux capabilities with `allowPrivilegeEscalation: false`, uses `readOnlyRootFilesystem: true` with explicit `emptyDir` mounts for the writable paths it needs, and applies `seccompProfile: RuntimeDefault`. Each tenant namespace enforces `pod-security.kubernetes.io/enforce: restricted` and starts from a deny-all NetworkPolicy, so the only egress that works is what the adapter defaults and your `egressAllowFqdns` / `egressAllowCidrs` open up.
+Every agent pod runs non-root (`runAsUser: 1000`, `runAsNonRoot: true`), drops all Linux capabilities with `allowPrivilegeEscalation: false`, uses `readOnlyRootFilesystem: true` with explicit `emptyDir` mounts for the writable paths it needs, and applies `seccompProfile: RuntimeDefault`. Each tenant namespace enforces `pod-security.kubernetes.io/enforce: restricted` and starts from a deny-all NetworkPolicy, so the only egress that works is what the adapter defaults and your `egressAllowFqdns` / `egressAllowCidrs` open up — plus whatever an individual task adds through a [task-scoped egress grant](#task-scoped-egress-grants) for the length of its own run.
 
 For stronger isolation, install [Kata Containers](https://github.com/kata-containers/kata-containers) with the Firecracker hypervisor and set `runtimeClassName: kata-fc`. Each agent pod then runs inside a Firecracker microVM. This requires nodes capable of nested virtualization.
 

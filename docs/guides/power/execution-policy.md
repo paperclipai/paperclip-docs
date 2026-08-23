@@ -63,6 +63,47 @@ An issue can have review only, approval only, both in sequence, or neither (just
 
 ---
 
+## When the loop doesn't end: review rounds and escalation
+
+The changes-requested loop is meant to converge. Sometimes it doesn't — when both sides are agents, a reviewer whose success criteria have drifted to something the implementer can't satisfy will bounce the work back forever, burning a run each time and reaching nobody.
+
+So Paperclip counts the rounds and, at a cap, hands the review to a human instead.
+
+**How the counting works.** `executionState.changesRequestedCount` tracks consecutive **agent-initiated** changes-requested rounds on the current stage. It carries through when the executor resubmits, and it resets to `0` when the stage is approved.
+
+**Your decisions don't count.** If a *human* requests changes, the counter resets to `0`. The cap exists to stop unattended agent-to-agent ping-pong, never to limit your own review. A workflow with a human in the loop is effectively unbounded.
+
+**What happens at the cap.** With the default cap of `3`, the third consecutive agent changes-requested decision behaves differently from the first two. The decision is still recorded with the reviewer's comment, but instead of handing the work back to the implementer, the runtime:
+
+- keeps the stage `pending` and the issue in `in_review`,
+- makes the issue's **responsible human** the stage participant — `responsibleUserId`, falling back to `createdByUserId` — and assigns the issue to them,
+- surfaces the pending review through the same attention and review UI you already use.
+
+From there it's yours: approve it, request changes yourself (which resets the counter and hands it back to the implementer), or re-scope the work.
+
+**The hold is sticky.** Once a review has escalated, only the escalated human can move it. Anyone else attempting to advance the stage or reassign it gets `Only the escalated reviewer can advance the current execution stage`. If the issue's status or assignee has drifted away in the meantime, the runtime puts it back. Without this, an unrelated update could silently undo the escalation.
+
+**If the issue has no responsible human** — neither `responsibleUserId` nor `createdByUserId` — nothing changes: the work hands back to the implementer as it always did. The counter still climbs, so you can still see the churn.
+
+### Tuning the cap
+
+Set `maxReviewRounds` on the issue's `executionPolicy` to override the default:
+
+```json
+{
+  "stages": [
+    { "type": "review", "participants": [{ "type": "agent", "agentId": "qa-agent-id" }] }
+  ],
+  "maxReviewRounds": 5
+}
+```
+
+The value is a positive integer up to `50`. Leave it out (or set it to `null`) and the server default of `3` applies. Set it to `1` if you want the very first agent changes-requested decision to land on a human.
+
+Existing issues from before this behaviour shipped read as `changesRequestedCount: 0` — there's nothing to migrate.
+
+---
+
 ## Policy variants
 
 **Review only:**
@@ -123,6 +164,7 @@ interface IssueExecutionPolicy {
   mode: "normal" | "auto";
   commentRequired: boolean;       // always true, enforced by runtime
   stages: IssueExecutionStage[];  // ordered list of review/approval stages
+  maxReviewRounds?: number | null; // 1–50; null uses the server default of 3
 }
 
 interface IssueExecutionStage {
@@ -153,6 +195,7 @@ interface IssueExecutionState {
   completedStageIds: string[];
   lastDecisionId: string | null;
   lastDecisionOutcome: "approved" | "changes_requested" | null;
+  changesRequestedCount?: number;  // consecutive agent-initiated rounds on this stage
 }
 ```
 
@@ -182,6 +225,7 @@ Every decision is recorded with actor, outcome, comment, and run ID. The full re
 
 - Only the **active reviewer or approver** (the `currentParticipant` in execution state) can advance or reject the current stage.
 - Non-participants who attempt to transition the issue receive `422 Unprocessable Entity`.
+- Once a stage has escalated to the responsible human, only that person can advance it — everyone else, including the configured stage participants, is refused.
 - Both approvals and change requests **require a comment** — empty or whitespace-only comments are rejected.
 
 ---
@@ -270,7 +314,7 @@ For existing issues, the properties panel shows editable **Reviewer** and **Appr
 ## Design principles
 
 1. **Runtime-enforced, not prompt-dependent.** Agents don't need to remember to hand off work. The runtime intercepts status transitions and routes accordingly.
-2. **Iterative, not terminal.** Review is a loop — request changes, revise, re-review — not a one-shot gate. The system returns to the same stage on re-submission.
+2. **Iterative, but bounded.** Review is a loop — request changes, revise, re-review — not a one-shot gate. The system returns to the same stage on re-submission. An *unattended* loop still terminates: after `maxReviewRounds` agent rounds it lands on a human decision rather than burning runs forever.
 3. **Flexible roles.** Participants can be agents or users. Not every organization has "QA" — the reviewer/approver pattern is generic enough for peer review, manager sign-off, or compliance checks.
 4. **Auditable.** Every decision is recorded with actor, outcome, comment, and run ID.
 5. **Single execution invariant preserved.** Review wakes and comment retries respect the existing constraint that only one agent run can be active per issue at a time.

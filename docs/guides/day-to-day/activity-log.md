@@ -4,6 +4,8 @@ The Activity Log is the complete record of everything that has ever happened in 
 
 The log exists for two reasons. First, accountability: you can always see what actually happened and who did it. Second, debugging: when something goes wrong, the Activity Log is your first place to look.
 
+If the question you're really asking is "what did my *agents* do, and on whose behalf?", you don't need a different page anymore. Activity is now one page for both questions: flip the scope toggle to narrow from every actor down to agent actions only, without leaving the feed. See [Focusing on agent actions](#focusing-on-agent-actions) below.
+
 ![Activity Log page showing a full chronological feed of events with actor names, action descriptions, and timestamps](../../user-guides/screenshots/light/activity/activity-log-full.png)
 
 ---
@@ -41,12 +43,56 @@ Each row in the feed shows the actor's name, what they did, and when. Clicking a
 
 ## Filtering
 
-When you're looking for something specific, use the filter at the top of the Activity page. In the current UI, that filter narrows the list by entity type.
+When you're looking for something specific, use the filters at the top of the Activity page.
 
-![Activity Log with the filter bar open, showing options for agent, entity type, and time range](../../user-guides/screenshots/light/activity/activity-filters.png)
+![Activity Log with the filter bar open, showing the scope toggle plus agent, responsible user, action, entity, and date range filters](../../user-guides/screenshots/light/activity/activity-filters.png)
 
-**Filter by entity type** — narrow to a specific category of events: tasks only, agents only, approvals only, or budget events only.
+Start with the **scope toggle**. It switches between two views of the same feed:
+
+- **All actors** — everything that happened, from every kind of actor: humans, agents, plugins, and the system itself.
+- **Agent actions only** — just the rows where an agent did the work. This is the default.
+
+Below the toggle you can narrow further:
+
+- **Agent** — one agent, or all of them.
+- **Responsible user** — everything done on one person's behalf.
+- **Action** — a category of events (for example task, agent, run, approval, project, goal, cost, or company events) rather than a single event name.
+- **Entity** — the kind of thing that changed, such as a task, agent, project, goal, or company.
+- **From** and **To** dates — a day range.
+
 ![Activity Log filtered to show one category of events](../../user-guides/screenshots/light/activity/activity-filtered-by-agent.png)
+
+The feed loads newest first and pages as you scroll, so there's no 200-row ceiling — you can follow a thread as far back as it goes.
+
+---
+
+## Focusing on agent actions
+
+Sometimes you don't want *everything* that happened; you want to answer a narrower question — what did my agents do, and who was responsible for each of those actions? Flip the scope toggle to **Agent actions only** and the feed answers exactly that, without sending you to a different page.
+
+Two things stand out in this view:
+
+- **Every row has an agent attached.** Things you did yourself from the board, or that the system did on its own, drop out — you're left with agent work.
+- **It carries the responsible person.** Agents act on behalf of someone. When the person responsible for an action isn't the actor themselves, the row shows an "on behalf of" chip naming them — so a line reads as one sentence: which agent did what, to which task, for whom, and when.
+
+Each row spells out the action in plain language, links the task it touched, quotes the comment excerpt when there is one, and offers a **View run** link when the action came out of an agent run. The raw action name (for example `issue.comment_added`) sits at the end of the row in small type, in case you need the exact string.
+
+You can also read a single agent's history without leaving its page: open the agent and switch to its **Activity** tab. It's the same feed, pinned to that one agent.
+
+### Who can see what
+
+Everyone on your team can open Activity, but there are two tiers of detail:
+
+- **Any company member** can read the feed with the scope set to **All actors**. You'll see every kind of actor — human, agent, plugin, and system — but the sensitive attribution fields (which agent, which run, and the responsible person) are stripped out.
+- **Members with the `audit:view_agent_actions` permission** see complete rows. They can turn on the attribution filters — agent, responsible user, and actor type — and they can export the feed to CSV. No role hands this permission out by default, so it's always a deliberate grant; see [Roles & Permissions](../../administration/roles-and-permissions.md).
+
+If you set an attribution filter without the permission, Paperclip tells you the filter needs `audit:view_agent_actions` rather than silently returning stripped-down rows.
+
+### Exporting
+
+With the `audit:view_agent_actions` permission you'll see an **Export CSV** button. It downloads whatever the current filters are showing, one row per action, with the timestamp, action name, actor, agent, run, responsible user, entity, and the task identifier and title where there is one — the shape you want when you're handing evidence to someone outside Paperclip. A single export tops out at 10,000 rows, so narrow the date range if you're pulling a long history.
+
+One thing to know before you press it: the export is itself logged as an `audit.exported` event. Paperclip records who exported, which filters they used, and how many rows came out.
 
 ---
 

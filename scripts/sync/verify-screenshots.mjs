@@ -20,7 +20,7 @@
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve, relative } from "node:path";
-import { CAPTURE_TARGETS } from "../screenshots/routes.mjs";
+import { CAPTURE_TARGETS, STATIC_DIAGRAMS } from "../screenshots/routes.mjs";
 
 const ROOT = resolve(new URL("../..", import.meta.url).pathname);
 const DOCS = join(ROOT, "docs");
@@ -64,6 +64,9 @@ for (const file of walk(DOCS)) {
     const raw = m[1].trim();
     if (!/screenshots\/(light|dark)\//.test(raw)) continue;
     const name = toTargetName(raw);
+    // Hand-authored diagrams served from the screenshots tree are intentionally
+    // not captured from the UI — skip them (they have no route / registry entry).
+    if (name && STATIC_DIAGRAMS.has(name)) continue;
     if (name && !refs.has(name)) refs.set(name, { doc: relative(ROOT, file), raw });
   }
 }

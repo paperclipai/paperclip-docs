@@ -7,7 +7,9 @@
     "docs:build:github-subpath": "node site/build-release.mjs --base-path /paperclip-docs/ --out-dir .site",
     "docs:build:auto": "node site/build-release.mjs --base-path auto --out-dir .site",
     "docs:test:static-routes": "node scripts/verify-static-routes.mjs",
+    "docs:test:asset-fingerprints": "node scripts/verify-asset-fingerprints.mjs",
     "docs:test:hierarchical-skills-nav": "node scripts/verify-hierarchical-skills-nav.mjs",
+    "docs:test:skill-source-blocks": "node scripts/verify-skill-source-blocks.mjs",
     "docs:serve": "python3 -m http.server 4321 --directory .site",
     "sync:lint-links": "node scripts/sync/lint-links.mjs",
     "sync:verify-nav": "node scripts/sync/verify-nav.mjs",
@@ -23,10 +25,12 @@
     "screenshots:capture": "node scripts/screenshots/capture.mjs",
     "screenshots:sync-registry": "node scripts/screenshots/sync-registry.mjs",
     "screenshots:refresh": "node scripts/screenshots/run.mjs",
+    "screenshots:serve": "node scripts/screenshots/run.mjs --serve",
     "screenshots:refresh:all": "node scripts/screenshots/run.mjs --all"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.2"
+    "@playwright/test": "^1.58.2",
+    "esbuild": "^0.25.12"
   },
   "dependencies": {
     "marked": "^12.0.2"

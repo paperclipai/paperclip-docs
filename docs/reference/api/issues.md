@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.720.0
 ---
 
 # Issues
@@ -30,6 +30,75 @@ Mutating requests can also trigger activity logs, comment wakeups, mention wakeu
 
 ---
 
+## Agent writes across issues
+
+Agents don't only work on the one task they checked out. They comment on sibling tasks, file child issues, and nudge fields on issues owned by teammates. Paperclip makes that the default, keeps a couple of narrow walls, and — importantly — tells a denied caller exactly how to proceed.
+
+### Default-open visible writes
+
+A **standard-trust** agent may **comment**, **update fields**, **create child issues**, and **assign** on any company-visible issue it can already read — it does not have to be the assignee. Visibility is the gate: `issue:read` sits structurally upstream of every write, so if the actor can read the issue, the write channels are open. Two conditions still apply:
+
+- The write must clear the actor's own trust class (see the walls below).
+- When the agent run acts on behalf of a user, that **responsible user** must also be authorized for the action — a run can never exceed the permissions of the human it acts for.
+
+Checkout and run ownership are the exception that stays assignee-scoped: field edits to an issue with a live run belong to the run that holds the lock (see `issue_write_assignee_run_lock` below). Comments stay open regardless.
+
+### Denied issue writes
+
+When a write is refused, the server returns a single, structured denial payload — the same contract the board UI renders — so an agent reading the error is told **which boundary fired, who can act, and the sanctioned path forward**. The body looks like this:
+
+```json
+{
+  "error": "Task is outside this actor's visibility (Issue visibility). Issue writes are open by default, but only for tasks the actor can already read. TASK-482 is not visible to Scout, so its comment, update, child, and assignment channels are all closed — the wall is visibility, not the write itself. Who can act: the current assignee, and any agent or board member the task is visible to. Try this: Ask the board to widen visibility for Scout, or create a child issue with the request in its description (issue creation is a separate, open write path) and let its assignee act.",
+  "details": {
+    "code": "issue_write_not_visible",
+    "boundary": "Issue visibility",
+    "whoCanAct": "the current assignee, and any agent or board member the task is visible to.",
+    "sanctionedPath": "Ask the board to widen visibility for Scout, or create a child issue with the request in its description (issue creation is a separate, open write path) and let its assignee act."
+  }
+}
+```
+
+Field meanings:
+
+| Field | Meaning |
+|---|---|
+| `error` | Flattened one-string message. Agents that surface only `error` still get the boundary, who can act, and the path forward. |
+| `details.code` | Stable machine-readable denial code (see the table below). |
+| `details.boundary` | Short noun phrase naming the wall that fired. |
+| `details.whoCanAct` | Who is able to perform this write instead. |
+| `details.sanctionedPath` | The supported way to get the work moving. |
+
+Some codes add extra keys to `details`: the cross-issue cap adds `cap`, `count`, `mode`, and `enforceAt`; the run-lock adds `issueId`, `assigneeAgentId`, and `actorAgentId`.
+
+Each code carries a **tone** (`boundary`, `lock`, `cap`, or `attribution`) that drives the UI icon and colour, and a fixed HTTP status:
+
+| `code` | Status | Tone | What it means |
+|---|---|---|---|
+| `issue_write_not_visible` | `403` | `boundary` | The target issue is not visible to the actor, so all of its write channels are closed. The wall is visibility, not the write. |
+| `issue_write_actor_class_excluded` | `403` | `boundary` | Default-open writes are a standard-trust privilege. Low-trust, skill-test, and task-bridge scopes keep their tight walls. Actor-class scope cannot be widened per task. |
+| `issue_write_responsible_user_ceiling` | `403` | `boundary` | The responsible ("on behalf of") user is not authorized for the action. A run can never exceed the permissions of the user it acts for. |
+| `issue_write_responsible_user_unavailable` | `403` | `boundary` | The run's responsible user was removed or deactivated, so its permissions can no longer be evaluated. |
+| `issue_write_assignee_run_lock` | `409` | `lock` | The assignee has the issue checked out and a run is live. Field edits belong to the run that holds the lock until it finishes; comment instead, or wait for the lock to clear. |
+| `cross_issue_influence_cap_exceeded` | `429` | `cap` | This heartbeat run has spent its per-run cross-issue write budget. A rate backstop, not a permission decision. |
+| `cross_issue_influence_run_context_required` | `403` | `boundary` | The write arrived without a valid heartbeat run to attribute it to, so it could not be counted or audited. |
+| `issue_write_attribution_spoof_rejected` | `422` | `attribution` | `onBehalfOfUserId` is derived from the authenticated actor, never from the request body — the caller cannot choose the responsible user. |
+
+The two responsible-user codes reuse the shared "on behalf of {user}" copy, so terminology stays consistent across every surface (it is never phrased as "impersonate").
+
+### Cross-issue influence cap
+
+To bound runaway comment sprays and loops, a single heartbeat run may make at most **`CROSS_ISSUE_INFLUENCE_LIMIT = 20`** cross-issue comments or task updates combined — writes to the run's own source issue don't count against it. The budget resets per run.
+
+The rollout is staged:
+
+- Until **`2026-08-11T00:00:00.000Z`** (`CROSS_ISSUE_INFLUENCE_ENFORCE_AT`) the cap runs in `log_only` mode: attempts over the limit are recorded but still allowed.
+- From that timestamp on it is hard-enforced (`enforce` mode), and an over-budget write is refused with `429` and code `cross_issue_influence_cap_exceeded`. The denial `details` include `cap`, `count`, `mode`, and `enforceAt`.
+
+Because every cross-issue write is attributed to a run for both the cap count and the audit trail, an agent-authenticated cross-issue write must carry a valid run. A request without one is refused with `403` and code `cross_issue_influence_run_context_required` — send the current run in the `X-Paperclip-Run-Id` header (from `$PAPERCLIP_RUN_ID`) and retry.
+
+---
+
 ## List Issues
 
 ```
@@ -51,7 +120,7 @@ Return all issues visible to a company, ordered by priority unless a search quer
 | `unreadForUserId` | Filter to issues with comments newer than the user's last touch |
 | `projectId` | Filter by project |
 | `executionWorkspaceId` | Filter by execution workspace |
-| `parentId` | Filter by parent issue |
+| `parentId` | Filter by parent issue. Also accepts the alias `parentIssueId` |
 | `labelId` | Filter by label |
 | `originKind` | Filter by origin kind, such as `manual` or `routine_execution` |
 | `originId` | Filter by origin identifier |
@@ -120,6 +189,7 @@ This route returns a compact payload for agent wakeup flows. It includes:
 - comment cursor metadata
 - an optional `wakeComment`
 - attachment summaries
+- an optional `planReviewContext` — the plan document's review feedback (annotation threads, their comments, and the plan-approval outcome), included when the issue is in a plan-review flow so the waking agent can act on the feedback it received on its plan
 
 Use this when an agent needs a smaller, execution-friendly context instead of the full issue detail payload.
 
@@ -1072,10 +1142,12 @@ POST /api/issues/{issueId}/interactions
 
 Request body fields:
 
-- `kind` — one of `suggest_tasks`, `ask_user_questions`, `request_confirmation`.
+- `kind` — one of `suggest_tasks`, `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`, or `request_item_verdicts`.
 - `payload` — interaction-specific structured data (the list of suggested tasks, the questions, or the confirmation summary).
 - `idempotencyKey` — optional. Recommended for `request_confirmation` interactions tied to a plan revision (e.g. `confirmation:{issueId}:plan:{revisionId}`) so re-sends do not double-create.
-- `continuationPolicy` — `wake_assignee` to resume the assignee after a response is recorded; `wake_requester` to wake the original requester. For `request_confirmation`, the `wake_assignee` policy resumes only after an `accept`.
+- `continuationPolicy` — one of `none`, `wake_assignee`, or `wake_assignee_on_accept`. It defaults to `wake_assignee` for every kind except `request_confirmation`, which defaults to `none`.
+- `resolverPolicy` — optional. One of `board_only` or `board_or_agents`. Controls whether an eligible agent may resolve the card, or only the board. See [Agent-addressed interactions](./attention.md#agent-addressed-issue-thread-interactions).
+- `addresseeAgentId` — optional agent UUID (or `null`). Addresses the card to a specific agent, which is then woken to resolve it. Must reference an invokable agent in the same company. See [Agent-addressed interactions](./attention.md#agent-addressed-issue-thread-interactions).
 
 Permissions:
 
@@ -1094,6 +1166,108 @@ POST /api/issues/{issueId}/interactions/{interactionId}/respond
 
 After a terminal action, the interaction is sealed — further responses are rejected.
 
+### Take a card back: withdraw
+
+Sometimes a card stops being the right question. The agent asked before it had the full picture, the plan moved on, or you posted the answer in the thread instead. Rather than leaving a stale card sitting in the issue waiting for someone to click it, you can **withdraw** it.
+
+```
+POST /api/issues/{issueId}/interactions/{interactionId}/withdraw
+```
+
+Request body:
+
+| Field | Type | Notes |
+|---|---|---|
+| `reason` | string, optional | Up to 4000 characters. Explains why the card was pulled. Trimmed; an empty string is stored as `null`. |
+
+Withdrawal works on any pending interaction kind — `suggest_tasks`, `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`, and `request_item_verdicts` all accept it. The card moves to status `cancelled`, its `result.outcome` becomes `"withdrawn"`, and your `reason` is stored on `result.reason`. In the issue thread the card then reads as **Withdrawn** instead of waiting for a decision.
+
+Who may withdraw a card:
+
+- **Board users** — any interaction on an issue in their company.
+- **The agent that created the interaction** (`createdByAgentId` matches the calling agent).
+- **The current issue assignee** (`assigneeAgentId` matches the calling agent). Assignees also have to satisfy the normal agent issue-mutation checks.
+
+Everyone else gets a `403`. The errors you can hit:
+
+| Status | Error | When |
+|---|---|---|
+| `401` | `Agent run id required` | An agent called the route without an active run id. |
+| `403` | `Task-watchdog runs cannot withdraw issue-thread interactions` | The caller is a task-watchdog run. Watchdogs supervise issues; they do not get to retract other agents' questions. |
+| `403` | `Issue is outside this actor's authorization boundary` | The calling agent cannot mutate this issue at all. |
+| `403` | `Only the interaction creator, current issue assignee, or a board user may withdraw it` | The agent is authorized on the issue but is neither the creator nor the assignee. |
+| `404` | `Interaction not found` | The interaction id does not belong to this issue and company. |
+| `409` | `Interaction has already been resolved` | The card is no longer `pending` — someone answered, accepted, rejected, or cancelled it first. |
+| `409` | `The linked tool action is already executing and can no longer be withdrawn` | A `request_confirmation` whose approved tool call has already been claimed for execution. Once the action is in flight it cannot be recalled. |
+
+A withdrawal also settles anything the card was gating. If a `request_confirmation` had a linked tool action request that was still `pending` or `approved`, that request is `cancelled` in the same transaction — so an approved-but-unexecuted call can never outlive the card that authorized it. And when the withdrawing actor is not the issue assignee, a continuation wakeup is queued for the assignee so it learns the question is gone instead of waiting on it. On a withdrawal that wakeup fires only for cards created with `continuationPolicy: "wake_assignee"` — the `wake_assignee_on_accept` policy needs an `accepted` card, and a withdrawn one is `cancelled`. It is also skipped when the issue has no assignee agent, or is already closed.
+
+Withdrawal is written to the audit trail as `issue.thread_interaction_withdrawn`, with the interaction id, kind, resulting status, and reason attached.
+
+### Withdraw vs. cancel
+
+Both routes retire a pending card, and both take an optional `reason`, but they are not interchangeable:
+
+```
+POST /api/issues/{issueId}/interactions/{interactionId}/cancel
+POST /api/issues/{issueId}/interactions/{interactionId}/withdraw
+```
+
+| | `cancel` | `withdraw` |
+|---|---|---|
+| Who can call it | Board users only. Agent actors get `403` (`Agent actors cannot resolve issue-thread interactions through this board-only route`). | Board users, the interaction creator agent, or the current issue assignee agent. |
+| Which kinds | `ask_user_questions` only. Anything else returns `422` (`Only ask_user_questions interactions can be cancelled`). | Every interaction kind. |
+| Resulting status | `cancelled` | `cancelled` |
+| Result payload | `cancelled: true` plus `cancellationReason`. | `outcome: "withdrawn"` plus `reason`. |
+| Linked tool actions | Not touched. | Pending or approved linked requests are cancelled too. |
+| Activity log action | `issue.thread_interaction_cancelled` | `issue.thread_interaction_withdrawn` |
+
+Rule of thumb: **cancel** is the board saying "never mind, I'm not answering these questions." **Withdraw** is whoever owns the work saying "this card should not have been raised, ignore it" — and it is the one an agent can call for itself.
+
+### Pending cards expire when the issue closes
+
+A card that nobody ever answers used to be able to outlive its issue. It can't any more. When an issue transitions to `done` or `cancelled`, every interaction still in `pending` on that issue is expired automatically, in the same transaction as the status change.
+
+An expired-with-the-issue card looks like this:
+
+- `status` is `expired`.
+- `result.outcome` is `"issue_closed"`.
+- For `request_item_verdicts`, `complete` is `false` and whatever verdicts were already recorded are preserved on `items`.
+- In the thread the card reads "Expired when issue closed" rather than sitting there as an open question.
+
+This runs on every terminal transition, not just the ones that come through the REST API — the tree controls, recovery flows, and pipelines that close issues internally all funnel through the same path. Each expiry is logged as `issue.thread_interaction_expired` with `source: "issue.status_transition.issue_closed"`.
+
+Two related guarantees come with it:
+
+- **You cannot open a new card on a closed issue.** `POST /api/issues/{issueId}/interactions` returns `409` with `Cannot create an interaction on a closed issue`. Retries carrying an `idempotencyKey` from before the close still return the original card, now expired.
+- **Approved tool actions stop at the door.** If an issue closes while a governed tool call is queued, the execution is refused with `409` and the reason code `action_issue_closed` (`The issue for this tool action is closed; the approval has expired`), and the action request is expired.
+
+`GET /api/issues/{issueId}/interactions` also sweeps as it reads, so if an issue was closed by a path that predates this behaviour, simply listing the interactions settles any stragglers before returning them.
+
+### Cards superseded by a comment
+
+There is a second automatic expiry, and it also runs when you list an issue's interactions. If a pending card carries `supersedeOnUserComment: true` in its payload — the default for `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`, and `request_item_verdicts` — and a genuine human comment was posted at or after the card was created, the card expires and `result.commentId` points at the comment that replaced it. Confirmation and verdict cards record this as `result.outcome: "superseded_by_comment"`; `ask_user_questions` records it as `result.expirationReason: "superseded_by_comment"` instead.
+
+Only real human comments count: the comment must have a user author and must not have been written by an agent run. Set `supersedeOnUserComment: false` in the payload when a card must survive discussion in the thread.
+
+Both sweeps run on `GET /api/issues/{issueId}/interactions`, so a caller that lists interactions always sees settled state — no separate cleanup call needed.
+
+### Interaction outcomes
+
+The `result.outcome` field tells you how a card ended. Which values are possible depends on the kind:
+
+| Kind | Possible `outcome` values |
+|---|---|
+| `request_confirmation` | `accepted`, `rejected`, `superseded_by_comment`, `stale_target`, `withdrawn`, `issue_closed` |
+| `request_checkbox_confirmation` | Same values as `request_confirmation` — its result is a confirmation result plus `selectedOptionIds`. |
+| `request_item_verdicts` | `resolved`, `superseded_by_comment`, `stale_target`, `cancelled`, `withdrawn`, `issue_closed` |
+| `suggest_tasks` | `withdrawn` or `issue_closed`, and otherwise absent — a normal response carries `createdTasks` / `rejectionReason` instead. |
+| `ask_user_questions` | `withdrawn` or `issue_closed`, and otherwise absent — a normal response carries `answers`, a cancellation carries `cancelled: true` with `cancellationReason`, and a comment-superseded card carries `expirationReason: "superseded_by_comment"`. |
+
+`request_item_verdicts` results also carry an optional `reason` string alongside the outcome, matching `request_confirmation`.
+
+If you are writing an integration that reads interaction results, treat `withdrawn` and `issue_closed` as "no decision was made" and do not wait for one — they are administrative endings, not answers.
+
 ### Choosing the kind
 
 | Kind | When to use |
@@ -1101,6 +1275,8 @@ After a terminal action, the interaction is sealed — further responses are rej
 | `suggest_tasks` | The agent has identified work it could do next and wants the board (or user) to choose which to spin up as subtasks. |
 | `ask_user_questions` | The agent needs structured information (multiple choice, short text) it cannot extract from the comment thread. |
 | `request_confirmation` | The agent has a proposal — typically a plan revision or a destructive action — and needs explicit acceptance before proceeding. |
+| `request_checkbox_confirmation` | The agent needs a decision over one or more explicitly listed checkbox options. |
+| `request_item_verdicts` | The agent needs a verdict for each item in a supplied list. |
 
 For plan-approval flows, the recommended sequence is: update the `plan` document → create a `request_confirmation` interaction with an `idempotencyKey` bound to the latest plan revision → wait for `accept`. The agent only spawns implementation subtasks once the interaction is accepted.
 

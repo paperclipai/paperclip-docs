@@ -201,6 +201,19 @@ Costs tabs live in React state (not URL/hash). Capture each tab by clicking its 
 | `cli-auth.png` | `/cli-auth/{cliAuthId}` | Pending CLI auth code screen. Capture before approving. |
 | `board-claim.png` | `/board-claim/{boardClaimToken}` | Board claim landing page, pre-claim state. |
 
+### Experimental features (`screenshots/light/experimental/`)
+
+Used by `docs/experimental/*`. Seed enables the gating flags (`seed.mjs` step 14e) before capture.
+
+| Filename | URL | Notes |
+|---|---|---|
+| `environments.png` | `/instance/settings/environments` | Requires `enableEnvironments`; shows the environment list + Add environment. |
+| `cloud-upstream.png` | `/company/settings/cloud-upstream` | Requires `enableCloudSync`; connection card in the not-yet-connected state. |
+| `file-viewer-browse.png` | `/{slug}/issues/{issueId}?browse=1` | Requires `enableExperimentalFileViewer`; file-viewer sheet in browse mode. |
+| `external-objects.png` | `/{slug}/issues/{externalObjectIssueId}` | Requires `enableExternalObjects`; issue whose description references GitHub PR/issue URLs. |
+| `server-info.png` | `/{slug}/dashboard` + click "Open account menu" | Requires `enableServerInfoDebugView`; account drawer with the Server section. |
+| `recovery-preview.png` | `/instance/settings/experimental` + click "Preview" | "Confirm auto-recovery" dialog for Auto-Create Recovery Tasks. |
+
 ---
 
 ## Capture script (reference)
@@ -340,6 +353,64 @@ Manual follow-ups after the batch:
 - **Issues detail**: on `/{slug}/issues/{issueId}`, click the **Activity** tab and capture `issues/detail-activity.png`.
 - **Adapters**: click **Add adapter** for `adapters/install.png`; expand an installed adapter row for `adapters/detail.png`.
 - **Skills**: click **Add skill** and capture both the initial form (`skills/add-skill-dialog.png`) and the confirm state (`skills/add-skill-dialog-confirm.png`); open a skill row for `skills/file-inventory.png`.
+
+---
+
+## Target paths and routes (v2026.817.0 release batch)
+
+New surfaces that shipped in v2026.817.0. All of these are seeded automatically —
+`seed-new-surfaces.mjs` proposes the decisions, writes the status-card summaries,
+and raises the secret proposals through genuine agent runs — so the routes below
+render real content rather than empty states. `routes.mjs` is the authoritative
+machine-readable copy; keep the two in step.
+
+### Decisions (`screenshots/light/decisions/`)
+
+Requires the `enableDecisions` experimental flag (set by `seed.mjs`).
+
+| File | Route | Notes |
+|---|---|---|
+| `queue-overview.png` | `/{slug}/decisions` | The ranked feed. |
+| `decision-card.png` | `/{slug}/decisions` | Expand the "Ship dark mode…" row. |
+| `triage-chips.png` | `/{slug}/decisions` | Clipped to the triage strip only. |
+| `toolbar-filters.png` | `/{slug}/decisions` | Click **Filter** to open the panel. |
+| `named-queue.png` | `/{slug}/decisions/queues/launch-blockers` | A named lane with two items. |
+| `history-curtains.png` | `/{slug}/decisions` | Open the **Decided** curtain. |
+| `empty-state.png` | `/{emptySlug}/decisions` | "You're all caught up" — needs the empty second company. |
+
+### Status cards (`screenshots/light/status-cards/`)
+
+Requires `enableStatusCards` **and** a `ready` built-in Summarizer. The seed
+switches the Summarizer to a long-running `process` adapter and clears its
+`pausedAt`, then writes each card's compiled query and summary as the agent.
+
+| File | Route | Notes |
+|---|---|---|
+| `board.png` | `/{slug}/status` | Two Fresh tiles. |
+| `new-card-dialog.png` | `/{slug}/status` | Click **New card**. |
+| `detail-summary.png` | `/{slug}/status/{cardId}` | Drawer, Summary tab. |
+| `detail-settings.png` | `/{slug}/status/{cardId}` | Settings tab. |
+| `detail-watched-issues.png` | `/{slug}/status/{cardId}` | Watched issues tab. |
+| `detail-history.png` | `/{slug}/status/{cardId}` | History tab. |
+
+### Secret proposals (`screenshots/light/secrets/`)
+
+| File | Route | Notes |
+|---|---|---|
+| `proposals-tab.png` | `/{slug}/company/settings/secrets` | Click the **Proposals** tab; one pending, one approved, one rejected. |
+
+### Chat-style tasks (`screenshots/light/task-chat/`)
+
+Captured in a **separate pass**. `enableTaskChatRedesign` is instance-wide and
+replaces the ordinary task page, so leaving it on would turn every classic
+issue/task/work-mode shot into the redesigned chat. `run.mjs` enables it, shoots
+only the `phase: "task-chat"` targets, and disables it again.
+
+| File | Route | Notes |
+|---|---|---|
+| `thread.png` | `/{slug}/issues/{issueId}` | The conversation view. |
+| `composer-modes.png` | `/{slug}/issues/{issueId}` | Open the Agent · Plan · Ask picker. |
+| `side-pane.png` | `/{slug}/issues/{issueId}` | Properties · Plan · Artifacts pane. |
 
 ---
 

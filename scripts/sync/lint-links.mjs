@@ -51,9 +51,18 @@ function stripFencedCodeBlocks(src) {
   return output.join("\n");
 }
 
+// Blank out inline-code spans (`code`, ``a`b``, …) so markdown-looking text
+// documented *inside* code — e.g. prose explaining the `[name](url)` syntax —
+// isn't parsed as a real link. Matches per line (inline code doesn't span
+// lines) and preserves length so line structure is untouched. Fenced blocks
+// are already stripped upstream by stripFencedCodeBlocks.
+function stripInlineCode(src) {
+  return src.replace(/(`+)(?:(?!\1)[^\n])*?\1/g, (m) => " ".repeat(m.length));
+}
+
 function checkFile(file) {
   const issues = [];
-  const src = stripFencedCodeBlocks(readFileSync(file, "utf8"));
+  const src = stripInlineCode(stripFencedCodeBlocks(readFileSync(file, "utf8")));
   const seen = new Set();
   for (const re of [LINK_RE, IMAGE_RE]) {
     re.lastIndex = 0;

@@ -10,6 +10,8 @@
  *      fully isolated env (scratchHome as PAPERCLIP_HOME, loopback binding,
  *      local_trusted mode, no external DB). onboard preserves the config from 1b.
  *   3. Poll BASE_URL/api/health until 200 (timeout 120 s).
+ *   3.5. Capture `phase: "pre-seed"` targets (onboarding wizard) while the
+ *        instance is still company-less — the only window those states exist.
  *   4. Run seed() to create demo entities and write .seed-ids.json.
  *   5. Run sync-registry to back-fill routes into registry.json.
  *   6. Run capture(), passing through supported CLI flags.
@@ -23,9 +25,12 @@
  *   --stale      Comma-separated registry file list.
  *   --base-url   Override BASE_URL.
  *   --keep       Do NOT rm -rf the scratch home after capture.
+ *   --serve      Boot + seed, then STAY UP instead of capturing. For iterating on
+ *                seed.mjs and eyeballing screens before committing to a full run.
  *
  * Usage:
  *   node scripts/screenshots/run.mjs [--all] [--only <substr>] [--theme light|dark|both]
+ *   node scripts/screenshots/run.mjs --serve     # live instance, Ctrl-C to tear down
  */
 
 import { spawn } from "node:child_process";
@@ -36,6 +41,7 @@ import {
   BASE_URL,
   PARENT_REPO,
   REPO_ROOT,
+  SEED_IDS_PATH,
   scratchHome,
   instanceEnv,
   instanceConfigPath,
@@ -258,6 +264,30 @@ async function main() {
   }
   console.log("run: server is healthy.");
 
+  // ── 3.5. Pre-seed capture (onboarding wizard) ────────────────────────────
+  // The instance has no company yet, so /onboarding is reachable — this is the
+  // only window where the create-a-company wizard states can be captured.
+  // Targets marked `phase: "pre-seed"` in routes.mjs are shot here; once
+  // seed.mjs creates the demo company, these surfaces become unreachable.
+  console.log("run: capturing pre-seed (onboarding) screenshots…");
+  try {
+    const capture = await importCapture();
+    const staleRaw = getFlag(args, "--stale");
+    await capture({
+      all: hasFlag(args, "--all"),
+      only: getFlag(args, "--only"),
+      theme: getFlag(args, "--theme") ?? "both",
+      staleFiles: staleRaw ? staleRaw.split(",") : undefined,
+      baseUrl: getFlag(args, "--base-url") ?? BASE_URL,
+      keep: keepScratch,
+      phase: "pre-seed",
+    });
+  } catch (err) {
+    // Pre-seed captures are a bonus pass — a failure here should not abort the
+    // main run, but it must be loud in the summary.
+    console.error("run: pre-seed capture failed (continuing to seed):", err);
+  }
+
   // ── 4. Seed demo data ────────────────────────────────────────────────────
   console.log("run: seeding demo data…");
   try {
@@ -290,7 +320,44 @@ async function main() {
     console.warn("run: sync-registry warning:", err.message, "(continuing)");
   }
 
+  // ── 5.5. Serve mode — hand the live instance over and stop here ──────────
+  // Seeding a screen correctly is iterative: extend seed.mjs, look at the page,
+  // adjust. Booting the whole instance for each pass costs minutes, so --serve
+  // keeps it up. `npm run screenshots:seed` re-runs the seed against it in
+  // place, and `npm run screenshots:capture -- --only <name>` shoots one target.
+  if (hasFlag(args, "--serve")) {
+    const base = getFlag(args, "--base-url") ?? BASE_URL;
+    console.log("");
+    console.log(`run: serving at ${base} — instance is live and seeded.`);
+    console.log("run:   re-seed:  npm run screenshots:seed");
+    console.log(`run:   capture:  npm run screenshots:capture -- --only <name>`);
+    console.log("run:   stop:     Ctrl-C (tears down the server and scratch home)");
+    console.log("");
+    // Park forever; the SIGINT/SIGTERM handlers registered above run cleanup().
+    await new Promise(() => {});
+    return;
+  }
+
   // ── 6. Capture screenshots ───────────────────────────────────────────────
+  // Keep the demo board's issue statuses correct for the whole capture. The
+  // demo `process` agents finish their runs without declaring a disposition, so
+  // Paperclip's stalled-work sweep keeps moving those issues to `blocked` with
+  // an error notice — every few minutes, over a capture that runs much longer
+  // than that. See reassertIssueStatuses() in seed.mjs.
+  const seedIds = JSON.parse(await readFile(SEED_IDS_PATH, "utf8").catch(() => "{}"));
+  let statusKeeper = null;
+  if (seedIds.companyId) {
+    const { reassertIssueStatuses } = await import("./seed.mjs");
+    statusKeeper = setInterval(() => {
+      reassertIssueStatuses({
+        companyId: seedIds.companyId,
+        baseUrl: getFlag(args, "--base-url") ?? BASE_URL,
+      }).catch((err) => console.warn("run: status keeper:", err.message));
+    }, 45_000);
+    // Never hold the process open on this timer alone.
+    statusKeeper.unref?.();
+  }
+
   console.log("run: capturing screenshots…");
   try {
     const capture = await importCapture();
@@ -307,7 +374,38 @@ async function main() {
 
     await capture(captureOpts);
     console.log("run: capture complete.");
+
+    // ── 6b. Task-chat phase ────────────────────────────────────────────────
+    // `enableTaskChatRedesign` replaces the ordinary task detail page for the
+    // whole instance, so it cannot be on during the main pass — every classic
+    // issue/task/work-mode shot would come back as the redesigned chat. Flip it
+    // on, shoot only the `phase: "task-chat"` targets, flip it back.
+    const base = getFlag(args, "--base-url") ?? BASE_URL;
+    const setTaskChat = (enabled) =>
+      fetch(`${base}/api/instance/settings/experimental`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enableTaskChatRedesign: enabled }),
+      });
+
+    try {
+      const res = await setTaskChat(true);
+      if (!res.ok) throw new Error(`PATCH experimental → HTTP ${res.status}`);
+      console.log("run: capturing task-chat screenshots (enableTaskChatRedesign on)…");
+      await capture({ ...captureOpts, phase: "task-chat" });
+    } catch (err) {
+      console.error("run: task-chat capture failed (continuing):", err.message);
+    } finally {
+      // Always restore, even if the phase threw — leaving the flag on would
+      // silently poison any later capture against this instance.
+      await setTaskChat(false).catch((err) =>
+        console.warn("run: could not restore enableTaskChatRedesign:", err.message),
+      );
+    }
+
+    if (statusKeeper) clearInterval(statusKeeper);
   } catch (err) {
+    if (statusKeeper) clearInterval(statusKeeper);
     console.error("run: capture failed:", err);
     await cleanup();
     process.exit(1);
