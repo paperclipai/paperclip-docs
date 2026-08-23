@@ -2,47 +2,54 @@
 
 > Regenerated from scratch each nightly run (never appended). Reflects the current cumulative diff window.
 >
-> **Window:** parent `v2026.817.0` (`213dabab`) → `e1df4c60` (24h-quarantine boundary; parent `master` HEAD `a9d1f74` is newer but quarantined).
-> **Scope:** cumulative since the v2026.817.0 docs release — 200 parent commits, 925 changed files. This run's new slice (`b446ff5` → `e1df4c60`) is 24 commits / 92 non-test files on top of the previously-drafted catch-up (#98).
-> **Drift (Phase 1.5):** none against `master` / `e1df4c60`. **Reconcile (Phase 3.5):** none (cumulative window is a superset of the prior run — nothing disappeared). **Truncation:** none (`truncated_leaves = 0`).
+> **Window:** parent release `v2026.817.0` fork-point (`8f7b8b3`, the merge-base of the tag and `master`) → `dc5b070` (24h-quarantine boundary; parent `master` HEAD `05b35d4` is newer but quarantined).
+> **Scope:** cumulative since the v2026.817.0 docs release — 269 parent commits, 1265 changed files. This run's new slice (`e1df4c6` → `dc5b070`) is 69 commits / 579 changed files on top of the previously-drafted catch-up (#98, #99).
+> **Drift (Phase 1.5):** none against `master`. **Reconcile (Phase 3.5):** none (cumulative window is a superset of the prior run — nothing disappeared). **Truncation:** none after the merge-base workaround (`truncated_leaves = 0`).
 
-## ✅ Auto-merge tier (mechanical, applied)
+> ⚠️ **Tooling note — diverged release tag.** `v2026.817.0` (`213dabab`) is **not an ancestor of `master`** — `compare/tag...master` reports `diverged` (`ahead 276 / behind 4`). The 4 "behind" commits are release-branch-only artifacts (version bump / changelog) that never landed on `master`. Because the tag isn't on `master`, `compare-window.mjs` can't walk `master`'s ancestry to find the base SHA, so its bisection failed and the single un-bisected `compare` call silently capped at 300 files (177 with no patch body). **Workaround this run:** used the merge-base `8f7b8b3` as the cumulative base. This is semantically identical to the tag (GitHub `A...B` is already a three-dot diff against the merge-base), but lets the bisection work — the full window is 1265 files, not the capped 300. **Fix to consider:** teach `compare-window.mjs` to fall back to `merge_base_commit.sha` from the compare response as the pagination anchor when the base isn't found in `commits?sha=B`.
 
-- **Terminal-workspace reaper cooldown env var** → `docs/reference/deploy/environment-variables.md`
-  - Append-only row: `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` (default `7`; `0` disables and restores immediate reaping; negative/non-numeric falls back to default). Read from `process.env` in `server/src/config.ts` (`workspaceReaperCooldownDays`). Not present in `.env.example` — process-env read only.
-- **Workspace Git-scan tuning env vars** *(from the prior slice, still in-window)* → `docs/reference/deploy/environment-variables.md`
-  - `PAPERCLIP_WORKSPACE_GIT_SCAN_CONCURRENCY` / `_QUEUE_CAPACITY` / `_TIMEOUT_MS` / `_CACHE_TTL_MS`.
+## ✅ Auto-merge tier (mechanical)
 
-## 📝 PR tier (authored drafts)
+- None this slice. The only `.env.example` additions in the cumulative window (`PAPERCLIP_WORKSPACE_GIT_SCAN_*`) predate `e1df4c6` and are already on the env-vars page.
 
-**New this slice (`b446ff5` → `e1df4c60`):**
+## 📝 PR tier — applied this run
 
-7. **Workspace access card + single-use login handoff** → `docs/guides/projects-workflow/workspaces.md` (new **## Opening a workspace** section)
-   - The **Workspace access** card on the workspace detail screen names the access state (Provisioning / Validating clone / Ready / Degraded / Repairing / Failed), the cause, and the one safe action, replacing the old "Open link that lies". **Open workspace** calls `POST /api/execution-workspaces/{id}/login-handoff` — a short-lived, single-use ticket the isolated workspace swaps for its own instance-scoped session (no cloned password); the response `url` is navigated to (redirect, never stored). Snapshot-local-credentials fallback when no handoff is configured / no cloned board identity. Board actors only; behind the Isolated Workspaces experimental toggle. Verified clean (0 unverified). Source: `ui/src/components/WorkspaceAccessCard.tsx`, `ui/src/lib/workspace-access-state.ts`, `ui/src/pages/ExecutionWorkspaceDetail.tsx`, `server/src/auth/workspace-login-handoff*.ts`, `server/src/services/workspace-login-handoff-issuer.ts`, `server/src/services/workspace-readiness.ts`, `server/src/services/managed-workspace-identity.ts`, `server/src/routes/openapi.ts`.
+- **Kimi Code adapter (`kimi_local`)** → **new page** `docs/reference/adapters/kimi-local.md` (+ overview + nav)
+  - Brand-new adapter package (`packages/adapters/kimi-local/**`, all files added). Runs Moonshot's Kimi Code CLI (`kimi`) locally with two engines: default streaming **ACP engine** (`kimi acp`) and a headless **CLI lane** (`kimi -p --output-format stream-json`) as automatic fallback (`engine: acp | cli | auto`). Session persistence via `-r <session_id>` (from the `session.resume_hint` meta event, cwd-aware), per-run skills via `--skills-dir`, thinking effort (`KIMI_MODEL_THINKING_EFFORT`, CLI lane only, models with `support_efforts` — currently `kimi-code/k3`). Selectable built-in in the UI (label "Kimi Code", no `hideFromVisualSelection`). Page authored in our voice mirroring `grok-local.md`; registered in `overview.md` (Choose / Built-In / Next Steps) and `site/content.json`.
+  - Bundled surface also touched by this feature and already covered by the page: `paperclipai agent local-cli` now installs control-plane skills into `~/.kimi-code/skills` (`cli/src/commands/client/agent.ts`), and the UI config fields (`ui/src/adapters/kimi-local/**`).
 
-**From the prior slice (already drafted in #98, still in the cumulative window):**
+## ⏸ Deferred / not documented (reviewed, held this run)
 
-1. **`paperclipai channels` — new CLI command** → `docs/how-to/update-paperclip.md`, `docs/reference/cli/installation.md`
-2. **HTTPS previews for workspace runtime services** → `docs/guides/projects-workflow/workspaces.md` (+ new page `docs/reference/deploy/tailscale-https-broker.md`)
-3. **Interaction resolver-audience model — correction** → `docs/reference/api/attention.md`, `docs/reference/api/issues.md`, `docs/guides/day-to-day/issues.md`
-4. **Onboarding wizard overhaul** → `docs/guides/getting-started/your-first-company.md`, `docs/guides/getting-started/your-first-agent.md`
-5. **Document annotations (inline comments on task documents)** → `docs/guides/day-to-day/artifacts.md`
-6. **Company import: resumable chunked uploads** → `docs/guides/power/export-import.md`
+- **Onboarding wizard rebuild** (`ui/src/components/OnboardingWizard.tsx` +294/-87, new `ui/src/components/onboarding/*`, `ui/src/lib/onboarding-agent-role.ts`, `server/src/services/onboarding-greeting.ts`, `company_onboarding_seeds` schema/migration) — **volatile at this boundary.** The "mission step" is dropped from the wizard arc in parent `3ff636bc` which is **quarantined** (newer than the boundary). Drafting the first-run guide now would document an arc that's mid-change; hold until the arc settles (likely the next release run). Screenshots under `onboarding/*` and `company/new-company-*` are already flagged stale — see `SCREENSHOTS_PENDING.md`.
+- **Issue recovery actions / disposition repair** (`server/src/services/issue-recovery-actions.ts` +99/-26, `server/src/services/recovery/service.ts` +1173, `recovery/disposition-repair.ts` +251 new, `ui/src/components/IssueRecoveryActionCard.tsx` +197) — **volatile.** Automatic stranded-task takeovers are **stopped** in parent `f572e086` (quarantined). The user-visible recovery-action card behaviour is still shifting; defer the guide edit until the takeover policy lands.
+- **Operator-configurable settings visibility** (`server/src/services/settings-visibility.ts` new, reads `PAPERCLIP_HIDDEN_SETTINGS`; `ui/src/components/HiddenSettingsPageGate.tsx`, `ui/src/hooks/useHiddenSettings.ts`; `InstanceSidebar.tsx` removed) — a real operator surface, but the `PAPERCLIP_HIDDEN_SETTINGS` env var is read straight from `process.env` and is **not** in `.env.example`, so the env-vars watcher doesn't catch it and it's **not currently documented**. Candidate for a PR-tier addition to `docs/reference/deploy/environment-variables.md` (+ an administration note on hiding settings pages) — held for a judgment call, since the hidden-page keys and admin flow need confirming against the UI before writing prose.
+- **Unified adapter-auth sessions** (`packages/db/src/schema/adapter_auth_sessions.ts` +65, `claude_setup_token_sessions.ts` removed, migrations 0224/0225; `server/src/services/adapter-login-lease.ts`, `codex-device-login-*`) — internal auth plumbing consolidating per-adapter setup-token/device-login state. No user-visible contract change; not documented.
+- **Company import/transfer runs** (`server/src/services/company-transfer-runs.ts`, `company-import-transfers.ts`, CLI `company.ts`/`zip.ts`, `company_transfer_runs` schema) — landed **before** `e1df4c6` and already drafted in the prior catch-up (#98/#99, `export-import.md`); still in the cumulative window, no new edit.
+- **plugin-sdk `src/index.ts` (+2)** — a minor export-surface touch; reviewed, no doc-relevant public API change worth a rewrite this slice.
+- **db migrations 0212–0226** — context-only tier (schema churn is caught by the `schemas` watcher; migrations themselves need no prose).
 
-## ⏸ Deferred / not documented (reviewed, no edit this run)
+## ⏳ Quarantined (younger than 24h — will enter the window next run)
 
-- **Custom-image template relink** (`POST /api/environments/{environmentId}/custom-image-template/relink`, classification `knob_only`/`boot_source_drift`/`unclassified`) — **half-built at this boundary.** The API + client landed in-window, but the paired UI ("boot-relevant drift attribution in the custom-image overview", parent `b8a76081e`) is **quarantined** (newer than `e1df4c60`). `custom-sandbox-images.md` is a pure UI walkthrough, so relink is deferred to the next release run, when the API and its UI land together.
-- **Secret-proposal resolution refactor** (`secret-proposal-authorization.ts`, `secret-proposal-notifications.ts`, `secret-proposals.ts` +258) — the resolve-authorization rules (secret → company admin; binding → `agent_config:update` change grant on the target) and the origin-issue resolution comment are **already documented** in `docs/reference/api/secrets.md` (lines 816–899). This slice extracts that behaviour into dedicated modules; no user-visible change. The new `interactionId` FK on `company_secret_proposals` links a proposal to an issue-thread interaction — internal plumbing.
-- **CLI `paperclipai worktree`** (`cli/src/commands/worktree.ts` +786, new `--preserve-live-work` / `--backup-target` flags) — Paperclip's **own monorepo dev tooling** for seeding local dev worktrees, not a documented user/operator surface. No doc page exists for it by design.
-- **Embedded-Postgres lifecycle / worktree-seed / provision scripts** (`packages/db/embedded-postgres-lifecycle.ts`, `server/src/embedded-postgres-supervisor.ts`, `packages/shared/src/worktree-seed-source.ts`, `scripts/provision-worktree*.sh`) — internal dev/test infra. The only user-facing knob is the reaper cooldown env var above.
-- **Issue-thread-interactions continuation** (`server/src/services/issue-thread-interactions.ts` +263, `ui/src/components/IssueThreadInteractionCard.tsx` +346) — continues the resolver-audience model already drafted as item 3; no new endpoint or user-facing contract.
+7 commits newer than the boundary, deliberately excluded so any reverts can settle first:
+
+- `05b35d4` feat(duplex): bound aggregate duplex route resource consumption
+- `c505039` fix(daytona-duplex): chunk host-to-sandbox writes
+- `141b815` fix(adapter-utils): enforce duplex frame size bound
+- `cc42a67` fix(adapter-utils): extend duplex fail-closed run disposition
+- `f572e08` fix(recovery): stop automatic stranded-task takeovers
+- `10d2781` feat(sandbox): add the duplex bridge broker (gated transport)
+- `3ff636b` Drop the mission step from the wizard arc
 
 ## Screenshots
 
-See `SCREENSHOTS_PENDING.md`. Recaptured on the release/frozen branch, not during nightly. The new **Workspace access** card lives on the workspace detail screen but is not depicted in any existing `workspaces/*` capture; no new capture target added this run — reassess at release.
+See `SCREENSHOTS_PENDING.md` — **59 screenshots** stale (light + dark share a row) from the large UI-change window (`AgentConfigForm`, `OnboardingWizard`, `ProjectDetail`, `AdapterManager`, plugins, secrets, settings, task-chat, work-modes). Recaptured on the release/frozen branch, not during nightly. No new capture target added for the Kimi adapter this run (adapter config screenshots are captured at release).
 
 ## Verification (Phase 5.5)
 
-- `docs/guides/projects-workflow/workspaces.md` — 0 unverified, 0 suspicious against `e1df4c60`.
-- `docs/reference/deploy/environment-variables.md` — the `REAPER_COOLDOWN` row verified clean against `e1df4c60`. One pre-existing unverified row (`PAPERCLIP_CLOUD_PROD_PROVIDER_RAILWAY_TOKEN:315`, a dynamically-named cloud provider token) is unrelated to this run's edits.
-- `sync:check` drift flags the new `REAPER_COOLDOWN` row only because it runs against the stale `b446ff5` ref where the var didn't yet exist — a false positive; the var exists at `e1df4c60` and `master`.
+`docs/reference/adapters/kimi-local.md` — verified against `master`: **4 unverified, 0 suspicious.** All four are confirmed false negatives of the verifier (which only searches the adapter package `packages/adapters/kimi-local/**`), not fabricated identifiers:
+
+- `KIMI_MODEL_BASE_URL`, `KIMI_MODEL_PROVIDER_TYPE` — real **Kimi-CLI-native** optional auth env vars, documented in the parent's own authoritative `docs/adapters/kimi-local.md`. Paperclip forwards them through its generic `env` passthrough rather than referencing them by name, so the adapter-package scan misses them.
+- `default_model` — a field of **Kimi's own `config.toml`**, not a Paperclip identifier; framed as such on the page.
+- `secret-id` — the Example-JSON `secretId` placeholder (identical to the `grok-local.md` convention), not a code identifier.
+
+The load-bearing Paperclip identifiers (`KIMI_MODEL_NAME`, `KIMI_MODEL_API_KEY`, `--skills-dir`, `-r`, `KIMI_MODEL_THINKING_EFFORT`, `session.resume_hint`, engine values, defaults `kimi`/`kimi-code/kimi-for-coding`) all resolve in the adapter source.
