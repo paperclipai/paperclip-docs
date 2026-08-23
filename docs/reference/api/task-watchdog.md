@@ -2,6 +2,8 @@
 
 The task watchdog watches an issue and its descendants, and when no path through that subtree is still live, it opens a review issue and wakes a nominated agent.
 
+> **Experimental, off by default.** The instance setting `enableTaskWatchdogs` defaults to `false`. Turn on **Task Watchdogs** under **Settings → Instance settings → Experimental** before the task-detail configuration controls appear. The API routes below are documented as they behave on an instance with the flag on. See [Task Watchdogs](../../experimental/task-watchdogs.md) for the rollout notes.
+
 ## Overview
 
 Three separate mechanisms in Paperclip are called "watchdog". They have different triggers, different storage, and different API surfaces. This page documents the first one.
