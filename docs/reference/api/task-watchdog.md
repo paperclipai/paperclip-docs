@@ -83,7 +83,7 @@ Child creation via `POST /api/issues/{issueId}/children` accepts the same `watch
 
 `GET` and `PUT` also return the audit columns `createdByAgentId`, `createdByUserId`, `createdByRunId`, `updatedByAgentId`, `updatedByUserId`, and `updatedByRunId`.
 
-The stop snapshots stored alongside these columns (`last_observed_stop_snapshot`, `last_reviewed_stop_snapshot`) are not part of the watchdog record on any endpoint. Snapshot contents do reach the activity API: `issue.task_watchdog_triggered` carries `stopSnapshot` in its details, and `issue.task_watchdog_fingerprint_reviewed` carries `reviewedStopSnapshot`. Read snapshots there rather than from the watchdog record.
+The stop snapshots stored on the row (`last_observed_stop_snapshot`, `last_reviewed_stop_snapshot`) are not part of the watchdog record on any endpoint. Snapshot contents do reach the activity API: `issue.task_watchdog_triggered` carries `stopSnapshot` in its details, and `issue.task_watchdog_fingerprint_reviewed` carries `reviewedStopSnapshot`. Read snapshots there rather than from the watchdog record.
 
 The `watchdog` field on the issue payload is the summary shape, without the audit columns.
 
