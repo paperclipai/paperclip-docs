@@ -2,9 +2,9 @@
 
 A company in Paperclip is the container for everything: your mission, your team of agents, all the tasks they work through, and the budget that keeps spending under control. Before any agents can do anything, they need a company to work inside.
 
-The good news is you don't set this up piece by piece anymore. When you open Paperclip for the first time, a guided wizard walks you through naming your company, writing its mission, and bringing your first agent online — all in one flow. By the time you finish, you land on a task with a welcome message already waiting from your first teammate.
+The good news is you don't set this up piece by piece anymore. When you open Paperclip for the first time, a guided wizard walks you through naming your company and bringing your first agent online — all in one flow. Paperclip creates the company the moment you name it, and you settle on its mission a little later, once your first teammate is online and helping you shape it. By the time you finish, you land on a task with a welcome message already waiting from that teammate.
 
-This guide walks you through that wizard end to end. The whole thing takes about three minutes.
+This guide walks you through that wizard end to end. The whole thing takes a couple of minutes.
 
 ---
 
@@ -39,44 +39,17 @@ This is just a label for your own reference — it doesn't affect how agents wor
 - "Software MVP"
 - "Customer Support Automation"
 
-You can rename the company later from its settings, so don't overthink it. Press **Next** to continue.
+You can rename the company later from its settings, so don't overthink it. Press **Next** — and this is the moment Paperclip actually creates your company. It then takes you straight to setting up your first agent.
 
-### 3. Define your mission
+> **What about the mission?** Earlier versions of the wizard asked you to write a mission on a separate step before creating the company. That step is gone: the wizard creates the company as soon as you name it, and you settle on its mission afterward — your first teammate reaches out on your very first task to help you turn a rough goal into a concrete one. You can also set or edit the mission any time from the company's settings.
 
-Your mission is the north star that every agent in your company can see. As the step explains, your mission guides everything — your lead agent, who you bring on, and the work your company takes on.
-
-Paperclip asks **How would you like to define your mission?** and gives you two paths:
-
-**Path A — I know my mission (type it directly).** If you already know what this company should achieve, choose this and write it into the **Mission** field. A few prompt chips sit below the box to spark ideas if you want a starting point.
-
-A good mission has two things: **a specific outcome** and **a measurable target**. Vague missions give agents nothing concrete to anchor their work to.
-
-| Instead of… | Write… |
-|-------------|--------|
-| "Grow the business" | "Reach $10,000/month in recurring revenue by Q3" |
-| "Do content marketing" | "Publish 4 high-quality blog posts per week and grow organic traffic to 10,000 monthly visitors by June" |
-| "Build an app" | "Ship a working MVP with user authentication, a core feature, and a landing page by May 1st" |
-
-> **Tip:** Include a metric and a timeframe. "Build the #1 AI note-taking app at $1M ARR within 6 months" is a mission an agent can reason about. "Improve the product" is not.
-
-**Path B — Help me figure it out (answer a few questions).** If you're not sure how to phrase it yet, choose this and answer a short guided questionnaire:
-
-- What does your team work on?
-- Who do you serve?
-- What's your biggest bottleneck right now?
-- What would success look like in 6 months?
-
-When you press **Generate my mission**, Paperclip assembles your answers into a draft mission and shows it back to you with the note *"Here's your draft mission — edit it however you like."* Tweak the wording until it reads the way you want. You can always jump back to the questions if you'd rather start over.
-
-Whichever path you take, you can change your mission later in settings. Press **Confirm mission** to lock it in. This is the moment Paperclip actually creates your company and saves the mission as its company-level goal.
-
-### 4. Create your first agent
+### 3. Create your first agent
 
 Now you name the agent who will drive the work. Paperclip defaults the name to **Chief of staff**, but you can rename it to anything you like in the **Name** field.
 
 This first agent is your team lead — it reads the mission, proposes a plan, and helps steer everything toward it. Press **Next** when you're happy with the name.
 
-### 5. Connect a model
+### 4. Connect a model
 
 An agent needs an AI model behind it to actually think and act. This step asks you to pick the adapter and model your lead will run on, then check the environment.
 
@@ -88,7 +61,7 @@ For a deeper look at adapters, models, and environment variables — and how to 
 
 When the check passes, press **Connect**. Paperclip hires your lead agent and brings it online.
 
-### 6. Review
+### 5. Review
 
 The last step is a quick **Review** confirming your first agent is online and ready to work. You'll see a checklist of everything that's now set up:
 
@@ -97,7 +70,7 @@ The last step is a quick **Review** confirming your first agent is online and re
 - Agent created
 - Model connected
 
-Press **Get started** to head into your company.
+The **Mission** row stays unchecked until you've actually set one — which, on the fresh flow above, happens after onboarding rather than during it. That's expected; it's a reminder, not a blocker. Press **Get started** to head into your company.
 
 ---
 
@@ -105,7 +78,7 @@ Press **Get started** to head into your company.
 
 Press **Get started** and Paperclip drops you straight into the work — not an empty dashboard. It seeds an **Onboarding** project with a first task for you, and your new teammate has already posted a welcome message on that task.
 
-That greeting reflects back the mission you just wrote and lets you know the agent is putting together a few focused questions so you can settle on a concrete goal to tackle first. In other words, your company isn't just created — your first teammate is already reaching out to get to work.
+That greeting is where your mission takes shape: the agent puts together a few focused questions so you can settle on a concrete goal to tackle first, and whatever you land on becomes the company's mission. In other words, your company isn't just created — your first teammate is already reaching out to help you decide what it's for.
 
 ---
 
