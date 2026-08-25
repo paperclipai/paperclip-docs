@@ -23,5 +23,23 @@ jobs:
 
       - run: npm ci
 
-      - name: Build and verify the docs bundle
-        run: npm run docs:test
+      # Separate steps with `if: always()` so one failure cannot mask the rest.
+      # An `&&` chain short-circuits, which silently skipped later gates.
+      - name: Static routes
+        run: npm run docs:test:static-routes
+
+      - name: Asset fingerprints
+        if: always()
+        run: npm run docs:test:asset-fingerprints
+
+      - name: Hierarchical skills nav
+        if: always()
+        run: npm run docs:test:hierarchical-skills-nav
+
+      - name: Crawlable links
+        if: always()
+        run: npm run docs:test:crawlable-links
+
+      - name: Skill source blocks
+        if: always()
+        run: npm run docs:test:skill-source-blocks
