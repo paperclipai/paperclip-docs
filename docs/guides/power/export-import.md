@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Export and Import a Company
+seo_description: Capture a configured company as a portable package to back up, share, or move between instances. What full fidelity includes, and what a package contains.
 ---
 
 # Export & Import

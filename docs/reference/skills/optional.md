@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Optional Skills Catalog
+seo_description: Catalog entries teams install when they need a capability beyond the bundled baseline, using the same install, audit, update, and reset pipeline.
 ---
 
 # Optional Skills

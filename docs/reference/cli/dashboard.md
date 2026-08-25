@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Dashboard Commands
+seo_description: The at-a-glance company read from your shell — the same top-level numbers the board dashboard shows, fetched in a single call.
 ---
 
 # Dashboard Commands

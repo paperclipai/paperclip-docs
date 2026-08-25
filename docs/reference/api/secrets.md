@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Secrets API
+seo_description: Keep sensitive values out of agent configs while agents still use them at runtime. Board-only, company-scoped endpoints for defining and resolving secrets.
 ---
 
 # Secrets

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: last30days Research Skill
+seo_description: Find what people actually said about a topic in the last 30 days, pulling posts and engagement from Reddit, X, YouTube, Hacker News, GitHub and more.
 ---
 
 # last30days

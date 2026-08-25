@@ -1,3 +1,8 @@
+---
+seo_title: Agents: Your AI Employees
+seo_description: Hire agents, browse the agent list, and work the detail page — dashboard, instructions, and references — for the AI employees doing your company's work.
+---
+
 # Agents
 
 Agents are the AI employees that make up your Paperclip company. They're where the work actually happens: the CEO setting strategy, the engineer shipping code, the marketer drafting posts. Everything else in Paperclip — tasks, approvals, skills, budgets — exists to coordinate and govern what your agents do.

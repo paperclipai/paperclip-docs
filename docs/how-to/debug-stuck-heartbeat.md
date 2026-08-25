@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Debug a Stuck Heartbeat
+seo_description: The handful of symptoms behind almost every agent-not-working report, each diagnosed from the Run history on the agent's detail page.
 ---
 
 # Debug a stuck heartbeat

@@ -1,3 +1,8 @@
+---
+seo_title: Create Your First Company
+seo_description: A company holds your goal, your agents, your task board, and your budget. Set one up before hiring, and learn when running more than one makes sense.
+---
+
 # Create Your First Company
 
 A Company in Paperclip is the container for everything: your goal, your team of agents, all the tasks they work through, and the budget that keeps spending under control. Before any agents can do anything, they need a company to work inside.

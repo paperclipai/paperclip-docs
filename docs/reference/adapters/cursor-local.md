@@ -1,3 +1,8 @@
+---
+seo_title: Cursor Local Adapter
+seo_description: Run Cursor's Agent CLI on the Paperclip host, keeping chat sessions alive across heartbeats and emitting structured stream output in run views.
+---
+
 # Cursor Local
 
 `cursor` runs Cursor's Agent CLI on the same machine as Paperclip. Use it when you want Cursor chat session resume across heartbeats and structured stream output in run logs.

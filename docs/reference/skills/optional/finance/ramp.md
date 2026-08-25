@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Ramp Skill
+seo_description: Let an agent set up and use Ramp from Paperclip through a thin wrapper around Ramp's own published agent instructions, rather than baked-in copies.
 ---
 
 # Ramp

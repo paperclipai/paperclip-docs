@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Skills Reference
+seo_description: The reference for company skills: file shape on disk, the install pipeline, attaching to agents, scoping rules, canonical keys, and versioning.
 ---
 
 # Skills Reference

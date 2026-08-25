@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Skills: Reusable Agent Procedures
+seo_description: Package a checklist, runbook, or template once and share it across agents. Covers adding skills, folders, Skill Studio, and the cost and performance payoff.
 ---
 
 # Skills

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Wireframe Skill
+seo_description: Produce low-fidelity black-and-white UI wireframes as standalone SVG files — layout, hierarchy, and components, with no colour or visual polish.
 ---
 
 # Wireframe

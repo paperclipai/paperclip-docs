@@ -1,3 +1,8 @@
+---
+seo_title: Simplified English Skill
+seo_description: Hold agents to ASD-STE100 Simplified Technical English so comments, plans, and handover documents land on the first read, in any reader's language.
+---
+
 # Simplified English
 
 > Write user-facing comments, plans, and documents in ASD-STE100 Simplified Technical English — short, unambiguous sentences with approved words and one meaning each — so readers understand them the first time.

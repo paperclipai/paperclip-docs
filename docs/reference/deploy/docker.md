@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: Deploy Paperclip with Docker
+seo_description: Run a self-contained instance without installing Node or pnpm on the host. Covers the quickstart image, manual builds, and configuration.
 ---
 
 # Docker

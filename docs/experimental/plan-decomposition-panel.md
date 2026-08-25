@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Task Plan Decomposition Panel
+seo_description: See the machinery that turns an accepted plan into child tasks, and the guarantee it runs exactly once even across retries and interrupted runs.
 ---
 
 # Task Plan Decomposition Panel

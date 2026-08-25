@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Isolated Workspaces
+seo_description: Give each task run its own git worktree on its own branch, so several agents can work a project at once without fighting over one shared checkout.
 ---
 
 # Isolated Workspaces

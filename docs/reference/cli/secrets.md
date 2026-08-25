@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Secrets Commands
+seo_description: Manage the API keys, tokens, and credentials agents consume at runtime without ever pasting a raw value into an agent's configuration.
 ---
 
 # Secrets Commands

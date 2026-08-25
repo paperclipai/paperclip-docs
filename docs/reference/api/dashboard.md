@@ -1,3 +1,8 @@
+---
+seo_title: Dashboard API
+seo_description: One call for a company health snapshot — the same summary powering the board dashboard, inbox alerts, and budget warnings in the UI.
+---
+
 # Dashboard
 
 Get a compact health snapshot for a company in a single call. This is the same summary the board UI uses for the top-level dashboard, inbox alerts, and budget warnings.

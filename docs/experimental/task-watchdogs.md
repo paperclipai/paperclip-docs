@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Task Watchdogs (Experimental)
+seo_description: A watchdog wakes when an agent misreads a blocker, claims done without proof, or gives up on a recoverable error, so the issue tree never just goes quiet.
 ---
 
 # Task Watchdogs

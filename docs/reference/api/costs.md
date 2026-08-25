@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Costs API
+seo_description: Company-scoped endpoints for the four spend questions: what was spent, by whom, against which budget, and how close the company is to its cap.
 ---
 
 # Costs

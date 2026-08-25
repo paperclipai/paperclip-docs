@@ -1,3 +1,8 @@
+---
+seo_title: Write a Company Skill
+seo_description: Author a small Markdown bundle, install it into your company skill library, and attach it to just the agents that should load it. About 15 minutes.
+---
+
 # Write a company skill and assign it to specific agents
 
 Author a small Markdown bundle that any agent in your company can load on demand, install it into the company skill library, and attach it to the one or two agents that should actually use it. End-to-end on a fresh skill in about 10 minutes.

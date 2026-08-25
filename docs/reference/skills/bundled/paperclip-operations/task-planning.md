@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Task Planning Skill
+seo_description: Turn a request into a plan an executor can run: a child task graph, real blockers, named owners, and an acceptance bar defined up front.
 ---
 
 # Task Planning

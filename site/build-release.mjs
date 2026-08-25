@@ -627,12 +627,17 @@ async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
     const sourceMarkdownPath = path.join(docsRoot, page.file);
     const markdown = await fs.readFile(releaseMarkdownPath, "utf8");
     const h1 = markdown.match(/^#\s+(.+)$/m)?.[1]?.trim();
-    const pageTitle = page.title || h1 || "Paperclip Docs";
+    // Authored `seo_title` / `seo_description` frontmatter wins. The sidebar
+    // label is written for a 240px-wide nav, not a search result, and the
+    // derived description is just the opening paragraph clipped to a length.
+    const authoredTitle = page.frontmatter?.seo_title?.trim();
+    const authoredDescription = page.frontmatter?.seo_description?.trim();
+    const pageTitle = authoredTitle || page.title || h1 || "Paperclip Docs";
     pages.push({
       page,
       sectionTitle: section.title,
       title: `${pageTitle} | Paperclip Docs`,
-      description: markdownDescription(markdown),
+      description: authoredDescription || markdownDescription(markdown),
       url: routeUrlForPage(siteUrl, basePath, page),
       lastmod: await gitLastModified(sourceMarkdownPath),
       siteUrl,

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Auto-Restart Dev Server When Idle
+seo_description: For people developing Paperclip itself: let the dev runner watch backend sources and pending migrations, and restart the server when a boot goes stale.
 ---
 
 # Auto-Restart Dev Server When Idle

@@ -1,3 +1,8 @@
+---
+seo_title: Connect an Agent to GitHub and Open PRs
+seo_description: Wire a coding agent to a real repo so every issue you assign produces a branch, a working commit, and a pull request visible from both sides.
+---
+
 # Connect an agent to a GitHub repo and have it open PRs
 
 Wire a `claude_local` (or `codex_local`) coding agent to a real GitHub repo so every issue you assign produces a branch, a working commit, and a pull request — all visible in both the Paperclip issue thread and the GitHub PR page. End-to-end on a fresh repo in about 20 minutes.

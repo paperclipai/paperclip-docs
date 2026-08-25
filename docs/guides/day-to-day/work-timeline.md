@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: The Work Timeline
+seo_description: A Gantt-style view of every agent run on one shared time axis: when agents worked, how work passed between them, and where it overlapped.
 ---
 
 # The Work Timeline

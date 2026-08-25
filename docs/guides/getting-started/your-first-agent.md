@@ -1,3 +1,8 @@
+---
+seo_title: Hire Your First Agent
+seo_description: An agent is a role, an AI system, a budget, and a set of wake-up rules. Choose each when hiring, plus fixes for the snags that trip people up.
+---
+
 # Hire Your First Agent
 
 An agent isn't just "an AI". It's a configuration — a specific role, with a specific AI system powering it, operating under a specific budget, with defined rules for when and how it wakes up and works.

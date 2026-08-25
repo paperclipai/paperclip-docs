@@ -1,3 +1,8 @@
+---
+seo_title: Costs: Budgets, Providers, and Spend
+seo_description: Set limits Paperclip enforces automatically. Five tabs cover overview, budgets, providers, billers, and finance, with headline spend metrics on top.
+---
+
 # Costs
 
 > **Warning:** AI agents make real API calls that cost real money. Every time an agent works — every heartbeat, every task, every comment it reads and writes — it sends and receives text through a provider like Anthropic or OpenAI, which charges you per token (roughly per word). This isn't a Paperclip fee; it's a cost you pay directly to the AI provider. Read this guide before your agents start running in earnest.

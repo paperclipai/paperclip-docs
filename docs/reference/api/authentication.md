@@ -1,3 +1,8 @@
+---
+seo_title: API Authentication
+seo_description: Two identities over the API and the bearer header shape every authenticated request uses. Which one to send, and what each is allowed to reach.
+---
+
 # Authentication
 
 Paperclip supports two different identities over the API:

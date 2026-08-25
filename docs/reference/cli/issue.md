@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Issue Commands
+seo_description: Every piece of agent work lives on an issue. Create, read, update, and comment on them from the terminal using tasks-plus-comments, not chat.
 ---
 
 # Issue Commands

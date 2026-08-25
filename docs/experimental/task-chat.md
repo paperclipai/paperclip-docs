@@ -1,3 +1,8 @@
+---
+seo_title: Chat-Style Tasks
+seo_description: Read what an agent said and what it actually did in one stream — thinking, commands, and diffs inline, instead of a comment thread beside a transcript.
+---
+
 # Chat-Style Tasks
 
 Watching an agent work on a task usually means reading two things at once: the comment thread for what it *said*, and the transcript for what it actually *did*. The interesting part — the thinking, the commands, the diffs — sits off to one side, and once the run finishes you scroll past a wall of it to find the reply.

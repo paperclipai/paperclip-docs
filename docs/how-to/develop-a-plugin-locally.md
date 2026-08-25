@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.513.0
+seo_title: Develop a Plugin Locally
+seo_description: Build a plugin from a folder on your laptop, install it into a running instance straight from disk, and iterate with the worker reloading on every save.
 ---
 
 # Develop a plugin locally

@@ -1,3 +1,8 @@
+---
+seo_title: Deployment Overview
+seo_description: Three supported configurations, from zero-friction local use to login-protected private and public deployments. Start here to choose the right one.
+---
+
 # Deployment Overview
 
 Paperclip supports three deployment configurations, from zero-friction local use to login-protected private and public deployments.
