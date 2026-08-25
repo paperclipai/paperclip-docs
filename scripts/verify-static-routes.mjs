@@ -144,8 +144,19 @@ try {
   assert(sitemap.includes("https://docs.paperclip.ing/reference/skills"), "sitemap is missing reference/skills");
   assert(!sitemap.includes("<changefreq>"), "sitemap should not publish ignored changefreq values");
   assert(!sitemap.includes("<priority>"), "sitemap should not publish ignored priority values");
+  /* The invariant is that the sitemap never claims the whole corpus changed on
+     one date — that is the signal Google learns to discount. Two shapes satisfy
+     it: real per-file git dates, or no <lastmod> at all. The build omits them
+     deliberately when every file reports the same date, which happens on a
+     shallow CI checkout and also after any commit that legitimately touches
+     every page. Requiring variety here would fail that correct behaviour. */
   const sitemapLastmods = [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((match) => match[1]);
-  assert(new Set(sitemapLastmods).size > 1, "sitemap lastmod values should reflect document history, not one build date");
+  const distinctLastmods = new Set(sitemapLastmods).size;
+  assert(
+    sitemapLastmods.length === 0 || distinctLastmods > 1,
+    `sitemap published ${sitemapLastmods.length} entries sharing one <lastmod> `
+      + `(${sitemapLastmods[0]}); omit the dates instead of dating the whole site to one build`,
+  );
   assert(
     existsSync(join(outDir, "reference/skills/bundled/index.html")),
     "missing reference/skills/bundled/index.html",
