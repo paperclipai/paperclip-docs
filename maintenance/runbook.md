@@ -133,7 +133,19 @@ When a new parent release tag drops (`v2026.X.Y`):
      git push --tags
      ```
    - Verify `.sync-state.json` on `main` now shows `base_release_tag: v2026.X.Y` and `base_release_sha` matches.
-   - Cloudflare Pages auto-deploys on push to `main`. Confirm `docs.paperclip.ing` is rebuilt successfully.
+   - **Confirm the site actually rebuilt — don't assume.** Cloudflare Pages is supposed to auto-deploy on push to `main`, but that hook has silently no-opped (v2026.824.0 merged with a correct changelog entry and production served the previous build for hours). Check the live site, not the Pages dashboard:
+
+     ```sh
+     curl -s https://docs.paperclip.ing/reference/changelog/ | grep -o 'Docs for v[0-9.]*' | head -1
+     curl -s -o /dev/null -w '%{http_code}\n' https://docs.paperclip.ing/<a-page-new-in-this-release>/
+     ```
+
+     Expect the tag you just shipped, and `200`. If either is wrong, republish by hand:
+
+     ```sh
+     npm run docs:build
+     npx wrangler pages deploy .site --project-name paperclip-docs --branch main
+     ```
    - **Catch `nightly` back up.** After the release PR merges, `main` is ahead of `nightly` by the release commits and `nightly`'s `.sync-state.json` still reads `branch_mode: "nightly"` with the old `base_release_tag`. Merge `main` down and flip `branch_mode` back, otherwise the next `/sync-docs` run sees a stale state file:
      ```sh
      git checkout nightly && git pull
