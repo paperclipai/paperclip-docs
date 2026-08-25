@@ -7,9 +7,11 @@
 // "merge main into nightly" sees pages both branches created as add/add
 // conflicts. This script heals that, and must run after EVERY release merge:
 //
-//   1. fast-forward `nightly` onto the release branch (content == shipped)
-//   2. merge `origin/main` into `nightly` (re-anchors the merge-base at the
-//      squash commit, so the next cycle's divergence starts fresh)
+//   merge `origin/main` into `nightly` with `-X ours` — this re-anchors the
+//   merge-base at the squash commit (so the next cycle's divergence starts
+//   fresh) while KEEPING nightly's content, including the post-tag `master`
+//   drafts that Phase 5.7 quarantined from the release branch. It does NOT
+//   fast-forward nightly onto the release tree (that would delete those drafts).
 //
 // Usage: node scripts/sync/realign-nightly.mjs <release-branch> [--push]
 //   e.g. node scripts/sync/realign-nightly.mjs release/v2026.720.0
@@ -59,21 +61,35 @@ const startBranch = git("branch", "--show-current");
 git("checkout", "nightly");
 git("merge", "--ff-only", "origin/nightly");
 
-// Step 1: bring nightly's content to exactly what shipped.
-const ff = tryGit("merge", "--ff-only", releaseBranch);
-if (!ff.ok) {
-  // Something landed on nightly after the release branch forked. Same content
-  // guarantees a clean three-way merge for the release files themselves.
-  console.log("fast-forward not possible (nightly moved since the release forked) — doing a normal merge");
-  const m = tryGit("merge", releaseBranch, "-m", `Merge ${releaseBranch} into nightly (post-release realign)`);
-  if (!m.ok) die(`merge of ${releaseBranch} into nightly conflicted:\n${m.out}\nResolve by hand, then run the main-merge step yourself.`);
+// Re-anchor ancestry onto main's squash commit WITHOUT discarding nightly's
+// post-tag drafts.
+//
+// We deliberately do NOT fast-forward nightly onto the release branch. Phase 5.7
+// quarantines post-tag leaks (Kimi, reaper, an onboarding rewrite, ...) from the
+// *release* branch only — those drafts are still legitimate on `nightly` because
+// they document `master` features that ship in a *future* stable release.
+// Fast-forwarding nightly onto the release tree would delete them.
+//
+// Instead do one merge of origin/main into nightly with `-X ours`: it makes the
+// squash commit a parent of nightly (restoring ancestry so the next nightly-mode
+// main-merge no longer explodes into add/add conflicts), keeps nightly's own
+// version of every page both branches created, still pulls in main-only hot-fixes
+// on pages nightly did not touch, and preserves nightly-only drafts (Kimi et al.)
+// untouched.
+const anchor = tryGit(
+  "merge",
+  "-X",
+  "ours",
+  "origin/main",
+  "-m",
+  "Merge main into nightly (re-anchor after squash-merged release; keep nightly drafts)",
+);
+if (!anchor.ok) {
+  if (/Already up to date/i.test(anchor.out)) {
+    die("origin/main is already an ancestor of nightly — nothing to realign (was this already run?)");
+  }
+  die(`merge of origin/main into nightly failed:\n${anchor.out}\nResolve by hand, keeping nightly's drafts, then re-run the post-check.`);
 }
-
-// Step 2: merge main so the squash commit becomes an ancestor of nightly.
-// This is what actually re-anchors merge-base(main, nightly) — do not skip it
-// even though the trees already match.
-const anchor = tryGit("merge", "origin/main", "-m", "Merge main into nightly (re-anchor after squash-merged release)");
-if (!anchor.ok) die(`merge of origin/main conflicted (unexpected — trees matched):\n${anchor.out}`);
 
 const base = git("merge-base", "origin/main", "nightly");
 const mainTip = git("rev-parse", "origin/main");
