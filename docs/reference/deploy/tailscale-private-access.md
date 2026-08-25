@@ -1,3 +1,8 @@
+---
+seo_title: Tailscale Private Access
+seo_description: Reach a Paperclip instance from a private network rather than localhost only — the practical path to an authenticated, private deployment.
+---
+
 # Tailscale Private Access
 
 Use this page when you want a Paperclip instance that is reachable from a private network, not just from `localhost`.

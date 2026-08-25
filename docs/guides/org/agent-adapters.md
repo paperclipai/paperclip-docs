@@ -1,3 +1,8 @@
+---
+seo_title: Choosing an Agent Adapter
+seo_description: Compare the adapters that run your agents — Claude Code, Codex, OpenCode, HTTP webhook and more — and pick the right bridge for each role you hire.
+---
+
 # Agent Adapters
 
 When you create an agent in Paperclip, one of the first things you configure is its adapter. The adapter is the bridge between Paperclip and the AI system that actually runs your agent — it tells Paperclip how to launch the agent, how to pass it work, and how to receive results back.

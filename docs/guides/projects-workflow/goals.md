@@ -1,3 +1,8 @@
+---
+seo_title: Goals: Outcomes Above Projects
+seo_description: Goals are outcome statements that anchor everything below them. Create them, link issues and projects, and build a hierarchy that keeps work pointed right.
+---
+
 # Goals
 
 A goal in Paperclip is an outcome statement — a description of something the company is trying to achieve. Goals sit above projects and issues in the hierarchy: they do not contain code, they do not get "worked on" directly, and they do not have an execution workspace. Instead, they act as anchors. Projects link up to goals, and the CEO's strategy typically justifies itself by pointing at which goals it is advancing.

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.722.0
+seo_title: CLI Company Commands
+seo_description: Inspect and manage the top-level container that every agent, project, goal, issue, and budget lives inside, without leaving the terminal.
 ---
 
 # Company Commands

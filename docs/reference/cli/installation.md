@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Installing the Paperclip CLI
+seo_description: Get the single paperclipai binary onto your machine, point it at an instance, and bring up a working local install from the terminal.
 ---
 
 # Installing the CLI

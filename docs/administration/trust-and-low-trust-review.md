@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: Trust and Low-Trust Review
+seo_description: Contain work born from input you cannot vouch for. How presets are chosen, what changes at runtime, and how to review and promote low-trust output.
 ---
 
 # Trust & Low-Trust Review

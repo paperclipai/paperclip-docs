@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Summary Slots API
+seo_description: Places in the UI that always hold a short, current summary of what is happening on a project or workspace, written by agents rather than by hand.
 ---
 
 # Summary Slots

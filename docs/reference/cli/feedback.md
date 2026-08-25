@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Feedback Commands
+seo_description: Inspect, summarise, and export the thumbs-up and thumbs-down feedback recorded against a company's agent outputs and work.
 ---
 
 # Feedback Commands

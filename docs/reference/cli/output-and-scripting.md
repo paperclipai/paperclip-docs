@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Output and Scripting
+seo_description: Wiring paperclipai into a script, a CI step, or an AI operator loop: the two output modes, exit codes, and how to parse results reliably.
 ---
 
 # Output & Scripting

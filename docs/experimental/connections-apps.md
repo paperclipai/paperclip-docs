@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.722.0
+seo_title: Connections v3 (Apps)
+seo_description: The experimental home for connecting agents to outside services — Google Sheets, remote MCP servers, and REST APIs — on a rebuilt connections foundation.
 ---
 
 # Connections v3 (Apps)

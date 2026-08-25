@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Run and Heartbeat Commands
+seo_description: A heartbeat run is one server-side execution of an agent. Trigger runs, follow them, and inspect what the adapter actually did.
 ---
 
 # Run (Heartbeat) Commands

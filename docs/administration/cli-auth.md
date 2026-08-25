@@ -1,3 +1,8 @@
+---
+seo_title: CLI Auth and Board Claim
+seo_description: Two identity flows for the command line, both built so token material never leaves your browser or CLI. Claim a board, log in by device code, rotate tokens.
+---
+
 # CLI Auth & Board Claim
 
 Paperclip has two separate identity flows for humans on the command line and browser:

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.525.0
+seo_title: Modal Sandbox Provider
+seo_description: Provision Modal sandboxes as the execution environment for agent runs when you want managed cloud compute with first-class container images.
 ---
 
 # Modal

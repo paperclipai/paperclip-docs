@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Community Desktop App (Unofficial)
+seo_description: An unofficial macOS app that wraps a full Paperclip instance — drag to Applications and run, no terminal. What it is, and the caveats before you rely on it.
 ---
 
 # Community Desktop App (unofficial)

@@ -1,3 +1,8 @@
+---
+seo_title: Delegation: How Work Reaches Agents
+seo_description: Set a goal, approve a plan, and the CEO breaks it into tasks and assigns them. What you own, what the CEO handles, and the agent-to-agent guardrails.
+---
+
 # Delegation
 
 One of the most powerful things about Paperclip is that you don't have to manage work directly. You set a goal, approve a plan, and the CEO automatically breaks that goal into concrete tasks and assigns them to the right agents. This is delegation — and understanding how it works helps you know when to act and when to let the system run.

@@ -40,6 +40,10 @@ jobs:
         if: always()
         run: npm run docs:test:crawlable-links
 
+      - name: Authored SEO metadata
+        if: always()
+        run: npm run docs:test:seo-metadata
+
       - name: Skill source blocks
         if: always()
         run: npm run docs:test:skill-source-blocks

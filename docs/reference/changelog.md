@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Documentation Changelog
+seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
 
 # Documentation Changelog

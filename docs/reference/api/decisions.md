@@ -1,3 +1,8 @@
+---
+seo_title: Decisions API
+seo_description: How an agent asks when it knows what should happen next but is not allowed to act alone: it writes the question, offers options, and waits for a person.
+---
+
 # Decisions
 
 Sometimes an agent gets far enough to know what should happen next, but not far enough to be allowed to do it on its own. A **decision** is how it asks. The agent writes down the question, offers you a short list of options, and attaches the exact changes each option would make. You pick one, and Paperclip runs those changes for you.

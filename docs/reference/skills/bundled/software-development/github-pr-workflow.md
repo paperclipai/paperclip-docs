@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: GitHub Pull Request Workflow Skill
+seo_description: Prepare a pull request a reviewer can land without follow-up questions: branch hygiene, reviewable commits, a high-signal body, and evidence.
 ---
 
 # GitHub Pull Request Workflow

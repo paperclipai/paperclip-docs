@@ -1,3 +1,8 @@
+---
+seo_title: Status Cards: Answers Without Filtering
+seo_description: Pin the questions you ask daily — is the launch blocked, what changed this week, what is the next action — and read the answer without working the board.
+---
+
 # Status Cards
 
 You already know the handful of questions you ask every day. *Is the launch still blocked?* *What changed on the migration this week?* *Are we shipping, and if not, what's the next action?* Answering them means opening the board, filtering, reading, and holding it all in your head — again tomorrow.

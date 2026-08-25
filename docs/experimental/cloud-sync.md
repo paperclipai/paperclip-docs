@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Cloud Sync to a Paperclip Upstream
+seo_description: Push a local company — agents, projects, issues, skills, portability files — into a Paperclip Cloud stack, previewing exactly what would change first.
 ---
 
 # Cloud Sync

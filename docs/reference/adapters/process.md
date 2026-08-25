@@ -1,3 +1,8 @@
+---
+seo_title: Process Adapter
+seo_description: Run an arbitrary command on the Paperclip host. The right choice when your agent is really a script, a shell command, or a custom runtime.
+---
+
 # Process
 
 The `process` adapter runs an arbitrary command on the same machine as Paperclip. Use it when your agent is just a script, a shell command, or a custom runtime that already knows how to do its own work.

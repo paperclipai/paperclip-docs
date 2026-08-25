@@ -1,3 +1,8 @@
+---
+seo_title: Deploy Paperclip to a VPS or Fly.io
+seo_description: A pragmatic recipe for a working URL with persistent data. Fly.io is the fast path, a single VPS the boring backup, both from the same Docker image.
+---
+
 # Deploy Paperclip to a VPS or Fly.io
 
 A pragmatic recipe to get a working URL with persistent data. Fly.io is the fast path; a single VPS is the boring backup. Both use the same Docker image.

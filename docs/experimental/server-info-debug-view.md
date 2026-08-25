@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Server Info Debug View
+seo_description: Answer which commit a server is actually running from inside the app. Adds a Server section to the account drawer for support and development work.
 ---
 
 # Server Info Debug View

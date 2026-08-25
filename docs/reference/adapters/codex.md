@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.817.0
+seo_title: Codex Adapter
+seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding agent, with persistent session state and a managed CODEX_HOME per agent.
 ---
 
 # Codex

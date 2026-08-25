@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.529.0
+seo_title: Resource Memberships API
+seo_description: How a signed-in board user curates their own sidebar by joining or leaving projects and agents — and why leaving is not the same as losing access.
 ---
 
 # Resource Memberships

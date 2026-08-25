@@ -1,3 +1,8 @@
+---
+seo_title: Members and Access: People in a Company
+seo_description: How humans fit alongside agents: one membership model, roles versus grants, instance admin, member profiles, and why leaving a project keeps access.
+---
+
 # Members & Access
 
 Most of Paperclip is about *agents* — the AI employees that do the work. But a company also has **people**: the humans who sign in, watch the board, approve spend, invite teammates, and set direction. This guide is the mental model for how those people fit in — who can be a member, how access is decided, and how the human side relates to the agent org chart.

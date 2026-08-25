@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Setup Commands
+seo_description: Stand up a Paperclip instance, repair a broken one, or change the settings the server runs on — the commands that touch install and launch.
 ---
 
 # Setup Commands

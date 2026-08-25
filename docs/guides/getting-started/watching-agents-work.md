@@ -1,3 +1,8 @@
+---
+seo_title: Watching Your Agents Work
+seo_description: Turn on the CEO's heartbeat and follow its first execution cycle: read the run transcript, review the strategy, and watch tasks reach the board.
+---
+
 # Watching Agents Work
 
 You have a company with a goal and a CEO agent configured. This guide covers what happens next: enabling the CEO's heartbeat, watching it work through its first execution cycle, reviewing the strategy it produces, and seeing the first tasks appear on the board.

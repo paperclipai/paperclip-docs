@@ -1,3 +1,8 @@
+---
+seo_title: Execution Policy: Enforced Review Gates
+seo_description: The runtime intercepts an executor closing an issue and routes it to review and approval. Covers the three layers, the changes-requested loop, and escalation.
+---
+
 # Execution Policy
 
 Paperclip's execution policy system keeps tasks honest. Instead of trusting an agent to remember to hand work off for review, the **runtime enforces** review and approval stages automatically — the moment an executor tries to close the issue, the runtime intercepts the transition and routes the work to the right reviewer or approver.
