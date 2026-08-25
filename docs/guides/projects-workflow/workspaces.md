@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.529.0
+paperclip_version: v2026.824.0
 ---
 
 # Workspaces
@@ -93,6 +93,72 @@ To start services for a workspace:
 3. The service runs in the background; the status updates in the UI
 
 > **Note:** Services you start in one workspace don't affect other workspaces. Each isolated workspace has its own runtime, even if the configuration was inherited from the project's base settings.
+
+---
+
+## HTTPS previews for runtime services
+
+When a runtime service runs a dev server, you usually reach it on a loopback URL. On a managed workspace, Paperclip can also publish that same service on your tailnet at a real, cert-valid `https://<node>.<tailnet>.ts.net:<port>` URL — the public port matches the loopback app port — so you can open the preview from another device or share it with a teammate on the same tailnet.
+
+### Reading the HTTPS states
+
+The Services control bar tracks HTTPS exposure as its own lifecycle, **separate from the service's process health**. That separation is deliberate: a service can be up and running while its HTTPS preview is still being provisioned or has failed. A preview is only ever reported ready once an external HTTPS probe actually passes, so a green service light on its own doesn't mean the public URL is live yet.
+
+You'll see these states next to a service:
+
+- **Provisioning HTTPS…** — the service is up and Paperclip is bringing the HTTPS mapping online.
+- **HTTPS ready** — the preview is live. You get the public URL with a copy-URL button and an open-in-new-tab button.
+- **HTTPS unavailable** — provisioning failed. The bar shows remediation text ("Check the Tailscale broker and node HTTPS configuration.").
+- **HTTPS cleanup pending** — a previous mapping still needs tearing down before the port can be reused ("Restart the host broker before reusing this port.").
+
+Because HTTPS is fail-closed, Paperclip never falls back to plain HTTP and calls it ready — if the probe doesn't pass, the preview stays unavailable rather than silently downgrading.
+
+### Opting a service in
+
+Most of the time you don't have to do anything: eligible runtimes are opted in automatically, so a typical dev-server service gets an HTTPS preview without any config.
+
+When you do want to be explicit, add an `expose` block to the service with `type: "tailscale_https"`. Nearly every field defaults, so the shorthand is a complete declaration:
+
+```json
+{
+  "expose": { "type": "tailscale_https" }
+}
+```
+
+The recognized fields — `hostname` (`"auto"`, resolved from the local Tailscale node), `publicPort` (`"same"`, matching the loopback app port), `includePaperclipViteHmr`, and `failurePolicy` (`"fail_closed"`) — all fall back to their defaults if you omit them. `includePaperclipViteHmr` defaults to on, which exposes a companion HMR port so Vite hot reload keeps working over the HTTPS origin. To opt a service out, set `type: "none"` (or `tailscaleHttps: false`) on the block.
+
+> **Prerequisite:** HTTPS previews only work when the instance is on a tailnet with the HTTPS broker installed. If you see **HTTPS unavailable**, that host-side helper is usually what needs attention — see [Tailscale HTTPS Broker](../../reference/deploy/tailscale-https-broker.md) for the operator setup.
+
+---
+
+## Opening a workspace
+
+When you want to look inside a workspace as a board member — to poke at its running app, check what the agent built, or see why it won't come up — you open it from the workspace detail screen (**Projects → project → Workspaces → workspace**, behind the same **Enable Isolated Workspaces** toggle described above). The **Workspace access** card there is the honest front door: it tells you the workspace's current state, why it's in that state, and offers the one safe action that makes sense right now.
+
+That card exists because a plain "Open" link used to lie. A workspace whose database had gone missing still showed an **Open** link that then failed when you clicked it. The Workspace access card replaces that with a real state plus the right next step, so you never chase a dead link.
+
+### Reading the access states
+
+The card shows a badge, a title, and a single primary action. The primary action is either a button you can click now or a disabled wait state while Paperclip finishes something:
+
+- **Provisioning** → "Workspace is not running" → **Start workspace** (or a disabled **Provisioning** / **Repair in progress** while it settles).
+- **Validating clone** → disabled **Validating** — wait for the clone to be checked.
+- **Ready** (or "Ready — snapshot-local sign-in") → **Open workspace**.
+- **Degraded** → "Workspace is degraded" → **Repair workspace** (or **Start workspace** when no service is serving yet).
+- **Repairing** → "Repairing workspace database" → disabled **Repair in progress** — wait.
+- **Failed** → "Database provisioning failed" / "Repair failed" → **Repair workspace**, or for a failed repair a **View repair log** link. A failed repair keeps your data — "The pre-repair backup was kept."
+
+The human-readable cause under the title tells you *why* you're seeing a repair or start action instead of **Open workspace**. Causes the card surfaces include: no healthy runtime service is publishing a URL yet; the runtime is publishing a URL Paperclip can't open; the cloned database isn't ready to accept a login yet; the isolated database isn't answering; the clone restored no company or issue rows; the cloned product tables couldn't be read; or no cloned user has an active company membership. Each of these maps you to **Repair workspace** or **Start workspace** rather than a link that would just fail.
+
+### What "Open workspace" does — the single-use handoff
+
+When the workspace is **Ready** and a login handoff is available, the card notes: "Uses a single-use login handoff — no password needed." Clicking **Open workspace** calls `POST /api/execution-workspaces/{id}/login-handoff`, which mints a short-lived, **single-use** ticket. The isolated workspace exchanges that ticket for its own instance-scoped session, so opening a managed workspace doesn't depend on a cloned password.
+
+The endpoint returns a `url` you navigate to — you don't store it. The workspace answers that URL with a redirect, so the ticket never lands in your browser history. If you want to control where you land inside the workspace, pass an optional request body `{ "next": "<same-origin path>" }`; anything that isn't a same-origin path collapses to `/`.
+
+### The snapshot-local fallback
+
+If the instance has no login handoff configured, or your session has no cloned user to sign in as, the card instead notes it "Signs in with the snapshot-local credentials captured when this clone was made." Two refusal reasons drive this fallback: there's no workspace login handoff configured on the instance, and there's no cloned board identity in your session. In that case you're signing in with the credentials frozen into the clone, not through the single-use ticket.
 
 ---
 

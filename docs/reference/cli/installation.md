@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.824.0
 ---
 
 # Installing the CLI
@@ -106,6 +106,8 @@ Verify the result at any time:
 ```sh
 paperclipai --version
 ```
+
+Not sure which channel to pick? Run `paperclipai channels` to see all four release channels — `stable`, `beta`, `nightly`, and `canary` — with their currently published versions and which one this install follows. Add `--json` for machine-readable output. See [See which channel you're on](../../how-to/update-paperclip.md#see-which-channel-youre-on) for the full rundown.
 
 To move between channels or versions later, you do not need to reinstall — see [`paperclipai update`](../../how-to/update-paperclip.md).
 

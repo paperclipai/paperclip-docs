@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.817.0
+paperclip_version: v2026.824.0
 ---
 
 # Secrets
@@ -183,6 +183,23 @@ secrets = response.json()
 ```
 
 <!-- /tabs -->
+
+---
+
+## Secret Catalog
+
+```http
+GET /api/companies/{companyId}/secrets/catalog
+```
+
+Returns a trimmed list of the company's secrets — just the `id`, `name`, `key`, and `status` of each. Unlike [List Secrets](#list-secrets), which is board-only and returns full metadata, the catalog is meant for picking a secret to reference, so it's callable by the board *or* by an agent with access to the company. The secret values themselves are never returned.
+
+Use this when you want to show which secrets are available to bind — for example, populating a picker in an agent config — without exposing provider details or version history.
+
+```bash
+curl "http://localhost:3100/api/companies/company-1/secrets/catalog" \
+  -H "Authorization: Bearer <token>"
+```
 
 ---
 

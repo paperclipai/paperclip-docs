@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.824.0
+---
+
 # Update Paperclip to the latest version
 
 A new Paperclip release has dropped — maybe you saw it on the [releases page](https://github.com/paperclipai/paperclip/releases), maybe an agent flagged a bug that's already fixed upstream, maybe you just want the newest UI. This guide walks you through updating an existing install.
@@ -78,6 +82,30 @@ If the restarted service fails to come back healthy at the new version, the upda
 | `--json` | Print machine-readable output. |
 
 `--latest`, `--canary`, and `--version` are mutually exclusive — pick at most one.
+
+---
+
+## See which channel you're on
+
+Before you switch, it helps to know where you are. `paperclipai channels` shows the four release channels and marks which one this install follows.
+
+```bash
+paperclipai channels
+paperclipai channels --json    # machine-readable output
+```
+
+The channels print from most to least stable, each with its currently published version and a one-line install hint:
+
+| Channel | npm dist-tag | What it is |
+|---|---|---|
+| `stable` | `latest` | Manual, soaked in beta for 3+ days — the recommended release for almost everyone. |
+| `beta` | `beta` | Manual promotion behind an approval gate — release candidates: what stable becomes a few days later. |
+| `nightly` | `nightly` | Once a night, smoke-gated — yesterday's merges, tested as a unit. |
+| `canary` | `canary` | Every merge to master — the bleeding edge. |
+
+At the bottom it tells you which channel this install is on. A source checkout reports a placeholder version that does not map to a published channel, so you'll see that noted instead. The same names apply to the Docker images: `ghcr.io/paperclipai/paperclip:{latest,beta,nightly,canary}`.
+
+To move onto a new build, use the update command with a channel flag.
 
 ---
 

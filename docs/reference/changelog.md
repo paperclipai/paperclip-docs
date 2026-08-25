@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.817.0
+paperclip_version: v2026.824.0
 ---
 
 # Documentation Changelog
@@ -11,6 +11,31 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.824.0 <span class="accordion-meta">August 24, 2026</span></summary>
+<div class="accordion-body">
+
+**New pages**
+
+- [Tailscale HTTPS Broker](deploy/tailscale-https-broker.md) — the operator-side helper that hands out real, cert-valid `https://` preview URLs for the dev servers running inside managed workspaces, instead of loopback-only links.
+
+**Updated pages**
+
+- [Workspaces](../guides/projects-workflow/workspaces.md) — exposing a workspace's dev server as an HTTPS preview on your tailnet, opt-in per service, and what that looks like from the board.
+- [Update Paperclip](../how-to/update-paperclip.md) and [CLI installation](cli/installation.md) — the four release channels (`stable`, `beta`, `nightly`, `canary`) and the new `paperclipai channels` command that shows which one your install follows.
+- [Export & Import](../guides/power/export-import.md) — large packages now upload in resumable parts, so an interrupted import picks up from the parts it already has instead of starting over.
+- [Companies API](api/companies.md) — the chunked import-transfer routes (`/api/companies/import/transfers`) that back resumable imports.
+- [Secrets API](api/secrets.md) — the agent-callable secret catalog route for picking a secret to reference without exposing full metadata.
+- [Agents API](api/agents.md) — the Claude subscription (setup-token) login flow: a company owner can log Claude in with a subscription instead of pasting an API key.
+- [Adapters API](api/adapters.md) — the adapter device-login routes (code-and-URL browser sign-in), starting with Codex.
+- [Artifacts](../guides/day-to-day/artifacts.md) — inline, Google-Docs-style comments on Plan and Artifact documents: anchored highlights, threaded replies, resolve/reopen, and shareable comment links.
+- [Issues](../guides/day-to-day/issues.md) and [Attention API](api/attention.md) — who may resolve an interaction card (`anyone`, `not_creator`, `human_only`) and company-wide interaction governance.
+- [Issues API](api/issues.md) — the workspace file-resource availability check.
+- Smaller touch-ups brought in line with the release: [Environment Variables](deploy/environment-variables.md) (workspace Git-scan limits) and [Decisions](../guides/day-to-day/decisions.md).
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.817.0 <span class="accordion-meta">August 17, 2026</span></summary>
 <div class="accordion-body">
 
