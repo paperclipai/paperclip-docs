@@ -1,0 +1,45 @@
+name: Docs checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, nightly]
+
+jobs:
+  docs-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Sitemap <lastmod> is derived from per-file git history. A shallow
+          # checkout collapses every file to the same commit date, which the
+          # build detects and responds to by omitting the dates entirely.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Separate steps with `if: always()` so one failure cannot mask the rest.
+      # An `&&` chain short-circuits, which silently skipped later gates.
+      - name: Static routes
+        run: npm run docs:test:static-routes
+
+      - name: Asset fingerprints
+        if: always()
+        run: npm run docs:test:asset-fingerprints
+
+      - name: Hierarchical skills nav
+        if: always()
+        run: npm run docs:test:hierarchical-skills-nav
+
+      - name: Crawlable links
+        if: always()
+        run: npm run docs:test:crawlable-links
+
+      - name: Skill source blocks
+        if: always()
+        run: npm run docs:test:skill-source-blocks
