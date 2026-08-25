@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.824.0
+---
+
 # Tailscale HTTPS Broker
 
 Use this page when you want a Paperclip instance to hand out real, cert-valid `https://` preview URLs for the dev servers running inside its managed workspaces — instead of only loopback URLs.

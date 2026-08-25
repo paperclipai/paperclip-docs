@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.824.0
+---
+
 # Update Paperclip to the latest version
 
 A new Paperclip release has dropped — maybe you saw it on the [releases page](https://github.com/paperclipai/paperclip/releases), maybe an agent flagged a bug that's already fixed upstream, maybe you just want the newest UI. This guide walks you through updating an existing install.

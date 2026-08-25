@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.824.0
+---
+
 # Export & Import
 
 Once you've built a company — given it a goal, hired agents, configured their adapters, and set up projects — that configuration has real value. Export and import let you capture that configuration as a portable package you can back up, share with others, move to another Paperclip instance, or reuse as a starting point for a new company.

@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.824.0
+---
+
 # Hire Your First Agent
 
 An agent isn't just "an AI". It's a configuration — a specific role, with a specific AI system powering it, operating under a specific budget, with defined rules for when and how it wakes up and works.

@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.824.0
+---
+
 # Kimi Local
 
 `kimi_local` runs Moonshot's Kimi Code CLI (`kimi`) on the same machine as Paperclip. Use it when you want a local coding agent that resumes the same Kimi session across heartbeats, streams its transcript live, and picks up your Paperclip skills from a dedicated per-run folder.

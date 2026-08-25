@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.722.0
+paperclip_version: v2026.824.0
 ---
 
 # Environment Variables

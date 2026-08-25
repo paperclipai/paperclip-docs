@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.626.0
+paperclip_version: v2026.824.0
 ---
 
 # Issues

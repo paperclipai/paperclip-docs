@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.529.0
+paperclip_version: v2026.824.0
 ---
 
 # Workspaces

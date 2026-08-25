@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.817.0
+paperclip_version: v2026.824.0
 ---
 
 # Documentation Changelog
@@ -11,6 +11,29 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.824.0 <span class="accordion-meta">August 24, 2026</span></summary>
+<div class="accordion-body">
+
+**New pages**
+
+- [Kimi Adapter](adapters/kimi-local.md) — running Moonshot's Kimi CLI as a Paperclip agent: install, auth, the models it offers, and the environment test.
+- [Tailscale HTTPS Broker](deploy/tailscale-https-broker.md) — the operator-side helper that hands out real, cert-valid `https://` preview URLs for the dev servers running inside managed workspaces, instead of loopback-only links.
+
+**Updated pages**
+
+- [Workspaces](../guides/projects-workflow/workspaces.md) — exposing a workspace's dev server as an HTTPS preview on your tailnet, opt-in per service, and what that looks like from the board.
+- [Update Paperclip](../how-to/update-paperclip.md) — the four release channels (`stable`, `beta`, `nightly`, `canary`) and the new `paperclipai channels` command that shows which one your install follows.
+- [Export & Import](../guides/power/export-import.md) — large packages now upload in resumable parts, so an interrupted import picks up from the parts it already has instead of starting over.
+- [Companies API](api/companies.md) — the chunked import-transfer routes (`/api/companies/import/transfers`) that back resumable imports.
+- [Secrets API](api/secrets.md) — the agent-callable secret catalog route for picking a secret to reference without exposing full metadata.
+- [Your First Company](../guides/getting-started/your-first-company.md) and [Your First Agent](../guides/getting-started/your-first-agent.md) — refreshed to match the current onboarding flow.
+- [Artifacts](../guides/day-to-day/artifacts.md) — grouping and starring in the company-wide artifacts view.
+- Smaller touch-ups brought in line with the release: [Environment Variables](deploy/environment-variables.md) (workspace Git-scan limits and the terminal-workspace reaper cooldown), [Attention API](api/attention.md), [Adapters overview](adapters/overview.md), [Issues](../guides/day-to-day/issues.md), [Issues API](api/issues.md), [Decisions](../guides/day-to-day/decisions.md), and [CLI installation](cli/installation.md).
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.817.0 <span class="accordion-meta">August 17, 2026</span></summary>
 <div class="accordion-body">
 

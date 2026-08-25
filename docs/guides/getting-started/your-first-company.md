@@ -1,3 +1,7 @@
+---
+paperclip_version: v2026.824.0
+---
+
 # Create Your First Company
 
 A company in Paperclip is the container for everything: your mission, your team of agents, all the tasks they work through, and the budget that keeps spending under control. Before any agents can do anything, they need a company to work inside.
