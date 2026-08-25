@@ -1226,43 +1226,6 @@ function buildLandingCardsHtml(nav, basePath, iconPaths) {
   }).join("");
 }
 
-function landingDirectoryListHtml(nodes, basePath) {
-  const items = getNavChildren({ pages: nodes }).map((node) => {
-    if (isNavPage(node)) {
-      const href = routePathForSlug(basePath, node.slug);
-      return `<li><a href="${escapeAttr(href)}">${escapeHtml(node.title)}</a></li>`;
-    }
-    const children = getNavChildren(node);
-    if (!children.length) return "";
-    return `<li class="landing-directory-group">`
-      + `<span class="landing-directory-group-title">${escapeHtml(node.title || "Group")}</span>`
-      + landingDirectoryListHtml(children, basePath)
-      + `</li>`;
-  }).filter(Boolean).join("");
-  return items ? `<ul class="landing-directory-list">${items}</ul>` : "";
-}
-
-// Every document in the manifest, so crawlers and no-JS readers get the full
-// index rather than one entry point per section.
-function buildLandingDirectoryHtml(nav, basePath) {
-  const sections = sectionsByTier(nav).flatMap(({ entries }) => entries)
-    .map(({ section }) => {
-      const list = landingDirectoryListHtml(section.pages, basePath);
-      if (!list) return "";
-      return `<div class="landing-directory-section">`
-        + `<h3>${escapeHtml(section.title)}</h3>`
-        + list
-        + `</div>`;
-    })
-    .filter(Boolean)
-    .join("");
-  if (!sections) return "";
-  return `<nav id="landing-directory" aria-labelledby="landing-directory-title">`
-    + `<h2 id="landing-directory-title">Browse all documentation</h2>`
-    + `<div class="landing-directory-columns">${sections}</div>`
-    + `</nav>`;
-}
-
 // ── Server-rendered navigation chrome ───────────────────────────────────────
 // app.js builds the sidebar, mobile drawer and breadcrumb from content.json on
 // load. That leaves interior routes shipping an empty `#sb-sections`, so the
@@ -1368,8 +1331,7 @@ function buildRootPageHtml(sourceIndex, nav, basePath, iconPaths) {
     .replace('<section id="landing">', '<section id="landing" class="is-active">')
     .replace(
       '<div class="card-grid" id="landing-cards"></div>',
-      `<div class="card-grid" id="landing-cards" data-server-rendered="true">${buildLandingCardsHtml(nav, basePath, iconPaths)}</div>`
-        + buildLandingDirectoryHtml(nav, basePath),
+      `<div class="card-grid" id="landing-cards" data-server-rendered="true">${buildLandingCardsHtml(nav, basePath, iconPaths)}</div>`,
     );
 }
 

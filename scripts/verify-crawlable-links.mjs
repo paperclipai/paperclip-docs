@@ -136,7 +136,15 @@ for (const file of htmlFiles) {
   }
 }
 
-/* Deep pages need the navigation in their shipped bytes, not after app.js. */
+/* Deep pages need the navigation in their shipped bytes, not after app.js.
+   This is also where full-manifest coverage is guaranteed: the homepage used
+   to carry a "Browse all documentation" directory, and the sidebar is what
+   replaced it as the surface that reaches every route. */
+const sitemapForNav = readFileSync(join(outDir, "sitemap.xml"), "utf8");
+const manifestRoutes = [...sitemapForNav.matchAll(/<loc>https:\/\/docs\.paperclip\.ing(\/[^<]*)<\/loc>/g)]
+  .map((match) => match[1])
+  .filter((routePath) => routePath !== "/");
+
 const interiorSamples = [
   "guides/welcome/key-concepts/index.html",
   "reference/adapters/overview/index.html",
@@ -157,10 +165,34 @@ for (const sample of interiorSamples) {
   if (!/data-server-rendered="true"/.test(sidebar[0])) {
     fail(`${sample}: sidebar navigation is not server-rendered.`);
   }
-  const anchors = (sidebar[1].match(/<a\s/g) || []).length;
-  if (anchors < 100) {
-    fail(`${sample}: sidebar has only ${anchors} links server-rendered; expected the full manifest.`);
+  const sidebarHrefs = new Set(
+    [...sidebar[1].matchAll(/<a class="sb-link[^"]*"[^>]*href="([^"]+)"/g)].map((match) => match[1]),
+  );
+  const missing = manifestRoutes.filter((routePath) => !sidebarHrefs.has(routePath));
+  if (missing.length > 0) {
+    fail(
+      `${sample}: server-rendered sidebar is missing ${missing.length} manifest route(s), `
+        + `starting with ${missing[0]}`,
+    );
   }
+  if (sidebarHrefs.size !== manifestRoutes.length) {
+    fail(
+      `${sample}: sidebar link count (${sidebarHrefs.size}) does not match the manifest `
+        + `(${manifestRoutes.length})`,
+    );
+  }
+}
+
+/* Every section must still be reachable from the homepage itself. */
+const rootHtml = readFileSync(join(outDir, "index.html"), "utf8");
+const rootCardHrefs = new Set(
+  [...rootHtml.matchAll(/<a class="card" href="([^"]+)"/g)].map((match) => match[1]),
+);
+if (rootCardHrefs.size < 10) {
+  fail(`index.html: homepage exposes only ${rootCardHrefs.size} section links.`);
+}
+for (const href of rootCardHrefs) {
+  if (!resolvesInBundle(href)) fail(`index.html: homepage card href "${href}" has no target.`);
 }
 
 /* Uniform sitemap dates are worse than none — they claim the whole site
@@ -183,5 +215,6 @@ if (failures.length > 0) {
 
 console.log(
   `Crawlable-link contract passed: ${checkedLinks} internal links across ${htmlFiles.length} pages `
-    + `resolve in one hop, navigation is server-rendered, sitemap dates are not uniform.`,
+    + `resolve in one hop, the server-rendered sidebar covers all ${manifestRoutes.length} manifest `
+    + `routes, and sitemap dates are not uniform.`,
 );

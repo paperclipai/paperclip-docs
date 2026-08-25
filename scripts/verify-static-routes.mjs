@@ -45,7 +45,7 @@ const REPRESENTATIVE_ROUTES = [
     route: "/",
     file: "index.html",
     h1: '<h1 id="landing-title">Everything you need to <em>run Paperclip.</em></h1>',
-    contentMarker: '<nav id="landing-directory" aria-labelledby="landing-directory-title">',
+    contentMarker: '<div class="card-grid" id="landing-cards" data-server-rendered="true">',
     isDocsRoot: true,
   },
   {
@@ -296,28 +296,16 @@ try {
     rootHtml.includes('<div class="card-grid" id="landing-cards" data-server-rendered="true">'),
     "/: the homepage card grid must be server-rendered",
   );
-  const directoryHtml = rootHtml.match(/<nav id="landing-directory"[\s\S]*?<\/nav>/)?.[0];
-  assert(directoryHtml, "/: the homepage directory is missing from raw HTML");
-  const directoryHrefs = new Set(
-    [...directoryHtml.matchAll(/<a href="([^"]+)"/g)].map((match) => match[1]),
+  /* Full-manifest coverage moved off the homepage and onto the server-rendered
+     sidebar that every interior route carries; verify-crawlable-links.mjs owns
+     that assertion now. The homepage still opens every section via its cards. */
+  const cardHrefs = new Set(
+    [...rootHtml.matchAll(/<a class="card" href="([^"]+)"/g)].map((match) => match[1]),
   );
-  const sitemapRoutes = [...sitemap.matchAll(/<loc>https:\/\/docs\.paperclip\.ing(\/[^<]*)<\/loc>/g)]
-    .map((match) => match[1])
-    .filter((routePath) => routePath !== "/");
-  for (const routePath of sitemapRoutes) {
-    assert(
-      directoryHrefs.has(routePath),
-      `/: the homepage directory is missing the canonical-manifest route ${routePath}`,
-    );
-  }
   assert(
-    directoryHrefs.size === sitemapRoutes.length,
-    `/: homepage directory link count (${directoryHrefs.size}) does not match the manifest (${sitemapRoutes.length})`,
+    cardHrefs.size >= 10,
+    `/: the homepage should link every section; found ${cardHrefs.size} card links`,
   );
-  for (const { route, isDocsRoot } of REPRESENTATIVE_ROUTES) {
-    if (isDocsRoot) continue;
-    assert(directoryHrefs.has(route), `/: the homepage directory is missing a link to ${route}`);
-  }
   assert(
     /<a href="\/" [^>]*data-nav="home"/.test(rootHtml) || /<a [^>]*href="\/"[^>]*data-nav="home"/.test(rootHtml),
     "/: docs-root links must be real anchors so they work without JavaScript",
@@ -373,16 +361,15 @@ try {
     }
   }
   const subpathRootHtml = readFileSync(join(subpathOutDir, "index.html"), "utf8");
-  const subpathDirectory = subpathRootHtml.match(/<nav id="landing-directory"[\s\S]*?<\/nav>/)?.[0];
-  assert(subpathDirectory, `${SUBPATH_BASE}: the homepage directory is missing from raw HTML`);
-  const subpathHrefs = [...subpathDirectory.matchAll(/<a href="([^"]+)"/g)].map((match) => match[1]);
+  const subpathCardHrefs = [...subpathRootHtml.matchAll(/<a class="card" href="([^"]+)"/g)]
+    .map((match) => match[1]);
   assert(
-    subpathHrefs.length === directoryHrefs.size,
-    `${SUBPATH_BASE}: the homepage directory should cover the same manifest as the root build`,
+    subpathCardHrefs.length === cardHrefs.size,
+    `${SUBPATH_BASE}: the homepage should expose the same sections as the root build`,
   );
   assert(
-    subpathHrefs.every((href) => href.startsWith(SUBPATH_BASE)),
-    `${SUBPATH_BASE}: homepage directory links must be prefixed with the configured base path`,
+    subpathCardHrefs.every((href) => href.startsWith(SUBPATH_BASE)),
+    `${SUBPATH_BASE}: homepage links must be prefixed with the configured base path`,
   );
   assert(
     subpathRootHtml.includes(`<a href="${SUBPATH_BASE}" class="navbar-link" data-nav="home">`),
