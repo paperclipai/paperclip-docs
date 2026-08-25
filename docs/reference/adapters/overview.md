@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.817.0
 ---
 
 # Adapters Overview
@@ -34,7 +34,6 @@ Every adapter is responsible for the same core jobs:
 | Pi CLI with its built-in tool set | [Pi](./pi.md) |
 | Hermes Agent with persistent memory and 30+ tools | [Hermes](./hermes.md) |
 | Grok Build CLI on your machine | [Grok Local](./grok-local.md) |
-| Kimi Code CLI on your machine | [Kimi Local](./kimi-local.md) |
 | OpenClaw over a WebSocket gateway | [OpenClaw Gateway](./openclaw-gateway.md) |
 | A custom shell command or script | [Process](./process.md) |
 | A webhook or cloud service you control | [HTTP](./http.md) |
@@ -65,7 +64,6 @@ These adapters ship with Paperclip and are always available in the host:
 | [Pi](./pi.md) | `pi_local` | Selectable | Pi CLI runs with its built-in tool set and provider/model routing. |
 | [Hermes](./hermes.md) | `hermes_local` | Selectable | Hermes Agent runs with persistent memory, 30+ tools, 80+ skills, and multi-provider routing. |
 | [Grok Local](./grok-local.md) | `grok_local` | Selectable | Grok Build CLI runs with `--resume` session continuity, streaming reasoning output, and skills staged into `.claude/skills`. |
-| [Kimi Local](./kimi-local.md) | `kimi_local` | Selectable | Kimi Code CLI runs with a live ACP transcript, automatic CLI-lane fallback, `-r` session continuity, and skills staged into an isolated per-run directory. |
 | [OpenClaw Gateway](./openclaw-gateway.md) | `openclaw_gateway` | **Coming soon** (use OpenClaw invite flow) | Remote OpenClaw instances reached over the WebSocket gateway protocol. |
 | [Process](./process.md) | `process` | **Coming soon** (API / import only) | Shell commands, scripts, and custom local runtimes. |
 | [HTTP](./http.md) | `http` | **Coming soon** (API / import only) | Webhook-style invocation into your own service. |
@@ -129,7 +127,6 @@ If you're running sandbox workers, leave `engine` on `auto` so the adapter uses 
 - [Pi](./pi.md)
 - [Hermes](./hermes.md)
 - [Grok Local](./grok-local.md)
-- [Kimi Local](./kimi-local.md)
 - [OpenClaw Gateway](./openclaw-gateway.md)
 - [Process](./process.md)
 - [HTTP](./http.md)

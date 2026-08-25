@@ -870,10 +870,6 @@
           "file": "../docs/reference/adapters/grok-local.md"
         },
         {
-          "title": "Kimi Local",
-          "file": "../docs/reference/adapters/kimi-local.md"
-        },
-        {
           "title": "OpenClaw Gateway",
           "file": "../docs/reference/adapters/openclaw-gateway.md"
         },

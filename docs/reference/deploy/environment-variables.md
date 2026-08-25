@@ -29,7 +29,6 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `PAPERCLIP_WORKSPACE_GIT_SCAN_QUEUE_CAPACITY` | `32` | How many scans may wait in the queue before new ones are rejected. Clamped to 0–1024. |
 | `PAPERCLIP_WORKSPACE_GIT_SCAN_TIMEOUT_MS` | `8000` | Per-scan timeout, in milliseconds, before a workspace Git scan is abandoned. Clamped to 100–120000. |
 | `PAPERCLIP_WORKSPACE_GIT_SCAN_CACHE_TTL_MS` | `10000` | How long a completed scan's result is reused before a fresh scan runs, in milliseconds. Clamped to 0–60000. |
-| `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` | `7` | How many days the terminal-workspace reaper waits after an issue tree becomes terminal before it archives the workspace, leaving a window in which someone can reopen the work. `0` disables the cooldown and restores immediate reaping; a negative or non-numeric value falls back to the default. |
 
 > **Note:** `DATABASE_URL` is the main switch between the embedded database and external PostgreSQL.
 
