@@ -1036,7 +1036,12 @@ function wireSidebarContainer(container) {
 
 function buildSidebar() {
   const container = document.getElementById('sb-sections');
-  container.innerHTML = sidebarSectionsHTML();
+  // Interior routes ship the sidebar server-rendered from the same manifest,
+  // so crawlers see all of it. Keep that DOM instead of replacing it with
+  // byte-identical markup — re-rendering only costs a flash of layout.
+  if (container.dataset.serverRendered !== 'true') {
+    container.innerHTML = sidebarSectionsHTML();
+  }
   wireSidebarContainer(container);
   renderLucideIcons();
 }
@@ -1602,6 +1607,14 @@ function postProcessTables(root) {
   });
 }
 
+function findPageByRoutePath(routePath) {
+  const basePath = APP_BASE_URL.pathname.replace(/\/$/, '');
+  if (basePath && !routePath.startsWith(`${basePath}/`) && routePath !== `${basePath}/`) return null;
+  const slug = normalizeRouteKey(routePath.slice(basePath.length));
+  if (!slug) return null;
+  return allPages.find(candidate => candidate.slug === slug) || null;
+}
+
 function postProcessInternalLinks(root) {
   root.querySelectorAll('a[href]').forEach(a => {
     const href = a.getAttribute('href');
@@ -1636,6 +1649,23 @@ function postProcessInternalLinks(root) {
     }
 
     const [docHref, headingHref] = href.split('#');
+
+    // Static builds already emit canonical route hrefs. Route them through the
+    // client so an in-article link is still a soft transition, not a reload.
+    if (docHref && docHref.startsWith('/')) {
+      const routePage = findPageByRoutePath(docHref);
+      if (routePage) {
+        a.addEventListener('click', e => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+          e.preventDefault();
+          loadPage(routePage.file, headingHref || null);
+        });
+      }
+      return;
+    }
+
+    // Legacy relative markdown links, still present when the SPA renders
+    // markdown it fetched at runtime.
     if (docHref && docHref.endsWith('.md')) {
       const baseDir = currentFile.replace(/\/[^/]+$/, '/');
       const targetFile = normalizeDocPath(baseDir + docHref);
