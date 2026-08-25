@@ -1,7 +1,15 @@
 # Proposal: keep `/sync-docs` working under Paperclip's release-channel model
 
-**Status:** proposal (for review) · **Branch:** `proposal/sync-docs-release-channels`
-**Author:** docs maintenance · **Date:** 2026-08-25
+**Status:** implemented on `feat/sync-docs-release-channels` · **Date:** 2026-08-25
+
+> **Implementation landed with this document.** All five changes below are in this
+> branch: the tag-accuracy gate (`scripts/sync/check-tag-accuracy.mjs`, §5.2), the
+> stable-CalVer guard + channel glossary and tag-scoped drift/verify (§5.1, §5.3)
+> and the new Phase 5.7 in `skills/sync-docs/SKILL.md`, the realign fix
+> (`scripts/sync/realign-nightly.mjs`, §5.4), and the `release-channels` watcher in
+> `scripts/sync/anchor-map.json` (§5.5). The gate was dry-run against the
+> v2026.824.0 leak fixture until it flagged exactly Kimi + the reaper env var with
+> zero false positives on in-tag pages, and against the corrected release (0 leaks).
 **Trigger:** the v2026.824.0 release run shipped (and we caught) docs for features
 that were **not in the release** — Kimi adapter, `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS`,
 and a mission-less onboarding rewrite. All three exist on `master` but landed

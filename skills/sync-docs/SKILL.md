@@ -39,7 +39,8 @@ The branch model is non-negotiable: end users on the latest *released* paperclip
 - `scripts/sync/check-drift.mjs` — Phase 1.5 drift detection (finds documented surfaces missing from parent).
 - `scripts/sync/detect-renames.mjs` — Phase 3 directory rename detection (distinguishes a renamed surface from a brand-new one).
 - `scripts/sync/verify-edit.mjs` — Phase 5.5 post-edit verification (checks that authored claims still match parent code).
-- `scripts/sync/realign-nightly.mjs` — post-release realign (Phase 7): fast-forwards `nightly` onto the merged release branch and re-anchors the merge-base after the squash-merge severs ancestry.
+- `scripts/sync/check-tag-accuracy.mjs` — **release mode only** (Phase 5.7): the tag-accuracy gate. Verifies every doc page changed on `nightly` vs `main` against the **stable release tag** and flags post-tag leaks — content nightly drafted from `master` that is not in the release. See `maintenance/release-channels-plan.md` for why this exists.
+- `scripts/sync/realign-nightly.mjs` — post-release realign (Phase 7): re-anchors `nightly` onto the merged release squash commit (restoring ancestry) **without discarding** nightly's post-tag `master` drafts.
 
 ## Invocation
 
@@ -65,10 +66,21 @@ The branch model is non-negotiable: end users on the latest *released* paperclip
 
 ### Phase 1 — Decide mode and target branch
 
+> **Release channels — read this first.** Paperclip publishes on four lanes:
+> `canary` (every merge to `<parent-default>`) → `nightly` (a green `master` build,
+> smoke-tested nightly) → `beta` (a promoted nightly, soaks ≥3 days) → `stable`
+> (the manually cut release). **Only `stable` has git tags and GitHub Releases**
+> (clean CalVer `vYYYY.MDD.P`); beta/nightly/canary are npm/Docker artifacts with
+> no git ref we can diff against. **Docs ship on `stable`.** Note the naming
+> collision: *our* `nightly` branch tracks parent `<parent-default>` HEAD (≈ the
+> **canary** lane), which runs far ahead of the stable tag — so a release branch
+> cut from `nightly` inherits post-tag `master` drafts. Phase 5.7 is the gate that
+> catches those. See `maintenance/release-channels-plan.md`.
+
 1. Read `.sync-state.json`. Note `branch_mode` and `base_release_tag`.
-2. Fetch parent's latest release: `gh api repos/paperclipai/paperclip/releases/latest -q '.tag_name'`.
+2. Fetch parent's latest **stable** release: `gh api repos/paperclipai/paperclip/releases/latest -q '.tag_name'`. `releases/latest` already excludes prereleases, but **guard defensively**: the release target MUST match `^v?\d{4}\.\d{1,4}\.\d+$` (clean CalVer). Any `-beta`/`-nightly`/`-canary` tag is never a release target — if the API ever returns one, treat the run as nightly mode and note it in the summary.
 3. Auto-detect mode (unless overridden):
-   - If a new release tag exists AND `base_release_tag` is older → **release mode**.
+   - If a new stable release tag exists AND `base_release_tag` is older → **release mode**.
    - Otherwise → **nightly mode**.
 4. Check out the right branch:
    - Release mode: ensure on `main`. Release mode is **self-sufficient** — it does not require the `nightly` branch to exist or to have drafts. If `nightly` exists with relevant drafts, they're used as a starting point; if not, the release run computes everything from scratch.
@@ -110,10 +122,13 @@ Cache result under `/tmp/paperclip-sync/<sha>/` so we don't refetch within a run
 
 Drift is the inverse of the cumulative diff: it's the set of things **we already document** that have since vanished or moved upstream. It exists regardless of when the last sync happened — a parent surface can disappear between two sync runs even if our diff window is empty. The wet-run that motivated this phase found `POST /api/companies/{companyId}/logo` documented but absent from current `server/src/routes/companies.ts`, with no sign of it in any diff window the sync had ever processed.
 
-Run the drift checker against parent HEAD:
+Run the drift checker against the reference for this mode. **Nightly mode → `<parent-default>`** (drift is about the live upstream). **Release mode → the stable release tag** — checking release-mode drift against `master` is blind to the tag divergence and will pass surfaces that exist on `master` but not in the release (that is how the Kimi leak slipped past a `0`-drift run). Use `<release-tag>` in release mode:
 
 ```
+# nightly mode
 node scripts/sync/check-drift.mjs --json --against <parent-default>
+# release mode
+node scripts/sync/check-drift.mjs --json --against <release-tag>
 ```
 
 The script scans `docs/**` for four reference classes and verifies each one still exists in parent:
@@ -246,10 +261,11 @@ If all pass: make the mechanical edit directly. Examples: append a row to `envir
 
 ### Phase 5.5 — Verify edits against parent code
 
-For every file touched in Phase 5 (auto-merge or PR-tier):
+For every file touched in Phase 5 (auto-merge or PR-tier). Verify against the reference for this mode — **nightly mode → `<parent-default>`**, **release mode → the stable `<release-tag>`** (verifying release edits against `master` would confirm claims that are true on `master` but absent from the release):
 
 ```
-node scripts/sync/verify-edit.mjs <doc-path> --against <parent-default-or-tag> --json
+node scripts/sync/verify-edit.mjs <doc-path> --against <parent-default>   # nightly mode
+node scripts/sync/verify-edit.mjs <doc-path> --against <release-tag>      # release mode
 ```
 
 Collect all `unverified` and `suspicious` records into a **Verification Report** for the run.
@@ -260,6 +276,24 @@ Routing rules:
 - **PR tier edits (nightly mode).** If any high-confidence unverified record fires, demote the entry from auto-commit to PR draft and add a `⚠ Verification Failed` callout in the PR body listing each unverified record. The human reviews and corrects.
 - **PR tier edits (batched-release mode).** Never auto-merge if any unverified records exist. They flow into the release PR with the failed claims listed under `⚠ Verification Failures`.
 - **Suspicious records.** Logged and surfaced in the run summary / PR body, but never block. They're informational.
+
+### Phase 5.7 — Tag-accuracy gate (release mode only)
+
+Phase 5.5 verifies the edits *this run* authored. This phase verifies **everything the release would ship** — including drafts nightly authored in earlier runs — against the stable tag. It exists because our `nightly` branch tracks parent `master` (≈ canary), which runs far ahead of the stable tag, so a release branch cut from `nightly` inherits post-tag `master` drafts as leaks (this is exactly how Kimi, `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS`, and a mission-less onboarding rewrite reached a release branch). Skip entirely in nightly mode.
+
+Run the gate over the pages the release changes vs the live baseline:
+
+```
+node scripts/sync/check-tag-accuracy.mjs --tag <release-tag> --base main --head <release-branch-or-nightly> --json
+```
+
+It reuses `verify-edit.mjs` per changed page and classifies each:
+
+- **`leaks`** — a page has ≥1 **high-confidence** claim (`file-path`, `env-var`, `cli-command`, `cli-flag`) that the release-tag code does not contain. These are mechanical identifiers the shipped code simply lacks. **Auto-quarantine** each: revert the page (or just the offending section) to its `main` state, and list it in the PR body under **`### ⚠ Post-tag leaks removed`**. Only added/changed lines are judged, so a pre-existing stale entry is left to the drift phase, not quarantined here.
+- **`review`** — new pages, or medium-confidence-only misses (`rest-route`, `adapter-config-field`). REST routes are medium because constant/prefix registration hides real matches (a known `verify-edit` false negative — do **not** auto-quarantine them). Surface under the PR's `### ⚠ Verification Failures` / review notes for a human to confirm against the tag.
+- **`clean`** — every added claim verifies at the tag.
+
+**Known limit — behavioural/prose leaks.** The gate only catches leaks that carry a checkable *identifier*. A pure prose/UI rewrite with no code identifier (the onboarding "mission step is gone" case) will read as `clean`. So release mode **also** keeps the adversarial nightly-draft check: spawn a small verification pass (per changed guide page, compare its user-visible claims against the tag's UI/flow) and treat a page describing behaviour absent at the tag as a leak — revert it to `main` and list it under `### ⚠ Post-tag leaks removed`.
 
 ### Phase 6 — Screenshot staleness check
 
@@ -354,12 +388,15 @@ rather than shipping.
      node scripts/sync/realign-nightly.mjs release/v2026.X.Y --push
      ```
 
-     It fast-forwards `nightly` onto the release branch, merges `origin/main` back in to re-anchor the merge-base at the squash commit, verifies main's tip is an ancestor of nightly, and pushes. Skipping this arms an add/add conflict trap that detonates at the next nightly run (see the special case below). Do not run any nightly-mode sync between the squash-merge and the realign.
+     It re-anchors `nightly` onto the release squash commit (restoring ancestry) and pushes. Skipping this arms an add/add conflict trap that detonates at the next nightly run (see the special case below). Do not run any nightly-mode sync between the squash-merge and the realign.
+
+     **Do not let the realign discard nightly's post-tag drafts.** Because Phase 5.7 quarantines post-tag leaks *from the release branch only*, those drafts (Kimi, etc.) are still legitimate on `nightly` — they document `master` features that ship in a *future* stable release. The realign must re-anchor `nightly` to `main`'s squash commit **without** resetting nightly's content to the release branch. `realign-nightly.mjs` does this by merging `origin/main` into `nightly` (favouring nightly's content on conflict) rather than fast-forwarding nightly onto the release branch. If the drafts do get dropped, the next nightly run regenerates them from the cumulative window — wasteful but self-healing.
 
    PR body structured sections (each omitted if empty — never silently dropped):
 
+   - `### ⚠ Post-tag leaks removed` — every page Phase 5.7 quarantined, with the offending claim(s) and the note that the surface is absent at the release tag (present on `master`, shipping in a later release). Confirms the release documents only what it contains.
    - `### ⚠ Drift` — every drift candidate from Phase 1.5 grouped by `kind`, high-confidence first, medium-confidence prefixed with `Verify:`. Never auto-resolved — the PR explicitly asks the reviewer to act on each entry (update path, delete section, or confirm false positive).
-   - `### ⚠ Verification Failures` — every unverified record from Phase 5.5, with the doc location (file:line) and the helper's `suggest` field. Reviewer corrects before merge.
+   - `### ⚠ Verification Failures` — every unverified record from Phase 5.5 **and** every Phase 5.7 `review` entry, with the doc location (file:line) and the helper's `suggest` field. Reviewer corrects before merge.
    - `### ↻ Renames detected` — every directory rename from Phase 3, formatted `<from> → <to>` with the helper's `confidence` and `signal`. Confirms that no spurious new doc pages were created for a renamed surface.
 5. Update `.sync-state.json`:
    ```json
