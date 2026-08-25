@@ -31,7 +31,7 @@ The branch model is non-negotiable: end users on the latest *released* paperclip
 - `docs/user-guides/screenshots/registry.json` — read/write: screenshot dependency tracking.
 - `PENDING.md` (on `nightly` branch only) — **regenerated** from scratch each run (not appended) so it always reflects the current cumulative manifest. Stale entries from reverted commits never linger.
 - `SCREENSHOTS_PENDING.md` (committed) — regenerated each run, lists screenshots whose `depends_on` paths changed in the diff window.
-- `docs/reference/changelog.md` — **release mode only**: append one accordion entry per release (Phase 6.5). User-facing and linked from the nav; nothing else writes it.
+- `docs/reference/changelog.md` — **release mode only**: append one accordion entry per release (Phase 6.5). User-facing and linked from the nav; nothing else writes it. Writing the entry is only half the job — it is not done until `docs.paperclip.ing` is serving it (Phase 9).
 
 **Helper scripts called during the run:**
 
@@ -325,6 +325,12 @@ linked from the nav, and nothing else writes it, so it silently goes stale unles
 this phase runs. (It did: the page was created in July 2026 with two backfilled
 entries and then missed the very next release.)
 
+The other half of the failure is publication. For v2026.824.0 this phase ran
+correctly — the entry landed on `main` and rendered — and readers still saw the
+previous release at the top of the page for hours, because the site was never
+rebuilt. Phase 9 is what closes that gap; do not treat this phase as finished
+until Phase 9 has confirmed the entry live.
+
 Skip entirely in nightly mode — nightly pages are versionless until they merge to
 `main`, and a changelog entry for an unreleased tag would leak.
 
@@ -420,6 +426,71 @@ rather than shipping.
   - The commits/PRs you created (with URLs if PRs were opened).
   - Anything that needs human attention (PR-tier drafts, stale screenshots, build warnings).
   - Ask: "Push these changes / open the PR?"
+- **Release mode does not end here.** Once the human merges the release PR, the
+  run continues into Phase 9. Say so in the hand-off, so the merge isn't mistaken
+  for the finish line.
+
+### Phase 9 — Publish & verify live (release mode only)
+
+**A release is done when `docs.paperclip.ing` serves it, not when the PR merges.**
+Everything up to here is invisible to readers: Phase 7 builds into `.site`, which
+is gitignored, so no built site is ever committed. Cloudflare Pages rebuilding on
+push to `main` is the single point of failure for the whole run, and it has
+silently no-opped before — v2026.824.0 merged with a correct, correctly-rendering
+changelog entry, and production kept serving the previous build: the release's new
+pages 404'd and the changelog still topped out at v2026.817.0.
+
+Skip in nightly mode (Cloudflare branch previews are best-effort, not reader-facing).
+
+1. **Do every post-merge follow-up, not just the realign.** Each of these has been
+   skipped at least once; none are optional.
+
+   ```sh
+   git checkout main && git pull
+   git tag docs/v2026.X.Y && git push --tags
+   node scripts/sync/realign-nightly.mjs release/v2026.X.Y --push   # see Phase 7
+   ```
+
+   Then flip `nightly`'s `.sync-state.json` back to `"branch_mode": "nightly"` and
+   commit it. The merge-down inherits `"release"` from `main` and nothing else
+   corrects it, so the next nightly run starts from a state file that lies about
+   which mode it's in. Leave `base_release_tag` at the new tag — that is now the
+   correct cumulative-diff base.
+
+2. **Verify production is serving the release.** Wait a few minutes for the build,
+   then check three independent things — a page that is new in this release, a
+   claim that is new on an existing page, and the changelog entry:
+
+   ```sh
+   curl -s -o /dev/null -w '%{http_code}\n' https://docs.paperclip.ing/<new-page-route>/
+   curl -s https://docs.paperclip.ing/<changed-page-route>/ | grep -c '<new claim>'
+   curl -s https://docs.paperclip.ing/reference/changelog/ | grep -o 'Docs for v[0-9.]*' | head -1
+   ```
+
+   Expected: `200`, a non-zero count, and the tag you just shipped. A `404`, a
+   zero, or a changelog that still reads the *previous* release means the deploy
+   did not run — the changelog is the most reliable of the three, because it
+   changes on every single release.
+
+3. **If production is stale, republish by hand** rather than waiting it out:
+
+   ```sh
+   npm run docs:build
+   npx wrangler pages deploy .site --project-name paperclip-docs --branch main
+   ```
+
+   Re-run step 2 afterwards. If the manual deploy also fails (no Cloudflare
+   credentials, project missing, GitHub connection dropped), that needs a human:
+   say so explicitly in the hand-off and do **not** report the release as shipped.
+
+4. **Show the evidence in the run summary** — the URLs you checked, the status
+   codes, and the changelog version you read back. "Merged" is not evidence.
+
+> The "never push without asking" rule still holds here. Steps 1 and 3 push tags
+> and publish to production — ask before each, and if the answer is no, hand off
+> with the exact commands so the human can run them. What is **not** optional is
+> step 2: always check the live site and always report what you found, even when
+> you weren't allowed to fix it.
 
 ## Special cases
 
@@ -443,6 +514,9 @@ Anchor-map watchers will report "no changes detected" for many runs even though 
 
 ### Release PR was squashed and nightly was not realigned
 Symptom: the next nightly run's "merge `main` into `nightly`" fails with add/add conflicts on pages both branches created (nightly's unstamped drafts vs main's release-stamped copies). Cause: this repo is squash-only, so the release squash commit has no ancestry link back to nightly, and the realign step (Phase 7) was skipped. Recovery: abort the merge (`git merge --abort`), then run `node scripts/sync/realign-nightly.mjs <release-branch> --push`. If the local release branch was already deleted, recreate it from the last pre-merge SHA (`git branch release/vX.Y.Z <sha>` — find it in the merged PR's head) or, if main has had no commits since the squash, `git checkout nightly && git merge origin/main -X theirs` is NOT safe (it can silently drop post-tag nightly drafts) — prefer recreating the branch. Never `git reset --hard origin/main` on nightly: it destroys drafts for parent features that shipped after the release tag.
+
+### Release merged but the site never rebuilt
+Symptom: the release PR is on `main`, `docs/reference/changelog.md` has the new entry, and `docs.paperclip.ing` still shows the previous release — new pages 404 and the changelog's top accordion is one release behind. This is a publication failure, not a docs failure, and it is invisible from inside the repo because the built site is gitignored. Diagnose in this order: (1) `npm run docs:build` on a clean checkout of `main` — if it fails, that's the cause and Phase 7 let it through; (2) check the Cloudflare Pages project for a failed or missing build for the merge commit; (3) republish manually per Phase 9 step 3. Note that the `main`-branch preview host is stale in the same way, so comparing against it proves nothing — check `docs.paperclip.ing` itself.
 
 ### Nightly branch has open PRs against it when a release ships
 The release PR merges `nightly` → `main`. If there are open nightly-draft PRs, they get included in the release if merged into `nightly` first, or remain on `nightly` for the next release cycle if not. The skill should list open `nightly-draft/*` PRs in the release-PR body so the human reviewer can decide.
@@ -468,6 +542,7 @@ The release PR merges `nightly` → `main`. If there are open nightly-draft PRs,
 | Conflict merging `main` into `nightly` | Abort with clear conflict report, ask user to resolve. |
 | Anchor-map watcher pattern matches nothing for many runs | Note in run summary — likely a parent refactor moved files; suggest user updates `anchor-map.json`. |
 | Reconciliation flags pending (Phase 3.5) | Surface in run summary and PR body. Do not auto-resolve. The next run still proceeds for non-reconciliation entries. |
+| Release merged but `docs.paperclip.ing` still serves the previous build | Phase 9. Confirm `npm run docs:build` succeeds on `main` (rules out a build break), then republish with `npx wrangler pages deploy .site --project-name paperclip-docs --branch main`. If that fails too, escalate — the Pages project or its GitHub connection is broken. Never report the release as shipped on the strength of the merge alone. |
 | `base_release_tag` is older than the parent's oldest available release | Parent may have deleted ancient tags. Abort with instructions to manually update `.sync-state.json` to the oldest available tag. |
 
 ## Maintenance of this skill
