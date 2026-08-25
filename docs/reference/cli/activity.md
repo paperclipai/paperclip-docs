@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Activity Commands
+seo_description: Read the company audit trail from the terminal: a chronological record of who did what to which entity, for monitoring and for debugging.
 ---
 
 # Activity Commands

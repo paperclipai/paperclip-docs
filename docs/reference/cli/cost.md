@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Cost, Finance and Budget Commands
+seo_description: See what a company is spending, record manual finance events, and set the guard rails that keep agent spend inside the limits you choose.
 ---
 
 # Cost, Finance & Budget Commands

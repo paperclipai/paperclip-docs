@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: Prompt Handoff from the Terminal
+seo_description: The most direct way to say go do this to an agent without opening the UI — hand a task straight over from your shell and watch it pick it up.
 ---
 
 # Prompt Handoff

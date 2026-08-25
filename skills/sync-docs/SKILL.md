@@ -42,6 +42,15 @@ The branch model is non-negotiable: end users on the latest *released* paperclip
 - `scripts/sync/check-tag-accuracy.mjs` — **release mode only** (Phase 5.7): the tag-accuracy gate. Verifies every doc page changed on `nightly` vs `main` against the **stable release tag** and flags post-tag leaks — content nightly drafted from `master` that is not in the release. See `maintenance/release-channels-plan.md` for why this exists.
 - `scripts/sync/realign-nightly.mjs` — post-release realign (Phase 7): re-anchors `nightly` onto the merged release squash commit (restoring ancestry) **without discarding** nightly's post-tag `master` drafts.
 
+**Build gates that must pass before commit** (Phase 7; all also run in CI via `.github/workflows/docs-checks.yml`):
+
+- `npm run docs:test:seo-metadata` — every page has a unique, hand-written `seo_title` and `seo_description`. See "Authored SEO metadata".
+- `npm run docs:test:crawlable-links` — no raw `.md` hrefs, no links to missing or redirecting targets, sidebar server-rendered, sitemap dates not uniform.
+- `npm run docs:test:skill-source-blocks` — per-skill pages embed their authoritative `SKILL.md`.
+- `npm run docs:test:static-routes`, `npm run docs:test:asset-fingerprints`, `npm run docs:test:hierarchical-skills-nav`.
+
+`npm run docs:test` runs all six.
+
 ## Invocation
 
 ```
@@ -254,6 +263,7 @@ If all pass: make the mechanical edit directly. Examples: append a row to `envir
 > - Preserve existing page structure unless the change demands new sections. Keep cross-references intact.
 > - If a new page is needed, mirror the structure of the neighbour page you were given. Do **NOT** edit `site/content.json` directly — return a `nav_addition` structured object alongside the page content (see below). The orchestrator will merge it.
 > - Add `paperclip_version: <tag>` to the frontmatter of touched pages in release mode; leave alone in nightly mode (nightly pages are versionless until they merge to main).
+> - **Every page you create must carry `seo_title` and `seo_description` frontmatter, hand-written.** See "Authored SEO metadata" below for the rules. Do not omit them and let the build fall back — the fallback is the sidebar label and a clipped first paragraph, and `npm run docs:test:seo-metadata` fails the build. If you materially rewrite an existing page's subject, update its `seo_description` to match; if you only patch a detail, leave it alone.
 > - Every concrete claim you write (CLI flag names, env var names, REST route paths, config field names, file paths) must come from the parent code you were given. Do not infer or paraphrase identifiers; copy them verbatim. The next phase verifies these claims against parent code.
 > Return: `{ "files": { "<path>": "<new content>" }, "nav_addition": { "section_title": "How-to Guides", "entry": { "title": "...", "file": "../docs/how-to/foo.md" } } }` — `nav_addition` is null if no new page was created.
 
@@ -382,6 +392,7 @@ rather than shipping.
 
 1. Run `npm run docs:build`. Fail loud on build errors — do not commit.
 2. Run `npm run sync:check` (lint-links + verify-nav). Dangling nav entries or broken internal links → fail loud, do not commit. Orphans (md files not in `content.json`) are warnings — surface in the run summary so the user can decide whether the orphan is intentional (a maintenance file) or a missed registration.
+2b. Run `npm run docs:test:seo-metadata` and `npm run docs:test:crawlable-links`. Both fail loud — do not commit. The SEO gate catches a new page that shipped without hand-written `seo_title` / `seo_description`, or one whose title collides with an existing page. The crawlable-links gate catches a page that links out with a raw `.md` href, which 404s for every crawler. Fix the page; never weaken the check.
 3. Stage edits.
 4. Commit strategy:
    - Nightly auto-merge edits → single commit titled `nightly: <surface name> (paperclip <short-sha>)`.
@@ -491,6 +502,36 @@ Skip in nightly mode (Cloudflare branch previews are best-effort, not reader-fac
 > with the exact commands so the human can run them. What is **not** optional is
 > step 2: always check the live site and always report what you found, even when
 > you weren't allowed to fix it.
+
+## Authored SEO metadata
+
+Every page in `docs/` carries two hand-written frontmatter fields:
+
+```yaml
+---
+paperclip_version: v2026.824.0
+seo_title: Task Work Modes: Standard and Ask
+seo_description: Standard mode wants work done; Ask mode wants a question answered. See how each changes the machinery an agent spins up when it picks up a task.
+---
+```
+
+**Why they exist.** The build used to derive the `<title>` from the sidebar label and the `<meta name="description">` from the first paragraph clipped to 220 characters. That produced seven pages titled "Overview", 32 pages sharing a title with another page, and 109 descriptions cut off mid-word. Google chooses what to keep partly on those signals, and near-identical titles are exactly the weak-differentiation pattern behind "crawled — currently not indexed". `site/build-release.mjs` still has the derived path as a fallback, but `scripts/verify-seo-metadata.mjs` fails the build before it can be used.
+
+**Rules, enforced by `npm run docs:test:seo-metadata`:**
+
+| Field | Rule |
+|---|---|
+| `seo_title` | Required. Unique across all pages. ≤ 43 chars, because the build appends `" \| Paperclip Docs"` and the total must stay ≤ 60. Must not contain `\|`. |
+| `seo_description` | Required. Unique across all pages. 110–158 characters. Must end on a complete sentence — the check rejects anything not ending in `.`, `!`, `?`, or `)`. |
+| Both | Single line. Must not start with `"` or `'` — the frontmatter parser strips wrapping quotes. Colons, em-dashes and commas inside the value are fine. |
+
+**How to write them.**
+
+- *Title*: name the page's actual subject, not its position in the nav. The sidebar can say "Overview" because the surrounding tree supplies the context; a search result has no tree. Prefer the page's H1 when it is already specific ("Adapters Overview", "Company Commands"). When two pages genuinely share a subject — a guide page and its API reference — qualify the reference one (`Issues API`), and leave the guide page with the clean title.
+- *Description*: write for the click, not for the crawler. Lead with what the reader will be able to do, name the concrete things the page covers, and prefer specifics over adjectives — "create a company, hire a CEO agent, approve its first strategy" beats "learn about getting started". Do not repeat the title. Do not stuff keywords. Do not promise anything the page does not deliver.
+- Never generate these mechanically from the first paragraph. That is the fallback the gate exists to prevent.
+
+**Backfill is complete** — all 192 pages were authored by hand. New pages are the only ones that need writing, so treat a missing field as an authoring bug, not a batch job to re-run.
 
 ## Special cases
 

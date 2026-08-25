@@ -1,3 +1,8 @@
+---
+seo_title: Back Up and Restore a Company
+seo_description: Backups are exports and restores are imports, through one portable markdown package. Walks the API path: preview, export, import, then verify.
+---
+
 # Back up and restore a company
 
 Backups are exports. Restores are imports. Both flow through the same portable markdown package — the same files you'd hand to a teammate or version-control. This recipe walks the API path: preview → export → import → verify, with the safety rails that the CEO-scoped routes enforce.

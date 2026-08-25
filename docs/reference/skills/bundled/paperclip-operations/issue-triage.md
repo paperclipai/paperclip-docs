@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Issue Triage Skill
+seo_description: Turn a noisy inbox into a short list of clear next actions, leaving every touched issue with an owner, a status, and one concrete next step.
 ---
 
 # Issue Triage

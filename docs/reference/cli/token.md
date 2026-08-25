@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Token Commands
+seo_description: Mint, list, and revoke the API keys that let agents, CI jobs, and board operators reach a Paperclip instance from outside the browser.
 ---
 
 # Token Commands

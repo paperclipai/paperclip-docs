@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Companies API
+seo_description: Companies are the tenant boundary every agent, project, issue, and cost event belongs to. Endpoints for managing them, and how scoping is enforced.
 ---
 
 # Companies

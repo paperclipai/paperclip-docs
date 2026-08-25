@@ -1,3 +1,8 @@
+---
+seo_title: Terminal Setup for Paperclip
+seo_description: Run the onboarding command to download Paperclip, create ~/.paperclip/, initialise the database, and start the server. Plus deployment modes and options.
+---
+
 # Terminal Setup
 
 > **Note:** This guide goes deeper than the standard setup. If you're installing Paperclip for the first time, start with the [Installation guide](../getting-started/installation.md) — it covers the one-command install step by step.

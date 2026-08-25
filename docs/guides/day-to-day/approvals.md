@@ -1,3 +1,8 @@
+---
+seo_title: Approvals: Staying in Control
+seo_description: Agents pause for your sign-off before consequential actions. Review hires and strategies, then approve, reject, or send them back for revision.
+---
+
 # Approvals
 
 Approvals are how you stay in control even as your agents work autonomously. Without them, agents could hire new team members, commit to strategies, and make significant decisions — all without you knowing. Approvals are the governance layer that prevents that: before any agent takes a consequential action, Paperclip pauses and asks for your sign-off.

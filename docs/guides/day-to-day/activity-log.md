@@ -1,3 +1,8 @@
+---
+seo_title: The Activity Log
+seo_description: A permanent, timestamped record of every status change, comment, hire, and approval in your company — built for accountability and for debugging.
+---
+
 # Activity Log
 
 The Activity Log is the complete record of everything that has ever happened in your company. Every time an agent changes a task's status, posts a comment, gets hired or paused, spends budget, or has a proposal approved — that event is recorded here with a timestamp and the name of whoever caused it.

@@ -267,10 +267,14 @@ function updateLandingSeo() {
 
 function updatePageSeo(page, md) {
   if (!page) return;
-  const title = `${page.title} | Paperclip Docs`;
+  // Match the server-rendered head exactly. Authored frontmatter wins, so a
+  // client-side transition cannot leave a different title or description on
+  // screen than the one the crawler was served for the same route.
+  const authoredTitle = page.frontmatter?.seo_title?.trim();
+  const authoredDescription = page.frontmatter?.seo_description?.trim();
   setSeoMetadata({
-    title,
-    description: markdownToDescription(md),
+    title: `${authoredTitle || page.title} | Paperclip Docs`,
+    description: authoredDescription || markdownToDescription(md),
     url: getAbsolutePageUrl(page),
     type: 'article',
   });

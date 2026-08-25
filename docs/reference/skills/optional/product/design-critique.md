@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Product Design Critique Skill
+seo_description: A structured critique of a screen, flow, or component that returns a prioritised list of changes ordered by impact, each with the reasoning attached.
 ---
 
 # Product Design Critique

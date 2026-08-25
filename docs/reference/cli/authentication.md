@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Authentication and Tokens
+seo_description: The identity reference for the CLI: how it knows who it is, which instance it talks to, and what that identity is allowed to do.
 ---
 
 # Authentication & Tokens

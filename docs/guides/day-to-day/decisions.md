@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Decisions: One Queue for Human Calls
+seo_description: Approvals, blocked issues, failed runs, and budget warnings in a single ranked queue, so you work through what needs you instead of hunting for it.
 ---
 
 # Decisions

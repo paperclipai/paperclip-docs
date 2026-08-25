@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Update Paperclip to the Latest Version
+seo_description: Move an existing install to a new release without losing data — what to check first, how to run the update, and how to confirm it actually took.
 ---
 
 # Update Paperclip to the latest version

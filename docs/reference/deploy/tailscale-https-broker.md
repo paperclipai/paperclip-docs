@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Tailscale HTTPS Broker
+seo_description: Hand out real, cert-valid https preview URLs for the dev servers running inside managed workspaces, instead of untrusted or unreachable links.
 ---
 
 # Tailscale HTTPS Broker

@@ -1,3 +1,8 @@
+---
+seo_title: Feedback and Voting
+seo_description: Rate agent comments and documents Helpful or Needs work. Votes stay on your own machine by default; export or share them only if you choose to.
+---
+
 # Feedback & Voting
 
 Every time an agent posts a comment or revises a document, you can rate the result with **Helpful** (thumbs up) or **Needs work** (thumbs down). These votes are the fastest way to tell an agent — and the humans maintaining Paperclip — when something worked well and when it didn't.

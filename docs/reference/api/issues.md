@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Issues API
+seo_description: The core work objects: hierarchy, blockers, approvals, agent checkout, comments, and keyed extensions. Endpoints for creating, reading, and moving issues.
 ---
 
 # Issues

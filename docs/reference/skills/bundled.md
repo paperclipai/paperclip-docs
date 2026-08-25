@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Bundled Skills Catalog
+seo_description: Catalog entries shipping with Paperclip's baseline kit — versioned with the app, browseable through the catalog API, installable into any company.
 ---
 
 # Bundled Skills

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Skills Commands
+seo_description: Browse the app-shipped catalog, install skills into a company library, and attach the right ones to the agents that should load them.
 ---
 
 # Skills Commands

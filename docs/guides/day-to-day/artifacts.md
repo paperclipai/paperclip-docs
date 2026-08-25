@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Artifacts: Files Your Agents Produce
+seo_description: Documents, images, video, and exports from every task in one place. Filter by type, browse stacks by task, and read files in the in-app viewer.
 ---
 
 # Artifacts

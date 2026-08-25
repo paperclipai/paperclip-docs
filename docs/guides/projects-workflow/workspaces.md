@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Execution Workspaces
+seo_description: Give agents a real folder with your code checked out. Covers workspace modes, keeping reused workspaces consistent, runtime services, and HTTPS previews.
 ---
 
 # Workspaces

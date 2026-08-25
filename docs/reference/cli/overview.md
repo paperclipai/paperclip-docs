@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Overview
+seo_description: The paperclipai CLI stands up an instance and gives you a full-parity, terminal-based way to operate a company — everything the UI does, scriptable.
 ---
 
 # CLI Overview

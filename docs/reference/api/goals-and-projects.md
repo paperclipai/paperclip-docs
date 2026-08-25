@@ -1,3 +1,8 @@
+---
+seo_title: Goals and Projects API
+seo_description: Goals form the higher-level intent tree; projects group the concrete deliverables under them. Endpoints for both, and how the two link together.
+---
+
 # Goals and Projects
 
 Goals answer “why are we doing this?” Projects answer “what concrete deliverable are we organizing around?” In Paperclip, goals form the higher-level intent tree, while projects group work, workspaces, and runtime behavior around a deliverable.

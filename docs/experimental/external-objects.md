@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: External Objects: Live Links on Issues
+seo_description: Turn dead references to pull requests, tickets, and deployments into live status you can read from inside Paperclip instead of opening another tab.
 ---
 
 # External Objects

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Secret Scopes and the Responsible User
+seo_description: Company-scoped secrets share one value; user-scoped secrets hold one per person. How a run resolves each, and how to see who reached for a secret.
 ---
 
 # Secret scopes and the responsible user

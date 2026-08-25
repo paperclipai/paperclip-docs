@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.525.0
+seo_title: Create a Routine That Runs Daily
+seo_description: Describe recurring work once, attach a cron trigger, and Paperclip mints a fresh issue every tick with the same owner, parent, project, and goal.
 ---
 
 # Create a routine that runs daily

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.626.0
+seo_title: Heartbeats and Routines: Scheduling Work
+seo_description: Why timer heartbeats are opt-in, and how routines schedule recurring work without paused agents, surprise token bills, or a dashboard you fight with.
 ---
 
 # Heartbeats & Routines

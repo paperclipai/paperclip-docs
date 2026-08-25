@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.529.0
+seo_title: Install Paperclip: Local or Self-Hosted
+seo_description: Two supported install paths: a local Node.js 20 setup via pnpm, or a self-hosted server on your own domain. Both finish at the same onboarding flow.
 ---
 
 # Installation

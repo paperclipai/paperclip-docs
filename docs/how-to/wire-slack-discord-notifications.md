@@ -1,3 +1,8 @@
+---
+seo_title: Wire Slack or Discord Notifications
+seo_description: Pipe approvals, blocked high-priority issues, and budget breaches into a channel so the board sees decisions without anyone watching the UI.
+---
+
 # Wire Slack/Discord notifications for approvals
 
 Pipe approval requests, blocked high-priority issues, and budget breaches to a Slack or Discord channel so the board sees decisions without watching the UI. The recipe is the same for both: a Paperclip routine pings a notifier agent on a schedule, the agent diffs against a "last-seen" cursor, and posts a structured message to a webhook URL.

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Adapters API
+seo_description: The control-plane surface for the server-side adapter registry: which agent runtimes Paperclip can reach, how each is configured, and how packages install.
 ---
 
 # Adapters API

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Project Commands
+seo_description: Manage the projects that group work: status, lead agent, linked goals, and the execution defaults every issue underneath them inherits.
 ---
 
 # Project Commands

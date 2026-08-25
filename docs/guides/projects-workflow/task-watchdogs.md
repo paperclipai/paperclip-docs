@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.626.0
+seo_title: Task Watchdogs: Catching Stalled Work
+seo_description: When an agent misreads a blocker or calls a task done without proof, a watchdog wakes. Set one up, write good instructions, and know its limits.
 ---
 
 # Task Watchdogs

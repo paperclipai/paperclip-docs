@@ -1,3 +1,8 @@
+---
+seo_title: Status Cards API
+seo_description: A standing question about your company's work plus its living answer. Give the card one plain-language brief and read the update whenever you need it.
+---
+
 # Status Cards
 
 A **status card** is a standing question about a company's work, and the living answer to it. You give the card one message in plain language — what to watch, and how the update should read — and Paperclip's Summarizer compiles that into structured company-search queries, then keeps writing a Markdown summary as the matching issues move.

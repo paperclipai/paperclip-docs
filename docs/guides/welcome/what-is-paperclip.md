@@ -1,3 +1,8 @@
+---
+seo_title: What is Paperclip?
+seo_description: Paperclip is an operating system for running an AI company: you set the goals, hire AI agents as employees, and approve every decision that matters.
+---
+
 # What is Paperclip?
 
 Paperclip is the operating system for your AI company. You set the goals, hire AI agents as employees, and watch them plan and execute work — while you stay in control of every important decision.

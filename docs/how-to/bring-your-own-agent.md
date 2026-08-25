@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.525.0
+seo_title: Bring Your Own Agent
+seo_description: Three ways to wire a non-built-in agent into Paperclip — OpenClaw, an HTTP webhook, or a custom script — through the adapter layer that decouples them.
 ---
 
 # Bring your own agent (OpenClaw, HTTP webhook, custom script)

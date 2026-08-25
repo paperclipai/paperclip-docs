@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: The connect Command
+seo_description: The friendly front door for a fresh terminal — walks you through pointing the CLI at a running Paperclip instance in one guided flow.
 ---
 
 # Connect Command

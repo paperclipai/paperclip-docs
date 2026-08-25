@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Environment Variables Reference
+seo_description: Every variable Paperclip reads for server configuration, plus the ones it injects into agent processes at runtime — the list to wire deployments from.
 ---
 
 # Environment Variables

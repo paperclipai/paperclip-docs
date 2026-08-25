@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.0
+seo_title: Agents API
+seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate API keys, sync skills, read the org chart, and trigger runs manually.
 ---
 
 # Agents

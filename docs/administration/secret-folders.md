@@ -1,3 +1,8 @@
+---
+seo_title: Secret Folders: Organising Credentials
+seo_description: Read secret names as a folder tree, so dev/github/oauth/clientid nests properly. Switch views, move around, create folders, and search across everything.
+---
+
 # Secret folders
 
 Once a company keeps more than a handful of credentials, a single long list stops being useful. The Secrets screen can read your secret names as a folder tree instead: a secret named `dev/github/oauth/clientid` shows up inside `dev`, then `github`, then `oauth`, with `clientid` as the thing you actually click. Nothing new is stored to make that happen — the folders are simply a different way of looking at the names you already chose.
