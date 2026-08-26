@@ -1,12 +1,12 @@
 ---
-paperclip_version: v2026.817.0
+paperclip_version: v2026.824.1
 ---
 
 # Task Watchdog
 
 The task watchdog watches an issue and its descendants, and when no path through that subtree is still live, it opens a review issue and wakes a nominated agent.
 
-> **Experimental, off by default.** The instance setting `enableTaskWatchdogs` defaults to `false`. Turn on **Task Watchdogs** under **Settings → Instance settings → Experimental** before the task-detail configuration controls appear. The API routes below are documented as they behave on an instance with the flag on. See [Task Watchdogs](../../experimental/task-watchdogs.md) for the rollout notes.
+> **Experimental, off by default.** The instance setting `enableTaskWatchdogs` defaults to `false`. Turn on **Task Watchdogs** under **Settings → Instance settings → Experimental** before the task-detail configuration controls appear. The flag gates the UI only: no route, service, or reconciler reads it, so the API surface and the evaluation behaviour below are the same with the flag off. See [Task Watchdogs](../../experimental/task-watchdogs.md) for the rollout notes.
 
 ## Overview
 
@@ -43,7 +43,7 @@ PUT /api/issues/{issueId}/watchdog
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `agentId` | string (uuid) | Yes | The agent woken when the subtree stops. |
-| `instructions` | string \| null | No | Custom instructions passed to the watchdog agent on wake. Stored in full; truncated to 4000 characters in the normalized adapter context. |
+| `instructions` | string \| null | No | Custom instructions passed to the watchdog agent on wake. Normalized on write: surrounding whitespace is trimmed, a whitespace-only value is stored as `null`, and literal `\n` escapes are un-escaped. Otherwise stored in full, and truncated to 4000 characters in the normalized adapter context. |
 
 The body is strict; unknown fields are rejected. Returns the full watchdog record.
 
@@ -74,7 +74,7 @@ Child creation via `POST /api/issues/{issueId}/children` accepts the same `watch
 | `instructions` | string \| null | Custom instructions. |
 | `status` | `"active"` \| `"disabled"` | Defaults to `active`. |
 | `watchdogIssueId` | string \| null | The reusable review issue, once one has been created. |
-| `lastObservedFingerprint` | string \| null | Stop fingerprint at the most recent trigger. |
+| `lastObservedFingerprint` | string \| null | Stop fingerprint of the most recently observed stopped state. Written on any observed stop, including the two suppressed outcomes that do not trigger, so it can be ahead of `lastTriggeredAt`. |
 | `lastReviewedFingerprint` | string \| null | Stop fingerprint the watchdog agent has already reviewed. |
 | `lastTriggeredAt` | timestamp \| null | Most recent trigger. |
 | `lastCompletedAt` | timestamp \| null | Most recent completed review. |
@@ -142,11 +142,11 @@ Evaluation runs at server startup, on each scheduler tick, and on demand after i
 
 A `stopped` verdict produces five effects.
 
-1. A review issue is created, or an existing one reopened. It is a child of the watched issue with `status: "todo"`, `originKind: "task_watchdog"`, `originId` set to the watched issue, `originFingerprint` set to the stop fingerprint, and a title of the form `Watchdog review for {identifier}` — falling back to the watched issue's title when it has no identifier. It is assigned to the watchdog agent. One active review issue exists per watched issue.
+1. A review issue is created, or an existing one reopened. It is a child of the watched issue with `originKind: "task_watchdog"`, `originId` set to the watched issue, `originFingerprint` set to the stop fingerprint, and a title of the form `Watchdog review for {identifier}` — falling back to the watched issue's title when it has no identifier. It is assigned to the watchdog agent. One active review issue exists per watched issue. A newly created review issue gets `status: "todo"`. On the reuse path the status is reset to `todo` only when the existing review issue is terminal, is in `backlog`, or needs a fresh wake; an already-open review issue keeps the status it had.
 2. The watchdog row is updated: `watchdogIssueId`, `lastObservedFingerprint`, `lastObservedStopSnapshot`, `lastTriggeredAt`, and `triggerCount` incremented.
 3. A system comment is posted to the review issue describing the stopped leaves.
 4. An activity record is written with action `issue.task_watchdog_triggered`.
-5. A wake is enqueued for the watchdog agent with reason `task_watchdog_stopped_subtree`, keyed `task_watchdog:{watchdogId}:{stopFingerprint}` for idempotency.
+5. A wake is enqueued for the watchdog agent with reason `task_watchdog_stopped_subtree`, keyed `task_watchdog:{watchdogId}:{stopFingerprint}` for idempotency. This effect is the only conditional one: it is skipped when the service is constructed without a wake enqueuer, in which case the first four effects still occur.
 
 ### What a trigger does not do
 
@@ -162,7 +162,7 @@ Blocked-state fields on the issue payload are a separate surface. `unblockDescri
 
 A run woken by a task watchdog is scope-restricted. Mutation routes resolve that scope from two persisted sources, and both must agree:
 
-- The run's `contextSnapshot.taskWatchdog`, which carries the watched issue id and the stop fingerprint.
+- The run's `contextSnapshot.taskWatchdog`, which carries the watched issue id and the stop fingerprint. A snapshot that sets `taskWatchdog: true` is also accepted, in which case the watched issue id and stop fingerprint are read from the top level of the snapshot instead.
 - An `issue_watchdogs` row matching the company, watched issue, and acting agent, with `status: "active"`.
 
 Subtree membership is recomputed on every request by walking the parent chain, to a depth cap of 100. Hitting an ancestor whose `originKind` is `task_watchdog` does not just end the walk — it denies the request outright, which is what prevents one watchdog run from mutating another watchdog's review tree. The run's own reusable review issue is permitted by an explicit exception rather than by the subtree walk.
@@ -187,7 +187,9 @@ The stopped leaves and the configured instructions are siblings of `taskWatchdog
 
 `capabilities.targetScope` contains `watchedIssueId`, `watchedIssueIdentifier`, `watchdogIssueId`, `includeNonWatchdogDescendants`, and `excludedOriginKinds`.
 
-The adapter-side normalized context is where the capped fields live: `terminalLeafSummaries` (at most 25 entries) and `customInstructions` (at most 4000 characters). Read those from the adapter contract. A client reading `contextSnapshot.taskWatchdog` off the API will not find either one.
+Two capped fields, `terminalLeafSummaries` (at most 25 entries) and `customInstructions` (at most 4000 characters), belong to the adapter-side normalized context rather than to the API. A client reading `contextSnapshot.taskWatchdog` off the API will not find either one.
+
+Note that the normalizer reads both fields from `taskWatchdog` on the wake payload, while the server writes the corresponding values (`stoppedLeaves` and `customInstructions`) only at the top level. For a server-emitted task-watchdog wake the normalized values are therefore empty: `terminalLeafSummaries` is `[]` and `customInstructions` is `null`. Read `stoppedLeaves` and `customInstructions` from the top level of the payload instead.
 
 Permitted operations are `comment_on_watched_subtree_issues`, `transition_watched_subtree_issue_status`, `reassign_watched_subtree_issues`, `create_child_issues_under_non_watchdog_watched_subtree`, `create_product_bug_followups_outside_watched_subtree`, `resolve_issue_thread_interactions_through_ordinary_audience_policy`, and `update_reusable_watchdog_issue`.
 
@@ -237,7 +239,7 @@ The interaction `cancel` action is absent from the table on purpose: it is board
 |---|---|---|
 | `403` | `Task-watchdog runs can only mutate the watched issue subtree.` | Target is outside the watched subtree. |
 | `403` | `Task-watchdog mutation target is outside the watchdog company.` | Cross-company target. |
-| `403` | `Task-watchdog run context does not belong to this agent.` | Run context agent mismatch. |
+| `403` | `Task-watchdog run context does not belong to this agent.` | Run context agent mismatch, or a run/actor company mismatch. |
 | `403` | `Task-watchdog run context is missing a persisted watched issue id.` | Malformed run context. |
 | `403` | `Task-watchdog run context is not backed by an active persisted watchdog.` | No matching active row. |
 | `403` | `Task-watchdog runs cannot change watchdog configuration.` | `PUT`/`DELETE` on a watchdog config route. |
@@ -265,6 +267,11 @@ Do not parse `details` as a fixed shape. Only `securityPrinciples` is common to 
 | Issue creation with no parent | `companyId`, `watchedIssueId` |
 | Issue creation under an out-of-subtree parent | `parentIssueId` |
 | Invalid scope on issue creation | none |
+| Invalid run context, on a mutation or comment route | `issueId` |
+| Invalid run context, on the issue-creation path | none |
+| Invalid run context, on an interaction route | none; carries `code` only |
+
+"Invalid run context" covers the three rejections above whose message names the run context: the agent mismatch, the missing watched issue id, and the absent active watchdog row.
 
 Interaction routes are the exception on both counts. They carry a `code` of `interaction_scope_denied`, at the top level and inside `details`, and they carry neither `issueId` nor `securityPrinciples`. An interaction whose scope has gone stale is also refused with `403`, not `409`, and reads `This issue-thread interaction is outside the current watchdog scope`.
 
@@ -296,7 +303,7 @@ POST /api/issues/{issueId}/checkout
 | `agentId` | string (uuid) | Yes | The claiming agent. See below — an agent caller must always name itself. |
 | `expectedStatuses` | array of issue status | Yes | Non-empty. The checkout fails if the issue is not in one of these statuses. |
 
-An agent caller can never check out on behalf of another agent. The `403` on mismatch is unconditional and is evaluated before any assignment-rights check, so task-assignment permission does not lift it. Naming another agent works only for board and user callers.
+An agent caller can never check out on behalf of another agent. The `403` on mismatch is evaluated before any assignment-rights check, so task-assignment permission does not lift it. Naming another agent works only for board and user callers. Project-pause checks run earlier still, so an agent that names another agent on an issue in a paused project sees `409 Project is paused` rather than the `403`.
 
 The caller must present an agent run id. Returns the updated issue with `assigneeAgentId` set, `assigneeUserId` cleared, `checkoutRunId` and `executionRunId` set to the calling run, `status` set to `in_progress`, and `startedAt` stamped. Emits an `issue.checked_out` activity record.
 
@@ -306,7 +313,9 @@ The assignee wake is conditional. An agent checking itself out with a run id get
 
 Ownership is the pair `(assigneeAgentId, checkoutRunId)`. There is no lock token.
 
-**There is no time-based expiry.** A lock has no TTL, no lease, and no configurable duration. A run owns `checkoutRunId` for exactly as long as that run is non-terminal. When the run reaches `succeeded`, `failed`, `cancelled`, `interrupted`, or `timed_out`, finalization compares and clears the lock columns that still point at it. A lock already reacquired by a successor run is left alone.
+**There is no time-based expiry.** A lock has no TTL, no lease, and no configurable duration. A run owns `checkoutRunId` for as long as that run is non-terminal. When the run reaches `succeeded`, `failed`, `cancelled`, `interrupted`, or `timed_out`, finalization compares and clears the lock columns that still point at it. A lock already reacquired by a successor run is left alone.
+
+One case ends a lock without the run finishing on its own: the recovery sweep force-terminalizes a run still marked `running` when its operating-system process is gone, or when the issue referencing it is `done` or `cancelled`, and clears the lock in the same pass. No timer is involved, so a healthy long-running run is never displaced — but "non-terminal" is not a guarantee against an abandoned process being cleaned up.
 
 Re-checkout by the run that already holds the lock returns `200`, not `409`.
 
@@ -338,7 +347,7 @@ There is no `code`, no `currentOwner`, and no `expiresAt` field on this response
 | `403` | `Agent can only checkout as itself` | An agent caller named a different `agentId`. |
 | `401` | `Agent run id required` | No run id on the request. |
 
-**Do not retry a `409`.** Stale-lock recovery is crash recovery, not a retry loop; locks held by non-terminal runs are never cleared or adopted. After stale cleanup has run, a `409` means a real live owner, a status or assignee mismatch, an unresolved blocker, or an active gate. Treat it as an ownership conflict and stop.
+**Do not retry a `409`.** Stale-lock recovery is crash recovery, not a retry loop: a lock is released when its owning run reaches a terminal status or is found to have been abandoned, never because a caller kept asking. After stale cleanup has run, a `409` means a real live owner, a status or assignee mismatch, an unresolved blocker, or an active gate. Treat it as an ownership conflict and stop.
 
 The `409` responses are not described in the OpenAPI document, which declares only `200`, `400`, and `401` for this route.
 
@@ -353,17 +362,19 @@ POST /api/issues/{issueId}/admin/force-release
 
 ### Stranded lock recovery
 
-Three paths clear a lock whose owning run is terminal or missing. None of them changes the issue status, and none posts a comment to the issue.
+Three paths clear a lock whose owning run is terminal or missing. The lock clear itself never changes the issue status and never posts a comment.
 
 | Path | Trigger | Observable effect |
 |---|---|---|
 | Recovery sweep | Scan of all issues holding lock columns, at server startup and periodically after | Activity record `issue.stale_lock_cleared`, with `clearedCheckoutRunId`, `clearedExecutionRunId`, `referencedRunStatuses`, and `source` in `details` |
 | Per-issue self-heal | Runs at the top of every checkout attempt | None. Silent. |
-| Run finalization | A run reaching a terminal status | None. Silent. |
+| Run finalization | A run reaching a terminal status | None from the lock clear itself. See the caveat below. |
 
-All three clear `checkoutRunId`, `executionRunId`, `executionAgentNameKey`, and `executionLockedAt`, guarded by a compare-and-swap so a successor run's lock is never clobbered.
+Do not read "silent" as a guarantee that nothing else happens on that request. Run finalization is one step inside a larger release-and-promote path, and that path does change the issue status and post a recovery comment when the run failed workspace validation or had an incomplete configuration. The lock clear is not what you are observing in that case.
 
-A newer run belonging to the same agent may adopt a stale lock rather than waiting for the sweep. Adoption is recorded as an `issue.checkout_lock_adopted` activity record with `reason: "stale_checkout_run"` — but only when it happens on the mutation-gate path. Adoption inside the checkout route itself is silent, so absence of the activity record does not mean adoption did not occur.
+Which columns get cleared depends on how the row referenced the run, because finalization issues two independent compare-and-swap statements: one clears `executionRunId`, `executionAgentNameKey`, and `executionLockedAt` where `executionRunId` matches the run; the other clears `checkoutRunId` alone where `checkoutRunId` matches. A row that held the run only in `checkoutRunId` therefore keeps `executionAgentNameKey` and `executionLockedAt`. The per-issue self-heal splits the same way. Every statement is compare-and-swap on the prior run id, so a successor run's lock is never clobbered.
+
+A newer run belonging to the same agent may adopt a stale lock rather than waiting for the sweep. Adoption is recorded as an `issue.checkout_lock_adopted` activity record with `reason: "stale_checkout_run"`, emitted from the mutation-gate path and from the plugin host's checkout-owner assertion. Adoption inside the checkout route itself is silent, so absence of the activity record does not mean adoption did not occur.
 
 ---
 
@@ -374,7 +385,7 @@ Watchdog and recovery output passes through the platform's general redaction, no
 - Run payloads returned by the run endpoints have registered secret values replaced with `***REDACTED***`. Field names are matched against a pattern covering `api_key`, `access_token`, `token`, `auth`, `auth_token`, `authorization`, `bearer`, `secret`, `password`, `passwd`, `credential`, `jwt`, `private_key`, `cookie`, `connectionstring`, `browser_code`, and `login_url`, with `authorizationReason` and `surface` explicitly exempt.
 - Retry failure details are withheld wholesale from recovery comments rather than field-filtered. When a run carries an error, the comment reads `Latest retry failure details were withheld from the issue thread; inspect the linked run for evidence.` and the underlying `error` and `errorCode` are not reproduced.
 - Blocked-inbox attention payloads carry a `redaction` object with `externalDetailsRedacted` (boolean) and `secretFieldsOmitted` (always `true`). When `externalDetailsRedacted` is true, the description is filtered rather than dropped: `external owner:` and `external action:` lines are stripped and their values replaced with `[redacted external wait detail]`. The description comes back `null` only when nothing survives the filter.
-- Evidence text captured by the active-run silence watchdog is redacted for secrets and current-user identifiers, then truncated to 4000 characters. Truncation keeps the *last* 4000 characters and appends the line `[truncated earlier evidence]`, so the tail of a stalled run's output is what survives, not the head.
+- Evidence text captured by the active-run silence watchdog is redacted for secrets and current-user identifiers, then truncated. Truncation keeps the *last* N characters and appends the line `[truncated earlier evidence]`, so the tail of a stalled run's output is what survives, not the head. N is 4000 for the captured log tail and 300 for per-event messages.
 
 ---
 
