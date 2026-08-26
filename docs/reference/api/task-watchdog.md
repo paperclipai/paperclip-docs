@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.824.1
+seo_title: Task Watchdog API
+seo_description: Configure a watchdog to review a stopped issue subtree: routes, record fields, classifier states, scope enforcement, and checkout-lock semantics.
 ---
 
 # Task Watchdog
