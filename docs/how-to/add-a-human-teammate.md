@@ -1,3 +1,8 @@
+---
+seo_title: Add a Human Teammate
+seo_description: Bring a co-founder, operator, or read-only viewer into your company as a board member, and pick the access level that matches what they need to do.
+---
+
 # Add a human teammate
 
 Paperclip companies aren't single-player. You can bring other people in as board members — a co-founder who watches the same agents, an operator who triages the inbox, a viewer who just wants read access to the dashboard. This is the end-to-end flow, done from the app: you create an invite link, they open it and ask to join, and you approve them.

@@ -1,3 +1,8 @@
+---
+seo_title: Local Development Setup
+seo_description: The fastest way to run Paperclip locally, using embedded PostgreSQL, local disk storage, and the local trusted deployment mode by default.
+---
+
 # Local Development
 
 This is the fastest way to run Paperclip locally. The default path uses embedded PostgreSQL, local disk storage, and the local trusted deployment mode.

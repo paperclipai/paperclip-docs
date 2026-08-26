@@ -1,3 +1,8 @@
+---
+seo_title: Quickstart: Your First Agent in 5 Minutes
+seo_description: Install Paperclip, create a company, hire a CEO agent, and approve its first strategy — a working AI company in about five minutes.
+---
+
 # Quickstart Path
 
 The shortest route from a running Paperclip instance to an agent that has just completed work for you. After Paperclip is installed, the path takes about 5 minutes: create a company, hire a CEO agent, approve its first strategy, watch tasks land on the board.

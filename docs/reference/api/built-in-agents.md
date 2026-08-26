@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Built-in Agents API
+seo_description: First-party agents Paperclip ships ready to provision into any company by name, instead of configuring an equivalent role from scratch every time.
 ---
 
 # Built-in Agents

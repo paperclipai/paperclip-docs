@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Gemini CLI Adapter
+seo_description: Run Google's Gemini CLI on the Paperclip host, with session resume across heartbeats and configurable sandboxing for each agent you point at it.
 ---
 
 # Gemini CLI

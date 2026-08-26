@@ -1,5 +1,7 @@
 ---
-paperclip_version: v2026.722.0
+paperclip_version: v2026.824.0
+seo_title: Agents API
+seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate API keys, sync skills, read the org chart, and trigger runs manually.
 ---
 
 # Agents
@@ -1014,6 +1016,27 @@ Notes:
 `POST /api/agents/{agentId}/claude-login`
 
 This is board-only and only works for `claude_local` agents.
+
+---
+
+## Claude subscription login (setup-token)
+
+Instead of pasting an `ANTHROPIC_API_KEY`, a company owner can log Claude in with a Claude subscription using a **setup-token** flow. The flow is company-and-environment scoped (it carries no agent id, so you can run it during a hire before any agent exists), and the server derives the owner from the authenticated actor.
+
+| Route | Purpose |
+|---|---|
+| `GET /api/companies/{companyId}/claude-oauth-token-status` | Read whether a stored Claude OAuth token exists for the authenticated owner. Returns only the secret id and latest version — never a token. A missing or foreign value returns the same fixed `404`. |
+| `POST /api/companies/{companyId}/setup-token-login-sessions` | Start a login session. Body: `{ "environmentId": "<uuid>", "adapterType": "claude_local", "overwrite"?: { … } }`. Returns `201`. |
+| `GET /api/companies/{companyId}/setup-token-login-sessions/{sessionId}` | Read the session status. |
+| `GET /api/companies/{companyId}/setup-token-login-sessions/{sessionId}/prompt` | Read the one-time login prompt (the authorization URL to open in a browser). |
+| `POST /api/companies/{companyId}/setup-token-login-sessions/{sessionId}/code` | Submit the code the browser hands back. Body: `{ "browserCode": "…" }`. |
+| `POST /api/companies/{companyId}/setup-token-login-sessions/{sessionId}/completion` | Read the completion claim. Returns the non-secret `storedSessionId` — never a token. |
+| `POST /api/companies/{companyId}/setup-token-login-sessions/{sessionId}/cancel` | Cancel the session. Idempotent: a missing, terminal, or foreign session id all return `200`, so the route never confirms a session exists. |
+
+Two things to know:
+
+- **No response ever carries a token.** The completion returns only the opaque `storedSessionId` claim; the stored value lives in the company's secrets.
+- **The prompt, code, and completion calls require a confidential transport.** Over a non-confidential connection the guard returns `403` — these steps move the login material, so they refuse to run in the clear.
 
 ---
 

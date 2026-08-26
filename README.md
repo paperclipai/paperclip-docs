@@ -28,6 +28,13 @@ Cloudflare Pages is connected directly to `paperclipai/paperclip-docs` through G
 - Pushes to other branches create Cloudflare Pages preview/canary deployments.
 - Canary URLs are created by Cloudflare for each deployment, for example `https://92b9a99c.paperclip-docs-74t.pages.dev`. Use the URL shown in the Cloudflare Pages deployment row or GitHub deployment/check for the pushed branch and commit.
 
+That auto-deploy is not guaranteed — it has silently failed to fire on a push to `main` before. After anything reader-facing lands, check the live site rather than the merge, and republish by hand if it's stale:
+
+```sh
+npm run docs:build
+npx wrangler pages deploy .site --project-name paperclip-docs --branch main
+```
+
 ## Contributing
 
 Spotted a typo, a broken link, or something that could be clearer? There are two easy paths, both linked from the footer of every docs page:

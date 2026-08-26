@@ -1,3 +1,8 @@
+---
+seo_title: Add an MCP Server to an Agent
+seo_description: Attach a Model Context Protocol server so one agent picks up new tools — query Postgres, search a vector index, file issues — without changing Paperclip.
+---
+
 # Add an MCP server to an agent's toolkit
 
 Attach a Model Context Protocol (MCP) server to a specific Paperclip agent so it picks up new tools — read a local Postgres, query a vector index, file GitHub issues — without modifying Paperclip itself. End-to-end on a fresh agent in about 10 minutes for a local server, 20 for a remote one.

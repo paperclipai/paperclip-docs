@@ -31,7 +31,7 @@ The branch model is non-negotiable: end users on the latest *released* paperclip
 - `docs/user-guides/screenshots/registry.json` — read/write: screenshot dependency tracking.
 - `PENDING.md` (on `nightly` branch only) — **regenerated** from scratch each run (not appended) so it always reflects the current cumulative manifest. Stale entries from reverted commits never linger.
 - `SCREENSHOTS_PENDING.md` (committed) — regenerated each run, lists screenshots whose `depends_on` paths changed in the diff window.
-- `docs/reference/changelog.md` — **release mode only**: append one accordion entry per release (Phase 6.5). User-facing and linked from the nav; nothing else writes it.
+- `docs/reference/changelog.md` — **release mode only**: append one accordion entry per release (Phase 6.5). User-facing and linked from the nav; nothing else writes it. Writing the entry is only half the job — it is not done until `docs.paperclip.ing` is serving it (Phase 9).
 
 **Helper scripts called during the run:**
 
@@ -39,7 +39,17 @@ The branch model is non-negotiable: end users on the latest *released* paperclip
 - `scripts/sync/check-drift.mjs` — Phase 1.5 drift detection (finds documented surfaces missing from parent).
 - `scripts/sync/detect-renames.mjs` — Phase 3 directory rename detection (distinguishes a renamed surface from a brand-new one).
 - `scripts/sync/verify-edit.mjs` — Phase 5.5 post-edit verification (checks that authored claims still match parent code).
-- `scripts/sync/realign-nightly.mjs` — post-release realign (Phase 7): fast-forwards `nightly` onto the merged release branch and re-anchors the merge-base after the squash-merge severs ancestry.
+- `scripts/sync/check-tag-accuracy.mjs` — **release mode only** (Phase 5.7): the tag-accuracy gate. Verifies every doc page changed on `nightly` vs `main` against the **stable release tag** and flags post-tag leaks — content nightly drafted from `master` that is not in the release. See `maintenance/release-channels-plan.md` for why this exists.
+- `scripts/sync/realign-nightly.mjs` — post-release realign (Phase 7): re-anchors `nightly` onto the merged release squash commit (restoring ancestry) **without discarding** nightly's post-tag `master` drafts.
+
+**Build gates that must pass before commit** (Phase 7; all also run in CI via `.github/workflows/docs-checks.yml`):
+
+- `npm run docs:test:seo-metadata` — every page has a unique, hand-written `seo_title` and `seo_description`. See "Authored SEO metadata".
+- `npm run docs:test:crawlable-links` — no raw `.md` hrefs, no links to missing or redirecting targets, sidebar server-rendered, sitemap dates not uniform.
+- `npm run docs:test:skill-source-blocks` — per-skill pages embed their authoritative `SKILL.md`.
+- `npm run docs:test:static-routes`, `npm run docs:test:asset-fingerprints`, `npm run docs:test:hierarchical-skills-nav`.
+
+`npm run docs:test` runs all six.
 
 ## Invocation
 
@@ -65,10 +75,21 @@ The branch model is non-negotiable: end users on the latest *released* paperclip
 
 ### Phase 1 — Decide mode and target branch
 
+> **Release channels — read this first.** Paperclip publishes on four lanes:
+> `canary` (every merge to `<parent-default>`) → `nightly` (a green `master` build,
+> smoke-tested nightly) → `beta` (a promoted nightly, soaks ≥3 days) → `stable`
+> (the manually cut release). **Only `stable` has git tags and GitHub Releases**
+> (clean CalVer `vYYYY.MDD.P`); beta/nightly/canary are npm/Docker artifacts with
+> no git ref we can diff against. **Docs ship on `stable`.** Note the naming
+> collision: *our* `nightly` branch tracks parent `<parent-default>` HEAD (≈ the
+> **canary** lane), which runs far ahead of the stable tag — so a release branch
+> cut from `nightly` inherits post-tag `master` drafts. Phase 5.7 is the gate that
+> catches those. See `maintenance/release-channels-plan.md`.
+
 1. Read `.sync-state.json`. Note `branch_mode` and `base_release_tag`.
-2. Fetch parent's latest release: `gh api repos/paperclipai/paperclip/releases/latest -q '.tag_name'`.
+2. Fetch parent's latest **stable** release: `gh api repos/paperclipai/paperclip/releases/latest -q '.tag_name'`. `releases/latest` already excludes prereleases, but **guard defensively**: the release target MUST match `^v?\d{4}\.\d{1,4}\.\d+$` (clean CalVer). Any `-beta`/`-nightly`/`-canary` tag is never a release target — if the API ever returns one, treat the run as nightly mode and note it in the summary.
 3. Auto-detect mode (unless overridden):
-   - If a new release tag exists AND `base_release_tag` is older → **release mode**.
+   - If a new stable release tag exists AND `base_release_tag` is older → **release mode**.
    - Otherwise → **nightly mode**.
 4. Check out the right branch:
    - Release mode: ensure on `main`. Release mode is **self-sufficient** — it does not require the `nightly` branch to exist or to have drafts. If `nightly` exists with relevant drafts, they're used as a starting point; if not, the release run computes everything from scratch.
@@ -110,10 +131,13 @@ Cache result under `/tmp/paperclip-sync/<sha>/` so we don't refetch within a run
 
 Drift is the inverse of the cumulative diff: it's the set of things **we already document** that have since vanished or moved upstream. It exists regardless of when the last sync happened — a parent surface can disappear between two sync runs even if our diff window is empty. The wet-run that motivated this phase found `POST /api/companies/{companyId}/logo` documented but absent from current `server/src/routes/companies.ts`, with no sign of it in any diff window the sync had ever processed.
 
-Run the drift checker against parent HEAD:
+Run the drift checker against the reference for this mode. **Nightly mode → `<parent-default>`** (drift is about the live upstream). **Release mode → the stable release tag** — checking release-mode drift against `master` is blind to the tag divergence and will pass surfaces that exist on `master` but not in the release (that is how the Kimi leak slipped past a `0`-drift run). Use `<release-tag>` in release mode:
 
 ```
+# nightly mode
 node scripts/sync/check-drift.mjs --json --against <parent-default>
+# release mode
+node scripts/sync/check-drift.mjs --json --against <release-tag>
 ```
 
 The script scans `docs/**` for four reference classes and verifies each one still exists in parent:
@@ -239,6 +263,7 @@ If all pass: make the mechanical edit directly. Examples: append a row to `envir
 > - Preserve existing page structure unless the change demands new sections. Keep cross-references intact.
 > - If a new page is needed, mirror the structure of the neighbour page you were given. Do **NOT** edit `site/content.json` directly — return a `nav_addition` structured object alongside the page content (see below). The orchestrator will merge it.
 > - Add `paperclip_version: <tag>` to the frontmatter of touched pages in release mode; leave alone in nightly mode (nightly pages are versionless until they merge to main).
+> - **Every page you create must carry `seo_title` and `seo_description` frontmatter, hand-written.** See "Authored SEO metadata" below for the rules. Do not omit them and let the build fall back — the fallback is the sidebar label and a clipped first paragraph, and `npm run docs:test:seo-metadata` fails the build. If you materially rewrite an existing page's subject, update its `seo_description` to match; if you only patch a detail, leave it alone.
 > - Every concrete claim you write (CLI flag names, env var names, REST route paths, config field names, file paths) must come from the parent code you were given. Do not infer or paraphrase identifiers; copy them verbatim. The next phase verifies these claims against parent code.
 > Return: `{ "files": { "<path>": "<new content>" }, "nav_addition": { "section_title": "How-to Guides", "entry": { "title": "...", "file": "../docs/how-to/foo.md" } } }` — `nav_addition` is null if no new page was created.
 
@@ -246,10 +271,11 @@ If all pass: make the mechanical edit directly. Examples: append a row to `envir
 
 ### Phase 5.5 — Verify edits against parent code
 
-For every file touched in Phase 5 (auto-merge or PR-tier):
+For every file touched in Phase 5 (auto-merge or PR-tier). Verify against the reference for this mode — **nightly mode → `<parent-default>`**, **release mode → the stable `<release-tag>`** (verifying release edits against `master` would confirm claims that are true on `master` but absent from the release):
 
 ```
-node scripts/sync/verify-edit.mjs <doc-path> --against <parent-default-or-tag> --json
+node scripts/sync/verify-edit.mjs <doc-path> --against <parent-default>   # nightly mode
+node scripts/sync/verify-edit.mjs <doc-path> --against <release-tag>      # release mode
 ```
 
 Collect all `unverified` and `suspicious` records into a **Verification Report** for the run.
@@ -260,6 +286,24 @@ Routing rules:
 - **PR tier edits (nightly mode).** If any high-confidence unverified record fires, demote the entry from auto-commit to PR draft and add a `⚠ Verification Failed` callout in the PR body listing each unverified record. The human reviews and corrects.
 - **PR tier edits (batched-release mode).** Never auto-merge if any unverified records exist. They flow into the release PR with the failed claims listed under `⚠ Verification Failures`.
 - **Suspicious records.** Logged and surfaced in the run summary / PR body, but never block. They're informational.
+
+### Phase 5.7 — Tag-accuracy gate (release mode only)
+
+Phase 5.5 verifies the edits *this run* authored. This phase verifies **everything the release would ship** — including drafts nightly authored in earlier runs — against the stable tag. It exists because our `nightly` branch tracks parent `master` (≈ canary), which runs far ahead of the stable tag, so a release branch cut from `nightly` inherits post-tag `master` drafts as leaks (this is exactly how Kimi, `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS`, and a mission-less onboarding rewrite reached a release branch). Skip entirely in nightly mode.
+
+Run the gate over the pages the release changes vs the live baseline:
+
+```
+node scripts/sync/check-tag-accuracy.mjs --tag <release-tag> --base main --head <release-branch-or-nightly> --json
+```
+
+It reuses `verify-edit.mjs` per changed page and classifies each:
+
+- **`leaks`** — a page has ≥1 **high-confidence** claim (`file-path`, `env-var`, `cli-command`, `cli-flag`) that the release-tag code does not contain. These are mechanical identifiers the shipped code simply lacks. **Auto-quarantine** each: revert the page (or just the offending section) to its `main` state, and list it in the PR body under **`### ⚠ Post-tag leaks removed`**. Only added/changed lines are judged, so a pre-existing stale entry is left to the drift phase, not quarantined here.
+- **`review`** — new pages, or medium-confidence-only misses (`rest-route`, `adapter-config-field`). REST routes are medium because constant/prefix registration hides real matches (a known `verify-edit` false negative — do **not** auto-quarantine them). Surface under the PR's `### ⚠ Verification Failures` / review notes for a human to confirm against the tag.
+- **`clean`** — every added claim verifies at the tag.
+
+**Known limit — behavioural/prose leaks.** The gate only catches leaks that carry a checkable *identifier*. A pure prose/UI rewrite with no code identifier (the onboarding "mission step is gone" case) will read as `clean`. So release mode **also** keeps the adversarial nightly-draft check: spawn a small verification pass (per changed guide page, compare its user-visible claims against the tag's UI/flow) and treat a page describing behaviour absent at the tag as a leak — revert it to `main` and list it under `### ⚠ Post-tag leaks removed`.
 
 ### Phase 6 — Screenshot staleness check
 
@@ -290,6 +334,12 @@ rewritten, or expanded per release — not for the product. It is user-facing an
 linked from the nav, and nothing else writes it, so it silently goes stale unless
 this phase runs. (It did: the page was created in July 2026 with two backfilled
 entries and then missed the very next release.)
+
+The other half of the failure is publication. For v2026.824.0 this phase ran
+correctly — the entry landed on `main` and rendered — and readers still saw the
+previous release at the top of the page for hours, because the site was never
+rebuilt. Phase 9 is what closes that gap; do not treat this phase as finished
+until Phase 9 has confirmed the entry live.
 
 Skip entirely in nightly mode — nightly pages are versionless until they merge to
 `main`, and a changelog entry for an unreleased tag would leak.
@@ -342,6 +392,7 @@ rather than shipping.
 
 1. Run `npm run docs:build`. Fail loud on build errors — do not commit.
 2. Run `npm run sync:check` (lint-links + verify-nav). Dangling nav entries or broken internal links → fail loud, do not commit. Orphans (md files not in `content.json`) are warnings — surface in the run summary so the user can decide whether the orphan is intentional (a maintenance file) or a missed registration.
+2b. Run `npm run docs:test:seo-metadata` and `npm run docs:test:crawlable-links`. Both fail loud — do not commit. The SEO gate catches a new page that shipped without hand-written `seo_title` / `seo_description`, or one whose title collides with an existing page. The crawlable-links gate catches a page that links out with a raw `.md` href, which 404s for every crawler. Fix the page; never weaken the check.
 3. Stage edits.
 4. Commit strategy:
    - Nightly auto-merge edits → single commit titled `nightly: <surface name> (paperclip <short-sha>)`.
@@ -354,12 +405,15 @@ rather than shipping.
      node scripts/sync/realign-nightly.mjs release/v2026.X.Y --push
      ```
 
-     It fast-forwards `nightly` onto the release branch, merges `origin/main` back in to re-anchor the merge-base at the squash commit, verifies main's tip is an ancestor of nightly, and pushes. Skipping this arms an add/add conflict trap that detonates at the next nightly run (see the special case below). Do not run any nightly-mode sync between the squash-merge and the realign.
+     It re-anchors `nightly` onto the release squash commit (restoring ancestry) and pushes. Skipping this arms an add/add conflict trap that detonates at the next nightly run (see the special case below). Do not run any nightly-mode sync between the squash-merge and the realign.
+
+     **Do not let the realign discard nightly's post-tag drafts.** Because Phase 5.7 quarantines post-tag leaks *from the release branch only*, those drafts (Kimi, etc.) are still legitimate on `nightly` — they document `master` features that ship in a *future* stable release. The realign must re-anchor `nightly` to `main`'s squash commit **without** resetting nightly's content to the release branch. `realign-nightly.mjs` does this by merging `origin/main` into `nightly` (favouring nightly's content on conflict) rather than fast-forwarding nightly onto the release branch. If the drafts do get dropped, the next nightly run regenerates them from the cumulative window — wasteful but self-healing.
 
    PR body structured sections (each omitted if empty — never silently dropped):
 
+   - `### ⚠ Post-tag leaks removed` — every page Phase 5.7 quarantined, with the offending claim(s) and the note that the surface is absent at the release tag (present on `master`, shipping in a later release). Confirms the release documents only what it contains.
    - `### ⚠ Drift` — every drift candidate from Phase 1.5 grouped by `kind`, high-confidence first, medium-confidence prefixed with `Verify:`. Never auto-resolved — the PR explicitly asks the reviewer to act on each entry (update path, delete section, or confirm false positive).
-   - `### ⚠ Verification Failures` — every unverified record from Phase 5.5, with the doc location (file:line) and the helper's `suggest` field. Reviewer corrects before merge.
+   - `### ⚠ Verification Failures` — every unverified record from Phase 5.5 **and** every Phase 5.7 `review` entry, with the doc location (file:line) and the helper's `suggest` field. Reviewer corrects before merge.
    - `### ↻ Renames detected` — every directory rename from Phase 3, formatted `<from> → <to>` with the helper's `confidence` and `signal`. Confirms that no spurious new doc pages were created for a renamed surface.
 5. Update `.sync-state.json`:
    ```json
@@ -383,6 +437,101 @@ rather than shipping.
   - The commits/PRs you created (with URLs if PRs were opened).
   - Anything that needs human attention (PR-tier drafts, stale screenshots, build warnings).
   - Ask: "Push these changes / open the PR?"
+- **Release mode does not end here.** Once the human merges the release PR, the
+  run continues into Phase 9. Say so in the hand-off, so the merge isn't mistaken
+  for the finish line.
+
+### Phase 9 — Publish & verify live (release mode only)
+
+**A release is done when `docs.paperclip.ing` serves it, not when the PR merges.**
+Everything up to here is invisible to readers: Phase 7 builds into `.site`, which
+is gitignored, so no built site is ever committed. Cloudflare Pages rebuilding on
+push to `main` is the single point of failure for the whole run, and it has
+silently no-opped before — v2026.824.0 merged with a correct, correctly-rendering
+changelog entry, and production kept serving the previous build: the release's new
+pages 404'd and the changelog still topped out at v2026.817.0.
+
+Skip in nightly mode (Cloudflare branch previews are best-effort, not reader-facing).
+
+1. **Do every post-merge follow-up, not just the realign.** Each of these has been
+   skipped at least once; none are optional.
+
+   ```sh
+   git checkout main && git pull
+   git tag docs/v2026.X.Y && git push --tags
+   node scripts/sync/realign-nightly.mjs release/v2026.X.Y --push   # see Phase 7
+   ```
+
+   Then flip `nightly`'s `.sync-state.json` back to `"branch_mode": "nightly"` and
+   commit it. The merge-down inherits `"release"` from `main` and nothing else
+   corrects it, so the next nightly run starts from a state file that lies about
+   which mode it's in. Leave `base_release_tag` at the new tag — that is now the
+   correct cumulative-diff base.
+
+2. **Verify production is serving the release.** Wait a few minutes for the build,
+   then check three independent things — a page that is new in this release, a
+   claim that is new on an existing page, and the changelog entry:
+
+   ```sh
+   curl -s -o /dev/null -w '%{http_code}\n' https://docs.paperclip.ing/<new-page-route>/
+   curl -s https://docs.paperclip.ing/<changed-page-route>/ | grep -c '<new claim>'
+   curl -s https://docs.paperclip.ing/reference/changelog/ | grep -o 'Docs for v[0-9.]*' | head -1
+   ```
+
+   Expected: `200`, a non-zero count, and the tag you just shipped. A `404`, a
+   zero, or a changelog that still reads the *previous* release means the deploy
+   did not run — the changelog is the most reliable of the three, because it
+   changes on every single release.
+
+3. **If production is stale, republish by hand** rather than waiting it out:
+
+   ```sh
+   npm run docs:build
+   npx wrangler pages deploy .site --project-name paperclip-docs --branch main
+   ```
+
+   Re-run step 2 afterwards. If the manual deploy also fails (no Cloudflare
+   credentials, project missing, GitHub connection dropped), that needs a human:
+   say so explicitly in the hand-off and do **not** report the release as shipped.
+
+4. **Show the evidence in the run summary** — the URLs you checked, the status
+   codes, and the changelog version you read back. "Merged" is not evidence.
+
+> The "never push without asking" rule still holds here. Steps 1 and 3 push tags
+> and publish to production — ask before each, and if the answer is no, hand off
+> with the exact commands so the human can run them. What is **not** optional is
+> step 2: always check the live site and always report what you found, even when
+> you weren't allowed to fix it.
+
+## Authored SEO metadata
+
+Every page in `docs/` carries two hand-written frontmatter fields:
+
+```yaml
+---
+paperclip_version: v2026.824.0
+seo_title: Task Work Modes: Standard and Ask
+seo_description: Standard mode wants work done; Ask mode wants a question answered. See how each changes the machinery an agent spins up when it picks up a task.
+---
+```
+
+**Why they exist.** The build used to derive the `<title>` from the sidebar label and the `<meta name="description">` from the first paragraph clipped to 220 characters. That produced seven pages titled "Overview", 32 pages sharing a title with another page, and 109 descriptions cut off mid-word. Google chooses what to keep partly on those signals, and near-identical titles are exactly the weak-differentiation pattern behind "crawled — currently not indexed". `site/build-release.mjs` still has the derived path as a fallback, but `scripts/verify-seo-metadata.mjs` fails the build before it can be used.
+
+**Rules, enforced by `npm run docs:test:seo-metadata`:**
+
+| Field | Rule |
+|---|---|
+| `seo_title` | Required. Unique across all pages. ≤ 43 chars, because the build appends `" \| Paperclip Docs"` and the total must stay ≤ 60. Must not contain `\|`. |
+| `seo_description` | Required. Unique across all pages. 110–158 characters. Must end on a complete sentence — the check rejects anything not ending in `.`, `!`, `?`, or `)`. |
+| Both | Single line. Must not start with `"` or `'` — the frontmatter parser strips wrapping quotes. Colons, em-dashes and commas inside the value are fine. |
+
+**How to write them.**
+
+- *Title*: name the page's actual subject, not its position in the nav. The sidebar can say "Overview" because the surrounding tree supplies the context; a search result has no tree. Prefer the page's H1 when it is already specific ("Adapters Overview", "Company Commands"). When two pages genuinely share a subject — a guide page and its API reference — qualify the reference one (`Issues API`), and leave the guide page with the clean title.
+- *Description*: write for the click, not for the crawler. Lead with what the reader will be able to do, name the concrete things the page covers, and prefer specifics over adjectives — "create a company, hire a CEO agent, approve its first strategy" beats "learn about getting started". Do not repeat the title. Do not stuff keywords. Do not promise anything the page does not deliver.
+- Never generate these mechanically from the first paragraph. That is the fallback the gate exists to prevent.
+
+**Backfill is complete** — all 192 pages were authored by hand. New pages are the only ones that need writing, so treat a missing field as an authoring bug, not a batch job to re-run.
 
 ## Special cases
 
@@ -406,6 +555,9 @@ Anchor-map watchers will report "no changes detected" for many runs even though 
 
 ### Release PR was squashed and nightly was not realigned
 Symptom: the next nightly run's "merge `main` into `nightly`" fails with add/add conflicts on pages both branches created (nightly's unstamped drafts vs main's release-stamped copies). Cause: this repo is squash-only, so the release squash commit has no ancestry link back to nightly, and the realign step (Phase 7) was skipped. Recovery: abort the merge (`git merge --abort`), then run `node scripts/sync/realign-nightly.mjs <release-branch> --push`. If the local release branch was already deleted, recreate it from the last pre-merge SHA (`git branch release/vX.Y.Z <sha>` — find it in the merged PR's head) or, if main has had no commits since the squash, `git checkout nightly && git merge origin/main -X theirs` is NOT safe (it can silently drop post-tag nightly drafts) — prefer recreating the branch. Never `git reset --hard origin/main` on nightly: it destroys drafts for parent features that shipped after the release tag.
+
+### Release merged but the site never rebuilt
+Symptom: the release PR is on `main`, `docs/reference/changelog.md` has the new entry, and `docs.paperclip.ing` still shows the previous release — new pages 404 and the changelog's top accordion is one release behind. This is a publication failure, not a docs failure, and it is invisible from inside the repo because the built site is gitignored. Diagnose in this order: (1) `npm run docs:build` on a clean checkout of `main` — if it fails, that's the cause and Phase 7 let it through; (2) check the Cloudflare Pages project for a failed or missing build for the merge commit; (3) republish manually per Phase 9 step 3. Note that the `main`-branch preview host is stale in the same way, so comparing against it proves nothing — check `docs.paperclip.ing` itself.
 
 ### Nightly branch has open PRs against it when a release ships
 The release PR merges `nightly` → `main`. If there are open nightly-draft PRs, they get included in the release if merged into `nightly` first, or remain on `nightly` for the next release cycle if not. The skill should list open `nightly-draft/*` PRs in the release-PR body so the human reviewer can decide.
@@ -431,6 +583,7 @@ The release PR merges `nightly` → `main`. If there are open nightly-draft PRs,
 | Conflict merging `main` into `nightly` | Abort with clear conflict report, ask user to resolve. |
 | Anchor-map watcher pattern matches nothing for many runs | Note in run summary — likely a parent refactor moved files; suggest user updates `anchor-map.json`. |
 | Reconciliation flags pending (Phase 3.5) | Surface in run summary and PR body. Do not auto-resolve. The next run still proceeds for non-reconciliation entries. |
+| Release merged but `docs.paperclip.ing` still serves the previous build | Phase 9. Confirm `npm run docs:build` succeeds on `main` (rules out a build break), then republish with `npx wrangler pages deploy .site --project-name paperclip-docs --branch main`. If that fails too, escalate — the Pages project or its GitHub connection is broken. Never report the release as shipped on the strength of the merge alone. |
 | `base_release_tag` is older than the parent's oldest available release | Parent may have deleted ancient tags. Abort with instructions to manually update `.sync-state.json` to the oldest available tag. |
 
 ## Maintenance of this skill

@@ -1258,6 +1258,97 @@ test("detect-renames: two candidates → file-overlap wins over shared-prefix", 
 });
 
 // ----------------------------------------------------------------------------
+// check-tag-accuracy (hermetic end-to-end: real git fixture repo + stubbed
+// parent via PAPERCLIP_SYNC_FIXTURE_DIR — no network)
+// ----------------------------------------------------------------------------
+
+const TAGACC_SCRIPT = join(SELF_DIR, "check-tag-accuracy.mjs");
+
+// A file-path claim in a doc page: `<prefix>/...ts` (verified iff the parent
+// returns 200 at the tag). Using only file-path claims keeps verify-edit from
+// reaching for the tree/env/route/adapter fetchers, so the whole run is stubbed
+// by a handful of contents-*.json files.
+function makeTagAccFixture() {
+  const dir = makeFixture();
+  copyFileSync(TAGACC_SCRIPT, join(dir, "scripts/sync/check-tag-accuracy.mjs"));
+  copyFileSync(VERIFY_SCRIPT, join(dir, "scripts/sync/verify-edit.mjs"));
+  copyFileSync(join(SELF_DIR, "anchor-map.json"), join(dir, "scripts/sync/anchor-map.json"));
+
+  const g = (...args) => {
+    const r = spawnSync("git", args, { cwd: dir, encoding: "utf8" });
+    if (r.status !== 0) throw new Error(`git ${args.join(" ")} failed: ${r.stderr || r.stdout}`);
+    return r.stdout;
+  };
+  g("init", "-q");
+  g("config", "user.email", "t@example.com");
+  g("config", "user.name", "t");
+  g("config", "commit.gpgsign", "false");
+
+  // BASE: `existing.md` already links a pre-existing file path.
+  writeFile(dir, "docs/how-to/existing.md", "# Existing\n\nSee `packages/stale/pre.ts` for details.\n");
+  g("add", "-A");
+  g("commit", "-q", "-m", "base");
+
+  // HEAD: append a NEW file-path link to existing.md, add a leak page and a
+  // clean page.
+  writeFile(
+    dir,
+    "docs/how-to/existing.md",
+    "# Existing\n\nSee `packages/stale/pre.ts` for details.\n\nAlso see `packages/ghost/added.ts` now.\n",
+  );
+  writeFile(dir, "docs/how-to/ghost-leak.md", "# Ghost\n\nRuns from `packages/ghost/src/index.ts`.\n");
+  // real page: a .ts that DOES exist at the tag (200) plus a .md link that does
+  // not (404). The .md must be ignored (it's a doc link, not a product surface).
+  writeFile(
+    dir,
+    "docs/how-to/real-clean.md",
+    "# Real\n\nRuns from `packages/adapters/real/src/index.ts`. Config is `packages/adapters/real/config.md`.\n",
+  );
+  g("add", "-A");
+  g("commit", "-q", "-m", "head");
+
+  // Stubbed parent: only the real .ts resolves at the tag. Everything else 404s
+  // by omission.
+  const fixDir = join(dir, "_fixtures");
+  mkdirSync(fixDir, { recursive: true });
+  writeFileSync(join(fixDir, "repo.json"), JSON.stringify({ default_branch: "master" }));
+  writeFileSync(
+    join(fixDir, "contents-packages__adapters__real__src__index.ts-faketag.json"),
+    JSON.stringify({ content: "export {}\n" }),
+  );
+  return { dir, fixDir };
+}
+
+test("check-tag-accuracy: flags a post-tag leak, keeps in-tag page clean, scopes to added lines", () => {
+  const { dir, fixDir } = makeTagAccFixture();
+  const r = spawnSync(
+    process.execPath,
+    [join(dir, "scripts/sync/check-tag-accuracy.mjs"), "--tag", "faketag", "--base", "HEAD~1", "--head", "HEAD", "--json"],
+    { cwd: dir, encoding: "utf8", env: { ...process.env, PAPERCLIP_SYNC_FIXTURE_DIR: fixDir } },
+  );
+  assert(r.status === 0, `gate should always exit 0, got ${r.status}. stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  const leakFiles = out.leaks.map((l) => l.file);
+
+  // The new page whose only surface is a tag-absent .ts is a leak.
+  assert(leakFiles.includes("docs/how-to/ghost-leak.md"), `ghost-leak.md should be a leak; leaks=${JSON.stringify(leakFiles)}`);
+  // The modified page is a leak because of its ADDED tag-absent .ts.
+  assert(leakFiles.includes("docs/how-to/existing.md"), `existing.md should be a leak; leaks=${JSON.stringify(leakFiles)}`);
+  // The page whose .ts exists at the tag (and whose only miss is a .md doc link) is NOT a leak.
+  assert(!leakFiles.includes("docs/how-to/real-clean.md"), `real-clean.md must not be a leak; leaks=${JSON.stringify(leakFiles)}`);
+  assert(!out.review.some((x) => x.file === "docs/how-to/real-clean.md"), "real-clean.md must not be in review (its .ts verifies; the .md link is ignored)");
+
+  // Added-line scoping: the pre-existing `pre.ts` (also 404) must NOT be flagged
+  // — only the added `added.ts`.
+  const ex = out.leaks.find((l) => l.file === "docs/how-to/existing.md");
+  const vals = ex.claims.map((c) => c.value);
+  assert(vals.includes("packages/ghost/added.ts"), `existing.md leak should cite the added path; got ${JSON.stringify(vals)}`);
+  assert(!vals.includes("packages/stale/pre.ts"), `pre-existing path must be scoped out of the leak; got ${JSON.stringify(vals)}`);
+
+  rmSync(dir, { recursive: true, force: true });
+});
+
+// ----------------------------------------------------------------------------
 
 console.log("");
 console.log(`Results: ${pass} passed, ${fail} failed.`);

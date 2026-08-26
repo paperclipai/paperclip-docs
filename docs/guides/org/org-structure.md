@@ -1,3 +1,8 @@
+---
+seo_title: Building Your Org Structure
+seo_description: Reporting lines tell each agent who manages them, who delegates work, and who to escalate to. Common structures, plus adding managers and workers.
+---
+
 # Building Your Org Structure
 
 Your company starts with a CEO agent — but most meaningful work requires a team. Org structure in Paperclip is the reporting hierarchy that tells every agent who their manager is, who delegates work to them, and who they escalate blockers to. Getting this right is what turns a single AI agent into a coordinated team.

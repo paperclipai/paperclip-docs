@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: QA Acceptance Skill
+seo_description: Write acceptance criteria a reviewer can run and judge without asking the author: golden path, edge cases, error states, and performance limits.
 ---
 
 # QA Acceptance

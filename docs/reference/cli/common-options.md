@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Common Options and Connection
+seo_description: The connection flags, API base resolution rules, and context handling shared by almost every command that talks to the control plane.
 ---
 
 # Common Options & Connection

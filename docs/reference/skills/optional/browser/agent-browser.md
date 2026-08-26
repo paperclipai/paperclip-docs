@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Agent Browser Skill
+seo_description: Drive a real, supervised browser to verify behaviour, capture evidence, or read JavaScript-rendered content a static fetch cannot reach.
 ---
 
 # Agent Browser

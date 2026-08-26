@@ -1,5 +1,7 @@
 ---
-paperclip_version: v2026.722.0
+paperclip_version: v2026.824.0
+seo_title: Environment Variables Reference
+seo_description: Every variable Paperclip reads for server configuration, plus the ones it injects into agent processes at runtime — the list to wire deployments from.
 ---
 
 # Environment Variables
@@ -25,6 +27,10 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `PAPERCLIP_BIND` | inferred from `HOST` | Bind mode for the server socket. One of the values in `BIND_MODES` (see `packages/shared`); overrides `server.bind` in `config.json`. |
 | `PAPERCLIP_BIND_HOST` | inferred | Custom host when `PAPERCLIP_BIND` is set to a custom mode; overrides `server.customBindHost`. |
 | `PAPERCLIP_TAILNET_BIND_HOST` | auto-detected via `tailscale ip -4` | Tailnet IPv4 address the server binds to when bind mode is `tailnet`. Set explicitly to skip the `tailscale` CLI probe. |
+| `PAPERCLIP_WORKSPACE_GIT_SCAN_CONCURRENCY` | `2` | How many expensive full-tree workspace Git scans may run at once. Clamped to 1–16. |
+| `PAPERCLIP_WORKSPACE_GIT_SCAN_QUEUE_CAPACITY` | `32` | How many scans may wait in the queue before new ones are rejected. Clamped to 0–1024. |
+| `PAPERCLIP_WORKSPACE_GIT_SCAN_TIMEOUT_MS` | `8000` | Per-scan timeout, in milliseconds, before a workspace Git scan is abandoned. Clamped to 100–120000. |
+| `PAPERCLIP_WORKSPACE_GIT_SCAN_CACHE_TTL_MS` | `10000` | How long a completed scan's result is reused before a fresh scan runs, in milliseconds. Clamped to 0–60000. |
 
 > **Note:** `DATABASE_URL` is the main switch between the embedded database and external PostgreSQL.
 

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: CLI Access, Profile and Instance Admin
+seo_description: Check who you are on an instance, update profiles, handle invites and join requests, and administer users and instance-wide settings.
 ---
 
 # Access, Profile & Instance Admin

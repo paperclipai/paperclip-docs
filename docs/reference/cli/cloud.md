@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: Cloud Sync Commands (Removed)
+seo_description: Cloud Sync commands have been removed. Use full-fidelity company import and export instead — it captures the same portable bundle they pushed.
 ---
 
 # Cloud Sync Commands (removed)

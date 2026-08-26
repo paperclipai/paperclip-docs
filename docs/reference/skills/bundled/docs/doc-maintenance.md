@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Doc Maintenance Skill
+seo_description: Keep documentation honest with minimum churn: detect where docs drift from recent behavior changes, update the affected pages, and note what shipped.
 ---
 
 # Doc Maintenance

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: Worktree and Environment Lab Commands
+seo_description: Run a fully isolated Paperclip instance per git worktree, or build a deterministic local fixture to develop and test against.
 ---
 
 # Worktree & Environment Lab

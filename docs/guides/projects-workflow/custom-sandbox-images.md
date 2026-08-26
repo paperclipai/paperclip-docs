@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Custom Sandbox Images
+seo_description: Stop re-installing the same CLIs and dependencies on every run. Build and capture a sandbox image, then manage which one future runs start from.
 ---
 
 # Custom sandbox images

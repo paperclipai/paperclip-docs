@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Routine Commands
+seo_description: Manage recurring and event-driven work: the payload a routine spawns, its status, its revision history, and the triggers that fire it.
 ---
 
 # Routine Commands

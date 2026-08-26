@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: External Adapters
+seo_description: Ship an adapter as its own npm package or local directory when you want independent versioning, separate distribution, or private runtime code.
 ---
 
 # External Adapters

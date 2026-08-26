@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Inbox Agent Policy API
+seo_description: Your personal switch for what agents may do to your inbox — archiving, clearing, and keeping the attention queue tidy — and when to take it back.
 ---
 
 # Inbox Agent Policy

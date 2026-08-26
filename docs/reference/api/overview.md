@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: API Overview
+seo_description: The shared reference for Paperclip's JSON control-plane API — companies, agents, issues, approvals, costs, routines, secrets, activity, and dashboard state.
 ---
 
 # API Overview

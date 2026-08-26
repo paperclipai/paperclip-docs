@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.626.0
+seo_title: Task Work Modes: Standard and Ask
+seo_description: Standard mode wants work done; Ask mode wants a question answered. See how each changes the machinery an agent spins up when it picks up a task.
 ---
 
 # Work modes

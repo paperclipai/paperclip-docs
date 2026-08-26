@@ -1,5 +1,7 @@
 ---
-paperclip_version: v2026.512.0
+paperclip_version: v2026.824.0
+seo_title: Adapters API
+seo_description: The control-plane surface for the server-side adapter registry: which agent runtimes Paperclip can reach, how each is configured, and how packages install.
 ---
 
 # Adapters API
@@ -83,3 +85,17 @@ GET /api/adapters/:type/ui-parser.js
 ```
 
 Serves the adapter-supplied UI parser bundle. The Paperclip UI fetches this script to render run output for the adapter. The wire contract is documented in [Adapter UI Parser](../adapters/adapter-ui-parser.md).
+
+---
+
+## Adapter device login
+
+Some adapters authenticate with a **device login** — the kind where the tool prints a code and a URL, you approve it in a browser, and the CLI finishes signing in. These routes drive that flow from Paperclip for a company, scoped to one environment. They currently apply to the Codex adapter.
+
+| Route | Purpose |
+|---|---|
+| `POST /api/companies/{companyId}/adapters/{type}/login-sessions` | Start a device-login session. Body: `{ "environmentId": "<id>", "ttlSeconds"?: <number> }`. Returns `201`; a `409` means a session is already in flight. |
+| `GET /api/companies/{companyId}/adapters/{type}/login-sessions/{sessionId}` | Read the session — its state and the code/URL to complete the login in a browser. |
+| `POST /api/companies/{companyId}/adapters/{type}/login-sessions/{sessionId}/cancel` | Cancel the session. |
+
+These are board routes: the caller must be on the board, have access to the company, and be allowed to manage the company's adapters. `type` must be an adapter that supports device login (Codex today); other types are rejected.

@@ -1,3 +1,8 @@
+---
+seo_title: Glossary of Paperclip Terms
+seo_description: Every term in Paperclip's interface and docs, defined in plain English and sorted A-Z — the place to look when a word in a guide isn't clicking.
+---
+
 # Glossary
 
 A quick reference for every term used in Paperclip's UI and documentation, in plain English. If you hit a word in a guide that isn't clicking, look it up here.

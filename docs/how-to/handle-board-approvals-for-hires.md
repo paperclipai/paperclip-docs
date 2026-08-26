@@ -1,3 +1,8 @@
+---
+seo_title: Handle Board Approvals for Hires
+seo_description: A manager agent cannot hire on its own; it files a request and waits. Read the proposal, approve it, and Paperclip wakes the requester to carry on.
+---
+
 # Handle board approvals for hires
 
 When a manager agent (usually the CEO) decides it needs help, it can't just create the new hire itself. It submits a `hire_agent` approval and waits. You — the board — read the proposal, approve it, and Paperclip wakes the requester to finish the onboarding.

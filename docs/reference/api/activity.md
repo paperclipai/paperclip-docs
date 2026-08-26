@@ -1,3 +1,8 @@
+---
+seo_title: Activity API
+seo_description: Paperclip's audit trail: what changed, who changed it, which object, and when. Two reads of the same underlying log, for auditing and for debugging.
+---
+
 # Activity
 
 Activity is Paperclip's audit trail. Use it when you want to answer: what changed, who changed it, which object changed, and when did it happen?

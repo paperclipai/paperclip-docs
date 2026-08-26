@@ -1,3 +1,8 @@
+---
+seo_title: Require Board Approval Before Spend
+seo_description: Caps are reactive. For lumpy, discrete spend — a $40/month SaaS signup — make agents ask a human first instead of warning you at 80 percent.
+---
+
 # Require board approval before an agent spends money
 
 Budget caps are reactive. They warn at 80% and hard-stop at 100% — useful for bounding the runaway case, useless for *"don't sign up for this $40/month SaaS without asking me first."* For lumpy, discrete spend that needs a human go-ahead **before** the dollars move, you want an approval gate: the agent stops, posts a `request_board_approval`, and waits for your decision before continuing.

@@ -1,5 +1,7 @@
 ---
-paperclip_version: v2026.817.0
+paperclip_version: v2026.824.0
+seo_title: Companies API
+seo_description: Companies are the tenant boundary every agent, project, issue, and cost event belongs to. Endpoints for managing them, and how scoping is enforced.
 ---
 
 # Companies
@@ -421,6 +423,20 @@ The company-scoped `imports/*` routes are intentionally safer:
 - they reject the `replace` collision strategy
 
 Use the board-level preview route when you need to inspect an import that would create a brand-new company or target a different company.
+
+### Chunked import transfers
+
+A large export doesn't have to arrive in one upload. When a package is big, the client slices it into parts and streams them one at a time through a **transfer** — a durable run the server tracks so an interrupted upload resumes from the parts it already has instead of starting over. The UI and `paperclipai company import` both use this path automatically; see the [Export & Import guide](../../guides/power/export-import.md) for the user-facing flow.
+
+| Route | Purpose | Who can call it |
+|---|---|---|
+| `POST /api/companies/import/transfers` | Start — or resume — a chunked import transfer and get its `transferId` | Board only |
+| `PUT /api/companies/import/transfers/{transferId}/parts/{partIndex}` | Upload one part of the package | Board only |
+| `GET /api/companies/import/transfers/{transferId}` | Check the transfer's progress and which parts are still missing | Board only |
+| `POST /api/companies/import/transfers/{transferId}/preview` | Preview the reassembled package before applying it | Board only |
+| `POST /api/companies/import/transfers/{transferId}/apply` | Reassemble the parts, verify the whole-file hash, and run the import | Board only |
+
+Declaring a transfer is idempotent: the manifest carries a content-derived key, so re-declaring the same package returns the same run rather than starting a fresh one. Once a transfer completes, that exact package is done — a repeat declare short-circuits and you re-export the company to import it again.
 
 ---
 

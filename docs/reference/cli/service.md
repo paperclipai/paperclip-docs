@@ -1,3 +1,8 @@
+---
+seo_title: CLI Service Commands
+seo_description: Move Paperclip off a terminal window that dies when you close it, and run it as a managed background service that survives logout and reboot.
+---
+
 # Service Commands
 
 Most people start out running Paperclip with `paperclipai run` in a terminal window, which works right up until you close the window. The `service` commands hand that job to your operating system instead: Paperclip starts when you log in, restarts itself if it crashes, keeps a log you can tail, and survives you quitting the terminal entirely. Reach for these commands when you want Paperclip to be *always there* rather than something you remember to start.

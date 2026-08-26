@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.817.0
+seo_title: Adapters Overview
+seo_description: Adapters connect Paperclip's control plane to the runtime that does the work. Start here to compare the options and pick one per agent you hire.
 ---
 
 # Adapters Overview

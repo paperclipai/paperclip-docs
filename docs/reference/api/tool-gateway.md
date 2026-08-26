@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Tool Gateway API
+seo_description: Agents decide what to do; the tool gateway decides whether they may. It sits between every agent and every external tool you have connected.
 ---
 
 # Tool Gateway

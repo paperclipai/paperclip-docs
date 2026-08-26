@@ -1,3 +1,8 @@
+---
+seo_title: Approvals API
+seo_description: The board-review layer for actions that should not happen automatically — hires, CEO strategy sign-off, budget overrides, and other consequential moves.
+---
+
 # Approvals
 
 Approvals are the board-review layer for decisions that should not happen automatically. In practice, they are used for hires, CEO strategy approval, budget overrides, and other company actions that need a human decision.

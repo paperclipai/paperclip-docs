@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Auto-Create Recovery Tasks
+seo_description: Dependency chains die quietly behind paused agents, missing reviewers, and cancelled blockers. Recovery tasks wake that work instead of letting it wait.
 ---
 
 # Auto-Create Recovery Tasks

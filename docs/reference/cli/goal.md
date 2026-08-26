@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Goal Commands
+seo_description: Set, inspect, and restructure the strategic objectives that issues and projects ultimately serve — the why behind the work.
 ---
 
 # Goal Commands

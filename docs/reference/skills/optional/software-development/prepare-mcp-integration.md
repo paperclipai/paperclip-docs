@@ -1,3 +1,8 @@
+---
+seo_title: Prepare MCP Integration Skill
+seo_description: A two-phase playbook that turns a vendor link or short brief into a cited, reviewable plan for shipping an MCP integration someone can sign off on.
+---
+
 # Prepare MCP Integration
 
 > Take a new MCP or vendor integration from an input link or brief all the way to delivery — cited research first, an explicit human approval gate in the middle, then one governed Paperclip connector per approved connection.

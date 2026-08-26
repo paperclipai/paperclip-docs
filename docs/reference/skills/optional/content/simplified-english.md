@@ -1,3 +1,8 @@
+---
+seo_title: Simplified English Skill
+seo_description: Hold agents to ASD-STE100 Simplified Technical English so comments, plans, and handover documents land on the first read, in any reader's language.
+---
+
 # Simplified English
 
 > Write user-facing comments, plans, and documents in ASD-STE100 Simplified Technical English — short, unambiguous sentences with approved words and one meaning each — so readers understand them the first time.
@@ -46,23 +51,25 @@ This is an **optional** catalog skill — opt-in (install when you need it). For
 
 ## Full skill definition
 
-### Skill frontmatter
+The block below is the complete, authoritative `SKILL.md` for this skill — the exact file an agent loads at runtime. Use the controls in the top-right of the block to copy it or download it as `SKILL.md`.
 
-- **name:** simplified-english
-- **description:** Write user-facing comments, plans, and documents in ASD-STE100 Simplified Technical English — short, unambiguous sentences with approved words and one meaning each — so readers understand them the first time.
-- **key:** paperclipai/optional/content/simplified-english
-- **recommendedForRoles:**
+````markdown skill-source
+---
+name: simplified-english
+description: Write user-facing comments, plans, and documents in ASD-STE100 Simplified Technical English — short, unambiguous sentences with approved words and one meaning each — so readers understand them the first time.
+key: paperclipai/optional/content/simplified-english
+recommendedForRoles:
   - engineer
   - product
   - writer
   - devrel
-- **tags:**
+tags:
   - writing
   - communication
   - clarity
   - style
+---
 
-### Skill instructions
 # Simplified English
 
 For user-facing comments, plans, and documents, write using only ASD-STE100 Simplified Technical English.
@@ -87,6 +94,7 @@ The approved words are the ASD-STE100 controlled vocabulary — the Dictionary i
 - "about" (not "regarding", "in relation to")
 - "help" (not "facilitate")
 - "use" (not "utilize", "employ")
+````
 
 ## See also
 

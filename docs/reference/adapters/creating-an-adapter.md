@@ -1,3 +1,8 @@
+---
+seo_title: Creating a Custom Adapter
+seo_description: Build your own adapter when the built-in ones do not fit your runtime. Covers the code shape and the runtime contracts an adapter must satisfy.
+---
+
 # Creating an Adapter
 
 Build a custom adapter when the built-in local adapters do not fit your runtime. This page covers the code shape and runtime contracts; if you are packaging an installable plugin, read [External Adapters](./external-adapters.md) first.

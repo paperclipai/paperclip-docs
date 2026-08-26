@@ -1,3 +1,8 @@
+---
+seo_title: Adapter UI Parser Contract
+seo_description: Paperclip streams adapter stdout to the run viewer live. Ship a UI parser so structured lines render as tool calls and results instead of raw text.
+---
+
 # Adapter UI Parser Contract
 
 Paperclip streams adapter stdout to the run viewer in real time. If your adapter emits structured lines, ship a UI parser so the viewer can render tool calls, tool results, thinking blocks, and system messages instead of treating everything as plain assistant text.

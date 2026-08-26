@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Approval Commands
+seo_description: Clear board-gated actions from the terminal — hiring another agent, locking in a CEO strategy — when a human or authorized automation must sign off.
 ---
 
 # Approval Commands

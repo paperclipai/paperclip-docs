@@ -1,3 +1,9 @@
+---
+paperclip_version: v2026.824.0
+seo_title: Export and Import a Company
+seo_description: Capture a configured company as a portable package to back up, share, or move between instances. What full fidelity includes, and what a package contains.
+---
+
 # Export & Import
 
 Once you've built a company — given it a goal, hired agents, configured their adapters, and set up projects — that configuration has real value. Export and import let you capture that configuration as a portable package you can back up, share with others, move to another Paperclip instance, or reuse as a starting point for a new company.
@@ -182,6 +188,8 @@ When importing into an existing company, agent or project names may conflict wit
 A busy company with years of tasks and attachments makes a big package, and Paperclip handles that for you. The UI uploads the package as its compressed `.zip` rather than unpacking it in your browser first, and the server runs the import as a background job while the page watches its progress — so a slow network or a proxy dropping the connection doesn't lose the import.
 
 Two guards protect you along the way. If any part of the upload goes missing in transit, the import refuses to run rather than importing a fragment, and asks you to retry. And every attachment in the package is checked against its content hash before a single record is written, so a corrupted or tampered-with package can't leave you with a half-imported company.
+
+Large packages don't need a single, fragile upload. When an export is big enough, Paperclip slices the `.zip` into parts and uploads them one at a time, showing progress like `Uploading part X of Y — N MB of M MB uploaded.` as it goes. This happens automatically whether you import from the UI or with `paperclipai company import` — there's no flag to set. If the upload is interrupted — a refresh, a dropped connection, a failed part, even a server restart — just retry or refresh the same import. Paperclip picks up the same transfer and re-sends only the parts it's still missing, so you never start over. Once a transfer finishes, that exact package is done: importing it again short-circuits with `This exact package was already imported by a completed transfer. Re-export the package to import it again.` — so if a re-import seems to do nothing, that's why. Re-export the company to import a fresh copy.
 
 By default the server accepts import packages up to **1 GB**. If your export is bigger, an operator can raise the cap by setting the `PAPERCLIP_IMPORT_ZIP_MAX_BYTES` environment variable (in bytes, up to 64 GiB) — see [Environment Variables](../../reference/deploy/environment-variables.md).
 

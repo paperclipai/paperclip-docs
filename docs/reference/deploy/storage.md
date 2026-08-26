@@ -1,3 +1,8 @@
+---
+seo_title: Storage Configuration
+seo_description: Where attachments, screenshots, and other uploads are kept, and how to point Paperclip at a different storage provider when local disk is not enough.
+---
+
 # Storage
 
 Paperclip stores uploads such as attachments, screenshots, and other assets through a configurable storage provider.

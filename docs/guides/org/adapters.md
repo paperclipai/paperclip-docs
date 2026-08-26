@@ -1,3 +1,8 @@
+---
+seo_title: The Adapter Manager
+seo_description: Enable, disable, configure, reload, and remove adapters. Covers the built-in set plus installing external adapters to extend which runtimes you can use.
+---
+
 # The Adapter Manager
 
 Every agent in Paperclip needs an **adapter** — the shim that lets the control plane talk to a specific AI runtime. Built-in adapters ship with the product (Claude Code, Codex, Gemini, OpenCode, Cursor, Pi, Hermes, HTTP, Process, OpenClaw Gateway), and you can extend the set by installing **external adapters** from npm or a local path.

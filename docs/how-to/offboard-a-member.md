@@ -1,3 +1,8 @@
+---
+seo_title: Offboard a Member
+seo_description: Remove someone's access when they leave. Paperclip changes membership status rather than deleting the record, so their history stays intact and auditable.
+---
+
 # Offboard a member
 
 When someone leaves — a contractor wraps up, a teammate changes roles, an account needs to go dormant — you remove their access from the company. Paperclip does this by changing their **membership status**, not by deleting the record, so the audit trail survives. There's no self-serve "leave company" today; an Owner or Admin does the offboarding from the app.
