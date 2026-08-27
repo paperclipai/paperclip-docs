@@ -1,5 +1,7 @@
 ---
-paperclip_version: v2026.722.0
+paperclip_version: v2026.824.0
+seo_title: Documentation Changelog
+seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
 
 # Documentation Changelog
@@ -11,6 +13,64 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.824.0 <span class="accordion-meta">August 24, 2026</span></summary>
+<div class="accordion-body">
+
+**New pages**
+
+- [Tailscale HTTPS Broker](deploy/tailscale-https-broker.md) — the operator-side helper that hands out real, cert-valid `https://` preview URLs for the dev servers running inside managed workspaces, instead of loopback-only links.
+
+**Updated pages**
+
+- [Workspaces](../guides/projects-workflow/workspaces.md) — exposing a workspace's dev server as an HTTPS preview on your tailnet, opt-in per service, and what that looks like from the board.
+- [Update Paperclip](../how-to/update-paperclip.md) and [CLI installation](cli/installation.md) — the four release channels (`stable`, `beta`, `nightly`, `canary`) and the new `paperclipai channels` command that shows which one your install follows.
+- [Export & Import](../guides/power/export-import.md) — large packages now upload in resumable parts, so an interrupted import picks up from the parts it already has instead of starting over.
+- [Companies API](api/companies.md) — the chunked import-transfer routes (`/api/companies/import/transfers`) that back resumable imports.
+- [Secrets API](api/secrets.md) — the agent-callable secret catalog route for picking a secret to reference without exposing full metadata.
+- [Agents API](api/agents.md) — the Claude subscription (setup-token) login flow: a company owner can log Claude in with a subscription instead of pasting an API key.
+- [Adapters API](api/adapters.md) — the adapter device-login routes (code-and-URL browser sign-in), starting with Codex.
+- [Artifacts](../guides/day-to-day/artifacts.md) — inline, Google-Docs-style comments on Plan and Artifact documents: anchored highlights, threaded replies, resolve/reopen, and shareable comment links.
+- [Issues](../guides/day-to-day/issues.md) and [Attention API](api/attention.md) — who may resolve an interaction card (`anyone`, `not_creator`, `human_only`) and company-wide interaction governance.
+- [Issues API](api/issues.md) — the workspace file-resource availability check.
+- Smaller touch-ups brought in line with the release: [Environment Variables](deploy/environment-variables.md) (workspace Git-scan limits) and [Decisions](../guides/day-to-day/decisions.md).
+
+</div>
+</details>
+
+<details class="accordion">
+<summary>Docs for v2026.817.0 <span class="accordion-meta">August 17, 2026</span></summary>
+<div class="accordion-body">
+
+**New pages**
+
+- [Decisions API](api/decisions.md) — proposing and resolving decisions, decision bundles, named queues, triage (decide-by and snooze), and the retention/archive routes.
+- [Status Cards API](api/status-cards.md) — the shared status-card board: creating cards, the compiled query, summary writes and revisions, refresh policy, and the agent-authoring limits.
+- [Status Cards](../experimental/status-cards.md) — the experimental board itself: writing the one message that drives a card, reading the tiles, the five card states, what counts as a change, and what it costs.
+- [Chat-Style Tasks](../experimental/task-chat.md) — the experimental task page as a live conversation: bubbles, folding turns, inline tool calls and diffs, the three-mode composer, and the resizable side pane.
+- [`service` CLI](cli/service.md) — installing, starting, and inspecting Paperclip as a background service.
+- [Status Card Query skill](skills/bundled/paperclip-operations/status-card-query.md) — the bundled skill that teaches an agent to manage status cards.
+- [Simplified English skill](skills/optional/content/simplified-english.md) and [Prepare MCP Integration skill](skills/optional/software-development/prepare-mcp-integration.md) — two new optional catalog skills.
+
+**Updated pages**
+
+- [Decisions](../guides/day-to-day/decisions.md) — named queues, triage deadlines, and answering an agent-proposed decision, now with screenshots throughout.
+- [Secrets API](api/secrets.md) — agent secret proposals: what an agent may propose, the run-bound agent-token requirement, and the board-side approve/reject flow.
+- [Activity Log API](api/activity.md) — the audit feed of agent actions, its two-tier access model, and CSV export. `/audit` has merged into the single Activity page.
+- [Plugin SDK](plugins/sdk.md) — responding to interactions and approvals, and the rules for handling adapter-authored `command` operations and re-validating `cwd` before executing.
+- [Back up and restore a company](../how-to/back-up-and-restore-a-company.md) — what the bundle deliberately leaves behind, uploading the zip instead of inline JSON, and running large imports as a background job.
+- [Update Paperclip](../how-to/update-paperclip.md) — rewritten around checking before you commit, switching channels, rolling back, and the pre-update backup.
+- [Cloud CLI](cli/cloud.md) — the cloud-upstream commands are retired; the page now points at what replaced them.
+- [Issues API](api/issues.md), [Attention API](api/attention.md), [Environment Variables](deploy/environment-variables.md), [CLI installation](cli/installation.md), [Export & import](../guides/power/export-import.md), [Sandbox providers](adapters/sandbox-providers.md), [Skills reference](skills.md), and [Issues](../guides/day-to-day/issues.md) — brought in line with the release.
+
+**Screenshots**
+
+- Every screenshot was recaptured against v2026.817.0 — 342 images, light and dark. The previous set was 375 parent-commits old.
+- New coverage for Decisions, Status Cards, Chat-Style Tasks, and the secret-proposal review tab. Those first three guides previously shipped with no images at all.
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.722.0 <span class="accordion-meta">July 22, 2026</span></summary>
 <div class="accordion-body">
 

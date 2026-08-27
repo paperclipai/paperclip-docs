@@ -1,12 +1,14 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: Trust and Low-Trust Review
+seo_description: Contain work born from input you cannot vouch for. How presets are chosen, what changes at runtime, and how to review and promote low-trust output.
 ---
 
 # Trust & Low-Trust Review
 
 Some work in a Paperclip company is born from input you cannot vouch for: an untrusted pull request, an external ticket, a dependency diff, or output an agent generated from any of those. The goal of trust presets is simple — keep that kind of work *contained* while it runs, and make sure nothing it produces is silently fed into a more trusted agent before a human (or a trusted reviewer) has looked at it.
 
-This page explains the two trust presets Paperclip ships with, what actually changes when an agent or its work is treated as low-trust, and how that work gets reviewed and promoted before it counts as accepted.
+This page explains the two trust presets Paperclip ships with, what actually changes when an agent or its work is treated as low-trust, how an agent still reports progress up to its parent issue without punching a hole in the boundary, and how contained work gets reviewed and promoted before it counts as accepted.
 
 It helps to read [Execution Policy](../guides/power/execution-policy.md) first — trust presets layer on top of the same execution-policy plumbing, and a low-trust run leans on the isolated workspace and sandbox mechanics described there.
 
@@ -78,6 +80,51 @@ On top of that, two further constraints apply:
 The built-in low-trust tool classes are read-only and conservative by design: `git.read`, `github.pr.read`, and `tests.local`. That is the shape of work this preset is meant for — read the untrusted change, run local tests, report back — not reach out and mutate the wider company.
 
 If you have been doing untrusted-PR review by hand with a local Docker workflow, that still works for manual review. But anything Paperclip runs as managed low-trust execution goes through the sandboxed, isolated path described above.
+
+---
+
+## Reporting up to a parent issue
+
+Most real work is split into a parent issue and children. An agent working a child usually needs to tell the parent how things are going — "found the cause, still digging" or "this is blocked on a decision you need to make". That report has to cross from one issue to another, which is exactly the kind of move the trust boundary is suspicious of. So Paperclip grants one narrow, audited hop for it, and nothing more.
+
+### A standard run may comment on its direct parent
+
+Under the `standard` preset, an agent can post a comment on the direct parent of the issue it currently has checked out — even when that parent is assigned to a different agent. Before, that comment was refused as an arbitrary cross-issue write, which could quietly stall parent/child coordination. Now the request is allowed with the decision reason `allow_direct_parent_report`.
+
+Every one of these has to be true for the grant to apply:
+
+- The action is a comment (`issue:comment`) — nothing else qualifies.
+- The agent is acting through a run, and that run belongs to the same agent and the same company.
+- The run's context names the issue the agent is working on.
+- That issue is assigned to the acting agent (`assigneeAgentId`).
+- That issue is genuinely **checked out by this run** (`checkoutRunId`) — being assigned is not enough.
+- The target issue is that issue's direct `parentId`.
+- The effective preset resolves to `standard`.
+
+Successful grants are audited. The `issue.comment_added` activity entry carries `directParentReportGrant: true`, so you can tell later which comments crossed an issue boundary on this grant rather than on ordinary access.
+
+### Where the line sits
+
+One hop, comments only. Everything else stays denied:
+
+- **The grandparent, and anything above it.** Ancestry is not walked here — only the immediate `parentId` counts. A comment aimed two levels up is refused.
+- **Siblings**, including other children of the same parent.
+- **Changing the parent issue.** An `issue:mutate` request against the parent — a status change, for instance — is still refused.
+- **Writing documents on the parent.**
+- **Reopening or resuming a closed parent.** If the parent is already closed, the comment itself is accepted, but any `reopen` or `resume` intent on that request is dropped and the parent's status stays exactly as it was. That holds even when the closed parent is unassigned, and even when it happens to be assigned to the reporting agent — the grant is comment-only in every case. It is the same comment-only treatment mention-based grants already get.
+
+### Contained children report through a sanitized relay
+
+A `low_trust_review` run does **not** get this grant. A direct-parent comment from a low-trust run is denied, because letting it through would carry untrusted prose straight into a higher-trust parent's context — precisely what containment exists to prevent. The one exception is the pre-existing mention path: if a trusted comment on the parent mentions the low-trust agent, that mention grant still applies (`allow_issue_mention_grant`) and the comment lands.
+
+That would leave a parent waiting forever when a contained child gives up, so Paperclip relays the *fact* without relaying the prose. When an issue whose effective preset is not `standard` moves to `blocked` or `cancelled` and it has a parent, Paperclip writes a short comment on the direct parent authored by `system`: a link to the child and the status it moved to. Nothing the child produced is copied — not its comment bodies, not its output. If the parent has an agent assignee and is not closed, that agent is woken so someone actually picks the stall up.
+
+Two details worth knowing:
+
+- **Only `blocked` and `cancelled` relay.** Other transitions do not — this is a stop signal, not a progress feed.
+- **The relay is idempotent.** One relay per child per stop status, so an issue that flaps in and out of `blocked` does not spam its parent. Each relay is logged as `issue.comment_added` with `source: "child_stop_relay"`.
+
+This follows the same principle as promotion, below: the parent learns that something stopped, and a trusted reviewer still has to open the quarantined output to learn *why*.
 
 ---
 

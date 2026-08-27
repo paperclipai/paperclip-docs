@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Task Planning Skill
+seo_description: Turn a request into a plan an executor can run: a child task graph, real blockers, named owners, and an acceptance bar defined up front.
 ---
 
 # Task Planning
@@ -52,22 +54,24 @@ This is a **bundled** catalog skill — part of the bundled baseline kit. For ho
 
 ## Full skill definition
 
-### Skill frontmatter
+The block below is the complete, authoritative `SKILL.md` for this skill — the exact file an agent loads at runtime. Use the controls in the top-right of the block to copy it or download it as `SKILL.md`.
 
-- **name:** task-planning
-- **description:** Turn a Paperclip issue or request into a structured implementation plan with child task graph, blockers, owners, and acceptance criteria, then save it as the issue `plan` document.
-- **key:** paperclipai/bundled/paperclip-operations/task-planning
-- **recommendedForRoles:**
+````markdown skill-source
+---
+name: task-planning
+description: Turn a Paperclip issue or request into a structured implementation plan with child task graph, blockers, owners, and acceptance criteria, then save it as the issue `plan` document.
+key: paperclipai/bundled/paperclip-operations/task-planning
+recommendedForRoles:
   - manager
   - engineer
   - product
-- **tags:**
+tags:
   - paperclip
   - planning
   - issues
   - delegation
+---
 
-### Skill instructions
 # Task Planning
 
 Produce implementation plans that the Paperclip executor can actually run: explicit child issues, real blockers, named owners, and a defined acceptance bar. Avoid plans that read well but cannot be split into work.
@@ -137,6 +141,7 @@ When the plan is accepted, see the companion skill for converting accepted plans
 - Children with descriptions that say "see parent" — they fail at delegation time.
 - Acceptance written as "code review approval". Reviewers need a behavior bar, not a process bar.
 - Plans that bury blocker chains in prose. Use explicit blocked-by lines.
+````
 
 ## See also
 

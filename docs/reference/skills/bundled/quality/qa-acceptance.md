@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: QA Acceptance Skill
+seo_description: Write acceptance criteria a reviewer can run and judge without asking the author: golden path, edge cases, error states, and performance limits.
 ---
 
 # QA Acceptance
@@ -51,22 +53,24 @@ This is a **bundled** catalog skill — part of the bundled baseline kit. For ho
 
 ## Full skill definition
 
-### Skill frontmatter
+The block below is the complete, authoritative `SKILL.md` for this skill — the exact file an agent loads at runtime. Use the controls in the top-right of the block to copy it or download it as `SKILL.md`.
 
-- **name:** qa-acceptance
-- **description:** Produce QA acceptance criteria and a manual validation plan for a feature change — golden path, edge cases, error states, performance limits, and explicit pass/fail evidence.
-- **key:** paperclipai/bundled/quality/qa-acceptance
-- **recommendedForRoles:**
+````markdown skill-source
+---
+name: qa-acceptance
+description: Produce QA acceptance criteria and a manual validation plan for a feature change — golden path, edge cases, error states, performance limits, and explicit pass/fail evidence.
+key: paperclipai/bundled/quality/qa-acceptance
+recommendedForRoles:
   - qa
   - engineer
   - product
-- **tags:**
+tags:
   - qa
   - acceptance
   - validation
   - testing
+---
 
-### Skill instructions
 # QA Acceptance
 
 Write acceptance criteria that a reviewer can run against the running app and decide pass or fail without asking the author. The criteria are the contract — automated tests cover correctness, QA covers feature-level behavior.
@@ -145,6 +149,7 @@ The author owns turning failures into either fixes or accepted deferrals.
 - Criteria that depend on inspecting implementation details (selectors, query plans). Stay observable.
 - Long checklists with no priority. Mark must-pass criteria distinctly from nice-to-have.
 - Validation reports that say "passed" with no evidence. Reviewers cannot audit those.
+````
 
 ## See also
 

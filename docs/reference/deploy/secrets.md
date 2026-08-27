@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.525.0
+seo_title: Secrets in Deployment
+seo_description: Keep sensitive values out of adapter configs while agents still reach them at runtime. Covers the default secret backend and how to change it.
 ---
 
 # Secrets

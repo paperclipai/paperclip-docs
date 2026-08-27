@@ -5,6 +5,7 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 import { transform } from "esbuild";
 import { marked } from "marked";
 
@@ -446,6 +447,14 @@ function getDeploymentBasePath(basePath) {
   return basePath === "auto" ? "/paperclip-docs/" : basePath;
 }
 
+function getPublicBasePath(basePath) {
+  return basePath === "auto" ? "/" : basePath;
+}
+
+function routePathForSlug(basePath, slug) {
+  return `${getPublicBasePath(basePath)}${normalizeRouteKey(slug)}/`;
+}
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -612,21 +621,25 @@ function injectSeo(html, metadata, { baseHref = null } = {}) {
 }
 
 async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
-  const hasCompleteGitHistory = await ensureCompleteGitHistory();
   const pages = [];
   for (const { page, section } of flattenNavPages(nav)) {
     const releaseMarkdownPath = path.join(outDir, page.file);
     const sourceMarkdownPath = path.join(docsRoot, page.file);
     const markdown = await fs.readFile(releaseMarkdownPath, "utf8");
     const h1 = markdown.match(/^#\s+(.+)$/m)?.[1]?.trim();
-    const pageTitle = page.title || h1 || "Paperclip Docs";
+    // Authored `seo_title` / `seo_description` frontmatter wins. The sidebar
+    // label is written for a 240px-wide nav, not a search result, and the
+    // derived description is just the opening paragraph clipped to a length.
+    const authoredTitle = page.frontmatter?.seo_title?.trim();
+    const authoredDescription = page.frontmatter?.seo_description?.trim();
+    const pageTitle = authoredTitle || page.title || h1 || "Paperclip Docs";
     pages.push({
       page,
       sectionTitle: section.title,
       title: `${pageTitle} | Paperclip Docs`,
-      description: markdownDescription(markdown),
+      description: authoredDescription || markdownDescription(markdown),
       url: routeUrlForPage(siteUrl, basePath, page),
-      lastmod: await gitLastModified(sourceMarkdownPath, { hasCompleteGitHistory }),
+      lastmod: await gitLastModified(sourceMarkdownPath),
       siteUrl,
       basePath,
     });
@@ -634,37 +647,35 @@ async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
   return pages;
 }
 
-async function ensureCompleteGitHistory() {
+// A shallow or grafted checkout — what CI providers clone by default — has a
+// single commit, so `git log -1` reports that commit's date for *every* file.
+// The dates look valid and are uniformly wrong, which is worse than having
+// none: every sitemap resubmission then claims the whole site changed at once
+// and Google learns to discount the signal.
+let trustworthyGitHistory = null;
+async function hasTrustworthyGitHistory() {
+  if (trustworthyGitHistory !== null) return trustworthyGitHistory;
   try {
-    const { stdout } = await execFileAsync(
-      "git",
-      ["rev-parse", "--is-shallow-repository"],
-      { cwd: repoRoot },
-    );
-    if (stdout.trim() !== "true") return true;
-
-    await execFileAsync(
-      "git",
-      ["fetch", "--quiet", "--unshallow", "--no-tags", "origin"],
-      { cwd: repoRoot, timeout: 30_000 },
-    );
-    const { stdout: updatedState } = await execFileAsync(
-      "git",
-      ["rev-parse", "--is-shallow-repository"],
-      { cwd: repoRoot },
-    );
-    if (updatedState.trim() !== "true") return true;
-  } catch (error) {
-    console.warn(`Could not load complete Git history for sitemap lastmod values: ${error.message}`);
+    const { stdout } = await execFileAsync("git", ["rev-parse", "--is-shallow-repository"], {
+      cwd: repoRoot,
+    });
+    const isShallow = stdout.trim() === "true";
+    if (isShallow) {
+      console.warn(
+        "Shallow git checkout detected: omitting sitemap <lastmod>. "
+          + "Clone with full history (actions/checkout fetch-depth: 0) to publish real dates.",
+      );
+    }
+    trustworthyGitHistory = !isShallow;
+  } catch {
+    trustworthyGitHistory = false;
   }
-
-  console.warn("Omitting sitemap lastmod values because Git history is incomplete.");
-  return false;
+  return trustworthyGitHistory;
 }
 
-async function gitLastModified(sourcePath, { hasCompleteGitHistory }) {
-  if (!hasCompleteGitHistory) return undefined;
+async function gitLastModified(sourcePath) {
   if (!isPathInside(repoRoot, sourcePath)) return undefined;
+  if (!(await hasTrustworthyGitHistory())) return undefined;
   const repoRelativePath = toPosixPath(path.relative(repoRoot, sourcePath));
   try {
     const { stdout } = await execFileAsync(
@@ -679,6 +690,20 @@ async function gitLastModified(sourcePath, { hasCompleteGitHistory }) {
     // every document changed at once.
     return undefined;
   }
+}
+
+// Last defence for any history shape that still collapses to a single date:
+// a 192-page docs set does not genuinely change in one commit.
+const UNIFORM_LASTMOD_MIN_PAGES = 10;
+export function dropUniformLastmod(pages) {
+  const dated = pages.filter((page) => page.lastmod);
+  if (dated.length < UNIFORM_LASTMOD_MIN_PAGES) return pages;
+  if (new Set(dated.map((page) => page.lastmod)).size > 1) return pages;
+  console.warn(
+    `All ${dated.length} pages report the same git date (${dated[0].lastmod}); `
+      + "omitting sitemap <lastmod> rather than claiming the whole site changed at once.",
+  );
+  return pages.map((page) => ({ ...page, lastmod: undefined }));
 }
 
 function buildSitemap({ siteUrl, basePath, pages }) {
@@ -759,6 +784,27 @@ function buildCloudflareHeaders() {
   Cross-Origin-Opener-Policy: same-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
   Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com; upgrade-insecure-requests
+
+# PAP-16990 cache policy. HTML shells must always revalidate so a returning
+# visitor never renders a stale document that points at a since-changed bundle.
+# Path routes are extensionless directories, so the docs root and every route
+# directory are matched explicitly. Fingerprinted JS/CSS carry a content hash in
+# the URL and are safe to cache immutably; content.json ships per release with
+# the exact-version bundle, so it revalidates alongside the HTML.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/app.*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/styles.*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/content.json
+  Cache-Control: public, max-age=0, must-revalidate
 
 /sitemap.xml
   Content-Type: application/xml; charset=utf-8
@@ -984,10 +1030,76 @@ function preprocessTabs(markdown) {
   return output;
 }
 
-function renderStaticMarkdown(markdown) {
+// A fenced code block tagged `skill-source` (e.g. ```` ```markdown skill-source ````)
+// renders as a standard markdown code block that additionally advertises a
+// downloadable filename via `data-skill-download`. The client (app.js) reads
+// that attribute to offer a Download control beside the shared Copy button.
+// Every other code block is rendered exactly as marked's default renderer does.
+function isSkillSourceInfo(infostring) {
+  return String(infostring || "").trim().split(/\s+/).includes("skill-source");
+}
+
+// docs-root-relative markdown path -> the canonical HTML route for that page.
+// Markdown authors write relative `../foo.md` links, but every page is served
+// from a trailing-slash route directory, so a raw relative link resolves one
+// level too deep and 404s for anything that has not run app.js yet.
+export function buildDocRouteMap(nav, basePath) {
+  const routeMap = new Map();
+  for (const { page } of flattenNavPages(nav)) {
+    routeMap.set(page.file, routePathForSlug(basePath, page.slug));
+  }
+  return routeMap;
+}
+
+/**
+ * Resolve a markdown link against the document that contains it.
+ *
+ * Returns `null` for links this pass does not own (external URLs, in-page
+ * anchors, images and other non-markdown assets). For a markdown link it
+ * always reports the resolved docs-root-relative `targetFile`, and a `route`
+ * that is `null` when no page in the nav publishes that file.
+ */
+export function resolveDocHref(href, sourceFile, routeMap) {
+  if (typeof href !== "string" || !href) return null;
+  if (!isLocalDocHref(href)) return null;
+
+  const hashIndex = href.indexOf("#");
+  const docHref = hashIndex === -1 ? href : href.slice(0, hashIndex);
+  const hash = hashIndex === -1 ? "" : href.slice(hashIndex);
+  if (!docHref.endsWith(".md")) return null;
+
+  const sourceDir = sourceFile.includes("/") ? sourceFile.replace(/\/[^/]*$/, "") : "";
+  const targetFile = normalizeDocPath(sourceDir ? `${sourceDir}/${docHref}` : docHref);
+  const route = routeMap.get(targetFile);
+  return { targetFile, route: route ? `${route}${hash}` : null };
+}
+
+export function renderStaticMarkdown(markdown, { sourceFile = null, routeMap = null, onUnresolvedLink = null } = {}) {
   const renderer = new marked.Renderer();
   const usedHeadingIds = new Set();
   renderer.image = releaseMarkdownImage;
+  // Emit canonical route hrefs into the static HTML. app.js repairs these at
+  // runtime too, but crawlers index the pre-render, so the bytes we ship have
+  // to already be correct.
+  if (routeMap && sourceFile) {
+    const defaultLink = renderer.link.bind(renderer);
+    renderer.link = (href, title, text) => {
+      const resolved = resolveDocHref(href, sourceFile, routeMap);
+      if (!resolved) return defaultLink(href, title, text);
+      if (!resolved.route) {
+        onUnresolvedLink?.({ sourceFile, href, targetFile: resolved.targetFile });
+        return defaultLink(href, title, text);
+      }
+      return defaultLink(resolved.route, title, text);
+    };
+  }
+  const defaultCode = renderer.code.bind(renderer);
+  renderer.code = (code, infostring, escaped) => {
+    if (isSkillSourceInfo(infostring)) {
+      return `<pre><code class="language-markdown" data-skill-download="SKILL.md">${escapeHtml(code)}\n</code></pre>\n`;
+    }
+    return defaultCode(code, infostring, escaped);
+  };
   renderer.heading = (html, level, rawText) => {
     const baseId = slugifyHeadingText(rawText) || `h${level}`;
     let id = baseId;
@@ -1001,10 +1113,254 @@ function renderStaticMarkdown(markdown) {
 }
 
 function inlineReleaseStyles(html, css) {
+  // Match the stylesheet link whether or not its href has been content-
+  // fingerprinted (styles.css or styles.<hash>.css) so inlining keeps working.
   return html.replace(
-    '<link rel="stylesheet" href="styles.css" />',
+    /<link rel="stylesheet" href="styles(?:\.[0-9a-f]+)?\.css" \/>/,
     `<style data-inline-release-css>${css}</style>`,
   );
+}
+
+// Derive a content-fingerprinted filename (e.g. app.js -> app.<hash>.js). The
+// hash is over the exact bytes that ship, so the URL changes if and only if the
+// asset's contents change. Exported for the fingerprint regression test.
+export function fingerprintAssetName(filename, content) {
+  const dot = filename.lastIndexOf(".");
+  const stem = filename.slice(0, dot);
+  const ext = filename.slice(dot);
+  const hash = createHash("sha256").update(content).digest("hex").slice(0, 12);
+  return `${stem}.${hash}${ext}`;
+}
+
+// Point the shell's external asset references at their fingerprinted URLs so
+// every generated route loads the exact bundle it was built with (PAP-16990).
+function rewriteAssetReferences(html, { appJsName, stylesName }) {
+  return html
+    .replace('src="app.js"', `src="${appJsName}"`)
+    .replace('href="styles.css"', `href="${stylesName}"`);
+}
+
+/* ─── Server-rendered homepage directory ──────────────────────────────────
+   The docs root is the only document that carries the `#landing` subtree, and
+   its directory is generated here from the same content.json tree that feeds
+   the sidebar, previous/next links, and the sitemap. Every entry is a real
+   `<a href>` so the whole manifest is reachable without JavaScript. */
+
+const LANDING_TIER_ORDER = ["Learn", "Administration", "Reference"];
+
+// app.js owns the icon set for the sidebar and drawer, so read it back out of
+// the shell source rather than keeping a second copy that can drift.
+function extractSectionIconPaths(appJsSource) {
+  const block = appJsSource.match(/const SECTION_ICON_PATHS = \{([\s\S]*?)\n\};/);
+  if (!block) {
+    throw new Error("Could not locate SECTION_ICON_PATHS in site/app.js.");
+  }
+  const iconPaths = {};
+  const entryRegex = /^\s*'?([\w-]+)'?:\s*'([^']*)',?\s*$/gm;
+  let match;
+  while ((match = entryRegex.exec(block[1])) !== null) {
+    iconPaths[match[1]] = match[2];
+  }
+  if (!iconPaths["book-open"]) {
+    throw new Error("SECTION_ICON_PATHS in site/app.js is missing the book-open fallback icon.");
+  }
+  return iconPaths;
+}
+
+function sectionIconTag(section, iconPaths) {
+  const icon = iconPaths[section?.icon] || iconPaths["book-open"];
+  return `<svg class="section-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>`;
+}
+
+function getSectionKind(section) {
+  return (section && typeof section === "object" && section.tier) || "Guides";
+}
+
+function countNavPages(nodes) {
+  return getNavChildren({ pages: nodes }).reduce((count, node) => {
+    if (isNavPage(node)) return count + 1;
+    return count + countNavPages(getNavChildren(node));
+  }, 0);
+}
+
+function getFirstNavPage(nodes) {
+  for (const node of getNavChildren({ pages: nodes })) {
+    if (isNavPage(node)) return node;
+    const firstChild = getFirstNavPage(getNavChildren(node));
+    if (firstChild) return firstChild;
+  }
+  return null;
+}
+
+function sectionsByTier(nav) {
+  const byTier = new Map();
+  (nav.sections || []).forEach((section, index) => {
+    const tier = getSectionKind(section);
+    if (!byTier.has(tier)) byTier.set(tier, []);
+    byTier.get(tier).push({ section, index });
+  });
+  const orderedTiers = [
+    ...LANDING_TIER_ORDER.filter((tier) => byTier.has(tier)),
+    ...[...byTier.keys()].filter((tier) => !LANDING_TIER_ORDER.includes(tier)),
+  ];
+  return orderedTiers.map((tier) => ({ tier, entries: byTier.get(tier) }));
+}
+
+// Mirrors the card grid app.js renders client-side, so the root document looks
+// identical whether or not the script runs.
+function buildLandingCardsHtml(nav, basePath, iconPaths) {
+  return sectionsByTier(nav).map(({ tier, entries }) => {
+    const columns = entries.length <= 3 ? entries.length : (entries.length === 4 ? 2 : 3);
+    const cards = entries.map(({ section, index }) => {
+      const firstPage = getFirstNavPage(section.pages);
+      const pageCount = countNavPages(section.pages);
+      const pageLabel = `${pageCount} page${pageCount === 1 ? "" : "s"}`;
+      const href = firstPage ? routePathForSlug(basePath, firstPage.slug) : getPublicBasePath(basePath);
+      const description = section.desc || `${pageLabel} in ${section.title}.`;
+      return `<a class="card" href="${escapeAttr(href)}" data-nav-section="${index}">`
+        + `<div class="card-icon">${sectionIconTag(section, iconPaths)}</div>`
+        + `<div class="card-title">${escapeHtml(section.title)}</div>`
+        + `<div class="card-desc">${escapeHtml(description)}</div>`
+        + `<div class="card-meta"><span>${escapeHtml(pageLabel)}</span><span class="dot"></span><span>${escapeHtml(tier)}</span></div>`
+        + `</a>`;
+    }).join("");
+    return `<section class="landing-tier" data-tier="${escapeAttr(tier)}">`
+      + `<h2>${escapeHtml(tier)}</h2>`
+      + `<div class="landing-tier-cards" style="--tier-cols:${columns}">${cards}</div>`
+      + `</section>`;
+  }).join("");
+}
+
+// ── Server-rendered navigation chrome ───────────────────────────────────────
+// app.js builds the sidebar, mobile drawer and breadcrumb from content.json on
+// load. That leaves interior routes shipping an empty `#sb-sections`, so the
+// only crawlable links in the raw HTML are the logo and the prev/next pair and
+// no link equity ever reaches a deep page. These builders emit the same markup
+// at build time; app.js keeps the DOM and just wires the click handlers.
+
+function staticSidebarPagesHtml(nodes, basePath, activeFile, level = 0) {
+  return getNavChildren({ pages: nodes }).map((node) => {
+    if (isNavPage(node)) {
+      const href = routePathForSlug(basePath, node.slug);
+      const isActive = node.file === activeFile;
+      return `<a class="sb-link${isActive ? " active" : ""}" data-file="${escapeAttr(node.file)}"`
+        + `${isActive ? ' aria-current="page"' : ""}`
+        + ` href="${escapeAttr(href)}">${escapeHtml(node.title)}</a>`;
+    }
+
+    const children = getNavChildren(node);
+    if (!children.length) return "";
+    const pageCount = countNavPages(children);
+    const isOpen = navSubtreeContainsFile(children, activeFile);
+    return `<div class="sb-group" data-open="${isOpen}" data-depth="${level}">`
+      + `<button class="sb-group-btn" type="button">`
+      + `<span class="sb-group-title">${escapeHtml(node.title || "Group")}</span>`
+      + `<span class="sb-group-count">${pageCount}</span>`
+      + `<svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 2 4 4-4 4"/></svg>`
+      + `</button>`
+      + `<div class="sb-group-pages">${staticSidebarPagesHtml(children, basePath, activeFile, level + 1)}</div>`
+      + `</div>`;
+  }).join("");
+}
+
+function navSubtreeContainsFile(nodes, activeFile) {
+  if (!activeFile) return false;
+  return getNavChildren({ pages: nodes }).some((node) => {
+    if (isNavPage(node)) return node.file === activeFile;
+    return navSubtreeContainsFile(getNavChildren(node), activeFile);
+  });
+}
+
+function buildSidebarSectionsHtml(nav, basePath, iconPaths, activeFile) {
+  return sectionsByTier(nav).map(({ tier, entries }) => {
+    const header = `<div class="sb-tier-header">${escapeHtml(tier)}</div>`;
+    const sections = entries.map(({ section, index }) => {
+      const pageCount = countNavPages(section.pages);
+      const isOpen = navSubtreeContainsFile(section.pages, activeFile);
+      return `<div class="sb-section" data-section-idx="${index}"`
+        + ` data-section-title="${escapeAttr(section.title)}" data-open="${isOpen}">`
+        + `<button class="sb-section-btn" type="button">`
+        + `<span class="sb-section-icon">${sectionIconTag(section, iconPaths)}</span>`
+        + `<span class="sb-section-title">${escapeHtml(section.title)}</span>`
+        + `<span class="sb-section-count">${pageCount}</span>`
+        + `<svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 2 4 4-4 4"/></svg>`
+        + `</button>`
+        + `<div class="sb-pages">${staticSidebarPagesHtml(section.pages, basePath, activeFile)}</div>`
+        + `</div>`;
+    }).join("");
+    return header + sections;
+  }).join("");
+}
+
+function buildBreadcrumbHtml(metadata) {
+  const trail = Array.isArray(metadata?.page?.navTrail) && metadata.page.navTrail.length
+    ? metadata.page.navTrail
+    : [metadata?.sectionTitle, metadata?.page?.title].filter(Boolean);
+  return trail.map((crumb, index) => {
+    const isCurrent = index === trail.length - 1;
+    const crumbHtml = `<span${isCurrent ? ' class="crumb-current"' : ""}>${escapeHtml(crumb)}</span>`;
+    return index === 0 ? crumbHtml : `<span class="sep">/</span>${crumbHtml}`;
+  }).join("");
+}
+
+// Fill the shell's empty nav containers for one interior route.
+function withStaticChrome(sourceIndex, nav, basePath, iconPaths, metadata) {
+  if (!nav) return sourceIndex;
+  const activeFile = metadata?.page?.file || null;
+  const sectionsHtml = buildSidebarSectionsHtml(nav, basePath, iconPaths, activeFile);
+
+  // Desktop sidebar only. The mobile drawer is `inert`/`aria-hidden` until a
+  // JS toggle opens it, so server-rendering it would duplicate all 192 links
+  // per page for no crawl or no-JS benefit; app.js still builds it on demand.
+  const placeholder = '<div id="sb-sections"></div>';
+  if (!sourceIndex.includes(placeholder)) {
+    throw new Error("site/index.html is missing the sb-sections navigation container.");
+  }
+  let html = sourceIndex.replace(
+    placeholder,
+    `<div id="sb-sections" data-server-rendered="true">${sectionsHtml}</div>`,
+  );
+
+  const breadcrumbPlaceholder = '<div id="breadcrumb" aria-label="Breadcrumb"></div>';
+  if (!html.includes(breadcrumbPlaceholder)) {
+    throw new Error("site/index.html is missing the breadcrumb container.");
+  }
+  return html.replace(
+    breadcrumbPlaceholder,
+    `<div id="breadcrumb" aria-label="Breadcrumb" data-server-rendered="true">${buildBreadcrumbHtml(metadata)}</div>`,
+  );
+}
+
+function buildRootPageHtml(sourceIndex, nav, basePath, iconPaths) {
+  return sourceIndex
+    .replace('<section id="landing">', '<section id="landing" class="is-active">')
+    .replace(
+      '<div class="card-grid" id="landing-cards"></div>',
+      `<div class="card-grid" id="landing-cards" data-server-rendered="true">${buildLandingCardsHtml(nav, basePath, iconPaths)}</div>`,
+    );
+}
+
+// Interior documents must not carry the homepage subtree at all — hiding it
+// would still leave a second H1 and the homepage headline in the raw HTML.
+function removeLandingSubtree(html) {
+  const output = html.replace(/\n?<!-- ─── Landing page[^\n]*-->\n?/, "\n")
+    .replace(/<section id="landing">[\s\S]*?<\/section>\n?/, "");
+  if (output.includes('id="landing"') || output.includes('id="landing-title"')) {
+    throw new Error("Failed to remove the homepage landing subtree from an interior route.");
+  }
+  return output;
+}
+
+// Home links are plain anchors so they work without JavaScript; point them at
+// the base path this bundle is actually served from.
+function linkDocsRootAnchors(html, basePath) {
+  const rootHref = getPublicBasePath(basePath);
+  return html.replace(/<a\b[^>]*\bdata-nav="home"[^>]*>/g, (tag) => {
+    if (!/\bhref="[^"]*"/.test(tag)) {
+      throw new Error(`A data-nav="home" anchor in site/index.html is missing an href: ${tag}`);
+    }
+    return tag.replace(/\bhref="[^"]*"/, `href="${escapeAttr(rootHref)}"`);
+  });
 }
 
 function buildStaticPageNav(prev, next) {
@@ -1017,13 +1373,13 @@ function buildStaticPageNav(prev, next) {
   return `${prevHtml}${nextHtml}`;
 }
 
-function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles, prev, next) {
-  const articleHtml = renderStaticMarkdown(markdown);
-  const routeBaseHref = basePath === "auto" ? "/" : basePath;
-  return inlineReleaseStyles(injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref }), releaseStyles)
-    .replace('<section id="landing">', '<section id="landing">')
+function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles, prev, next, linkOptions = {}) {
+  const articleHtml = renderStaticMarkdown(markdown, linkOptions);
+  const routeBaseHref = getPublicBasePath(basePath);
+  return removeLandingSubtree(
+    inlineReleaseStyles(injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref }), releaseStyles),
+  )
     .replace('<div id="article-view">', '<div id="article-view" class="is-active">')
-    .replace('<div id="loading">', '<div id="loading" style="display:none">')
     .replace('<article id="article" style="display:none"></article>', `<article id="article">${articleHtml}</article>`)
     .replace(
       '<div id="page-nav" style="display:none"></div>',
@@ -1031,7 +1387,18 @@ function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseS
     );
 }
 
-async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodiesByFile, basePath, releaseStyles }) {
+async function writeStaticRoutePages({
+  outDir,
+  sourceIndex,
+  pages,
+  markdownBodiesByFile,
+  basePath,
+  releaseStyles,
+  routeMap,
+  nav,
+  iconPaths,
+  onUnresolvedLink,
+}) {
   for (const [index, metadata] of pages.entries()) {
     const { page } = metadata;
     const markdown = markdownBodiesByFile.get(page.file);
@@ -1044,13 +1411,14 @@ async function writeStaticRoutePages({ outDir, sourceIndex, pages, markdownBodie
     await fs.writeFile(
       routePath,
       buildStaticPageHtml(
-        sourceIndex,
+        withStaticChrome(sourceIndex, nav, basePath, iconPaths, metadata),
         metadata,
         markdown,
         basePath,
         releaseStyles,
         pages[index - 1],
         pages[index + 1],
+        { sourceFile: page.file, routeMap, onUnresolvedLink },
       ),
     );
   }
@@ -1092,6 +1460,24 @@ If \`content.json\` or linked markdown files are missing from the uploaded bundl
 - Canary URLs are Cloudflare-generated deployment URLs, for example \`https://92b9a99c.paperclip-docs-74t.pages.dev\`; do not derive them from the branch name by hand.
 - If GitHub shows a Cloudflare Pages check or deployment link on the commit/PR, that URL should match the Cloudflare dashboard deployment row.
 
+## Sitemap freshness
+
+\`sitemap.xml\` derives each \`<lastmod>\` from that file's last commit date.
+
+Cloudflare Pages clones shallowly by default. In a shallow checkout every file
+reports the single fetched commit's date, so the build detects that and omits
+\`<lastmod>\` entirely rather than telling Google that all 192 documents changed
+on the same day — a claim that trains Google to discount the sitemap.
+
+To publish real per-file dates, deepen the checkout before building, for example
+by setting the Pages build command to:
+
+\`\`\`sh
+git fetch --unshallow || true; npm run docs:build
+\`\`\`
+
+Omitted dates are the safe default; wrong dates are not.
+
 ## Other static hosts
 
 The generated \`.htaccess\` and \`nginx.conf.example\` are optional examples for non-Pages hosting.
@@ -1127,13 +1513,24 @@ async function main() {
   await fs.rm(options.outDir, { recursive: true, force: true });
   await ensureDir(options.outDir);
 
-  const sourceIndex = await fs.readFile(sourceIndexPath, "utf8");
+  const rawSourceIndex = await fs.readFile(sourceIndexPath, "utf8");
   const sourceStyles = await fs.readFile(sourceStylesPath, "utf8");
   const sourceAppJs = await fs.readFile(sourceAppJsPath, "utf8");
+  const sectionIconPaths = extractSectionIconPaths(sourceAppJs);
   const releaseStyles = minifyCss(sourceStyles);
-  const releaseAppJs = rewriteAppJs(sourceAppJs, options.basePath);
-  await fs.writeFile(path.join(options.outDir, "styles.css"), releaseStyles);
-  await fs.writeFile(path.join(options.outDir, "app.js"), await minifyJs(releaseAppJs));
+  const releaseAppJs = await minifyJs(rewriteAppJs(sourceAppJs, options.basePath));
+  // Content-fingerprint the external client bundle so a returning browser can
+  // never combine freshly revalidated HTML with a stale cached app.js. Every
+  // generated route references this exact build's asset URL; a changed bundle
+  // gets a brand-new URL that no cache can satisfy with old bytes (PAP-16990).
+  const appJsName = fingerprintAssetName("app.js", releaseAppJs);
+  const stylesName = fingerprintAssetName("styles.css", releaseStyles);
+  const sourceIndex = rewriteAssetReferences(
+    linkDocsRootAnchors(rawSourceIndex, options.basePath),
+    { appJsName, stylesName },
+  );
+  await fs.writeFile(path.join(options.outDir, stylesName), releaseStyles);
+  await fs.writeFile(path.join(options.outDir, appJsName), releaseAppJs);
   if (await pathExists(sourceVendorDir)) {
     await copyDirRecursive(sourceVendorDir, path.join(options.outDir, "vendor"));
   }
@@ -1166,8 +1563,17 @@ async function main() {
     if (fm) page.frontmatter = fm;
   }
   await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav)}\n`);
+  // app.js fetches this at boot to resolve legacy hash/?page= routes. It was
+  // never copied into the bundle, so every visit spent a request on a 404.
+  // `_headers` already marks /*.json noindex, so shipping it costs nothing.
+  await fs.writeFile(
+    path.join(options.outDir, "redirects.json"),
+    `${JSON.stringify(sourceRedirects)}\n`,
+  );
 
-  const pageMetadata = await pageMetadataForNav(releaseNav, options.outDir, options.siteUrl, options.basePath);
+  const pageMetadata = dropUniformLastmod(
+    await pageMetadataForNav(releaseNav, options.outDir, options.siteUrl, options.basePath),
+  );
   await fs.writeFile(path.join(options.outDir, "_redirects"), buildCloudflareRedirects({
     basePath: options.basePath,
     pages: pageMetadata,
@@ -1180,7 +1586,18 @@ async function main() {
     siteUrl: options.siteUrl,
     basePath: options.basePath,
   };
-  await fs.writeFile(path.join(options.outDir, "index.html"), inlineReleaseStyles(injectSeo(sourceIndex, rootMetadata), releaseStyles));
+  await fs.writeFile(
+    path.join(options.outDir, "index.html"),
+    inlineReleaseStyles(
+      injectSeo(buildRootPageHtml(sourceIndex, releaseNav, options.basePath, sectionIconPaths), rootMetadata),
+      releaseStyles,
+    ),
+  );
+  // A markdown link that no nav page publishes would ship as a raw `.md` href,
+  // which 404s for every crawler. Collect them and fail the build rather than
+  // emitting a page full of dead links.
+  const routeMap = buildDocRouteMap(releaseNav, options.basePath);
+  const unresolvedLinks = [];
   await writeStaticRoutePages({
     outDir: options.outDir,
     sourceIndex,
@@ -1188,7 +1605,21 @@ async function main() {
     markdownBodiesByFile,
     basePath: options.basePath,
     releaseStyles,
+    routeMap,
+    nav: releaseNav,
+    iconPaths: sectionIconPaths,
+    onUnresolvedLink: (entry) => unresolvedLinks.push(entry),
   });
+
+  if (unresolvedLinks.length > 0) {
+    const detail = unresolvedLinks
+      .map(({ sourceFile, href, targetFile }) => `  ${sourceFile} -> ${href} (resolves to ${targetFile})`)
+      .join("\n");
+    throw new Error(
+      `${unresolvedLinks.length} markdown link(s) do not resolve to a published docs route.\n`
+        + `Point each one at a page listed in site/content.json, or remove the link:\n${detail}`,
+    );
+  }
 
   await fs.writeFile(path.join(options.outDir, "sitemap.xml"), buildSitemap({
     siteUrl: options.siteUrl,

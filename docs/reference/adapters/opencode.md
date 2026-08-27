@@ -1,5 +1,7 @@
 ---
-paperclip_version: v2026.618.0
+paperclip_version: v2026.817.0
+seo_title: OpenCode Adapter
+seo_description: Run OpenCode on the Paperclip host when you want provider and model routing in OpenCode's own format, plus session resume across heartbeats.
 ---
 
 # OpenCode
@@ -114,6 +116,12 @@ OpenCode supports multiple providers. Common ids:
 | `anthropic/claude-sonnet-4-5` | Anthropic |
 
 Run `opencode models` for the authoritative list on your machine.
+
+You are not limited to that list, though. OpenCode only resolves a `--model provider/model` when the model id exists in that provider's `models` map, so an id the bundled catalog does not carry — a model released after the catalog shipped, or a routing variant such as `openai/gpt-oss-120b:nitro` — would otherwise be rejected with `Model not found` even though the provider serves it.
+
+To spare you that, Paperclip registers whatever you put in `model` into the temporary `opencode.json` described above, adding it to that provider's `models` map when it is not already there. Models the catalog already knows keep all of their metadata, and an explicit definition — from your own OpenCode config or from `PAPERCLIP_OPENCODE_PROVIDERS` — always wins, so Paperclip never overwrites one. When it does add an entry, you will see a run note saying it registered the model. Like the rest of the runtime config on this page, this applies when `dangerouslySkipPermissions` is enabled and the target runs locally.
+
+Before a run, Paperclip pre-flights your configured model against `opencode models`. If the model is present in the returned list, the run proceeds. If it is missing, the run is rejected with `Configured OpenCode model is unavailable`, listing a sample of the ids that are available so you can correct the `model` value. The pre-flight is strict on purpose: if the probe returns no models at all, the run stops with `OpenCode returned no models. Run \`opencode models\` and verify provider auth.`, and if the `opencode models` call times out or errors the run stops there too — Paperclip would rather block a run it can't verify than start one that fails partway through.
 
 ---
 

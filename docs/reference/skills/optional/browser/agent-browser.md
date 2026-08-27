@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Agent Browser Skill
+seo_description: Drive a real, supervised browser to verify behaviour, capture evidence, or read JavaScript-rendered content a static fetch cannot reach.
 ---
 
 # Agent Browser
@@ -52,22 +54,24 @@ This is an **optional** catalog skill — opt-in (install when you need it). For
 
 ## Full skill definition
 
-### Skill frontmatter
+The block below is the complete, authoritative `SKILL.md` for this skill — the exact file an agent loads at runtime. Use the controls in the top-right of the block to copy it or download it as `SKILL.md`.
 
-- **name:** agent-browser
-- **description:** Drive a real browser to inspect or interact with a web page or app — navigate, take screenshots, read console and network, fill simple forms — for verification tasks, not unattended automation.
-- **key:** paperclipai/optional/browser/agent-browser
-- **recommendedForRoles:**
+````markdown skill-source
+---
+name: agent-browser
+description: Drive a real browser to inspect or interact with a web page or app — navigate, take screenshots, read console and network, fill simple forms — for verification tasks, not unattended automation.
+key: paperclipai/optional/browser/agent-browser
+recommendedForRoles:
   - qa
   - engineer
   - researcher
-- **tags:**
+tags:
   - browser
   - puppeteer
   - playwright
   - verification
+---
 
-### Skill instructions
 # Agent Browser
 
 Use a controlled browser to verify behavior, capture evidence, or extract information from web pages that a static fetch cannot reach (SPAs, login-gated pages, dynamic content). This skill is about supervised verification, not unattended scraping.
@@ -146,6 +150,7 @@ For a UI bug repro, also record:
 - Scraping behind authentication you do not own.
 - Captioning a screenshot with "looks good" without saying what state was loaded and what selectors confirmed it.
 - Treating a passing screenshot as proof of correctness across viewports you did not actually test.
+````
 
 ## See also
 

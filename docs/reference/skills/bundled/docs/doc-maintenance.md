@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Doc Maintenance Skill
+seo_description: Keep documentation honest with minimum churn: detect where docs drift from recent behavior changes, update the affected pages, and note what shipped.
 ---
 
 # Doc Maintenance
@@ -51,21 +53,23 @@ This is a **bundled** catalog skill — part of the bundled baseline kit. For ho
 
 ## Full skill definition
 
-### Skill frontmatter
+The block below is the complete, authoritative `SKILL.md` for this skill — the exact file an agent loads at runtime. Use the controls in the top-right of the block to copy it or download it as `SKILL.md`.
 
-- **name:** doc-maintenance
-- **description:** Keep project docs aligned with recent code and feature changes — detect drift, update affected pages, and add release-relevant notes without rewriting unchanged sections.
-- **key:** paperclipai/bundled/docs/doc-maintenance
-- **recommendedForRoles:**
+````markdown skill-source
+---
+name: doc-maintenance
+description: Keep project docs aligned with recent code and feature changes — detect drift, update affected pages, and add release-relevant notes without rewriting unchanged sections.
+key: paperclipai/bundled/docs/doc-maintenance
+recommendedForRoles:
   - engineer
   - product
   - devrel
-- **tags:**
+tags:
   - docs
   - documentation
   - release-notes
+---
 
-### Skill instructions
 # Doc Maintenance
 
 Keep the documentation honest with minimum churn. The goal is alignment between docs and behavior, not stylistic rewrites or cosmetic re-organization. Reviewers should be able to read a diff and see "this updates docs to match recent behavior changes".
@@ -127,6 +131,7 @@ When you find drift, fix it in the same pass and note it in the release note's `
 - "Updated docs" commit messages with no detail. Make the commit say what changed and why.
 - Adding to the changelog without updating the reference docs the changelog points to.
 - Marking a feature as available before its code lands. Documentation must follow behavior, not promise it.
+````
 
 ## See also
 

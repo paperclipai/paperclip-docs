@@ -223,8 +223,16 @@
           "file": "../docs/experimental/plan-decomposition-panel.md"
         },
         {
+          "title": "Chat-Style Tasks",
+          "file": "../docs/experimental/task-chat.md"
+        },
+        {
           "title": "Task Watchdogs",
           "file": "../docs/experimental/task-watchdogs.md"
+        },
+        {
+          "title": "Status Cards",
+          "file": "../docs/experimental/status-cards.md"
         },
         {
           "title": "Cloud Sync",
@@ -445,6 +453,10 @@
           "file": "../docs/reference/api/attention.md"
         },
         {
+          "title": "Decisions",
+          "file": "../docs/reference/api/decisions.md"
+        },
+        {
           "title": "Checkbox Confirmations",
           "file": "../docs/reference/api/checkbox-confirmations.md"
         },
@@ -491,6 +503,10 @@
         {
           "title": "Summary Slots",
           "file": "../docs/reference/api/summary-slots.md"
+        },
+        {
+          "title": "Status Cards",
+          "file": "../docs/reference/api/status-cards.md"
         },
         {
           "title": "Dashboard",
@@ -547,6 +563,10 @@
         {
           "title": "Setup Commands",
           "file": "../docs/reference/cli/setup-commands.md"
+        },
+        {
+          "title": "Service",
+          "file": "../docs/reference/cli/service.md"
         },
         {
           "title": "Dev Environments",
@@ -688,6 +708,10 @@
                   "file": "../docs/reference/skills/bundled/paperclip-operations/issue-triage.md"
                 },
                 {
+                  "title": "Status Card Query",
+                  "file": "../docs/reference/skills/bundled/paperclip-operations/status-card-query.md"
+                },
+                {
                   "title": "Task Planning",
                   "file": "../docs/reference/skills/bundled/paperclip-operations/task-planning.md"
                 }
@@ -744,6 +768,10 @@
                 {
                   "title": "Release Announcement",
                   "file": "../docs/reference/skills/optional/content/release-announcement.md"
+                },
+                {
+                  "title": "Simplified English",
+                  "file": "../docs/reference/skills/optional/content/simplified-english.md"
                 }
               ]
             },
@@ -771,6 +799,15 @@
                 {
                   "title": "Last30Days",
                   "file": "../docs/reference/skills/optional/research/last30days.md"
+                }
+              ]
+            },
+            {
+              "title": "Software Development",
+              "pages": [
+                {
+                  "title": "Prepare MCP Integration",
+                  "file": "../docs/reference/skills/optional/software-development/prepare-mcp-integration.md"
                 }
               ]
             }
@@ -927,6 +964,10 @@
         {
           "title": "Tailscale Private Access",
           "file": "../docs/reference/deploy/tailscale-private-access.md"
+        },
+        {
+          "title": "Tailscale HTTPS Broker",
+          "file": "../docs/reference/deploy/tailscale-https-broker.md"
         }
       ]
     },

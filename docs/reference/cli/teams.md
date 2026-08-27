@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Teams Commands
+seo_description: Install a ready-made starter group — agents, projects, tasks, and the skills they need — from the catalog Paperclip ships with the app.
 ---
 
 # Teams Commands

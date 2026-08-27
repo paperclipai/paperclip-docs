@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Built-in Agents API
+seo_description: First-party agents Paperclip ships ready to provision into any company by name, instead of configuring an equivalent role from scratch every time.
 ---
 
 # Built-in Agents
@@ -44,7 +46,7 @@ Every built-in has a state, computed per company and per key from the marked age
 |---|---|
 | `not_provisioned` | No built-in agent exists for this company and key yet. Provision it to get started. |
 | `pending_approval` | You asked for the built-in, but the company requires board approval for new agents, so it is waiting on an approval decision before it goes live. |
-| `needs_setup` | The agent exists, but its adapter config is incomplete — for example, no model or command yet. It will not run until you finish the setup. |
+| `needs_setup` | The agent exists, but its adapter config is incomplete — for example, no model or command yet. It will not run until you finish the setup, which you do by provisioning it again with the adapter details. See [Finishing first-time setup](#finishing-first-time-setup). |
 | `ready` | Adapter config is complete and the agent is not paused. It is available to do work. |
 | `paused` | The agent is paused. Scheduled or background work should skip it rather than queue work against it. |
 
@@ -57,6 +59,25 @@ Backend features that need a built-in call an internal helper before they schedu
 Provisioning a built-in does **not** go through the full agent hire flow. There is no separate hire-approval permission to obtain — the endpoints are gated on the ordinary `agents:create` permission, the same one you need to create any agent. Built-ins are registry-owned system capacity, so Paperclip treats standing one up as configuration rather than a bespoke hire.
 
 There is one wrinkle worth knowing: if your company has "require board approval for new agents" turned on, provisioning still routes the new built-in through a normal pending approval. In that case the provision endpoint returns `202 Accepted` and the built-in sits in `pending_approval` until the board decides. When board approval is not required, the built-in is provisioned immediately and comes back `200 OK`.
+
+### Finishing First-Time Setup
+
+Some built-ins arrive before you have configured them. An approved hire can leave you with an agent row that exists but whose `adapterConfig` is still empty — that is exactly the `needs_setup` state. The natural next step is to open the agent's setup dialog, pick an adapter type, fill in a model or command, and save.
+
+If you tried that while "require board approval for new agents" was on, you used to hit a wall: the request came back `409 Conflict` with `code: "built_in_agent_reconfiguration_requires_approval"` and the message "Built-in agent adapter changes require board approval before they can be applied." Since you were the board, there was nobody left to grant an approval you already held, and setup could never be completed.
+
+That now works. Sending adapter details for a built-in that has never finished its adapter setup is treated as the first-time configuration it is, and applies straight away — the same path you get when board approval is off. Call the usual endpoint:
+
+`POST /api/companies/{companyId}/built-in-agents/{key}/provision`
+
+You get `200 OK`, no approval is created, and the built-in moves from `needs_setup` to `ready`.
+
+Two nearby cases behave differently, and both are deliberate:
+
+- **Changing the adapter of a built-in that is already configured** — one in `ready` or `paused` — is a genuine reconfiguration, and still returns `409 Conflict` with `code: "built_in_agent_reconfiguration_requires_approval"`.
+- **Sending adapter details while the built-in is still in `pending_approval`** returns `409 Conflict` with `code: "built_in_agent_pending_approval"` and the message "Built-in agent setup is already pending board approval." Wait for the board decision, then configure the agent.
+
+What counts as "finished" depends on the adapter type. For the `process` and `command` adapters, Paperclip looks for a `command` or a `script`. For `http`, it looks for a `url`, `endpoint`, or `webhookUrl`. For the `openclaw_gateway` and `hermes_gateway` adapters, it looks for a `baseUrl` or `url`. For everything else — including the local adapters the shipped built-ins default to — it looks for a `model`.
 
 > **Note:** Built-in agents are behind an instance feature flag. If they are not enabled for your instance, every route on this page returns `404 Not Found` with the message "Built-in agents are not enabled."
 
@@ -126,6 +147,8 @@ The body is optional — provision with an empty body to accept the registry def
 | `budgetMonthlyCents` | integer | Monthly budget in cents. Defaults to the registry default (currently `0` for all shipped built-ins). |
 
 Returns `200 OK` when the built-in is provisioned directly, or `202 Accepted` when the company requires board approval and the request created a pending approval instead.
+
+This is also the endpoint you use to complete the adapter setup of a built-in that is sitting in `needs_setup` — even under board approval, that first configuration applies directly and returns `200 OK`. See [Finishing first-time setup](#finishing-first-time-setup) for the details and the two cases that still require an approval.
 
 <!-- tabs: cURL, JavaScript, Python -->
 

@@ -1,5 +1,7 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.817.0
+seo_title: Routines API
+seo_description: Paperclip's recurring execution layer. Run an agent on a schedule, fire it from a webhook, or kick it off manually, and see what a routine does not do.
 ---
 
 # Routines
@@ -20,6 +22,7 @@ A routine ties together:
 - the trigger or triggers that start runs
 - the concurrency policy when another run is already active
 - the catch-up policy for missed schedule ticks
+- the activity gate that decides whether a scheduled tick should fire at all on a quiet week
 
 Routine status values are:
 
@@ -130,6 +133,8 @@ Body:
 | `status` | no | Defaults to `active` when an assignee exists, otherwise `paused`. |
 | `concurrencyPolicy` | no | Defaults to `coalesce_if_active`. |
 | `catchUpPolicy` | no | Defaults to `skip_missed`. |
+| `activityGatePolicy` | no | `always` (default) or `require_external_activity`. See [Activity Gate](#activity-gate). |
+| `activityGateScope` | no | `company` (default) or `project`. Only used when the policy is `require_external_activity`. |
 | `variables` | no | Template variables for the routine title, description, and run payloads. |
 
 Agents can only create routines assigned to themselves. Board users can create routines for any agent they can assign.
@@ -268,6 +273,54 @@ You can use this endpoint to:
 - change the schedule context
 - move it to another project or goal
 - adjust variables or priority
+- turn the activity gate on or off
+
+---
+
+## Activity Gate
+
+By default a routine fires on every scheduled tick, whether or not anything has happened in your company since the last one. The activity gate lets you say "only run me if there is something new to react to" — handy for digests, sweeps, and triage routines that have nothing useful to do on a quiet week.
+
+Two fields control it:
+
+| Field | Values | Default |
+|---|---|---|
+| `activityGatePolicy` | `always`, `require_external_activity` | `always` |
+| `activityGateScope` | `company`, `project` | `company` |
+
+With `require_external_activity`, every scheduled tick looks for at least one activity-log entry that:
+
+- was recorded after the routine's last dispatched run, and no later than the current tick — runs that ended up `skipped` or `coalesced` do not move that starting point
+- is not one of the read and inbox bookkeeping actions `issue.read_marked`, `issue.read_unmarked`, `issue.inbox_archived`, `issue.inbox_unarchived`
+- was not written by the routine scheduler about this same routine
+- did not come from an agent run working on an execution issue this routine created
+
+If one matching entry exists, the tick dispatches normally. If none does, the tick is skipped.
+
+The last two rules are what makes "external" mean external: a routine's own runs, and its own skip records, can never keep it armed.
+
+The first ever tick always fires. With no dispatched run behind it there is no window to measure.
+
+### Scope
+
+- `company` (default) — activity anywhere in the company counts.
+- `project` — only activity tied to the routine's project counts: the project record itself, issues in it, routines and routine runs belonging to it, agent runs working on its issues, and any activity entry that carries the project id.
+
+A routine set to `activityGateScope: "project"` without a `projectId` can never match anything, so it will never fire on a schedule. Set a project first.
+
+### What a gated-off tick looks like
+
+Nothing fails, and nothing is queued for later:
+
+- a run row is written with `status: "skipped"`, `failureReason: "no_external_activity"`, and no `linkedIssueId`
+- the run's `triggerPayload` carries `activityGate.verdict` of `"quiet"` plus `activityGate.windowStart`, the timestamp the gate measured from
+- the trigger's last result reads `skipped_no_activity`, and `nextRunAt` has already advanced to the following tick
+
+The skipped tick is not backfilled when activity resumes. The next scheduled tick is evaluated on its own.
+
+### What the gate does not affect
+
+The gate is only consulted for scheduled ticks. Webhook firings and manual runs through `POST /api/routines/{routineId}/run` dispatch regardless of the policy.
 
 ---
 
@@ -672,10 +725,22 @@ Routine runs use these statuses:
 |---|---|
 | `received` | The run was accepted and is being processed. |
 | `coalesced` | A live execution already existed, so this run linked to it. |
-| `skipped` | The run did not create work. Either a live execution already existed and the concurrency policy chose to skip, or the routine's project was paused at tick time. Read `failureReason` to tell them apart — a paused project records `failureReason: "paused"` (the trigger's last result spells it out as `Skipped because the project is paused`). |
+| `skipped` | The run did not create work. Either a live execution already existed and the concurrency policy chose to skip, or the routine's project was paused at tick time, or the activity gate found nothing new, or the instance is running in a worktree that is not cleared to execute this routine. Read `failureReason` to tell them apart — see the table below. |
 | `issue_created` | A new execution issue was created. |
 | `completed` | The execution issue later moved to `done`. |
 | `failed` | The execution issue failed, was cancelled, or the dispatch failed. |
+
+### Why a run was skipped
+
+A suppressed automatic firing records a `failureReason` you can read back, and the UI turns each one into a one-line subtitle on the run row:
+
+| `failureReason` | Trigger last result | Run row subtitle | Meaning |
+|---|---|---|---|
+| `no_external_activity` | `skipped_no_activity` | Skipped — no activity since last run | The activity gate found nothing new since the routine's last dispatched run. |
+| `paused` | `Skipped because the project is paused` | Skipped — routine paused | The routine's project was paused at tick time. |
+| `worktree_execution_cutoff` | `skipped_worktree_execution_cutoff` | Skipped — worktree execution cutoff | The server is running inside a development worktree (`PAPERCLIP_IN_WORKTREE`) where automatic run execution is not armed for this routine — either the worktree isn't armed at all, or the routine was created before the worktree's activation cutoff. This applies to scheduled ticks and webhook firings alike. |
+
+A run skipped by the concurrency policy carries no `failureReason` — it records the live execution issue in `linkedIssueId` instead.
 
 The list view also shows the current active issue for a routine when one exists.
 
@@ -711,6 +776,7 @@ Board operators need `tasks:assign` permission for actions that assign work to a
 - If a routine is archived, it will not fire again.
 - If the routine's project is paused, scheduled ticks are suppressed: the firing is recorded as a `skipped` run and the schedule advances to the next tick, but no execution issue is created and the missed tick is **not** backfilled when the project resumes.
 - If a run finds an active live execution issue and the concurrency policy is not `always_enqueue`, the run is linked or skipped instead of creating new work.
+- If the routine uses `activityGatePolicy: "require_external_activity"` and nothing external happened since its last dispatched run, the scheduled tick is recorded as a `skipped` run and is not backfilled later.
 
 If you are wiring this from code, the common path is:
 

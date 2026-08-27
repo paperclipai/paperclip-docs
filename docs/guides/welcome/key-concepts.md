@@ -1,3 +1,8 @@
+---
+seo_title: Key Concepts: Companies, Agents, Tasks
+seo_description: The seven ideas behind Paperclip — company, agent, task, heartbeat, adapter, budget, approval — explained with analogies before the technical detail.
+---
+
 # Key Concepts
 
 Before you start clicking around, it's worth spending five minutes here. Paperclip introduces a handful of ideas that don't have perfect equivalents in other software — and if you misunderstand them early, the product will seem confusing in ways that are hard to untangle later.

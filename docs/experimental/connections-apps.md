@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.722.0
+seo_title: Connections v3 (Apps)
+seo_description: The experimental home for connecting agents to outside services — Google Sheets, remote MCP servers, and REST APIs — on a rebuilt connections foundation.
 ---
 
 # Connections v3 (Apps)
@@ -58,4 +60,4 @@ This is a foundation shipped behind an experimental flag, and it's still moving:
 ## Where to go next
 
 - [Experimental features overview](overview.md) — how experimental flags work and what "no compatibility guarantees" means.
-- [Cloud Sync](cloud-sync.md) — another connection-oriented experimental surface.
+- [Cloud Sync](cloud-sync.md) — **retired**, removed upstream along with its toggle. To move a company between instances, use [company Import/Export](../how-to/back-up-and-restore-a-company.md) instead.

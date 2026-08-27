@@ -63,20 +63,57 @@ async function parentHeadSha() {
   }
 }
 
-/** Get the current branch name of the parent repo. */
-async function parentRefName() {
+/** Run a git command in the parent repo; returns trimmed stdout, or "" on failure. */
+async function parentGit(args) {
   try {
-    const { stdout } = await execFileAsync("git", [
-      "-C",
-      PARENT_REPO,
-      "rev-parse",
-      "--abbrev-ref",
-      "HEAD",
-    ]);
+    const { stdout } = await execFileAsync("git", ["-C", PARENT_REPO, ...args]);
     return stdout.trim();
   } catch {
-    return null;
+    return "";
   }
+}
+
+/**
+ * Human-meaningful name for the parent revision being captured.
+ *
+ * Release captures run against a *detached* checkout of the release commit, and
+ * `rev-parse --abbrev-ref HEAD` answers the literal string "HEAD" in that state —
+ * which is what every pre-2026.817 registry entry recorded, making it impossible
+ * to tell from the registry alone which release a shot belongs to. So: use the
+ * branch name when we are on one, and otherwise resolve the most descriptive ref
+ * that contains the commit (tag → describe → containing branch), falling back to
+ * the short SHA. `captured_sha` still pins the exact commit either way.
+ */
+async function parentRefName() {
+  const branch = await parentGit(["symbolic-ref", "--quiet", "--short", "HEAD"]);
+  if (branch) return branch;
+
+  // Detached. A tag pointing exactly at HEAD is the best answer.
+  const tag = (await parentGit(["tag", "--points-at", "HEAD"])).split("\n")[0];
+  if (tag) return tag;
+
+  // Otherwise the nearest tag-ish description (e.g. "beta/v2026.811.0-beta.0-4-g213dabab4").
+  const described = await parentGit(["describe", "--tags", "--always"]);
+
+  // A release candidate usually lives only on a release branch — prefer that name
+  // when one contains the commit, since it identifies the release.
+  const containing = await parentGit([
+    "branch",
+    "--all",
+    "--contains",
+    "HEAD",
+    "--format=%(refname:short)",
+  ])
+    .then((out) =>
+      out
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line && !line.includes("HEAD detached")),
+    );
+  const release = containing.find((ref) => /release|candidate/.test(ref)) ?? containing[0];
+  if (release) return release;
+
+  return described || (await parentGit(["rev-parse", "--short", "HEAD"])) || null;
 }
 
 /**
@@ -127,7 +164,10 @@ function locate(page, sel) {
  * is logged and skipped so we still screenshot whatever state was reached
  * (a partial capture beats no capture, and surfaces selector drift in the log).
  *
- * Step shapes: { click }, { fill, value }, { waitFor }, { waitMs }, { press }.
+ * Step shapes: { click }, { fill, value }, { waitFor }, { waitMs }, { press },
+ * { scrollTo } (bring an element into view — long pages like issue detail put
+ * the interesting section below the fold, and a 1440×900 shot of the top of the
+ * page misses it entirely).
  *
  * @param {import('@playwright/test').Page} page
  * @param {Array<object>} steps
@@ -140,6 +180,8 @@ async function runSteps(page, steps, label) {
         await page.waitForTimeout(stepObj.waitMs);
       } else if (stepObj.waitFor) {
         await locate(page, stepObj.waitFor).waitFor({ state: "visible", timeout: 8_000 });
+      } else if (stepObj.scrollTo) {
+        await locate(page, stepObj.scrollTo).scrollIntoViewIfNeeded({ timeout: 8_000 });
       } else if (stepObj.click) {
         await locate(page, stepObj.click).click({ timeout: 8_000 });
       } else if (stepObj.fill) {

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Secret Scopes and the Responsible User
+seo_description: Company-scoped secrets share one value; user-scoped secrets hold one per person. How a run resolves each, and how to see who reached for a secret.
 ---
 
 # Secret scopes and the responsible user
@@ -32,7 +34,7 @@ Under a user scope, each person stores their own value for the definition, in th
 
 Definitions bind to the things that need them — an environment, an agent, a project, and other targets — which is how a run comes to need a secret in the first place: a run inherits the bound definitions of the target it runs under, and those are the secrets it must supply.
 
-The last ingredient is attribution. Every run has a responsible user, the human behind it, and that identity is what the secret lookup resolves against. When dispatch evaluates a run, company-scoped needs resolve to the shared value, and user-scoped needs resolve to whatever the responsible user has stored.
+The last ingredient is attribution. Every run has a responsible user, the human behind it, and that identity is what the secret lookup resolves against. When dispatch evaluates a run, company-scoped needs resolve to the shared value, and user-scoped needs resolve to whatever the responsible user has stored. Runs are the usual path here but not the only one — see [Actions you take yourself](#actions-you-take-yourself) for the handful of things that resolve a user-scoped secret with no run behind them.
 
 The check itself is deterministic and happens before dispatch. If the responsible user has supplied every user-scoped value the run needs, the run proceeds and the values are injected at runtime like any other secret. If any value is missing, the run does not start.
 
@@ -41,6 +43,28 @@ The check also surfaces early. Creating a task whose runs will need a user-scope
 ![The check surfaced at task creation: a user secret the responsible user hasn't supplied yet, with an inline prompt to set the value](../user-guides/screenshots/light/secrets/dispatch-check.png)
 
 The check confirms presence, not correctness. It guarantees the responsible user has supplied a value; a value that is wrong or expired still fails wherever it is actually used. What you are buying is the elimination of one specific failure class: a run that starts, does work, and then dies mid-flight because nobody ever stored the credential it needed.
+
+## Actions you take yourself
+
+Not every use of a secret is a run. A couple of things in the product reach for one the moment you click, with no run and no dispatch check involved: testing an adapter's environment while you are still setting an agent up, and signing an agent in to Claude from its settings.
+
+For those, you are the responsible user. Paperclip works that out from the request itself — the signed-in user, or the user an agent is acting on behalf of when the request arrives with an agent's token. It is never something the request body can nominate, so the badge presented is always the one you are actually carrying.
+
+If Paperclip cannot work out who you are, and the config needs a user-scoped value that is marked required, the action stops with `responsible_user_missing`. That is the same fail-closed answer dispatch gives a run whose responsible user hasn't supplied a value: nothing proceeds on a fallback identity.
+
+Testing a config you haven't saved yet is the interesting case. Normally a user-scoped value has to be bound to the thing asking for it, and that binding is what says this definition belongs at this key in this agent's config. A config you are still filling in has no bindings, because it hasn't been saved. So for that one action Paperclip resolves your own value directly from the definition, checking only that the value is yours. Your teammates' values stay out of reach, and the test runs on your credentials or not at all.
+
+Saved agents keep the stricter path. Signing a saved agent in to Claude resolves against the bindings recorded for that agent, so a required user-scoped reference that was never bound there is refused with `binding_missing` rather than quietly resolving. Company-scoped references resolve the same way in both cases.
+
+## Seeing who reached for a secret
+
+Each runtime resolution leaves a redacted entry behind, and you can read them. Open Company Settings → Secrets, select a company secret, and switch to the **Access events** tab. An entry names the consumer that asked, the outcome, and — where a user is involved — the responsible user, plus the credential owner when that turns out to be someone else.
+
+The consumer is recorded honestly rather than rounded off to the nearest agent. Testing an environment records the environment you selected, or a `system` consumer of `adapter_test` when you didn't select one, so an environment probe never appears in the log as though an agent had done it.
+
+Listing or syncing an agent's skills records the agent as the consumer with you as the actor behind it. Those two actions deliberately skip user-scoped secrets altogether, so what they contribute to the log is attribution on the company secrets the agent's config already referenced — not any new access to per-user values.
+
+Open a user-scoped definition and its **Access events** tab won't list entries: access events for a user-scoped secret are recorded on each member's own stored value at the moment runtime resolution occurs, not on the shared definition.
 
 ## Choosing a scope
 

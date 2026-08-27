@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.525.0
+seo_title: Workspace Diff Viewer Plugin
+seo_description: See exactly what agents changed inside a workspace: files moved and added, the staged-versus-unstaged split, and the line-level patch.
 ---
 
 # Workspace diff viewer

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.513.0
+seo_title: Develop a Plugin Locally
+seo_description: Build a plugin from a folder on your laptop, install it into a running instance straight from disk, and iterate with the worker reloading on every save.
 ---
 
 # Develop a plugin locally
@@ -20,6 +22,10 @@ When you run `paperclipai plugin install <path>`, the CLI does two things differ
 2. It sets `isLocalPath: true` on the request to `POST /api/plugins/install`, which tells Paperclip to read the package from disk rather than fetching it from npm.
 
 You can force the local path interpretation with `--local` if you'd rather be explicit. The CLI rejects `--version` for local-path installs — version pinning only applies to npm packages.
+
+On the server side, Paperclip canonicalizes the path before it loads anything from it: the value is resolved to an absolute path, then to its real path — `..` segments collapsed, symlinks followed — and it has to be a directory the server can read. A normal `paperclipai plugin install ~/dev/my-plugin` is unaffected by this, and there's no restriction on *where* on your filesystem the folder lives. Two things are worth knowing anyway. A symlinked plugin folder installs as its real target, so that's the path Paperclip records and watches. And a path that isn't a readable directory fails immediately with `Invalid localPath: …` rather than turning into a confusing manifest error further down.
+
+The one place local-path installs don't work at all is an instance managed by a Paperclip control plane rather than run by you — those only accept plugins bundled with the application. Develop against an instance you run yourself, which is what the rest of this guide assumes.
 
 Local-path plugins run as trusted local code, under the same trust boundary as the rest of the running Paperclip instance. There is no sandboxing of worker code and no signature check beyond "Paperclip can read the path you gave it." Don't local-install a plugin you didn't write or audit.
 
@@ -169,6 +175,8 @@ When you're done iterating, publish the package and reinstall from the npm form 
 ## Troubleshooting
 
 **Install returns `error` status.** Run `paperclipai plugin inspect <key>` for the last error. The three usual suspects: (1) the plugin hasn't been built yet — run `pnpm dev` or `pnpm build` first; (2) the `paperclipPlugin` entries in `package.json` point at files that don't exist on disk; (3) the manifest failed validation. The Paperclip server log has the full validation error.
+
+**Install fails with `Invalid localPath: …`.** The server couldn't turn your argument into a readable directory. `path does not exist` means the resolved path is wrong — check the spelling. (The CLI always sends an absolute path. If you're calling `POST /api/plugins/install` directly instead, a relative path is resolved against the server process's own working directory.) `path is not a directory` means you pointed at a file instead of the package folder. `path is not readable` means the folder is there but the Paperclip server process doesn't have permission to read it.
 
 **Edits don't seem to reload.** Confirm `pnpm dev` is still running and writing to `dist/`. If you renamed entry files, update `paperclipPlugin.manifest`, `paperclipPlugin.worker`, or `paperclipPlugin.ui` in `package.json` so the watcher targets them.
 

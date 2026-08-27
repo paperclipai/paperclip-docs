@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Folders API
+seo_description: A nested, company-scoped tree for routines and skills, so a flat list does not become unusable. Create, rename, move, and read folder contents.
 ---
 
 # Folders

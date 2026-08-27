@@ -1,3 +1,8 @@
+---
+seo_title: Agents: Your AI Employees
+seo_description: Hire agents, browse the agent list, and work the detail page — dashboard, instructions, and references — for the AI employees doing your company's work.
+---
+
 # Agents
 
 Agents are the AI employees that make up your Paperclip company. They're where the work actually happens: the CEO setting strategy, the engineer shipping code, the marketer drafting posts. Everything else in Paperclip — tasks, approvals, skills, budgets — exists to coordinate and govern what your agents do.
@@ -134,6 +139,17 @@ The action cluster in the header works on any tab:
 > **Danger:** Terminate permanently shuts the agent down. Use Pause if you might want it back. See [Approvals — Board Override Powers](../day-to-day/approvals.md#board-override-powers) for the broader discussion of Pause vs Terminate vs Delete.
 
 When the agent is in `pending_approval` status the Run Heartbeat button is disabled and a banner at the top of the page reminds you the agent cannot be invoked until the board approves the hire.
+
+### Banners at the top of the page
+
+Two amber banners can appear above the tab bar, and they mean different things:
+
+- **Invalid org chain** — the agent's reporting chain is broken (a terminated manager, a manager that no longer exists, or a loop). This one blocks work: you can't assign to the agent until you repair the chain, and the banner tells you how.
+- **Escalation path is paused** — the agent can run perfectly well, but somewhere up its `reports_to` chain sits a **paused** agent. This one is a warning only. Nothing is blocked; the agent just has nowhere useful to escalate to, and any escalation an agent tries to route there is refused rather than accepted. The banner text names the paused manager and gives you the two fixes: unpause that manager, or change who this agent reports to.
+
+The escalation warning only shows for agents that can themselves receive and run work. If the agent is itself paused or terminated, its escalation path doesn't matter yet, so the banner stays quiet. And if the chain is outright invalid, you see the invalid-chain banner instead — fixing that is the more urgent job.
+
+This is worth checking after an instance import, which pauses every agent by default. Unpausing your workers and forgetting their manager is the classic way to end up with a team that works fine and escalates into nothing.
 
 ---
 
@@ -551,6 +567,8 @@ On the Runs tab, each run shows a **session ID before** and **session ID after**
 | `terminated` | Permanently deactivated |
 
 The status dot on every row and badge on the agent header reflect one of these values directly. The **Active** filter on the agent list expands to include `active`, `running`, and `idle`, because all three mean "this agent is healthy and doing (or ready to do) work". **Paused** and **Error** are their own filters for triage.
+
+**One thing to know about `paused`:** you can still assign work to a paused agent — staging a task for an agent you plan to resume later is a legitimate workflow, and the pause state is right there on screen so you know what you're doing. Other **agents** can't. When an agent tries to assign a task to a paused agent, Paperclip refuses it with `Cannot assign work to a paused agent. Assign an invokable agent, leave the issue unassigned, or escalate to a board operator instead.` Without that refusal, agent escalations to a paused manager would be accepted and then never run. See [Delegation → Guardrails on agent-to-agent delegation](./delegation.md#guardrails-on-agent-to-agent-delegation).
 
 ### Why this matters day-to-day
 

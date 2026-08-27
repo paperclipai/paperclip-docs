@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Adapter Commands
+seo_description: Manage the server-side runtimes that turn a wakeup into a real run by wrapping Claude, Codex, or another provider behind one interface.
 ---
 
 # Adapter Commands

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.626.0
+seo_title: CLI Plugin Commands
+seo_description: Manage the server-side extensions that add connectors, workspace integrations, automation jobs, dashboards, and UI surfaces to the runtime.
 ---
 
 # Plugin Commands

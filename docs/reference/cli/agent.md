@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Agent Commands
+seo_description: Hire, inspect, configure, and steer the AI workers doing your company's work, including adapters, budgets, and lifecycle changes.
 ---
 
 # Agent Commands

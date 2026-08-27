@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.529.0
+seo_title: Plugins: Extending Paperclip
+seo_description: Add dashboard widgets, file browsers, and custom tooling. Covers the Plugin Manager, installing, self-installing plugins, enabling, and handling upgrades.
 ---
 
 # Plugins
@@ -56,7 +58,7 @@ An errored plugin stays installed — you don't need to uninstall and reinstall 
 
 ![Install a plugin](../user-guides/screenshots/light/plugins/install.png)
 
-There are two ways to get a plugin into Paperclip.
+There are two ways to install a plugin yourself. (A small set of sandbox provider plugins also arrives on its own at startup — see *Plugins that install themselves* below.)
 
 **From the Available Plugins list.** Bundled plugins ship inside the Paperclip repository. On the Plugin Manager page, scroll to the **Available Plugins** section and click **Install** next to the one you want. Paperclip installs it straight from the local checkout — no registry round trip.
 
@@ -78,6 +80,56 @@ The reference examples that ship today:
 **By npm package name.** Click the **Install Plugin** button at the top right of the Plugin Manager. Paperclip asks for an npm package name (for example, `@paperclipai/plugin-example`). Submit it and Paperclip fetches, installs, and loads the package. Success or failure appears as a toast, and the plugin shows up in the installed list with its current status.
 
 In both cases the install flow does the same underlying work: download the package, validate its manifest, persist the plugin record, then attempt to move it through `installed → ready` by starting its worker. If anything in that chain fails, the plugin is parked in `error` with the failure message attached — it stays installed so you can inspect what happened instead of silently disappearing.
+
+---
+
+## Plugins that install themselves
+
+A few plugins never wait for you to click **Install**. Sandbox provider plugins — the ones that let an agent run on external compute instead of on the machine hosting Paperclip — need to be present before the first agent run, so Paperclip provisions them while the server is starting up. If you open the Plugin Manager on a fresh instance and find a provider already sitting in **Installed Plugins** that you didn't put there, this is why.
+
+This used to be a Kubernetes-only shortcut. It's now a general path with a fixed list of plugins it's allowed to provision:
+
+| Key | Plugin it installs |
+|---|---|
+| `cloudflare` | `paperclip.cloudflare-sandbox-provider` |
+| `daytona` | `paperclip.daytona-sandbox-provider` |
+| `e2b` | `paperclip.e2b-sandbox-provider` |
+| `exe-dev` | `paperclip.exe-dev-sandbox-provider` |
+| `kubernetes` | `paperclip.kubernetes-sandbox-provider` |
+| `modal` | `paperclip.modal-sandbox-provider` |
+| `novita` | `paperclip.novita-sandbox-provider` |
+
+The table is the whole allowlist: nothing outside it can arrive through auto-provisioning, no matter what an instance is configured to ask for. Everything else — reference examples, first-party plugins, third-party packages — still gets installed by you, the ordinary way.
+
+Once provisioned, these behave like any other installed plugin: same status badges, same detail page, same Configuration tab. You still choose whether and how to use one, by configuring a sandbox environment under **Settings → Instance settings → Environments**. See [Sandbox Providers](../reference/adapters/sandbox-providers.md) for each provider's fields.
+
+### When it runs, and what you might not see
+
+Provisioning happens once per boot, before Paperclip activates the plugins that are already marked ready — so by the time the instance is serving requests, a newly provisioned provider is installed, `ready`, and running its worker.
+
+Two quiet outcomes are worth knowing about:
+
+- **The bundle isn't on disk.** Paperclip looks for the plugin's built bundle (a `dist/manifest.js` inside the bundle folder) and skips the entry without complaint when it isn't there. A local development checkout, or an image built without a particular provider, both land here. Nothing is broken — the plugin simply doesn't appear.
+- **The install or load failed.** The failure is logged and boot carries on. Paperclip will never crash-loop over a plugin it couldn't provision; the cost is that this one provider is unavailable until you sort it out. So if a provider you expected is missing from the list, the server log is where the reason is.
+
+### What it won't undo
+
+Auto-provisioning is deliberately careful about decisions you've already made:
+
+- **Already installed?** Skipped. Any state other than uninstalled counts — including `disabled`. Turning a provisioned provider off and restarting the server does not quietly turn it back on.
+- **Uninstalled it on purpose?** On a self-hosted instance that sticks: restarts won't bring it back, so uninstalling is a real decision rather than a temporary one. On a cloud-managed instance the fleet owns provisioning, so an uninstalled bundled plugin comes back on the next boot — disable it instead if you want it out of the way for good.
+- **Nothing is ever auto-uninstalled.** Dropping a key from an instance's provisioning list stops future installs; it never removes a plugin that's already there. Removal is always something a person does from the Plugin Manager.
+
+### If you self-host
+
+A self-hosted instance auto-provisions exactly one key: `kubernetes`. Every other provider in the table is yours to install when you actually want it, either from **Available Plugins** or by npm package name. That's unchanged from how Paperclip behaved before this path was generalised.
+
+Two environment variables let you point provisioning somewhere else on disk, which is mostly useful for development images and tests:
+
+- `PAPERCLIP_BUNDLED_PLUGIN_ROOT` — relocates the bundled plugin catalog root. It defaults to `/app/packages/plugins`, the location inside the release image.
+- `PAPERCLIP_KUBERNETES_PLUGIN_PATH` — points the `kubernetes` entry at a specific bundle path wherever it lives. This one predates the catalog and is kept for compatibility.
+
+On a cloud-managed instance the list comes from the fleet instead, as part of the managed configuration document the harness hands the instance ([Cloud-managed instances](../reference/deploy/environment-variables.md#cloud-managed-instances) has the details). That list is checked strictly: a key that isn't in the table above, or a bundle path that resolves outside the catalog root, makes the instance refuse to start rather than load something unexpected into the host. Failing loudly at boot is the point.
 
 ---
 
@@ -233,5 +285,6 @@ A cheat sheet for operating the Plugin Manager day-to-day:
 | Change configuration | Detail page → Configuration tab → edit form → **Save Configuration** |
 | Verify a config before committing | Detail page → Configuration tab → **Test Configuration** (when available) |
 | Permanently remove a plugin | Trash icon on the plugin row → confirm |
+| Work out why a plugin appeared without you installing it | It's probably a sandbox provider — see *Plugins that install themselves* |
 
 If you get stuck, the Status tab on any plugin detail page is the place to start — worker status, recent runs, and recent logs will usually point at the cause faster than poking at configuration.

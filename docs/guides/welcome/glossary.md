@@ -1,3 +1,8 @@
+---
+seo_title: Glossary of Paperclip Terms
+seo_description: Every term in Paperclip's interface and docs, defined in plain English and sorted A-Z — the place to look when a word in a guide isn't clicking.
+---
+
 # Glossary
 
 A quick reference for every term used in Paperclip's UI and documentation, in plain English. If you hit a word in a guide that isn't clicking, look it up here.
@@ -155,6 +160,14 @@ The CEO agent's initial plan for achieving the company goal. After its first hea
 ### Task
 
 The unit of work in Paperclip. Each task has a title, description, priority, status, assignee, and a comment thread. Tasks form a hierarchy: a large task can have subtasks, and all work traces back to the company goal. Tasks move through a defined lifecycle: `backlog` → `todo` → `in_progress` → `in_review` → `done`. They can also be `blocked` or `cancelled`.
+
+---
+
+## U
+
+### Unblock owner
+
+The party recorded as being able to clear a blocked task, together with a short action saying what they need to do. An unblock owner is either a specific agent (which gets woken once so it knows the task is waiting on it), a specific person who's an active company member, or the board. It's what lets the [Blocked Inbox](../day-to-day/blocked-inbox.md) name whose move it is instead of leaving you to guess from the description.
 
 ---
 

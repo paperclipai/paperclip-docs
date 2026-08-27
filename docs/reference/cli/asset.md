@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Asset Commands
+seo_description: Push image assets into a company from the terminal — a logo, a documentation image, or any binary blob you want to reference later.
 ---
 
 # Asset Commands

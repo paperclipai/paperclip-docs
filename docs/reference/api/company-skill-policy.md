@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Company Skill Policy API
+seo_description: The guardrail on what agents may do to skills — create, import, install, edit, or remove — instead of leaving the whole library open to every agent.
 ---
 
 # Company Skill Policy

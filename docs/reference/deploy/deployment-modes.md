@@ -1,3 +1,8 @@
+---
+seo_title: Deployment Modes
+seo_description: Two runtime modes and one exposure choice. The mode sets how the board operator authenticates; the exposure sets who can reach the instance.
+---
+
 # Deployment Modes
 
 Paperclip has two runtime modes and one exposure choice. The mode determines how the board operator authenticates; the exposure choice determines whether the instance stays private or is reachable publicly.

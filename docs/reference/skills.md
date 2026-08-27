@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.720.0
+seo_title: Skills Reference
+seo_description: The reference for company skills: file shape on disk, the install pipeline, attaching to agents, scoping rules, canonical keys, and versioning.
 ---
 
 # Skills Reference
@@ -117,6 +119,24 @@ scripts/paperclip-upload-artifact.sh path/to/output.webm \
 
 It reads the run's environment — `PAPERCLIP_API_URL`, `PAPERCLIP_API_KEY`, `PAPERCLIP_COMPANY_ID`, `PAPERCLIP_TASK_ID`, and `PAPERCLIP_RUN_ID` — then uploads the file as an issue attachment, creates an attachment-backed artifact work product (the default), and prints issue-safe markdown links the agent can drop into its final comment. The underlying upload route is the attachment endpoint documented under [Issues API → Attachments](./api/issues.md#attachments).
 
+### Monitors and watchers in the bundled `paperclip` skill
+
+When an agent writes "I've set a watcher and I'll check back once CI finishes", you want that to be true — otherwise the issue quietly stalls while you wait for a wake-up that was never scheduled. The bundled `paperclip` skill has a **Monitors and Watchers** section whose whole job is to keep what an agent says in its comments matched to what is actually stored on the issue.
+
+The reason it needs saying: a run (heartbeat) is an ephemeral execution window, and nothing keeps watching after it exits. The only thing that can auto-resume an issue on its own is a persisted **issue monitor** — durable state on the issue itself (`monitorNextCheckAt`, `monitorScheduledBy`, plus an execution-policy `monitor` block carrying `kind`, `serviceName`, `externalRef`, `timeoutAt`, and `maxAttempts`). A server-side scheduler (`tickDueIssueMonitors`) polls for issues whose `monitorNextCheckAt` has passed and wakes the assignee agent again with `PAPERCLIP_WAKE_REASON=issue_monitor_due`. That is timer-based polling, not an event subscription: Paperclip is not notified the moment CI or another external check finishes, it just wakes the agent on a schedule so it can look again.
+
+A stored timestamp is necessary but not sufficient. For a monitor to fire, the issue must be assigned to an agent (`assigneeAgentId` set) with **no** user assignee (`assigneeUserId` is null), and it must be in `in_progress` or `in_review`. The on-demand trigger enforces the same conditions, so a monitor parked on a user-assigned, `backlog`, `blocked`, or closed issue never fires.
+
+So the skill holds agents to three rules:
+
+- **Only claim a watcher exists after actually scheduling one.** Describing one in a comment does not create it. The agent schedules it by setting `executionPolicy.monitor.nextCheckAt` (with `kind`/`serviceName`/`externalRef`/`timeoutAt`/`maxAttempts`) via `PATCH /api/issues/{id}`, then confirms the issue really reports a non-null `monitorNextCheckAt` under the eligibility conditions above. A check can be run on demand with `POST /api/issues/{id}/monitor/check-now`.
+- **Describe it in checkable terms** — the monitor's kind, its next check time, and its attempt/timeout bounds, rather than a vague "a watcher will wake me". If the agent cannot name those, it has not scheduled one and must not imply that it has.
+- **Never imply a live watcher on a task being marked `done`.** `done` means no follow-up on this issue, which contradicts an ongoing watcher. If real re-checking is still needed, the agent keeps the issue in `in_progress`/`in_review` with a scheduled monitor instead of closing it.
+
+None of this rests on the agent's good manners. The disposition guard rejects an agent move to `in_review` with `invalid_issue_disposition` unless a real review path exists — an interaction, an approval, a human reviewer, a typed execution participant, or an actually-scheduled monitor with a real `monitorNextCheckAt` — and the recovery classifier flags `in_review_without_action_path` for anything parked with no live wake path.
+
+Issue monitors are a separate mechanism from [task watchdogs](../guides/projects-workflow/task-watchdogs.md), which you attach to an issue yourself to double-check a subtree that has come to rest.
+
 ---
 
 ## 2. Installation pipeline
@@ -199,12 +219,14 @@ Catalog skills are split into two **kinds** (`CatalogSkillKind`):
 
 | Kind | Meaning | Examples |
 |---|---|---|
-| `bundled` | Core skills the app considers part of the baseline kit. | `doc-maintenance`, `issue-triage`, `task-planning`, `qa-acceptance`, `github-pr-workflow`, `wireframe`, `summarize-status` |
-| `optional` | Extra skills you opt into when you need them. | `agent-browser`, `release-announcement`, `design-critique`, `last30days` |
+| `bundled` | Core skills the app considers part of the baseline kit. | `doc-maintenance`, `issue-triage`, `task-planning`, `qa-acceptance`, `github-pr-workflow`, `wireframe`, `summarize-status`, `status-card-query` |
+| `optional` | Extra skills you opt into when you need them. | `agent-browser`, `release-announcement`, `simplified-english`, `design-critique`, `last30days`, `prepare-mcp-integration` |
 
 Each catalog skill also carries a `category` you can filter on. Most of the baseline kit is coding- and process-oriented, but the catalog is not limited to engineering work — for example, the `product`-category **`wireframe`** skill teaches an agent to produce low-fidelity, black-and-white UI wireframes as standalone SVG files (recommended for `designer`, `product`, and `engineer` roles), and the `research`-category **`last30days`** skill (recommended for `researcher`, `marketer`, `product-manager`, and `analyst` roles) researches what people have said about a topic across Reddit, X, YouTube, and the rest of the web in the last 30 days. A bundled skill is not the same as a *required* one: `wireframe` ships in the baseline kit but installs only when you choose it (its `defaultInstall` is `false`), so designers and product folks can pull it in without it being forced on every agent.
 
-Managers get their own entry in the baseline kit: the `paperclip-operations`-category **`summarize-status`** skill (recommended for the `general` and `manager` roles) turns the current state of a scope — a project, the workspaces overview, or a single project workspace — into a short written summary and writes it back to that scope's summary slot as a new revision. It is deliberately not a task list: it opens with the one or two decisions you actually have to make, each with a recommendation, and closes with what recently shipped and where it stands. Like `wireframe`, its `defaultInstall` is `false`, so it arrives only when you pick it.
+Managers get their own entry in the baseline kit: the `paperclip-operations`-category **`summarize-status`** skill (recommended for the `general` and `manager` roles) turns the current state of a scope — a project, the workspaces overview, or a single project workspace — into a short written summary and writes it back to that scope's summary slot as a new revision. It is deliberately not a task list, and it is deliberately actions-first. Every summary opens with the 1–3 specific, concrete actions you need to take right now to unblock the work — "merge the install PR", "answer the org-accounts question", "approve the OAuth plan" — each saying what to do, why it is the thing holding up progress, and linking the issue inline. After the actions comes a brief paragraph or two of plain conversational status on where things stand, written for someone who has not memorised every issue id. If genuinely nothing needs you, you get one honest line saying so plus the next thing worth watching, rather than padding with filler actions. Like `wireframe`, its `defaultInstall` is `false`, so it arrives only when you pick it.
+
+Sitting alongside it is the `paperclip-operations`-category **`status-card-query`** skill (also recommended for the `general` and `manager` roles), which backs the experimental [Status Cards](../experimental/status-cards.md) feature. A status card starts as a sentence you write in plain English — "blocked or in-review launch work updated this week" — and this skill covers both halves of turning that into a live card. In its authoring mode an agent creates and refines its own cards through the public API, capped at 20 cards each and 4,000 characters of prompt. In its compilation mode the Summarizer translates that prose into bounded `CompanySearchQuery` objects — structured filters for status, priority, assignee, project, label, and recency rather than a keyword blob — and then writes the card's first summary back from the same assigned run. It is available only when `enableStatusCards` is turned on, and like the rest of the baseline kit its `defaultInstall` is `false`. Full details are on the [Status Card Query](./skills/bundled/paperclip-operations/status-card-query.md) page.
 
 **Where a catalog skill's bytes come from.** Most catalog skills are shipped inside the app itself. A few are **referenced** instead — they point at an external GitHub repository pinned to a single commit, and the app fetches their files for you. `last30days`, for example, is sourced from `github.com/mvanhorn/last30days-skill` at a pinned commit. You install and manage a referenced skill exactly like any other catalog skill; the only difference is that its `source` field tells you where it originally came from (owner, repo, the `ref`/`commit` it is pinned to, and a browseable `url`). Because the pin is a specific commit, you still get the same byte-exact, version-tracked guarantees as a fully bundled skill.
 
@@ -336,6 +358,8 @@ The server resolves each reference to its canonical key and persists exactly tha
 ```
 
 This route reconciles the agent's attachments to match exactly what you send: any skill in the list is attached, anything not in the list is detached. An empty list detaches everything.
+
+Each entry may also be an object instead of a bare string — `{ "key": "...", "versionId": "..." }` — which pins the agent to a specific version of that skill. The server checks only that the version belongs to the skill you named; any non-null `versionId` additionally requires `enableBetaSkills` to be on. The UI is narrower than the API here: it only offers a version picker for the bundled `paperclip` skill's releases. See [Beta releases of the bundled `paperclip` skill](#beta-releases-of-the-bundled-paperclip-skill).
 
 The response is an `AgentSkillSnapshot`:
 
@@ -474,7 +498,7 @@ Behaviour depends on the source:
 | `url` | No | None | Treat as a point-in-time snapshot. Re-import the URL to refresh. |
 | `local_path` (managed) | Live | None — files refresh on read | Stored under `<paperclipInstanceRoot>/skills/{companyId}/`. Edited via `PATCH /skills/{id}/files`. |
 | `local_path` (project scan) | Live | Re-run the scan endpoint | Skills whose `SKILL.md` disappears are pruned automatically (`pruneMissingLocalPathSkills`). |
-| `paperclip_bundled` | Pinned to the Paperclip release | Upgrade Paperclip itself | Re-imported on every list call; cannot be edited. |
+| `paperclip_bundled` | Pinned to the Paperclip release | Upgrade Paperclip itself | Re-imported on every list call; cannot be edited. The bundled `paperclip` skill additionally carries beta releases an agent can pin — see [below](#beta-releases-of-the-bundled-paperclip-skill). |
 | `catalog` | Pinned to the shipped catalog version (`metadata.originHash`) | `GET /skills/{id}/update-status` → `POST /skills/{id}/install-update`; `POST /skills/{id}/reset` to restore the origin | App-shipped catalog skills. Updates compare against the version the app ships. See [App-shipped catalog](#3-app-shipped-catalog). |
 
 ### `update-status` response
@@ -495,6 +519,46 @@ For non-GitHub sources, `supported: false` is returned with a reason. Calling `i
 ### Install-update semantics
 
 `install-update` re-runs the import for the same source URL, finds the matching skill (by canonical key or slug), upserts the row in place, and returns the refreshed record. The skill's `id` does not change — anything attached by ID continues to work without re-syncing.
+
+### Beta releases of the bundled `paperclip` skill
+
+The bundled `paperclip` skill (canonical key `paperclipai/paperclip/paperclip`) also carries **releases**: frozen snapshots an agent can be pinned to instead of the live default. For why you would pin one and how the picker behaves, read [Pinning a beta release of the Paperclip skill](../guides/org/skills.md#pinning-a-beta-release-of-the-paperclip-skill) in the guide. This section is the data and wire shape.
+
+**The flag.** `enableBetaSkills` is an instance experimental setting, catalogued as **Beta skills** — *"Allow agents to pin beta releases of the Paperclip core skill."* Its tier is `preference`, meaning a tenant-controlled setting the Paperclip Cloud harness never manages, in contrast to the `managed`-tier flags that can arrive locked. Both `cloudDefault` and `selfHostedDefault` are `false`, so it is off on every instance until an operator turns it on.
+
+**Where the snapshots come from.** The server reads `skills-releases/paperclip/releases.json` and seeds one skill version per manifest entry into every company that has the bundled `paperclip` skill. Each entry carries `id`, `releaseName`, `releasedAt`, `notes`, and `dir` — the folder holding that snapshot's files, resolved relative to the registry root. Seeding never moves the skill's current version: the live default is left alone, and a release only takes effect on agents that pin it.
+
+Two releases ship today:
+
+| `id` | `releaseName` | `releasedAt` |
+|---|---|---|
+| `v0` | `V0 — Original` | `2026-07-15T07:52:54-05:00` |
+| `v7-roster` | `V7 — Roster champion` | `2026-07-21` |
+
+Both are frozen historical snapshots. `v7-roster` predates three later edits to `SKILL.md`, `references/api-reference.md`, and `references/company-skills.md`; the live default keeps that newer guidance.
+
+Re-seeding is byte-checked. If a company already holds a version for a release id whose stored inventory no longer hashes to the registry snapshot, the seed fails with `Bundled skill release <id> does not match its seeded snapshot.` rather than rewriting a release that agents may already be pinned to.
+
+**Storage.** `company_skill_versions` rows carry three release columns — `release_id`, `release_name`, and `released_at`, surfaced on `CompanySkillVersion` as `releaseId`, `releaseName`, and `releasedAt`. All three are null for ordinary versions. A partial unique index, `company_skill_versions_skill_release_idx` on (`company_skill_id`, `release_id`) where `release_id is not null`, guarantees one skill has at most one version per release id.
+
+**Listing releases.** `GET /api/companies/{companyId}/skills/{skillId}/versions` returns the skill's versions; the releases are the rows with a non-null `releaseId`.
+
+**Pinning.** `POST /api/agents/{agentId}/skills/sync` takes either shape per entry:
+
+```json
+{
+  "desiredSkills": [
+    "code-review",
+    { "key": "paperclipai/paperclip/paperclip", "versionId": "<company skill version uuid>" }
+  ]
+}
+```
+
+The bare string form and `"versionId": null` both mean *no pin* — the live default. The returned `AgentSkillSnapshot` reports pins on `desiredSkillEntries` (a list of `{ key, versionId }`) alongside the flat `desiredSkills` list.
+
+If any entry carries a non-null `versionId` while `enableBetaSkills` is off, the request fails with `400` and the message `Beta skill version pins require the Beta skills experimental setting to be enabled.`
+
+**With the flag off.** Existing pins are kept but not applied. Both the heartbeat and agent config resolution build their version selection map with `versionPinsEnabled: false`, which maps every key to `null`, so every agent resolves to the live skill. Turning the flag back on restores the saved pins.
 
 ---
 
@@ -541,6 +605,12 @@ Walk down this list in order. The first match is usually the problem.
 ### "An agent gets a skill it never asked for"
 
 - It's bundled-required. `paperclipai/paperclip/*` skills with `metadata.sourceKind: paperclip_bundled` are unioned into every resolved `desiredSkills` set by the server. Removing them from the request has no effect.
+
+### "I pinned a beta release but the agent still runs the default"
+
+- Check **Beta skills** on **Settings → Instance settings → Experimental**. With `enableBetaSkills` off, saved pins are ignored rather than deleted, and every agent resolves to the live skill.
+- A pin only applies while its skill is in the agent's desired set. Detaching the skill drops the pin along with it.
+- Confirm the pin actually persisted: with the flag **on**, `GET /api/agents/{agentId}/skills` reports it under `desiredSkillEntries`. With the flag off that response reports `versionId: null` even though the pin is still stored on the agent — so use it to check a pin, not to conclude one was lost.
 
 ### "I deleted a skill and it came back"
 

@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Release Announcement Skill
+seo_description: Write the channel-appropriate release note — changelog, blog, in-app, or social — leading with user impact and including upgrade guidance.
 ---
 
 # Release Announcement
@@ -50,22 +52,24 @@ This is an **optional** catalog skill — opt-in (install when you need it). For
 
 ## Full skill definition
 
-### Skill frontmatter
+The block below is the complete, authoritative `SKILL.md` for this skill — the exact file an agent loads at runtime. Use the controls in the top-right of the block to copy it or download it as `SKILL.md`.
 
-- **name:** release-announcement
-- **description:** Write a release announcement — changelog, blog post, in-app note, or social post — that leads with user impact, names the audience, and includes upgrade/migration steps without filler.
-- **key:** paperclipai/optional/content/release-announcement
-- **recommendedForRoles:**
+````markdown skill-source
+---
+name: release-announcement
+description: Write a release announcement — changelog, blog post, in-app note, or social post — that leads with user impact, names the audience, and includes upgrade/migration steps without filler.
+key: paperclipai/optional/content/release-announcement
+recommendedForRoles:
   - devrel
   - product
   - writer
-- **tags:**
+tags:
   - release
   - changelog
   - announcement
   - communication
+---
 
-### Skill instructions
 # Release Announcement
 
 Write the channel-appropriate announcement for a release without churn. Different surfaces need different shapes: a changelog entry is not a blog post is not a social card. The bar is: a reader of the chosen surface can decide in under 30 seconds whether this release affects them, and if so what to do.
@@ -179,6 +183,7 @@ Same as changelog, plus:
 - All links work (release tag, PRs, docs sections).
 - Breaking changes are also in the upgrade guide, not only the post.
 - Internal team is notified before the public post goes live, not after.
+````
 
 ## See also
 

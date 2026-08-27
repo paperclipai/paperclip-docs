@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.626.0
+seo_title: Hermes Gateway Adapter
+seo_description: Connect to a Hermes API server already running elsewhere — another host or a cloud VM — over HTTP or HTTPS, instead of running it locally.
 ---
 
 # Hermes Gateway

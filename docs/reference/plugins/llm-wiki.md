@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.517.0
+seo_title: LLM Wiki Plugin
+seo_description: A cited, in-dashboard wiki your agents build and maintain from raw source material — issues, comments, documents, and files you drop into a folder.
 ---
 
 # LLM Wiki

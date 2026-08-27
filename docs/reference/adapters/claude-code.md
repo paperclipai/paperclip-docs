@@ -1,5 +1,7 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.817.0
+seo_title: Claude Code Adapter
+seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with session persistence, skills injection, and configuration managed from your agent.
 ---
 
 # Claude Code

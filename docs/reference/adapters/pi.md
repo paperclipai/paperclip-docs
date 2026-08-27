@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.618.0
+seo_title: Pi Adapter
+seo_description: Run the Pi coding agent CLI on the Paperclip host, with its built-in tool set — read, bash, edit, write, grep, find, ls — and provider configuration.
 ---
 
 # Pi

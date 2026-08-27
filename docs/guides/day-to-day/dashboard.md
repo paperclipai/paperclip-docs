@@ -1,3 +1,8 @@
+---
+seo_title: The Dashboard
+seo_description: Your control centre: agent status, overview cards, and the recent activity feed — plus how to read all three at a glance and catch trouble early.
+---
+
 # The Dashboard
 
 The dashboard is your control centre. When your AI company is running, this is the page you'll return to most — it tells you, at a glance, whether everything is moving forward or whether something needs your attention.

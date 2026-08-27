@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: CLI Workspace, Org and Environment Commands
+seo_description: Inspect a company's structure and execution surface from the terminal: the org chart, agent configuration, and where runs actually happen.
 ---
 
 # Workspace, Org & Environment Commands

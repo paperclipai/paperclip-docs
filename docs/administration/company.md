@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.609.0
+seo_title: Company Administration
+seo_description: Set your company name and logo, manage members and invites, review join requests, and export or import the whole company from one cluster of screens.
 ---
 
 # Company Administration
@@ -104,7 +106,7 @@ Clicking **Edit** opens a dialog with three controls:
 2. **Membership status** — `Active`, `Pending`, or `Suspended`.
 3. **Grants** — a two-column grid of explicit permission grants. A read-only panel above the grid lists the grants the selected role provides implicitly. Checking a box here stores the grant explicitly on the member, so it persists even if the role later changes.
 
-The full set of permission keys is `agents:create`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `tasks:assign_scope`, `tasks:manage_active_checkouts`, `pipelines:write`, and `joins:approve`. Each box is labelled with a human name and its underlying key for reference. Three of these — `tasks:assign_scope`, `tasks:manage_active_checkouts`, and `pipelines:write` — are never part of a role's implicit grants, so the only way a member gets them is by checking the box here. For what each key gates and which roles include it by default, see [Roles & Permissions](./roles-and-permissions.md).
+The keys you will reach for most often are `agents:create`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `tasks:assign_scope`, `tasks:manage_active_checkouts`, `pipelines:write`, `audit:view_agent_actions`, and `joins:approve`. Each box is labelled with a human name and its underlying key for reference. Four of these — `tasks:assign_scope`, `tasks:manage_active_checkouts`, `pipelines:write`, and `audit:view_agent_actions` — are never part of a role's implicit grants, so the only way a member gets them is by checking the box here. For the complete list of keys, what each one gates, and which roles include it by default, see [Roles & Permissions](./roles-and-permissions.md).
 
 Click **Save access** to persist the changes, or **Cancel** to close the dialog without saving.
 

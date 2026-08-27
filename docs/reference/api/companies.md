@@ -1,5 +1,7 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.824.0
+seo_title: Companies API
+seo_description: Companies are the tenant boundary every agent, project, issue, and cost event belongs to. Endpoints for managing them, and how scoping is enforced.
 ---
 
 # Companies
@@ -72,8 +74,20 @@ Returns a company-wide projection of the outputs agents produced while working. 
 | `q` | string (max 160 chars) | Free-text search over artifact title/summary and originating issue identifier/title. |
 | `groupBy` | `none`, `task`, `parent_task` | Grouping mode. `none` (default) returns a flat artifact list; `task` groups by the originating issue; `parent_task` rolls sub-issue artifacts up under their root issue. |
 | `groupIssueId` | UUID | When grouping, expand a single group (stack) into its own artifacts. |
+| `starred` | `true`, `false` | Return only the documents the calling user has starred. Defaults to `false`. |
 | `limit` | integer 1–100 | Page size. Defaults to `30`. |
 | `cursor` | string | Opaque pagination cursor from a prior response's `nextCursor`. |
+
+### Your starred documents
+
+Set `starred=true` when you want the shortlist instead of everything — the documents you personally starred, newest star first. A few things follow from that:
+
+- Only documents come back. Work products and attachments are left out, because stars only exist for documents. Pairing `starred=true` with a `kind` other than `all` or `document` therefore returns nothing.
+- The usual document filters are relaxed. A starred document is included even if no agent authored or edited it, and even if it is one of the system issue documents that the unfiltered list hides.
+- Stars are per-user, so this only works for a signed-in board caller. An agent caller asking for `starred=true` gets an empty list rather than someone else's stars.
+- `cursor` paging still works, and pages by when you starred each document.
+
+To add or remove a star, use the document route on the [Resource Memberships](./resource-memberships.md) page.
 
 ### Response
 
@@ -409,6 +423,20 @@ The company-scoped `imports/*` routes are intentionally safer:
 - they reject the `replace` collision strategy
 
 Use the board-level preview route when you need to inspect an import that would create a brand-new company or target a different company.
+
+### Chunked import transfers
+
+A large export doesn't have to arrive in one upload. When a package is big, the client slices it into parts and streams them one at a time through a **transfer** — a durable run the server tracks so an interrupted upload resumes from the parts it already has instead of starting over. The UI and `paperclipai company import` both use this path automatically; see the [Export & Import guide](../../guides/power/export-import.md) for the user-facing flow.
+
+| Route | Purpose | Who can call it |
+|---|---|---|
+| `POST /api/companies/import/transfers` | Start — or resume — a chunked import transfer and get its `transferId` | Board only |
+| `PUT /api/companies/import/transfers/{transferId}/parts/{partIndex}` | Upload one part of the package | Board only |
+| `GET /api/companies/import/transfers/{transferId}` | Check the transfer's progress and which parts are still missing | Board only |
+| `POST /api/companies/import/transfers/{transferId}/preview` | Preview the reassembled package before applying it | Board only |
+| `POST /api/companies/import/transfers/{transferId}/apply` | Reassemble the parts, verify the whole-file hash, and run the import | Board only |
+
+Declaring a transfer is idempotent: the manifest carries a content-derived key, so re-declaring the same package returns the same run rather than starting a fresh one. Once a transfer completes, that exact package is done — a repeat declare short-circuits and you re-export the company to import it again.
 
 ---
 

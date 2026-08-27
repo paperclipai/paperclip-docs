@@ -1,5 +1,7 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Task Plan Decomposition Panel
+seo_description: See the machinery that turns an accepted plan into child tasks, and the guarantee it runs exactly once even across retries and interrupted runs.
 ---
 
 # Task Plan Decomposition Panel
@@ -32,6 +34,17 @@ Open a task whose accepted plan created sub-tasks. The **Plan decomposition** se
 There's nothing to configure and nothing to click besides the links — the panel is purely informational.
 
 > **Note:** the panel only renders on tasks that actually have decomposition history. A task whose plan never spawned children shows nothing, even with the flag on.
+
+## Where it lives with Chat-Style Tasks on
+
+This page describes the classic task page. If you also run the **Chat-Style Tasks** experimental feature, the same decomposition history moves into the task's properties panel, on a **Plan** tab that shows the plan document itself with the accepted-plan history underneath it — so you read the plan and what it created in one place.
+
+Two things worth knowing about that arrangement:
+
+- The centre-column **Plan decomposition** section described above is hidden while Chat-Style Tasks is on. It hasn't gone anywhere; it's in the Plan tab.
+- The Plan tab shows the history on its own, without this **Task Plan Decomposition Panel** flag. Turning this flag off hides the section from the classic task page, but the Plan tab keeps showing accepted plans as long as Chat-Style Tasks is on.
+
+See [Issues](../guides/day-to-day/issues.md#tabs-in-the-properties-panel-experimental) for the rest of what the Plan tab holds, including approving a plan from the panel.
 
 ## When it's off
 

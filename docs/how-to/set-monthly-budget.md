@@ -1,3 +1,8 @@
+---
+seo_title: Set a Monthly Budget and Enforce It
+seo_description: A misconfigured loop can run a four-figure tab in a weekend. Set a cap Paperclip enforces automatically, with warnings before the hard stop.
+---
+
 # Set a monthly budget and enforce it
 
 Autonomous agents make real API calls. A misconfigured loop, an over-eager prompt, or a pricing change can run a four-figure tab in a weekend if nothing pulls the brake. Paperclip's budget system is the brake: you set a cap, Paperclip warns at 80%, hard-stops at 100%, and pauses the offending scope until you raise the cap or the calendar month resets.

@@ -1,8 +1,12 @@
 ---
 paperclip_version: v2026.707.0
+seo_title: Cloud Sync to a Paperclip Upstream
+seo_description: Push a local company — agents, projects, issues, skills, portability files — into a Paperclip Cloud stack, previewing exactly what would change first.
 ---
 
 # Cloud Sync
+
+> **Deprecated — being removed.** Host-to-host Cloud Sync has been retired upstream and replaced by full-fidelity **company Import/Export**, which moves a company — agents, projects, issues, skills, portability files — between any two instances (local-to-local, over a URL, or from GitHub) without the experimental flag or a live upstream connection. See [Back up and restore a company](../how-to/back-up-and-restore-a-company.md). This page is kept temporarily for anyone on an older build and will be removed in a future release.
 
 **Cloud Sync** connects a locally-run Paperclip instance to a Paperclip Cloud upstream so you can push a local company — agents, projects, issues, skills, portability files — into a cloud stack. You preview exactly what would change, resolve conflicts, push, and then review activation before any automation resumes on the cloud side.
 

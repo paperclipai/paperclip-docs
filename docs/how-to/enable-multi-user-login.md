@@ -1,3 +1,8 @@
+---
+seo_title: Enable Multi-User Login
+seo_description: Move off loopback-only trusted mode so teammates can actually sign in. What to change, and what the switch means for your existing single-operator setup.
+---
+
 # Enable multi-user login
 
 Out of the box, Paperclip runs in **local trusted** mode: no login, loopback-only, one implicitly-trusted operator. That's perfect for a personal install and terrible the moment a second person needs in. To let teammates sign in, you switch the instance to **authenticated** mode, claim ownership once in the browser, and then invite people from the app.

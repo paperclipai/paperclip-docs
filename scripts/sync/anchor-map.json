@@ -140,14 +140,28 @@
     {
       "name": "db-migrations",
       "parent_paths": [
-        "packages/db/migrations/**"
+        "packages/db/src/migrations/**"
       ],
       "docs_paths": [
         "docs/administration/**",
         "docs/reference/deploy/database.md"
       ],
       "tier": "context-only",
-      "detect": "Migrations themselves rarely need user-facing docs, but a sudden burst of migrations often correlates with a schema change watched elsewhere. Use this watcher's hits as context only — never produce edits directly."
+      "detect": "Migrations themselves rarely need user-facing docs, but a sudden burst of migrations often correlates with a schema change watched elsewhere. Use this watcher's hits as context only — never produce edits directly. Deliberately NOT promoted above context-only: most migrations are columns, indexes, and renames that need no prose, and promoting this would put all of them in front of a human for triage. The gap that would justify revisiting is a migration changing user-visible behaviour WITHOUT touching a packages/**/schema/*.ts file the `schemas` watcher already catches — a data backfill that changes a default, a retention window, or a constraint that starts rejecting input that used to be accepted."
+    },
+    {
+      "name": "release-channels",
+      "parent_paths": [
+        "doc/CHANNELS.md",
+        "cli/src/commands/channels.ts"
+      ],
+      "docs_paths": [
+        "docs/how-to/update-paperclip.md",
+        "docs/reference/cli/installation.md"
+      ],
+      "tier": "pr",
+      "detect": "The release-channel model (canary → nightly → beta → stable), its npm dist-tags and Docker image tags, and the `paperclipai channels` command. `doc/CHANNELS.md` is the authoritative parent guide; `channels.ts` holds the RELEASE_CHANNELS descriptors and the version→channel regexes. Changes here (a new lane, a dist-tag rename, the `:latest`-tracks-stable semantics) must flow into the channels sections of update-paperclip.md and the CLI installation page. Note: channels.ts is also matched by the cli-commands watcher — dedupe by surface, don't emit twice.",
+      "channel_context": "Docs ship on the STABLE lane only. Do not describe beta/nightly/canary versions as the release; they are npm/Docker artifacts with no git tag. See maintenance/release-channels-plan.md."
     },
     {
       "name": "release-notes",
@@ -159,9 +173,18 @@
     }
   ],
   "adapter_doc_sources": {
-    "$comment": "Maps a doc basename (docs/reference/adapters/<name>.md) to the source paths the verifier should search. Use when the doc name does not match the adapter package directory under packages/adapters/.",
+    "$comment": "Maps a doc basename (docs/reference/adapters/<name>.md) to the source paths the verifier should search. Use when the doc name does not match the adapter package directory under packages/adapters/. Without an entry here, verify-edit.mjs finds no sources and reports every adapter-config-field on the page as unverified — a silent false negative that fires on every run, not a one-off.",
     "hermes-local": ["packages/adapters/hermes"],
-    "hermes-gateway": ["packages/adapters/hermes"]
+    "hermes-gateway": ["packages/adapters/hermes"],
+    "claude-code": ["packages/adapters/claude-local"],
+    "codex": ["packages/adapters/codex-local"],
+    "gemini-cli": ["packages/adapters/gemini-local"],
+    "opencode": ["packages/adapters/opencode-local"],
+    "pi": ["packages/adapters/pi-local"],
+    "http": ["server/src/adapters/http"],
+    "process": ["server/src/adapters/process"],
+    "modal": ["packages/plugins/sandbox-providers/modal"],
+    "sandbox-providers": ["packages/plugins/sandbox-providers"]
   },
   "screenshot_registry": "docs/user-guides/screenshots/registry.json",
   "quarantine_hours": 24,
