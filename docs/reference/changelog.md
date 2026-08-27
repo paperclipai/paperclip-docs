@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.824.1
 seo_title: Documentation Changelog
 seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
@@ -13,6 +13,17 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.824.1 <span class="accordion-meta">August 25, 2026</span></summary>
+<div class="accordion-body">
+
+**Updated pages**
+
+- [CLI Setup Commands](cli/setup-commands.md) — after `onboard` installs the background service, it now hands you off to the running instance: it waits for the port the service actually bound, prints the dashboard URL, and opens it in your browser. Headless runs print the URL, and `PAPERCLIP_NO_BROWSER=1` opts out of the browser launch.
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.824.0 <span class="accordion-meta">August 24, 2026</span></summary>
 <div class="accordion-body">
 
