@@ -1469,12 +1469,17 @@ reports the single fetched commit's date, so the build detects that and omits
 \`<lastmod>\` entirely rather than telling Google that all 192 documents changed
 on the same day — a claim that trains Google to discount the sitemap.
 
-To publish real per-file dates, deepen the checkout before building, for example
-by setting the Pages build command to:
+To publish real per-file dates, deepen the checkout before building by setting
+the Pages build command to:
 
 \`\`\`sh
-git fetch --unshallow || true; npm run docs:build
+npm run docs:build:cloudflare
 \`\`\`
+
+That script (\`scripts/ensure-full-git-history.mjs\`) runs \`git fetch --unshallow\`
+against the clone's origin remote (falling back to the public repository URL),
+verifies the checkout is no longer shallow, and then builds. It never fails the
+build: if history cannot be completed, the build's own gate omits the dates.
 
 Omitted dates are the safe default; wrong dates are not.
 

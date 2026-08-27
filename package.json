@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "docs:build": "node site/build-release.mjs --base-path / --out-dir .site",
+    "docs:build:cloudflare": "node scripts/ensure-full-git-history.mjs && npm run docs:build",
     "docs:build:github-subpath": "node site/build-release.mjs --base-path /paperclip-docs/ --out-dir .site",
     "docs:build:auto": "node site/build-release.mjs --base-path auto --out-dir .site",
     "docs:test:static-routes": "node scripts/verify-static-routes.mjs",
