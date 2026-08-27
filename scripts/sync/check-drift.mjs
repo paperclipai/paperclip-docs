@@ -263,6 +263,19 @@ function lineOfOffset(content, offset) {
   return line;
 }
 
+function frontmatterEnd(content) {
+  // If the file opens with a YAML frontmatter block (--- ... ---), return the
+  // character offset just past the closing delimiter; otherwise 0. Prose inside
+  // seo_title / seo_description regularly contains phrases like "the single
+  // paperclipai binary" or "wiring paperclipai into a script" that the CLI and
+  // parent-path scanners would otherwise misread as command invocations or file
+  // references. Skipping the frontmatter region (rather than stripping it) keeps
+  // the 1-based line numbers of real, body-text hits intact.
+  if (!content.startsWith("---")) return 0;
+  const m = /^---\r?\n[\s\S]*?\r?\n---\r?\n/.exec(content);
+  return m ? m[0].length : 0;
+}
+
 // --- Class 1: parent file paths --------------------------------------------
 
 const PARENT_PATH_RE = /\b((?:cli\/src|server\/src|skills\/paperclip|packages\/[a-z0-9-]+(?:\/[a-z0-9-]+)?)\/[A-Za-z0-9_./-]+\.(?:ts|mjs|js))\b/g;
@@ -272,9 +285,11 @@ function collectParentPaths(docFiles) {
   const refs = new Map();
   for (const file of docFiles) {
     const content = readFileSync(file, "utf8");
+    const fmEnd = frontmatterEnd(content);
     PARENT_PATH_RE.lastIndex = 0;
     let m;
     while ((m = PARENT_PATH_RE.exec(content))) {
+      if (m.index < fmEnd) continue; // skip seo_title / seo_description prose
       const p = m[1];
       const line = locate(content, p);
       if (!refs.has(p)) refs.set(p, { docs: [] });
@@ -301,9 +316,11 @@ function collectCliCommands(docFiles) {
   for (const file of docFiles) {
     if (!file.includes("/docs/reference/cli/")) continue;
     const content = readFileSync(file, "utf8");
+    const fmEnd = frontmatterEnd(content);
     CLI_INVOCATION_RE.lastIndex = 0;
     let m;
     while ((m = CLI_INVOCATION_RE.exec(content))) {
+      if (m.index < fmEnd) continue; // skip seo_title / seo_description prose
       const head = m[1];
       const sub = m[2];
       if (CLI_FALSE_POSITIVES.has(head)) continue;
