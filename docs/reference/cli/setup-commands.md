@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.824.1
 seo_title: CLI Setup Commands
 seo_description: Stand up a Paperclip instance, repair a broken one, or change the settings the server runs on — the commands that touch install and launch.
 ---
@@ -97,6 +97,8 @@ The first prompt offers two paths:
 | `--run` | Start the server immediately after saving the config. |
 
 Near the end of the wizard, `onboard` offers to install Paperclip as a background service so it starts on login and keeps running after you close the terminal. `--install-service` installs it without asking; `--no-install-service` skips both the install and the suggestion. When the service is installed, onboarding does *not* also start a foreground server — the service is already running Paperclip for you. On a platform where service management is unavailable, `--install-service` warns and continues. See [Service](./service.md) for what gets installed and how to manage it.
+
+Once the service is running, onboarding hands you off to it instead of stopping at the terminal: it waits for the service to report the port it actually bound (a fallback port is used automatically if the configured one is busy), prints the dashboard URL, and — on an interactive terminal — opens it in your browser. Headless and non-interactive runs print the URL without launching a browser. Set `PAPERCLIP_NO_BROWSER=1` to keep onboarding from opening a browser even in an interactive terminal. If the service does not come up in time, onboarding says so and points you at `paperclipai service logs` rather than claiming success.
 
 > **Note:** If a valid config already exists, `onboard` preserves it unchanged, ensures the agent JWT secret and secrets key exist, and prints next-step commands. Use [`configure`](#paperclipai-configure) to change settings on an existing install rather than re-onboarding.
 
