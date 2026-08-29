@@ -28,6 +28,13 @@ jobs:
       - name: Static routes
         run: npm run docs:test:static-routes
 
+      # Builds from real depth-1 clones: the shallow-checkout and
+      # concurrent-unshallow failures both reproduce only there, never on the
+      # full-history checkout the other gates run against.
+      - name: Sitemap lastmod history
+        if: always()
+        run: npm run docs:test:sitemap-lastmod-history
+
       - name: Asset fingerprints
         if: always()
         run: npm run docs:test:asset-fingerprints
