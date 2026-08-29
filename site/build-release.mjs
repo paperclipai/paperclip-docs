@@ -621,10 +621,21 @@ function injectSeo(html, metadata, { baseHref = null } = {}) {
 }
 
 async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
+  const navPages = [...flattenNavPages(nav)];
+  // Each page's date costs a `git log` plus a few `git show` calls, so resolving
+  // them one page at a time leaves the build waiting on ~600 round-trips in
+  // series. They are independent — start them all, then read them off below.
+  const lastmods = new Map(
+    await Promise.all(
+      navPages.map(async ({ page }) => [
+        page.file,
+        await gitLastModified(path.join(docsRoot, page.file)),
+      ]),
+    ),
+  );
   const pages = [];
-  for (const { page, section } of flattenNavPages(nav)) {
+  for (const { page, section } of navPages) {
     const releaseMarkdownPath = path.join(outDir, page.file);
-    const sourceMarkdownPath = path.join(docsRoot, page.file);
     const markdown = await fs.readFile(releaseMarkdownPath, "utf8");
     const h1 = markdown.match(/^#\s+(.+)$/m)?.[1]?.trim();
     // Authored `seo_title` / `seo_description` frontmatter wins. The sidebar
@@ -639,7 +650,7 @@ async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
       title: `${pageTitle} | Paperclip Docs`,
       description: authoredDescription || markdownDescription(markdown),
       url: routeUrlForPage(siteUrl, basePath, page),
-      lastmod: await gitLastModified(sourceMarkdownPath),
+      lastmod: lastmods.get(page.file),
       siteUrl,
       basePath,
     });
@@ -684,8 +695,16 @@ async function deepenCheckout() {
   }
 }
 
-async function hasTrustworthyGitHistory() {
-  if (trustworthyGitHistory !== null) return trustworthyGitHistory;
+// Memoise the *promise*, not the resolved value. Every page asks this question
+// at once, and caching only the answer lets all of them past the guard before
+// the first has finished — which means 192 concurrent `git fetch --unshallow`
+// calls fighting over .git/shallow.lock, and no dates at all.
+function hasTrustworthyGitHistory() {
+  trustworthyGitHistory ??= resolveTrustworthyGitHistory();
+  return trustworthyGitHistory;
+}
+
+async function resolveTrustworthyGitHistory() {
   try {
     let usable = !(await isShallowRepository());
     if (!usable) {
@@ -697,11 +716,55 @@ async function hasTrustworthyGitHistory() {
           : "Still shallow: omitting sitemap <lastmod> rather than dating every page alike.",
       );
     }
-    trustworthyGitHistory = usable;
+    return usable;
   } catch {
-    trustworthyGitHistory = false;
+    return false;
   }
-  return trustworthyGitHistory;
+}
+
+// `lastmod` is meant to carry the date the page's *content* last changed, and
+// a metadata sweep is not that: #115 rewrote seo_title/seo_description on all
+// 192 pages in one commit without touching a word of prose. Dating every page
+// by that commit hands Search Console the "whole site changed at once" signal
+// the rest of this file works to avoid — so walk the file's history and report
+// the newest commit that actually changed the rendered body.
+const GIT_MAX_BUFFER = 64 * 1024 * 1024;
+
+function renderedBody(source) {
+  return parseFrontmatter(source).body.trim();
+}
+
+async function fileAtCommit(sha, repoRelativePath) {
+  try {
+    const { stdout } = await execFileAsync("git", ["show", `${sha}:${repoRelativePath}`], {
+      cwd: repoRoot,
+      maxBuffer: GIT_MAX_BUFFER,
+    });
+    return stdout;
+  } catch {
+    return null;
+  }
+}
+
+// `--follow` reports each commit under the path the file carried *at that*
+// commit, so renames have to be read back out of the status line to know what
+// to hand `git show`: `M<TAB>path` for an edit, `R095<TAB>old<TAB>new` for a
+// rename. The path as of the commit is the last field either way. 55 of the
+// docs files have a rename in their history, so this is not a rare branch.
+export function parseFollowLog(stdout) {
+  const commits = [];
+  let pending = null;
+  for (const line of stdout.split("\n")) {
+    const header = /^C ([0-9a-f]{40}) (\d{4}-\d{2}-\d{2})$/.exec(line);
+    if (header) {
+      pending = { sha: header[1], date: header[2], path: null };
+      commits.push(pending);
+      continue;
+    }
+    if (!pending || pending.path || !line.includes("\t")) continue;
+    pending.path = line.split("\t").at(-1).trim() || null;
+  }
+  return commits.filter((commit) => commit.path);
 }
 
 async function gitLastModified(sourcePath) {
@@ -711,11 +774,23 @@ async function gitLastModified(sourcePath) {
   try {
     const { stdout } = await execFileAsync(
       "git",
-      ["log", "-1", "--follow", "--format=%cs", "--", repoRelativePath],
-      { cwd: repoRoot },
+      ["log", "--follow", "--name-status", "--format=C %H %cs", "--", repoRelativePath],
+      { cwd: repoRoot, maxBuffer: GIT_MAX_BUFFER },
     );
-    const value = stdout.trim();
-    return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : undefined;
+    const commits = parseFollowLog(stdout);
+    if (!commits.length) return undefined;
+    let newer = await fileAtCommit(commits[0].sha, commits[0].path);
+    if (newer === null) return commits[0].date;
+    for (let index = 0; index < commits.length - 1; index += 1) {
+      const older = await fileAtCommit(commits[index + 1].sha, commits[index + 1].path);
+      // A commit we cannot read across is a boundary, not a body change we can
+      // rule out — treat it as the point this content came into existence.
+      if (older === null) return commits[index].date;
+      if (renderedBody(older) !== renderedBody(newer)) return commits[index].date;
+      newer = older;
+    }
+    // Every commit since creation only ever touched frontmatter.
+    return commits.at(-1).date;
   } catch {
     // An omitted lastmod is safer than publishing the build timestamp as if
     // every document changed at once.

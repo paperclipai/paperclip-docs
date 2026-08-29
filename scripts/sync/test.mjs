@@ -10,7 +10,7 @@ import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { isPathInside, parseFrontmatter } from "../../site/build-release.mjs";
+import { isPathInside, parseFollowLog, parseFrontmatter } from "../../site/build-release.mjs";
 import { instanceEnv } from "../screenshots/config.mjs";
 
 const SELF_DIR = dirname(fileURLToPath(import.meta.url));
@@ -1108,6 +1108,36 @@ test("frontmatter: malformed (missing closing fence) falls back to full body", (
   const { body, frontmatter } = parseFrontmatter(md);
   assert(body === md, `malformed input should be returned unchanged, got: ${JSON.stringify(body.slice(0, 40))}`);
   assert(Object.keys(frontmatter).length === 0, `frontmatter should be empty on malformed input, got: ${JSON.stringify(frontmatter)}`);
+});
+
+test("build-release: follow-log parser reads the path as of each commit across renames", () => {
+  // `git log --follow --name-status --format='C %H %cs'`: a rename lists both
+  // paths, and the one to hand `git show` is the path at that commit (the new
+  // one). Getting this wrong silently drops pre-rename history for the 55 docs
+  // files that have been moved.
+  const stdout = [
+    "C 325c9eb819b32c292a1453ffcc1ee7cb98848710 2026-08-25",
+    "",
+    "M\tdocs/guides/welcome/key-concepts.md",
+    "C 56b8d7d52de2c0410b16dd0a50e6a5f2990df1aa 2026-04-22",
+    "",
+    "R095\tdocs/user-guides/guides/key-concepts.md\tdocs/guides/welcome/key-concepts.md",
+    "C 3a852ec7e939280e614260a1954f24146001e0dc 2026-04-17",
+    "",
+    "A\tdocs/user-guides/guides/key-concepts.md",
+    "",
+  ].join("\n");
+  const commits = parseFollowLog(stdout);
+  assert(commits.length === 3, `expected 3 commits, got ${commits.length}`);
+  assert(commits[0].date === "2026-08-25", `first date wrong: ${commits[0].date}`);
+  assert(
+    commits[1].path === "docs/guides/welcome/key-concepts.md",
+    `rename commit must use the post-rename path, got: ${commits[1].path}`,
+  );
+  assert(
+    commits[2].path === "docs/user-guides/guides/key-concepts.md",
+    `pre-rename commit must keep the old path, got: ${commits[2].path}`,
+  );
 });
 
 test("build-release: path containment rejects sibling docs-prefixed directories", () => {
