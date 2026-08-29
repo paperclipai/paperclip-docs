@@ -41,12 +41,15 @@ function buildShallowClone({ label, reachableOrigin }) {
   const workDir = mkdtempSync(join(tmpdir(), "docs-lastmod-"));
   const clone = join(workDir, "clone");
   try {
-    const branch = git(["rev-parse", "--abbrev-ref", "HEAD"], repoRoot);
     // `--no-local` forces a real transport: a local clone would hardlink the
     // object store and quietly ignore --depth, defeating the whole fixture.
-    git(
-      ["clone", "--quiet", "--depth", "1", "--no-local", "--branch", branch, `file://${repoRoot}`, clone],
-      workDir,
+    // No `--branch`: CI checks pull requests out in detached HEAD, where
+    // `rev-parse --abbrev-ref HEAD` is the literal string "HEAD" and passing it
+    // to --branch fails. Cloning the remote's HEAD lands on the same commit.
+    git(["clone", "--quiet", "--depth", "1", "--no-local", `file://${repoRoot}`, clone], workDir);
+    assert(
+      git(["rev-parse", "HEAD"], clone) === git(["rev-parse", "HEAD"], repoRoot),
+      `${label}: fixture clone is at the commit under test`,
     );
     if (!reachableOrigin) {
       git(["remote", "set-url", "origin", "file:///nonexistent/unreachable.git"], clone);
@@ -93,22 +96,36 @@ function assertNoDateDominates(dates, label) {
   );
 }
 
+// Build into a temp dir rather than reading .site. The CI workflow runs each
+// gate as its own step and never runs `docs:build`, so depending on that
+// artefact would make this case fail there for a reason unrelated to what it
+// tests — and reading a stale .site makes it pass or fail on the last build
+// someone happened to run locally.
+function buildFullHistory() {
+  const workDir = mkdtempSync(join(tmpdir(), "docs-lastmod-full-"));
+  try {
+    execFileSync("node", ["site/build-release.mjs", "--base-path", "/", "--out-dir", workDir], {
+      cwd: repoRoot,
+      stdio: "pipe",
+    });
+    return readFileSync(join(workDir, "sitemap.xml"), "utf8");
+  } finally {
+    rmSync(workDir, { recursive: true, force: true });
+  }
+}
+
 console.log("Case 1 — full history build publishes real per-document dates");
 {
-  const sitemapPath = join(repoRoot, ".site", "sitemap.xml");
-  assert(existsSync(sitemapPath), "run `npm run docs:build` before this check so .site/sitemap.xml exists");
-  if (existsSync(sitemapPath)) {
-    const sitemap = readFileSync(sitemapPath, "utf8");
-    const urls = locs(sitemap);
-    const dates = lastmods(sitemap);
-    assert(urls.length > 0, `sitemap lists routes (${urls.length})`);
-    assert(dates.length === urls.length, `every route carries a lastmod (${dates.length}/${urls.length})`);
-    assert(
-      new Set(dates).size > 1,
-      `lastmod values vary across documents (${new Set(dates).size} distinct) rather than one build date`,
-    );
-    assertNoDateDominates(dates, "full history");
-  }
+  const sitemap = buildFullHistory();
+  const urls = locs(sitemap);
+  const dates = lastmods(sitemap);
+  assert(urls.length > 0, `sitemap lists routes (${urls.length})`);
+  assert(dates.length === urls.length, `every route carries a lastmod (${dates.length}/${urls.length})`);
+  assert(
+    new Set(dates).size > 1,
+    `lastmod values vary across documents (${new Set(dates).size} distinct) rather than one build date`,
+  );
+  assertNoDateDominates(dates, "full history");
 }
 
 console.log("Case 2 — shallow clone that can reach origin recovers real history");
