@@ -651,22 +651,53 @@ async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
 // single commit, so `git log -1` reports that commit's date for *every* file.
 // The dates look valid and are uniformly wrong, which is worse than having
 // none: every sitemap resubmission then claims the whole site changed at once
-// and Google learns to discount the signal.
+// and Google learns to discount the signal. So: deepen the checkout if we can,
+// and fall back to publishing no dates at all if we can't.
 let trustworthyGitHistory = null;
+
+async function isShallowRepository() {
+  const { stdout } = await execFileAsync("git", ["rev-parse", "--is-shallow-repository"], {
+    cwd: repoRoot,
+  });
+  return stdout.trim() === "true";
+}
+
+// Cloudflare Pages builds from a depth-1 clone and its clone depth is not
+// configurable, so asking the caller for full history is not an option there.
+// Deepening the checkout in-place is: the build container keeps the remote it
+// cloned from, and this repo's history is small enough to fetch in seconds.
+const UNSHALLOW_TIMEOUT_MS = 90_000;
+async function deepenCheckout() {
+  try {
+    await execFileAsync("git", ["fetch", "--unshallow", "--quiet"], {
+      cwd: repoRoot,
+      timeout: UNSHALLOW_TIMEOUT_MS,
+    });
+    return !(await isShallowRepository());
+  } catch (error) {
+    // Print the reason: whether this fails is entirely down to whether the
+    // build environment kept usable fetch credentials, and the build log is
+    // the only place we get to find that out.
+    const detail = (error.stderr || error.message || "").trim().split("\n")[0];
+    console.warn(`Could not deepen the shallow checkout: ${detail}`);
+    return false;
+  }
+}
+
 async function hasTrustworthyGitHistory() {
   if (trustworthyGitHistory !== null) return trustworthyGitHistory;
   try {
-    const { stdout } = await execFileAsync("git", ["rev-parse", "--is-shallow-repository"], {
-      cwd: repoRoot,
-    });
-    const isShallow = stdout.trim() === "true";
-    if (isShallow) {
+    let usable = !(await isShallowRepository());
+    if (!usable) {
+      console.warn("Shallow git checkout detected: fetching full history for sitemap <lastmod>.");
+      usable = await deepenCheckout();
       console.warn(
-        "Shallow git checkout detected: omitting sitemap <lastmod>. "
-          + "Clone with full history (actions/checkout fetch-depth: 0) to publish real dates.",
+        usable
+          ? "Full history fetched: publishing real sitemap <lastmod> dates."
+          : "Still shallow: omitting sitemap <lastmod> rather than dating every page alike.",
       );
     }
-    trustworthyGitHistory = !isShallow;
+    trustworthyGitHistory = usable;
   } catch {
     trustworthyGitHistory = false;
   }
