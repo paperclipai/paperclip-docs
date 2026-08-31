@@ -840,6 +840,48 @@ Sitemap: ${siteUrlForPath(siteUrl, basePath, "sitemap.xml")}
 `;
 }
 
+// llms.txt (https://llmstxt.org): a plain-text map of the docs for answer
+// engines. Title + summary, then every guide/reference grouped by nav
+// section with a descriptive line, so an LLM can cite the specific page.
+function buildLlmsTxt({ siteUrl, basePath, pages }) {
+  const rootUrl = siteUrlForPath(siteUrl, basePath);
+  const groups = [];
+  const indexBySection = new Map();
+  for (const page of pages) {
+    const section = page.sectionTitle || "Docs";
+    if (!indexBySection.has(section)) {
+      indexBySection.set(section, groups.length);
+      groups.push({ section, items: [] });
+    }
+    const title = page.title.replace(/ \| Paperclip Docs$/, "");
+    const description = (page.description || "")
+      .replace(/\s+/g, " ")
+      .trim();
+    groups[indexBySection.get(section)].items.push({ title, url: page.url, description });
+  }
+  const lines = [
+    "# Paperclip Docs",
+    "",
+    `> ${defaultSeoDescription}`,
+    "",
+    "Paperclip is an open-source AI company operating system: you define a goal, hire AI agents into an org chart with roles, budgets, and approvals, and they pick up ticketed work on a heartbeat. This documentation covers installing Paperclip, running your first company, day-to-day operation, and the full API, CLI, adapter, and deployment reference.",
+    "",
+    `- Docs home: ${rootUrl}`,
+    "- Product site: https://paperclip.ing",
+    "- Source: https://github.com/paperclipai/paperclip",
+    "",
+  ];
+  for (const group of groups) {
+    lines.push(`## ${group.section}`, "");
+    for (const item of group.items) {
+      const suffix = item.description ? `: ${item.description}` : "";
+      lines.push(`- [${item.title}](${item.url})${suffix}`);
+    }
+    lines.push("");
+  }
+  return `${lines.join("\n").trimEnd()}\n`;
+}
+
 function cloudflarePathForRoute(basePath, routePath, { trailingSlash = false } = {}) {
   const baseKey = normalizeRouteKey(getDeploymentBasePath(basePath));
   const routeKey = normalizeRouteKey(routePath);
@@ -917,6 +959,10 @@ function buildCloudflareHeaders() {
   X-Robots-Tag: noindex, nofollow
 
 /robots.txt
+  Content-Type: text/plain; charset=utf-8
+  X-Robots-Tag: noindex, nofollow
+
+/llms.txt
   Content-Type: text/plain; charset=utf-8
   X-Robots-Tag: noindex, nofollow
 
@@ -1553,7 +1599,7 @@ ${basePathGuidance}
 - Legacy hash and \`?page=\` links are still accepted by the client app and normalized to path routes
 - Serve the bundle root at \`${deploymentBasePath}\`
 - Keep all copied files together so requests for \`content.json\`, markdown files, images, fonts, and JS resolve normally
-- Serve generated files such as \`sitemap.xml\`, \`robots.txt\`, and nested route directories unchanged
+- Serve generated files such as \`sitemap.xml\`, \`robots.txt\`, \`llms.txt\`, and nested route directories unchanged
 - Do not add a wildcard SPA rewrite such as \`/* /index.html 200\`; unknown URLs and removed assets must return 404 so crawlers do not treat them as duplicate docs pages
 
 If \`content.json\` or linked markdown files are missing from the uploaded bundle, the docs app will fail to load content.
@@ -1736,6 +1782,11 @@ async function main() {
     siteUrl: options.siteUrl,
     basePath: options.basePath,
   }));
+  await fs.writeFile(path.join(options.outDir, "llms.txt"), buildLlmsTxt({
+    siteUrl: options.siteUrl,
+    basePath: options.basePath,
+    pages: pageMetadata,
+  }));
 
   if (await pathExists(screenshotsSourceDir)) {
     const screenshotTargetDir = path.join(options.outDir, "user-guides", "screenshots");
@@ -1758,7 +1809,7 @@ async function main() {
   console.log(`Base path: ${options.basePath}`);
   console.log(`Site URL: ${options.siteUrl}`);
   console.log(`Copied ${sortedMarkdownFiles.length} markdown files.`);
-  console.log(`Generated ${pageMetadata.length} crawlable route pages plus sitemap.xml and robots.txt.`);
+  console.log(`Generated ${pageMetadata.length} crawlable route pages plus sitemap.xml, robots.txt, and llms.txt.`);
   if (await pathExists(screenshotsSourceDir)) {
     console.log("Copied screenshot assets.");
   }
