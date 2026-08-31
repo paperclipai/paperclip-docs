@@ -22,7 +22,7 @@ If you're installing for the first time instead, follow [Installation](../guides
 
 ## How Paperclip versions work
 
-Paperclip uses **calendar versioning**: `YYYY.MDD.P`. The pieces are the year, the month-and-day, and a same-day patch slot. So `v2026.525.0` is the first stable release cut on May 25, 2026. Canary builds carry a `-canary.N` suffix and ship on the `canary` npm dist-tag; stable builds ship on `latest`.
+Paperclip uses **calendar versioning**: `YYYY.MDD.P`. The pieces are the year, the month-and-day, and a same-day patch slot. So `v2026.525.0` is the first stable release cut on May 25, 2026. Paperclip publishes four moving npm channels: stable on `latest`, beta on `beta`, nightly on `nightly`, and canary on `canary`. Prerelease builds include their channel in the version suffix.
 
 Every stable release has notes at `releases/vYYYY.MDD.P.md` in the parent repo and on the [GitHub releases page](https://github.com/paperclipai/paperclip/releases). Skim those before updating — they call out breaking changes, migrations, and new env vars.
 
@@ -76,6 +76,8 @@ If the restarted service fails to come back healthy at the new version, the upda
 | `--check` | Check for an available update without applying it. |
 | `--dry-run` | Print the action without changing anything. |
 | `--latest` | Switch to the latest stable channel. |
+| `--beta` | Switch to the beta channel. |
+| `--nightly` | Switch to the nightly channel. |
 | `--canary` | Switch to the canary channel. |
 | `--version <version>` | Install an exact published version. |
 | `--rollback` | Flip back to the retained previous managed payload. |
@@ -83,7 +85,7 @@ If the restarted service fails to come back healthy at the new version, the upda
 | `-y`, `--yes` | Confirm an explicit downgrade without a prompt. |
 | `--json` | Print machine-readable output. |
 
-`--latest`, `--canary`, and `--version` are mutually exclusive — pick at most one.
+`--latest`, `--beta`, `--nightly`, `--canary`, and `--version` are mutually exclusive — pick at most one.
 
 ---
 
@@ -113,15 +115,17 @@ To move onto a new build, use the update command with a channel flag.
 
 ## Switch channels
 
-Without a channel flag, `update` stays wherever you already are: stable stays stable, canary stays canary, and a pinned version stays pinned. Pass a flag to move.
+For a managed install, `update` can switch to any of the four published channels. Without a channel flag, it stays wherever the install manifest says you already are: stable, beta, nightly, and canary each stay on that channel, while an exact version stays pinned. Pass a flag to move.
 
 ```bash
-paperclipai update --canary                # try the canary channel
+paperclipai update --beta                  # try release candidates
+paperclipai update --nightly               # follow the nightly build
+paperclipai update --canary                # follow the canary build
 paperclipai update --latest                # come back to stable
 paperclipai update --version 2026.609.0    # pin to one exact version
 ```
 
-Canary builds get new features earlier but can be rougher, and switching back to `--latest` is always available.
+The prerelease channels trade stability for earlier access: beta is closest to stable, nightly follows the daily integration build, and canary gets the earliest published changes. Switching back to `--latest` is always available.
 
 Moving to an older version is a downgrade, and the CLI asks you to confirm it before proceeding. Pass `--yes` to confirm up front in a script. Bear in mind that going back in code does not go back in database schema — see the warning below.
 
