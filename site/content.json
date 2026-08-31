@@ -453,6 +453,10 @@
           "file": "../docs/reference/api/attention.md"
         },
         {
+          "title": "Task Watchdog",
+          "file": "../docs/reference/api/task-watchdog.md"
+        },
+        {
           "title": "Decisions",
           "file": "../docs/reference/api/decisions.md"
         },
