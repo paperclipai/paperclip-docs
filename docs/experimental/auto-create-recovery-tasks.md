@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.707.0
+paperclip_version: v2026.831.1
 seo_title: Auto-Create Recovery Tasks
 seo_description: Dependency chains die quietly behind paused agents, missing reviewers, and cancelled blockers. Recovery tasks wake that work instead of letting it wait.
 ---
@@ -41,6 +41,7 @@ Liveness detection still runs and stale recovery tasks are still cleaned up — 
 
 ## Caveats
 
+- Recovery **creates a new task**; it never reassigns or takes over the original stalled issue. The recovery task carries the unblock work and blocks the original, so ownership of the stalled issue itself is unchanged. When a stranded assigned issue can't be safely restored this way — retries exhausted, or a takeover would be unsafe — recovery instead routes to a **board-owned action** and leaves the next step to a person, rather than reassigning the work by itself.
 - Requires the scheduler (the server) to be running; sweeps happen at startup and on periodic heartbeats.
 - If every candidate owner agent is budget-blocked, the escalation is skipped silently.
 - Recovery creation is suppressed for issues under a pause/hold.

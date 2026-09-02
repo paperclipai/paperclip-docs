@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.831.1
 seo_title: Offboard a Member
 seo_description: Remove someone's access when they leave. Paperclip changes membership status rather than deleting the record, so their history stays intact and auditable.
 ---
@@ -24,9 +25,9 @@ You can suspend first and archive later; there's no rule that says you must jump
 
 ## 2. Suspend a member (reversible)
 
-![Access & Members page](../user-guides/screenshots/light/company/access.png)
+![Members page](../user-guides/screenshots/light/company/access.png)
 
-Open **Settings → Access** and click **Edit** on the member's row. In the **Edit member** dialog, set **Membership status** to **Suspended** and save. The row stays visible with a `suspended` badge — the history is preserved — and their access to the company is cut immediately.
+Open **Settings → Members** and click **Edit** on the member's row. In the **Edit member** dialog, set **Membership status** to **Suspended** and save. The row stays visible with a `suspended` badge — the history is preserved — and their access to the company is cut immediately.
 
 To bring them back later, repeat the steps and set the status back to **Active**.
 
@@ -34,7 +35,7 @@ To bring them back later, repeat the steps and set the status back to **Active**
 
 ## 3. Archive a member and hand off their work
 
-Archiving is the full removal, and it takes care of open work in the same step. On **Settings → Access**, use the **remove** action on the member's row. A dialog opens headed with a note about moving active assignments before the user is hidden from assignment fields, and it offers a **Task reassignment** picker listing the company's active members and agents.
+Archiving is the full removal, and it takes care of open work in the same step. On **Settings → Members**, use the **remove** action on the member's row. A dialog opens headed with a note about moving active assignments before the user is hidden from assignment fields, and it offers a **Task reassignment** picker listing the company's active members and agents.
 
 Choose who should inherit the departing member's open work and confirm. Paperclip then:
 
@@ -70,7 +71,7 @@ An instance admin can reach *every* company regardless of individual memberships
 
 ## 6. Verify
 
-Back on **Settings → Access**, the member shows a `suspended` badge or has dropped off the active list. The membership record and its history remain for audit — every status change is written to the [activity log](../guides/day-to-day/activity-log.md) — so you can always see who was removed, when, and by whom.
+Back on **Settings → Members**, the member shows a `suspended` badge or has dropped off the active list. The membership record and its history remain for audit — every status change is written to the [activity log](../guides/day-to-day/activity-log.md) — so you can always see who was removed, when, and by whom.
 
 ---
 
@@ -100,6 +101,6 @@ paperclipai member list --company-id <company-id>
 ## Related
 
 - [Roles & Permissions](../administration/roles-and-permissions.md) — the access model these status changes plug into.
-- [Company Administration](../administration/company.md#access-members) — the Access & Members page.
+- [Company Administration](../administration/company.md#members) — the Members page.
 - [Settings](../administration/settings.md#instance-access) — the Instance Access screen.
 - [Add a human teammate](./add-a-human-teammate.md) — the onboarding direction.

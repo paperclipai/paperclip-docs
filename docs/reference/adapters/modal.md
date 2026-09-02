@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.525.0
+paperclip_version: v2026.831.1
 seo_title: Modal Sandbox Provider
 seo_description: Provision Modal sandboxes as the execution environment for agent runs when you want managed cloud compute with first-class container images.
 ---
@@ -38,7 +38,7 @@ The host plugin installer pulls in Modal's JS SDK during installation. There's n
 
 ### Runtime support note
 
-Modal's official JS SDK supports **Node 22 or later**. Paperclip's current baseline is `node >= 20`, and Modal does run there in practice, so the plugin works under Node 20 today as a best-effort path. The plugin logs a startup warning when it detects a Node version below 22. If you can pin your Paperclip host to Node 22+, do so.
+Modal's official JS SDK supports **Node 22 or later**. Paperclip's baseline is now `node >= 24.11.0`, comfortably above that floor, so the plugin runs on a supported Node by default and the old best-effort caveat no longer applies.
 
 ---
 

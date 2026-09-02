@@ -1,6 +1,7 @@
 ---
 seo_title: Quickstart: Your First Agent in 5 Minutes
 seo_description: Install Paperclip, create a company, hire a CEO agent, and approve its first strategy — a working AI company in about five minutes.
+paperclip_version: v2026.831.1
 ---
 
 # Quickstart Path
@@ -23,7 +24,7 @@ You'll see all four ideas (company, agent, task, heartbeat) in the next few minu
 
 Install Paperclip and grab an AI provider key. This is one-time setup and lives outside the 5-minute clock — depending on what you already have, expect 3–10 minutes.
 
-- Any machine with Node.js 20+ — the terminal install is one command.
+- Any machine with Node.js 24+ — the terminal install is one command.
 - An API key from [Anthropic](https://console.anthropic.com) (for `claude_local`) or [OpenAI](https://platform.openai.com) (for `codex_local`). The installation guide walks through getting one.
 - For the `claude_local` adapter: [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed on the same machine. Install this *before* you start the path; you'll need it in step 2.
 
@@ -39,7 +40,7 @@ Three steps after Paperclip is running. Allow ~5–11 minutes total.
 
 | Step | Page | What you'll have at the end | Approx. time |
 |------|------|-----------------------------|--------------|
-| 1 | [Create Your First Company](./your-first-company.md) | A company with a name and a goal | 1–2 min |
+| 1 | [Create Your First Company](./your-first-company.md) | A company with a name (you add its goal afterward) | 1–2 min |
 | 2 | [Hire Your First Agent](./your-first-agent.md) | A configured CEO agent in `idle` status | 2–4 min |
 | 3 | [Watching Agents Work](./watching-agents-work.md) | A heartbeat fired, a strategy approval submitted, the first tasks on the board | 2–5 min |
 

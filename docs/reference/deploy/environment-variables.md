@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.831.1
 seo_title: Environment Variables Reference
 seo_description: Every variable Paperclip reads for server configuration, plus the ones it injects into agent processes at runtime — the list to wire deployments from.
 ---
@@ -31,6 +31,7 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `PAPERCLIP_WORKSPACE_GIT_SCAN_QUEUE_CAPACITY` | `32` | How many scans may wait in the queue before new ones are rejected. Clamped to 0–1024. |
 | `PAPERCLIP_WORKSPACE_GIT_SCAN_TIMEOUT_MS` | `8000` | Per-scan timeout, in milliseconds, before a workspace Git scan is abandoned. Clamped to 100–120000. |
 | `PAPERCLIP_WORKSPACE_GIT_SCAN_CACHE_TTL_MS` | `10000` | How long a completed scan's result is reused before a fresh scan runs, in milliseconds. Clamped to 0–60000. |
+| `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` | `7` | How many days the terminal-workspace reaper waits after an issue tree becomes terminal before archiving its workspace. Someone can reopen the work inside this window. `0` disables the cooldown and restores immediate reaping; a negative or non-numeric value falls back to the default. |
 
 > **Note:** `DATABASE_URL` is the main switch between the embedded database and external PostgreSQL.
 
@@ -259,6 +260,29 @@ To turn it on, set `OTEL_EXPORTER_OTLP_ENDPOINT` and install the OpenTelemetry p
 | `OTEL_SERVICE_VERSION` | `unknown` | Service version reported on spans. |
 
 A bad endpoint or an unreachable collector never takes the server down — the SDK logs the failure and tracing simply stays off. On shutdown the server flushes buffered spans (with a short timeout) before exiting.
+
+---
+
+## Error Monitoring (Sentry)
+
+Paperclip can report server-side errors to [Sentry](https://sentry.io). It is **opt-in and off by default**, and everything about it fails open — no DSN, no package, no Sentry, no problem.
+
+To turn it on, set `SENTRY_DSN` and install the optional `@sentry/node` peer dependency. The DSN also rides the authenticated session response to the browser, so the web UI reports its own errors (behind a React error boundary) once the server has one configured.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SENTRY_DSN` | unset | Sentry DSN. Setting it, with `@sentry/node` installed, enables server-side error capture and hands the DSN to the browser for client-side reporting. Unset means no Sentry is loaded at all. |
+
+---
+
+## Operator Settings Controls
+
+If you host Paperclip for other people, these two variables let you shape which settings surfaces your users see and what the defaults are. Both are read at boot, applied at read time, and **never persisted** — clearing the variable restores stock behavior. With both unset, the UI and API behave exactly as they did before these controls existed. See [Instance Settings](../../administration/settings.md) for the full walkthrough.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PAPERCLIP_HIDDEN_SETTINGS` | unset | Comma-separated list of settings-surface keys to hide from the UI — instance pages, company pages (Members, Invites, Secrets, Export, Import), individual sections and tabs, and individual experimental flags. Some keys also floor their mutation API with a `403`; the rest hide UI only. Unknown keys are warned about and ignored, so one list can roll across a fleet of mixed app versions. |
+| `PAPERCLIP_SETTING_DEFAULTS` | unset | JSON object that replaces the schema default of selected instance settings, e.g. `{"feedbackDataSharingPreference":"allowed"}`. An explicit user choice always wins; only values still sitting at the schema default resolve to yours. Malformed JSON or an invalid value for a known field stops the server from booting; unknown field names are warned about and ignored. |
 
 ---
 

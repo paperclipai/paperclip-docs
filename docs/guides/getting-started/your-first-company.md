@@ -1,6 +1,7 @@
 ---
 seo_title: Create Your First Company
 seo_description: A company holds your goal, your agents, your task board, and your budget. Set one up before hiring, and learn when running more than one makes sense.
+paperclip_version: v2026.831.1
 ---
 
 # Create Your First Company
@@ -9,7 +10,7 @@ A Company in Paperclip is the container for everything: your goal, your team of 
 
 Think of it like setting up a new startup. You open a workspace, write down what you're trying to build, decide how much runway you're working with, and then you can start hiring. Creating a company in Paperclip is that first step.
 
-This guide walks you through creating a company from scratch. The whole process takes about three minutes.
+This guide walks you through creating a company from scratch. Naming it takes under a minute.
 
 ---
 
@@ -19,52 +20,56 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
 ---
 
-1. **Click "New Company"**
+1. **Open the setup wizard**
 
-   When you first open Paperclip, you'll be taken into onboarding or see a start screen with a **New Company** button. Click that to begin.
+   When you first open Paperclip, it drops you straight into the setup wizard. If you're adding another one later, open the organization switcher at the top of the sidebar and choose **Create new organization…**.
 
-   ![The Paperclip sidebar with the New Company button highlighted](../../user-guides/screenshots/light/onboarding/sidebar-new-company-button.png)
+   ![The sidebar organization switcher with the Create new organization option highlighted](../../user-guides/screenshots/light/onboarding/sidebar-new-company-button.png)
 
-   Clicking it opens the company creation panel.
+   > **Heads up:** In the app, a company is now labelled an **organization** — same container, newer name. This guide says "company" to match the rest of the docs; the buttons you click say "organization".
 
-   ![The New Company modal, empty and ready to fill in](../../user-guides/screenshots/light/onboarding/new-company-modal-empty.png)
+   The wizard is a single card that walks you through three quick screens: naming your organization, hiring your first agent, and connecting a model. A brand pill sits at the top of the card, dormant while you set things up and coming to life once you reach the review screen.
 
-2. **Name your company**
+2. **Name your organization**
 
-   Give your company a name. This is just a label for your own reference — it doesn't affect how agents work. Pick something that describes the purpose of this particular AI company.
+   The first screen asks **"What is the name of your organization?"** Type a name and that's all it needs — no goal, no mission, nothing else to fill in.
+
+   ![The setup wizard's first screen asking for the organization name](../../user-guides/screenshots/light/onboarding/new-company-modal-empty.png)
+
+   This is just a label for your own reference — it doesn't affect how agents work. Pick something that describes the purpose of this particular AI company.
 
    Examples:
    - "Content Marketing Agency"
    - "Software MVP"
    - "Customer Support Automation"
 
-   You can rename the company later from its settings, so don't overthink it.
+   You can rename it later from settings, so don't overthink it.
 
-3. **Write your company goal (optional)**
+3. **Click Continue**
 
-   If you already know what this company should achieve, add that direction now. The goal is the north star that every agent in your company can see. Every task the CEO creates, every strategy it proposes, every decision it makes — it all flows from this goal.
+   Click **Continue**. Paperclip creates the organization and takes you straight to the next screen — hiring your first agent, which the [next guide](./your-first-agent.md) covers in full.
 
-   ![The goal field in the New Company modal with an example goal entered](../../user-guides/screenshots/light/onboarding/goal-field.png)
+   Your company now exists, with no goal and no team yet. That's exactly where you should be.
 
-   A good goal has two things: **a specific outcome** and **a measurable target**. Vague goals give agents nothing concrete to anchor their work to.
+---
 
-   | Instead of… | Write… |
-   |-------------|--------|
-   | "Grow the business" | "Reach $10,000/month in recurring revenue by Q3" |
-   | "Do content marketing" | "Publish 4 high-quality blog posts per week and grow organic traffic to 10,000 monthly visitors by June" |
-   | "Build an app" | "Ship a working MVP with user authentication, a core feature, and a landing page by May 1st" |
+## Set your goal after creating the company
 
-   > **Tip:** Include a metric and a timeframe. "Build the #1 AI note-taking app at $1M ARR within 6 months" is a goal an agent can reason about. "Improve the product" is not.
+Creating a company no longer asks for a goal up front — you add it afterwards from the **Goals** section, and you can revise it any time.
 
-   You can update or add goals later from the **Goals** section. If your priorities change, revise the goal there and the CEO will factor it into its next strategy cycle.
+The goal is the north star that every agent in your company can see. Every task the CEO creates, every strategy it proposes, every decision it makes — it all flows from this goal.
 
-4. **Create the company**
+A good goal has two things: **a specific outcome** and **a measurable target**. Vague goals give agents nothing concrete to anchor their work to.
 
-   Click **Create Company**. Paperclip creates the company and takes you to its dashboard.
+| Instead of… | Write… |
+|-------------|--------|
+| "Grow the business" | "Reach $10,000/month in recurring revenue by Q3" |
+| "Do content marketing" | "Publish 4 high-quality blog posts per week and grow organic traffic to 10,000 monthly visitors by June" |
+| "Build an app" | "Ship a working MVP with user authentication, a core feature, and a landing page by May 1st" |
 
-   ![The empty company dashboard after creation, with no agents or tasks yet](../../user-guides/screenshots/light/onboarding/empty-dashboard.png)
+> **Tip:** Include a metric and a timeframe. "Build the #1 AI note-taking app at $1M ARR within 6 months" is a goal an agent can reason about. "Improve the product" is not.
 
-   The dashboard is empty because you haven't hired any agents yet. That's exactly where you are: company created, team not yet assembled.
+If your priorities change, revise the goal in the **Goals** section and the CEO will factor it into its next strategy cycle.
 
 ---
 
@@ -72,10 +77,10 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
 You can create as many companies as you want in Paperclip. Each is entirely self-contained — separate agents, tasks, goals, and budgets. This is useful if you want to run different AI-powered initiatives in parallel: a development company and a marketing company, for example, with separate teams and budgets for each.
 
-Switch between companies using the company selector in the sidebar.
+Switch between them using the **organization switcher** in the sidebar.
 
 ---
 
-Your company is ready. The next step is hiring the CEO — the first agent who will read your goal, propose a plan, and start making things happen.
+Your company is ready. The next step is hiring your first agent — the one who will read your goal, propose a plan, and start making things happen.
 
 [Hire Your First Agent →](./your-first-agent.md)

@@ -13,7 +13,7 @@ Use this page if you want to get the app running quickly, reset a local install,
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 24+ (24.11.0 or newer)
 - pnpm 9+
 
 > **Note:** You do not need a separate PostgreSQL install for the normal local workflow.

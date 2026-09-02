@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.831.1
 seo_title: Add a Human Teammate
 seo_description: Bring a co-founder, operator, or read-only viewer into your company as a board member, and pick the access level that matches what they need to do.
 ---
@@ -28,15 +29,15 @@ You can always change this after they're in (step 5), so don't overthink it. The
 
 ## 2. Create the invite link
 
-![Company Invites page](../user-guides/screenshots/light/company/invites.png)
+![Invites tab of the Members page](../user-guides/screenshots/light/company/invites.png)
 
-Open **Settings → Invites**. In the **Create invite** card, pick the default role from step 1 — each option shows a short description of what that role gets — and click **Create invite**. Paperclip does three things at once:
+Open **Settings → Members** and switch to the **Invites** tab. In the **Create invite** card, pick the default role from step 1 — each option shows a short description of what that role gets — and click **Create invite**. Paperclip does three things at once:
 
 1. generates a fresh, single-use invite link against your current Paperclip domain;
 2. copies the URL to your clipboard (if the browser allows it — otherwise a toast tells you to copy it manually);
 3. drops the link into the **Latest invite link** panel, and adds a row to the **Invite history** table below with an **Active** badge.
 
-The **Open invite** button next to the link lets you preview the join page in another tab. The link is **single-use** and expires after 72 hours — if it goes stale, just create another. For the full page tour, see [Company Administration → Invites](../administration/company.md#invites).
+The **Open invite** button next to the link lets you preview the join page in another tab. The link is **single-use** and expires after 72 hours — if it goes stale, just create another. For the full tour, see [Company Administration → Invites](../administration/company.md#invites).
 
 ---
 
@@ -60,18 +61,18 @@ On their side they see a "waiting for approval" state. Nothing they do from here
 
 There are two places in the app to approve, both showing the requester and the invite context before you decide:
 
-- **Settings → Access** — when there are pending human joins, a **Pending human joins** card sits above the members list with **Approve human** / **Reject human** buttons on each entry. This is the quickest path.
+- **Settings → Members** — when there are pending human joins, a **Pending human joins** card sits above the members list with **Approve human** / **Reject human** buttons on each entry. This is the quickest path.
 - **Join Request Queue** (`/inbox/requests`) — the full queue for both human and agent requests, with **Status** and **Request type** filters. Each card carries the requester, the invite context, and the submission details.
 
 ![Join request queue](../user-guides/screenshots/light/company/join-requests.png)
 
-Click **Approve human** and the person becomes an **active** member with the invite's default role. To adjust their role or hand out extra permissions, stay on **Settings → Access**, click **Edit** on their row, and set the role, status, and any explicit grants in the grants grid, then save. (Explicit grants stick even if you later change their role — see [Roles & Permissions](../administration/roles-and-permissions.md#how-grants-combine-precedence).)
+Click **Approve human** and the person becomes an **active** member with the invite's default role. To adjust their role or hand out extra permissions, stay on **Settings → Members**, click **Edit** on their row, and set the role, status, and any explicit grants in the grants grid, then save. (Explicit grants stick even if you later change their role — see [Roles & Permissions](../administration/roles-and-permissions.md#how-grants-combine-precedence).)
 
 ---
 
 ## 6. Verify
 
-They now appear in **Settings → Access** with an `active` status badge and the role you gave them. That's it — they can sign in and see the company. Every step above (invite created, join requested, approved, membership activated) is written to the [activity log](../guides/day-to-day/activity-log.md), so the whole onboarding is auditable after the fact.
+They now appear in **Settings → Members** with an `active` status badge and the role you gave them. That's it — they can sign in and see the company. Every step above (invite created, join requested, approved, membership activated) is written to the [activity log](../guides/day-to-day/activity-log.md), so the whole onboarding is auditable after the fact.
 
 ---
 
@@ -97,7 +98,7 @@ Revoke an outstanding invite with `paperclipai invite revoke <invite-id>` (note:
 
 ## Related
 
-- [Company Administration](../administration/company.md) — the Access, Invites, and Join Requests pages in full.
+- [Company Administration](../administration/company.md) — the Members page (with its Invites tab) and Join Requests in full.
 - [Roles & Permissions](../administration/roles-and-permissions.md) — what each role and grant actually allows.
 - [Offboard a member](./offboard-a-member.md) — the reverse direction when someone leaves.
 - [Enable multi-user login](./enable-multi-user-login.md) — required first if your instance is still in local trusted mode.

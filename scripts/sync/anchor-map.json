@@ -179,6 +179,7 @@
     "claude-code": ["packages/adapters/claude-local"],
     "codex": ["packages/adapters/codex-local"],
     "gemini-cli": ["packages/adapters/gemini-local"],
+    "kimi-local": ["packages/adapters/kimi-local"],
     "opencode": ["packages/adapters/opencode-local"],
     "pi": ["packages/adapters/pi-local"],
     "http": ["server/src/adapters/http"],

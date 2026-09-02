@@ -1,7 +1,7 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.831.1
 seo_title: Settings: Profile and Instance
-seo_description: Two settings surfaces and why the difference matters. Covers your profile plus instance general, access, adapters, scheduler heartbeats, and experimental.
+seo_description: Two settings surfaces and why the difference matters. Covers your profile plus instance general, access, adapters, and experimental flags.
 ---
 
 # Settings
@@ -11,6 +11,8 @@ Paperclip has two settings surfaces, and it matters which one you're looking at.
 **Profile** is *your* account — your display name and the avatar that shows up next to your comments. Changing it only affects how *you* appear. Other board users on the same instance have their own profiles and see their own.
 
 **Instance Settings** is the admin surface. Anything you change there applies to the whole Paperclip instance — every company, every user, every agent that runs against this install. If you're running Paperclip on a VPS that hosts five companies, a toggle on the Instance page flips for all five.
+
+Company and instance settings now share one navigation. The instance-wide **General** controls described below live on the organization's own **General** page (see [Company Administration](./company.md#general-settings)), so instance admins reach them from the same place as the organization settings rather than a separate area.
 
 This guide walks through both, section by section.
 
@@ -188,53 +190,6 @@ For the full catalog of adapters Paperclip supports out of the box, along with t
 
 ---
 
-## Instance: Scheduler Heartbeats
-
-![Scheduler heartbeats](../user-guides/screenshots/light/settings/scheduler-heartbeats.png)
-
-The Scheduler Heartbeats page is a cross-company view of every agent on the instance that has a **timer heartbeat** enabled.
-
-### What the scheduler does
-
-Paperclip's scheduler is the component that wakes up timer-driven agents on an interval. It reads each agent's `runtimeConfig.heartbeat` block, notices when the next tick is due, and fires the run. Event-driven wakes (assignments, comments, routines) don't go through this surface at all — they happen regardless of the timer state.
-
-For a deeper explanation of when to use timer heartbeats vs. event-driven wakes, read [Heartbeats & Routines](../guides/projects-workflow/routines.md). In short: timer heartbeats should be the exception, not the rule.
-
-### What this page shows
-
-At the top of the page, a summary line reports:
-
-- How many timer heartbeats are **active** (enabled and the scheduler considers them live)
-- How many are **disabled**
-- How many companies the list spans
-
-Below that, agents are grouped by company. Each row shows:
-
-- An **On/Off** badge for whether the scheduler sees the heartbeat as active
-- The agent's name (links to the full agent config)
-- The agent's title or role
-- The configured interval in seconds
-- When the last heartbeat ran, as a relative time ("2m ago", "never")
-- A link icon to jump to the agent config, and a button to **Enable Timer Heartbeat** or **Disable Timer Heartbeat** inline
-
-The list auto-refreshes every 15 seconds so you can watch an enable/disable take effect.
-
-### When to tune it
-
-Reach for this page when:
-
-- You suspect an agent is burning budget on idle wakeups. Find it in the list, check the interval, and either raise the interval on the agent config page or disable the heartbeat.
-- You've just imported or cloned an instance and want to take stock of every timer-driven agent in one place before turning any of them loose.
-- You need a quick emergency shut-off. The **Disable All** button at the top right of the summary line disables the timer heartbeat on every currently-enabled agent in one operation. It prompts for confirmation first. Event-driven wakes still work afterwards — this only stops the *tickers*.
-
-### Safe defaults
-
-- **Most agents** should have timer heartbeats **off**. They stay active on the dashboard and wake on assignments, comments, and routines. This is Paperclip's default for new agents.
-- **When a timer is truly needed** (polling an external system with no webhook, for example), push the interval as long as you can stand. Minutes or hours, not seconds.
-- **After an import** or major config change, check this page — other instances' timer settings will come with them, and you may want to disable the ones you don't recognize before the scheduler starts firing them.
-
----
-
 ## Instance: Experimental
 
 ![Experimental flags](../user-guides/screenshots/light/settings/experimental.png)
@@ -269,6 +224,38 @@ Each flag has its own page in the [Experimental](../experimental/overview.md) se
 - **Streamlined Left Navigation Bar** — **on by default now**, so you don't need to flip anything to get it. It trims the sidebar: Projects move under the **Work** section as a single **Projects** link with its own page, and the agents list shows only your active agents (the five most recently active). Turning this flag **off** is the opt-out — it restores the classic sidebar, where each project gets its own collapsible entry and there's no top-level Projects link.
 
 Toggles take effect immediately on save. If one misbehaves, flip it back off — no migration is required.
+
+---
+
+## Operator controls for hosted deployments
+
+If you run Paperclip for other people — a managed cloud, an internal shared server — you can shape which settings surfaces your users see and what the defaults are, without touching any user's data. Two environment variables do this. Both are read at boot, applied at read time, and **never persisted**: clear the variable and stock behavior comes back everywhere a user hasn't chosen otherwise. With both unset, the UI and API behave exactly as this page describes.
+
+### Hide surfaces with `PAPERCLIP_HIDDEN_SETTINGS`
+
+Set `PAPERCLIP_HIDDEN_SETTINGS` to a comma-separated list of surface keys to remove from the UI. Some keys also floor their mutation API with a `403` (carrying the `settings_operator_managed` code); the rest hide UI only, so agents and integrations keep working against the underlying routes.
+
+The keys you can list:
+
+- **Instance pages** — `instance.profile`, `instance.environments`, `instance.access`, `instance.experimental`, `instance.plugins`, `instance.adapters`. (The Instance General page is the settings root and can't be hidden; hide its sections individually instead.)
+- **Company pages** — `company.members`, `company.invites`, `company.secrets`, `company.export`, `company.import`. Hiding `company.import` also floors the import API; the other company keys are UI-only.
+- **Company sub-tabs** — `company.secrets.vaults`, `company.secrets.proposals` (hide one tab while the Secrets page stays up).
+- **Instance General sections** — `instance.general.deploymentStatus`, `instance.general.censorUsernameInLogs`, `instance.general.keyboardShortcuts`, `instance.general.backupRetention`, `instance.general.feedbackDataSharingPreference`, `instance.general.signOut`. Field-backed sections also floor writes to that field; `deploymentStatus` and `signOut` are read-only UI.
+- **Experimental flags** — `instance.experimental.<flagKey>` for any individual flag, or hide the whole page with `instance.experimental`.
+
+Unknown keys are warned about and ignored rather than rejected, so you can roll one list across a fleet of mixed app versions — an image that predates a key simply keeps that surface visible instead of refusing to boot.
+
+### Override defaults with `PAPERCLIP_SETTING_DEFAULTS`
+
+Set `PAPERCLIP_SETTING_DEFAULTS` to a JSON object to replace the schema default of selected Instance General settings — currently `feedbackDataSharingPreference`. For example:
+
+```sh
+PAPERCLIP_SETTING_DEFAULTS='{"feedbackDataSharingPreference":"allowed"}'
+```
+
+Your value substitutes for the schema default at read time: any field still sitting at its default resolves to yours, while a user's explicit non-default choice always wins. Parsing is fail-closed — malformed JSON or an invalid value for a known field stops the server from booting, because a silently dropped policy default is worse than a loud failure. Unknown field names are warned about and ignored.
+
+The two controls are orthogonal: pair them when you want a default *and* want the control hidden.
 
 ---
 

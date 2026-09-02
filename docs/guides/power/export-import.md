@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.831.1
 seo_title: Export and Import a Company
 seo_description: Capture a configured company as a portable package to back up, share, or move between instances. What full fidelity includes, and what a package contains.
 ---
@@ -20,7 +20,7 @@ A package isn't just a sketch of your company. It carries the working state too,
 
 **What travels with the package:**
 
-- Company name, description, branding, logo, and hiring policy
+- Company name, description, logo, and hiring policy
 - Agents — identity, role, title, reporting lines, instructions, adapter and runtime configuration, permissions and permission grants, per-agent budgets
 - Projects, their workspaces, and their sidebar order
 - Skills, either as upstream references or vendored in full

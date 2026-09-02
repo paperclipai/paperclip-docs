@@ -13,11 +13,11 @@ Paperclip runs as a Node.js server. The onboarding command handles the full setu
 
 ## Prerequisites
 
-- Node.js 20 or later ([nodejs.org](https://nodejs.org) — download the LTS version)
+- Node.js 24 or later ([nodejs.org](https://nodejs.org) — download the LTS version)
 - pnpm (package manager)
 
 ```bash
-node --version   # Should print v20.x.x or higher
+node --version   # Should print v24.11.0 or higher
 ```
 
 ---

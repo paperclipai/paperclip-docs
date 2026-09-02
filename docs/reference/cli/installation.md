@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.831.1
 seo_title: Installing the Paperclip CLI
 seo_description: Get the single paperclipai binary onto your machine, point it at an instance, and bring up a working local install from the terminal.
 ---
@@ -14,10 +14,10 @@ If you already know Paperclip is going to live on this machine for a while, skip
 
 ## Prerequisites
 
-The CLI is a Node program. You need Node.js 20 or newer on `PATH` before anything else works.
+The CLI is a Node program. You need Node.js 24 or newer (specifically 24.11.0 or newer) on `PATH` before anything else works. A managed install refuses to run on an older Node; an `npx` install or a directly started server on Node 22 or 23 prints an unsupported-version warning and continues, but a warning is not support — upgrade Node before you rely on it.
 
 ```sh
-node --version   # must report v20.x or higher
+node --version   # must report v24.11.0 or higher
 ```
 
 That single requirement covers the common local install: `paperclipai run` can stand up an embedded PostgreSQL instance for you, so you do not need a separate database server to start. If you intend to point the CLI at your own PostgreSQL, have its connection string ready and the CLI will use it instead.
@@ -56,7 +56,7 @@ npx paperclipai install
 
 That one command downloads the latest published release, verifies it, and installs a `paperclipai` command into `~/.local/bin`. From then on you type `paperclipai` directly, and you get three things `npx` cannot give you: one-command updates, instant rollback to the previous version, and the ability to run Paperclip as a [background service](./service.md).
 
-The managed install needs Node.js 20 or newer, the same as the rest of the CLI.
+The managed install needs Node.js 24 or newer, the same as the rest of the CLI — and unlike an `npx` install, it refuses outright on anything older.
 
 ### What it puts on disk
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.831.1
 seo_title: Company Administration
 seo_description: Set your company name and logo, manage members and invites, review join requests, and export or import the whole company from one cluster of screens.
 ---
@@ -8,13 +8,15 @@ seo_description: Set your company name and logo, manage members and invites, rev
 
 Every Paperclip company has a small cluster of surfaces that control its identity, its membership, and its portability. These pages are where you, as a board user (or a member with the right grants), set the company's name and logo, decide who else can sign in, hand out invite links, review join requests, and move the whole company in and out of a portable package. The CEO agent never touches most of this — it is deliberately human territory.
 
-This guide walks through each of those surfaces in the order you typically meet them: **General Settings**, **Access & Members**, **Invites**, **Join Requests**, **Export**, and **Import**. If you are looking for how hiring approvals themselves work, see the [Approvals guide](../guides/day-to-day/approvals.md). If you want to understand the reporting tree that sits underneath the membership model, see [Org Structure](../guides/org/org-structure.md).
+This guide walks through each of those surfaces in the order you typically meet them: **General Settings**, **Members** (whose **Invites** tab now lives alongside the member list), **Join Requests**, **Export**, and **Import**. If you are looking for how hiring approvals themselves work, see the [Approvals guide](../guides/day-to-day/approvals.md). If you want to understand the reporting tree that sits underneath the membership model, see [Org Structure](../guides/org/org-structure.md).
 
 ---
 
 ## General Settings
 
-The **Company Settings** page groups the settings that apply to the whole company rather than to any one agent or project. Open it from the sidebar under the company name.
+The **General** page groups the settings that apply to the whole organization rather than to any one agent or project. Open it from the sidebar under the organization name.
+
+Company and instance settings now share one navigation, so this is also where the instance-wide general controls appear. If you are an instance admin, the deployment and auth readiness summary, backup retention, keyboard shortcuts, log censoring, and AI feedback-sharing controls all render on this same **General** page — see [Settings](./settings.md#instance-general) for what each one does. The sections below cover the organization-specific settings.
 
 ![Company general settings](../user-guides/screenshots/light/company/settings.png)
 
@@ -27,14 +29,13 @@ The **General** section has two fields:
 
 Changes are not persisted until you click **Save changes**. The save button only appears when one of the fields is dirty, and it is disabled if the name is empty.
 
-### Logo and brand color
+### Logo
 
-The **Appearance** section controls the small square tile that represents your company in the sidebar and switcher. You have two inputs:
+The **Appearance** section controls the small square tile that represents your organization in the sidebar and switcher:
 
 - **Logo** — upload a PNG, JPEG, WEBP, GIF, or SVG file. After upload, a **Remove logo** button appears next to the file input so you can clear it again. If an upload fails, the error message is shown inline.
-- **Brand color** — sets the hue used for the auto-generated pattern icon when no logo is present. The color is configurable through the native color picker or a free-form `#rrggbb` text field. Leave it empty for the auto-generated color; a **Clear** button appears when a value is set.
 
-A live preview of the tile (logo and brand color combined) is rendered to the left of the fields so you can see the result before saving.
+When no logo is set, Paperclip draws an auto-generated pattern icon whose hue is derived from the organization name — there is no separate brand-color setting to pick. A live preview of the tile is rendered to the left of the field so you can see the result before saving.
 
 ### Hiring
 
@@ -65,9 +66,9 @@ Archiving also quiets the company so it stops doing work in the background: ever
 
 ---
 
-## Access & Members
+## Members
 
-The **Company Access** page is where you manage human memberships: who belongs to the company, what role they hold, and which permissions they have on top of that role. Open it from **Settings → Access**, or directly from the sidebar.
+The **Members** page is where you manage human memberships: who belongs to the organization, what role they hold, and which permissions they have on top of that role. Open it from **Settings → Members**, or directly from the sidebar. The page carries two tabs — **Members** (covered here) and **Invites** (covered in the next section) — which used to be separate pages and now sit side by side.
 
 ![Members list](../user-guides/screenshots/light/company/access.png)
 
@@ -112,7 +113,7 @@ Click **Save access** to persist the changes, or **Cancel** to close the dialog 
 
 ### Adding and removing members
 
-The Access page does not have an "Add member" button. New humans enter the company through the invite flow described in the next section, which either produces a direct membership or a pending join request depending on how the invite is consumed. To remove a human, set their **Status** to `suspended` through the Edit dialog; the row stays visible so the audit trail is preserved.
+The Members page does not have an "Add member" button. New humans enter the organization through the invite flow described in the next section, which either produces a direct membership or a pending join request depending on how the invite is consumed. To remove a human, set their **Status** to `suspended` through the Edit dialog; the row stays visible so the audit trail is preserved.
 
 ### Pending human joins
 
@@ -122,7 +123,7 @@ If you hold the `joins:approve` grant and there are pending human join requests,
 
 ## Invites
 
-The **Company Invites** page creates invite links for new humans. Each link is single-use — the first successful use consumes the link and creates or reuses a join request before approval.
+The **Invites** tab of the Members page creates invite links for new humans. Each link is single-use — the first successful use consumes the link and creates or reuses a join request before approval.
 
 ![Invite link creator](../user-guides/screenshots/light/company/invites.png)
 
