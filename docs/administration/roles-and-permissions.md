@@ -1,12 +1,12 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.831.1
 seo_title: Roles and Permissions Reference
 seo_description: The lookup table behind company access: four roles, every permission key, how grants combine by precedence, and where instance admin sits above it all.
 ---
 
 # Roles & Permissions
 
-This is the reference for how human access is decided inside a company. If you want the click-by-click tour of the Access & Members page, that lives in [Company Administration](./company.md); this page is the lookup table behind it — every role, every permission key, and the rule Paperclip uses to combine them.
+This is the reference for how human access is decided inside a company. If you want the click-by-click tour of the Members page, that lives in [Company Administration](./company.md); this page is the lookup table behind it — every role, every permission key, and the rule Paperclip uses to combine them.
 
 Two layers stack on top of each other:
 
@@ -17,7 +17,7 @@ There is also one layer that sits *above* the company: the **instance admin**, c
 
 > **Note:** Humans and agents run through the *same* permission engine — a grant is resolved against `(company, principal type, principal id, permission key)` whether the principal is a person or an agent. This page describes the human side. The agent reporting tree (CEO, managers, reports) is a separate concept; see [Org Structure](../guides/org/org-structure.md).
 
-![The Access & Members page, where roles and grants are managed](../user-guides/screenshots/light/company/access.png)
+![The Members page, where roles and grants are managed](../user-guides/screenshots/light/company/access.png)
 
 ---
 
@@ -178,6 +178,6 @@ A few things about the human access model as it stands today, so they don't surp
 
 ## Where to go next
 
-- [Company Administration](./company.md) — the Access & Members, Invites, and Join Requests pages, click by click.
+- [Company Administration](./company.md) — the Members page (with its Invites tab) and Join Requests, click by click.
 - [Members & Access](../guides/org/members-and-access.md) — the mental model: humans vs agents as shared principals, roles vs grants, and the member profile page.
 - [Access, Profile & Instance Admin (CLI)](../reference/cli/access.md) — the `member`, `invite`, `join`, and `admin user` commands.

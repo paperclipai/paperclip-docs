@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.817.0
+paperclip_version: v2026.831.1
 seo_title: Adapters Overview
 seo_description: Adapters connect Paperclip's control plane to the runtime that does the work. Start here to compare the options and pick one per agent you hire.
 ---
@@ -36,6 +36,7 @@ Every adapter is responsible for the same core jobs:
 | Pi CLI with its built-in tool set | [Pi](./pi.md) |
 | Hermes Agent with persistent memory and 30+ tools | [Hermes](./hermes.md) |
 | Grok Build CLI on your machine | [Grok Local](./grok-local.md) |
+| Kimi Code CLI on your machine | [Kimi Code](./kimi-local.md) |
 | OpenClaw over a WebSocket gateway | [OpenClaw Gateway](./openclaw-gateway.md) |
 | A custom shell command or script | [Process](./process.md) |
 | A webhook or cloud service you control | [HTTP](./http.md) |
@@ -66,6 +67,7 @@ These adapters ship with Paperclip and are always available in the host:
 | [Pi](./pi.md) | `pi_local` | Selectable | Pi CLI runs with its built-in tool set and provider/model routing. |
 | [Hermes](./hermes.md) | `hermes_local` | Selectable | Hermes Agent runs with persistent memory, 30+ tools, 80+ skills, and multi-provider routing. |
 | [Grok Local](./grok-local.md) | `grok_local` | Selectable | Grok Build CLI runs with `--resume` session continuity, streaming reasoning output, and skills staged into `.claude/skills`. |
+| [Kimi Code](./kimi-local.md) | `kimi_local` | Selectable | Kimi Code CLI runs on the shared ACP engine with headless-CLI fallback, session resume, and per-run skills injection. |
 | [OpenClaw Gateway](./openclaw-gateway.md) | `openclaw_gateway` | **Coming soon** (use OpenClaw invite flow) | Remote OpenClaw instances reached over the WebSocket gateway protocol. |
 | [Process](./process.md) | `process` | **Coming soon** (API / import only) | Shell commands, scripts, and custom local runtimes. |
 | [HTTP](./http.md) | `http` | **Coming soon** (API / import only) | Webhook-style invocation into your own service. |
@@ -111,7 +113,7 @@ Every adapter streams its stdout to the run log, and Paperclip renders it live a
 
 Here are the rough tiers, richest first:
 
-- **ACP engine — full structured event stream.** When `claude_local`, `codex_local`, or `gemini_local` runs through the Agent Client Protocol — the default `engine: auto`, or a forced `engine: acp` — it emits a JSONL event for each meaningful moment: session identity, status (progress text plus context-window usage), assistant and thinking token deltas, tool-call title and status updates as calls progress, a result stop-reason summary, and errors. The transcript renders these as live-updating message, thinking, tool, and status blocks — and repeated tool-call status updates fold into a single tool card instead of stacking.
+- **ACP engine — full structured event stream.** When `claude_local`, `codex_local`, `gemini_local`, or `kimi_local` runs through the Agent Client Protocol — the default `engine: auto`, or a forced `engine: acp` — it emits a JSONL event for each meaningful moment: session identity, status (progress text plus context-window usage), assistant and thinking token deltas, tool-call title and status updates as calls progress, a result stop-reason summary, and errors. The transcript renders these as live-updating message, thinking, tool, and status blocks — and repeated tool-call status updates fold into a single tool card instead of stacking.
 - **CLI wrappers (`claude_local` / `codex_local` / `gemini_local` on `engine: cli`, plus `cursor`, `opencode_local`, …) — the CLI's own stream.** These parse each CLI's streaming JSON output: assistant text, tool calls and results, and a final usage/cost summary. You get as much detail as the CLI itself prints.
 - **Generic adapters (`process`, `http`) — plain output.** You see stdout and stderr lines with no structured transcript.
 
@@ -129,6 +131,7 @@ If you're running sandbox workers, leave `engine` on `auto` so the adapter uses 
 - [Pi](./pi.md)
 - [Hermes](./hermes.md)
 - [Grok Local](./grok-local.md)
+- [Kimi Code](./kimi-local.md)
 - [OpenClaw Gateway](./openclaw-gateway.md)
 - [Process](./process.md)
 - [HTTP](./http.md)

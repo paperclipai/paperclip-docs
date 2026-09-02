@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.1
+paperclip_version: v2026.831.1
 seo_title: CLI Setup Commands
 seo_description: Stand up a Paperclip instance, repair a broken one, or change the settings the server runs on — the commands that touch install and launch.
 ---
@@ -137,7 +137,7 @@ The last three groups cover *how Paperclip is installed and supervised*, not how
 
 | Check group | What it looks at |
 |---|---|
-| Node.js runtime | Fails on anything older than Node.js 20. |
+| Node.js runtime | Fails on anything older than Node.js 24 (24.11.0). |
 | Managed install | Only runs if you have a [managed install](./installation.md#the-managed-install). Confirms the manifest and active payload agree, that `~/.local/bin/paperclipai` is a real Paperclip shim, that its directory is on `PATH` (a warning if not), and that no orphaned payloads are left behind. |
 | Background service | Only runs if a [service](./service.md) is installed for this instance. Confirms the definition on disk matches what your current install would generate, that the service is active, that the health endpoint answers, and that the running version matches your managed install. On Linux it warns when start-on-login is on but systemd lingering is off. |
 

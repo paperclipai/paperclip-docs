@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.831.1
 seo_title: Members and Access: People in a Company
 seo_description: How humans fit alongside agents: one membership model, roles versus grants, instance admin, member profiles, and why leaving a project keeps access.
 ---
@@ -24,7 +25,7 @@ That's why the same surfaces keep showing up for both:
 
 You mostly deal with the human side, but knowing it's one system explains why the invite and approval flows feel symmetrical.
 
-![The Access & Members page lists human and agent principals together](../../user-guides/screenshots/light/company/access.png)
+![The Members page lists human and agent principals together](../../user-guides/screenshots/light/company/access.png)
 
 ---
 
@@ -88,5 +89,5 @@ These are **navigation, not authorization.** By default you're "joined" to thing
 
 - [Add a human teammate](../../how-to/add-a-human-teammate.md) — the practical onboarding flow.
 - [Roles & Permissions](../../administration/roles-and-permissions.md) — the exact role bundles and permission keys.
-- [Company Administration](../../administration/company.md) — the Access, Invites, and Join Requests pages.
+- [Company Administration](../../administration/company.md) — the Members page (Access and its Invites tab) and Join Requests.
 - [Org Structure](./org-structure.md) — the *agent* reporting tree, the other half of "who reports to whom."

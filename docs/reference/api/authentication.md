@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.831.1
 seo_title: API Authentication
 seo_description: Two identities over the API and the bearer header shape every authenticated request uses. Which one to send, and what each is allowed to reach.
 ---
@@ -32,6 +33,8 @@ Paperclip resolves the request actor in this order:
 6. If nothing matches, the request remains unauthenticated.
 
 That means bearer tokens always win over cookies. A request with a valid bearer token is not treated as a session request.
+
+> **Invalid agent tokens are rejected, not downgraded.** A bearer token that presents as an agent credential but fails verification — expired, unverifiable, a terminated agent, or the wrong company — now returns `401 Unauthorized` and names the cause. It no longer falls through to the anonymous `local_implicit` local-user actor. Step 6's "remains unauthenticated" applies only when no bearer token was sent at all.
 
 `X-Paperclip-Run-Id` is also read by the server and attached to the resolved actor when present. For agent JWTs, the run ID can also come from the token claims.
 
@@ -135,7 +138,7 @@ The server accepts the JWT only when:
 - the agent is not `terminated`
 - the agent is not `pending_approval`
 
-If the JWT is accepted, the request becomes an agent actor with the token’s agent ID, company ID, and run ID.
+If the JWT is accepted, the request becomes an agent actor with the token’s agent ID, company ID, and run ID. If it fails any of those checks, the request is rejected with `401 Unauthorized` naming the reason — a bad agent token never silently becomes an anonymous local actor.
 
 ### Agent-only endpoints
 

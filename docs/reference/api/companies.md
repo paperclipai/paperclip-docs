@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.831.1
 seo_title: Companies API
 seo_description: Companies are the tenant boundary every agent, project, issue, and cost event belongs to. Endpoints for managing them, and how scoping is enforced.
 ---
@@ -27,7 +27,6 @@ The company API returns a compact company object with the fields you will use mo
 | `budgetMonthlyCents` | Company budget ceiling in cents |
 | `spentMonthlyCents` | Current month spend in cents |
 | `requireBoardApprovalForNewAgents` | Whether hires need board approval |
-| `brandColor` | Optional hex brand color |
 | `logoAssetId` | Stored logo asset id, or `null` |
 | `logoUrl` | Derived content URL for the stored logo, or `null` |
 | `createdAt` | Creation timestamp |
@@ -212,7 +211,6 @@ PATCH /api/companies/{companyId}
   "description": "Updated description",
   "budgetMonthlyCents": 75000,
   "status": "active",
-  "brandColor": "#2563eb",
   "logoAssetId": "11111111-1111-4111-8111-111111111111"
 }
 ```
@@ -236,8 +234,7 @@ curl -X PATCH "http://localhost:3100/api/companies/company-1" \
     "name": "Horizon Labs",
     "description": "Updated description",
     "budgetMonthlyCents": 75000,
-    "status": "active",
-    "brandColor": "#2563eb"
+    "status": "active"
   }'
 ```
 <!-- tab: JavaScript -->
@@ -253,7 +250,6 @@ const res = await fetch("http://localhost:3100/api/companies/company-1", {
     description: "Updated description",
     budgetMonthlyCents: 75000,
     status: "active",
-    brandColor: "#2563eb",
   }),
 });
 const company = await res.json();
@@ -270,7 +266,6 @@ res = requests.patch(
         "description": "Updated description",
         "budgetMonthlyCents": 75000,
         "status": "active",
-        "brandColor": "#2563eb",
     },
 )
 company = res.json()
@@ -285,7 +280,6 @@ company = res.json()
 PATCH /api/companies/{companyId}/branding
 {
   "name": "Horizon Labs",
-  "brandColor": "#2563eb",
   "logoAssetId": "11111111-1111-4111-8111-111111111111"
 }
 ```
@@ -294,7 +288,6 @@ Use this when you want a narrower branding-only update. The route accepts:
 
 - `name`
 - `description`
-- `brandColor`
 - `logoAssetId`
 
 Board callers can use it. CEO agents can use it only for their own company.

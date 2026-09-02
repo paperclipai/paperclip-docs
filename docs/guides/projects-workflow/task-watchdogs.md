@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.626.0
+paperclip_version: v2026.831.1
 seo_title: Task Watchdogs: Catching Stalled Work
 seo_description: When an agent misreads a blocker or calls a task done without proof, a watchdog wakes. Set one up, write good instructions, and know its limits.
 ---
@@ -21,7 +21,7 @@ Think of it as a second pass on stopped work, without re-running the original as
 The word shows up in a few places in Paperclip. Keep them straight:
 
 - **Task watchdog** (this page) — an agent *you* assign to a specific issue. Fires only when the whole watched subtree has stopped. Configurable.
-- **Silent active-run watchdog** — automatic monitoring of a single *running* agent for output silence. No configuration, nothing to set up. (See your adapter's inactivity settings, e.g. codex-local's `outputInactivityTimeoutMs`.)
+- **Silent active-run watchdog** — automatic monitoring of a single *running* agent for output silence. No configuration, nothing to set up. Silence surfaces as a **suspicious** or **critical** level on the active-run summary in the UI, but it takes no action on its own — it no longer creates evaluation issues, recovery actions, comments, or wake requests. (See your adapter's inactivity settings, e.g. codex-local's `outputInactivityTimeoutMs`.)
 - **Liveness recovery** — automatic restart of stalled agent-owned issues.
 
 Only the first one is something you turn on by hand.

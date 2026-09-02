@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.517.0
+paperclip_version: v2026.831.1
 seo_title: Grok Local Adapter
 seo_description: Run xAI's Grok Build CLI on the Paperclip host as a local coding agent that resumes the same Grok session across every heartbeat.
 ---
@@ -32,7 +32,8 @@ seo_description: Run xAI's Grok Build CLI on the Paperclip host as a local codin
 | `instructionsFilePath` | no | Absolute path to a markdown instructions file (typically `AGENTS.md`). Paperclip stages it into the execution workspace as `Agents.md` when safe, otherwise falls back to `--rules @file`. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `model` | no | Grok model id. Defaults to `grok-build`. |
-| `permissionMode` | no | Grok permission mode. Defaults to `dontAsk`. |
+| `permissionMode` | no | Grok permission mode, passed via `--permission-mode`. **No default** — when unset, Paperclip passes no permission-mode flag at all. (Grok 1.0+ enforces `dontAsk` as deny-by-default and it overrides `--always-approve`, so forcing it broke unattended runs; leave this unset unless you have a specific reason.) |
+| `alwaysApprove` | no | Adds `--always-approve` so unattended runs never stall on a prompt. Defaults to `true`, and this — not a permission mode — is the unattended-execution policy. |
 | `reasoningEffort` | no | Grok reasoning effort passed via `--reasoning-effort`. |
 | `maxTurns` | no | Maximum agent turns for the run. |
 | `command` | no | Defaults to `grok`. Override only if Grok lives elsewhere on the host. |
@@ -76,7 +77,6 @@ If you supply an `instructionsFilePath`, Paperclip prefers staging it into the w
   "adapterConfig": {
     "cwd": "/Users/me/projects/paperclip-workspace",
     "model": "grok-build",
-    "permissionMode": "dontAsk",
     "reasoningEffort": "medium",
     "instructionsFilePath": "/Users/me/projects/paperclip-workspace/AGENTS.md",
     "env": {

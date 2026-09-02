@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.1
+paperclip_version: v2026.831.1
 seo_title: Documentation Changelog
 seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
@@ -13,6 +13,30 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.831.1 <span class="accordion-meta">September 2, 2026</span></summary>
+<div class="accordion-body">
+
+**New pages**
+
+- [Kimi Code Adapter](adapters/kimi-local.md) — how to run Moonshot's Kimi Code CLI (`kimi_local`) as a local agent: the shared ACP engine with headless-CLI fallback, models and thinking-effort tiers, session resume, skills injection, and the three ways it authenticates.
+
+**Updated pages**
+
+- [Adapters Overview](adapters/overview.md) — Kimi Code added to the built-in adapter tables and the ACP engine tier.
+- [Environment Variables](deploy/environment-variables.md) — new deployment settings: `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` (how long a terminal workspace waits before it's archived), opt-in Sentry error monitoring via `SENTRY_DSN`, and the operator controls `PAPERCLIP_HIDDEN_SETTINGS` and `PAPERCLIP_SETTING_DEFAULTS`.
+- [Instance Settings](../administration/settings.md) — a new section for operators hosting Paperclip for others: hiding settings surfaces by key and overriding setting defaults, neither of which is ever persisted.
+- [Company Administration](../administration/company.md), [Members & Access](../guides/org/members-and-access.md), and [Roles & Permissions](../administration/roles-and-permissions.md) — settings are now one shared navigation, Invites moved into a tab of the Members page, and the company brand color and per-company attachment size limit were removed.
+- [Grok Local Adapter](adapters/grok-local.md) — `permissionMode` no longer defaults to `dontAsk`; when unset no permission-mode flag is passed, and `--always-approve` is the unattended policy.
+- [First company](../guides/getting-started/your-first-company.md) and the [five-minute path](../guides/getting-started/five-minute-path.md) — onboarding is rebuilt around a single-card wizard that opens on creating your agent; the separate mission step is gone and you set the goal afterward.
+- [Task Watchdogs](../guides/projects-workflow/task-watchdogs.md), [Auto-Create Recovery Tasks](../experimental/auto-create-recovery-tasks.md), and [Issues](../guides/day-to-day/issues.md) — silent-run detection now only surfaces a UI level rather than creating issues, comments, or wakes; stranded-task recovery hands off to a board-owned action instead of taking work over; and automatic run-summary comments carry only the final output, never agent thinking.
+- [Authentication API](api/authentication.md) — an invalid agent token now returns a `401` naming the cause instead of falling through to an anonymous actor.
+- [Companies API](api/companies.md) and [Cases API](api/cases.md) — `brandColor` removed from the company shape and branding routes; the attachment cap is the deployment-level `PAPERCLIP_ATTACHMENT_MAX_BYTES`, not a per-company field.
+- The CLI [installation](cli/installation.md) and [setup](cli/setup-commands.md) pages, [local development](deploy/local-development.md), the [Modal adapter](adapters/modal.md), and several guides now state the raised **Node.js 24.11.0** floor.
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.824.1 <span class="accordion-meta">August 25, 2026</span></summary>
 <div class="accordion-body">
 
