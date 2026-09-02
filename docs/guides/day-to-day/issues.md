@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.831.1
 seo_title: Issues: Creating and Tracking Work
 seo_description: Each issue is one unit of work tied to your company goal. Create them yourself or let the CEO do it, then track progress, comment, and close them.
 ---
@@ -599,6 +599,8 @@ Governance only ever **narrows** — it can tighten who may respond, never widen
 
 Sometimes an issue's run finishes without choosing a next step, or an assigned issue gets stranded with no live execution path. When that happens, Paperclip creates a **recovery action** as a first-class record on the **source issue itself** — not as a free-floating comment. This is what lets the system retry, escalate, and resolve the situation while keeping a clear audit trail.
 
+Recovery preserves the original assignee and only retries it when that's safe. It **doesn't take over or reassign the stranded work by itself** — once retries are exhausted or a takeover would be unsafe, the recovery action is **owned by the board** so a person decides the next step.
+
 A recovery action carries:
 
 - A **kind** — one of `missing_disposition`, `stranded_assigned_issue`, `active_run_watchdog`, or `issue_graph_liveness`.
@@ -642,7 +644,7 @@ Each task can have at most one watchdog attached at a time. If you need to chang
 
 Watchdog outcomes appear in the **Chat** tab on the issue — the same place you'd see any other agent comment. The watchdog posts what it found (the stalled sub-issue, its state) and what it did about it. You can respond in the same thread, create follow-up issues, or adjust from the issue detail sidebar.
 
-> **Note:** Task watchdogs are a user-facing monitoring feature. They are distinct from the system-level `active_run_watchdog` recovery kind, which is an automatic backstop for stranded runs and does not require any setup on your part.
+> **Note:** Task watchdogs are a user-facing monitoring feature. They're distinct from the automatic monitoring of a single running agent for output silence — that silence now only surfaces as a suspicious or critical level on the active-run summary in the UI. It no longer creates a recovery action, comment, or wake on its own.
 
 ---
 

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.831.1
 seo_title: Enable Multi-User Login
 seo_description: Move off loopback-only trusted mode so teammates can actually sign in. What to change, and what the switch means for your existing single-operator setup.
 ---
@@ -85,7 +86,7 @@ Details in [CLI Auth & Board Claim → Device-code flow](../administration/cli-a
 
 ## 5. Invite your teammates (in the app)
 
-With the instance authenticated and ownership yours, adding people is the normal in-app invite flow: **Settings → Invites**, create a link, share it, then approve their join request from **Settings → Access**. That's its own guide:
+With the instance authenticated and ownership yours, adding people is the normal in-app invite flow: **Settings → Members → Invites**, create a link, share it, then approve their join request from **Settings → Members**. That's its own guide:
 
 **→ [Add a human teammate](./add-a-human-teammate.md)**
 

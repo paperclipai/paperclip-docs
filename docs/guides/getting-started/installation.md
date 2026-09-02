@@ -1,7 +1,7 @@
 ---
-paperclip_version: v2026.529.0
+paperclip_version: v2026.831.1
 seo_title: Install Paperclip: Local or Self-Hosted
-seo_description: Two supported install paths: a local Node.js 20 setup via pnpm, or a self-hosted server on your own domain. Both finish at the same onboarding flow.
+seo_description: Two supported install paths: a local Node.js 24 setup via pnpm, or a self-hosted server on your own domain. Both finish at the same onboarding flow.
 ---
 
 # Installation
@@ -23,7 +23,7 @@ Both paths end up in the same place: a running Paperclip instance and the onboar
 
 ---
 
-## Step 1 — Install Node.js 20 or later
+## Step 1 — Install Node.js 24 or later
 
 If you don't have Node.js installed, download the installer from [nodejs.org](https://nodejs.org) and run it. Choose the **LTS** version.
 
@@ -31,7 +31,7 @@ To check if Node.js is already installed and at the right version:
 
 ```bash
 node --version
-# Should print v20.x.x or higher
+# Should print v24.11.0 or higher
 ```
 
 ---
@@ -194,9 +194,9 @@ HTTPS certificate issuance in Step 7 will fail if DNS isn't pointing at the serv
 
 ---
 
-## Step 3 — Install Node.js 20+ and pnpm
+## Step 3 — Install Node.js 24+ and pnpm
 
-Paperclip requires **Node.js 20 or later** and **pnpm**. Install Node.js from NodeSource:
+Paperclip requires **Node.js 24 or later** (24.11.0 or newer) and **pnpm**. Install Node.js from NodeSource:
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
@@ -214,7 +214,7 @@ corepack prepare pnpm@latest --activate
 Verify:
 
 ```bash
-node --version     # v20.x or higher
+node --version     # v24.11.0 or higher
 pnpm --version     # 9.x or higher
 ```
 

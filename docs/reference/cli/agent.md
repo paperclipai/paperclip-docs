@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.831.1
 seo_title: CLI Agent Commands
 seo_description: Hire, inspect, configure, and steer the AI workers doing your company's work, including adapters, budgets, and lifecycle changes.
 ---
@@ -240,7 +240,7 @@ paperclipai agent instructions-file:delete <agent-id> --path AGENTS.md
 This is the practical bridge for running Claude or Codex **locally** as a Paperclip agent. It accepts an agent ID or shortname/url-key, requires `-C, --company-id <id>`, and in one shot:
 
 1. Mints a long-lived agent API key (label it with `--key-name <name>`; defaults to a timestamped `local-cli` key).
-2. Installs the bundled Paperclip skills into `~/.codex/skills` and `~/.claude/skills` as symlinks (respecting `CODEX_HOME` / `CLAUDE_HOME` if set).
+2. Installs the bundled Paperclip skills into `~/.codex/skills`, `~/.claude/skills`, and `~/.kimi-code/skills` as symlinks (respecting `CODEX_HOME` / `CLAUDE_HOME` / `KIMI_CODE_HOME` if set).
 3. Prints the shell `export` lines for `PAPERCLIP_API_URL`, `PAPERCLIP_COMPANY_ID`, `PAPERCLIP_AGENT_ID`, and `PAPERCLIP_API_KEY`.
 
 ```sh
@@ -253,7 +253,7 @@ paperclipai agent local-cli claudecoder --company-id <company-id> --no-install-s
 |---|---|
 | `-C, --company-id <id>` | Required. The company the agent belongs to (also used to resolve a shortname). |
 | `--key-name <name>` | Label for the created API key. Defaults to `local-cli`; an empty value falls back to a timestamped name. |
-| `--no-install-skills` | Skip installing skills into `~/.codex/skills` and `~/.claude/skills`. Use this when you only want the key and exports. |
+| `--no-install-skills` | Skip installing skills into `~/.codex/skills`, `~/.claude/skills`, and `~/.kimi-code/skills`. Use this when you only want the key and exports. |
 
 Source the printed exports into your shell, then launch Codex or Claude — they now act as that agent against your Paperclip API:
 

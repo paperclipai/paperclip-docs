@@ -33,7 +33,7 @@ Local-path plugins run as trusted local code, under the same trust boundary as t
 
 ## Prereqs
 
-- Node.js 22+ and `pnpm`.
+- Node.js 24 (24.11.0 or newer) and `pnpm`.
 - A local Paperclip checkout you can run from source. Local plugin installs need the running Paperclip server to be able to read the path you point it at — that's almost always the same machine as your editor.
 - The Paperclip CLI on your `PATH`. See [Installation](../guides/getting-started/installation.md) if you don't have it yet.
 

@@ -51,7 +51,7 @@ The dashboard is your control centre. At a glance you can see which agents are a
 
 ## What you need to get started
 
-- Node.js 20 or later (macOS, Linux, or Windows)
+- Node.js 24 or later (macOS, Linux, or Windows)
 - An API key from [Anthropic](https://console.anthropic.com) or [OpenAI](https://platform.openai.com) — the guide covers how to get one
 
 > **Warning:** Using AI agents costs money. Anthropic and OpenAI charge per use, and an active agent team can spend $20–100+ per month depending on how many agents you run and how often they work. You'll set budgets in Paperclip to keep spending under control — but be aware of this before you start.
