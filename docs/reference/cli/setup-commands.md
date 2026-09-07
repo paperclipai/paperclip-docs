@@ -70,7 +70,7 @@ paperclipai run --no-repair
 
 ## `paperclipai onboard`
 
-Interactive first-run setup. Use it to create a brand-new local install or to rebuild the config from guided prompts. It writes the config (default `~/.paperclip/instances/<id>/config.json`), provisions the `PAPERCLIP_AGENT_JWT_SECRET` into the adjacent `.env` file, and creates the local secrets key file.
+Interactive first-run setup. Use it to create a brand-new local install or to rebuild the config from guided prompts. It writes the config (default `~/.paperclip/instances/<id>/config.json`), provisions the `PAPERCLIP_AGENT_JWT_SECRET` and `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` into the adjacent `.env` file, and creates the local secrets key file.
 
 ```sh
 paperclipai onboard
@@ -100,7 +100,7 @@ Near the end of the wizard, `onboard` offers to install Paperclip as a backgroun
 
 Once the service is running, onboarding hands you off to it instead of stopping at the terminal: it waits for the service to report the port it actually bound (a fallback port is used automatically if the configured one is busy), prints the dashboard URL, and — on an interactive terminal — opens it in your browser. Headless and non-interactive runs print the URL without launching a browser. Set `PAPERCLIP_NO_BROWSER=1` to keep onboarding from opening a browser even in an interactive terminal. If the service does not come up in time, onboarding says so and points you at `paperclipai service logs` rather than claiming success.
 
-> **Note:** If a valid config already exists, `onboard` preserves it unchanged, ensures the agent JWT secret and secrets key exist, and prints next-step commands. Use [`configure`](#paperclipai-configure) to change settings on an existing install rather than re-onboarding.
+> **Note:** If a valid config already exists, `onboard` preserves it unchanged, ensures the agent JWT secret, the tool-action signing secret, and the secrets key exist, and prints next-step commands. Use [`configure`](#paperclipai-configure) to change settings on an existing install rather than re-onboarding.
 
 When the instance is `authenticated` with the embedded database, the bootstrap CEO invite is deferred until the server is running — `onboard` reminds you to run `paperclipai run` then [`auth bootstrap-ceo`](#paperclipai-auth-bootstrap-ceo).
 

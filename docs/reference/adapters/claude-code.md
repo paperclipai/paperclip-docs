@@ -31,12 +31,12 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
 | `engine` | no | How Claude Code is run: `auto` (the default — ACP preferred), `acp` (always the Agent Client Protocol), or `cli` (always the classic Claude CLI). See [ACP Engine](#acp-engine). |
-| `model` | no | Claude model id. Common choices include `claude-opus-4-6`, `claude-sonnet-4-6`, and `claude-haiku-4-6`. |
+| `model` | no | Claude model id. Common choices include `claude-opus-4-8`, `claude-sonnet-5`, and `claude-fable-5-1`. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `env` | no | Environment variables passed to Claude Code. Secret refs are supported. |
 | `command` | no | Defaults to `claude`. Override only if you need a different executable path. |
 | `extraArgs` | no | Extra CLI arguments appended to the Claude invocation. |
-| `effort` | no | Reasoning effort passed with `--effort` (`low`, `medium`, or `high`). |
+| `effort` | no | Reasoning effort passed with `--effort` (`low`, `medium`, or `high`). In a sandbox environment whose Claude CLI is too old to advertise `--effort`, Paperclip drops the flag and warns you to upgrade the environment's Claude Code to restore reasoning-effort control. |
 | `chrome` | no | Passes `--chrome` when enabled. |
 | `maxTurnsPerRun` | no | Caps the number of agentic turns in one heartbeat. Defaults to `300`. |
 | `dangerouslySkipPermissions` | no | Defaults to `true` because Paperclip runs Claude in headless `--print` mode. |
@@ -92,6 +92,8 @@ Here's how the list is built:
 Discovered models are cached for about a minute (keyed to the API key and base URL in use), so reopening the form is instant. When you want the freshest list — say you've just been granted access to a new model — use the model field's **refresh** control to force a new lookup that bypasses the cache.
 
 > **Tip:** The `model` field still accepts any model id you type in. Discovery is there to save you from remembering exact identifiers, not to restrict you to the listed choices.
+
+> **Heads-up:** Claude Fable 5.1 (`claude-fable-5-1`, or `us.anthropic.claude-fable-5-1` on Bedrock) needs Claude Code `2.1.251` or newer on the CLI lane. If the installed CLI is older, the environment test and the run both fail fast with `claude_cli_version_incompatible` instead of launching against an unsupported binary — upgrade Claude Code on the target host to use it.
 
 ---
 

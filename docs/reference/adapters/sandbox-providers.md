@@ -75,7 +75,26 @@ These defaults only apply when you leave a field unset — an explicit value (in
 
 ### Resource overrides need an image
 
-Optional `cpu` (cores), `memory` (GiB; one of `1`, `2`, `4`, `8`), `disk` (GiB), and `gpu` (units) let you request a larger sandbox — but Daytona only honours resource overrides on image-backed creation. Snapshot/default creation rejects them. The driver enforces this up front: if you set any of these fields without an `image`, validation and lease acquisition fail with a clear Paperclip error ("Daytona resource settings require image-backed sandbox creation; snapshot/default sandbox creation cannot override CPU, memory, disk, or GPU") instead of letting Daytona return an opaque one. To run a sized sandbox, configure an `image`; otherwise leave the resource fields unset and Daytona uses its defaults.
+Optional `cpu` (cores, default `4`), `memory` (GiB; one of `1`, `2`, `4`, `8`, default `4`), `disk` (GiB, default `10`), and `gpu` (units) let you request a larger sandbox — but Daytona only honours resource overrides on image-backed creation. Snapshot/default creation rejects them. The driver enforces this up front: if you set any of these fields without an `image`, validation and lease acquisition fail with a clear Paperclip error ("Daytona resource settings require image-backed sandbox creation; snapshot/default sandbox creation cannot override CPU, memory, disk, or GPU") instead of letting Daytona return an opaque one. To run a sized sandbox, configure an `image`; otherwise leave the resource fields unset and Daytona uses its defaults. The default image reference is `daytonaio/sandbox:0.8.0`.
+
+### Warm runner lifecycle (opt-in)
+
+Beyond `reuseLease`, two fields control how the `paperclip_runner` process lives across the turns of a single run:
+
+| Field | Default | Notes |
+|---|---|---|
+| `runnerLifecycleMode` | `"inherit"` | One of `inherit`, `per_turn`, or `warm`. `inherit` uses the agent's own setting. `warm` keeps `runnerd` and the sandbox available between turns instead of tearing them down each turn. `per_turn` reclaims them after every turn. |
+| `runnerIdleTimeoutMs` | `300000` (5 min) | How long an idle warm runner stays alive before it checkpoints and suspends. Validated between `1000` and `86400000` ms. |
+
+`warm` trades a little idle cost for lower per-turn latency, since the runner and sandbox don't have to spin back up between turns. `runnerIdleTimeoutMs` is the backstop that suspends a warm runner nobody is using.
+
+### Liveness timeout
+
+`livenessTimeoutMs` (default `30000`) is the per-call timeout for the sandbox liveness read. If a sandbox connection goes silently unresponsive, the read fails fast with an error instead of stalling until the outer operation timeout. Set it to `0` or less to disable the bound. The `timeoutMs` create/start/stop/execute budget is unaffected — start and recovery calls derive their deadline from `timeoutMs`, not this field.
+
+### Interactive agent login
+
+Daytona is the one bundled provider that hosts an interactive coding-agent login on a real pseudo-terminal inside the sandbox (it advertises `supportsLoginPty`). This is what lets you sign an agent into its upstream CLI — Claude (`claude setup-token`), Codex (`codex login --device-auth`), or Grok (`grok login --device-auth`) — from inside a Daytona sandbox. The login runs on a terminal so its browser device code and prompts stream back to you, and Paperclip delivers the code you paste plus the Enter keystroke over the terminal rather than on a command line. Credentials land in a per-login session home under `/tmp/paperclip-adapter-login/` inside the sandbox. No configuration is required to enable this — it's available on every configured Daytona image or snapshot.
 
 ---
 

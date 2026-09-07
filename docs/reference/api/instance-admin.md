@@ -18,16 +18,30 @@ These surfaces are stable enough to call from your own tooling, but they are int
 
 | Endpoint | Purpose |
 |---|---|
+| `GET /api/instance/settings` | Read the full instance-settings record (general and experimental blocks together, plus the instance default environment). Readable by any authenticated org member. |
+| `PATCH /api/instance/settings` | Update the settings record. Body is validated against `patchInstanceSettingsSchema`. Setting `defaultEnvironmentId` picks the instance default execution environment. |
 | `GET /api/instance/settings/general` | Read general instance settings (display name, defaults, etc.). |
 | `PATCH /api/instance/settings/general` | Update general settings. Body is validated against `patchInstanceGeneralSettingsSchema`. |
 | `GET /api/instance/settings/experimental` | Read the experimental-features block. |
 | `PATCH /api/instance/settings/experimental` | Toggle experimental features. Body is validated against `patchInstanceExperimentalSettingsSchema`. |
-| `POST /api/instance/settings/experimental/issue-graph-liveness-auto-recovery/preview` | Preview what the auto-recovery sweep would change without applying. |
-| `POST /api/instance/settings/experimental/issue-graph-liveness-auto-recovery/run` | Run the auto-recovery sweep. |
 
-The experimental "issue-graph-liveness auto-recovery" routes are paired: preview produces a dry-run summary; run applies the same changes. Both share the `issueGraphLivenessAutoRecoveryRequestSchema` body shape.
+The two `GET` routes only need authenticated org access; every `PATCH` requires instance-admin (a `local_implicit` board session in local trusted mode also passes). On a cloud-managed instance the platform pins `executionMode` in general settings, so an attempt to change it returns `403` with code `execution_mode_platform_managed`; settings the hosting operator has hidden are likewise floored with code `settings_operator_managed`, though a same-value write always passes.
 
 The experimental-settings response and patch body include `enableBuiltInAgents` as a boolean. Set it to `true` before using the [Built-in Agents API](./built-in-agents.md); while it is off, those routes return `404 Not Found`.
+
+---
+
+## Task drain
+
+Task drain is an instance-wide pause on picking up new work: while it is on, agents stop being handed fresh tasks so you can wind the instance down cleanly (before a restart or maintenance window, say) without cancelling what is already running.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/instance/task-drain` | Read the current drain status (whether draining, and when it started/expires). Readable by any authenticated org member. |
+| `POST /api/instance/task-drain` | Start (or refresh) a drain. Body is validated against `startTaskDrainRequestSchema`; pass an optional `ttlMs` to have the drain expire automatically after that many milliseconds, or omit it for a drain that stays on until you stop it. Returns the resulting drain state. |
+| `DELETE /api/instance/task-drain` | Stop draining. Returns `{ "wasActive": <boolean> }` — whether a drain was in effect when you called. |
+
+Reading the status needs only authenticated org access; starting and stopping a drain require instance-admin. Overlapping start/stop calls are serialised, so the audit log and the live drain state always agree.
 
 ---
 

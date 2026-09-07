@@ -68,6 +68,22 @@ Your service can use `PAPERCLIP_API_URL` and a Paperclip API key to call back in
 
 ---
 
+## Private vs public endpoints
+
+Every request the HTTP adapter sends is checked at the socket boundary before it connects, so you can't accidentally point a webhook at something inside your own network. Public origins are allowed by default. Origins that resolve to private, reserved, or loopback addresses — including `localhost`, `10.0.0.0/8`, `192.168.0.0/16`, and friends — are rejected. Link-local metadata endpoints (like a cloud provider's `169.254.x.x`) are always blocked and can't be opted back in.
+
+The check also pins the DNS result: the address the guard approves is the address the socket dials. That closes the door on a hostname that resolves to a public address during the check and a private one a moment later.
+
+If your runtime genuinely lives on a private origin — an internal service, a webhook on your own subnet — you opt it in explicitly with the `PAPERCLIP_HTTP_ADAPTER_PRIVATE_ENDPOINT_ALLOWLIST` environment variable on the Paperclip host. It's a comma-separated list of **exact origins**, where an origin is the scheme, host, and port together (for example `http://hooks.internal.example:8080`). Matching is case-insensitive, and each entry must:
+
+- use `http` or `https`,
+- carry no path beyond `/`,
+- include no userinfo, query string, or fragment.
+
+Anything that doesn't parse as a clean origin is ignored rather than loosely matched, so a typo silently drops out of the allowlist instead of opening more than you meant. An origin only reaches private networking when it matches an allowlist entry exactly — a different port or scheme is a different origin. See the [environment variables reference](../deploy/environment-variables.md) for the full entry.
+
+---
+
 ## Environment Test
 
 The `Test Environment` button checks:
@@ -76,7 +92,7 @@ The `Test Environment` button checks:
 - The configured method is valid.
 - The endpoint responds to a quick `HEAD` probe when reachable.
 
-If the probe fails in a private network, that can still be acceptable. The important part is whether the runtime can actually receive the production request.
+If the probe fails in a private network, that can still be acceptable — the important part is whether the runtime can actually receive the production request. Note that a private origin also has to be on the allowlist described in [Private vs public endpoints](#private-vs-public-endpoints), or the production request is rejected before it connects regardless of what the probe reported.
 
 ---
 

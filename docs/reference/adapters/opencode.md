@@ -109,7 +109,9 @@ OpenCode supports multiple providers. Common ids:
 | Id | Provider |
 |---|---|
 | `openai/gpt-5.2-codex` | OpenAI (default) |
+| `openai/gpt-5.5` | OpenAI |
 | `openai/gpt-5.4` | OpenAI |
+| `openai/gpt-5.4-mini` | OpenAI |
 | `openai/gpt-5.2` | OpenAI |
 | `openai/gpt-5.1-codex-max` | OpenAI |
 | `openai/gpt-5.1-codex-mini` | OpenAI |
@@ -121,7 +123,9 @@ You are not limited to that list, though. OpenCode only resolves a `--model prov
 
 To spare you that, Paperclip registers whatever you put in `model` into the temporary `opencode.json` described above, adding it to that provider's `models` map when it is not already there. Models the catalog already knows keep all of their metadata, and an explicit definition — from your own OpenCode config or from `PAPERCLIP_OPENCODE_PROVIDERS` — always wins, so Paperclip never overwrites one. When it does add an entry, you will see a run note saying it registered the model. Like the rest of the runtime config on this page, this applies when `dangerouslySkipPermissions` is enabled and the target runs locally.
 
-Before a run, Paperclip pre-flights your configured model against `opencode models`. If the model is present in the returned list, the run proceeds. If it is missing, the run is rejected with `Configured OpenCode model is unavailable`, listing a sample of the ids that are available so you can correct the `model` value. The pre-flight is strict on purpose: if the probe returns no models at all, the run stops with `OpenCode returned no models. Run \`opencode models\` and verify provider auth.`, and if the `opencode models` call times out or errors the run stops there too — Paperclip would rather block a run it can't verify than start one that fails partway through.
+Before a run, Paperclip pre-flights your configured model against `opencode models`. If the model is in the returned list, the run proceeds. If the list comes back non-empty but without your model, Paperclip refreshes OpenCode's on-disk catalog once (`opencode models --refresh`) and re-checks before giving up — long-lived hosts can otherwise report a stale catalog while the provider already serves the model. If it's still missing, the run is rejected with `Configured OpenCode model is unavailable: <model>`, listing a sample of the ids that are available so you can correct the `model` value.
+
+The pre-flight is a best-effort guard, not a gate. If `opencode models` can't run — it times out or errors — or returns no models at all, Paperclip logs a warning and proceeds with your configured model rather than blocking the run, since the real invocation is authoritative. (`OPENCODE_ALLOW_ALL_MODELS=true` skips the probe entirely, as described above.)
 
 ---
 

@@ -76,8 +76,8 @@ The **Members** page is where you manage human memberships: who belongs to the o
 
 Paperclip uses four human membership roles. The role determines a set of implicit permission grants:
 
-- **Owner** — full company access. Includes creating agents and skills, managing execution environments, inviting humans and agents, managing members and grants, assigning tasks, and approving join requests.
-- **Admin** — an operator with invite and approval powers. Can create agents and skills, manage execution environments, invite users, assign tasks, and approve join requests. The one thing an Admin cannot do that an Owner can is manage other members' permissions.
+- **Owner** — full company access. Includes creating agents and skills, managing execution environments, inviting humans and agents, managing members and grants, assigning tasks, approving join requests, and managing the tool and MCP setup — connections, runtime slots, gateways, and test calls.
+- **Admin** — an operator with invite and approval powers. Can create agents and skills, manage execution environments, invite users, assign tasks, approve join requests, and manage the tool and MCP setup (connections, runtime, gateways, and test calls) just like an Owner. The one thing an Admin cannot do that an Owner can is manage other members' permissions.
 - **Operator** — a hands-on member who helps run work. Can assign tasks.
 - **Viewer** — read-only access. No built-in grants.
 

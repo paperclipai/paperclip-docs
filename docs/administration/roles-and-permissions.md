@@ -25,8 +25,8 @@ There is also one layer that sits *above* the company: the **instance admin**, c
 
 | Role | Who it's for | Implicit grants |
 |---|---|---|
-| **Owner** | The people who run the company | `agents:create`, `agents:configure`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `joins:approve` |
-| **Admin** | Trusted operators who onboard people and agents | `agents:create`, `agents:configure`, `skills:create`, `environments:manage`, `users:invite`, `tasks:assign`, `joins:approve` |
+| **Owner** | The people who run the company | `agents:create`, `agents:configure`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `joins:approve`, `tools:manage_connections`, `tools:manage_runtime`, `tools:use`, `tools:admin` |
+| **Admin** | Trusted operators who onboard people and agents | `agents:create`, `agents:configure`, `skills:create`, `environments:manage`, `users:invite`, `tasks:assign`, `joins:approve`, `tools:manage_connections`, `tools:manage_runtime`, `tools:use`, `tools:admin` |
 | **Operator** | Hands-on members who help run the work | `tasks:assign` |
 | **Viewer** | Read-only observers | *(none)* |
 
@@ -38,7 +38,7 @@ A fifth option, **Unset**, appears in the role drop-down. It leaves the member w
 
 ## The permission keys
 
-There are twenty-one permission keys. Eight of them show up as defaults on one or more roles; thirteen are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
+There are twenty-one permission keys. Twelve of them show up as defaults on one or more roles; nine are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
 
 | Permission key | What it allows | In which role by default |
 |---|---|---|
@@ -48,13 +48,13 @@ There are twenty-one permission keys. Eight of them show up as defaults on one o
 | `skills:create` | Create and manage company skills | Owner, Admin |
 | `skills:suggest-changes` | Propose changes to a company skill for review, without applying them directly | — (explicit only) |
 | `environments:manage` | Create, edit, and remove the execution environments agents run in | Owner, Admin |
-| `tools:admin` | Set up the tool plumbing a company shares — the stdio command templates behind tool apps, and the MCP gateways agents connect through (including minting and revoking gateway tokens) | — (explicit only) |
-| `tools:manage_connections` | Choose which agents and projects a tool connection is installed on | — (explicit only) |
+| `tools:admin` | Set up the tool plumbing a company shares — the stdio command templates behind tool apps, and the MCP gateways agents connect through (including minting and revoking gateway tokens) | Owner, Admin |
+| `tools:manage_connections` | Choose which agents and projects a tool connection is installed on | Owner, Admin |
 | `tools:manage_profiles` | Reserved for tool profile management. It is grantable today but nothing checks it yet — see the note below | — (explicit only) |
 | `tools:view_audit` | Read the gateway's audit trail of tool calls | — (explicit only) |
 | `audit:view_agent_actions` | Open the company's **Audit** feed — the record of what agents did — and download it as CSV | — (explicit only) |
-| `tools:use` | Try a connection's tools from the board — the test-call surface | — (explicit only) |
-| `tools:manage_runtime` | Inspect the tool runtime slots that are running, and stop or restart them | — (explicit only) |
+| `tools:use` | Try a connection's tools from the board — the test-call surface | Owner, Admin |
+| `tools:manage_runtime` | Inspect the tool runtime slots that are running, and stop or restart them | Owner, Admin |
 | `inbox:manage` | Act on *another* person's inbox. An agent working its own responsible user's inbox does not need this key — see the note below | — (explicit only) |
 | `users:invite` | Create and revoke company invite links | Owner, Admin |
 | `users:manage_permissions` | View and change members' roles and grants | Owner |
@@ -73,13 +73,13 @@ Two of the keys come in matched pairs — a *direct* key that applies a change i
 
 ### About the explicit-only keys
 
-Thirteen keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
+Nine keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
 
 - **`agents:suggest-changes`** and **`skills:suggest-changes`** — the review-gated proposal keys described just above. Grant them to a member (or agent) you want proposing improvements without direct write access.
 - **`tasks:assign_scope`** is how you let someone delegate *within their lane* without giving them company-wide assignment power. When a member has `tasks:assign_scope` but not `tasks:assign`, Paperclip evaluates the grant against the scope attached to it and allows the assignment only if the target falls inside that scope. Set the scope in the grant payload (via the member editor's grant, or `member role-and-grants` on the CLI).
 - **`tasks:manage_active_checkouts`** is an escape hatch. Normally an issue that an agent has checked out is off-limits to others until it's released; this grant lets the holder reassign or clear that active checkout — handy when an agent has stalled mid-task.
 - **`pipelines:write`** lets a member create and edit pipeline automations. Grant it to whoever runs your pipelines; it is kept off the standard roles so pipeline authorship is a deliberate choice.
-- **The six `tools:*` keys** cover the tools and MCP surface, and none of them ride along with a role — connecting an outside tool to your agents is always a deliberate choice. Split them by job: `tools:admin` for whoever wires up apps and gateways, `tools:manage_connections` for whoever decides which agents get a connection, `tools:use` for people who need to test-call a tool, `tools:manage_runtime` for whoever babysits running tool processes, and `tools:view_audit` for anyone who needs to read the call trail without touching the setup. Note that `tools:admin` is not a superset — holding it does not imply the others, so grant each key you actually need.
+- **Two of the six `tools:*` keys** remain explicit-only: `tools:view_audit` (read the gateway's call trail without touching the setup) and `tools:manage_profiles` (reserved and unchecked — see the note below). The other four now ride along with the **Owner** and **Admin** roles by default — `tools:manage_connections` (decide which agents get a connection), `tools:manage_runtime` (babysit running tool processes), `tools:use` (test-call a tool), and `tools:admin` (wire up apps and gateways). If you want a non-Owner, non-Admin member to hold one of those four, grant it explicitly — and note that `tools:admin` is not a superset, so holding it does not imply the others. Grant each key you actually need.
 - **`audit:view_agent_actions`** opens the **Audit** page in the sidebar — the company-wide feed of what your agents did, and the matching **Audit** tab on an individual agent. It also covers the **Export CSV** button on that page. Without the grant, the page still loads but shows a permission notice instead of the feed, so you can hand it out to an auditor or a compliance reviewer without giving them anything else. Two exceptions bypass the check: instance admins, and a board running in local trusted mode. Worth knowing before you grant it — the export is itself recorded in the log, together with who ran it, which filters they used, and how many rows left the system. This key is separate from `tools:view_audit`: that one covers the tool gateway's call trail, this one covers agent actions across the company.
 - **`inbox:manage`** governs *cross-user* inbox access. It matters most for agents: an agent may act on the inbox of the user it is responsible for without holding this key at all, but the moment it needs to touch someone else's inbox, Paperclip looks for an `inbox:manage` grant — and then checks that the grant's scope actually covers the user being acted on. Grant it, scoped, to an agent you want triaging inboxes beyond its own responsible user.
 

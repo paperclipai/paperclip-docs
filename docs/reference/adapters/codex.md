@@ -34,8 +34,9 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 | `model` | no | Codex model id. See [Models](#models). If you leave it unset, the adapter omits `--model` so the Codex CLI uses its own default. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `instructionsFilePath` | no | Markdown file prepended to the stdin prompt sent to `codex exec`. |
-| `modelReasoningEffort` | no | Reasoning effort override passed through Codex config. |
+| `modelReasoningEffort` | no | Reasoning effort override passed through Codex config. Most models accept `minimal`, `low`, `medium`, `high`, or `xhigh`; `gpt-6-astra` instead accepts `low`, `medium`, `high`, `xhigh`, `max`, or `ultra`. |
 | `search` | no | Runs Codex with `--search`. |
+| `fastMode` | no | Enables Codex Fast mode by setting `service_tier="fast"` and `features.fast_mode=true`. Supported on `gpt-6-astra`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, and `gpt-5.4`, and passed through for manual model ids. When the configured model can't use it, Paperclip ignores the setting and notes why. |
 | `dangerouslyBypassApprovalsAndSandbox` | no | Bypasses Codex safety checks for unattended runs. |
 | `command` | no | Defaults to `codex`. |
 | `extraArgs` | no | Extra CLI arguments appended to the Codex invocation. |
@@ -84,8 +85,8 @@ An environment that only runs one-shot commands cannot host an ACP session, so `
 
 Pick any of the known Codex model ids in the `model` field. The current options are:
 
-- `gpt-5.6` (the adapter default)
-- `gpt-5.6-sol`
+- `gpt-5.6-sol` (the adapter default)
+- `gpt-6-astra`
 - `gpt-5.6-terra`
 - `gpt-5.6-luna`
 - `gpt-5.4`
@@ -99,6 +100,8 @@ Pick any of the known Codex model ids in the `model` field. The current options 
 - `codex-mini-latest`
 
 You can also type a model id that is not in this list. Anything Paperclip does not recognize is treated as a manual model id and passed straight through to the Codex CLI.
+
+> **Heads-up:** The default is now the concrete `gpt-5.6-sol` slug. The bare `gpt-5.6` alias has no OpenAI-published metadata, so Paperclip rewrites `gpt-5.6` to `gpt-5.6-sol` automatically — an agent still configured with the old alias keeps working and stops triggering the CLI's "model metadata not found" warning.
 
 > **Tip:** Leave `model` empty to let Codex choose. When no model is set, the adapter omits the `--model` flag entirely so the Codex CLI falls back to its own default model.
 
@@ -172,6 +175,12 @@ Each `codex_local` agent runs against its own managed Codex home, so one agent c
 - **Your own `CODEX_HOME` is left alone.** If you point the adapter at a `CODEX_HOME` outside Paperclip's managed company tree, Paperclip treats it as self-managed and never seeds or overwrites it.
 - **No silent credential-less runs.** If a managed home ends up with no usable login and no configured API key, the run fails fast with a clear adapter error instead of starting Codex and hitting a `401` from the provider.
 
+### Signing in inside a sandbox
+
+When an agent runs in a Paperclip sandbox environment that has no ready Codex login, the environment test reports that authentication is missing and Paperclip can start an interactive device login for you. Complete the login in your browser and Paperclip promotes the resulting subscription credential into the company scope so later heartbeats reuse it.
+
+Paperclip also keeps a company-scoped, identity-keyed cache of subscription credentials (one usable credential per account), so a fresher login recovered from a sandbox run can refresh an account the host already holds. The cache never seeds an empty host and never switches which account an agent uses. It is on by default; set `PAPERCLIP_CODEX_AUTH_CACHE` to a falsy value (`0`, `false`, `no`, or `off`) on the Paperclip host to turn it off.
+
 ### CODEX_HOME sync into a sandbox
 
 When this agent runs in a Paperclip sandbox, the adapter does not copy your whole Codex home into the sandbox. Instead it stages an explicit allowlist, so only the material a run actually needs crosses the boundary and none of your host-local runtime state comes along for the ride. The synced entries are:
@@ -236,7 +245,7 @@ Paperclip writes these definitions into a managed region of the per-company mana
   "adapterType": "codex_local",
   "adapterConfig": {
     "cwd": "/Users/me/projects/paperclip-workspace",
-    "model": "gpt-5.6",
+    "model": "gpt-5.6-sol",
     "instructionsFilePath": "/Users/me/projects/paperclip-workspace/INSTRUCTIONS.md",
     "modelReasoningEffort": "medium",
     "search": false,

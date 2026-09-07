@@ -1,7 +1,7 @@
 ---
 paperclip_version: v2026.824.0
 seo_title: Agents API
-seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate API keys, sync skills, read the org chart, and trigger runs manually.
+seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate keys, sync skills, trigger runs, and register managed and remote agent profiles.
 ---
 
 # Agents
@@ -18,6 +18,7 @@ Use this API when you need to create agents, inspect their configuration, manage
 - `GET /api/agents/:id` accepts either a UUID or a company-unique shortname, but shortname lookup only works when the server knows the company context. In practice that means `?companyId=...` or agent auth.
 - Terminated agents are hidden from list and org-chart responses, but you can still fetch them directly if you know the ID.
 - `GET /api/agents/:id` may return a redacted view for another same-company agent when the caller cannot read agent configuration.
+- Every response that serializes an agent redacts plaintext `adapterConfig.env` values as `***REDACTED***` — including `GET /api/agents/me` and the responses returned from create and update. Only `secret_ref` and `user_secret_ref` bindings pass through unchanged, because they are references rather than the secret value itself.
 
 ---
 
@@ -1027,6 +1028,7 @@ Instead of pasting an `ANTHROPIC_API_KEY`, a company owner can log Claude in wit
 |---|---|
 | `GET /api/companies/{companyId}/claude-oauth-token-status` | Read whether a stored Claude OAuth token exists for the authenticated owner. Returns only the secret id and latest version — never a token. A missing or foreign value returns the same fixed `404`. |
 | `POST /api/companies/{companyId}/setup-token-login-sessions` | Start a login session. Body: `{ "environmentId": "<uuid>", "adapterType": "claude_local", "overwrite"?: { … } }`. Returns `201`. |
+| `GET /api/companies/{companyId}/setup-token-login-sessions/active` | Rediscover the caller's own active session without a session id — handy after a browser reload with no local state. Returns the panel mode and the one-time prompt, sent with `Cache-Control: no-store, private`. A non-owner, a foreign company, or no active session all return the same fixed `404`. |
 | `GET /api/companies/{companyId}/setup-token-login-sessions/{sessionId}` | Read the session status. |
 | `GET /api/companies/{companyId}/setup-token-login-sessions/{sessionId}/prompt` | Read the one-time login prompt (the authorization URL to open in a browser). |
 | `POST /api/companies/{companyId}/setup-token-login-sessions/{sessionId}/code` | Submit the code the browser hands back. Body: `{ "browserCode": "…" }`. |
@@ -1037,6 +1039,56 @@ Two things to know:
 
 - **No response ever carries a token.** The completion returns only the opaque `storedSessionId` claim; the stored value lives in the company's secrets.
 - **The prompt, code, and completion calls require a confidential transport.** Over a non-confidential connection the guard returns `403` — these steps move the login material, so they refuse to run in the clear.
+
+---
+
+## Managed and Remote Agent Profiles
+
+Not every agent runs from an editable adapter config. Sometimes an operator qualifies a fixed backend once — a Claude Managed Agent, or a remote runner such as AWS Bedrock AgentCore — and stores it as a company-scoped **profile**. Runtime inputs then copy the immutable resource identity from the profile row instead of trusting an agent's own adapter config. Credentials never live in the profile itself: managed profiles link a company secret by id, and remote profiles carry no credential at all.
+
+Both profile APIs are board-only and company-scoped, and both `POST` routes upsert (keyed by `profileKey`) and return `201`.
+
+### Managed agent profiles
+
+`GET /api/companies/{companyId}/managed-agent-profiles`
+`POST /api/companies/{companyId}/managed-agent-profiles`
+
+The request body accepts:
+
+| Field | Notes |
+|---|---|
+| `profileKey` | Company-unique key for the profile. |
+| `displayName` | Human-friendly label. |
+| `anthropicAgentId` | The managed agent's immutable public id. |
+| `agentVersion` | The qualified agent version. |
+| `environmentId` | The managed environment id. |
+| `defaultModel` | Model id. Defaults to `claude-sonnet-5`. |
+| `defaultMaxListCostUsd` | Per-list cost ceiling in US dollars. Defaults to `1` and must be positive; the server stores it internally as `defaultMaxListCostCents`. |
+| `apiKeySecretId` | Id of the company secret that holds the API key. The credential stays in the secret store. |
+| `enabled` | Whether the profile is active. Defaults to `false`. |
+| `retentionAcknowledged` | Whether the operator has acknowledged data retention. Defaults to `false`. |
+| `qualification` | Free-form qualification-evidence object. |
+
+The stored profile also exposes `service` (always `anthropic_managed_agents`), `betaVersion`, `qualifiedAt`, `qualifiedRevision`, and the usual timestamps. A profile can only be qualified/enabled once its qualification is attested. Upserts are logged as `managed_agent_profile.upserted`.
+
+### Remote agent profiles
+
+`GET /api/companies/{companyId}/remote-agent-profiles`
+`POST /api/companies/{companyId}/remote-agent-profiles`
+
+The list route accepts an optional `?service=` filter. The request body accepts:
+
+| Field | Notes |
+|---|---|
+| `profileKey` | Company-unique key for the profile. |
+| `displayName` | Human-friendly label. |
+| `service` | Remote runner service. Currently only `aws_bedrock_agentcore_harness` is accepted. |
+| `configuration` | Service-specific configuration object. |
+| `enabled` | Whether the profile is active. Defaults to `false`. |
+| `retentionAcknowledged` | Whether the operator has acknowledged data retention. Defaults to `false`. |
+| `qualification` | Free-form qualification-evidence object. |
+
+AWS AgentCore authenticates through the runner environment's workload identity, so the profile stores no credential. Sending a `credentialSecretId` is rejected with `422 Unprocessable Entity`, and an unsupported `service` value is rejected the same way. The stored profile also exposes `qualifiedAt`, `qualifiedRevision`, and timestamps. Upserts are logged as `remote_agent_profile.upserted`.
 
 ---
 

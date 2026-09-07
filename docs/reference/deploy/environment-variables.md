@@ -372,3 +372,29 @@ The local CLI adapters can be pointed at a custom or remote OpenAI-compatible ga
 | `PAPERCLIP_OPENCODE_SMALL_MODEL` | `opencode_local` | Sets OpenCode's `small_model` (the auxiliary/helper model). See [OpenCode](../adapters/opencode.md). |
 
 Values support `{env:VAR}` placeholders, which are expanded server-side so secrets stay out of the stored JSON.
+
+---
+
+## Paperclip ID Connector (Gmail OAuth broker)
+
+These variables point your instance at the Paperclip ID OAuth broker that brokers Gmail and Google Workspace connections for your agents. They are optional — leave them unset unless you run against a self-managed broker. Enroll the instance with Paperclip Cloud first, and keep both private keys in your deployment's secret manager rather than in plain config.
+
+They work as a set: once the connector is configured, the instance ID, both keys, and the environment all have to be present and valid, or the server rejects the configuration.
+
+| Variable | Meaning |
+|---|---|
+| `PAPERCLIP_ID_CONNECTOR_BASE_URL` | Broker base URL. Must use HTTPS; plain `http://` is accepted only for loopback hosts (for example `http://localhost:3000`). URLs carrying userinfo, a query string, or a fragment are rejected. |
+| `PAPERCLIP_ID_CONNECTOR_ENVIRONMENT` | Broker environment. One of `development`, `staging`, or `production`; any other value is rejected. |
+| `PAPERCLIP_ID_CONNECTOR_INSTANCE_ID` | Instance identifier issued when you enroll with the broker. |
+| `PAPERCLIP_ID_CONNECTOR_SIGN_PRIVATE_KEY` | Private signing key for connector requests. Keep it in your secret manager. |
+| `PAPERCLIP_ID_CONNECTOR_SEAL_PRIVATE_KEY` | Private sealing key for connector payloads. Keep it in your secret manager. |
+
+---
+
+## HTTP Adapter Private Endpoint Allowlist
+
+By default, HTTP adapters may call public HTTP(S) origins but not private ones — the socket-level guard rejects private networks and link-local metadata targets and pins DNS results to prevent rebinding. Use this variable to opt specific trusted private origins into HTTP-adapter calls.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PAPERCLIP_HTTP_ADAPTER_PRIVATE_ENDPOINT_ALLOWLIST` | unset (public origins only) | Comma-separated list of exact origins that may be reached over private networking. Each entry is a full origin — scheme, host, and port, like `http://hooks.internal.example:8080` — matched case-insensitively. Entries must be `http` or `https`, carry no path beyond `/`, and no userinfo, query string, or fragment; anything else in the list is ignored. |

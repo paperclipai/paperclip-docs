@@ -118,7 +118,7 @@ The `companyId` has always travelled on the wire — it is the optional `company
 | Client | Purpose |
 |---|---|
 | `PluginConfigClient` | Read and observe the plugin's resolved instance config. |
-| `PluginLocalFoldersClient` | Inspect and configure declared local-folder mounts (`PluginLocalFolderStatus`, `PluginLocalFolderListing`, `PluginLocalFolderProblem`). |
+| `PluginLocalFoldersClient` | Inspect and configure declared local-folder mounts (`PluginLocalFolderStatus`, `PluginLocalFolderListing`, `PluginLocalFolderProblem`, plus the newly exported `PluginLocalFolderConfigureInput`, `PluginLocalFolderListOptions`, and `PluginLocalFolderEntry` shapes for its `configure`/`list` calls). |
 | `PluginEventsClient` | Subscribe to host events (`ctx.events.on(...)`). |
 | `PluginJobsClient` | Register handlers for declared jobs (`ctx.jobs.register(...)`). |
 | `PluginLaunchersClient` | Register launcher render and action handlers (`PluginLauncherRegistration`). |
@@ -131,6 +131,10 @@ The `companyId` has always travelled on the wire — it is the optional `company
 | `ctx.approvals` | Read and decide company approvals — see [Responding to interactions and approvals](#responding-to-interactions-and-approvals). Requires `approvals.read` for `list` / `get` and `approvals.respond` for `decide`. The interface is named `PluginApprovalsClient` in the SDK source but is not currently re-exported as a name; it is reachable from `PluginContext`. |
 | `ctx.routines` | Resolve and reconcile plugin-managed Paperclip routines (`ctx.routines.managed`). Requires the `routines.managed` capability. The interface type is not currently re-exported as a name, but it is reachable from `PluginContext`. |
 | `ctx.execution` | Stream live output from a long-running `execute` call — see [Streaming live command output](#streaming-live-command-output). The interface is named `PluginExecutionClient` in the SDK source but is not currently re-exported as a name; it is reachable from `PluginContext`. |
+| `ctx.access` | Read and manage company memberships and invites (`ctx.access.members`, `ctx.access.invites`) — see [Access and authorization](#access-and-authorization). The client is `PluginAccessClient`, with `PluginAccessMembersClient` and `PluginAccessInvitesClient` behind it. Requires the `access.*` capabilities. |
+| `ctx.authorization` | Read and manage authorization grants, policy summaries, assignment previews, and the authorization audit trail — see [Access and authorization](#access-and-authorization). The client is `PluginAuthorizationClient`. Requires the `authorization.*` capabilities. |
+| `ctx.loginPty` | Stream one live login pseudo-terminal's output and exit from an environment-driver worker — see [Login PTY and duplex channel streaming](#login-pty-and-duplex-channel-streaming-optional). The interface is named `PluginLoginPtyClient` in the SDK source but is not currently re-exported as a name; it is reachable from `PluginContext`. |
+| `ctx.duplexChannel` | Stream one persistent duplex channel's data and exit from an environment-driver worker — see [Login PTY and duplex channel streaming](#login-pty-and-duplex-channel-streaming-optional). The interface is named `PluginDuplexChannelClient` in the SDK source but is not currently re-exported as a name; it is reachable from `PluginContext`. |
 | `PluginDataClient` | Register data feeds the UI can query (`ctx.data.register(...)`). |
 | `PluginActionsClient` | Register host-invokable actions. |
 | `PluginStreamsClient` | Stream-style host APIs. |
@@ -311,6 +315,31 @@ Declare these in your manifest's `capabilities` — the host's capability valida
 
 All five are members of `PLUGIN_CAPABILITIES`, which the SDK re-exports if you want to check values at runtime.
 
+### Access and authorization
+
+Two new context clients let a plugin read and manage *who* belongs to a company and *what* they're allowed to do — the same members, invites, permission grants, and policy surfaces the web app exposes. Both are capability-gated, and the write halves stay on the same board-user footing as the rest of the SDK: the host re-verifies the acting identity rather than taking a plugin's word for it.
+
+#### Members and invites with `ctx.access`
+
+`ctx.access` is a `PluginAccessClient` with two sub-clients:
+
+- `ctx.access.members` (`PluginAccessMembersClient`) — `list({ companyId, includeArchived? })`, `get(memberId, companyId)`, and `update(memberId, patch, companyId)`. Each row is a `PluginAccessMember` carrying `id`, `companyId`, `principalType` (`PrincipalType`), `principalId`, `status` (`MembershipStatus`), `membershipRole`, and `grants` (`PrincipalPermissionGrant[]`). `update`'s patch narrows the writable fields to `membershipRole` (`HumanCompanyMembershipRole | null`) and `status` (`"pending" | "active" | "suspended"`). Requires `access.members.read` for the reads and `access.members.write` for `update`.
+- `ctx.access.invites` (`PluginAccessInvitesClient`) — `list({ companyId, state?, limit?, offset? })` (returns `{ invites, nextOffset }`), `create({ companyId, allowedJoinTypes?, humanRole?, defaultsPayload?, agentMessage? })`, and `revoke(inviteId, companyId)`. Each invite is a `PluginAccessInvite` with a `state` of `"active" | "revoked" | "accepted" | "expired"`; `create` returns the invite plus a one-time `token`. Requires `access.invites.read` for `list` and `access.invites.write` for `create` / `revoke`.
+
+#### Grants, policies, and audit with `ctx.authorization`
+
+`ctx.authorization` is a `PluginAuthorizationClient` grouped into `grants`, `policies`, and `audit`:
+
+- `grants.list(...)` and `grants.set(...)` read and replace a principal's `PrincipalPermissionGrant[]`, keyed on `permissionKey` (`PermissionKey`) and an optional `scope`. Requires `authorization.grants.read` / `authorization.grants.write`.
+- `policies.summary(companyId)` returns a `PluginAuthorizationPolicySummary` (member and grant counts, `permissionsMode: "simple"`). `policies.get(...)` / `policies.update(...)` read and write a `PluginAuthorizationPolicyRecord` for a `resourceType` of `"company" | "agent" | "project" | "issue"`. `policies.previewAssignment(...)` and `policies.explainAssignment(...)` take a `PluginAssignmentPreviewInput` and return a `PluginAuthorizationDecisionResult` (`allowed`, `action`, `explanation`, `reason`, and the matched `grant`). Requires `authorization.policies.read` / `authorization.policies.write`.
+- `audit.search(...)` returns `PluginAuthorizationAuditEntry[]`. Requires `authorization.audit.read`.
+
+The domain shapes these methods lean on — `PrincipalType`, `MembershipStatus`, `HumanCompanyMembershipRole`, `PermissionKey`, and `PrincipalPermissionGrant` — are re-exported from the SDK, so you import them from `@paperclipai/plugin-sdk` alongside everything else. Their matching runtime constant arrays (`PRINCIPAL_TYPES`, `MEMBERSHIP_STATUSES`, `HUMAN_COMPANY_MEMBERSHIP_ROLES`, `HUMAN_COMPANY_MEMBERSHIP_ROLE_LABELS`, `PERMISSION_KEYS`) are re-exported too — see [Re-exports](#re-exports).
+
+### Action handler context
+
+`ctx.actions.register(key, handler)` now hands your handler an immutable second argument, `context: PluginPerformActionContext`, resolved by the host rather than by caller params. It carries `actor` (a `Readonly<PluginPerformActionActorContext>` with `type: PluginPerformActionActorType` — `"user" | "agent" | "system"` — plus `userId`, `agentId`, `runId`, and `companyId`) and a `companyId` convenience alias for `actor.companyId`. Read the acting identity from here; never trust an actor id passed through the action's own `params`.
+
 ### External-object reference providers
 
 An **external-object reference provider** teaches Paperclip to recognise URLs that point at work living in another system — a GitHub PR, a Linear issue — and to keep a status-aware reference to that object alongside your issues. When an operator pastes a supported URL into issue content, the host detects it, asks your plugin to resolve the current remote status, and then refreshes it on a schedule so the reference renders as a live, status-aware chip across issue surfaces instead of a plain link.
@@ -373,16 +402,20 @@ Helpers and constants:
 - `isJsonRpcRequest`, `isJsonRpcNotification`, `isJsonRpcResponse`, `isJsonRpcSuccessResponse`, `isJsonRpcErrorResponse`
 - `serializeMessage`, `parseMessage`
 - `JsonRpcParseError`, `JsonRpcCallError`
+- `LOGIN_PTY_OUTPUT_NOTIFICATION`, `LOGIN_PTY_EXIT_NOTIFICATION`, `DUPLEX_CHANNEL_DATA_NOTIFICATION`, `DUPLEX_CHANNEL_EXIT_NOTIFICATION` — the worker-to-host notification method names for the login-PTY and duplex-channel streams (see [Login PTY and duplex channel streaming](#login-pty-and-duplex-channel-streaming-optional))
+- `encodeChannelBytes`, `decodeChannelBytes` — convert raw duplex-channel `Uint8Array` bytes to and from their base64 wire form
 
 `PLUGIN_RPC_ERROR_CODES` includes `CROSS_TENANT_CONFIG`, the code the worker raises when a `configChanged` delivery would collapse a single-tenant worker onto a second company's configuration — see [Declaring multi-company support with `multiCompanyConfig`](#declaring-multi-company-support-with-multicompanyconfig).
 
+It also includes `INVOCATION_SCOPE_DENIED`, raised when a worker-to-host call asks for company-scoped data outside the company authorized for the current top-level invocation. That scope rides on the wire as a `PluginInvocationContext` (its `scope` is a `PluginInvocationScope` with a single `companyId`), which the host mints per invocation; the worker treats it as opaque and only echoes its `id` on nested worker-to-host calls — it never authors or mutates it. Host-side handlers receive the echoed scope as a `WorkerHostCallContext`. The matching JSON-RPC envelope shapes are `JsonRpcInvocationScope` and `JsonRpcInvocationContext`, and the host client factory throws [`InvocationScopeDeniedError`](#host-client-factory) when a call escapes its scope.
+
 The worker-to-host method table `WorkerToHostMethods` gained the calls that back the clients above: `issues.listInteractions`, `issues.respondInteraction`, `issues.listAttachments`, `issues.getAttachmentContent`, `approvals.list`, `approvals.get`, and `approvals.decide`.
 
-Protocol types: `JsonRpcId`, `JsonRpcRequest`, `JsonRpcSuccessResponse`, `JsonRpcError`, `JsonRpcErrorResponse`, `JsonRpcResponse`, `JsonRpcNotification`, `JsonRpcMessage`, `JsonRpcErrorCode`, `PluginRpcErrorCode`, plus the parameter shapes for each RPC method: `InitializeParams`, `InitializeResult`, `ConfigChangedParams`, `ValidateConfigParams`, `OnEventParams`, `RunJobParams`, `GetDataParams`, `PerformActionParams`, `ExecuteToolParams`, and the host method tables `HostToWorkerMethods` / `HostToWorkerMethodName` / `WorkerToHostMethods` / `WorkerToHostMethodName` / `HostToWorkerRequest` / `HostToWorkerResponse` / `WorkerToHostRequest` / `WorkerToHostResponse` / `WorkerToHostNotifications` / `WorkerToHostNotificationName`.
+Protocol types: `JsonRpcId`, `JsonRpcInvocationScope`, `JsonRpcInvocationContext`, `JsonRpcRequest`, `JsonRpcSuccessResponse`, `JsonRpcError`, `JsonRpcErrorResponse`, `JsonRpcResponse`, `JsonRpcNotification`, `JsonRpcMessage`, `JsonRpcErrorCode`, `PluginRpcErrorCode`, the invocation-scope shapes `PluginInvocationScope`, `PluginInvocationContext`, and `WorkerHostCallContext`, plus the parameter shapes for each RPC method: `InitializeParams`, `InitializeResult`, `ConfigChangedParams`, `ValidateConfigParams`, `OnEventParams`, `RunJobParams`, `GetDataParams`, `PerformActionParams`, `PluginPerformActionActorType`, `PluginPerformActionActorContext`, `PluginPerformActionContext`, `ExecuteToolParams`, and the host method tables `HostToWorkerMethods` / `HostToWorkerMethodName` / `WorkerToHostMethods` / `WorkerToHostMethodName` / `HostToWorkerRequest` / `HostToWorkerResponse` / `WorkerToHostRequest` / `WorkerToHostResponse` / `WorkerToHostNotifications` / `WorkerToHostNotificationName`.
 
 External-object protocol shapes: `PluginExternalObjectUrlCandidate`, `PluginExternalObjectSourceContext`, `DetectExternalObjectsParams`, `PluginExternalObjectDetection`, `DetectExternalObjectsResult`, `PluginExternalObjectRecordSnapshot`, `ResolveExternalObjectParams`, `PluginExternalObjectResolvedSnapshot`, `PluginExternalObjectResolveResult`, `RefreshExternalObjectsParams`, `RefreshExternalObjectsResult`. See [External-object reference providers](#external-object-reference-providers) for the lifecycle that uses them.
 
-Environment-driver protocol shapes: `PluginEnvironmentDiagnostic`, `PluginEnvironmentDriverBaseParams`, `PluginEnvironmentValidateConfigParams`, `PluginEnvironmentValidationResult`, `PluginEnvironmentProbeParams`, `PluginEnvironmentProbeResult`, `PluginEnvironmentLease`, `PluginEnvironmentAcquireLeaseParams`, `PluginEnvironmentResumeLeaseParams`, `PluginEnvironmentReleaseLeaseParams`, `PluginEnvironmentDestroyLeaseParams`, `PluginEnvironmentRealizeWorkspaceParams`, `PluginEnvironmentRealizeWorkspaceResult`, `PluginEnvironmentExecuteParams`, `PluginEnvironmentExecuteResult`, `PluginSyncFileMapping`, `PluginPostUploadCommand`, `PluginSyncOperation`, `PluginEnvironmentSyncInParams`, `PluginEnvironmentSyncOutParams`, `PluginEnvironmentSyncResult`, `PluginEnvironmentInteractiveSetupStatus`, `PluginEnvironmentInteractiveSetupConnectionType`, `PluginEnvironmentTemplateRefKind`, `PluginEnvironmentInteractiveSetupConnectionSummary`, `PluginEnvironmentInteractiveSetupConnectionPayload`, `PluginEnvironmentInteractiveSetupSession`, `PluginEnvironmentStartInteractiveSetupParams`, `PluginEnvironmentGetInteractiveSetupParams`, `PluginEnvironmentCaptureTemplateParams`, `PluginEnvironmentCaptureTemplateResult`, `PluginEnvironmentCancelInteractiveSetupParams`, `PluginEnvironmentCancelInteractiveSetupResult`, `PluginEnvironmentDeleteTemplateParams`, `PluginEnvironmentDeleteTemplateResult`, `PluginEnvironmentTemplateConfigBinding`. The `PluginSync*` and `PluginEnvironmentSync*` shapes back the optional sandbox file-sync hooks, and the interactive-setup and template-capture shapes back the setup hooks — both described below.
+Environment-driver protocol shapes: `PluginEnvironmentDiagnostic`, `PluginEnvironmentDriverBaseParams`, `PluginEnvironmentValidateConfigParams`, `PluginEnvironmentValidationResult`, `PluginEnvironmentProbeParams`, `PluginEnvironmentProbeResult`, `PluginEnvironmentLease`, `PluginEnvironmentAcquireLeaseParams`, `PluginEnvironmentResumeLeaseParams`, `PluginEnvironmentReleaseLeaseParams`, `PluginEnvironmentDestroyLeaseParams`, `PluginEnvironmentRealizeWorkspaceParams`, `PluginEnvironmentRealizeWorkspaceResult`, `PluginEnvironmentExecuteParams`, `PluginEnvironmentExecuteResult`, `PluginEnvironmentRunnerIngressEndpointParams`, `PluginEnvironmentRunnerIngressEndpoint`, `PluginSyncFileMapping`, `PluginPostUploadCommand`, `PluginSyncOperation`, `PluginEnvironmentSyncInParams`, `PluginEnvironmentSyncOutParams`, `PluginEnvironmentSyncResult`, `PluginEnvironmentInteractiveSetupStatus`, `PluginEnvironmentInteractiveSetupConnectionType`, `PluginEnvironmentTemplateRefKind`, `PluginEnvironmentInteractiveSetupConnectionSummary`, `PluginEnvironmentInteractiveSetupConnectionPayload`, `PluginEnvironmentInteractiveSetupSession`, `PluginEnvironmentStartInteractiveSetupParams`, `PluginEnvironmentGetInteractiveSetupParams`, `PluginEnvironmentCaptureTemplateParams`, `PluginEnvironmentCaptureTemplateResult`, `PluginEnvironmentCancelInteractiveSetupParams`, `PluginEnvironmentCancelInteractiveSetupResult`, `PluginEnvironmentDeleteTemplateParams`, `PluginEnvironmentDeleteTemplateResult`, `PluginEnvironmentTemplateConfigBinding`. The `PluginSync*` and `PluginEnvironmentSync*` shapes back the optional sandbox file-sync hooks, and the interactive-setup and template-capture shapes back the setup hooks — both described below.
 
 #### Streaming live command output
 
@@ -483,6 +516,20 @@ You implement them as optional methods on the object you pass to `definePlugin({
 
 The typical flow is start → get (poll for status and, once authorized, fetch the one-time connection payload) → capture, with cancel as the escape hatch and delete-template as later cleanup.
 
+#### A private ingress for runnerd (optional)
+
+`onEnvironmentRunnerIngressEndpoint(params: PluginEnvironmentRunnerIngressEndpointParams)` lets a driver hand back an authenticated private WebSocket the host's runner can dial into a leased sandbox. The params carry the current `PluginEnvironmentLease` plus the `port` and `path` to reach inside it, and you return a `PluginEnvironmentRunnerIngressEndpoint`: `kind: "authenticated_websocket"`, a `websocketUrl`, an array of `secretHeaders` (`{ name, value }`), and a `generation` string. Only implement it if your provider fronts the sandbox behind an authenticated tunnel; a driver that executes commands directly can ignore it.
+
+#### Login PTY and duplex channel streaming (optional)
+
+Some environment-driver work is a live, bidirectional stream rather than a one-shot command — a Claude `setup-token` login prompt an operator types into, or a long-lived process the host pipes data through. Two matched sets of optional hooks cover those, and each set advertises its methods only when you implement it. A driver that just leases and executes can ignore both entirely.
+
+**Login pseudo-terminal.** Implement `onLoginPtyOpen`, `onLoginPtyInput`, `onLoginPtyStop`, and `onLoginPtyClose` to run one live login terminal. The worker streams the terminal's output and its eventual exit back through `ctx.loginPty` — `output(hostRouteId, workerSessionId, chunk)` for each fresh chunk and `exit(hostRouteId, workerSessionId, exitCode)` when the child ends — never as an RPC reply. The host correlates each chunk to its route by the identifiers you echo, drops anything with an unknown or mismatched id, and never logs the raw bytes; the default client is a no-op that never throws.
+
+**Persistent duplex channel.** Implement `onDuplexChannelOpen`, `onDuplexChannelWrite`, `onDuplexChannelStop`, and `onDuplexChannelClose` for a persistent bidirectional channel. The worker streams through `ctx.duplexChannel` — `data(hostRouteId, workerSessionId, chunk)` and `exit(hostRouteId, workerSessionId, exitCode, transportClosed?)`. Unlike login PTY chunks, channel chunks are raw `Uint8Array` bytes, so the worker-to-host hop base64-encodes them: the exported helpers `encodeChannelBytes(bytes)` and `decodeChannelBytes(value)` convert to and from that wire form, and `decodeChannelBytes` returns `null` for a malformed frame so a caller on the trust boundary treats it as a protocol error rather than silently substituting empty bytes. HTTP/2 is the preferred transport; `queue_v1` is the soft-deprecated fallback.
+
+The four worker-to-host notification method names are exported as constants: `LOGIN_PTY_OUTPUT_NOTIFICATION`, `LOGIN_PTY_EXIT_NOTIFICATION`, `DUPLEX_CHANNEL_DATA_NOTIFICATION`, and `DUPLEX_CHANNEL_EXIT_NOTIFICATION`. The per-hook parameter shapes (`PluginLoginPtyOpenParams`, `PluginDuplexChannelOpenParams`, and friends) live in the SDK's `protocol.ts` but are reachable through the hook signatures rather than re-exported as names.
+
 Launcher render shapes: `PluginModalBoundsRequest`, `PluginRenderCloseEvent`, `PluginLauncherRenderContextSnapshot`.
 
 ### Host client factory
@@ -492,10 +539,11 @@ For embedding the host side of the bridge in tests or custom integrations:
 - `createHostClientHandlers` — build the handler map a host needs to answer worker-to-host RPC calls.
 - `getRequiredCapability` — look up the capability gate a given worker-to-host call sits behind.
 - `CapabilityDeniedError` — thrown by host handlers when the plugin is missing a required capability.
+- `InvocationScopeDeniedError` — thrown by host handlers when a worker-to-host call asks for company-scoped data outside the company authorized for the current top-level invocation. Its `code` is `PLUGIN_RPC_ERROR_CODES.INVOCATION_SCOPE_DENIED`.
 
 Types: `HostServices`, `HostClientFactoryOptions`, `HostClientHandlers`.
 
-`HostServices` groups the handlers you must supply by domain. Alongside the existing `issues` group — which now also needs `listInteractions`, `respondInteraction`, `listAttachments`, and `getAttachmentContent` — there is a new `approvals` group providing `list`, `get`, and `decide`. `getRequiredCapability` is the place to confirm which capability each call sits behind.
+`HostServices` groups the handlers you must supply by domain. Alongside the existing `issues` group — which now also needs `listInteractions`, `respondInteraction`, `listAttachments`, and `getAttachmentContent` — there are the `approvals` group (`list`, `get`, `decide`) and two more new groups: `access` (`listMembers`, `getMember`, `updateMember`, `listInvites`, `createInvite`, `revokeInvite`) and `authorization` (`listGrants`, `setGrants`, `policySummary`, `getPolicy`, `updatePolicy`, `previewAssignment`, `explainAssignment`, `searchAudit`). `getRequiredCapability` is the place to confirm which capability each call sits behind.
 
 ### Bundling and dev server
 
@@ -532,7 +580,9 @@ The harness deliberately mirrors the host's own write bar rather than waving it 
 
 - `z` — `zod` is re-exported so plugin authors do not need to add a separate dependency. Use it for `instanceConfigSchema` and tool `parametersSchema` declarations.
 - `NOOP_PLUGIN_TRACER`, `NOOP_PLUGIN_SPAN` — the default no-op tracer and span (values, not types). Handy as a stand-in when you want the do-nothing default explicitly, e.g. in tests.
-- Constants from `@paperclipai/shared`: `PLUGIN_API_VERSION`, `PLUGIN_STATUSES`, `PLUGIN_CATEGORIES`, `PLUGIN_CAPABILITIES`, `PLUGIN_UI_SLOT_TYPES`, `PLUGIN_UI_SLOT_ENTITY_TYPES`, `PLUGIN_STATE_SCOPE_KINDS`, `PLUGIN_JOB_STATUSES`, `PLUGIN_JOB_RUN_STATUSES`, `PLUGIN_JOB_RUN_TRIGGERS`, `PLUGIN_WEBHOOK_DELIVERY_STATUSES`, `PLUGIN_EVENT_TYPES`, `PLUGIN_BRIDGE_ERROR_CODES`.
+- Constants from `@paperclipai/shared`: `PLUGIN_API_VERSION`, `PLUGIN_STATUSES`, `PLUGIN_CATEGORIES`, `PLUGIN_CAPABILITIES`, `PLUGIN_UI_SLOT_TYPES`, `PLUGIN_UI_SLOT_ENTITY_TYPES`, `PLUGIN_RESERVED_COMPANY_SETTINGS_ROUTE_SEGMENTS`, `PLUGIN_STATE_SCOPE_KINDS`, `PLUGIN_JOB_STATUSES`, `PLUGIN_JOB_RUN_STATUSES`, `PLUGIN_JOB_RUN_TRIGGERS`, `PLUGIN_WEBHOOK_DELIVERY_STATUSES`, `PLUGIN_EVENT_TYPES`, `PLUGIN_BRIDGE_ERROR_CODES`.
+- Access and permission constant arrays from `@paperclipai/shared`, matching the domain types used by [`ctx.access` and `ctx.authorization`](#access-and-authorization): `PERMISSION_KEYS`, `HUMAN_COMPANY_MEMBERSHIP_ROLES`, `HUMAN_COMPANY_MEMBERSHIP_ROLE_LABELS`, `MEMBERSHIP_STATUSES`, `PRINCIPAL_TYPES`.
+- Connection-provider shapes re-exported from `@paperclipai/shared` for plugins that back a connection intent: `ConnectionIntentInteraction`, `ConnectionIntentPayload`, `ConnectionIntentResult`, `ConnectionIntentSetupOptions`, `ConnectionRequestResult`, `ConnectionsSearchResult`.
 
 ---
 

@@ -1,56 +1,61 @@
-# PENDING — nightly sync manifest
+# Pending — nightly sync
 
-> Regenerated from scratch each nightly run (never appended). Reflects the current cumulative diff window.
->
-> **Window:** parent release `v2026.817.0` fork-point (`8f7b8b3`, the merge-base of the tag and `master`) → `05b35d4` (24h-quarantine boundary; parent `master` HEAD `88a0f88` is newer but quarantined).
-> **Scope:** cumulative since the v2026.817.0 docs release — 276 parent commits, 1296 changed files. This run's new slice (`dc5b070` → `05b35d4`) is 7 commits / 94 changed files on top of the previously-drafted catch-up (#98, #99, #107).
-> **Drift (Phase 1.5):** none against `master`. **Reconcile (Phase 3.5):** none (cumulative window is a superset of the prior run — nothing disappeared). **Truncation:** none after the merge-base workaround (`truncated_leaves = 0`).
+_Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-> ⚠️ **Tooling note — diverged release tag (unchanged from prior runs).** `v2026.817.0` (`213dabab`) is **not an ancestor of `master`**, so `compare-window.mjs` can't walk `master`'s ancestry to find the base SHA and its bisection caps at 300 files. **Workaround this run (again):** used the merge-base `8f7b8b3` as the cumulative base — semantically identical to the tag (GitHub `A...B` is already a three-dot diff against the merge-base), but lets the bisection produce the full 1296-file window with `truncated_leaves = 0`. **Fix to consider:** teach `compare-window.mjs` to fall back to `merge_base_commit.sha` from the compare response as the pagination anchor when the base isn't found in `commits?sha=B`.
+- **Window (cumulative):** merge-base `dbf05257` → parent master `af8439a70` (2026-09-06), 277 commits, 24h quarantine applied (commits after 2026-09-06T12:47Z held).
+- **Base note:** the `v2026.831.1` release tag was cut off-master, so its recorded `base_release_sha` (`65ec059`) is not reachable from master. Per the "release tag diverges from master" rule, the cumulative base is the **merge-base** (`dbf05257`), not the tag SHA.
+- **Compare truncation:** one leaf remained truncated — a single 381-file runner-internals commit (`560e7e48`, "add SDK and developer tooling"). Its files are all under `packages/paperclip-runner/**` plus one server test; **none match any watcher glob**, so no docs-relevant file was dropped.
+- **Scope:** exhaustive (user-selected).
 
-## ✅ Auto-merge tier (mechanical)
+## Applied this run (drafted on `nightly`)
 
-- None this slice. The only `.env.example` change in the new slice is unrelated to a user-facing env var (no new `^[A-Z_]+=` rows to append to the environment-variables page).
+### New pages
+- `docs/reference/cli/test-drive.md` — the isolated `paperclipai test-drive` command.
+- `docs/reference/cli/managed-agent.md` — `paperclipai managed-agent setup` (locked-down Anthropic managed agent/environment).
+- `docs/reference/cli/connections.md` — `paperclipai connections search|request` (runtime connection intents from a heartbeat run).
+- `docs/reference/api/connection-intents.md` — runtime MCP tools + board-side connection-intent routes.
 
-## 📝 PR tier — applied this run
+### Updated pages
+- `docs/reference/deploy/environment-variables.md` — **auto-merge**: 6 new vars (5× `PAPERCLIP_ID_CONNECTOR_*` Gmail/Workspace OAuth broker; `PAPERCLIP_HTTP_ADAPTER_PRIVATE_ENDPOINT_ALLOWLIST`).
+- `docs/reference/cli/adapter.md` — removed the dropped `adapter model-profiles` subcommand.
+- `docs/reference/cli/setup-commands.md` — `onboard` now provisions `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET`.
+- `docs/reference/api/agents.md` — managed/remote agent-profiles endpoints, setup-token active-session route, agent-config env redaction rule.
+- `docs/reference/api/instance-admin.md` — added instance-settings + task-drain routes; **removed** the experimental `issue-graph-liveness-auto-recovery` preview/run routes (drift, confirmed removed).
+- `docs/administration/roles-and-permissions.md`, `docs/administration/company.md` — owner/admin `tools:*` default grants reconciled to `grantsForHumanRole()`.
+- `docs/reference/api/tool-gateway.md` — new tool-connection grants, toolkit services, usage, per-agent test-access, and agent self-service authorization routes.
+- `docs/reference/adapters/grok-local.md`, `codex.md`, `opencode.md`, `claude-code.md` — device-login/auth flows, new models, `fastMode`, effort-flag & Fable 5.1 CLI gate, best-effort model checks.
+- `docs/reference/adapters/http.md`, `sandbox-providers.md` — HTTP private-endpoint guard/allowlist; Daytona warm-runner lifecycle, liveness timeout, interactive login PTY.
+- `docs/reference/plugins/sdk.md` — new access/authorization clients, login-PTY & duplex-channel hooks, invocation scope, protocol constants.
+- `docs/guides/day-to-day/command-palette.md` — sidebar "Recent Tasks" section.
+- `docs/how-to/connect-agent-to-github.md` — managed GitHub connections + webhook-driven PR status.
+- `site/content.json` — nav entries for the 4 new pages.
 
-- **Onboarding wizard: mission step dropped** → **updated** `docs/guides/getting-started/your-first-company.md`
-  - Parent `3ff636b` ("Drop the mission step from the wizard arc", PR #11935) cleared quarantine this run. For the **Build a new company** path the wizard now skips the "Define your mission" screen: naming the company (step 1) is the moment Paperclip *creates* it (`handleCreateCompany`, `skipsMissionStep = onboardingPath !== "grow"` in `ui/src/components/OnboardingWizard.tsx`), and the walk goes straight to the first-agent step. The mission is collected afterward, on the first task, rather than during onboarding.
-  - Edits: removed the old "### 3. Define your mission" step and its Path A/B prose; renumbered the remaining steps (Name → Create agent → Connect model → Review); reframed step 2 so naming creates the company (with a callout explaining the removed mission step); softened the Review "Mission" row note and the "Where you land" paragraph so they no longer claim you wrote a mission in the wizard.
-  - Verified (Phase 5.5) against `05b35d4`: **0 unverified, 0 suspicious.**
-  - This is the item the prior catch-up (#107) explicitly **deferred** as "volatile at this boundary" — the arc has now settled.
+### No change needed (verified)
+- `docs/reference/api/issues.md` — documented contract still matches source.
+- `docs/reference/api/companies.md` — `import/transfers` routes still present (drift false positive).
+- `docs/reference/skills.md`, `docs/guides/org/skills.md` — the changed `prepare-mcp-integration` SKILL.md body is auto-embedded on its per-skill page; enumerations unaffected.
+- `docs/administration/plugins.md` — operator flow unchanged (SDK changes are author-facing only).
 
-## ⏸ Reviewed — no doc edit this run
+## ⚠ Drift (Phase 1.5) — all triaged
 
-- **Recovery: automatic stranded-task takeovers stopped** (`server/src/services/recovery/service.ts` −752, `issue-recovery-actions.ts` +58/−20, `ui/src/components/IssueRecoveryActionCard.tsx` +1/−1; parent `f572e08`, PR #11961) — also deferred by #107, now landed. **Docs already reflect the new behaviour:** `docs/how-to/debug-stuck-heartbeat.md` states an exhausted corrective wake "hands the task to a recovery owner" and the issue "is blocked on a recovery owner" — i.e. the board owns the exhausted decision, exactly what this PR enforces. No doc claims the old manager/executive auto-takeover, so nothing is stale. No edit.
-- **Duplex bridge / sandbox transport** (`server/src/services/plugin-worker-manager.ts` +876/−209, `duplex-telemetry-recorder.ts` new, adapter `execute.ts` across all local adapters, daytona `duplex-command-stream.ts` + `pty-chunked-input.ts`; parents `10d2781`, `c505039`, `141b815`, `cc42a67`, `05b35d4`) — internal transport plumbing. No new adapter config field, no new adapter, no user-visible contract. Context-only.
-- **plugin-sdk duplex-channel protocol** (`packages/plugins/sdk/src/protocol.ts` +26, `types.ts` +10, `worker-rpc-host.ts` +19) — `sdk/src/index.ts` is **not** in this slice, so no new public export surface changed here; the internal protocol churn needs no doc rewrite.
-- **Wizard UI churn beyond the mission step** (`OnboardingWizard.tsx`, `onboarding-route.ts`, `Dashboard.tsx` −5, `App.tsx`) — covered by screenshot staleness; no additional prose beyond the applied edit.
+- **permission-catalog (high, 2)** — owner/admin roles were missing `tools:manage_connections`, `tools:manage_runtime`, `tools:use`, `tools:admin`. **Resolved** — docs corrected against `grantsForHumanRole()` in `server/src/services/company-member-roles.ts`.
+- **rest-route issue-graph-liveness-auto-recovery (medium, 2)** — `POST /api/instance/settings/experimental/issue-graph-liveness-auto-recovery/{preview,run}`. **Confirmed removed** upstream — deleted from `instance-admin.md`.
+- **env-var `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (high, 4)** — **false positive**. Still read at the pinned ref in `server/src/services/workspace-git-operation-scheduler.ts` with the documented defaults/clamps. No action.
+- **rest-route companies `import/transfers` (medium, 5)** — **false positive**. All five routes still registered in `server/src/routes/companies.ts` via `COMPANY_IMPORT_TRANSFERS_ROUTE_PATH`. No action.
 
-## ⏳ Held candidate (carried forward — needs a judgment call)
+## ⚠ Reconcile (Phase 3.5)
+- None. `nightly` carried no content drafts since the `v2026.831.1` release realign, so there are no prior doc edits to reconcile against reverts.
 
-- **Operator-configurable settings visibility** (`PAPERCLIP_HIDDEN_SETTINGS`, read straight from `process.env`; `HiddenSettingsPageGate.tsx`, `useHiddenSettings.ts`) — a real operator surface that the env-vars watcher misses because the var isn't in `.env.example`. Landed before this slice; still undocumented. Candidate for a PR-tier addition to `docs/reference/deploy/environment-variables.md` + an administration note, once the hidden-page keys and admin flow are confirmed against the UI.
+## Deferred — needs a scoped follow-up (NOT drafted this run)
 
-## ⏳ Quarantined (younger than 24h — will enter the window next run)
+The parent shipped a large in-flight **streamlined-UI** refactor (~304 non-test `ui/src` files). Much of it is behind a feature flag (`useStreamlinedUiEnabled`) or in `*.production.tsx` variants coexisting with `Legacy*` components. Per nightly policy these were **not** rewritten into guides; they need a deliberate release-branch pass with a screenshot refresh:
 
-11 commits newer than the boundary (`2026-08-23T10:06Z` cutoff), deliberately excluded so any reverts can settle first:
+- **Onboarding wizard rewrite** — mission step removed, first agent is a neutral `general` role (not CEO), Claude Code / Codex model-source tiles, subscription-or-API-key credential mode, continuous sign-in sequence. The getting-started guides currently document the standalone New Agent form (a different surface), and the wizard's subscription sign-in is sandbox-gated. Reconciling the CEO→`general` framing is a cross-guide rewrite.
+- **Navigation/layout** — reshaped sidebars, contextual/secondary sidebars (Agent/Routine/Skills/Apps), breadcrumb bar, tabbed task-detail side panel (marked "experimental" in source), Activity→"Audit" rename.
+- **Apps/Connectors surface** — Composio "Services" gateway tab, `ConnectionSetupFlow` enrollment UI, cloud-connector enrollment handoff, connection health pills.
+- **Screenshots** — **206 of 342 stale** across 39 routes (see `SCREENSHOTS_PENDING.md`). Run `npm run screenshots:refresh` in the follow-up; PNGs go to a PR for review, never auto-pushed.
 
-- `88a0f88` Brand lockup, no idle env-check card, **no Mission row** (#12074) — **watch:** removes the Review "Mission" row this run's edit still describes; update the Review section when it lands.
-- `a14e51d` refactor(environment): classify environment capabilities from static driver definitions
-- `fc9e9b7` fix: stop teaching agents to curl literal `{id}` route templates
-- `633e102` fix: verify issue-update writes instead of inferring success
-- `c7f4bc1` fix: survive transient sandbox exec failures in the callback bridge worker
-- `c62bb4b` feat: environment delete with agent reassignment and consented sandbox destroy
-- `627eef7` fix(plugins): retry errored plugins at boot instead of leaving them dead
-- `ae6761e` fix(server): authorize agent resume through direct grants
-- `63df7ad` feat(login): use the login pseudo-terminal for Codex device login
-- `16b59c9` feat(adapter-utils): stream duplex bridge bodies as sequenced chunks
-- `8db826d` fix(issues): cycle-aware issue_blockers_resolved after terminal reset
-
-## Screenshots
-
-See `SCREENSHOTS_PENDING.md` — **120 screenshots** stale (light + dark share a row), computed against the capture base `213dabab` (v2026.817.0). Count rose from the prior run's 59 because that run scanned only its incremental slice; this run scans the full cumulative window since the release, which is the honest "changed since capture" set. Onboarding/company/dashboard shots (`company/new-company-form.png`, `company/company-goal-field.png`, `onboarding/*`, `dashboard/*`) are among them and are directly affected by the wizard change. Recaptured on the release/frozen branch, not during nightly.
-
-## Verification (Phase 5.5)
-
-`docs/guides/getting-started/your-first-company.md` — verified against `05b35d4`: **0 unverified, 0 suspicious.** All load-bearing claims (step order, `Next` / `Connect` / `Get started` button labels, "Name your organization" / "Create your first agent" headings, the create-on-name behaviour) resolve in `ui/src/components/OnboardingWizard.tsx` and `onboarding/Stepper.tsx`.
+## Pre-existing gaps noticed (out of scope this run)
+- The `worktree` CLI command family (`worktree:make`, `worktree init`, `worktree env`, …) is not documented on any CLI page.
+- `issues.md` does not document the `/issues/:id/work-products` route family or several `GET /issues/{id}` response fields/query params (unchanged this window).
+- The `PAPERCLIP_ID_CONNECTOR_*` vars are an enrollment-gated/transitional surface (setting them on an un-enrolled instance throws `CONNECTOR_MIGRATION_REQUIRED`; the active path reads `PAPERCLIP_CLOUD_CONNECTOR_*`). Documented per `.env.example` with enrollment-first framing.

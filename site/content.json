@@ -533,6 +533,10 @@
           "file": "../docs/reference/api/tool-gateway.md"
         },
         {
+          "title": "Connection Intents API",
+          "file": "../docs/reference/api/connection-intents.md"
+        },
+        {
           "title": "Instance Admin",
           "file": "../docs/reference/api/instance-admin.md"
         }
@@ -563,6 +567,10 @@
         {
           "title": "Setup Commands",
           "file": "../docs/reference/cli/setup-commands.md"
+        },
+        {
+          "title": "Test Drive",
+          "file": "../docs/reference/cli/test-drive.md"
         },
         {
           "title": "Service",
@@ -605,6 +613,10 @@
           "file": "../docs/reference/cli/agent.md"
         },
         {
+          "title": "Managed Agent",
+          "file": "../docs/reference/cli/managed-agent.md"
+        },
+        {
           "title": "Prompt",
           "file": "../docs/reference/cli/prompt.md"
         },
@@ -619,6 +631,10 @@
         {
           "title": "Adapter",
           "file": "../docs/reference/cli/adapter.md"
+        },
+        {
+          "title": "Connections",
+          "file": "../docs/reference/cli/connections.md"
         },
         {
           "title": "Approval",

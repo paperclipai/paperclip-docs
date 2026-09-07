@@ -64,14 +64,13 @@ paperclipai adapter models codex_local --company-id <company-id> --environment-i
 | `--refresh` | Re-fetch the provider's model list instead of returning the cached set. Use this after rotating keys or when a newly released model is missing. Defaults to off. |
 | `--environment-id <id>` | Scope the lookup to a specific environment for environment-aware adapters. |
 
-Two related company-scoped reads sit alongside `models`:
+A related company-scoped read sits alongside `models`:
 
 ```sh
-paperclipai adapter model-profiles <adapter-type> --company-id <company-id>
 paperclipai adapter detect-model <adapter-type> --company-id <company-id>
 ```
 
-`model-profiles` lists the adapter's configured model profiles for the company; `detect-model` asks the adapter to resolve which model it would actually use. Both take `-C, --company-id <id>` and require a company context.
+`detect-model` asks the adapter to resolve which model it would actually use. It takes `-C, --company-id <id>` and requires a company context.
 
 ---
 
@@ -123,7 +122,7 @@ paperclipai adapter test-environment <adapter-type> --company-id <company-id> --
 
 ## Common Options
 
-Every `adapter` subcommand accepts the standard client options: `--data-dir <path>`, `--api-base <url>`, `--api-key <token>`, `--context <path>`, `--profile <name>`, and `--json`. The company-scoped subcommands — `models`, `model-profiles`, `detect-model`, and `test-environment` — additionally take `-C, --company-id <id>` and require a resolvable company. See [Common Options](./common-options.md) for how API base and context resolution work, and [Output and Scripting](./output-and-scripting.md) for `--json` usage.
+Every `adapter` subcommand accepts the standard client options: `--data-dir <path>`, `--api-base <url>`, `--api-key <token>`, `--context <path>`, `--profile <name>`, and `--json`. The company-scoped subcommands — `models`, `detect-model`, and `test-environment` — additionally take `-C, --company-id <id>` and require a resolvable company. See [Common Options](./common-options.md) for how API base and context resolution work, and [Output and Scripting](./output-and-scripting.md) for `--json` usage.
 
 > **Note:** Adapter administration is a board-operator activity. An agent-scoped credential is bound to a single company and agent and is not the right persona for installing or overriding instance-wide adapters.
 

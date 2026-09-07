@@ -228,6 +228,19 @@ The call body takes:
 | `approvedActionRequestId` | no | The approval you are cashing in, when a previous attempt returned `require_approval`. |
 | `idempotencyKey` | no | Makes a retry safe — the same key won't run the tool twice. |
 
+### An agent authorizing its own connection
+
+Some connections need the agent to authorize itself — for example, to complete an OAuth flow or to mint a short-lived credential for the upstream service. Two routes let an agent do that for itself, using its own run token; both refuse anyone who isn't an agent on an active run.
+
+```
+POST /api/agents/me/connections/{connectionId}/start-authorization
+POST /api/agents/me/connections/{connectionId}/token
+```
+
+`start-authorization` kicks off an OAuth authorization and returns `{ "url": ... }` (plus a `handoff` block when one applies) — send the person to `url` to finish consent. Its body takes an optional `subjectUserId`, `scopes`, and `returnTo`.
+
+`token` mints a short-lived token the agent can present to the upstream service. It needs a run id, so a token without one is refused `401` with `{ "error": "Agent run id required", "code": "run_id_required" }`, and if you also send an `X-Paperclip-Run-Id` header it must match the token's run or you get `403` with `run_id_mismatch`. A successful mint returns `200` with `status` `minted` and the `token`, `tokenType`, `expiresAt`, `ttlSeconds`, `scope`, and `grantId`. If the connection is backed by static credentials rather than a broker, minting is refused with `409 Conflict` and `status` `use_env_lease` — the signal to reach the credential through an audited environment lease instead.
+
 ---
 
 ## Approvals
@@ -334,12 +347,13 @@ The Apps surface is the friendly path to all of the above — pick something fro
 
 ```
 GET  /api/companies/{companyId}/tools/gallery
+GET  /api/companies/{companyId}/tools/apps/{galleryKey}/preflight
 POST /api/companies/{companyId}/tools/apps/connect
 POST /api/companies/{companyId}/tools/apps/{connectionId}/finish
 GET  /api/companies/{companyId}/tools/apps/attention
 ```
 
-`connect` creates the application, the connection, and the catalog in one step, and responds `201 Created`. If the app authenticates with OAuth, the response's `auth` block comes back with a `startUrl` you send the person to. `finish` then decides `access` and, from it, builds the profile, its entries, its bindings, and the ask-first policies — the response tells you how many of each it made.
+`preflight` returns the metadata Paperclip needs to render the connect screen for a gallery app before you commit to it — pass an optional `methodKey` query to preview one specific auth method. `connect` creates the application, the connection, and the catalog in one step, and responds `201 Created`. If the app authenticates with OAuth, the response's `auth` block comes back with a `startUrl` you send the person to. `finish` then decides `access` and, from it, builds the profile, its entries, its bindings, and the ask-first policies — the response tells you how many of each it made.
 
 The `attention` route is the one to poll on a dashboard: it lists apps that need a human — a broken health check, an expired credential, newly appeared tools nobody has reviewed.
 
@@ -409,6 +423,48 @@ PUT /api/tool-connections/{connectionId}/installs
 
 The `PUT` replaces the whole install set and requires `tools:manage_connections`.
 
+#### Connection identities (grants)
+
+A single connection can carry more than one **identity**. A grant with `kind` `organization` is a shared identity everyone on the connection uses; a grant with `kind` `user` is one member's personal identity. This is how, for example, five people can all use the same Gmail connection while each acts as themselves.
+
+```
+GET    /api/tool-connections/{connectionId}/grants
+POST   /api/tool-connections/{connectionId}/grants/installations
+DELETE /api/tool-connections/{connectionId}/grants/{grantId}
+PUT    /api/tool-connections/{connectionId}/grants/{grantId}/members
+POST   /api/tool-connections/{connectionId}/grants/{grantId}/delegations
+DELETE /api/tool-connections/{connectionId}/grants/{grantId}/delegations/{delegationId}
+```
+
+The **list** route returns the grants along with a `capabilities` block, the caller's `currentUserId`, and — for a connection manager — the audience `members` to choose from. It filters what you can see: a regular member sees the organization grants and their own personal grant, but not other people's personal identities. Seeing everyone's identities is a connection-manager power (`tools:manage_connections`).
+
+The **`installations`** route adds a grant; its body takes an optional `providerTenant`, a list of `credentialSecretRefs`, and `isDefault`, and it responds `201 Created`. The **`members`** `PUT` replaces a grant's audience with a `memberUserIds` array — the grant's creator can do this, anyone else needs configure access. **Deleting** a grant revokes it; you can always revoke a grant you own (you are its subject or its creator), otherwise you need configure access.
+
+A **delegation** lets the owner of a personal grant lend that identity to an agent — the `POST` takes an `agentId` and must be called by the owning user, and the matching `DELETE` (owner or connection manager only) takes it back.
+
+Most of these routes gate on **configure access** — you are the connection's creator, or you hold `tools:manage_connections` — rather than on a single permission key. Viewers and members with no active company access are refused before anything else.
+
+#### Toolkit services and usage
+
+When a connection fronts a provider that bundles many toolkits, you connect and disconnect each toolkit **service** on its own:
+
+```
+GET    /api/tool-connections/{connectionId}/services
+POST   /api/tool-connections/{connectionId}/services/{toolkitSlug}/connect
+GET    /api/tool-connections/{connectionId}/services/{toolkitSlug}/status
+DELETE /api/tool-connections/{connectionId}/services/{toolkitSlug}
+```
+
+All four require configure access. `connect` takes an optional `authConfigId` and `callbackUrl` and responds `201 Created`; `status` polls where an in-flight connect got to; and the `DELETE` disconnects the toolkit and removes the catalog tools it contributed.
+
+A usage summary rounds out the per-connection view:
+
+```
+GET /api/tool-connections/{connectionId}/usage?range={7d|30d}
+```
+
+`range` defaults to `7d` and must be `7d` or `30d` — anything else returns `400 Bad Request` with `Usage range must be 7d or 30d`.
+
 Profiles, entries, and bindings:
 
 ```
@@ -467,11 +523,12 @@ The live test actually runs the tool, as a chosen agent:
 
 ```
 GET  /api/tool-connections/{connectionId}/test-agents
+GET  /api/tool-connections/{connectionId}/test-agents/{agentId}/access
 POST /api/tool-connections/{connectionId}/test-calls
 GET  /api/tool-connections/{connectionId}/test-calls/{actionRequestId}
 ```
 
-All three need `tools:use` or `tools:manage_connections`, and you can only test as an agent you would be allowed to assign work to. `test-agents` lists those agents along with each one's `effectiveAccess` for that connection. `test-calls` takes an `agentId`, a `toolName`, and optional `parameters`. If the call needs approval, you get an action request back and poll the third route for its status. When the gateway service isn't configured at all, these respond `501 Not Implemented` with `{ "error": "Tool gateway service is not configured" }`.
+All of these need `tools:use` or `tools:manage_connections`, and you can only test as an agent you would be allowed to assign work to. `test-agents` lists those agents along with each one's `effectiveAccess` for that connection; the `test-agents/{agentId}/access` route drills into a single agent and returns its full `access` summary for the connection. `test-calls` takes an `agentId`, a `toolName`, and optional `parameters`. If the call needs approval, you get an action request back and poll the third route for its status. When the gateway service isn't configured at all, these respond `501 Not Implemented` with `{ "error": "Tool gateway service is not configured" }`.
 
 You can also look up how decisions landed for a specific agent run:
 

@@ -142,7 +142,22 @@ Store the App ID, installation ID, and private key as Paperclip secrets, and hav
 
 **Tradeoff:** more moving parts, a one-time setup that takes 15 extra minutes. Worth it the moment you have more than one coding agent or you care about audit trails.
 
-For a single-developer team running a couple of agents, Option A is enough. For anything that smells like a real team, go straight to Option B.
+For a single-developer team running a couple of agents, Option A is enough. For anything that smells like a real team, go straight to Option B — or Option C below, which takes the token out of your hands entirely.
+
+### Option C — managed GitHub connection (Connectors) — durable, nothing to rotate
+
+If you connect GitHub through **Connectors** (Paperclip's app gallery, brokered through Paperclip Cloud), Paperclip resolves a GitHub credential for each run on its own — you never mint, store, or rotate a PAT. Each agent (or person) gets a durable GitHub identity that Paperclip exchanges for a short-lived token at run time and projects into the sandbox the agent runs in.
+
+Two things make this the sturdiest option:
+
+- **Commits are authored as the connected GitHub identity automatically.** Paperclip sets `user.name`, `user.email`, and the `GIT_AUTHOR_*` / `GIT_COMMITTER_*` environment to the connected login and its GitHub `…@users.noreply.github.com` address — so PRs show the right author with no `git config` step (contrast the last item in [Troubleshooting](#7-troubleshooting)).
+- **It fails closed.** Once a GitHub connection is configured for an agent, that agent uses it — Paperclip does not silently fall back to a PAT. Exactly one identity has to resolve for a run; if none or more than one matches, the run is blocked with a clear reason rather than pushing as the wrong account.
+
+Paperclip also receives GitHub webhooks over this connection — see [Review workflow](#6-review-workflow) for how a merged PR flows back into the issue on its own.
+
+Setup lives on the **Connectors → Connections** page rather than in an `env` block. The exact enrollment steps depend on your Paperclip Cloud setup, so follow the in-product flow there.
+
+> **How the server resolves a credential.** When Paperclip does git work for a project on your behalf — cloning a managed checkout, refreshing a base branch — it resolves a credential in this order: a managed GitHub connection first, then a company secret named `GITHUB_TOKEN`, `GH_TOKEN`, or `PAPERCLIP_GITHUB_TOKEN` (**Settings → Secrets**), then the server process environment. The token is handed to git through a credential helper, never written to disk, a URL, or the command line.
 
 ### What about `gh auth login` on the host?
 
@@ -241,7 +256,8 @@ You have two parallel review surfaces. Use them for different things — they're
 When the PR merges:
 
 - A human (or your CI's auto-merge bot) merges through GitHub.
-- A reviewer agent — the CTO, a senior engineer, or you — moves the Paperclip issue to `done` with a comment including the merge SHA. Paperclip doesn't infer the merge for you yet; if you want it to, set up a [GitHub → Paperclip routine webhook](./wire-slack-discord-notifications.md#testing-the-loop) that listens to `pull_request.closed` with `merged: true` and PATCHes the linked issue. That's a 20-line script.
+- If the repo is wired through a **managed GitHub connection** (Section 3, Option C), Paperclip receives the `pull_request` webhook and keeps the linked PR's status in sync on its own — open flips to merged or closed, and a merged PR is confirmed back in the issue thread. A reviewer still owns the final `done` transition, but you no longer have to poll GitHub to notice the merge.
+- With PAT or GitHub App auth there's no webhook, so a reviewer agent — the CTO, a senior engineer, or you — moves the Paperclip issue to `done` with a comment including the merge SHA. If you want that automated without a managed connection, set up a [GitHub → Paperclip routine webhook](./wire-slack-discord-notifications.md#testing-the-loop) that listens to `pull_request.closed` with `merged: true` and PATCHes the linked issue. That's a 20-line script.
 
 If the PR is rejected, change the issue back to `in_progress` with a comment naming what to fix. The agent picks it up on its next heartbeat, pushes a follow-up commit to the same branch, and the PR re-runs CI.
 
@@ -267,7 +283,7 @@ A coder agent should refuse to resolve conflicts blindly. The right loop is: age
 Tighten the rules in `AGENTS.md` (Step 4): "move to `in_review` only after `gh pr checks --watch` exits 0". Re-prompt agents that already cut PRs.
 
 **The PR shows commits authored by `noreply@github.com` instead of the agent's identity.**
-Set `git config user.name` and `user.email` in the worktree provision command on the project workspace. Many teams use `Paperclip Coder <noreply@paperclip.example.com>` so PRs are clearly machine-authored.
+Set `git config user.name` and `user.email` in the worktree provision command on the project workspace. Many teams use `Paperclip Coder <noreply@paperclip.example.com>` so PRs are clearly machine-authored. If you use a managed GitHub connection (Section 3, Option C), Paperclip already stamps each commit with the connected GitHub identity and its `…@users.noreply.github.com` address, so you can skip this.
 
 **The agent keeps creating new branches per heartbeat instead of reusing the existing one.**
 This is a workspace-mode problem — the project is set to **Project primary** instead of **Isolated**. Switch it. See [Workspaces → Workspace modes](../guides/projects-workflow/workspaces.md#workspace-modes).
