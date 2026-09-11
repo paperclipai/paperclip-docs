@@ -138,7 +138,40 @@ A GitHub App installed on the org issues short-lived installation tokens, isn't 
 3. Generate a private key, download the `.pem`. Note the App ID and the installation ID for the target repo.
 4. Mint installation tokens with `gh auth token --hostname github.com` (App-aware) or a small script using `actions/create-github-app-token`'s logic.
 
-Store the App ID, installation ID, and private key as Paperclip secrets, and have the agent's heartbeat exchange them for an installation token at the start of each run. The token expires in an hour, which is exactly long enough for one heartbeat.
+A Paperclip secret holds one value, so the App ID, installation ID, and private key each need their own secret — there's no single "GitHub App" secret with three fields.
+
+```bash
+curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/secrets" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "GITHUB_APP_ID", "value": "123456" }'
+
+curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/secrets" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "GITHUB_APP_INSTALLATION_ID", "value": "78901234" }'
+
+curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/secrets" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  --data-binary @- <<'EOF'
+{ "name": "GITHUB_APP_PRIVATE_KEY", "value": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----" }
+EOF
+```
+
+The private key's `value` is a single string, so keep the PEM's newlines escaped as `\n` in the JSON payload — paste the raw multi-line `.pem` and the request will fail JSON parsing.
+
+Then reference all three on the coder agent's adapter config, the same `env` block used in Option A above:
+
+```json
+"env": {
+  "GITHUB_APP_ID":              { "type": "secret_ref", "secretId": "<app-id-secret-id>", "version": "latest" },
+  "GITHUB_APP_INSTALLATION_ID": { "type": "secret_ref", "secretId": "<installation-id-secret-id>", "version": "latest" },
+  "GITHUB_APP_PRIVATE_KEY":     { "type": "secret_ref", "secretId": "<private-key-secret-id>", "version": "latest" }
+}
+```
+
+Have the agent's heartbeat script read those three env vars and exchange them for an installation token at the start of each run — the token expires in an hour, which is exactly long enough for one heartbeat.
 
 **Tradeoff:** more moving parts, a one-time setup that takes 15 extra minutes. Worth it the moment you have more than one coding agent or you care about audit trails.
 
