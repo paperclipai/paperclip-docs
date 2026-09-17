@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.916.0
 seo_title: Roles and Permissions Reference
 seo_description: The lookup table behind company access: four roles, every permission key, how grants combine by precedence, and where instance admin sits above it all.
 ---

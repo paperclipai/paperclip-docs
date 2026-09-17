@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.916.0
 seo_title: The connections Command
 seo_description: Search the connections catalog or request access to a service from inside an active heartbeat run, using the runtime tools the run provides.
 ---

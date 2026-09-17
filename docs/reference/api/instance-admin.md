@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.916.0
 seo_title: Instance Admin API
 seo_description: Instance-scoped endpoints that fit nowhere else: general and experimental settings, on-demand database backups, and the LLM reflection endpoint.
 ---

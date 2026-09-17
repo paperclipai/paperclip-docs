@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.817.0
+paperclip_version: v2026.916.0
 seo_title: OpenCode Adapter
 seo_description: Run OpenCode on the Paperclip host when you want provider and model routing in OpenCode's own format, plus session resume across heartbeats.
 ---

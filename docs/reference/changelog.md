@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.916.0
 seo_title: Documentation Changelog
 seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
@@ -13,6 +13,36 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.916.0 <span class="accordion-meta">September 16, 2026</span></summary>
+<div class="accordion-body">
+
+**New pages**
+
+- [Connection Intents API](api/connection-intents.md) — how an agent asks a person to hook up a service it can't reach: the connection card that lands in the task thread, the `requested` → `connected` lifecycle, and the split between the runtime tools an agent calls and the board routes the person answers.
+- [The connections Command](cli/connections.md) — `connections search` and `connections request`, how an agent discovers a connectable service and raises the intent to connect it from inside a running heartbeat.
+- [The managed-agent Command](cli/managed-agent.md) — provision and qualify a locked-down Anthropic managed agent and environment, then save the company profile Paperclip reads when it dispatches work to it.
+- [The test-drive Command](cli/test-drive.md) — one command spins up an isolated local instance with a ready-made company and CEO agent, seeds the provider credential, and opens the dashboard, so you can try Paperclip without wiring anything up.
+
+**Updated pages**
+
+- [Roles & Permissions](../administration/roles-and-permissions.md) and [Company Administration](../administration/company.md) — the four everyday `tools:*` keys (`manage_connections`, `manage_runtime`, `use`, and `admin`) now ride along with the Owner and Admin roles by default; `tools:view_audit` and `tools:manage_profiles` stay explicit-grant-only, and `tools:admin` is not a superset, so it doesn't imply the other three.
+- [Connect an Agent to GitHub](../how-to/connect-agent-to-github.md) — a new **Option C: managed GitHub connection** through Connectors, where Paperclip resolves a per-run credential you never mint or rotate, authors commits as the connected GitHub identity automatically, fails closed rather than falling back to a PAT, and keeps the linked PR's status in sync over the connection's webhook.
+- [Agents API](api/agents.md) — a new **Managed and Remote Agent Profiles** section (board-only, company-scoped, upsert by `profileKey`); every serialized agent now redacts plaintext `adapterConfig.env` values as `***REDACTED***` while `secret_ref` bindings pass through; plus a route to rediscover your own active setup-token login session.
+- [Tool Gateway API](api/tool-gateway.md) — an agent can now authorize its own connection with `start-authorization` (kick off an OAuth flow) and `token` (mint a short-lived upstream credential) under `/api/agents/me/connections/...`, both scoped to its active run.
+- [Instance Admin API](api/instance-admin.md) — documents the instance-settings read/patch routes with their cloud-managed floors, and the task-drain endpoints that pause new work for a clean wind-down.
+- [Plugin SDK](plugins/sdk.md) — two new capability-gated context clients: `ctx.access` (company members and invites) and `ctx.authorization` (grants, policy summaries, and the authorization audit trail), plus login-PTY and duplex-channel streaming for environment-driver workers.
+- [Environment Variables](deploy/environment-variables.md) — a new **Paperclip ID Connector** block for the Gmail/Workspace OAuth broker (`PAPERCLIP_ID_CONNECTOR_BASE_URL`, `_ENVIRONMENT`, `_INSTANCE_ID`, and the sign/seal private keys), and the HTTP adapter's `PAPERCLIP_HTTP_ADAPTER_PRIVATE_ENDPOINT_ALLOWLIST`.
+- [Codex Adapter](adapters/codex.md) — the default model is now the concrete `gpt-5.6-sol` (the bare `gpt-5.6` alias is rewritten automatically), Fast mode via `fastMode`, `modelReasoningEffort` tiers, and interactive sandbox device login backed by a company-scoped credential cache you can disable with `PAPERCLIP_CODEX_AUTH_CACHE`.
+- [Claude Code Adapter](adapters/claude-code.md) — Claude Fable 5.1 support with a Claude Code `2.1.251` CLI floor that fails fast as `claude_cli_version_incompatible`, and graceful `--effort` degradation on older CLIs.
+- [Grok Local Adapter](adapters/grok-local.md) — subscription (SuperGrok) authentication through a per-company `GROK_HOME` and a sandbox device-login flow, alongside the existing `XAI_API_KEY` metered mode.
+- [HTTP Adapter](adapters/http.md) — an SSRF guard that checks every request at the socket boundary with pinned DNS, blocks private, loopback, and link-local origins by default, and only reaches a private origin when it exactly matches the allowlist.
+- [Sandbox Providers](adapters/sandbox-providers.md) — Daytona's opt-in warm-runner lifecycle (`runnerLifecycleMode`, `runnerIdleTimeoutMs`), a per-call liveness timeout, image-backed resource overrides, and interactive agent login on a real in-sandbox terminal.
+- Smaller updates: the [OpenCode adapter](adapters/opencode.md) model pre-flight now refreshes a stale catalog once before rejecting a run; the [command palette](../guides/day-to-day/command-palette.md) keeps your five most recent tasks in the sidebar with quick actions; and the [adapter](cli/adapter.md) and [setup](cli/setup-commands.md) CLI pages document `detect-model` and the tool-action signing secret `onboard` now provisions.
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.831.1 <span class="accordion-meta">September 2, 2026</span></summary>
 <div class="accordion-body">
 

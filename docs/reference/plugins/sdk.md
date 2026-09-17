@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.722.0
+paperclip_version: v2026.916.0
 seo_title: Plugin SDK
 seo_description: The worker-side authoring kit for Paperclip plugins. Import it in your worker entrypoint to declare a plugin and subscribe to host events.
 ---

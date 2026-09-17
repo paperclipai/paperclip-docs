@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.916.0
 seo_title: The managed-agent Command
 seo_description: Provision and qualify a locked-down Anthropic managed agent and environment, then save the company profile Paperclip uses to run it.
 ---

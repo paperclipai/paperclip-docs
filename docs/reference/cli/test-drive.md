@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.916.0
 seo_title: The test-drive Command
 seo_description: Spin up an isolated, self-initialized Paperclip instance with a ready-made company and CEO agent so you can try the product locally.
 ---
