@@ -77,6 +77,7 @@ If you already know the shape and only need the operational details, jump to:
 - [Secrets](./secrets.md)
 - [Environment Variables](./environment-variables.md)
 - [Docker](./docker.md)
+- [Set Up HTTPS](./https.md)
 - [Tailscale Private Access](./tailscale-private-access.md)
 
 > **Tip:** Keep the deployment pages grouped together in the docs nav. They are easiest to understand when read as one flow.

@@ -9,6 +9,8 @@ Use this page when you want a Paperclip instance that is reachable from a privat
 
 It is the practical path for `authenticated` + `private` deployments.
 
+For a browser-trusted HTTPS address or a public callback for Connections, follow [Set Up HTTPS](./https.md). This page covers direct private-network access over HTTP.
+
 ---
 
 ## Start In Private Mode
