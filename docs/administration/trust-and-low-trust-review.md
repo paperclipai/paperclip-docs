@@ -27,6 +27,36 @@ The default preset is `standard`; `low_trust_review` only takes effect when a po
 
 ---
 
+## Choosing an agent for a GitHub bot
+
+Use a dedicated low-trust review agent for pull requests and conversations that
+can contain instructions from outside your company. Private repositories can
+still contain untrusted code, comments, dependencies, and generated content.
+
+Before connecting the agent:
+
+1. Open the agent’s configuration and choose **Low-trust review** in its trust
+   settings.
+2. Set a work boundary covering the review tasks, such as their dedicated project.
+   A preset without a concrete scope cannot run.
+3. Configure isolated workspaces and an active sandbox environment in the runtime
+   settings. Low-trust API permissions do not sandbox a host-local process.
+4. Allow only the tool capabilities needed for the work. Keep provider credentials
+   in governed connections, rather than embedding them in prompts or repository
+   files.
+
+A bot connection’s caller permissions and its agent’s trust preset protect
+separate boundaries. Giving an external GitHub user a restricted guest profile
+is not a substitute for configuring the agent’s trust preset and runtime. A
+responsible sponsor does not give the guest that sponsor’s personal credentials.
+
+A setup warning does not change the selected agent’s permissions. If you continue
+with a standard agent, review its existing access and runtime configuration: its
+normal capabilities still matter when it reads outside content. Instructions
+inside a PR must never be treated as permission to expand that access.
+
+---
+
 ## How a preset is chosen
 
 A low-trust preset is not a single switch. Paperclip resolves the effective preset by reading the same JSON policy you already use for execution, from up to four sources:
