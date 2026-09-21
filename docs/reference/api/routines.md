@@ -461,6 +461,28 @@ created = response.json()
 
 ---
 
+## Webhook Setup And Test Deliveries
+
+A webhook trigger can start life in a **setup-pending** state. Pass `setupPending: true` in the create body to opt in; the trigger is stored but treats every inbound delivery as a connection test rather than a live firing.
+
+While a trigger is setup-pending:
+
+- a delivery to the [fire endpoint](#fire-public-trigger) is validated for signature and content, but **does not create a routine run or an execution issue**
+- the delivery is recorded as a content-free test receipt, keyed by the request's idempotency key, so a later retry of that same test cannot start the routine after the trigger goes live
+- the trigger's `lastWebhookDelivery` reflects the outcome so a client can show whether the test arrived
+
+The `lastWebhookDelivery` object has:
+
+| Field | Values | Notes |
+|---|---|---|
+| `status` | `received`, `rejected` | `received` means the signature and payload passed; `rejected` means authentication failed. |
+| `receivedAt` | ISO timestamp | When the delivery landed. |
+| `test` | boolean | `true` for a setup-pending test delivery. |
+
+To finish setup, `PATCH /api/routine-triggers/{triggerId}` with `setupPending: false`. From that point on, real deliveries create runs. The test delivery you sent during setup is **not** replayed — only events received after the trigger is enabled fire the routine.
+
+---
+
 ## Update Trigger
 
 ```http
@@ -474,6 +496,8 @@ You can update:
 - `enabled`
 - `cronExpression` and `timezone` for schedule triggers
 - `signingMode` and `replayWindowSec` for webhook triggers
+- `setupPending` — only the value `false` is accepted, which finishes setup and enables the webhook for real deliveries (see [Webhook setup and test deliveries](#webhook-setup-and-test-deliveries))
+- `archived` — `true` archives the trigger (retires it from the active set), `false` restores it
 
 If you enable a schedule trigger, the routine must still have resolvable required variables.
 
@@ -614,6 +638,8 @@ POST /api/routine-triggers/public/{publicId}/fire
 
 This endpoint is for external systems that call a routine's webhook trigger directly.
 
+The request must be sent with `Content-Type: application/json` and the body must be a JSON **object** — an array, a bare string, or a missing body is rejected. Sending the wrong content type returns `415 Unsupported Media Type`.
+
 What the code checks:
 
 - the `publicId` must match a webhook trigger
@@ -629,6 +655,10 @@ Accepted headers depend on signing mode:
 - `none` does not require a signature
 
 For timestamped HMAC validation, the server enforces the replay window from the trigger.
+
+For deduplication the server reads an idempotency key from the `Idempotency-Key` header, falling back to `X-GitHub-Delivery`. Sending the same key on a retry prevents a duplicate run — and, during setup, prevents a retried test delivery from starting the routine once the trigger is enabled.
+
+If the trigger is still [setup-pending](#webhook-setup-and-test-deliveries), the endpoint validates the delivery and records it as a test receipt, but does not create a run.
 
 ### Example
 
