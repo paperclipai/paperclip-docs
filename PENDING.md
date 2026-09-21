@@ -2,55 +2,55 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** merge-base `dbf05257` → parent master `f2c5e54d` (HEAD @ 2026-09-13T13:41Z), 459 commits, 24h quarantine applied (commits after 2026-09-13T14:29Z held).
-- **Base note:** the `v2026.831.1` release tag was cut off-master, so its recorded `base_release_sha` (`65ec059`) is not reachable from master. Per the "release tag diverges from master" rule, the cumulative base is the **merge-base** (`dbf05257`), not the tag SHA.
-- **Compare truncation:** two leaves remained truncated at the 300-file cap (lockfile/generated-file mega-commits). Every concrete watcher path was intersected directly against the full window and the `.env.example` / `config.ts` diffs were pulled per-file (bypassing the cap), so **no docs-relevant file was dropped**.
-- **Scope:** exhaustive.
+- **Window (cumulative):** base release tag `v2026.916.0` (`dffc2b3`) → parent master `2a99de80` (@ 2026-09-20T01:40Z), 59 commits, 24h quarantine applied (3 commits after 2026-09-20T09:54Z held). 950 files in window; compare truncation 0.
+- **Base note:** `v2026.916.0`'s recorded `base_release_sha` (`dffc2b3`) is reachable from master, so the tag SHA is the cumulative base directly (no merge-base fallback needed this run).
+- **Merge main → nightly:** absorbed one hot-fix, #128 "explain HTTPS setup for self-hosted Paperclip" (`480c133`). Ancestry intact (last release squash `c65bc9a` is an ancestor of nightly); no realign needed.
+- **Scope:** exhaustive over watcher hits. Two surfaces drafted this run; the rest of the window is a screenshot-dependent UI cluster deferred to a release-branch pass (below).
 
-## Applied this run
+## Applied this run (PR-tier drafts on `nightly`)
 
-**Nothing drafted.** Every doc-relevant change in this window belongs to the already-deferred streamlined-UI/onboarding/connections cluster (see below), is quarantined, or is already documented. The auto-merge tier is empty: the `.env.example` additions in this window (`PAPERCLIP_ID_CONNECTOR_*`, `PAPERCLIP_HTTP_ADAPTER_PRIVATE_ENDPOINT_ALLOWLIST`) are all already present in `docs/reference/deploy/environment-variables.md` from prior runs. Drift is all false positives (re-confirmed this run). No reconciliation candidates.
+Both drafts passed `verify-edit --against master` with **zero** unverified/suspicious claims.
 
-`main` was already merged into `nightly` at run start (no new hotfix has landed on `main` since #122, "Add unlisted hosted beta guide and FAQ"). Ancestry intact — no realign needed.
+- **CreateOS sandbox provider** — new bundled sandbox provider (`provider: "createos"`, plugin `paperclip.createos-sandbox-provider`, registered in `server/src/services/bundled-plugins.ts`). Added a `## CreateOS` section to `docs/reference/adapters/sandbox-providers.md` mirroring the Novita/E2B pattern: config-field table (`apiUrl`, `apiKey`/`CREATEOS_API_KEY` fallback, `shape`, `rootfs`, `region`, `timeoutMs`, `reuseLease`) + pause/resume and live-output notes. Verify: 15/15 claims verified. Source: `packages/plugins/sandbox-providers/createos/src/{manifest,config}.ts` @ `2a99de80`.
+  - Note: the npm package `@paperclipai/plugin-createos` is not yet published (`publishFromCi: false` in its `package.json`); the section frames it as bundled/installable from the Plugins page and does **not** claim npm availability.
+- **Routine webhook triggers** — refinements to the routine-triggers surface (schema `packages/db/src/schema/routines.ts`, UI `ui/src/components/routine-triggers/**`, routes `server/src/routes/routines.ts`). The five trigger endpoints were already documented, so only the genuinely-new surface was added:
+  - `docs/guides/projects-workflow/routines.md` — promoted webhook triggers to a top-level `## Webhook triggers` section (relocated from a `###` subsection under Cron picker; `#webhook-triggers` anchor unchanged). Covers schedule-vs-webhook choice, URL/secret copy, generic (`Authorization: Bearer`) vs GitHub (`X-Hub-Signature-256`) setup, the setup-pending → Check connection → Finish setup flow ("test event not replayed"), signing modes / replay window, secret rotation, and enable/disable/archive. Verify: 1/1.
+  - `docs/reference/api/routines.md` — added the `setupPending`/`archived` update fields, a Webhook Setup And Test Deliveries section (test receipts, `lastWebhookDelivery`), and the fire endpoint's `Content-Type: application/json` (`415` otherwise) + `Idempotency-Key`/`X-GitHub-Delivery` handling. Verify: 11/11.
+
+**Auto-merge tier:** empty. The env-vars watcher flagged `packages/plugins/sandbox-providers/createos/src/config.ts`, but that file is the plugin's config **parser**, not an env schema — its only host env var (`CREATEOS_API_KEY`) is documented in prose on the sandbox-providers page alongside `DAYTONA_API_KEY`/`NOVITA_API_KEY`, not as a row in `environment-variables.md`. No mechanical env-var edit applies.
 
 ## ⛔ Quarantined (held <24h — reconsider next run)
 
-Commits after 2026-09-13T14:29Z are held. Both are fixes, not new user-visible surfaces:
+Commits after 2026-09-20T09:54Z are held:
 
-- **Recent Tasks storage feedback fix** — `fix(ui): stop Recent Tasks storage feedback across tabs` (#13402, `d351e08`, 2026-09-14T13:05Z).
-- **Clean-machine onboarding fix** — `fix: unblock clean-machine onboarding for api_key AI connections (nightly smoke)` (#13372, `13368c5`, 2026-09-14T00:02Z). Part of the AI-connections cluster; a fix, not new surface.
+- `c65fc9e` (2026-09-20T19:43Z), `9f30eb1` (2026-09-20T18:12Z), `600e552` (2026-09-20T15:08Z). Rolled into the next run's cumulative window once aged out.
 
-## Deferred — needs a scoped release-branch follow-up (NOT drafted this run)
+## Deferred — screenshot-dependent / in-flight UI cluster (NOT drafted this run)
 
-The parent remains mid-flight on the **streamlined-UI + onboarding + connections refactor** flagged in prior runs. It stays feature-flagged (`*.production.tsx` vs `Legacy*`, experimental gates) and screenshot-dependent, so per nightly policy it is held for a deliberate release-branch pass with a screenshot refresh — not piecemeal nightly drafts from master. Newly aged out of quarantine since the last run, all folding into this same cluster:
+Everything else doc-relevant in this window is the net-new UI/UX work landed on master since v2026.916.0. It is screenshot-heavy and still settling on `master` (canary lane), so per nightly policy it is held for a deliberate release-branch pass with a screenshot refresh rather than piecemeal nightly drafts:
 
-- **iMessage Photon channel (experimental)** — `feat(channels): add experimental iMessage Photon` (#13299). New `server/src/services/photon/**` layer (receiver, adapter, media/attachments, cloud transport, recovery), `ui/src/pages/apps/chat/PhotonConnectStep.tsx`, and an `imessage-photon` app definition. Experimental; candidate home `docs/experimental/`. Draft on the release-branch pass.
-- **AgentMail inboxes & email tasks** — `feat(connections): add AgentMail inboxes and email tasks` (#13256) plus follow-ups. New `skills/agentmail/SKILL.md`, `server/src/services/connectors/agentmail.ts`, `server/src/routes/email.ts`, `ui/src/components/Email*`. Part of the connections cluster; entangled with the email-endpoint setup UI.
-- **AI Connections credential management** — `feat: manage AI runtime credentials through Connections` (#13247) and `feat: reuse provider sign-in across AI connection workflows` (#13248). Reworks how agents get provider credentials: `ui/src/components/ai-connections/**`, `ui/src/api/ai-connections.ts`, `server/src/routes/ai-connections.ts`. Cross-cuts onboarding and the new-agent flow; screenshot-dependent.
-- **Persistent agent chat (experimental)** — `feat: add experimental persistent agent chat` (#13284). New `ui/src/pages/AgentChat.tsx`, `SidebarAgentChats`, `agent_chat` schema/migration. Experimental; gated.
-- **Native chat connectors (experimental)** — earlier `889947c` (#13038) Slack/Discord/Teams publication + inbound wakeups; `ui/src/pages/apps/chat/**`. Gated behind the chat-connectors experimental flag. Candidate home `docs/experimental/`.
-- **Onboarding rework** — simplified agent onboarding/configuration (#13011) and chief-of-staff-first-task flow (#13317 makes hiring reliable), reuse of saved model connections. Cross-guide rewrite of `docs/guides/getting-started/*`; needs screenshots.
-- **GitHub connection & repository access** — multi-repo selection, shared-agent GitHub identity, simplified access controls, duplicate-connection resolution. Targets `docs/how-to/connect-agent-to-github.md`; entangled with `ConnectionSetupFlow`.
+- **Agent avatars / personas / appearance** — `AgentAvatar`, `AgentCharacter`, `AgentPersona`, `AgentIdentity`, `useAgentAppearanceDraft`, `agent-avatar-url`, `agent-character-slot`; server `agent-avatars.ts` + `agent-avatar-pool/worker.ts`; schema `packages/db/src/schema/agents.ts`. Targets the agents guide + `docs/reference` agent config; needs screenshots of the new appearance UI.
+- **Onboarding character redesign + Setup Wizard** — `OnboardingCharacter`, `onboarding-character`, `onboarding-motion`, `ConnectModelPreview`, `OnboardingWizard`, new `SetupWizard`/`SetupWizardSidebarContext`, `assets/cliplab/onboarding.character.json`. Cross-guide rewrite of getting-started; entirely screenshot-dependent.
+- **Skills created during tasks** — `TaskSkillPanel`, `TaskChatSkillCreatedCard`, `skill-created-items`; server `skill-tools.ts`, `native-runtime/create-skill.integration`. New task-side surface where an agent proposes/creates a skill mid-task; UI-gated, needs screenshots.
+- **Railway connector / deploy** — `ui/.../apps/app-detail/RailwayAccessPanel`; server `services/railway.ts` + `railway-ssh.ts` (MCP-based Railway integration); parent `doc/connections/RAILWAY.md`. Candidate `docs/how-to/` connector page; verify maturity + screenshots on the follow-up.
+- **Native agent review (sub-agent review)** — `native-runtime/native-review-{dispatch,participant,prompt}`, `child-review-outcomes`, `handoff-plan-context`. Server-internal review flow; confirm user-visible surface before documenting.
+- **Distribution plugins catalog** — server `distribution-plugin-catalog.ts`; parent `doc/plugins/DISTRIBUTION-PLUGINS.md`. Targets `docs/administration/plugins.md`; assess on the follow-up.
+- **Slack / chat identity confirmation** — `SlackIdentityStep`, `ChatIdentityConfirm`, `connection-identity`. Refinement to the chat-connector setup flow; screenshot-dependent.
 
-Behavioural removal to reconcile on the follow-up (not a nightly drift item, it is a genuine removal):
+Adapter internal churn (`claude-local`, `codex-local`, `grok-local`, `opencode-local`, `gemini-local`, `daytona` — quota/permissions/runtime-config/file-sync) is refactor-level with no user-visible doc delta this window; no edits.
 
-- **Automatic productivity reviews removed** — `refactor: remove automatic productivity reviews` (#13263). `server/src/services/productivity-review.ts` and `ui/src/components/ProductivityReviewBadge.tsx` are gone. If any guide/day-to-day page describes automatic productivity reviews, it needs a removal edit on the release-branch pass.
-
-- **Screenshots** — **230 of 342 stale** across 46 routes (see `SCREENSHOTS_PENDING.md`). Run `npm run screenshots:refresh` in the follow-up; PNGs go to a PR for review, never auto-pushed.
+- **Screenshots** — **182 of 342 stale** across 38 routes (see `SCREENSHOTS_PENDING.md`). Run `npm run screenshots:refresh` in the follow-up; PNGs go to a PR for review, never auto-pushed.
 
 ## ⚠ Drift (Phase 1.5) — all triaged, no action
 
-14 records, every one a re-confirmed false positive (spot-checked against current master this run):
+14 records, every one a re-confirmed false positive (spot-checked against master `2a99de80` this run):
 
-- **env-var `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (high, 4)** — `CONCURRENCY`, `QUEUE_CAPACITY`, `TIMEOUT_MS`, `CACHE_TTL_MS`. Present (commented) in `.env.example` and read by the workspace-git scan scheduler.
-- **env-var `PAPERCLIP_ID_CONNECTOR_*` (high, 5)** — `BASE_URL`, `ENVIRONMENT`, `INSTANCE_ID`, `SIGN_PRIVATE_KEY`, `SEAL_PRIVATE_KEY`. Present (commented) in `.env.example` + the cloud-connector service. Not reverted, so no reconciliation needed.
-- **rest-route companies `import/transfers` (medium, 5)** — `POST/PUT/GET/POST/POST /api/companies/import/transfers…`. All registered in `server/src/routes/companies.ts` via `COMPANY_IMPORT_TRANSFERS_ROUTE_PATH` (confirmed present this run).
+- **env-var `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (high, 4)** — `CONCURRENCY`, `QUEUE_CAPACITY`, `TIMEOUT_MS`, `CACHE_TTL_MS`. Present (commented/grouped) in `.env.example` (9 matches for the two prefixes this run).
+- **env-var `PAPERCLIP_ID_CONNECTOR_*` (high, 5)** — `BASE_URL`, `ENVIRONMENT`, `INSTANCE_ID`, `SIGN_PRIVATE_KEY`, `SEAL_PRIVATE_KEY`. Present (commented) in `.env.example`.
+- **rest-route companies `import/transfers` (medium, 5)** — all registered in `server/src/routes/companies.ts` via `COMPANY_IMPORT_TRANSFERS_ROUTE_PATH` (7 matches this run).
 
-> Note: the `env-var-missing` class keeps re-flagging vars that live in `.env.example` under grouped/prefixed **commented** blocks the drift scanner can't match line-for-line. Candidate check-drift refinement, not a docs bug.
+> Same 14 as the prior run; the `env-var-missing` class keeps re-flagging vars that live under grouped/prefixed **commented** blocks the drift scanner can't match line-for-line, and prefix-registered routes it can't resolve. Candidate check-drift refinement, not a docs bug.
 
 ## ⚠ Reconcile (Phase 3.5)
-- None. Prior runs drafted no doc edits, and nothing flagged in prior runs has been reverted upstream.
 
-## Pre-existing gaps noticed (out of scope this run)
-- The `worktree` CLI command family (`worktree:make`, `worktree init`, `worktree env`, …) is not documented on any CLI page.
-- `issues.md` does not document the `/issues/:id/work-products` route family or several `GET /issues/{id}` response fields/query params (unchanged this window).
+- None. Prior nightly runs drafted no doc edits, and nothing in the window is a revert of a previously-applied edit. Manifest hash changed vs `last_applied` (new base window), so all entries are new applies.
