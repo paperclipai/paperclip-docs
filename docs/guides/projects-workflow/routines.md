@@ -239,14 +239,78 @@ Every schedule trigger is saved with an explicit **timezone**, derived from the 
 
 If you need to change the timezone later (for example, you moved), open the trigger and re-save — the editor stamps the current browser timezone onto the updated record. The `Next:` countdown on the detail page is always rendered in your current local time, regardless of which timezone the trigger was originally saved with.
 
-### Webhook triggers
+---
 
-Webhook triggers skip the cron editor entirely and show two fields instead:
+## Webhook triggers
 
-- **Signing mode** — `bearer`, `hmac_sha256`, `github_hmac`, or `none`. Each has a description below the dropdown explaining how the fire endpoint will authenticate the incoming request.
-- **Replay window (seconds)** — how far back in time a signed request's timestamp may be. Hidden for `github_hmac` and `none`, which don't carry a timestamp.
+A schedule is one way to start a routine; a webhook is the other. Instead of firing on a clock, a webhook trigger hands you a URL that an outside system POSTs to — a GitHub event, a deploy script, another SaaS tool — and that inbound call starts the routine. Reach for it whenever the work should happen *because something happened elsewhere*, not at a fixed time.
 
-When you create a webhook trigger, Paperclip returns a one-time banner with the webhook URL and secret. **This is the only time the secret is shown** — copy it now. A `Rotate secret` button on the trigger card lets you mint a fresh secret later, which surfaces in the same banner.
+You add a webhook trigger the same place you add a schedule: open a routine, go to its **Triggers** section, and add a trigger. A short wizard walks you through the rest.
+
+### Choosing schedule or webhook
+
+The first step asks **"When should this routine run?"** and offers two choices:
+
+- **On a schedule** — every day, on weekdays, or once a week. That's the cron path covered above.
+- **When another app sends a webhook** — when something happens in GitHub, another app, or a script.
+
+Pick the webhook option and Paperclip asks **what's sending the webhook**: **Another app or script**, or **GitHub**. Your answer only changes the setup instructions you see next — the underlying trigger is the same either way.
+
+### Copying the URL and secret
+
+As soon as you continue, Paperclip creates the webhook and shows you two things to copy into the sending system:
+
+- a **Webhook URL** (labelled **Payload URL** on the GitHub path) — the address the outside system POSTs to
+- a **Secret** — the credential that proves a delivery really came from your system
+
+Copy both now. **The secret is only visible during setup** — once you leave the wizard it's hidden, and the field is replaced by a **Generate new key** button. If you didn't save it, generate a fresh one rather than hunting for the old value (see [Rotating the secret](#rotating-the-secret)).
+
+Paperclip also gives you a copy-ready **Agent instructions** block bundling the URL, the key, and step-by-step wiring — handy when you'd rather hand the connection off to one of your agents to set up.
+
+### The generic path (another app or script)
+
+For a custom app or a script, the setup is:
+
+- Add a webhook pointing at the **Webhook URL**, using the **POST** method.
+- Send a **JSON object** as the body — not an array or a bare string — with **`Content-Type: application/json`**.
+- Authenticate with a header named **`Authorization`** whose value is **`Bearer <secret>`** (include the space after `Bearer`). Paperclip shows this ready to paste as the **Authorization header value**.
+- Send a unique **`Idempotency-Key`** header for each event and reuse it on retries. That way a retried setup test can never start the routine once the webhook is live.
+
+### The GitHub path
+
+Choose **GitHub** and Paperclip gives you GitHub-shaped steps:
+
+1. In your repository, open **Settings → Webhooks → Add webhook**.
+2. Paste the **Webhook URL** into **Payload URL**, and set **Content type** to **application/json**.
+3. Paste the **Secret** into GitHub's **Secret** field. GitHub signs each request with an **`X-Hub-Signature-256`** header, so you don't use Bearer authentication on this path.
+4. Choose the events that should start the routine, enable the webhook, and save.
+
+### Finishing setup to enable the webhook
+
+A brand-new webhook trigger starts in a **setup-pending** state, and that's on purpose. While setup is pending, any delivery that arrives **only tests the connection** — it doesn't start the routine or create a task. That lets you wire things up and confirm they work without kicking off real work by accident.
+
+The wizard's last step, **Check connection**, is where you verify it:
+
+- Send a test event from the sending app. In GitHub, open the webhook's **Recent Deliveries** and choose **Redeliver**; in another app, use its "send test" button or simply perform the action that should fire the webhook.
+- Keep the page open. The status flips to **Test event received · Connection working** once a signed delivery arrives and authentication passes — no run and no task are created. If you see **Event arrived, but the key was rejected**, go back, fix the key in the sending app, and resend.
+- Click **Finish setup** to enable the webhook. From then on, real events start the routine.
+
+One thing to know: **the test event is not replayed.** Finishing setup does not re-fire the delivery you sent while testing — only events that arrive *after* you enable the webhook start the routine. And if the routine itself is paused, finishing setup saves the webhook but leaves it dormant until you enable the routine's automatic triggers.
+
+### Signing modes and the replay window
+
+Under the hood, each webhook trigger carries a **signing mode** that decides how Paperclip authenticates an inbound call, plus — for the timestamped mode — a **replay window**:
+
+- **Signing mode** — `bearer`, `hmac_sha256`, `github_hmac`, or `none`. `bearer` is the default and matches the generic `Authorization: Bearer` path; `github_hmac` matches the GitHub path. Each option has a short description below the dropdown explaining how the fire endpoint will authenticate the request.
+- **Replay window (seconds)** — how far back a signed request's timestamp may be, used only by the timestamped HMAC mode. It defaults to 300 seconds and doesn't apply to `github_hmac` or `none`, which don't carry a timestamp.
+
+### Rotating the secret
+
+If a secret leaks — or you just want to reissue credentials — use **Rotate secret** on the trigger card (the wizard's **Generate new key** button does the same thing). Rotation mints a fresh secret, invalidates the old one immediately, and **keeps the same webhook URL**, so you only have to update the secret in the sending app, never the endpoint. The new secret is shown once, in the same banner, so copy it right away.
+
+### Enabling, disabling, and archiving a trigger
+
+Each trigger has its own **enabled** state, so you can switch a single trigger off without touching the rest of the routine. You can also **archive** a trigger to retire it from the active set and **restore** it later, or **Delete** it to remove it for good. A routine can carry several triggers at once — a nightly schedule and a GitHub webhook side by side, for example — and they all fire independently.
 
 ---
 

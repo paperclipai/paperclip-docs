@@ -120,6 +120,30 @@ Configure from **Settings → Instance settings → Environments**. The plugin m
 
 ---
 
+## CreateOS (`provider: "createos"`)
+
+Package: `@paperclipai/plugin-createos`
+
+Reach for CreateOS when you want agent runs to execute in a CreateOS sandbox with live command output streaming back as it happens, and optional pause/resume so a warm sandbox survives between runs. It ships bundled with Paperclip like the other first-party providers, so you install it from the [Plugins](../../administration/plugins.md) page rather than pulling it from npm.
+
+Configure it from **Settings → Instance settings → Environments** with core `driver: "sandbox"` and `provider: "createos"`. Put the CreateOS API key on the sandbox environment itself — Paperclip stores pasted API keys as company secrets. `CREATEOS_API_KEY` remains an optional host-level fallback, but only for the official endpoint `https://api.sb.createos.sh`; a custom `apiUrl` always requires an explicit key on the environment.
+
+The driver's `configSchema` exposes:
+
+| Field | Default | Purpose |
+|---|---|---|
+| `apiUrl` | `https://api.sb.createos.sh` | CreateOS API endpoint. Must be an HTTPS origin (optionally ending in `/v1`); plain HTTP is allowed on loopback only, and credentials, query strings, and fragments are rejected. Required. |
+| `apiKey` | (none) | Environment-specific CreateOS API key — a pasted key or an existing Paperclip secret reference. Falls back to `CREATEOS_API_KEY` when omitted, but only for the official `https://api.sb.createos.sh` endpoint. |
+| `shape` | (none) | Sandbox CPU/memory size from the CreateOS shape catalog, such as `s-1vcpu-1gb` or `s-2vcpu-4gb`. Required. |
+| `rootfs` | (provider default) | Optional root filesystem or ready template ID/name. The image must supply Bash and the selected agent runtime's dependencies. |
+| `region` | (provider default) | Optional region; it must match the API endpoint's region. |
+| `timeoutMs` | `300000` | Operation and default per-command timeout, in milliseconds. Validated as an integer between `1` and `86400000`. This is not a sandbox lifetime. |
+| `reuseLease` | `false` | Pause the sandbox after a run and resume it for later runs instead of deleting it on release. |
+
+The driver advertises `supportsReusableLeases` and `incrementalSessionOutput`, so reusable leases (via `reuseLease`) map to CreateOS pause/resume, and command output streams back live as it's produced.
+
+---
+
 ## Modal (`provider: "modal"`)
 
 Package: `@paperclipai/plugin-modal`
