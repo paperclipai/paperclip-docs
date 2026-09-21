@@ -1240,6 +1240,10 @@
           "file": "../docs/reference/deploy/environment-variables.md"
         },
         {
+          "title": "Set Up HTTPS",
+          "file": "../docs/reference/deploy/https.md"
+        },
+        {
           "title": "Tailscale Private Access",
           "file": "../docs/reference/deploy/tailscale-private-access.md"
         },
