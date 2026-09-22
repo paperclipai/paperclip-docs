@@ -5,16 +5,16 @@ seo_description: Two separate GitHub setups: repository tools for agents, or peo
 
 # GitHub
 
-GitHub does two unrelated jobs in Paperclip, and they are separate connections with separate credentials.
+GitHub supports repository tools and an experimental chat/review bot in Paperclip. Choose the setup for the work you want to do.
 
 ## Which do you want?
 
 | If you want | Set up | What it gives you |
 | --- | --- | --- |
 | Agents to read and act on repositories as part of their own work | **Use this connection as an agent tool** | GitHub actions an agent can call, and for a managed identity the credential the run's shell uses |
-| People to start and continue work by commenting in GitHub | **Chat with an agent** | A GitHub App that turns issue and pull-request comments into Paperclip tasks |
+| People to start work from GitHub, or an agent to review PRs | **Chat with an agent** | A bot App assigned to one agent, with task-bound review tools and PR checks when enabled |
 
-Connecting one does not connect the other. [Set up the GitHub connector](github-setup.md) is the step-by-step procedure for both.
+A personal GitHub connection does not create a bot App. Use [GitHub connector setup](github-setup.md) for regular repository tools, or [Set up a GitHub review bot](github-review-bot-setup.md) for the experimental chat journey. Read [Understanding GitHub PR review bots](understanding-github-review-bots.md) to distinguish installation, triggers, and merge requirements.
 
 Before you give an agent a GitHub identity, read the shell exception — it is the boundary most often misread.
 
@@ -102,11 +102,18 @@ People comment in an issue or pull request, mentioning the agent, and Paperclip 
 - Permission to create a GitHub App in the organization, and to install it.
 - The agent that will answer.
 
-### What it needs
+### Set up the bot
 
-You create one private GitHub App for this — with **Issues** and **Pull requests** read and write permission, the **issue_comment** and **pull_request_review_comment** events, and a webhook secret Paperclip generates — then give Paperclip its **App ID** and **private key (PEM)**. [Set up the GitHub connector](github-setup.md) has the numbered procedure.
+[Set up a GitHub review bot](github-review-bot-setup.md) walks through the
+experimental setup with a Storybook example: choose the agent, register an App
+from a manifest (or connect an existing one), install it, enable repositories,
+verify tools, link your account, and configure behavior.
 
-This route grants no repository tools. An agent reachable from issue comments cannot call GitHub actions unless you also set up the tool connection.
+The bot can receive its own App's governed GitHub tools through **Assign this
+bot’s GitHub tools**. Verify the assigned agent's effective access; a working
+webhook alone does not prove tool access. Your personal connection links your
+identity and does not replace the bot's App credentials. Workspace shell Git
+access is configured separately.
 
 ### Access
 
@@ -141,9 +148,12 @@ Provider channel or repository access determines where a message can reach the i
 
 ## Limitations
 
-The two routes are independent. Repository scope lives in GitHub on both. The managed tool path depends on Cloud enrollment; the channel path depends on the experimental chat setting. Paperclip cannot constrain shell Git or `gh` with per-action settings.
+The managed repository-tool path depends on Cloud enrollment. The chat/review-bot path depends on the experimental chat setting and uses its own App. Both require appropriate GitHub repository access; review bots also have an enabled-repository subset in Paperclip. Paperclip cannot constrain shell Git or `gh` with per-action settings.
 
 ## Related guides
+
+- [Understanding GitHub PR review bots](understanding-github-review-bots.md)
+- [Set up a GitHub review bot](github-review-bot-setup.md)
 
 - [Set up the GitHub connector](github-setup.md)
 - [Connect an agent to a GitHub repo](../how-to/connect-agent-to-github.md)

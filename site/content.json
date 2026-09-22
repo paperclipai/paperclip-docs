@@ -243,6 +243,14 @@
               "file": "../docs/connectors/github-setup.md"
             },
             {
+              "title": "Understanding GitHub Review Bots",
+              "file": "../docs/connectors/understanding-github-review-bots.md"
+            },
+            {
+              "title": "Set Up a GitHub Review Bot",
+              "file": "../docs/connectors/github-review-bot-setup.md"
+            },
+            {
               "title": "Gmail",
               "file": "../docs/connectors/gmail.md"
             },
