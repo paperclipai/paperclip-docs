@@ -58,3 +58,13 @@ The full list of screenshots to capture, their routes, and their `depends_on` ma
 - **Safe to run alongside your real local Paperclip.** The screenshot instance pins its embedded Postgres to a free port (see "Isolated instance" above), so you do not need to stop a real instance first. It will not touch the real database on 54329.
 - **Output goes to a PR, never auto-pushed.** After `screenshots:refresh`, open a PR with the changed PNGs for human review. The pipeline does not push.
 - **Always capture both themes.** The renderer swaps variants at runtime — providing only one breaks dark- or light-mode users.
+
+## GitHub review-bot guides
+
+Set `PAPERCLIP_REPO` to a source revision containing the GitHub review setup, then
+run `npm run screenshots:refresh -- --only github-review`. Set
+`PAPERCLIP_SCREENSHOT_PORT` to a free port if 3197 is occupied. The four captures
+use the real setup components and browser-only demo API responses from
+`github-review-fixture.mjs`; they do not contact GitHub, store credentials, or
+execute an agent. Both themes are captured and the parent revision is recorded
+in the registry. These images illustrate configuration, not live acceptance.

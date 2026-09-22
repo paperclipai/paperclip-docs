@@ -87,60 +87,19 @@ As the agent you intend to use, ask it to read a known file in an intended repos
 
 Do not verify with a push, a pull request, or a merge.
 
-## Set up chat from GitHub
+## Set up chat or a PR review bot from GitHub
 
-This route lets people start and continue work from issue, pull-request, and review comments. It grants no repository tools — if you want both, complete both procedures.
+> **Experimental:** Enable **Chat connectors** in the instance's experimental settings before starting this path.
 
-### 1. Check the prerequisites
+Follow [Set up a GitHub review bot](github-review-bot-setup.md) for the complete
+chat setup, including an optional Storybook reviewer. It covers manifest
+registration, separate App installation and repository enablement, effective
+agent tools, personal account linking, and a real PR test. Choose authorized
+mentions only if you want a chat bot without automatic reviews.
 
-- **Chat connectors** must be switched on for the instance. It is an experimental setting, off by default, enabled by an instance administrator under experimental settings.
-- You need permission to create a GitHub App in the organization and to install it.
-- **Your Paperclip instance must be reachable from the internet over HTTPS.** GitHub delivers comments by calling a Paperclip URL. Paperclip builds that URL from the instance's configured public address, so an instance with none configured shows no webhook URL and cannot receive anything. If the URL is missing in step 2, ask an administrator to configure the instance's public address.
-- Decide which agent will answer.
-
-### 2. Start in Paperclip to get the webhook URL and secret
-
-Both values come from Paperclip, not from you, and both are needed before you create the App.
-
-1. Open **Connectors**, select **GitHub**, then **Chat with an agent**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Copy the **webhook URL** Paperclip shows. It is specific to this connection.
-4. Generate the **webhook secret** and keep it to hand. GitHub needs both in the next step.
-
-> **Note:** Regenerating the secret later immediately invalidates GitHub's webhook signatures until you paste the new one into the App's settings. Expect deliveries to fail in between.
-
-### 3. Create one private GitHub App
-
-At [GitHub's new App form](https://github.com/settings/apps/new), create a **private** App with:
-
-- **Webhooks** active and SSL verification enabled, using the webhook URL and secret from step 2.
-- **Issues** — read and write.
-- **Pull requests** — read and write.
-- Subscribed events: **issue_comment** and **pull_request_review_comment**.
-
-GitHub sends the installation and installation_repositories events automatically; you do not select those.
-
-Then generate a private key and download the PEM file.
-
-> **Danger:** The private key authenticates the whole App. Paste it only into Paperclip, and generate a replacement key in GitHub if it is ever exposed.
-
-### 4. Install it only where mentions should work
-
-Install the App on the specific repositories where people should be able to mention the agent.
-
-Provider channel or repository access determines where a message can reach the integration; it does not by itself authorize agent work. Paperclip also checks the sender's linked identity and company membership. Linked users must be active non-viewer members. Unlinked senders depend on the connection's **Allow unlinked people** setting and any sponsor requirements. Review these controls before inviting people to use the agent.
-
-### 5. Finish in Paperclip
-
-Paste the **GitHub App ID** and the **private key (PEM)**, choose the answering agent, and finish.
-
-Paperclip waits for GitHub to deliver a signed webhook ping before it treats the endpoint as verified, showing *"Waiting for GitHub to deliver its signed webhook ping…"* until it arrives and *"GitHub has verified this webhook."* afterwards. If it stays waiting, the URL, the secret, or public reachability is the cause.
-
-### 6. Verify with a scratch issue
-
-1. In a repository where the App is installed, open a scratch issue.
-2. Comment, mentioning the agent, and ask it to confirm it is connected.
-3. Expect a reply comment and a matching task in Paperclip.
+Read [Understanding GitHub PR review bots](understanding-github-review-bots.md)
+first if you are deciding whether reviews should run automatically or block
+merges. Installing the App does neither by itself.
 
 ## Troubleshooting
 
@@ -160,6 +119,9 @@ Paperclip waits for GitHub to deliver a signed webhook ping before it treats the
 More in [Verify a connector and fix a broken one](verify-and-troubleshoot.md).
 
 ## Related guides
+
+- [Understanding GitHub PR review bots](understanding-github-review-bots.md)
+- [Set up a GitHub review bot](github-review-bot-setup.md)
 
 - [GitHub](github.md)
 - [Connect an agent to a GitHub repo](../how-to/connect-agent-to-github.md)

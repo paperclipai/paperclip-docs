@@ -165,7 +165,7 @@ function locate(page, sel) {
  * (a partial capture beats no capture, and surfaces selector drift in the log).
  *
  * Step shapes: { click }, { fill, value }, { waitFor }, { waitMs }, { press },
- * { scrollTo } (bring an element into view — long pages like issue detail put
+ * { select, value } (select a native option), { scrollTo } (bring an element into view — long pages like issue detail put
  * the interesting section below the fold, and a 1440×900 shot of the top of the
  * page misses it entirely).
  *
@@ -184,6 +184,8 @@ async function runSteps(page, steps, label) {
         await locate(page, stepObj.scrollTo).scrollIntoViewIfNeeded({ timeout: 8_000 });
       } else if (stepObj.click) {
         await locate(page, stepObj.click).click({ timeout: 8_000 });
+      } else if (stepObj.select) {
+        await locate(page, stepObj.select).selectOption(String(stepObj.value), { timeout: 8_000 });
       } else if (stepObj.fill) {
         await locate(page, stepObj.fill).fill(String(stepObj.value ?? ""), { timeout: 8_000 });
       } else if (stepObj.press) {
@@ -297,6 +299,10 @@ export default async function capture(opts = {}) {
       await context.addInitScript(themeInitScript(theme));
 
       const page = await context.newPage();
+      if (target.githubReviewStage) {
+        const { installGitHubReviewFixture } = await import("./github-review-fixture.mjs");
+        await installGitHubReviewFixture(page, seedIds, target.githubReviewStage);
+      }
 
       const wait = target.wait ?? 1200;
       // The pipeline serves the UI through vite dev middleware, which compiles
@@ -330,6 +336,11 @@ export default async function capture(opts = {}) {
       if (Array.isArray(target.steps) && target.steps.length) {
         await runSteps(page, target.steps, target.name);
         await page.waitForTimeout(target.postStepWait ?? 600);
+      }
+
+      // New guided captures fail on a wrong/blank state instead of publishing it.
+      if (target.requiredText) {
+        await page.getByText(target.requiredText, { exact: true }).first().waitFor({ state: "visible", timeout: 10_000 });
       }
 
       // `clip` captures a single element (e.g. one dashboard panel) instead of
