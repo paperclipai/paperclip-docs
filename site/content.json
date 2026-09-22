@@ -236,19 +236,24 @@
             },
             {
               "title": "GitHub",
-              "file": "../docs/connectors/github.md"
-            },
-            {
-              "title": "GitHub Setup",
-              "file": "../docs/connectors/github-setup.md"
-            },
-            {
-              "title": "Understanding GitHub Review Bots",
-              "file": "../docs/connectors/understanding-github-review-bots.md"
-            },
-            {
-              "title": "Set Up a GitHub Review Bot",
-              "file": "../docs/connectors/github-review-bot-setup.md"
+              "pages": [
+                {
+                  "title": "Overview",
+                  "file": "../docs/connectors/github.md"
+                },
+                {
+                  "title": "Connector Setup",
+                  "file": "../docs/connectors/github-setup.md"
+                },
+                {
+                  "title": "Understanding Review Bots",
+                  "file": "../docs/connectors/understanding-github-review-bots.md"
+                },
+                {
+                  "title": "Set Up a Review Bot",
+                  "file": "../docs/connectors/github-review-bot-setup.md"
+                }
+              ]
             },
             {
               "title": "Gmail",
