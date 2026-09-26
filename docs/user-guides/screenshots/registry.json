@@ -962,6 +962,62 @@
       ]
     },
     {
+      "file": "dark/github-review/connect.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/apps/chat/connect?provider=github&resume=github-review-docs-demo",
+      "captured_against": "codex/github-chat-review-bot",
+      "captured_sha": "7ba761fe007bb798400d3e62346fa964f607f0f8",
+      "depends_on": [
+        "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
+        "ui/src/pages/apps/chat/GitHubBotConfiguration.tsx",
+        "ui/src/pages/apps/chat/GitHubSetupPrompt.tsx",
+        "packages/shared/src/types/chat-github.ts"
+      ]
+    },
+    {
+      "file": "dark/github-review/identity.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/apps/chat/connect?provider=github&resume=github-review-docs-demo",
+      "captured_against": "codex/github-chat-review-bot",
+      "captured_sha": "7ba761fe007bb798400d3e62346fa964f607f0f8",
+      "depends_on": [
+        "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
+        "ui/src/pages/apps/chat/GitHubBotConfiguration.tsx",
+        "ui/src/pages/apps/chat/GitHubSetupPrompt.tsx",
+        "packages/shared/src/types/chat-github.ts"
+      ]
+    },
+    {
+      "file": "dark/github-review/prompts.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/apps/chat/connect?provider=github&resume=github-review-docs-demo",
+      "captured_against": "codex/github-chat-review-bot",
+      "captured_sha": "7ba761fe007bb798400d3e62346fa964f607f0f8",
+      "depends_on": [
+        "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
+        "ui/src/pages/apps/chat/GitHubBotConfiguration.tsx",
+        "ui/src/pages/apps/chat/GitHubSetupPrompt.tsx",
+        "packages/shared/src/types/chat-github.ts"
+      ]
+    },
+    {
+      "file": "dark/github-review/repositories.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACME/apps/chat/connect?provider=github&resume=github-review-docs-demo",
+      "captured_against": "codex/github-chat-review-bot",
+      "captured_sha": "7ba761fe007bb798400d3e62346fa964f607f0f8",
+      "depends_on": [
+        "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
+        "ui/src/pages/apps/chat/GitHubBotConfiguration.tsx",
+        "ui/src/pages/apps/chat/GitHubSetupPrompt.tsx",
+        "packages/shared/src/types/chat-github.ts"
+      ]
+    },
+    {
       "file": "dark/goals/detail.png",
       "theme": "dark",
       "viewport": "1440x900",
@@ -2879,6 +2935,62 @@
       "captured_sha": "213dabab4f8e1f3bb1803a2924c0fea1289fcd4c",
       "depends_on": [
         "ui/src/pages/CompanyImport.tsx"
+      ]
+    },
+    {
+      "file": "light/github-review/connect.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/apps/chat/connect?provider=github&resume=github-review-docs-demo",
+      "captured_against": "codex/github-chat-review-bot",
+      "captured_sha": "7ba761fe007bb798400d3e62346fa964f607f0f8",
+      "depends_on": [
+        "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
+        "ui/src/pages/apps/chat/GitHubBotConfiguration.tsx",
+        "ui/src/pages/apps/chat/GitHubSetupPrompt.tsx",
+        "packages/shared/src/types/chat-github.ts"
+      ]
+    },
+    {
+      "file": "light/github-review/identity.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/apps/chat/connect?provider=github&resume=github-review-docs-demo",
+      "captured_against": "codex/github-chat-review-bot",
+      "captured_sha": "7ba761fe007bb798400d3e62346fa964f607f0f8",
+      "depends_on": [
+        "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
+        "ui/src/pages/apps/chat/GitHubBotConfiguration.tsx",
+        "ui/src/pages/apps/chat/GitHubSetupPrompt.tsx",
+        "packages/shared/src/types/chat-github.ts"
+      ]
+    },
+    {
+      "file": "light/github-review/prompts.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/apps/chat/connect?provider=github&resume=github-review-docs-demo",
+      "captured_against": "codex/github-chat-review-bot",
+      "captured_sha": "7ba761fe007bb798400d3e62346fa964f607f0f8",
+      "depends_on": [
+        "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
+        "ui/src/pages/apps/chat/GitHubBotConfiguration.tsx",
+        "ui/src/pages/apps/chat/GitHubSetupPrompt.tsx",
+        "packages/shared/src/types/chat-github.ts"
+      ]
+    },
+    {
+      "file": "light/github-review/repositories.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACME/apps/chat/connect?provider=github&resume=github-review-docs-demo",
+      "captured_against": "codex/github-chat-review-bot",
+      "captured_sha": "7ba761fe007bb798400d3e62346fa964f607f0f8",
+      "depends_on": [
+        "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
+        "ui/src/pages/apps/chat/GitHubBotConfiguration.tsx",
+        "ui/src/pages/apps/chat/GitHubSetupPrompt.tsx",
+        "packages/shared/src/types/chat-github.ts"
       ]
     },
     {

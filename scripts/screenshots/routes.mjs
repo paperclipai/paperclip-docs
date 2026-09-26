@@ -99,6 +99,33 @@ export function resolveRoute(target, ids) {
 // Playwright can at least land on the right page.
 
 export const CAPTURE_TARGETS = [
+  // Real GitHub setup UI with browser-only demo API responses; never contacts GitHub.
+  ...[
+    { name: "connect", stage: "connect", heading: "Create App on GitHub", steps: [
+      { fill: { label: "GitHub App name" }, value: "acme-storybook" },
+      { click: { role: "button", name: "Prepare registration" } },
+    ] },
+    { name: "repositories", stage: "repositories", heading: "Select repositories" },
+    { name: "identity", stage: "identity", heading: "@octocat", steps: [
+      { select: { label: "Your GitHub connection" }, value: "demo-personal" },
+      { click: { role: "button", name: "Verify my account" } },
+    ] },
+    { name: "prompts", stage: "behavior", heading: "Review instructions", steps: [
+      { scrollTo: { label: "Review instructions" } },
+    ] },
+  ].map(({ name, stage, heading, steps }) => ({
+    name: `github-review/${name}`,
+    route: "/{prefix}/apps/chat/connect?provider=github&resume=github-review-docs-demo",
+    githubReviewStage: stage,
+    requiredText: heading,
+    steps,
+    dependsOn: [
+      "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
+      "ui/src/pages/apps/chat/GitHubBotConfiguration.tsx",
+      "ui/src/pages/apps/chat/GitHubSetupPrompt.tsx",
+      "packages/shared/src/types/chat-github.ts",
+    ],
+  })),
   // ── Company settings ───────────────────────────────────────────────────────
   {
     name: "company/settings",

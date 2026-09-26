@@ -418,3 +418,15 @@ only the `phase: "task-chat"` targets, and disables it again.
 
 - Verify no real user data (avatars, company names, task titles, emails) is visible in any PNG.
 - Commit the new PNGs alongside the markdown files in `docs/user-guides/guides/administration/`.
+
+### Experimental GitHub review bot
+
+Real setup components with browser-only demo responses; both themes. Run the
+screenshot pipeline with `--only github-review` (see its README).
+
+| Target | Setup stage |
+| --- | --- |
+| `github-review/connect` | Connect GitHub App |
+| `github-review/repositories` | Select repositories |
+| `github-review/identity` | Connect your account |
+| `github-review/prompts` | Configure behavior, review instructions |

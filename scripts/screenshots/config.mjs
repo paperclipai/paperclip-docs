@@ -14,7 +14,7 @@ import net from "node:net";
 
 // ── Server / viewport ────────────────────────────────────────────────────────
 
-export const PORT = 3197;
+export const PORT = Number(process.env.PAPERCLIP_SCREENSHOT_PORT ?? 3197);
 export const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 export const VIEWPORT = { width: 1440, height: 900 };
