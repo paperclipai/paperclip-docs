@@ -126,12 +126,12 @@ When a new parent release tag drops (`v2026.X.Y`):
    - Frontmatter `paperclip_version` correctly stamped on changed pages.
 4. Merge to `main` when satisfied.
 5. **After merge — four follow-ups:**
-   - Tag the merge commit:
+   - Confirm the merge commit was tagged. The `Tag docs release` workflow does this automatically on the push to `main`, reading the version from the squash commit's subject — so keep the PR title `Release docs for paperclip v2026.X.Y`:
      ```sh
-     git checkout main && git pull
-     git tag docs/v2026.X.Y
-     git push --tags
+     git checkout main && git pull --tags
+     git rev-parse --short docs/v2026.X.Y   # should print the squash commit
      ```
+     If it's missing, check the workflow run, then tag by hand: `git tag docs/v2026.X.Y <squash-sha> && git push origin docs/v2026.X.Y`.
    - Verify `.sync-state.json` on `main` now shows `base_release_tag: v2026.X.Y` and `base_release_sha` matches.
    - **Confirm the site actually rebuilt — don't assume.** Cloudflare Pages is supposed to auto-deploy on push to `main`, but that hook has silently no-opped (v2026.824.0 merged with a correct changelog entry and production served the previous build for hours). Check the live site, not the Pages dashboard:
 
