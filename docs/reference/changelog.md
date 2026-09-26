@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.916.1
 seo_title: Documentation Changelog
 seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
@@ -13,6 +13,27 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.916.1 <span class="accordion-meta">September 21, 2026</span></summary>
+<div class="accordion-body">
+
+A patch release: the task conversation's send button no longer starts out disabled while Paperclip checks whether the task is paused. The docs already described the composer working normally, so no page needed correcting. This entry also rounds up the pages published since v2026.916.0.
+
+**New pages**
+
+- [Set Up HTTPS](deploy/https.md) — give your instance a browser-trusted HTTPS address with Tailscale or a reverse proxy, and make connection webhooks reachable from services outside your network.
+- [Understanding GitHub PR review bots](../connectors/understanding-github-review-bots.md) — why installing a review bot, choosing when it runs, and requiring its check before merging are three separate decisions.
+- [Set up a GitHub review bot](../connectors/github-review-bot-setup.md) — build an experimental agent-powered reviewer end to end: register and install the GitHub App, configure mentions and push events, and watch a failing check turn green on a real PR.
+
+**Updated pages**
+
+- [Trust & Low-Trust Review](../administration/trust-and-low-trust-review.md) — a new section on choosing the agent behind a GitHub bot: a dedicated low-trust agent with a concrete work boundary, isolated workspaces, and a sandbox, because pull requests carry instructions from outside your company.
+- [GitHub](../connectors/github.md) and [Set up the GitHub connector](../connectors/github-setup.md) — the chat route now covers PR review bots too and hands off to the new setup guide.
+- Smaller updates: the [Deployment Overview](deploy/overview.md) and [Tailscale Private Access](deploy/tailscale-private-access.md) pages link to the new HTTPS guide.
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.916.0 <span class="accordion-meta">September 16, 2026</span></summary>
 <div class="accordion-body">
 
