@@ -1,0 +1,50 @@
+name: Tag docs release
+
+# Tags every release squash commit on `main` as `docs/vYYYY.MDD.P`.
+#
+# The tag used to be a manual post-merge step, and 11 of the first 16 releases
+# never got one. Release PRs are always titled
+# `Release docs for paperclip vYYYY.MDD.P`, and a squash merge keeps that title
+# as the commit subject, so the version can be read straight from the commit.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag release commits
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          # A branch-creating push has an all-zero `before`; look at the tip only.
+          if [ -z "${BEFORE//0/}" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            range="$AFTER -1"
+          else
+            range="$BEFORE..$AFTER"
+          fi
+
+          git log --format='%H %s' $range | while read -r sha subject; do
+            version=$(printf '%s\n' "$subject" \
+              | sed -nE 's/^Release docs for paperclip (v[0-9]{4}\.[0-9]{1,4}\.[0-9]+)( .*)?$/\1/p')
+            [ -n "$version" ] || continue
+            tag="docs/$version"
+            if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+              echo "$tag already exists at $(git rev-parse --short "$tag^{commit}") — leaving it."
+              continue
+            fi
+            git tag "$tag" "$sha"
+            git push origin "refs/tags/$tag"
+            echo "Tagged $tag at ${sha:0:7}."
+          done

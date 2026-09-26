@@ -457,10 +457,17 @@ Skip in nightly mode (Cloudflare branch previews are best-effort, not reader-fac
    skipped at least once; none are optional.
 
    ```sh
-   git checkout main && git pull
-   git tag docs/v2026.X.Y && git push --tags
+   git checkout main && git pull --tags
+   git rev-parse --short docs/v2026.X.Y   # must print the release squash commit
    node scripts/sync/realign-nightly.mjs release/v2026.X.Y --push   # see Phase 7
    ```
+
+   The `docs/v2026.X.Y` tag is created by `.github/workflows/tag-docs-release.yml`
+   on the push to `main`. It reads the version from the squash commit's subject,
+   so the release PR **must** keep the title `Release docs for paperclip vYYYY.MDD.P`
+   (anything after a space, like `(#132)`, is fine). If the tag is missing a minute
+   after the merge, check that workflow's run and tag by hand:
+   `git tag docs/v2026.X.Y <squash-sha> && git push origin docs/v2026.X.Y`.
 
    Then flip `nightly`'s `.sync-state.json` back to `"branch_mode": "nightly"` and
    commit it. The merge-down inherits `"release"` from `main` and nothing else
@@ -497,7 +504,7 @@ Skip in nightly mode (Cloudflare branch previews are best-effort, not reader-fac
 4. **Show the evidence in the run summary** — the URLs you checked, the status
    codes, and the changelog version you read back. "Merged" is not evidence.
 
-> The "never push without asking" rule still holds here. Steps 1 and 3 push tags
+> The "never push without asking" rule still holds here. Steps 1 and 3 push the nightly realign
 > and publish to production — ask before each, and if the answer is no, hand off
 > with the exact commands so the human can run them. What is **not** optional is
 > step 2: always check the live site and always report what you found, even when
