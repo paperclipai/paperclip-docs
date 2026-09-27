@@ -50,7 +50,7 @@ export COMPANY_ID=<your-company-id>
 
 A skill is a folder with a `SKILL.md` at its root. The frontmatter is what the agent reads first to decide whether to load the body. Keep the routing description sharp — "Use when… Don't use when…" — and put long material in a `references/` subfolder.
 
-The bundled `paperclip` skill that ships with the server is the canonical example for this layout. You can read it [on GitHub](https://github.com/paperclipai/paperclip/tree/main/skills/paperclip) (`SKILL.md` plus a `references/` tree). Mirror that shape for your own.
+The bundled `paperclip` skill that ships with the server is the canonical example for this layout. You can read it [on GitHub](https://github.com/paperclipai/paperclip/tree/master/skills/paperclip) (`SKILL.md` plus a `references/` tree). Mirror that shape for your own.
 
 For this how-to we'll build a small `release-note-writer` skill — a release-notes format checklist for a coder agent.
 
