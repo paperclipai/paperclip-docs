@@ -186,6 +186,10 @@
               "file": "../docs/connectors/custom-mcp-servers.md"
             },
             {
+              "title": "MCP Aggregators",
+              "file": "../docs/connectors/mcp-aggregators.md"
+            },
+            {
               "title": "Google Workspace Setup",
               "file": "../docs/connectors/google-setup.md"
             }
@@ -233,6 +237,10 @@
             {
               "title": "Discord",
               "file": "../docs/connectors/discord.md"
+            },
+            {
+              "title": "Fireflies",
+              "file": "../docs/connectors/fireflies.md"
             },
             {
               "title": "GitHub",
@@ -360,6 +368,10 @@
               "file": "../docs/connectors/postman.md"
             },
             {
+              "title": "Railway",
+              "file": "../docs/connectors/railway.md"
+            },
+            {
               "title": "Resend",
               "file": "../docs/connectors/resend.md"
             },
@@ -398,6 +410,10 @@
             {
               "title": "Wix",
               "file": "../docs/connectors/wix.md"
+            },
+            {
+              "title": "You.com",
+              "file": "../docs/connectors/you-com.md"
             },
             {
               "title": "Zapier",

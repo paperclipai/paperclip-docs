@@ -23,11 +23,26 @@ Without an adapter, an agent is just a record in a database. With one, it's a wo
 | `opencode_local` | Multi-provider flexibility, switchable models | OpenCode CLI installed, relevant API keys |
 | `cursor` | Users already working inside Cursor | Cursor installed and configured |
 | `pi_local` | Pi users wanting Pi's built-in tool set | Pi CLI installed, relevant API keys |
+| `grok_local` | xAI users — runs the Grok Build CLI | Grok CLI installed, xAI API key or SuperGrok login |
 | `hermes_local` | Persistent memory, 30+ tools, 80+ skills | Hermes Agent installed (Python 3.10+) |
 
 For most people getting started, **`claude_local`** is the right choice. It runs directly on your Mac using the same Claude that powers Anthropic's Claude.ai, and it only needs Claude Code plus an API key wired through environment variables.
 
 ![Adapter type dropdown showing all available options](../../user-guides/screenshots/light/agents/adapter-type-dropdown.png)
+
+> **Note:** On Paperclip Cloud, the new-agent picker offers Claude, Codex, OpenCode, and Grok. Grok agents connect with an xAI subscription or API key during setup.
+
+### Agents run in full auto by default
+
+Agents do their work while nobody is watching, so there's no one around to answer "may I run this command?" prompts. That's why the coding adapters start in full-auto mode: Claude Code, Codex, OpenCode, and Gemini CLI agents use their tools — including tools from connected services such as MCP servers — without stopping to ask for approval.
+
+You can dial this back per agent in the adapter's configuration. Each adapter reference page explains its own switch:
+
+- Claude Code — `dangerouslySkipPermissions` (see [Claude Code permissions](../../reference/adapters/claude-code.md#permissions))
+- Codex — `dangerouslyBypassApprovalsAndSandbox` (see [Codex permissions](../../reference/adapters/codex.md#permissions))
+- OpenCode — `dangerouslySkipPermissions` (see [OpenCode](../../reference/adapters/opencode.md))
+
+> **Tip:** Full auto is about approval prompts, not about what an agent is allowed to do in your company. Company permissions, budgets, and approval requirements still apply.
 
 ---
 
@@ -50,11 +65,11 @@ The folder on your Mac where the agent does its work — reads files, writes out
 > **Tip:** Give each agent its own working directory if they're doing different kinds of work. Shared directories can lead to agents accidentally overwriting each other's files.
 
 **Model**
-Which Claude model to use. The main choices:
-- `claude-opus-4-6` — most capable, best reasoning, highest cost. Good for your CEO or complex strategic agents.
-- `claude-sonnet-4-6` — fast, capable, lower cost. Good for worker agents doing routine tasks.
+Which Claude model to use. If you leave it blank, Paperclip uses `claude-opus-5`. Some common choices:
+- `claude-opus-5-5` or `claude-opus-5` — most capable, best reasoning, highest cost. Good for your CEO or complex strategic agents.
+- `claude-sonnet-5` — fast, capable, lower cost. Good for worker agents doing routine tasks.
 
-When in doubt, start with Sonnet for workers and Opus for the CEO.
+When in doubt, start with Sonnet for workers and Opus for the CEO. The **effort** options next to the model change with the model you pick — newer Opus, Sonnet 5, and Fable models add `xhigh` and `max`. See [Claude Code — Reasoning Effort](../../reference/adapters/claude-code.md#reasoning-effort).
 
 **Environment variables**
 The agent form includes an **Environment variables** section. Add `ANTHROPIC_API_KEY` there, either as a plain value or as a secret reference. If you're not sure what key name to use, `ANTHROPIC_API_KEY` is the standard one.
@@ -88,8 +103,11 @@ The `codex_local` adapter runs your agent using OpenAI's Codex CLI on your Mac. 
 The fields are the same as `claude_local` — mainly model selection and environment variables — but pointing to OpenAI instead of Anthropic.
 
 **Model** examples for Codex:
-- `gpt-5.3-codex` — the default and the normal starting point
+- `gpt-5.6-sol` — the default and the normal starting point
+- `gpt-6-astra`, `gpt-6-sol`, or `gpt-6-luna` — the GPT-6 family, with extra reasoning-effort levels
 - `o4-mini` — fast and cost-effective for routine tasks
+
+See [Codex — Models](../../reference/adapters/codex.md#models) for the full list.
 
 ![Codex local adapter configuration form](../../user-guides/screenshots/light/agents/codex-local-config.png)
 

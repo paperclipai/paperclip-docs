@@ -53,6 +53,20 @@ A human "Owner" is not the CEO agent's boss in the org-chart sense; they're the 
 
 ---
 
+## Inviting people on Paperclip Cloud
+
+If your organization runs on Paperclip Cloud, the people who can sign in are managed by Cloud, not by the instance. So when you're an owner or admin of the current Cloud organization, the Members page (headed **Organization Members**) shows an **Invite people** button in its top-right corner. Clicking it takes you out of the app to that organization's **People** settings in Paperclip Cloud, where you send the invitation.
+
+A few things decide whether you see the button:
+
+- **Your Cloud role, not your company role.** Only the current Cloud organization's owner or admin gets it. Being an owner of the company inside Paperclip — or owning some *other* Cloud organization — isn't enough.
+- **Cloud has to answer.** The button stays hidden until Paperclip knows your Cloud role, and it doesn't appear at all if that lookup fails.
+- **It's separate from the Invites tab.** If your operator has hidden the in-app Invites tab, the Cloud button still shows for the people allowed to use it.
+
+Self-hosted instances never show this button — you invite people with the in-app invite links described in [Add a human teammate](../../how-to/add-a-human-teammate.md).
+
+---
+
 ## Instance admin: above any one company
 
 Company roles stop at the company boundary. One role reaches across the whole instance: the **instance admin**. An instance admin can administer every company on the install — including ones they aren't a member of — promote other instance admins, and decide which companies each user can reach.

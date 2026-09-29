@@ -9,20 +9,15 @@ Watching an agent work on a task usually means reading two things at once: the c
 
 **Chat-Style Tasks** turns the task detail page into a single live conversation. People and agents get chat bubbles. Everything an agent does between two replies streams inline as it happens — thinking, tool calls, file diffs — and then folds itself away into a one-line summary the moment the turn is done. Properties, the plan, and the task's artifacts move into a side pane you can widen or maximize.
 
-## Turn it on
+## It's on by default
 
-1. Go to **Settings → Instance settings → Experimental**.
-2. Turn on **Chat-Style Tasks** — *"Reimagines the task detail page as a live conversation with your agents: chat bubbles for people and agents, streaming activity — thinking, tool calls, diffs — that folds into a one-line summary when a turn finishes, inline plan/question/permission cards, a three-mode composer (Agent · Plan · Ask), and a resizable Properties · Plan · Artifacts pane."*
+Chat-Style Tasks started life as an experimental toggle. It's now simply how the task page works — there's nothing to switch on.
 
-The card carries an **Experimental** badge, and under the description the app tells you how reversible this is: *"Turning this off instantly restores the classic task page. No task data is affected."*
-
-This one is yours to decide. Unlike most flags on this page it's classed as a taste setting rather than a fleet setting, so it never picks up a **Managed by Paperclip Cloud** lock badge — see [If a toggle is locked](overview.md#if-a-toggle-is-locked). It's off by default on Cloud and self-hosted instances alike.
-
-Like every experimental flag it's instance-wide: flipping it changes the task page for everyone on the instance, not just for you.
+If you'd rather have the old page back, go to **Settings → Instance settings → Experimental** and, under **Legacy** (*"These features are going to be removed."*), turn on **Classic Task Interface**. It restores the previous task detail page — the page-level header, the plain comment thread, and the fixed Properties sidebar — and the chat-only features described below aren't available there. The card notes that *"Switching takes effect immediately. No task data is affected."* Like every flag on that page, it's instance-wide.
 
 ## What changes on the task page
 
-With the flag on, the thread *is* the page. Open any task and you'll notice:
+The thread *is* the page. Open any task and you'll notice:
 
 - The **Chat / Activity / Related work** tab strip is gone. Chat is the only surface, and it fills the center column with its own scroll viewport.
 - The breadcrumb, title, and header badges scroll away with the messages instead of staying pinned above them.
@@ -31,7 +26,7 @@ With the flag on, the thread *is* the page. Open any task and you'll notice:
 
 Everything is still there. It just moved.
 
-![The task page with Chat-Style Tasks on: the thread fills the centre column as a conversation, with the properties pane on the right](../user-guides/screenshots/light/task-chat/thread.png)
+![The chat-style task page: the thread fills the centre column as a conversation, with the properties pane on the right](../user-guides/screenshots/light/task-chat/thread.png)
 
 ## Reading the thread
 
@@ -83,6 +78,10 @@ Plan confirmations, questions, and suggested-task cards stay inline in the threa
 
 When a plan document is written or revised, a divider marks the spot: **Plan created**, or **Plan updated · rev 3 — see the Plan tab**.
 
+When an agent saves a new company skill during the task, a **Skill created** card marks the spot with the skill's name and description. Click it to open the skill in its own side-pane tab — see [Skills your agents create during a task](../guides/org/skills.md#skills-your-agents-create-during-a-task).
+
+If you answer a card while the agent is still mid-run, your response waits in the queue above the composer until the run ends — or until you **Steer** or **Interrupt** to deliver it sooner. See [Answering a card while the agent is still working](../guides/day-to-day/issues.md#answering-a-card-while-the-agent-is-still-working).
+
 ### Scrolling
 
 The thread follows new content while you're at the bottom, and stops following the moment you scroll up. Instead of yanking you back down it shows a small round **Scroll to latest** button; click it and the thread glides back to the bottom and resumes following. Scrolling during that glide cancels it and leaves you where you are.
@@ -119,7 +118,7 @@ Its header holds up to three tabs, and a tab only appears when it has something 
 
 - **Properties** — the same task properties as always: assignee, project, blockers, and the rest.
 - **Plan** — the task's plan document with its revision number and last-updated time, above the accepted-plan history. Before there's anything to show it reads *"No plan yet. The plan document, accepted plans, and their revisions will appear here."*
-- **Artifacts** — a read-only list of the task's attachments and work products with their file sizes, each one a link. Empty, it reads *"No artifacts yet. Attachments and work products will appear here."*
+- **Artifacts** — a read-only view of the task's work products, documents, and attachments, grouped by run. Images and videos show as a gallery of preview tiles you can click to view, play, or download; other files are full-width rows. Empty, it reads *"No artifacts yet. Work products, documents, and agent-produced files will appear here."* See [Artifacts](../guides/day-to-day/artifacts.md#reaching-artifacts-from-a-task).
 
 With neither a plan nor artifacts, the header just says **Properties** rather than showing a one-tab strip.
 
@@ -127,14 +126,14 @@ With neither a plan nor artifacts, the header just says **Properties** rather th
 
 One nice touch on the Plan tab: while a plan is waiting on your confirmation, its **accept** and **send back** buttons pin to the bottom of the pane and stay there while you scroll the plan itself — so you can read the whole thing and decide without hunting for the card back in the thread.
 
-## When it's off
+## Going back to the classic page
 
-Purely presentational. Turning the flag off restores the classic task page exactly as it was, immediately — no migration, nothing to re-enable. Comments, runs, transcripts, plans, and attachments are the same records either way; only the rendering changes.
+Purely presentational. Turning on **Classic Task Interface** restores the old task page immediately, and turning it off brings the chat-style page back — no migration either way. Comments, runs, transcripts, plans, and attachments are the same records either way; only the rendering changes.
 
 ## Caveats
 
 - This is a redesign of a page you probably use all day, and it's under active iteration. Expect details — labels, spacing, which things fold — to move between releases.
-- The flag is instance-wide, so turning it on changes the task page for every person on the instance. There's no per-user opt-in.
+- **Classic Task Interface** is instance-wide, so switching back changes the task page for every person on the instance. There's no per-user opt-out.
 - The Artifacts tab is read-only for now. Uploading, previewing, and deleting attachments still happen on the existing attachment surfaces.
 - Live structured plan checklists (an agent ticking off plan steps as it goes) depend on adapter support and aren't wired into the live thread yet — the Plan tab shows the plan document and accepted-plan history.
 

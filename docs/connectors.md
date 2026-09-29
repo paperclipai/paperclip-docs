@@ -41,7 +41,7 @@ Every row in the catalog lists the methods that connector supports. The names me
 | Provider app registration | You create an app or bot in the provider's developer console, give it the documented permissions and events, and connect its credentials. Provider-specific channel guides describe exceptions, such as managed inboxes. |
 | No credential | Nothing to sign in to. You identify the target — a store domain, a generated URL, a shared file — and that is the whole setup. |
 
-Which methods you actually see depends on your instance. **Connect with Paperclip** is hidden unless your instance is enrolled with Paperclip Cloud and Cloud advertises a profile for that connector. Every chat channel, and AgentMail's email inboxes with them, is behind the **Chat connectors** instance setting, which is off by default. Each connector page lists its own prerequisites.
+Which methods you actually see depends on your instance. **Connect with Paperclip** is hidden unless your instance is enrolled with Paperclip Cloud and Cloud advertises a profile for that connector. Every chat channel, and AgentMail's email inboxes with them, is behind the **Chat connectors** instance setting, which is off by default. The [memory providers](#memory-experimental) are behind a separate **Memory connectors** setting, also off by default. Each connector page lists its own prerequisites.
 
 ## The catalog
 
@@ -68,12 +68,24 @@ Find an app and open its setup guide.
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
 | [Asana](connectors/asana.md) | Work management for team projects, tasks, and goals. Agents work with the projects and tasks your Asana app can reach. | Your own OAuth app |
+| [Fireflies](connectors/fireflies.md) | Meeting notes and transcripts. Agents search and read the meetings your Fireflies account can reach, and a routine can start when a meeting summary is ready. | Sign in with Fireflies · API key |
 | [Jira](connectors/jira.md) | Atlassian's issue tracker for software teams. Agents work with the issues on the Jira site you connect. | Sign in with Jira |
 | [Linear](connectors/linear.md) | Issue tracking for product and engineering teams. Agents create, update, and read issues across whatever the authorizing Linear account can reach. | Your own OAuth app |
 | [Miro](connectors/miro.md) | Shared online whiteboards for diagrams, planning, and workshops. Agents work with the boards your Miro account can reach. | Sign in with Miro |
 | [Notion](connectors/notion.md) | Workspace for notes, documents, and databases. Agents read and update content accessible to the Notion account you authorize. Paperclip does not add a page-level filter. | Sign in with Notion |
 | [Todoist](connectors/todoist.md) | Task lists for individuals and small teams. Agents work with the tasks and projects in your Todoist account. | Sign in with Todoist |
 | [Zapier](connectors/zapier.md) | Automation service that wires thousands of apps together. You choose the actions in Zapier and paste one generated URL, so the agent gets the actions you put in it. Treat that URL as a secret — its token is part of the address. | Generated MCP URL |
+
+### MCP aggregators
+
+Services that connect to many apps for you and hand them to Paperclip through one MCP server. Use one for an app that has no native connector here. See [Connect apps through an MCP aggregator](connectors/mcp-aggregators.md) for setup and for how an agent asks you to pick one.
+
+| Connector | What you can do | Connection methods |
+| --- | --- | --- |
+| [Arcade](connectors/mcp-aggregators.md) | Use the tools exposed by an Arcade MCP gateway you set up. | Connect MCP server |
+| [Composio](connectors/mcp-aggregators.md) | Discover and use connected apps through Composio Connect. | Composio Connect |
+| [Executor](connectors/mcp-aggregators.md) | Use the tools exposed by your Executor workspace. | Connect MCP server |
+| [Zapier](connectors/zapier.md) | The actions you put on a Zapier MCP server. Also listed under Productivity. | Generated MCP URL |
 
 ### Communication
 
@@ -91,6 +103,7 @@ Find an app and open its setup guide.
 | [GitHub](connectors/github.md) | Code hosting and review. Agents use repository tools with the connected credential's permissions. A separate **experimental** GitHub App workflow lets people start and continue work from issue and pull-request comments. See the guide for setup and shell-access boundaries. | Connect with Paperclip · API key · Provider app registration for issue workflows |
 | [Netlify](connectors/netlify.md) | Hosting and deploys for web front ends. Agents work with the teams and sites your Netlify account can reach. | Sign in with Netlify |
 | [PagerDuty](connectors/pagerduty.md) | On-call scheduling and incident response. Agents work with the incidents, services, and schedules your token can reach. Choose the US or EU service region when you connect. | API key |
+| [Railway](connectors/railway.md) | Cloud hosting for apps and databases. Agents inspect projects, deployments, and logs, and can redeploy, restart, or roll back within the limits you set. Optional container access over SSH. | Connect Railway |
 | [Postman](connectors/postman.md) | API development and testing workspace. Agents work with the collections and APIs your Postman account can reach. Choose a toolset: Minimal, Code, or Full. Minimal is not read-only; set action permissions separately. | Sign in with Postman · API key |
 | [Sentry](connectors/sentry.md) | Error and performance monitoring. Agents investigate errors, releases, and production issues in the Sentry organization you authorize. | Sign in with Sentry |
 
@@ -129,7 +142,21 @@ Services whose subject matter is machine learning. They are ordinary app integra
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
 | [Hugging Face](connectors/hugging-face.md) | Public hub for open machine-learning models, datasets, and demos. Agents search models, datasets, and Spaces. The sign-in asks for a read-only scope, which makes this the shortest connector to try first. | Sign in with Hugging Face |
+| [You.com](connectors/you-com.md) | Web search built for AI agents. Agents search the web through You.com's hosted server. The free profile needs no account and is read-only. | Sign in with You.com · API key · Free profile |
+
+<span id="memory-experimental"></span>
+
+### Memory — Experimental
+
+Long-term memory services that agents can store to and recall from across runs. Setup for all of them is hidden until an administrator turns on **Memory connectors** in the instance's experimental settings; the setting is off by default. Turning it off again hides setup only — existing connections keep running.
+
+| Connector | What you can do | Connection methods |
+| --- | --- | --- |
 | [Mem0](connectors/mem0.md) | Hosted long-term memory for AI applications. Agents store and recall facts across runs in your Mem0 project. | API key |
+| Zep | Retrieve temporal graph memory and authorized business context. Needs a Zep project with Memory MCP enabled; project API keys do not work here. | Sign in with Zep |
+| Supermemory | Search and save shared memories, documents, and profiles. You choose which spaces the connection may use. | Sign in with Supermemory |
+| Cognee | Build and recall shared graph memory from documents and conversations, using your Cognee Cloud tenant. It runs Cognee's MCP client on Paperclip's runtime host, so a public deployment needs a trusted MCP runtime host. | API key |
+| Honcho | Remember conversations and retrieve context about peers. | API key |
 
 ### Model providers
 
@@ -164,7 +191,7 @@ The catalog above describes the documented connectors for this release. If the s
 
 **Connect it as a custom server.** If the service publishes its own remote MCP server, you can connect it directly without waiting for a catalog entry. It gets the same identity, grant, agent-selection, and per-action controls as a catalog connector. See [Connect a custom MCP server](connectors/custom-mcp-servers.md) for the compatibility requirements and the two ways to supply a URL.
 
-**Reach it through automation you already own.** [Zapier](connectors/zapier.md) covers a long tail of apps that have no MCP server of their own. You pick the actions on Zapier's side, which also means the agent cannot exceed them.
+**Reach it through an MCP aggregator.** [Arcade, Composio, Executor, and Zapier](connectors/mcp-aggregators.md) each connect to many apps on your behalf. You do not always have to go looking: when an agent needs an app with no native connector, it asks you which of these providers to use, or **None for now**. With Zapier you pick the actions on Zapier's side, which also means the agent cannot exceed them.
 
 **Give the agent a workspace instead.** Some work does not need a connector at all. Anything an agent can do with a shell and a CLI belongs in an execution workspace — see [Connect an agent to a GitHub repo](how-to/connect-agent-to-github.md) for the pattern, and [Add an MCP server to an agent](how-to/add-mcp-server-to-agent.md) for the adapter-level route.
 
@@ -191,6 +218,7 @@ Use these guides for the controls your connector exposes. Action permissions and
 | [Verify a connector and fix a broken one](connectors/verify-and-troubleshoot.md) | Checking a new connection, or a working one has stopped. |
 | [Reauthorize, revoke, or disconnect](connectors/reauthorize-and-disconnect.md) | Rotating a credential, removing one person's access, or deleting the connection. |
 | [Connect a custom MCP server](connectors/custom-mcp-servers.md) | The service is not in the catalog, or you have a URL or config to paste. |
+| [Connect apps through an MCP aggregator](connectors/mcp-aggregators.md) | The app has no native connector, or an agent asked you to pick an external provider. |
 
 ## Related
 

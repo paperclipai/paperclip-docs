@@ -205,6 +205,23 @@ If you started from a folder — say, from inside **My Skills** — the new skil
 
 ---
 
+## Skills your agents create during a task
+
+You don't always have to write the skill yourself. Say you ask an agent to turn a procedure it just worked out into something reusable — "save how you reviewed these release notes as a skill." An agent running on Paperclip's native runner has a **Create skill** tool for exactly that: it writes a complete, single-file `SKILL.md` and saves it straight into your company's skill library.
+
+A few things keep this predictable:
+
+- **It only happens in Agent mode.** The tool is available when the task runs in Agent mode (and in skill test runs), not in Ask or Plan mode — see [Work Modes](../day-to-day/work-modes.md).
+- **It follows your skill policy.** Creating a skill this way goes through the same rules as creating one in Skill Studio. With no policy in place, agents are allowed; if you've restricted `skills.create`, the agent is refused just like anyone else. See [Who is allowed to change skills](#who-is-allowed-to-change-skills).
+- **It doesn't attach the skill to anyone.** The new skill lands in the library only. No agent starts using it until you (or an agent allowed to) assign it — see [Assigning a skill to an agent](#assigning-a-skill-to-an-agent).
+- **Retries don't make duplicates.** If the agent's request is interrupted and retried, it gets back the skill it already made instead of a second copy.
+
+When a skill is created, a **Skill created** card appears in the task's thread with the skill's name and description. Click it and the skill opens in its own tab in the task's side panel, showing its slug, current revision, and instructions. That tab always reads the live library copy, so it's not a second version to keep in sync. Use **Open in Skill Studio** to edit it; when you come back to the task, the tab shows what you saved. If the skill is later deleted, or you don't have access to it, the tab tells you so — *"Skill no longer available."* or *"You do not have access to this skill."* — while the card in the thread stays as a record that it was created.
+
+The creation is also logged as `company.skill_created`, and it shows up in the task's own history as well as the company activity log.
+
+---
+
 ## Renaming a skill
 
 Names age. The `code-review` skill you wrote in week one turns out to be your PR triage procedure, and every agent that uses it is now working from a name that misleads whoever reads the roster next. You can rename it without unpicking anything.
@@ -301,6 +318,8 @@ Skills live at the company level, but each agent decides which of those skills t
 A **View company skills library** link at the top of the tab jumps back to the company-wide Skills page, so you can open the underlying skill to tweak its instructions without leaving context.
 
 > **Tip:** If a skill you expect is not in the optional list, it is not in the company library yet. Add it from the Skills page first, then come back.
+
+You may notice a `first-task` skill in your library and on the first agent you created during onboarding. That's Paperclip's own guide for your very first task — how the agent reads your answer to the opening question, proposes a plan or a single task, and waits for your go-ahead before hiring or doing the work. It only applies to that onboarding task, not to the agent's other work, and other agents don't get it automatically.
 
 ---
 

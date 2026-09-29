@@ -291,7 +291,7 @@ Schedule isn't the only trigger. The same routine can carry any combination of `
 
 ### Webhook
 
-Use when an external system should kick the routine off. GitHub PR opened, Stripe invoice paid, monitoring alert fired.
+Use when an external system should kick the routine off. A deploy finished, a Stripe invoice was paid, a monitoring alert fired, a meeting summary is ready.
 
 ```bash
 curl -X POST "$PAPERCLIP_API_URL/api/routines/$ROUTINE_ID/triggers" \
@@ -299,9 +299,8 @@ curl -X POST "$PAPERCLIP_API_URL/api/routines/$ROUTINE_ID/triggers" \
   -H "Content-Type: application/json" \
   -d '{
     "kind": "webhook",
-    "label": "GitHub PR opened",
-    "signingMode": "github_hmac",
-    "replayWindowSec": 300
+    "label": "Deploy finished",
+    "signingMode": "app_webhook"
   }'
 ```
 
@@ -313,10 +312,13 @@ Then call the public URL from the external system:
 curl -X POST "$WEBHOOK_URL" \
   -H "Authorization: Bearer $WEBHOOK_SECRET" \
   -H "Content-Type: application/json" \
-  -d '{ "payload": { "source": "github", "event": "pull_request.opened" } }'
+  -H "Idempotency-Key: deploy-4812" \
+  -d '{ "event": "deploy.finished", "environment": "production" }'
 ```
 
-Signing modes: `bearer` (default), `hmac_sha256`, `github_hmac`, or `none`. Pick `github_hmac` for GitHub, `hmac_sha256` for anything you control yourself, `bearer` for one-line scripts. Avoid `none` — the URL becomes anonymously fireable.
+`app_webhook` accepts either that `Authorization: Bearer` header or an HMAC-SHA256 signature of the body in `X-Hub-Signature` / `X-Hub-Signature-256` — the "signing secret" most SaaS tools offer. It's what the UI's **Another app or script** setup creates.
+
+Signing modes: `app_webhook`, `bearer` (the API default when you omit `signingMode`), `hmac_sha256`, `github_hmac`, or `none`. Pick `github_hmac` for GitHub, `app_webhook` for other apps, `hmac_sha256` for timestamped signatures you compute yourself, `bearer` for one-line scripts. Avoid `none` — the URL becomes anonymously fireable. The sender has to be able to reach the URL: public services need a publicly reachable HTTPS address, not `localhost` or a private network.
 
 ### Manual (`api`)
 
@@ -367,15 +369,17 @@ The runs you'll see:
 | `completed` | The execution issue reached `done`. |
 | `failed` | The execution issue failed, was cancelled, or dispatch errored. The `failureReason` field tells you which. |
 
-In the UI you don't have to read `failureReason` yourself — the routine's **Runs** list writes the reason straight onto a skipped row as a one-line subtitle:
+A skipped run tells you why in `failureReason`:
 
-| Row subtitle | `failureReason` |
+| `failureReason` | What happened |
 |---|---|
-| Skipped — no activity since last run | `no_external_activity` |
-| Skipped — routine paused | `paused` |
-| Skipped — worktree execution cutoff | `worktree_execution_cutoff` |
+| `no_external_activity` | The activity gate found nothing new since the last dispatched run. |
+| `paused` | The routine's project was paused at tick time. |
+| `worktree_execution_cutoff` | The server is running in a development worktree that isn't cleared to execute this routine. |
 
-Those three are the reasons with a label. A skipped run whose reason isn't one of them — a `skip_if_active` routine dropping a tick because the previous execution issue is still open, for instance — falls back to the normal row subtitle, the run's resolved variable values. That case isn't a mystery either: the row links to the execution issue that caused the skip.
+A skipped run with no `failureReason` was dropped by the concurrency policy — a `skip_if_active` routine whose previous execution issue is still open, for instance. That case isn't a mystery either: its `linkedIssueId` points at the execution issue that caused the skip.
+
+In the UI, the routine's **Runs** section lists the execution issues the routine created, where you can search them and update status, priority, or assignee in place. Skipped ticks don't create an issue, so look for them under recent runs on the routine's **Overview** instead.
 
 For a deeper look at what the agent actually did, follow `linkedIssueId` to the execution issue and read its comments.
 

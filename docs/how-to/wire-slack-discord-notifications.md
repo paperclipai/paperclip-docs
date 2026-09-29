@@ -29,6 +29,8 @@ Time to working notification: about 15 minutes.
 
 Paperclip does not push outbound webhooks today — the routine + agent pair *is* the push. That keeps the moving parts in one place: you can read the notifier's run history, replay a missed event by re-running the routine, and rotate the channel webhook by updating one secret. See [Heartbeats & Routines](../guides/projects-workflow/routines.md) for the underlying model.
 
+> **Tip:** Already connected Slack with **Chat with an agent**? The agent behind that bot can post to its enabled channels, or DM you, from a routine, with no webhook needed. Put the destination and timing in the routine's instructions. Each run checks the routine's responsible person's linked Slack account and permissions before it posts. See [Slack → Send messages later, or on a schedule](../connectors/slack.md#send-messages-later-or-on-a-schedule). The webhook recipe below is still the simpler choice for Discord, or if you haven't enabled the experimental chat connectors.
+
 ---
 
 ## What's worth piping

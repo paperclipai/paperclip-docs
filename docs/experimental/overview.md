@@ -31,6 +31,12 @@ All experimental flags live in one place, and they're instance-wide (they apply 
 
 Changes take effect immediately — no restart, no migration. Each feature page in this section repeats the exact toggle name to look for.
 
+The page groups its toggles into up to three sections — **Experimental features**, **Paperclip Developer Mode**, and **Legacy** — and lists the cards alphabetically within each one, so you can scan for a name. If every toggle in the developer or legacy section is hidden, that section heading disappears too.
+
+## If a toggle is missing
+
+If you're on a hosted Paperclip — a managed cloud or a shared server someone else runs — the operator may have hidden some toggles, or all of them, because they manage those features for you. A hidden toggle simply doesn't appear on the page. It still has a value, though: hiding a control keeps whatever it was set to, so a feature can be on even when you can't see its card. If you need one changed, ask whoever runs your instance. Operators can read how this works in [Operator controls for hosted deployments](../administration/settings.md#operator-controls-for-hosted-deployments).
+
 ## If a toggle is locked
 
 On an instance managed by Paperclip Cloud, some of these features are decided for you. Open the Experimental page there and you'll see a small lock badge reading **Managed by Paperclip Cloud** next to the feature's name, and its toggle greyed out — the switch still shows you whether the feature is on or off, you just can't move it. Clicking it does nothing.
@@ -50,7 +56,7 @@ Only some features are managed this way. Anything without the badge is still you
 | [Experimental File Viewer](file-viewer.md) | Task-detail controls for browsing and previewing workspace files relative to a task. |
 | [External Objects](external-objects.md) | Detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects. |
 | [Task Plan Decomposition Panel](plan-decomposition-panel.md) | Shows accepted-plan decomposition history on task detail pages. |
-| [Chat-Style Tasks](task-chat.md) | Rebuilds the task detail page as a live conversation: chat bubbles, streaming activity that folds into a one-line summary, a three-mode composer, and a resizable Properties · Plan · Artifacts pane. |
+| [Chat-Style Tasks](task-chat.md) | **Now the default.** The task detail page as a live conversation: chat bubbles, streaming activity that folds into a one-line summary, a three-mode composer, and a resizable Properties · Plan · Artifacts pane. The old page is behind the **Classic Task Interface** toggle under **Legacy**. |
 | [Task Watchdogs](task-watchdogs.md) | Watchdog agents that verify stopped task subtrees and restore live paths when work should continue. |
 | [Status Cards](status-cards.md) | A shared board of living summaries: one message per card, compiled into a watch query and kept current by the Summarizer. |
 | [Cloud Sync](cloud-sync.md) | **Retired.** Host-to-host Cloud Sync has been removed upstream, toggle included — you won't find it on the Experimental page any more. Use [company Import/Export](../how-to/back-up-and-restore-a-company.md) to move a company between instances. |

@@ -281,7 +281,7 @@ If you host Paperclip for other people, these two variables let you shape which 
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `PAPERCLIP_HIDDEN_SETTINGS` | unset | Comma-separated list of settings-surface keys to hide from the UI — instance pages, company pages (Members, Invites, Secrets, Export, Import), individual sections and tabs, and individual experimental flags. Some keys also floor their mutation API with a `403`; the rest hide UI only. Unknown keys are warned about and ignored, so one list can roll across a fleet of mixed app versions. |
+| `PAPERCLIP_HIDDEN_SETTINGS` | unset | Comma-separated list of settings-surface keys to hide from the UI — instance pages, company pages (Members, Invites, Secrets, Export, Import), individual sections and tabs, and individual experimental flags. Some keys also floor their mutation API with a `403`; the rest hide UI only. Use `instance.experimental.*` to hide every experimental toggle, and add `!instance.experimental.<key>` entries to keep specific ones visible. Unknown keys are warned about and ignored, so one list can roll across a fleet of mixed app versions. |
 | `PAPERCLIP_SETTING_DEFAULTS` | unset | JSON object that replaces the schema default of selected instance settings, e.g. `{"feedbackDataSharingPreference":"allowed"}`. An explicit user choice always wins; only values still sitting at the schema default resolve to yours. Malformed JSON or an invalid value for a known field stops the server from booting; unknown field names are warned about and ignored. |
 
 ---
@@ -302,7 +302,7 @@ The server injects these variables into agent processes when it starts a run:
 | `PAPERCLIP_TASK_ID` | wake-driven | Issue that triggered the wake. Empty for scheduled or unsolicited wakes. |
 | `PAPERCLIP_WAKE_REASON` | wake-driven | Why this run was triggered. See enum below. |
 | `PAPERCLIP_WAKE_COMMENT_ID` | comment wakes | Specific comment that triggered the wake (set with `issue_commented` and `issue_comment_mentioned`). |
-| `PAPERCLIP_WAKE_PAYLOAD_JSON` | some adapters | Inline JSON wake payload: a compact issue summary plus the ordered batch of new comment payloads. Adapters that inject this let an agent skip the initial `GET /api/issues/:id` and `GET /api/issues/:id/comments` round-trips on comment wakes. |
+| `PAPERCLIP_WAKE_PAYLOAD_JSON` | retired | No longer set. The wake context (the issue summary and the new comments) now travels in the run prompt instead, because a copy in the environment could exceed the operating system's process-launch limits. Paperclip also rejects this key if you put it in an adapter's `env` config. |
 | `PAPERCLIP_APPROVAL_ID` | approval wakes | Resolved approval ID. |
 | `PAPERCLIP_APPROVAL_STATUS` | approval wakes | Approval decision. |
 | `PAPERCLIP_LINKED_ISSUE_IDS` | optional | Comma-separated linked issue IDs. |

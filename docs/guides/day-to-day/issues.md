@@ -350,15 +350,20 @@ Above the tabs, separately from the Properties panel, the detail view also rende
 
 ### Tabs in the properties panel (experimental)
 
-Once a task has a plan or a few files hanging off it, one long scroll of properties stops being the fastest way to find things. With the **Chat-Style Tasks** experimental feature turned on, the properties panel splits into tabs so the plan and the task's files each get their own space.
+Once a task has a plan or a few files hanging off it, one long scroll of properties stops being the fastest way to find things. On the chat-style task page — now the default — the properties panel splits into tabs so the plan and the task's files each get their own space.
 
-> **Experimental:** these tabs only appear when **Chat-Style Tasks** is enabled in **Settings → Instance settings → Experimental**. With the flag off, the panel keeps the single stacked list of properties described above, and nothing on this page changes. See [Experimental features](../../experimental/overview.md) for how that page behaves.
+> **Note:** if your instance has switched back to the old layout with **Classic Task Interface** (under **Legacy** in **Settings → Instance settings → Experimental**), the panel keeps the single stacked list of properties described above and these tabs don't appear. See [Experimental features](../../experimental/overview.md) for how that page behaves.
 
-The tab strip sits in the panel's header bar, to the left of the window controls, and offers up to three tabs:
+The tab strip sits in the panel's header bar, to the left of the window controls, and starts with up to three tabs:
 
 - **Properties** — exactly the fields listed above, unchanged. This is always the first tab and the one you land on.
 - **Plan** — the task's `plan` document plus its accepted-plan history. Appears only when the task has a plan document or at least one accepted plan.
 - **Artifacts** — the task's attachments. Appears only when the task has at least one attachment.
+
+Two more tabs can show up alongside those:
+
+- **Tasks** — the tasks around this one. **Ancestors** come first, listed from the top-level task down to the immediate parent, so you can climb the hierarchy in one click. Below them sit the **Subtasks**, then any tasks this task created, grouped by project.
+- **A skill tab** — when an agent creates a company skill during the task, clicking its **Skill created** card in the thread opens the skill in its own tab. See [Skills your agents create during a task](../org/skills.md#skills-your-agents-create-during-a-task).
 
 Tabs are earned, not permanent: a task with neither a plan nor attachments shows a plain **Properties** title in the header bar instead of a one-tab strip. If you're sitting on the Plan or Artifacts tab and its content goes away — or you move to a task that never had any — the panel falls back to **Properties** rather than showing you an empty pane.
 
@@ -385,11 +390,11 @@ If either action fails, the bar tells you plainly — *"Couldn't confirm — try
 
 #### The Artifacts tab
 
-**Artifacts** is a plain list of the files attached to this task — one row each, showing the filename and its size. Click a row to open the file in a new tab.
+**Artifacts** gathers what this task produced, grouped by the run that produced it, newest run first. Images and videos — attachments and work products alike — show as a gallery of preview tiles, laid out one, two, or three across depending on how wide the panel is. Click a tile to open it in the gallery viewer, where videos play and you can download the file. Documents and other files stay as full-width rows. The whole row or tile is clickable, not just its title.
 
 It's there to answer "what did this task produce?" without scrolling the thread. The tab is read-only, so there's no uploading or deleting from it, and the company-wide view of every output still lives on the [Artifacts page](./artifacts.md).
 
-With **Chat-Style Tasks** on, the centre column's **Attachments**, **Output**, keyed-documents, and **Plan decomposition** sections all step aside — the plan and the task's files live in this panel instead, leaving the middle of the page to the conversation.
+On the chat-style page, the centre column's **Attachments**, **Output**, keyed-documents, and **Plan decomposition** sections all step aside — the plan and the task's files live in this panel instead, leaving the middle of the page to the conversation.
 
 ### Output
 
@@ -593,6 +598,18 @@ If you'd rather not rely on each agent to pick the right audience, open **Compan
 
 Governance only ever **narrows** — it can tighten who may respond, never widen it past what a card asked for. It's the knob for saying "confirmations on this company always go to a human," without touching every card by hand.
 
+### Answering a card while the agent is still working
+
+You don't have to wait for a run to finish before you respond. Accept or reject a confirmation, or answer a question card, while the agent is mid-run, and your decision is saved the moment you click — but it doesn't barge into the work in progress. Instead it lines up in the queue just above the composer, labelled with what you did and the card's title: **Accepted: …**, **Rejected: …**, or **Answered: …**.
+
+A queued response isn't an ordinary queued message. It carries exactly what you decided — the options you picked, the answers you typed, the plan revision you approved — so you can't edit it, drag it to a new position, or discard it. Nothing can quietly change what you signed off on. From there you have three ways forward:
+
+- **Wait.** When the current run finishes, Paperclip delivers your response once and the agent carries on from it.
+- **Steer** — push your response into the turn that's running right now. This only works when the agent's runner supports steering.
+- **Interrupt** — stop the current turn and start a fresh one with your response. You'll see this instead of **Steer** on some runs that can't be steered, and always on plan approvals, which need a fresh turn to switch from planning to doing.
+
+While your response is waiting, the agent can't hand the task back to you for review — Paperclip keeps it assigned so your answer isn't left stranded. If it tries, it's told *"The user already responded. Keep the current assignee so the queued response can continue after this run."*
+
 ---
 
 ## Recovery actions
@@ -600,6 +617,8 @@ Governance only ever **narrows** — it can tighten who may respond, never widen
 Sometimes an issue's run finishes without choosing a next step, or an assigned issue gets stranded with no live execution path. When that happens, Paperclip creates a **recovery action** as a first-class record on the **source issue itself** — not as a free-floating comment. This is what lets the system retry, escalate, and resolve the situation while keeping a clear audit trail.
 
 Recovery preserves the original assignee and only retries it when that's safe. It **doesn't take over or reassign the stranded work by itself** — once retries are exhausted or a takeover would be unsafe, the recovery action is **owned by the board** so a person decides the next step.
+
+That includes runs that keep getting cut off — for example by several server restarts in a row. Once an interrupted or failed run has used up its automatic retries and nothing else is working the issue, Paperclip moves the issue to `blocked` with a notice explaining why (for a stalled `in_progress` or `todo` issue it's usually titled **No live execution path**), so it lands in front of you instead of sitting silently with no run.
 
 A recovery action carries:
 
