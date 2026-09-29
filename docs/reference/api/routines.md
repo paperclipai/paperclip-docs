@@ -365,14 +365,20 @@ Webhook triggers create a public URL and a secret. The public URL is returned on
 
 Supported signing modes in the code are:
 
-- `bearer`
-- `hmac_sha256`
-- `github_hmac`
-- `none`
+| Mode | What it accepts |
+|---|---|
+| `app_webhook` | Either a bearer token or an HMAC-SHA256 signature over the exact request body. This is the mode the UI's **Another app or script** setup creates. |
+| `bearer` | A bearer token only. |
+| `hmac_sha256` | A timestamped HMAC-SHA256 signature. |
+| `github_hmac` | GitHub-style HMAC-SHA256 over the body, without a timestamp. |
+| `fireflies_hmac` | Fireflies Webhooks V2 signatures. Kept for triggers created while it was offered; new setups use `app_webhook` instead. |
+| `none` | No authentication. Anyone with the URL can fire the trigger. |
 
-The default is `bearer`.
+When you create a webhook trigger through the API and omit `signingMode`, the default is `bearer`.
 
-Replay windows are only used for the timestamped HMAC mode and must be between 30 and 86,400 seconds. The default is 300 seconds.
+Replay windows are only used for the timestamped `hmac_sha256` mode and must be between 30 and 86,400 seconds. The default is 300 seconds.
+
+The `webhookUrl` is built from the server's public origin. External senders such as GitHub or Fireflies can only deliver to a publicly reachable HTTPS address — see [HTTPS and public access](../deploy/https.md). The UI warns when a URL points at `localhost`, a private network, a Tailscale `.ts.net` host, or plain HTTP.
 
 ### API
 
@@ -649,12 +655,18 @@ What the code checks:
 
 Accepted headers depend on signing mode:
 
+- `app_webhook` uses either `Authorization: Bearer <secret>`, or `X-Hub-Signature` / `X-Hub-Signature-256` carrying `sha256=<hex>` — HMAC-SHA256 of the exact request body. If a signature header is present it must be valid; the server does not fall back to the bearer check.
 - `bearer` uses `Authorization: Bearer <secret>`
-- `hmac_sha256` uses `X-Paperclip-Signature` or `X-Hub-Signature-256`
-- `github_hmac` uses `X-Hub-Signature-256` or `X-Paperclip-Signature` plus `X-Paperclip-Timestamp`
+- `hmac_sha256` uses `X-Paperclip-Signature` plus `X-Paperclip-Timestamp`, signing the timestamp, a dot, and the exact body
+- `github_hmac` uses `X-Hub-Signature-256`, falling back to `X-Paperclip-Signature`, over the exact body with no timestamp
+- `fireflies_hmac` uses `X-Hub-Signature` over the exact body
 - `none` does not require a signature
 
 For timestamped HMAC validation, the server enforces the replay window from the trigger.
+
+For `app_webhook` triggers, the validated JSON payload is appended to the execution issue's description inside a fenced data block, labelled as external data the agent must not treat as instructions. The block is capped at 16,384 characters; the full payload is always stored on the routine run. A signed `app_webhook` delivery without an idempotency key is deduplicated by a digest of the trigger and the exact body, so an identical signed retry does not start a second run.
+
+`fireflies_hmac` triggers keep their provider-specific handling: only authenticated meeting metadata (`event`, `meeting_id`, `timestamp`, and an optional `client_reference_id`) becomes run input, runs are deduplicated per meeting, and events other than `meeting.summarized` are acknowledged with `{ "status": "ignored", "routineStarted": false, "linkedIssueId": null }` without creating a run.
 
 For deduplication the server reads an idempotency key from the `Idempotency-Key` header, falling back to `X-GitHub-Delivery`. Sending the same key on a retry prevents a duplicate run — and, during setup, prevents a retried test delivery from starting the routine once the trigger is enabled.
 
@@ -762,17 +774,19 @@ Routine runs use these statuses:
 
 ### Why a run was skipped
 
-A suppressed automatic firing records a `failureReason` you can read back, and the UI turns each one into a one-line subtitle on the run row:
+A suppressed automatic firing records a `failureReason` you can read back from this endpoint, and the trigger's last result shows the matching value:
 
-| `failureReason` | Trigger last result | Run row subtitle | Meaning |
-|---|---|---|---|
-| `no_external_activity` | `skipped_no_activity` | Skipped — no activity since last run | The activity gate found nothing new since the routine's last dispatched run. |
-| `paused` | `Skipped because the project is paused` | Skipped — routine paused | The routine's project was paused at tick time. |
-| `worktree_execution_cutoff` | `skipped_worktree_execution_cutoff` | Skipped — worktree execution cutoff | The server is running inside a development worktree (`PAPERCLIP_IN_WORKTREE`) where automatic run execution is not armed for this routine — either the worktree isn't armed at all, or the routine was created before the worktree's activation cutoff. This applies to scheduled ticks and webhook firings alike. |
+| `failureReason` | Trigger last result | Meaning |
+|---|---|---|
+| `no_external_activity` | `skipped_no_activity` | The activity gate found nothing new since the routine's last dispatched run. |
+| `paused` | `Skipped because the project is paused` | The routine's project was paused at tick time. |
+| `worktree_execution_cutoff` | `skipped_worktree_execution_cutoff` | The server is running inside a development worktree (`PAPERCLIP_IN_WORKTREE`) where automatic run execution is not armed for this routine — either the worktree isn't armed at all, or the routine was created before the worktree's activation cutoff. This applies to scheduled ticks and webhook firings alike. |
 
 A run skipped by the concurrency policy carries no `failureReason` — it records the live execution issue in `linkedIssueId` instead.
 
 The list view also shows the current active issue for a routine when one exists.
+
+In the UI, a routine's **Runs** section lists the execution issues the routine created — the same issue list used elsewhere, filtered to this routine's `routine_execution` issues — so you can search them and change status, priority, or assignee in place. Runs that never created an issue, such as skipped ticks, appear only in this endpoint and in the recent runs on the routine's overview.
 
 ---
 

@@ -33,6 +33,8 @@ Some providers hand you a single URL with the token already embedded. Zapier is 
 
 The URL is a secret. Anyone holding it holds the access. Paperclip stores it as one, and the connection's action permissions apply the same way they do to any other connector.
 
+Arcade, Composio, and Executor work much the same way — you paste the MCP URL their service gives you, and sign in if it asks — but each has its own catalog entry with setup steps for that provider. If the app you want is reachable through one of them, start with [Connect apps through an MCP aggregator](mcp-aggregators.md) instead of a custom server.
+
 ## The two generic definitions behind this
 
 Paperclip has two catalog entries that exist to back the generic paths rather than to be browsed:
@@ -63,4 +65,5 @@ Attaching an MCP server to an agent's *runtime* — through the adapter's own co
 - [How connector access works](access-model.md)
 - [Set action permissions](action-permissions.md)
 - [Zapier](zapier.md)
+- [Connect apps through an MCP aggregator](mcp-aggregators.md)
 - [Tool Gateway](../reference/api/tool-gateway.md)

@@ -31,11 +31,11 @@ seo_description: Run xAI's Grok Build CLI on the Paperclip host as a local codin
 | `cwd` | no | Default absolute working directory for the agent process. Paperclip creates the path when permissions allow. |
 | `instructionsFilePath` | no | Absolute path to a markdown instructions file (typically `AGENTS.md`). Paperclip stages it into the execution workspace as `Agents.md` when safe, otherwise falls back to `--rules @file`. |
 | `promptTemplate` | no | Prompt template used for the run. |
-| `model` | no | Grok model id. Defaults to `grok-build`. |
+| `model` | no | Grok model id. Defaults to `grok-build`. See [Models](#models). |
 | `permissionMode` | no | Grok permission mode, passed via `--permission-mode`. **No default** — when unset, Paperclip passes no permission-mode flag at all. (Grok 1.0+ enforces `dontAsk` as deny-by-default and it overrides `--always-approve`, so forcing it broke unattended runs; leave this unset unless you have a specific reason.) |
 | `alwaysApprove` | no | Adds `--always-approve` so unattended runs never stall on a prompt. Defaults to `true`, and this — not a permission mode — is the unattended-execution policy. |
 | `disableWebSearch` | no | Passes `--disable-web-search` so a run never reaches out to Grok's web search. Defaults to `true`. |
-| `reasoningEffort` | no | Grok reasoning effort passed via `--reasoning-effort`. |
+| `reasoningEffort` | no | Grok reasoning effort passed via `--reasoning-effort`: `low`, `medium`, or `high`. `grok-4.7` and `grok-4.6` also accept `xhigh`. |
 | `maxTurns` | no | Maximum agent turns for the run. |
 | `command` | no | Defaults to `grok`. Override only if Grok lives elsewhere on the host. |
 | `extraArgs` | no | Extra CLI arguments appended to the Grok invocation. |
@@ -44,6 +44,19 @@ seo_description: Run xAI's Grok Build CLI on the Paperclip host as a local codin
 | `graceSec` | no | SIGTERM grace period in seconds. |
 
 > **Note:** Runs use `grok --single` with `--output-format streaming-json`. The streaming reasoning channel now keeps line breaks between separate thoughts, so the live Working panel no longer merges them into run-on text.
+
+---
+
+## Models
+
+The model picker offers these Grok model ids:
+
+- `grok-build` (the adapter default)
+- `grok-4.7`
+- `grok-4.6`
+- `grok-4.5`
+
+The reasoning-effort choices in the agent form follow the model you pick. If you switch to a model that doesn't support the effort you had selected (for example, moving from `grok-4.7` on `xhigh` to `grok-4.5`), the form clears the effort so it falls back to Auto.
 
 ---
 
@@ -67,7 +80,15 @@ The session codec preserves the same location hints used by other local adapters
 Grok Local authenticates in one of two modes, and the choice depends only on whether `XAI_API_KEY` is present in the run environment:
 
 - **API key.** Set `XAI_API_KEY` (usually as a secret ref inside `env`) and the adapter runs against that key. This is metered billing, so Paperclip surfaces the per-run cost xAI reports.
-- **Subscription (SuperGrok).** Leave `XAI_API_KEY` unset and Grok authenticates from a signed-in login instead. Paperclip points the run at a per-company Grok home (`GROK_HOME`) that holds that login's `auth.json`, so one company's login is never shared with another. Subscription runs carry no per-run dollar cost.
+- **Subscription (SuperGrok).** Leave `XAI_API_KEY` unset and Grok authenticates from a signed-in login instead. Subscription runs carry no per-run dollar cost.
+
+For subscription runs, which login Grok uses depends on where the agent runs:
+
+- **Local runs** use the host's own `grok login` (stored in `~/.grok`) until the company's Grok home holds a usable `auth.json` — for example after a sandbox device login. Once it does, Paperclip points the run at that per-company Grok home (`GROK_HOME`), so one company's login is never shared with another. If you already set `GROK_HOME` yourself (in the host environment or the agent's `env`) and there's no usable company login, Paperclip leaves your value alone.
+- **Sandbox and remote runs** always use the company's Grok home and never fall back to the host login.
+- **Managed AI connections** keep the Grok home the connection selected.
+
+> **Tip:** If the host has an `XAI_API_KEY` you don't want an agent to inherit, set `XAI_API_KEY` to an empty value in that agent's `env`. The empty override clears the inherited key and switches the agent to subscription authentication.
 
 ### Signing in for a subscription
 

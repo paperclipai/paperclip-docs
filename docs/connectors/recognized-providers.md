@@ -26,7 +26,6 @@ None of these have connector pages, and none can be added from the catalog.
 | Brex | `brex` |
 | Candid | `candid` |
 | Coda | `coda` |
-| Composio | `composio` |
 | Context7 | `context7` |
 | Egnyte | `egnyte` |
 | Embat | `embat` |
@@ -42,6 +41,16 @@ None of these have connector pages, and none can be added from the catalog.
 | Ticket Tailor | `ticket-tailor` |
 | TickTick | `ticktick` |
 | Xero | `xero` |
+
+## Composio: listed again, old connections retired
+
+Composio used to sit in the withheld list above. It is back in the **Connectors** list as a regular remote MCP connection through Composio Connect — see [Connect apps through an MCP aggregator](mcp-aggregators.md).
+
+Connections made through the older Composio broker are a different matter. That broker is retired, so those connections no longer run: they show as unhealthy, their tools are not offered to agents, and calls to them are refused. Paperclip tells you what to do in the connection itself:
+
+> *"This legacy Composio connection is no longer supported. Add a new Composio MCP connection from Connectors, then remove this connection. Existing credentials and permissions are not migrated."*
+
+In practice: connect Composio again from **Connectors**, set up access and action permissions on the new connection, then remove the old one. Nothing carries over automatically.
 
 ## Gated by the provider
 

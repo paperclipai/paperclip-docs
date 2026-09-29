@@ -21,7 +21,7 @@ Any active member can create one. Use it for a first connector, for anything tou
 
 ### Organization identity
 
-One account shared with eligible people in the company. Setup can label this **Any human in the company**; the connection's human audience determines whose runs may use it. You separately choose which agents may use the connection. Sharing a credential does not bypass either audience.
+One account shared with eligible people in the company. Setup can label this **Any human in the organization**; the connection's human audience determines whose runs may use it. You separately choose which agents may use the connection. Sharing a credential does not bypass either audience.
 
 Creating one is a manager operation. Paperclip enforces this on the server: *"Only a connection manager can share this credential with the organization."*
 

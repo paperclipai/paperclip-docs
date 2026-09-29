@@ -30,16 +30,16 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 | Field | Required | Notes |
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
-| `engine` | no | How Claude Code is run: `auto` (the default — ACP preferred), `acp` (always the Agent Client Protocol), or `cli` (always the classic Claude CLI). See [ACP Engine](#acp-engine). |
-| `model` | no | Claude model id. Common choices include `claude-opus-4-8`, `claude-sonnet-5`, and `claude-fable-5-1`. |
+| `engine` | no | How Claude Code is run: `auto` (the default — runs ACP), `acp` (always the Agent Client Protocol), or `cli` (always the classic Claude CLI). See [ACP Engine](#acp-engine). |
+| `model` | no | Claude model id. Common choices include `claude-opus-5-5`, `claude-opus-4-8`, `claude-sonnet-5`, and `claude-fable-5-1`. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `env` | no | Environment variables passed to Claude Code. Secret refs are supported. |
 | `command` | no | Defaults to `claude`. Override only if you need a different executable path. |
 | `extraArgs` | no | Extra CLI arguments appended to the Claude invocation. |
-| `effort` | no | Reasoning effort passed with `--effort` (`low`, `medium`, or `high`). In a sandbox environment whose Claude CLI is too old to advertise `--effort`, Paperclip drops the flag and warns you to upgrade the environment's Claude Code to restore reasoning-effort control. |
+| `effort` | no | Reasoning effort passed with `--effort`. The choices depend on the model — see [Reasoning Effort](#reasoning-effort). In a sandbox environment whose Claude CLI is too old to advertise `--effort`, Paperclip drops the flag and warns you to upgrade the environment's Claude Code to restore reasoning-effort control. |
 | `chrome` | no | Passes `--chrome` when enabled. |
 | `maxTurnsPerRun` | no | Caps the number of agentic turns in one heartbeat. Defaults to `300`. |
-| `dangerouslySkipPermissions` | no | Defaults to `true` because Paperclip runs Claude in headless `--print` mode. |
+| `dangerouslySkipPermissions` | no | Defaults to `true` because Paperclip runs Claude in headless `--print` mode. When on, local and remote runs alike get `--dangerously-skip-permissions`, covering built-in and connected tools. See [Permissions](#permissions). |
 | `timeoutSec` | no | Run timeout in seconds. On local and SSH targets, `0` means no adapter wall-clock timeout. On a sandbox target, `0` or an unset value uses the 14,400-second sandbox default; use a positive value to override it or a negative value to opt out of the adapter timeout. |
 | `graceSec` | no | Grace period before a forced stop. |
 | `workspaceStrategy` | no | Execution workspace strategy, such as `git_worktree`. |
@@ -49,17 +49,47 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 
 ---
 
+## Permissions
+
+Paperclip runs Claude Code without anyone watching, so there's no one to click "approve" on a permission prompt. With `dangerouslySkipPermissions` on (the default), Claude runs in full-auto mode: it can use its built-in tools and any tools from connected services — such as MCP servers — without stopping to ask.
+
+This works the same whether the agent runs on the Paperclip host or on a remote target. Remote runs used to get a hand-picked list of allowed tools instead of full bypass; that list missed connected tools and anything Claude added in later releases, so remote runs now get the same full bypass as local ones.
+
+A couple of things to know:
+
+- **Sandboxes running as root.** Claude refuses full bypass when it runs as the root user, unless it knows it's inside a sandbox. When the agent runs in a Paperclip-managed sandbox, Paperclip sets `IS_SANDBOX=1` so Claude accepts the bypass there.
+- **Other root processes.** Outside a managed sandbox, run Claude as a non-root user. Paperclip doesn't quietly fall back to a narrower permission mode — if Claude refuses to launch, the run fails so you can fix the setup.
+
+> **Tip:** Want Claude to stop and refuse anything it would normally ask about? Set `dangerouslySkipPermissions` to `false`. Keep in mind that in a headless run, a tool that needs approval simply won't run.
+
+---
+
+## Reasoning Effort
+
+The `effort` choices in the agent form follow the model you pick:
+
+| Model | Effort levels |
+|---|---|
+| `claude-opus-5-5`, `claude-opus-5`, `claude-opus-4-8`, `claude-opus-4-7`, `claude-sonnet-5`, `claude-fable-5-1`, `claude-fable-5` | `low`, `medium`, `high`, `xhigh`, `max` |
+| `claude-opus-4-6`, `claude-sonnet-4-6` | `low`, `medium`, `high`, `max` |
+| `claude-haiku-4-5` | No effort control |
+| Other models | `low`, `medium`, `high` |
+
+The same levels apply to the Bedrock versions of these models. If you switch to a model that doesn't support the effort you had selected, the form clears the effort so it falls back to Auto.
+
+---
+
 ## ACP Engine
 
 Claude Code can run through one of two engines — ACP or the classic Claude CLI — selected by the `engine` field:
 
-- **`auto` (default) — ACP preferred.** Paperclip runs Claude through the Agent Client Protocol (ACP) when the host meets the prerequisites, and falls back to the Claude CLI — with diagnostics explaining why — when it can't.
+- **`auto` (default) — ACP.** Paperclip runs Claude through the Agent Client Protocol (ACP). If the host doesn't meet the ACP prerequisites, the run fails with a setup error explaining why — Paperclip never switches engines on its own.
 - **`acp` — always ACP.** Force the Agent Client Protocol path.
 - **`cli` — always the Claude CLI.** Force the classic CLI wrapper and skip ACP entirely.
 
 ACP gives you a richer, structured live transcript: session identity, status with context-window usage, assistant and thinking token deltas, and tool-call updates that fold into a single card as they progress. That extra detail is most useful when you're watching a sandbox run stream in.
 
-When the engine resolves to ACP (either `acp`, or `auto` on a capable host), these extra fields apply:
+When the engine resolves to ACP (`auto` or `acp`), these extra fields apply:
 
 | Field | Default | Notes |
 |---|---|---|
@@ -75,7 +105,7 @@ When the engine resolves to ACP (either `acp`, or `auto` on a capable host), the
 
 You can keep `engine` on `auto` when this agent runs in a Paperclip sandbox environment. If that sandbox provides Paperclip's bidirectional process session, Paperclip keeps the ACP engine and its structured live transcript; you do not add a separate bridge setting to the adapter config.
 
-An environment that only runs one-shot commands cannot host an ACP session, so `auto` falls back to the Claude CLI with a diagnostic. The same fallback applies to non-sandbox remote targets such as SSH. Choose `engine: "acp"` when ACP is required and a failed prerequisite should stop the run, or `engine: "cli"` when you always want the CLI lane.
+An environment that only runs one-shot commands cannot host an ACP session, so an `auto` run there fails with a setup error rather than switching to the Claude CLI. Set `engine: "cli"` when you want the CLI lane — for example on such environments.
 
 ---
 
@@ -86,14 +116,19 @@ When you pick a model in the agent config form, Claude Code fills the model drop
 Here's how the list is built:
 
 - **With an API key.** If `ANTHROPIC_API_KEY` is set, the adapter calls the Anthropic models endpoint (`/v1/models`) — at `ANTHROPIC_BASE_URL` if you've set one, otherwise `https://api.anthropic.com` — and offers everything it returns. The live results are merged with Paperclip's built-in list and de-duplicated, so you always see at least the known-good models, plus anything new from your account.
-- **On Bedrock.** If the adapter detects AWS Bedrock (for example `CLAUDE_CODE_USE_BEDROCK=1`), it offers the region-qualified Bedrock model IDs instead.
+- **On Bedrock.** If the adapter detects AWS Bedrock (for example `CLAUDE_CODE_USE_BEDROCK=1`), it offers the region-qualified Bedrock model IDs instead, such as `us.anthropic.claude-opus-5-5`, `us.anthropic.claude-sonnet-5`, and `us.anthropic.claude-fable-5-1`.
 - **No key, or the lookup fails.** If there's no API key, or the request times out or comes back empty, you simply get Paperclip's built-in fallback list. Discovery never blocks you from saving an adapter.
 
 Discovered models are cached for about a minute (keyed to the API key and base URL in use), so reopening the form is instant. When you want the freshest list — say you've just been granted access to a new model — use the model field's **refresh** control to force a new lookup that bypasses the cache.
 
 > **Tip:** The `model` field still accepts any model id you type in. Discovery is there to save you from remembering exact identifiers, not to restrict you to the listed choices.
 
-> **Heads-up:** Claude Fable 5.1 (`claude-fable-5-1`, or `us.anthropic.claude-fable-5-1` on Bedrock) needs Claude Code `2.1.251` or newer on the CLI lane. If the installed CLI is older, the environment test and the run both fail fast with `claude_cli_version_incompatible` instead of launching against an unsupported binary — upgrade Claude Code on the target host to use it.
+> **Heads-up:** Some newer models need a minimum Claude Code version on the CLI lane:
+>
+> - Claude Opus 5.5 (`claude-opus-5-5`, or `us.anthropic.claude-opus-5-5` on Bedrock) needs Claude Code `2.1.280` or newer.
+> - Claude Fable 5.1 (`claude-fable-5-1`, or `us.anthropic.claude-fable-5-1` on Bedrock) needs Claude Code `2.1.251` or newer.
+>
+> If the installed CLI is older, the environment test and the run both fail fast with `claude_cli_version_incompatible` instead of launching against an unsupported binary — upgrade Claude Code on the target host to use the model.
 
 ---
 

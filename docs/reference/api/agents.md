@@ -31,6 +31,8 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `name` | Human-friendly name. The server also derives a company-unique URL key from it. |
 | `role` | Role label such as `ceo`, `engineer`, or `general`. |
 | `title` | Optional display title. |
+| `appearance` | The agent's character (avatar) identity: `{ "schemaVersion": 1, "characterVersion": "cap-v1", "paletteId": "<palette>" }`. See [Agent Avatars](#agent-avatars) for the palette ids. |
+| `avatarUrl` | Read-only. A ready-made URL for the agent's character image, derived from `appearance`. |
 | `reportsTo` | Parent agent in the org tree. Must be in the same company and cannot create a cycle. |
 | `adapterType` | Runtime type such as `process`, `http`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `hermes_local`, `cursor`, or `openclaw_gateway`. External adapters can also be registered. |
 | `adapterConfig` | Adapter-specific config. Secret references are allowed inside `env`. |
@@ -306,6 +308,7 @@ Important behavior:
 - `runtimeConfig.heartbeat.enabled` defaults to `false` if you omit it.
 - `adapterConfig.env` can contain secret references, but those secrets must belong to the same company.
 - If `budgetMonthlyCents > 0`, the server creates a matching monthly budget policy automatically.
+- If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
 
 ### Example
@@ -439,6 +442,7 @@ Important behavior:
 
 - The request body accepts the same core agent fields as create.
 - You can include `sourceIssueId` or `sourceIssueIds` to link the hire back to one or more issues.
+- An agent on the `paperclip_runner` adapter can send `"inheritRuntimeFrom": "caller"` to give the new hire the calling agent's runner settings and default environment. The new agent must also use `adapterType: "paperclip_runner"`, and you can't combine this with `adapterConfig`, `runtimeConfig`, or `defaultEnvironmentId` — the server copies the adapter config and default environment from the calling agent. Board users can't use this option; it's rejected with `403 Forbidden`.
 - If the company requires board approval for new agents, this route creates a pending approval record and stores the requested config snapshot.
 - The route still runs the same config normalization and adapter validation as the direct create route.
 
@@ -459,6 +463,7 @@ Important behavior:
 - If you set `replaceAdapterConfig: true`, the update behaves more like a replacement.
 - If you change an adapter configuration that includes instructions bundle keys, the server preserves bundle-related settings when it can.
 - Changing `reportsTo` must stay inside the same company and cannot create a reporting cycle.
+- You can change the agent's character by sending a new `appearance` object. It must match the shape shown in [Common Fields](#common-fields).
 - Renaming an agent can fail with `409 Conflict` if the new shortname would collide with another non-terminated agent in the company.
 - Terminated agents cannot be resumed through a status patch.
 - Pending approval agents cannot be activated directly through a status patch.
@@ -878,6 +883,37 @@ Notes:
 
 ---
 
+## Agent Avatars
+
+Renders the character image for an agent's `appearance`.
+
+`GET /api/agent-avatars/{version}/{palette}/{pose}.png`
+
+You rarely need to build this URL yourself — agent responses include a ready-made `avatarUrl`, and live-run lists include `agentAppearance` and `avatarUrl` for each run. Reach for this route when you want a different size or pose.
+
+The route only serves preset artwork. It doesn't look up any agent or company, so the URL tells it everything it needs:
+
+| Part | Values |
+|---|---|
+| `version` | `cap-v1` |
+| `palette` | One of `bubblegum-sky`, `pink-lemonade`, `orchid-peach`, `coral-mint`, `lime-lagoon`, `arctic-blue`, `solar-flare`, `violet-ember`, `deep-tide`, `coral-current`, `golden-hour`, `tangerine-cobalt`, `electric-grove`, `flamingo-jade`, `cherry-pop`, `turquoise-cherry`, `ultraviolet-tide` — or `muted-dream` for the greyed-out version. |
+| `pose` | One of `rest`, `idle`, `listening`, `thinking`, `working`, `success`, `confused`, `sleepy`, `loading`. |
+| `size` (query) | Pixel size: `16`, `20`, `24`, `32`, `40`, `48`, `64`, `96`, `128`, `256`, or `512`. Defaults to `512`. |
+| `scale` (query) | `1` or `2` (for high-density screens). Defaults to `1`. |
+
+```bash
+curl -s -o ada.png \
+  "http://localhost:3100/api/agent-avatars/cap-v1/arctic-blue/working.png?size=128&scale=2"
+```
+
+Notes:
+
+- Images are cached for a year and carry an `ETag`, so repeat requests can come back as `304 Not Modified`.
+- Any other query parameter, or a value outside the lists above, returns `400 Bad Request`.
+- If you send too many requests at once you get `429 Too Many Requests`, and if a render fails you get `503 Service Unavailable`. Both carry a `Retry-After` header — wait and try again.
+
+---
+
 ## Adapter Helpers
 
 These routes help you inspect and validate adapter environments.
@@ -891,8 +927,10 @@ Use them when you are choosing a model, auto-detecting a recommended model, or c
 Important notes:
 
 - The adapter type must be known to the server.
-- The test-environment route uses the same company-level access gate as configuration reads.
+- The test-environment route needs permission to create agents in the company — the same check as the create and hire routes.
 - The server resolves secrets before running the test.
+- To test a saved agent, pass its `agentId` in the test-environment body. The server fills in any environment values that came back redacted from the saved config, so you don't have to re-enter them. If you're testing a switch to a different adapter, re-enter those values instead — the server won't carry hidden values across to an unrelated adapter.
+- If you leave `environmentId` out, the test runs in the saved agent's default environment (when you passed `agentId`), or else the instance's default environment. Send `environmentId: null` to test against the instance default explicitly.
 
 ---
 
@@ -1099,6 +1137,7 @@ AWS AgentCore authenticates through the runner environment's workload identity, 
 - Updating `permissions` through the main update route returns `422`.
 - Creating a key for a terminated or pending approval agent returns `409`.
 - Pause and resume are not available for terminated agents.
+- A heartbeat-run route called with a run ID that isn't a valid UUID returns `400 Bad Request` (`Invalid heartbeat run ID`).
 - Wakeup can be skipped even when the request is accepted, especially when policy or execution state blocks it.
 
 ---

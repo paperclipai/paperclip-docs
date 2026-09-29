@@ -82,6 +82,8 @@ The `subject` object is a tagged union on `type`:
 | `skills.reset` | Resetting a skill. |
 | `skills.remove` | Removing a skill. |
 
+**Skills an agent creates mid-task are checked as `skills.create`.** When an agent saves a new skill from inside a task (see [Skills your agents create during a task](../../guides/org/skills.md#skills-your-agents-create-during-a-task)), the request is evaluated exactly like a Skill Studio create: action `skills.create`, source type `generated`. To stop agents creating skills this way, deny `skills.create` for those agents. A rule on `sourceTypes: ["generated"]` alone won't single this path out — creating a skill from scratch in the UI carries the same source type, so it would block both.
+
 ### Resource selectors
 
 `resources` narrows a rule. At least one of these keys must be present, and unknown keys are rejected:

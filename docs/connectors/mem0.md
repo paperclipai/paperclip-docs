@@ -11,6 +11,7 @@ The question to settle before connecting is *whose* memory an agent is reading a
 
 ## Before you connect
 
+- The **Memory connectors** experimental setting turned on. It's off by default, and Mem0 doesn't appear in **Connectors** until it's on — see [Connections and Apps](../experimental/connections-apps.md). Turning it off later hides setup only; a Mem0 connection you already have keeps running.
 - A Mem0 account and an API key from it. Keys look like `m0sk_…`.
 - A decision about how you will namespace memories — per agent, per user, per project — and which identifiers agents should use.
 
