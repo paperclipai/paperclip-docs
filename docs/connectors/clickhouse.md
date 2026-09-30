@@ -83,8 +83,6 @@ Limitations: one ClickStack service per connection. ClickHouse Cloud only. Acces
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/clickhouse/)
-
 - [Supabase](supabase.md) — another database connector.
 - [Connect your own MCP server](custom-mcp-servers.md) — for self-hosted ClickHouse.
 - [Set action permissions](action-permissions.md)

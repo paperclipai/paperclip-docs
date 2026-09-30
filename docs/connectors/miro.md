@@ -60,8 +60,6 @@ Limitations: one Miro account per connection. No board filter inside Paperclip. 
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/miro/)
-
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)
 - [Verify a connector and fix a broken one](verify-and-troubleshoot.md)

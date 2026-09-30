@@ -51,8 +51,6 @@ Executor deployment versions can expose different interfaces. This page does not
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/executor/)
-
 - [How connector access works](access-model.md)
 - [Set action permissions](action-permissions.md)
 - [Connect a custom MCP server](custom-mcp-servers.md)

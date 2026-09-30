@@ -82,8 +82,6 @@ Limitations: one region and one capability group per connection. No workspace se
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/postman/)
-
 - [How connector access works](access-model.md)
 - [Set action permissions](action-permissions.md)
 - [Verify a connector and fix a broken one](verify-and-troubleshoot.md)

@@ -57,8 +57,6 @@ Limitations: one organization per connection. No project or environment filter i
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/sentry/)
-
 - [PagerDuty](pagerduty.md) — incident response, often used alongside error tracking.
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)

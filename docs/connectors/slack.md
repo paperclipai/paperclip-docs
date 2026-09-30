@@ -117,8 +117,6 @@ One workspace per connection on either route. No channel picker in Paperclip on 
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/slack/)
-
 - [Discord](discord.md), [Microsoft Teams](microsoft-teams.md), [Telegram](telegram.md) — other conversation channels.
 - [GitHub](github.md) — the other mixed-purpose connector, with the same tool-versus-channel split.
 - [How connector access works](access-model.md)

@@ -82,8 +82,6 @@ Limitations: one connection covers one Google account. Creating a document is no
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/google-docs/)
-
 - [Google Drive](google-drive.md) — find and create files.
 - [How connector access works](access-model.md)
 - [Verify a connector and fix a broken one](verify-and-troubleshoot.md)

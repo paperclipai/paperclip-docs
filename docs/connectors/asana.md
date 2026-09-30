@@ -77,8 +77,6 @@ Limitations: one Asana account per connection. No workspace or project restricti
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/asana/)
-
 - [Jira](jira.md), [Linear](linear.md), [Todoist](todoist.md) — other work tracking connectors.
 - [Use separate accounts for people and agents](separate-accounts.md)
 - [Set action permissions](action-permissions.md)

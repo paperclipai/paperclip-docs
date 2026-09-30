@@ -93,8 +93,6 @@ Limitations: one connection covers one Google account. Creating, joining, or lea
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/google-chat/)
-
 - [Slack](slack.md), [Discord](discord.md), [Microsoft Teams](microsoft-teams.md), [Telegram](telegram.md) — channels people can use to reach an agent.
 - [Google Workspace Search](google-workspace-search.md) — one read-only search across Gmail, Drive, Calendar, and Chat.
 - [How connector access works](access-model.md)

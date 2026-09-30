@@ -71,8 +71,6 @@ Limitations: one Resend account per connection. Domain verification is Resend's 
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/resend/)
-
 - [AgentMail](agentmail.md) — give an agent its own inbox and turn email into tasks.
 - [Gmail](gmail.md) — read an existing mailbox.
 - [Set action permissions](action-permissions.md)

@@ -59,8 +59,6 @@ Limitations: one Wix account per connection. Capabilities vary by site depending
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/wix/)
-
 - [Webflow](webflow.md) — another website platform connector.
 - [Shopify](shopify.md) — for storefront commerce specifically.
 - [Set action permissions](action-permissions.md)

@@ -74,8 +74,6 @@ Limitations: read-only in every group. One connection covers one Google account.
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/google-people/)
-
 - [Google Workspace Search](google-workspace-search.md) — one read-only search across Gmail, Drive, Calendar, and Chat.
 - [How connector access works](access-model.md)
 - [Verify a connector and fix a broken one](verify-and-troubleshoot.md)

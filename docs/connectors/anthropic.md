@@ -124,8 +124,6 @@ Limitations: one connection is one provider account. This connector grants no to
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/anthropic/)
-
 - [OpenAI](openai.md), [OpenRouter](openrouter.md), [Grok](xai.md) — the other model providers.
 - [How connector access works](access-model.md)
 - [Anthropic API documentation](https://docs.anthropic.com/)

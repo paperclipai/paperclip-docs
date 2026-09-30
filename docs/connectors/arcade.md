@@ -48,8 +48,6 @@ The available tools depend on the gateway. A successful connection does not prov
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/arcade/)
-
 - [How connector access works](access-model.md)
 - [Set action permissions](action-permissions.md)
 - [Connect a custom MCP server](custom-mcp-servers.md)

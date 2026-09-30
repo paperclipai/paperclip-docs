@@ -80,8 +80,6 @@ Limitations: one connection covers one Google account. No delete, move, rename, 
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/google-drive/)
-
 - [Google Docs](google-docs.md), [Google Sheets](google-sheets.md), [Google Slides](google-slides.md) — edit content inside specific file types.
 - [Google Workspace Search](google-workspace-search.md) — one read-only search across Gmail, Drive, Calendar, and Chat.
 - [How connector access works](access-model.md)

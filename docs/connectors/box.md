@@ -87,8 +87,6 @@ Limitations: one Box account per connection. No folder restriction inside Paperc
 
 ## Related guides
 
-- [Connector overview](https://paperclip.ing/product/connectors/box/)
-
 - [Google Drive](google-drive.md) — another file storage connector.
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)
