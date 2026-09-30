@@ -78,6 +78,8 @@ Limitations: one connection covers one Google account. Calendar sharing and acce
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/google-calendar/)
+
 - [Google Workspace Search](google-workspace-search.md) — one read-only search across Gmail, Drive, Calendar, and Chat.
 - [How connector access works](access-model.md)
 - [Verify a connector and fix a broken one](verify-and-troubleshoot.md)

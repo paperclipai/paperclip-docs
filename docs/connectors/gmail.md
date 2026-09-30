@@ -89,6 +89,8 @@ Limitations: one connection reaches one mailbox. Deleting, trashing, marking spa
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/gmail/)
+
 - [Set up the Gmail connector](gmail-setup.md)
 - [Google Workspace Search](google-workspace-search.md) — one read-only search across Gmail, Drive, Calendar, and Chat.
 - [How connector access works](access-model.md)

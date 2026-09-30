@@ -96,6 +96,8 @@ Limitations: one project per connection, always. Paperclip cannot roll back a da
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/supabase/)
+
 - [ClickHouse](clickhouse.md) — another database connector.
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)

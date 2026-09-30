@@ -71,6 +71,8 @@ Workspace owners can review and revoke connected clients in Notion under **Setti
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/notion/)
+
 - [How connector access works](access-model.md)
 - [Set action permissions](action-permissions.md)
 - [Verify a connector and fix a broken one](verify-and-troubleshoot.md)
