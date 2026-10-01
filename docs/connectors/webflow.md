@@ -73,6 +73,8 @@ Limitations: one Webflow account per connection. No site filter inside Paperclip
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/webflow/)
+
 - [Wix](wix.md) — another website platform connector.
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)

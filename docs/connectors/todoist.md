@@ -63,6 +63,8 @@ Limitations: one Todoist account per connection. No project filter inside Paperc
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/todoist/)
+
 - [Linear](linear.md), [Jira](jira.md), [Asana](asana.md) — team work tracking rather than personal tasks.
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)

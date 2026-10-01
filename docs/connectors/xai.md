@@ -115,6 +115,8 @@ Limitations: one connection is one xAI account, and it grants no tool access. Th
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/xai/)
+
 - [Anthropic](anthropic.md), [OpenAI](openai.md), [OpenRouter](openrouter.md) — the other model providers.
 - [How connector access works](access-model.md)
 - [xAI documentation](https://docs.x.ai/)

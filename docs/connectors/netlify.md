@@ -64,6 +64,8 @@ Limitations: one Netlify account per connection. No team or site filter inside P
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/netlify/)
+
 - [Cloudflare](cloudflare.md) — another hosting and infrastructure connector.
 - [GitHub](github.md) — the repository side of a deploy workflow.
 - [Set action permissions](action-permissions.md)
