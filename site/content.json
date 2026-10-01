@@ -211,6 +211,10 @@
               "file": "../docs/connectors/anthropic.md"
             },
             {
+              "title": "Arcade",
+              "file": "../docs/connectors/arcade.md"
+            },
+            {
               "title": "Asana",
               "file": "../docs/connectors/asana.md"
             },
@@ -231,8 +235,20 @@
               "file": "../docs/connectors/cloudinary.md"
             },
             {
+              "title": "Composio",
+              "file": "../docs/connectors/composio.md"
+            },
+            {
               "title": "Discord",
               "file": "../docs/connectors/discord.md"
+            },
+            {
+              "title": "Executor",
+              "file": "../docs/connectors/executor.md"
+            },
+            {
+              "title": "Fireflies",
+              "file": "../docs/connectors/fireflies.md"
             },
             {
               "title": "GitHub",
@@ -360,6 +376,10 @@
               "file": "../docs/connectors/postman.md"
             },
             {
+              "title": "Railway",
+              "file": "../docs/connectors/railway.md"
+            },
+            {
               "title": "Resend",
               "file": "../docs/connectors/resend.md"
             },
@@ -398,6 +418,10 @@
             {
               "title": "Wix",
               "file": "../docs/connectors/wix.md"
+            },
+            {
+              "title": "You.com",
+              "file": "../docs/connectors/youcom.md"
             },
             {
               "title": "Zapier",
