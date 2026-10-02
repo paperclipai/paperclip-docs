@@ -65,6 +65,8 @@ Limitations: one product environment per connection. Role-based limits are Cloud
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/cloudinary/)
+
 - [Google Drive](google-drive.md), [Box](box.md) — general file storage rather than media assets.
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)

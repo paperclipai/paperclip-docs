@@ -64,6 +64,8 @@ Limitations: discovery and metadata only. No inference, no hosting, no Spaces ap
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/hugging-face/)
+
 - [Anthropic](anthropic.md), [OpenAI](openai.md), [OpenRouter](openrouter.md), [Grok](xai.md) — connections that actually run models.
 - [Set action permissions](action-permissions.md)
 - [Hugging Face MCP documentation](https://huggingface.co/docs/hub/agents-mcp)

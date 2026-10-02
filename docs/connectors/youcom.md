@@ -53,6 +53,8 @@ Switching credentials does not remove provider limits. This page does not promis
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/youcom/)
+
 - [How connector access works](access-model.md)
 - [Set action permissions](action-permissions.md)
 - [Verify and troubleshoot](verify-and-troubleshoot.md)

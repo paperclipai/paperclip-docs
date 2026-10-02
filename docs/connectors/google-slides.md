@@ -82,6 +82,8 @@ Limitations: one connection covers one Google account. Creating a presentation i
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/google-slides/)
+
 - [Google Drive](google-drive.md) — find and create files.
 - [Google Docs](google-docs.md)
 - [How connector access works](access-model.md)

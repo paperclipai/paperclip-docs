@@ -70,6 +70,8 @@ Limitations: the action surface is whatever the Zapier server exposes, and Paper
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/zapier/)
+
 - [Connect your own MCP server](custom-mcp-servers.md) — for a server you run yourself.
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)

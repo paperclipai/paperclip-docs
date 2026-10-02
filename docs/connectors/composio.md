@@ -49,6 +49,8 @@ The connector's reach depends on upstream accounts and the selected endpoint. Re
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/composio/)
+
 - [How connector access works](access-model.md)
 - [Set action permissions](action-permissions.md)
 - [Reauthorize, revoke, or disconnect](reauthorize-and-disconnect.md)

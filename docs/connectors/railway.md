@@ -58,6 +58,8 @@ Live compatibility remains unverified. Paperclip's available actions and boundar
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/railway/)
+
 - [How connector access works](access-model.md)
 - [Set action permissions](action-permissions.md)
 - [Verify and troubleshoot](verify-and-troubleshoot.md)
