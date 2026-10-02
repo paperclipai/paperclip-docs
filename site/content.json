@@ -243,6 +243,10 @@
               "file": "../docs/connectors/discord.md"
             },
             {
+              "title": "Enterpret",
+              "file": "../docs/connectors/enterpret.md"
+            },
+            {
               "title": "Executor",
               "file": "../docs/connectors/executor.md"
             },
