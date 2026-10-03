@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1001.0
 seo_title: Paperclip Connectors
 seo_description: Every service Paperclip can connect, grouped by what it is for, with the access model, action permissions, and a setup guide behind each one.
 ---
@@ -7,7 +8,7 @@ seo_description: Every service Paperclip can connect, grouped by what it is for,
 
 A **connector** is a saved connection to an outside service: a Gmail mailbox, a GitHub organization, a Notion workspace, a PostHog project. You set one up once, decide who and what it is for, and Paperclip carries that decision into every run.
 
-> **Note:** These guides cover the connector model in Paperclip **v2026.916.0**. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
+> **Note:** These guides cover the connector model in Paperclip **v2026.1001.0**. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
@@ -67,6 +68,7 @@ Find an app and open its setup guide.
 
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
+| [Arcade](connectors/arcade.md) | Tool gateway combining the tools you select from several servers behind one URL. Agents use the exposed tools; authentication follows your gateway settings. Setup is unverified. Needs the experimental **MCP aggregators** setting. | Gateway URL · Browser sign-in or token/headers |
 | [Asana](connectors/asana.md) | Work management for team projects, tasks, and goals. Agents work with the projects and tasks your Asana app can reach. | Your own OAuth app |
 | [Fireflies](connectors/fireflies.md) | Meeting notes and transcripts. Agents search and read the meetings your Fireflies account can reach, and a routine can start when a meeting summary is ready. | Sign in with Fireflies · API key |
 | [Jira](connectors/jira.md) | Atlassian's issue tracker for software teams. Agents work with the issues on the Jira site you connect. | Sign in with Jira |
@@ -74,7 +76,18 @@ Find an app and open its setup guide.
 | [Miro](connectors/miro.md) | Shared online whiteboards for diagrams, planning, and workshops. Agents work with the boards your Miro account can reach. | Sign in with Miro |
 | [Notion](connectors/notion.md) | Workspace for notes, documents, and databases. Agents read and update content accessible to the Notion account you authorize. Paperclip does not add a page-level filter. | Sign in with Notion |
 | [Todoist](connectors/todoist.md) | Task lists for individuals and small teams. Agents work with the tasks and projects in your Todoist account. | Sign in with Todoist |
-| [Zapier](connectors/zapier.md) | Automation service that wires thousands of apps together. You choose the actions in Zapier and paste one generated URL, so the agent gets the actions you put in it. Treat that URL as a secret — its token is part of the address. | Generated MCP URL |
+| [Zapier](connectors/zapier.md) | Automation service that wires thousands of apps together. You choose the actions in Zapier and paste one generated URL, so the agent gets the actions you put in it. Treat that URL as a secret — its token is part of the address. Hidden until an administrator turns on the experimental **MCP aggregators** setting. | Generated MCP URL |
+
+### MCP aggregators
+
+Services that connect to many apps for you and hand them to Paperclip through one MCP server. Use one for an app that has no native connector here. They are experimental: setup for all four stays hidden until an administrator turns on **MCP aggregators** in the instance's experimental settings, which is off by default. See [Connect apps through an MCP aggregator](connectors/mcp-aggregators.md) for setup.
+
+| Connector | What you can do | Connection methods |
+| --- | --- | --- |
+| [Arcade](connectors/mcp-aggregators.md) | Use the tools exposed by an Arcade MCP gateway you set up. | Connect MCP server |
+| [Composio](connectors/mcp-aggregators.md) | Discover and use connected apps through Composio Connect. | Composio Connect |
+| [Executor](connectors/mcp-aggregators.md) | Use the tools exposed by your Executor workspace. | Connect MCP server |
+| [Zapier](connectors/zapier.md) | The actions you put on a Zapier MCP server. Also listed under Productivity. Needs the experimental **MCP aggregators** setting. | Generated MCP URL |
 
 ### MCP aggregators
 
@@ -105,6 +118,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | [PagerDuty](connectors/pagerduty.md) | On-call scheduling and incident response. Agents work with the incidents, services, and schedules your token can reach. Choose the US or EU service region when you connect. | API key |
 | [Railway](connectors/railway.md) | Cloud hosting for apps and databases. Agents inspect projects, deployments, and logs, and can redeploy, restart, or roll back within the limits you set. Optional container access over SSH. | Connect Railway |
 | [Postman](connectors/postman.md) | API development and testing workspace. Agents work with the collections and APIs your Postman account can reach. Choose a toolset: Minimal, Code, or Full. Minimal is not read-only; set action permissions separately. | Sign in with Postman · API key |
+| [Railway](connectors/railway.md) | Infrastructure work in consented workspaces, including service, deployment, and bounded log actions when API access is accepted. Live qualification is pending; container commands require separate SSH setup. | Sign in with Railway |
 | [Sentry](connectors/sentry.md) | Error and performance monitoring. Agents investigate errors, releases, and production issues in the Sentry organization you authorize. | Sign in with Sentry |
 
 ### Data and analytics

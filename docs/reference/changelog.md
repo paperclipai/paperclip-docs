@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.1
+paperclip_version: v2026.1001.0
 seo_title: Documentation Changelog
 seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
@@ -13,6 +13,33 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.1001.0 <span class="accordion-meta">October 1, 2026</span></summary>
+<div class="accordion-body">
+
+This release brings agent characters, a rebuilt Slack setup, safe routine webhooks, and experimental MCP aggregators. It also changes two defaults you may notice: coding agents now run in full auto, and the legacy Composio broker is retired. This entry also rounds up the connector guides published since v2026.916.1.
+
+**New pages**
+
+- [Connect apps through an MCP aggregator](../connectors/mcp-aggregators.md) — reach many apps through Arcade, Composio, Executor, or Zapier: how to turn the experimental setting on, which provider to pick, and what Paperclip governs versus what the aggregator governs.
+- Connector guides published since v2026.916.1: [Arcade](../connectors/arcade.md), [Composio](../connectors/composio.md), [Executor](../connectors/executor.md), [Fireflies](../connectors/fireflies.md), [Railway](../connectors/railway.md), and [You.com](../connectors/youcom.md).
+
+**Updated pages**
+
+- [Agents](../guides/org/agents.md) and [Agents API](api/agents.md) — every agent now has its own illustrated character that follows it around the app. Learn how it reacts to the agent's status, how to set it with `appearance`, and how the avatar image route works.
+- [Agent Adapters](../guides/org/agent-adapters.md) and the [Claude Code](adapters/claude-code.md), [Codex](adapters/codex.md), [Gemini CLI](adapters/gemini-cli.md), [OpenCode](adapters/opencode.md), [Kimi](adapters/kimi-local.md), and [Grok](adapters/grok-local.md) adapter pages — coding agents start in full auto, and each page shows how to dial that back. Also: `engine: auto` now fails with a setup error instead of quietly falling back to the CLI, and Codex's inactivity timeout default is 30 minutes.
+- [Slack](../connectors/slack.md) — the seven-step setup wizard, linking your Slack account, communication guidance that follows Slack conversations into tasks, and downloading the agent's avatar for the bot.
+- [Routines](../guides/projects-workflow/routines.md), [Create a Daily Routine](../how-to/create-a-daily-routine.md), and [Routines API](api/routines.md) — the trigger wizard for schedules and webhooks, one-time credentials, test deliveries, the warning when a webhook URL may not be publicly reachable, and a routine's runs listed inside the routine. The webhook signature headers for `hmac_sha256` and `github_hmac` are also corrected.
+- [Issues](../guides/day-to-day/issues.md), [Chat-Style Tasks](../experimental/task-chat.md), and [Skills](../guides/org/skills.md) — answering a question or approval while the agent is still working, skills an agent creates from a finished task, and the first-task onboarding skill. Chat-Style Tasks is now described as the default, with the Classic Task Interface as the legacy toggle.
+- [Tool Gateway API](api/tool-gateway.md) and [Providers Paperclip recognizes but does not list](../connectors/recognized-providers.md) — the legacy Composio broker and its per-toolkit services routes are gone. Old connections are refused with `422 composio_broker_retired` and need to be recreated as Composio MCP connections.
+- [Zapier](../connectors/zapier.md), [Arcade](../connectors/arcade.md), [Composio](../connectors/composio.md), and [Executor](../connectors/executor.md) — all four are now hidden until an administrator turns on the experimental **MCP aggregators** setting.
+- [Sandbox Providers](adapters/sandbox-providers.md) — the new CreateOS provider and its configuration fields.
+- [Plugins](../administration/plugins.md) and [Plugin SDK](plugins/sdk.md) — shipping prebuilt plugins inside a custom image's distribution catalog, and the `appShellOverlay` slot that wraps the whole app.
+- Smaller updates: [Artifacts](../guides/day-to-day/artifacts.md), [Command Palette](../guides/day-to-day/command-palette.md), [Experimental features](../experimental/overview.md), [Task Plan Decomposition Panel](../experimental/plan-decomposition-panel.md), [Connections v3](../experimental/connections-apps.md), [Connect a custom MCP server](../connectors/custom-mcp-servers.md), [Use separate accounts for people and agents](../connectors/separate-accounts.md), [Company Skill Policy](api/company-skill-policy.md), and [Skills Reference](skills.md).
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.916.1 <span class="accordion-meta">September 21, 2026</span></summary>
 <div class="accordion-body">
 
@@ -163,7 +190,7 @@ A patch release: the task conversation's send button no longer starts out disabl
 **New pages**
 
 - [Secret Folders](../administration/secret-folders.md) — organizing secrets into folders.
-- [Connections & Apps](../experimental/connections-apps.md) — experimental Connections v3 (Apps) foundation.
+- [Connections v3](../experimental/connections-apps.md) — experimental Connections v3 (Apps) foundation.
 
 **Updated pages**
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.707.0
+paperclip_version: v2026.1001.0
 seo_title: Experimental Features
 seo_description: Real, working features shipped behind opt-in flags while they are evaluated against live usage. What lives here, and what turning one on commits you to.
 ---

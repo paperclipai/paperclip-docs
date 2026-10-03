@@ -215,6 +215,10 @@
               "file": "../docs/connectors/anthropic.md"
             },
             {
+              "title": "Arcade",
+              "file": "../docs/connectors/arcade.md"
+            },
+            {
               "title": "Asana",
               "file": "../docs/connectors/asana.md"
             },
@@ -233,6 +237,10 @@
             {
               "title": "Cloudinary",
               "file": "../docs/connectors/cloudinary.md"
+            },
+            {
+              "title": "Composio",
+              "file": "../docs/connectors/composio.md"
             },
             {
               "title": "Discord",

@@ -72,6 +72,8 @@ Limitations: one workspace per connection. No team or project restriction inside
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/linear/)
+
 - [Jira](jira.md), [Asana](asana.md), [Todoist](todoist.md) — other work tracking connectors.
 - [Use separate accounts for people and agents](separate-accounts.md)
 - [Set action permissions](action-permissions.md)

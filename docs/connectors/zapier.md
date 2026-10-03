@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1001.0
 seo_title: Zapier Connector
 seo_description: Reach thousands of apps through a Zapier MCP server. The generated URL is a credential — how to set it up safely, choose exposed actions, and troubleshoot.
 ---
@@ -11,6 +12,7 @@ Zapier lets agents reach the apps you have already connected in your Zapier acco
 
 ## Before you connect
 
+- The experimental **MCP aggregators** setting turned on. It is off by default, and until an administrator turns it on, Zapier does not appear in **Connectors**. See [MCP aggregators](mcp-aggregators.md#turn-them-on-first).
 - A Zapier account with the apps you want to reach already connected there.
 - An MCP server created in Zapier, with the specific actions you want exposed enabled on it.
 
@@ -69,6 +71,8 @@ A read confirms the URL, the server, and the agent's permission without acting o
 Limitations: the action surface is whatever the Zapier server exposes, and Paperclip cannot see or restrict what happens inside a Zap beyond the action it calls. Zapier's own plan limits and task quotas apply. Rotating the URL means reconnecting.
 
 ## Related guides
+
+- [Connector overview](https://paperclip.ing/product/connectors/zapier/)
 
 - [Connect your own MCP server](custom-mcp-servers.md) — for a server you run yourself.
 - [Set action permissions](action-permissions.md)

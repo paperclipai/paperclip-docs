@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: The Command Palette
 seo_description: Press Cmd+K or Ctrl+K to jump to any project, task, or page, start common actions, and search as you type without touching the sidebar.
 ---

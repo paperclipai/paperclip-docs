@@ -77,6 +77,8 @@ Limitations: one Stripe account and one mode per connection. Paperclip cannot re
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/stripe/)
+
 - [Shopify](shopify.md) — storefront commerce, with different boundaries.
 - [Set action permissions](action-permissions.md)
 - [Answer a connector review request](review-requests.md)

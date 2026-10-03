@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1001.0
 seo_title: Slack Connector
 seo_description: Connect a Slack bot so people can work with an agent from Slack: guided setup, account linking, Slack tools, approvals, scheduled messages, and fixes.
 ---
@@ -138,7 +139,7 @@ If what you want is an agent that reads and posts in Slack, the chat connection 
 
 ### Agent-tool compatibility notice
 
-**The Slack agent-tool route is available but has known compatibility limitations in v2026.916.0.** That release configures OAuth endpoints and scopes that differ from Slack's current hosted MCP requirements. A successful bot installation does not verify an MCP connection.
+**The Slack agent-tool route is available but has known compatibility limitations in v2026.1001.0.** That release still configures OAuth endpoints and scopes that differ from Slack's current hosted MCP requirements. A successful bot installation does not verify an MCP connection.
 
 Slack MCP requires a registered internal or marketplace-published app, user-token OAuth endpoints, and the user scopes for the intended tools. See [Slack's MCP authentication requirements](https://docs.slack.dev/ai/slack-mcp-server/).
 
@@ -189,6 +190,8 @@ A read confirms the credential without putting a message in front of colleagues.
 - Removing the connection in Paperclip does not uninstall the Slack app. The app and its bot stay in your workspace until you remove them in Slack.
 
 ## Related guides
+
+- [Connector overview](https://paperclip.ing/product/connectors/slack/)
 
 - [Discord](discord.md), [Microsoft Teams](microsoft-teams.md), [Telegram](telegram.md) — other conversation channels.
 - [GitHub](github.md) — the other mixed-purpose connector, with the same tool-versus-channel split.

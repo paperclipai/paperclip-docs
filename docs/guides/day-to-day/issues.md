@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1001.0
 seo_title: Issues: Creating and Tracking Work
 seo_description: Each issue is one unit of work tied to your company goal. Create them yourself or let the CEO do it, then track progress, comment, and close them.
 ---
