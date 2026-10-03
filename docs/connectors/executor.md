@@ -10,7 +10,6 @@ Executor puts one endpoint in front of configured integrations. Paperclip connec
 
 ## Before you connect
 
-- The experimental **MCP aggregators** setting turned on. It is off by default, and until an administrator turns it on, Executor does not appear in **Connectors**. See [MCP aggregators](mcp-aggregators.md#turn-them-on-first).
 - An Executor deployment with the integrations and connections you intend to expose.
 - A reachable remote endpoint URL and its required authentication details.
 

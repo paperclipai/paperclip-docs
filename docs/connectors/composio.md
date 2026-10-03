@@ -10,7 +10,6 @@ Composio lets agents discover and use apps through Composio Connect. App authori
 
 ## Before you connect
 
-- The experimental **MCP aggregators** setting turned on. It is off by default, and until an administrator turns it on, Composio does not appear in **Connectors**. See [MCP aggregators](mcp-aggregators.md#turn-them-on-first).
 - A Composio account and access to the apps you intend to authorize.
 - For an externally configured session, its URL and required headers from its owner.
 

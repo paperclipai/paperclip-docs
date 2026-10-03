@@ -1,76 +1,65 @@
 ---
 seo_title: Fireflies Connector
-seo_description: Let agents search Fireflies meeting transcripts, summaries, and action items. Sign-in or API key setup, sharing actions, a read test, and troubleshooting.
+seo_description: Connect Fireflies by browser sign-in or API key to read meeting data. Includes access limits, separate routine webhooks, and unverified setup.
 ---
 
 # Fireflies
 
-Agents can search your Fireflies meeting transcripts and read summaries and action items — useful when an agent should turn what was said in a meeting into tasks, notes, or follow-ups without you copying anything across.
+Fireflies gives agents access to meeting transcripts, summaries, and action items available to the connected account. Paperclip offers browser sign-in or an API key.
 
 ## Before you connect
 
 - A Fireflies account with access to the meetings you want agents to use.
-- If you plan to connect with a key rather than browser sign-in, your Fireflies API key. You find it in Fireflies under **Settings → Developer Settings**.
+- For the key method, an API key from Fireflies **Settings → Developer Settings**.
 
 ## Connect Fireflies
 
-1. Open **Connectors** and select **Fireflies**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Pick how to connect:
-   - **Sign in with Fireflies** — complete browser sign-in. Paperclip registers its client automatically, so there is nothing to set up in a developer console.
-   - **Use an API key** — paste your key into the **Fireflies API key** field. Use this when browser sign-in is not suitable.
+> **Unverified setup:** This procedure follows the pinned Paperclip definition and Fireflies' documentation. It has not been tested with a live Fireflies connection. Each step below is unverified.
 
-Either way, the connection talks to the MCP server Fireflies hosts, and the actions your agents see come from that server.
-
-> **Note:** The API key reaches your meeting data. It is not the same thing as the signing secret a routine webhook uses — those are set up separately, as described below.
+1. **Unverified:** Open **Connectors** and select **Fireflies**.
+2. **Unverified:** Choose **Sign in with Fireflies** for browser authorization, or **Use an API key** for a key you control.
+3. **Unverified:** On **Access**, choose the identity and the agents that may use it.
+4. **Unverified:** Complete browser sign-in, or paste the key in **Fireflies API key**. Both methods use `https://api.fireflies.ai/mcp`; Paperclip sends the key as an `Authorization: Bearer` header.
+5. **Unverified:** Finish the connection check and inspect the action list before asking an agent to read a meeting.
 
 ## Choose access
 
-Reach is the authorizing Fireflies account's: the meetings that account can see. There is no meeting or channel picker in Paperclip.
+The connected account's meeting access determines what data can be reached. Paperclip's agent selection and action permissions determine who can call exposed actions through the connector.
 
-Meeting transcripts are some of the most sensitive text a company has — hiring conversations, customer calls, one-to-ones. Think about which agents genuinely need them, and prefer **Just agents I pick** over sharing the connection with every agent.
+Every tool starts as **Allowed**. Use **Ask first** or **Off** for actions you want to review or prevent. Meeting text can contain confidential information; select agents that may handle the intended meetings.
 
-Most of what agents do here is reading. A few actions change who can see a meeting or where it lives, and Paperclip always treats them as writes, even if Fireflies labels them otherwise:
-
-| Action | What it does |
-| --- | --- |
-| `fireflies-share-meeting` | Shares a meeting with someone |
-| `fireflies-revoke-meeting-access` | Removes someone's access to a meeting |
-| `fireflies-move-meeting` | Moves a meeting |
-
-Keep those on **Ask first** or **Off**. Sharing a transcript by mistake is hard to undo in any meaningful sense. See [Set action permissions](action-permissions.md).
-
-## Start a routine when a summary is ready
-
-Fireflies can also *start* work in Paperclip. When a meeting summary is ready, Fireflies can call a webhook on a routine, and that routine runs — for example, to file the action items as tasks.
-
-That part is not configured on the connector. You set it up on the routine's **Triggers** tab, with its own signing secret. See [Routines](../guides/projects-workflow/routines.md).
+Optional summary-ready webhooks are configured separately in a routine's **Triggers** tab. Their signing secret is separate from the Fireflies API key. Connecting this account does not configure a routine trigger.
 
 ## Try it
 
 ```txt
-Find my most recent Fireflies meeting and list its action items. Do not share or move the meeting.
+Find a meeting I can access and report its title and date. Do not upload, edit, or delete anything.
 ```
 
-Compare against the meeting in Fireflies. Reading one recent meeting confirms the credential and the agent's permission without changing anyone's access.
+Compare the result with Fireflies and inspect the connector call. Use a meeting whose contents are suitable for the selected agent.
 
-> **Note:** Illustrative task, not a recorded test result.
+> **Unverified check:** Illustrative task, not a recorded test result.
 
 ## Troubleshooting and limitations
 
-| Problem | Likely cause | Fix |
-| --- | --- | --- |
-| A meeting is missing | The authorizing account cannot see that meeting | Get access in Fireflies; no reconnect needed |
-| The API key is rejected | The key was copied incompletely or has been regenerated | Copy it again from **Settings → Developer Settings** and reconnect |
-| A meeting was shared unexpectedly | A sharing action was set to **Allowed** | Set it to **Ask first**, and revoke the access in Fireflies |
-| A routine does not start when a summary is ready | The webhook is configured on the routine, not the connector | Check the routine's **Triggers** tab |
-| **Needs attention** | The grant was revoked or the key is no longer valid | Select **Reconnect** |
+| Problem | Check |
+| --- | --- |
+| No meetings are found | Confirm the connected account can see processed transcripts in Fireflies. |
+| API-key authentication fails | Confirm the key in Developer Settings and reconnect with the correct key. |
+| A routine does not receive a summary event | Check its separate trigger and webhook signing secret. |
+| An expected action is absent | Inspect the connection's list and use **Refresh actions**. |
 
-Limitations: one Fireflies account per connection. No meeting filter inside Paperclip. The available actions are whatever Fireflies' hosted server exposes.
+The connector does not grant access to meetings the account cannot reach. Provider limits apply. Test sign-in and a read in your own instance before relying on the connection.
 
 ## Related guides
 
-- [Notion](notion.md), [Google Docs](google-docs.md) — places agents often write meeting notes to.
-- [Routines](../guides/projects-workflow/routines.md) — start a routine from a summary-ready webhook.
+- [Connector overview](https://paperclip.ing/product/connectors/fireflies/)
+
+- [How connector access works](access-model.md)
 - [Set action permissions](action-permissions.md)
-- [Fireflies MCP documentation](https://docs.fireflies.ai/getting-started/mcp-configuration)
+- [Verify and troubleshoot](verify-and-troubleshoot.md)
+- [Fireflies server configuration](https://docs.fireflies.ai/getting-started/mcp-configuration)
+
+## Sources
+
+- [Paperclip connector definition](https://github.com/paperclipai/paperclip/blob/3166e93a7eee315e3bfbda622e080044ec5c343d/packages/shared/src/app-definitions/fireflies.json#L18) — method names, authentication, endpoints, and connector-specific limits at the pinned product version. Provider setup documentation is linked above.

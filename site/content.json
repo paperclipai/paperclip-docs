@@ -247,6 +247,10 @@
               "file": "../docs/connectors/discord.md"
             },
             {
+              "title": "Executor",
+              "file": "../docs/connectors/executor.md"
+            },
+            {
               "title": "Fireflies",
               "file": "../docs/connectors/fireflies.md"
             },
@@ -421,7 +425,7 @@
             },
             {
               "title": "You.com",
-              "file": "../docs/connectors/you-com.md"
+              "file": "../docs/connectors/youcom.md"
             },
             {
               "title": "Zapier",
