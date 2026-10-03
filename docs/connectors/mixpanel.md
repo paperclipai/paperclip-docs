@@ -63,6 +63,8 @@ Limitations: Beta provider surface, so the tool list moves. Query cost and rate 
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/mixpanel/)
+
 - [PostHog](posthog.md) — another product analytics connector, with project pinning and read-only mode.
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)

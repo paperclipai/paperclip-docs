@@ -190,6 +190,8 @@ A read confirms the credential without putting a message in front of colleagues.
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/slack/)
+
 - [Discord](discord.md), [Microsoft Teams](microsoft-teams.md), [Telegram](telegram.md) — other conversation channels.
 - [GitHub](github.md) — the other mixed-purpose connector, with the same tool-versus-channel split.
 - [How connector access works](access-model.md)

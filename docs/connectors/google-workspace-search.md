@@ -73,6 +73,8 @@ Limitations: read-only and search-only, using one authorized account. Results de
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/google-workspace-search/)
+
 - [Gmail](gmail.md), [Google Drive](google-drive.md), [Google Calendar](google-calendar.md), [Google Chat](google-chat.md)
 - [How connector access works](access-model.md)
 - [Google universal search MCP guide](https://developers.google.com/workspace/guides/universal-search-mcp)

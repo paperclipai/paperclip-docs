@@ -83,6 +83,8 @@ Limitations: one PostHog account per connection. Pinning restricts the project b
 
 ## Related guides
 
+- [Connector overview](https://paperclip.ing/product/connectors/posthog/)
+
 - [Mixpanel](mixpanel.md) — another analytics connector.
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)

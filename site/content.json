@@ -215,6 +215,10 @@
               "file": "../docs/connectors/anthropic.md"
             },
             {
+              "title": "Arcade",
+              "file": "../docs/connectors/arcade.md"
+            },
+            {
               "title": "Asana",
               "file": "../docs/connectors/asana.md"
             },
@@ -235,8 +239,16 @@
               "file": "../docs/connectors/cloudinary.md"
             },
             {
+              "title": "Composio",
+              "file": "../docs/connectors/composio.md"
+            },
+            {
               "title": "Discord",
               "file": "../docs/connectors/discord.md"
+            },
+            {
+              "title": "Executor",
+              "file": "../docs/connectors/executor.md"
             },
             {
               "title": "Fireflies",
@@ -413,7 +425,7 @@
             },
             {
               "title": "You.com",
-              "file": "../docs/connectors/you-com.md"
+              "file": "../docs/connectors/youcom.md"
             },
             {
               "title": "Zapier",
