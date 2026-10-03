@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1001.0
 seo_title: Kimi Code Adapter
 seo_description: Run Moonshot's Kimi Code CLI on the Paperclip host as a local coding agent, on the shared ACP engine by default, with an optional headless-CLI lane.
 ---
@@ -61,10 +61,9 @@ Leave `engine` unset (or set `engine: "acp"`) to use ACP — if a prerequisite i
 
 Pick a Kimi model alias in the `model` field. The known options are:
 
-- `kimi-code/kimi-for-coding` — K2.8 Preview (the adapter default)
+- `kimi-code/kimi-for-coding` — K2.7 Coding (the adapter default)
 - `kimi-code/kimi-for-coding-highspeed` — K2.7 Coding Highspeed
 - `kimi-code/k3` — K3
-- `kimi-code/k3-256k` — K3 (256K)
 
 You can also type a model alias that is not in this list; Paperclip passes an unrecognized value straight through to the Kimi CLI.
 
@@ -74,7 +73,7 @@ You can also type a model alias that is not in this list; Paperclip passes an un
 
 The `effort` field maps a Paperclip effort value onto Kimi's supported thinking-effort tiers. Kimi exposes `low`, `high`, and `max` — there is **no `medium` tier**, so `medium` maps onto `high`.
 
-Effort is honored on the **CLI lane only** (`engine: cli`), where it is forwarded as `KIMI_MODEL_THINKING_EFFORT` for effort-capable models — `kimi-code/kimi-for-coding` (K2.8 Preview), `kimi-code/k3`, and `kimi-code/k3-256k`. It is ignored for models that do not advertise effort support, and it is **not** forwarded on the default ACP engine lane. If you need effort control, pin `engine: "cli"`.
+Effort is honored on the **CLI lane only** (`engine: cli`), where it is forwarded as `KIMI_MODEL_THINKING_EFFORT` for effort-capable models — currently only `kimi-code/k3`. It is ignored for models that do not advertise effort support, and it is **not** forwarded on the default ACP engine lane. If you need effort control, pin `engine: "cli"`.
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: Grok Local Adapter
 seo_description: Run xAI's Grok Build CLI on the Paperclip host as a local coding agent that resumes the same Grok session across every heartbeat.
 ---
@@ -31,11 +31,11 @@ seo_description: Run xAI's Grok Build CLI on the Paperclip host as a local codin
 | `cwd` | no | Default absolute working directory for the agent process. Paperclip creates the path when permissions allow. |
 | `instructionsFilePath` | no | Absolute path to a markdown instructions file (typically `AGENTS.md`). Paperclip stages it into the execution workspace as `Agents.md` when safe, otherwise falls back to `--rules @file`. |
 | `promptTemplate` | no | Prompt template used for the run. |
-| `model` | no | Grok model id. Defaults to `grok-build`. See [Models](#models). |
+| `model` | no | Grok model id. Defaults to `grok-build`. |
 | `permissionMode` | no | Grok permission mode, passed via `--permission-mode`. **No default** — when unset, Paperclip passes no permission-mode flag at all. (Grok 1.0+ enforces `dontAsk` as deny-by-default and it overrides `--always-approve`, so forcing it broke unattended runs; leave this unset unless you have a specific reason.) |
 | `alwaysApprove` | no | Adds `--always-approve` so unattended runs never stall on a prompt. Defaults to `true`, and this — not a permission mode — is the unattended-execution policy. |
 | `disableWebSearch` | no | Passes `--disable-web-search` so a run never reaches out to Grok's web search. Defaults to `true`. |
-| `reasoningEffort` | no | Grok reasoning effort passed via `--reasoning-effort`: `low`, `medium`, or `high`. `grok-4.7` and `grok-4.6` also accept `xhigh`. |
+| `reasoningEffort` | no | Grok reasoning effort passed via `--reasoning-effort`. |
 | `maxTurns` | no | Maximum agent turns for the run. |
 | `command` | no | Defaults to `grok`. Override only if Grok lives elsewhere on the host. |
 | `extraArgs` | no | Extra CLI arguments appended to the Grok invocation. |
@@ -44,19 +44,6 @@ seo_description: Run xAI's Grok Build CLI on the Paperclip host as a local codin
 | `graceSec` | no | SIGTERM grace period in seconds. |
 
 > **Note:** Runs use `grok --single` with `--output-format streaming-json`. The streaming reasoning channel now keeps line breaks between separate thoughts, so the live Working panel no longer merges them into run-on text.
-
----
-
-## Models
-
-The model picker offers these Grok model ids:
-
-- `grok-build` (the adapter default)
-- `grok-4.7`
-- `grok-4.6`
-- `grok-4.5`
-
-The reasoning-effort choices in the agent form follow the model you pick. If you switch to a model that doesn't support the effort you had selected (for example, moving from `grok-4.7` on `xhigh` to `grok-4.5`), the form clears the effort so it falls back to Auto.
 
 ---
 

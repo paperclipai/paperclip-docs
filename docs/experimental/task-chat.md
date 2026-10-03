@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1001.0
 seo_title: Chat-Style Tasks
 seo_description: Read what an agent said and what it actually did in one stream — thinking, commands, and diffs inline, instead of a comment thread beside a transcript.
 ---
@@ -118,7 +119,7 @@ Its header holds up to three tabs, and a tab only appears when it has something 
 
 - **Properties** — the same task properties as always: assignee, project, blockers, and the rest.
 - **Plan** — the task's plan document with its revision number and last-updated time, above the accepted-plan history. Before there's anything to show it reads *"No plan yet. The plan document, accepted plans, and their revisions will appear here."*
-- **Artifacts** — a read-only view of the task's work products, documents, and attachments, grouped by run. Images and videos show as a gallery of preview tiles you can click to view, play, or download; other files are full-width rows. Empty, it reads *"No artifacts yet. Work products, documents, and agent-produced files will appear here."* See [Artifacts](../guides/day-to-day/artifacts.md#reaching-artifacts-from-a-task).
+- **Artifacts** — a read-only list of the task's work products, documents, and agent-produced files, grouped by the run that produced them. Files show their size and open in a new tab. Empty, it reads *"No artifacts yet. Work products, documents, and agent-produced files will appear here."* See [Artifacts](../guides/day-to-day/artifacts.md#reaching-artifacts-from-a-task).
 
 With neither a plan nor artifacts, the header just says **Properties** rather than showing a one-tab strip.
 

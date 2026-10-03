@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: Codex Adapter
 seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding agent, with persistent session state and a managed CODEX_HOME per agent.
 ---
@@ -34,9 +34,9 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 | `model` | no | Codex model id. See [Models](#models). If you leave it unset, the adapter omits `--model` so the Codex CLI uses its own default. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `instructionsFilePath` | no | Markdown file prepended to the stdin prompt sent to `codex exec`. |
-| `modelReasoningEffort` | no | Reasoning effort override passed through Codex config. The choices depend on the model — see [Reasoning Effort](#reasoning-effort). |
+| `modelReasoningEffort` | no | Reasoning effort override passed through Codex config. Most models accept `minimal`, `low`, `medium`, `high`, or `xhigh`; `gpt-6-astra` instead accepts `low`, `medium`, `high`, `xhigh`, `max`, or `ultra`. |
 | `search` | no | Runs Codex with `--search`. |
-| `fastMode` | no | Enables Codex Fast mode by setting `service_tier="fast"` and `features.fast_mode=true`. Supported on `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, and `gpt-5.4`, and passed through for manual model ids. When the configured model can't use it, Paperclip ignores the setting and notes why. |
+| `fastMode` | no | Enables Codex Fast mode by setting `service_tier="fast"` and `features.fast_mode=true`. Supported on `gpt-6-astra`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, and `gpt-5.4`, and passed through for manual model ids. When the configured model can't use it, Paperclip ignores the setting and notes why. |
 | `dangerouslyBypassApprovalsAndSandbox` | no | Runs Codex with `--dangerously-bypass-approvals-and-sandbox` so unattended runs never stop for approval. Defaults to on when you leave it unset — see [Permissions](#permissions). |
 | `command` | no | Defaults to `codex`. |
 | `extraArgs` | no | Extra CLI arguments appended to the Codex invocation. |
@@ -61,6 +61,8 @@ You stay in control when you say otherwise. Paperclip skips the bypass — keepi
 - Your `extraArgs` pick a sandbox mode or profile yourself — for example `--sandbox`, `--profile`, `--full-auto`, or a `sandbox_mode=` config override.
 - Your `extraArgs` set an `approval_policy=` override, or switch network access off with `sandbox_workspace_write.network_access=false`.
 - The execution target denies network access.
+
+This bypass applies to the classic Codex CLI lane (`engine: "cli"`). The ACP engine keeps Codex in its writable workspace sandbox, with network access switched on for each turn.
 
 > **Heads-up:** Earlier versions kept Codex in the workspace sandbox unless you opted in to the bypass. If you relied on that, set `dangerouslyBypassApprovalsAndSandbox` to `false` explicitly.
 
@@ -102,8 +104,6 @@ Pick any of the known Codex model ids in the `model` field. The current options 
 
 - `gpt-5.6-sol` (the adapter default)
 - `gpt-6-astra`
-- `gpt-6-sol`
-- `gpt-6-luna`
 - `gpt-5.6-terra`
 - `gpt-5.6-luna`
 - `gpt-5.4`
@@ -121,18 +121,6 @@ You can also type a model id that is not in this list. Anything Paperclip does n
 > **Heads-up:** The default is now the concrete `gpt-5.6-sol` slug. The bare `gpt-5.6` alias has no OpenAI-published metadata, so Paperclip rewrites `gpt-5.6` to `gpt-5.6-sol` automatically — an agent still configured with the old alias keeps working and stops triggering the CLI's "model metadata not found" warning.
 
 > **Tip:** Leave `model` empty to let Codex choose. When no model is set, the adapter omits the `--model` flag entirely so the Codex CLI falls back to its own default model.
-
-### Reasoning Effort
-
-The `modelReasoningEffort` choices follow the model you pick:
-
-| Model | Effort levels |
-|---|---|
-| `gpt-6-astra`, `gpt-6-sol`, `gpt-5.6-sol`, `gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` |
-| `gpt-6-luna`, `gpt-5.6-luna` | `low`, `medium`, `high`, `xhigh`, `max` |
-| Other models | `minimal`, `low`, `medium`, `high`, `xhigh` |
-
-If you switch to a model that doesn't support the effort you had selected, the agent form clears the effort so it falls back to Auto.
 
 ---
 

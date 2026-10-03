@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.626.0
+paperclip_version: v2026.1001.0
 seo_title: Heartbeats and Routines: Scheduling Work
 seo_description: Why timer heartbeats are opt-in, and how routines schedule recurring work without paused agents, surprise token bills, or a dashboard you fight with.
 ---
@@ -261,14 +261,14 @@ The first step asks **"When should this routine run?"** and offers two choices:
 - **On a schedule** — every day, on weekdays, or once a week. That's the cron path covered above.
 - **When another app sends a webhook** — when something happens in GitHub, another app, or a script.
 
-Pick the webhook option and Paperclip asks **what's sending the webhook**: **Another app or script**, or **GitHub**. Your answer only changes the setup instructions you see next — the underlying trigger is the same either way. Paperclip also reminds you here that **public services need a publicly reachable HTTPS webhook URL** — more on that in [Is your webhook URL reachable?](#is-your-webhook-url-reachable).
+Pick the webhook option and Paperclip asks **what's sending the webhook**: **Another app or script**, or **GitHub**. Your answer decides how deliveries are authenticated and which setup instructions you see next: **Another app or script** uses a Bearer token in the `Authorization` header, while **GitHub** uses GitHub's own signed `X-Hub-Signature-256` header. From the next step on, Paperclip also checks the webhook URL and warns you if senders might not be able to reach it — more on that in [Is your webhook URL reachable?](#is-your-webhook-url-reachable).
 
 ### Copying the URL and secret
 
 As soon as you continue, Paperclip creates the webhook and shows you two things to copy into the sending system:
 
 - a **Webhook URL** (labelled **Payload URL** on the GitHub path) — the address the outside system POSTs to
-- a **Secret key** (labelled **Secret** on the GitHub path) — the credential that proves a delivery really came from your system
+- the credential that proves a delivery really came from your system — an **Authorization header value** (the full `Bearer <secret>` string, ready to paste) on the generic path, or a **Secret** on the GitHub path
 
 Copy both now. **The secret is only visible during setup** — once you leave the wizard it's hidden, and the field is replaced by a **Generate new key** button. If you didn't save it, generate a fresh one rather than hunting for the old value (see [Rotating the secret](#rotating-the-secret)).
 
@@ -280,26 +280,8 @@ For a custom app or a script, the setup is:
 
 - Add a webhook pointing at the **Webhook URL**, using the **POST** method.
 - Send a **JSON object** as the body — not an array or a bare string — with **`Content-Type: application/json`**.
-- Authenticate in whichever way your app supports:
-  - **Signing secret** — if the app has a "signing secret" field, paste the **Secret key** there. Paperclip accepts an HMAC-SHA256 signature over the exact request body in either the **`X-Hub-Signature`** or **`X-Hub-Signature-256`** header, formatted `sha256=<hex digest>`. This is how most SaaS tools sign their webhooks.
-  - **Custom header** — if the app lets you set your own headers instead, add one named **`Authorization`** whose value is **`Bearer`** followed by a space and the secret key.
-- Subscribe only to the events that should actually start the routine.
-- Send a unique **`Idempotency-Key`** header for each event and reuse it on retries. That way a retried setup test can never start the routine once the webhook is live. If your app can't send that header, Paperclip treats a signed retry with an identical body as the same event.
-
-Whatever JSON the app sends is attached to the task the routine creates, inside a clearly marked data block that tells the agent to read it as data, not as instructions. Very large payloads are trimmed in the task description (the full payload is still kept on the routine run).
-
-> Webhooks created before this shared setup used Bearer-only authentication. They keep working unchanged, and for those the wizard still shows the ready-to-paste **Authorization header value**.
-
-### Example: Fireflies meeting summaries
-
-A common use of the generic path is kicking off a routine whenever a meeting summary is ready in Fireflies — "read the summary, list decisions and action items with owners". There's no special Fireflies trigger to pick; it's a regular webhook on the **Another app or script** path:
-
-1. Give the routine's agent access to your Fireflies connection (see [Fireflies](../../connectors/fireflies.md)) — the webhook only tells the agent *which* meeting is ready; the agent reads the meeting through that connection.
-2. Add a webhook trigger and choose **Another app or script**.
-3. In Fireflies' Webhooks V2 settings, paste the **Webhook URL**, and paste Paperclip's **Secret key** into Fireflies' **Signing Secret** field. That's the routine's own key, not your Fireflies API key.
-4. Subscribe only to the `meeting.summarized` event (**Meeting Summarized** in Fireflies), save, then check the connection and click **Finish setup** as usual.
-
-Fireflies needs to reach the URL over the public internet, so the reachability notes below apply.
+- Add a header named **`Authorization`** and set its value to the complete **Authorization header value** you copied — **`Bearer`**, a space, then the secret key.
+- Send a unique **`Idempotency-Key`** header for each event and reuse it on retries. That way a retried setup test can never start the routine once the webhook is live.
 
 ### The GitHub path
 
@@ -329,7 +311,7 @@ A brand-new webhook trigger starts in a **setup-pending** state, and that's on p
 The wizard's last step, **Check connection**, is where you verify it:
 
 - Send a test event from the sending app. In GitHub, open the webhook's **Recent Deliveries** and choose **Redeliver**; in another app, use its "send test" button or simply perform the action that should fire the webhook.
-- Keep the page open. The status flips to **Test event received · Connection working** once a signed delivery arrives and authentication passes — no run and no task are created. If you see **Event arrived, but the key was rejected**, go back, fix the key in the sending app, and resend.
+- Keep the page open. The status flips to **Test event received · Connection working** once a delivery arrives and authentication passes — no run and no task are created. If you see **Event arrived, but the key was rejected**, go back, fix the key in the sending app, and resend.
 - Click **Finish setup** to enable the webhook. From then on, real events start the routine.
 
 One thing to know: **the test event is not replayed.** Finishing setup does not re-fire the delivery you sent while testing — only events that arrive *after* you enable the webhook start the routine. And if the routine itself is paused, finishing setup saves the webhook but leaves it dormant until you enable the routine's automatic triggers.
@@ -338,7 +320,7 @@ One thing to know: **the test event is not replayed.** Finishing setup does not 
 
 Under the hood, each webhook trigger carries a **signing mode** that decides how Paperclip authenticates an inbound call, plus — for the timestamped mode — a **replay window**:
 
-- **Signing mode** — `app_webhook`, `bearer`, `hmac_sha256`, `github_hmac`, or `none`. `app_webhook` is what the **Another app or script** path creates: it accepts either a Bearer token or an HMAC-SHA256 body signature. `github_hmac` matches the GitHub path, and `bearer` is the older Bearer-only mode. Each option has a short description below the dropdown explaining how the fire endpoint will authenticate the request.
+- **Signing mode** — `bearer`, `hmac_sha256`, `github_hmac`, or `none`. The **Another app or script** path creates a `bearer` trigger, and the **GitHub** path creates a `github_hmac` one. Each option has a short description below the dropdown explaining how the fire endpoint will authenticate the request.
 - **Replay window (seconds)** — how far back a signed request's timestamp may be, used only by the timestamped `hmac_sha256` mode. It defaults to 300 seconds and doesn't apply to the other modes, which don't carry a timestamp.
 
 ### Rotating the secret

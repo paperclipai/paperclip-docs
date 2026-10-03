@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: OpenCode Adapter
 seo_description: Run OpenCode on the Paperclip host when you want provider and model routing in OpenCode's own format, plus session resume across heartbeats.
 ---
@@ -109,18 +109,6 @@ OpenCode supports multiple providers. Common ids:
 | Id | Provider |
 |---|---|
 | `openai/gpt-5.2-codex` | OpenAI (default) |
-| `openai/gpt-6-astra` | OpenAI |
-| `openai/gpt-6-sol` | OpenAI |
-| `openai/gpt-6-luna` | OpenAI |
-| `openai/gpt-5.6-sol` | OpenAI |
-| `openai/gpt-5.6-terra` | OpenAI |
-| `openai/gpt-5.6-luna` | OpenAI |
-| `anthropic/claude-opus-5-5` | Anthropic |
-| `anthropic/claude-opus-5` | Anthropic |
-| `anthropic/claude-fable-5-1` | Anthropic |
-| `anthropic/claude-sonnet-5` | Anthropic |
-| `google/gemini-3.8-flash` | Google |
-| `xai/grok-4.7` | xAI |
 | `openai/gpt-5.5` | OpenAI |
 | `openai/gpt-5.4` | OpenAI |
 | `openai/gpt-5.4-mini` | OpenAI |

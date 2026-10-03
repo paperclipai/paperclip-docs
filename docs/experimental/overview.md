@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.707.0
+paperclip_version: v2026.1001.0
 seo_title: Experimental Features
 seo_description: Real, working features shipped behind opt-in flags while they are evaluated against live usage. What lives here, and what turning one on commits you to.
 ---
@@ -31,7 +31,7 @@ All experimental flags live in one place, and they're instance-wide (they apply 
 
 Changes take effect immediately — no restart, no migration. Each feature page in this section repeats the exact toggle name to look for.
 
-The page groups its toggles into up to three sections — **Experimental features**, **Paperclip Developer Mode**, and **Legacy** — and lists the cards alphabetically within each one, so you can scan for a name. If every toggle in the developer or legacy section is hidden, that section heading disappears too.
+The page groups its toggles into three sections — **Experimental features**, **Paperclip Developer Mode**, and **Legacy** (*"These features are going to be removed."*) — so you know roughly where to look for a name.
 
 ## If a toggle is missing
 

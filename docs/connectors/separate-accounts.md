@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1001.0
 seo_title: Separate Accounts for Agents
 seo_description: Pick between a personal credential, one shared organization identity, and an account dedicated to a single agent, and see what each choice changes.
 ---

@@ -34,14 +34,6 @@ Click **Save profile** to persist name or avatar changes. The button is disabled
 
 > **Note:** The avatar is stored as an asset under the *selected company*, but the profile itself is a user-level record. If you switch which company is selected in the sidebar later, your avatar keeps working — it's just that new uploads go to whichever company is active when you upload.
 
-### Keyboard shortcuts
-
-Below the profile form there's a **Keyboard shortcuts** toggle. Turn it on to use the app's keyboard shortcuts — inbox navigation, plus global shortcuts like creating tasks or toggling panels. It's off by default, because shortcuts can clash with browser or screen-reader shortcuts for some people.
-
-This is a personal preference: it applies only to your account, but it follows you across every organization and device you sign in from. You don't need to be an instance admin to change it, and flipping it doesn't affect anyone else. The toggle is disabled until a company is selected, because the change is recorded in that company's activity log.
-
-> **Upgrading from an older release?** Keyboard shortcuts used to be one instance-wide switch on the General page. That switch no longer controls anything in the app, so after the upgrade everyone who wants shortcuts turns them on here for themselves.
-
 ---
 
 ## Instance: General
@@ -69,6 +61,10 @@ These fields are informational. To change them you change the deployment itself 
 ### Censor username in logs
 
 Hides the username segment inside home-directory paths and similar operator-visible log output. Useful if you're sharing screen recordings or pasting transcripts. Off by default. Note that bare username mentions outside of path strings are not masked in the live transcript view — this is a best-effort filter, not a guarantee.
+
+### Keyboard shortcuts
+
+Enables the app's keyboard shortcuts — inbox navigation, creating issues, toggling panels, and so on. Off by default because they conflict with browser or screen-reader shortcuts for some users. Turn it on if you want faster navigation.
 
 ### Backup retention
 
@@ -246,15 +242,6 @@ The keys you can list:
 - **Company sub-tabs** — `company.secrets.vaults`, `company.secrets.proposals` (hide one tab while the Secrets page stays up).
 - **Instance General sections** — `instance.general.deploymentStatus`, `instance.general.censorUsernameInLogs`, `instance.general.keyboardShortcuts`, `instance.general.backupRetention`, `instance.general.feedbackDataSharingPreference`, `instance.general.signOut`. Field-backed sections also floor writes to that field; `deploymentStatus` and `signOut` are read-only UI.
 - **Experimental flags** — `instance.experimental.<flagKey>` for any individual flag, or hide the whole page with `instance.experimental`.
-- **Every experimental flag, now and later** — `instance.experimental.*`. The wildcard hides every toggle in the server's own feature catalog, so toggles added by a future upgrade arrive hidden too, with no change to your environment. The Experimental page itself stays reachable. To keep a few toggles available, add exceptions prefixed with `!`, such as `!instance.experimental.enableEnvironments`.
-
-For example, this leaves only the Environments toggle on the Experimental page and hides the Plugins page:
-
-```sh
-PAPERCLIP_HIDDEN_SETTINGS='instance.plugins,instance.experimental.*,!instance.experimental.enableEnvironments'
-```
-
-Exceptions only loosen the wildcard. If you also list a toggle explicitly, or hide the whole `instance.experimental` page, that wins no matter what order the entries are in — and an exception without the wildcard does nothing. Hiding a toggle never changes its value: the setting keeps whatever it was set to, and the settings API still lets you read it, but trying to change it returns `403` with `settings_operator_managed`. Images that predate wildcard support ignore the wildcard and its exceptions, so during a rolling upgrade keep any explicit per-toggle entries until every image is on the newer release.
 
 Unknown keys are warned about and ignored rather than rejected, so you can roll one list across a fleet of mixed app versions — an image that predates a key simply keeps that surface visible instead of refusing to boot.
 

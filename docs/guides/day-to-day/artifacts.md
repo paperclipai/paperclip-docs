@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.1001.0
 seo_title: Artifacts: Files Your Agents Produce
 seo_description: Documents, images, video, and exports from every task in one place. Filter by type, browse stacks by task, and read files in the in-app viewer.
 ---
@@ -82,12 +82,9 @@ Where an artifact came from a real file, the card gives you the means to open it
 
 The Artifacts page is the company-wide shelf. Sometimes you're already inside one task and just want to see what *this* task produced — without going back out to the shelf and filtering your way in.
 
-The task's properties panel has an **Artifacts** tab for exactly that. Outputs are grouped by the run that produced them, newest run first:
+The task's properties panel has an **Artifacts** tab for exactly that. It lists the task's work products, documents, and agent-produced files, grouped by the run that produced them — newest run first, each headed by the agent's name and when the run started. Files show their filename and size; click one to open it in a new tab.
 
-- **Images and videos** show as a gallery of preview tiles — one, two, or three across depending on how wide you've made the panel. That includes images and videos an agent simply attached, not only the ones it handed back as formal work products. Video tiles show a still from early in the clip rather than a blank frame. Click a tile to open the gallery viewer, where videos play and you can download the file.
-- **Documents and other files** stay as full-width rows beneath their run.
-
-Every row and tile is clickable across its whole surface — title, thumbnail, and the space around them all do the same thing. The tab is read-only — a quick answer to "what came out of this task?", not a place to upload or delete.
+The tab is read-only — a quick answer to "what came out of this task?", not a place to upload or delete.
 
 > **Note:** if your instance has switched back to the old layout with **Classic Task Interface** (under **Legacy** in **Settings → Instance settings → Experimental**), there's no Artifacts tab — a task's attachments stay in the **Attachments** section on the task page. See [Experimental features](../../experimental/overview.md).
 
@@ -177,7 +174,7 @@ Every comment is addressable. Open a thread and use **Copy link** to grab a deep
 - **Stacks** — artifacts grouped by their task (or rolled up by parent task), so related outputs stay together.
 - **Cards** — previews you can read or watch in place, each linking back to the issue it came from.
 - **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from a file artifact or from an inline file chip an agent left in its writing.
-- **Artifacts tab on a task** — one task's outputs in its properties panel, with images and videos as a gallery of tiles.
+- **Artifacts tab on a task** — one task's outputs in its properties panel, grouped by the run that produced them.
 - **Document comments** — inline, Google-Docs-style threads anchored to a passage in a Plan or Artifact document; open or resolved, authored by people or agents, and shareable by deep link.
 
 You now know how to find, filter, and review everything your agents have made. When you want to dig into the work behind a given artifact, follow its link back to the issue and pick up the thread there.

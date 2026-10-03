@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.1001.0
 seo_title: Skills Reference
 seo_description: The reference for company skills: file shape on disk, the install pipeline, attaching to agents, scoping rules, canonical keys, and versioning.
 ---
@@ -141,9 +141,7 @@ Issue monitors are a separate mechanism from [task watchdogs](../guides/projects
 
 A few smaller changes to the bundled skills are worth knowing about, because they change what you'll see agents do:
 
-- **Wake context comes in the prompt.** The `paperclip` skill now tells agents that adapters deliver the wake payload — the compact issue summary plus the batch of new comments that triggered the run — as a section of the run prompt, and to read that section first. Agents no longer look for it in a separate environment variable.
 - **Open questions get a text box.** When an agent needs a free-text answer from you, the `paperclip` skill now gives it a complete `ask_user_questions` payload that renders a text field (a `questionSet` question with `answerMode: "text"`), instead of inventing multiple-choice options for something that isn't a choice. Choice cards are reserved for real decisions with at least two meaningful alternatives.
-- **Hiring from Paperclip Runner.** The skill's API reference now tells native runner agents to use the `hire_agent` tool when it's available. The new teammate inherits the caller's validated runner, model, permission settings, default environment, and managed AI connection, but gets its own instructions — the caller's secrets, workspace paths, sessions, and instructions aren't copied. Over the REST API the same thing is `"inheritRuntimeFrom": "caller"` on the hire request, which can't be combined with a non-empty `adapterConfig`, `runtimeConfig`, or an explicit `defaultEnvironmentId`. Your hiring permissions and approval policy still apply.
 - **`paperclip-create-agent` on Paperclip Runner.** Runner agents don't get `PAPERCLIP_API_URL` or `PAPERCLIP_API_KEY`, so the skill now tells them to use the runner's Paperclip tools instead — `get_task_context` and `list_agents` for context, then `search_api` to find the hiring endpoints and `call_api` to call them. If those API tools aren't available, the agent reports that you need to enable runner API tools for the company, keeps the proposed hire in the conversation, and doesn't claim an agent was created.
 
 ---

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.1001.0
 seo_title: Gemini CLI Adapter
 seo_description: Run Google's Gemini CLI on the Paperclip host, with session resume across heartbeats and configurable sandboxing for each agent you point at it.
 ---
@@ -33,7 +33,7 @@ seo_description: Run Google's Gemini CLI on the Paperclip host, with session res
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
 | `engine` | no | How Gemini is run: `auto` (the default — runs ACP), `acp` (always the Agent Client Protocol), or `cli` (always the classic Gemini CLI). See [ACP Engine](#acp-engine). |
-| `model` | no | Gemini model id. Defaults to `auto`. Common choices include `gemini-3.1-pro-preview`, `gemini-3.8-flash`, `gemini-2.5-pro`, and `gemini-2.5-flash`. See [Models](#models). |
+| `model` | no | Gemini model id. Defaults to `auto`. Common choices include `gemini-3.1-pro-preview`, `gemini-2.5-pro`, and `gemini-2.5-flash`. See [Models](#models). |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `instructionsFilePath` | no | Markdown instructions file prepended to the prompt. |
 | `sandbox` | no | Enables Gemini sandbox mode. The adapter otherwise passes `--sandbox=none`. |
@@ -87,18 +87,13 @@ Pick a Gemini model id in the `model` field. The known options are:
 - `auto` (the adapter default — Gemini CLI picks the model)
 - `gemini-3.1-pro-preview`
 - `gemini-3.1-pro-preview-customtools`
-- `gemini-3.8-flash`
-- `gemini-3.7-flash`
-- `gemini-3.6-flash`
-- `gemini-3.5-flash`
-- `gemini-3.5-flash-lite`
-- `gemini-3.1-flash-lite`
-- `gemini-3-flash-preview`
 - `gemini-2.5-pro`
 - `gemini-2.5-flash`
 - `gemini-2.5-flash-lite`
+- `gemini-2.0-flash`
+- `gemini-2.0-flash-lite`
 
-The older `gemini-2.0-flash` and `gemini-2.0-flash-lite` entries have been dropped from the list. You can still type any model id your Gemini CLI accepts.
+You can also type any model id your Gemini CLI accepts.
 
 ---
 

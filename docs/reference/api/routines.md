@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.817.0
+paperclip_version: v2026.1001.0
 seo_title: Routines API
 seo_description: Paperclip's recurring execution layer. Run an agent on a schedule, fire it from a webhook, or kick it off manually, and see what a routine does not do.
 ---
@@ -367,18 +367,16 @@ Supported signing modes in the code are:
 
 | Mode | What it accepts |
 |---|---|
-| `app_webhook` | Either a bearer token or an HMAC-SHA256 signature over the exact request body. This is the mode the UI's **Another app or script** setup creates. |
-| `bearer` | A bearer token only. |
+| `bearer` | A bearer token. This is the mode the UI's **Another app or script** setup creates. |
 | `hmac_sha256` | A timestamped HMAC-SHA256 signature. |
-| `github_hmac` | GitHub-style HMAC-SHA256 over the body, without a timestamp. |
-| `fireflies_hmac` | Fireflies Webhooks V2 signatures. Kept for triggers created while it was offered; new setups use `app_webhook` instead. |
+| `github_hmac` | GitHub-style HMAC-SHA256 over the body, without a timestamp. This is the mode the UI's **GitHub** setup creates. |
 | `none` | No authentication. Anyone with the URL can fire the trigger. |
 
 When you create a webhook trigger through the API and omit `signingMode`, the default is `bearer`.
 
 Replay windows are only used for the timestamped `hmac_sha256` mode and must be between 30 and 86,400 seconds. The default is 300 seconds.
 
-The `webhookUrl` is built from the server's public origin. External senders such as GitHub or Fireflies can only deliver to a publicly reachable HTTPS address — see [HTTPS and public access](../deploy/https.md). The UI warns when a URL points at `localhost`, a private network, a Tailscale `.ts.net` host, or plain HTTP.
+The `webhookUrl` is built from the server's public origin. External senders such as GitHub can only deliver to a publicly reachable HTTPS address — see [HTTPS and public access](../deploy/https.md). The UI warns when a URL points at `localhost`, a private network, a Tailscale `.ts.net` host, or plain HTTP.
 
 ### API
 
@@ -655,18 +653,12 @@ What the code checks:
 
 Accepted headers depend on signing mode:
 
-- `app_webhook` uses either `Authorization: Bearer <secret>`, or `X-Hub-Signature` / `X-Hub-Signature-256` carrying `sha256=<hex>` — HMAC-SHA256 of the exact request body. If a signature header is present it must be valid; the server does not fall back to the bearer check.
 - `bearer` uses `Authorization: Bearer <secret>`
 - `hmac_sha256` uses `X-Paperclip-Signature` plus `X-Paperclip-Timestamp`, signing the timestamp, a dot, and the exact body
 - `github_hmac` uses `X-Hub-Signature-256`, falling back to `X-Paperclip-Signature`, over the exact body with no timestamp
-- `fireflies_hmac` uses `X-Hub-Signature` over the exact body
 - `none` does not require a signature
 
 For timestamped HMAC validation, the server enforces the replay window from the trigger.
-
-For `app_webhook` triggers, the validated JSON payload is appended to the execution issue's description inside a fenced data block, labelled as external data the agent must not treat as instructions. The block is capped at 16,384 characters; the full payload is always stored on the routine run. A signed `app_webhook` delivery without an idempotency key is deduplicated by a digest of the trigger and the exact body, so an identical signed retry does not start a second run.
-
-`fireflies_hmac` triggers keep their provider-specific handling: only authenticated meeting metadata (`event`, `meeting_id`, `timestamp`, and an optional `client_reference_id`) becomes run input, runs are deduplicated per meeting, and events other than `meeting.summarized` are acknowledged with `{ "status": "ignored", "routineStarted": false, "linkedIssueId": null }` without creating a run.
 
 For deduplication the server reads an idempotency key from the `Idempotency-Key` header, falling back to `X-GitHub-Delivery`. Sending the same key on a retry prevents a duplicate run — and, during setup, prevents a retried test delivery from starting the routine once the trigger is enabled.
 

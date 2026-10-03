@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.916.0
 seo_title: Connection Intents API
 seo_description: When an agent needs a service it cannot reach, it opens a connection intent so the responsible person can connect the app and unblock the task.
 ---

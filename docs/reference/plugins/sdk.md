@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: Plugin SDK
 seo_description: The worker-side authoring kit for Paperclip plugins. Import it in your worker entrypoint to declare a plugin and subscribe to host events.
 ---
@@ -37,18 +37,15 @@ Reach for the plugin SDK when you want to:
 The SDK package exposes two entrypoints:
 
 - `@paperclipai/plugin-sdk` — the worker-side surface documented on this page. Default for `definePlugin`, `runWorker`, `PluginContext`, the protocol helpers, and all manifest/protocol types.
-- `@paperclipai/plugin-sdk/ui` — UI-bundle surface for plugin UI contributions. Mostly out of scope for this page; see [Administration → Plugins](../../administration/plugins.md) for the operator-facing view, and [UI slots that wrap the whole app](#ui-slots-that-wrap-the-whole-app) below for two app-wide slots.
+- `@paperclipai/plugin-sdk/ui` — UI-bundle surface for plugin UI contributions. Mostly out of scope for this page; see [Administration → Plugins](../../administration/plugins.md) for the operator-facing view, and [A UI slot that wraps the whole app](#a-ui-slot-that-wraps-the-whole-app) below for the one app-wide slot.
 
 All identifiers below are exported from `@paperclipai/plugin-sdk`. They are the source of truth — copy names verbatim.
 
-### UI slots that wrap the whole app
+### A UI slot that wraps the whole app
 
-Most UI slots mount on one page or one entity. Two slot types in `PLUGIN_UI_SLOT_TYPES` instead attach to the signed-in application shell itself:
+Most UI slots mount on one page or one entity. One slot type in `PLUGIN_UI_SLOT_TYPES` instead attaches to the signed-in application shell itself:
 
 - **`appShellOverlay`** — a persistent piece of UI that lives alongside the whole app, such as a floating panel. It needs the `ui.action.register` capability and gets the same host context as a widget. It stays mounted while the user navigates between pages, and it's torn down when the user switches account or company, signs out, or enters onboarding — so cancel any requests or subscriptions when your component unmounts. Your plugin is responsible for the panel's accessibility.
-- **`organizationSwitcher`** — replaces the organization menu at the top of the sidebar with your own component. It needs the `ui.sidebar.register` capability, and it must be a React component (a custom-element export isn't supported for this slot). The host passes `PluginOrganizationSwitcherProps`, whose `organizationSwitcher` object holds the current company's `name` and `logoUrl` in `currentCompany`, the sidebar's `collapsed` and `open` state with `onOpenChange`, `onNavigate` to close mobile navigation before you leave the page, `onSignOut` and `signingOut` so you use the host's own sign-out, and `renderIcon` to draw a company icon the way the host does.
-
-The organization switcher is deliberately cautious. The host reserves the space while plugins load, and falls back to its built-in menu if no plugin contributes the slot, more than one does, discovery fails, or your component throws — so users can always reach their organizations. `currentCompany` describes the company inside this Paperclip instance; if your menu shows an external account or organization, fetch that from the service that owns it. For both slots, treat the props and host context as display information, not proof of who the user is: authenticate anything sensitive at the service that owns it. Replacing the menu changes only how it looks, not who can access which company.
 
 ---
 
@@ -436,21 +433,6 @@ The one method is `log(stream: "stdout" | "stderr", chunk: string): void`. Pass 
 - **The host drops anything malformed.** A `stream` that isn't exactly `stdout` or `stderr` is dropped, and so is a `chunk` that is empty or too large. Bad input never reaches the log callback and never throws back at you.
 
 So a provider that wants live output just calls `ctx.execution.log("stdout", chunk)` (or `"stderr"`) each time it reads a new chunk from the running command, and a provider that doesn't stream can ignore the client entirely.
-
-#### Cleaning up after a failed create
-
-Some sandbox providers allocate the machine first and only then wait for it to start. If that wait fails, the provider's own SDK may throw before it hands you a handle — leaving a sandbox running that nobody knows about. The plugin SDK gives your driver a way to hand the host enough evidence to clean that allocation up, even after a restart.
-
-When `environmentAcquireLease` (or `environmentDestroyLease`) fails after something may already have been allocated, throw a `PluginEnvironmentCreationCleanupError` instead of a plain error. Its constructor takes the underlying errors, a message, and a `PluginEnvironmentCreationCleanup` record describing exactly what you tried to create:
-
-- `providerLeaseId` — the name or ID you created the resource under, plus `observedProviderLeaseId` if you saw a real provider ID with matching ownership.
-- `companyId`, `environmentId`, an optional `runId`, and an `attemptId` unique to this creation attempt.
-- `accountFingerprint` — a 64-character lowercase hex fingerprint of the provider account.
-- `labels` — the ownership labels you stamped on the resource; up to 16 entries, each key starting with `paperclip-`.
-
-The worker sends only that validated record back to the host — never the provider exceptions themselves, since those can contain credentials. The host stores it as a pending cleanup and retries teardown of that exact, ownership-matched allocation, so it can never delete another attempt's resource. A record that fails validation is simply dropped. The acquisition still fails either way; a cleanup error never produces a lease.
-
-Two helpers round this out: `readEnvironmentCreationCleanupError(error)` returns the validated `PluginEnvironmentCreationCleanup` from an error (or `null`), and `environmentCreationCleanupErrorData(error)` builds the wire payload the worker attaches to the JSON-RPC error. Drivers that can't leak an allocation this way can ignore all of it.
 
 #### Running a command outside the persistent session
 

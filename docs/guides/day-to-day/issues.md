@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1001.0
 seo_title: Issues: Creating and Tracking Work
 seo_description: Each issue is one unit of work tied to your company goal. Create them yourself or let the CEO do it, then track progress, comment, and close them.
 ---
@@ -362,7 +362,7 @@ The tab strip sits in the panel's header bar, to the left of the window controls
 
 Two more tabs can show up alongside those:
 
-- **Tasks** — the tasks around this one. **Ancestors** come first, listed from the top-level task down to the immediate parent, so you can climb the hierarchy in one click. Below them sit the **Subtasks**, then any tasks this task created, grouped by project.
+- **Tasks** — the tasks around this one: its **Subtasks** first, then any tasks this task created, grouped by project.
 - **A skill tab** — when an agent creates a company skill during the task, clicking its **Skill created** card in the thread opens the skill in its own tab. See [Skills your agents create during a task](../org/skills.md#skills-your-agents-create-during-a-task).
 
 Tabs are earned, not permanent: a task with neither a plan nor attachments shows a plain **Properties** title in the header bar instead of a one-tab strip. If you're sitting on the Plan or Artifacts tab and its content goes away — or you move to a task that never had any — the panel falls back to **Properties** rather than showing you an empty pane.
@@ -390,7 +390,7 @@ If either action fails, the bar tells you plainly — *"Couldn't confirm — try
 
 #### The Artifacts tab
 
-**Artifacts** gathers what this task produced, grouped by the run that produced it, newest run first. Images and videos — attachments and work products alike — show as a gallery of preview tiles, laid out one, two, or three across depending on how wide the panel is. Click a tile to open it in the gallery viewer, where videos play and you can download the file. Documents and other files stay as full-width rows. The whole row or tile is clickable, not just its title.
+**Artifacts** gathers what this task produced — work products, documents, and agent-produced files — grouped by the run that produced them, newest run first. Files show their filename and size; click one to open it in a new tab.
 
 It's there to answer "what did this task produce?" without scrolling the thread. The tab is read-only, so there's no uploading or deleting from it, and the company-wide view of every output still lives on the [Artifacts page](./artifacts.md).
 
@@ -617,8 +617,6 @@ While your response is waiting, the agent can't hand the task back to you for re
 Sometimes an issue's run finishes without choosing a next step, or an assigned issue gets stranded with no live execution path. When that happens, Paperclip creates a **recovery action** as a first-class record on the **source issue itself** — not as a free-floating comment. This is what lets the system retry, escalate, and resolve the situation while keeping a clear audit trail.
 
 Recovery preserves the original assignee and only retries it when that's safe. It **doesn't take over or reassign the stranded work by itself** — once retries are exhausted or a takeover would be unsafe, the recovery action is **owned by the board** so a person decides the next step.
-
-That includes runs that keep getting cut off — for example by several server restarts in a row. Once an interrupted or failed run has used up its automatic retries and nothing else is working the issue, Paperclip moves the issue to `blocked` with a notice explaining why (for a stalled `in_progress` or `todo` issue it's usually titled **No live execution path**), so it lands in front of you instead of sitting silently with no run.
 
 A recovery action carries:
 

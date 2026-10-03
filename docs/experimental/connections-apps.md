@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1001.0
 seo_title: Connections v3 Foundation
 seo_description: The rebuilt connection storage and authorization layer under Paperclip Connectors: stable identities, subject-aware grants, and the mcp_remote rename.
 ---
@@ -20,9 +21,7 @@ seo_description: The rebuilt connection storage and authorization layer under Pa
 
 Two experimental flags in this area are still real and still off by default. The first is **Chat connectors**, described as *"Show experimental chat connector setup and Board surfaces. Existing connections keep running when hidden; GitHub and other tool connectors are unaffected."* That flag governs the [chat channels](../connectors.md#chat-channels) — Slack, Discord, Microsoft Teams, Telegram, iMessage — and AgentMail's email inboxes with them. It does not govern app integrations, so the Slack and GitHub agent tools are unaffected even when their chat halves are hidden.
 
-The second is **Memory connectors**: *"Connect Mem0, Zep, Supermemory, Cognee, and Honcho for long-term memory and context."* It hides or shows setup for those [memory providers](../connectors.md#memory-experimental). Turning it off hides setup only; existing connections keep running.
-
-The MCP aggregators (Zapier, Arcade, Composio, and Executor) briefly had a toggle of their own. They are now always available, and `enableMcpAggregators` is a deprecated compatibility key: *"MCP aggregators are always enabled; stored and managed values are ignored."* See [Connect apps through an MCP aggregator](../connectors/mcp-aggregators.md).
+The second is **MCP aggregators** (`enableMcpAggregators`): *"Show experimental Zapier, Arcade, Composio Connect, and Executor setup. Existing MCP connections keep running when hidden."* While it is off, those four providers are hidden from **Connectors** and new setup for them is refused. See [Connect apps through an MCP aggregator](../connectors/mcp-aggregators.md).
 
 ## The model
 

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1001.0
 seo_title: Choosing an Agent Adapter
 seo_description: Compare the adapters that run your agents — Claude Code, Codex, OpenCode, HTTP webhook and more — and pick the right bridge for each role you hire.
 ---
@@ -30,7 +31,7 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 ![Adapter type dropdown showing all available options](../../user-guides/screenshots/light/agents/adapter-type-dropdown.png)
 
-> **Note:** On Paperclip Cloud, the new-agent picker offers Claude, Codex, OpenCode, and Grok. Grok agents connect with an xAI subscription or API key during setup.
+> **Note:** On Paperclip Cloud, the new-agent picker offers Claude, Codex, and OpenCode.
 
 ### Agents run in full auto by default
 
@@ -66,10 +67,10 @@ The folder on your Mac where the agent does its work — reads files, writes out
 
 **Model**
 Which Claude model to use. If you leave it blank, Paperclip uses `claude-opus-5`. Some common choices:
-- `claude-opus-5-5` or `claude-opus-5` — most capable, best reasoning, highest cost. Good for your CEO or complex strategic agents.
+- `claude-opus-5` — most capable, best reasoning, highest cost. Good for your CEO or complex strategic agents.
 - `claude-sonnet-5` — fast, capable, lower cost. Good for worker agents doing routine tasks.
 
-When in doubt, start with Sonnet for workers and Opus for the CEO. The **effort** options next to the model change with the model you pick — newer Opus, Sonnet 5, and Fable models add `xhigh` and `max`. See [Claude Code — Reasoning Effort](../../reference/adapters/claude-code.md#reasoning-effort).
+When in doubt, start with Sonnet for workers and Opus for the CEO.
 
 **Environment variables**
 The agent form includes an **Environment variables** section. Add `ANTHROPIC_API_KEY` there, either as a plain value or as a secret reference. If you're not sure what key name to use, `ANTHROPIC_API_KEY` is the standard one.
@@ -104,7 +105,7 @@ The fields are the same as `claude_local` — mainly model selection and environ
 
 **Model** examples for Codex:
 - `gpt-5.6-sol` — the default and the normal starting point
-- `gpt-6-astra`, `gpt-6-sol`, or `gpt-6-luna` — the GPT-6 family, with extra reasoning-effort levels
+- `gpt-6-astra` — GPT-6, with extra reasoning-effort levels
 - `o4-mini` — fast and cost-effective for routine tasks
 
 See [Codex — Models](../../reference/adapters/codex.md#models) for the full list.
