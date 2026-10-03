@@ -227,6 +227,10 @@
               "file": "../docs/connectors/box.md"
             },
             {
+              "title": "Browser Use Cloud",
+              "file": "../docs/connectors/browser-use-cloud.md"
+            },
+            {
               "title": "ClickHouse",
               "file": "../docs/connectors/clickhouse.md"
             },
@@ -350,6 +354,10 @@
             {
               "title": "Mixpanel",
               "file": "../docs/connectors/mixpanel.md"
+            },
+            {
+              "title": "Neon",
+              "file": "../docs/connectors/neon.md"
             },
             {
               "title": "Netlify",
