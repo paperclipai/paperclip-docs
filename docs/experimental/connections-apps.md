@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1001.0
 seo_title: Connections v3 Foundation
 seo_description: The rebuilt connection storage and authorization layer under Paperclip Connectors: stable identities, subject-aware grants, and the mcp_remote rename.
 ---
@@ -18,7 +19,9 @@ seo_description: The rebuilt connection storage and authorization layer under Pa
 | A Wave 1 catalog, described as plumbing rather than a store. | A full catalog with setup flows, per-action permissions, and a review queue. See [Connectors](../connectors.md). |
 | "Setup flows are partial." | Setup flows are the product surface. Each provider page documents the exact paths Paperclip supports for it. |
 
-One experimental flag in this area is still real and still off by default: **Chat connectors**, described as *"Show experimental chat connector setup and Board surfaces. Existing connections keep running when hidden; GitHub and other tool connectors are unaffected."* That flag governs the [chat channels](../connectors.md#chat-channels) — Slack, Discord, Microsoft Teams, Telegram, iMessage — and AgentMail's email inboxes with them. It does not govern app integrations, so the Slack and GitHub agent tools are unaffected even when their chat halves are hidden.
+Two experimental flags in this area are still real and still off by default. The first is **Chat connectors**, described as *"Show experimental chat connector setup and Board surfaces. Existing connections keep running when hidden; GitHub and other tool connectors are unaffected."* That flag governs the [chat channels](../connectors.md#chat-channels) — Slack, Discord, Microsoft Teams, Telegram, iMessage — and AgentMail's email inboxes with them. It does not govern app integrations, so the Slack and GitHub agent tools are unaffected even when their chat halves are hidden.
+
+The second is **MCP aggregators** (`enableMcpAggregators`): *"Show experimental Zapier, Arcade, Composio Connect, and Executor setup. Existing MCP connections keep running when hidden."* While it is off, those four providers are hidden from **Connectors** and new setup for them is refused. See [Connect apps through an MCP aggregator](../connectors/mcp-aggregators.md).
 
 ## The model
 

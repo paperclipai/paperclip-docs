@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1001.0
 seo_title: Zapier Connector
 seo_description: Reach thousands of apps through a Zapier MCP server. The generated URL is a credential — how to set it up safely, choose exposed actions, and troubleshoot.
 ---
@@ -11,6 +12,7 @@ Zapier lets agents reach the apps you have already connected in your Zapier acco
 
 ## Before you connect
 
+- The experimental **MCP aggregators** setting turned on. It is off by default, and until an administrator turns it on, Zapier does not appear in **Connectors**. See [MCP aggregators](mcp-aggregators.md#turn-them-on-first).
 - A Zapier account with the apps you want to reach already connected there.
 - An MCP server created in Zapier, with the specific actions you want exposed enabled on it.
 

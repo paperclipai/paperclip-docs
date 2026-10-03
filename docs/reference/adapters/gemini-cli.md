@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.1001.0
 seo_title: Gemini CLI Adapter
 seo_description: Run Google's Gemini CLI on the Paperclip host, with session resume across heartbeats and configurable sandboxing for each agent you point at it.
 ---
@@ -32,8 +32,8 @@ seo_description: Run Google's Gemini CLI on the Paperclip host, with session res
 | Field | Required | Notes |
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
-| `engine` | no | How Gemini is run: `auto` (the default — ACP preferred), `acp` (always the Agent Client Protocol), or `cli` (always the classic Gemini CLI). See [ACP Engine](#acp-engine). |
-| `model` | no | Gemini model id. Defaults to `auto`. Common choices include `gemini-2.5-pro` and `gemini-2.5-flash`. |
+| `engine` | no | How Gemini is run: `auto` (the default — runs ACP), `acp` (always the Agent Client Protocol), or `cli` (always the classic Gemini CLI). See [ACP Engine](#acp-engine). |
+| `model` | no | Gemini model id. Defaults to `auto`. Common choices include `gemini-3.1-pro-preview`, `gemini-2.5-pro`, and `gemini-2.5-flash`. See [Models](#models). |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `instructionsFilePath` | no | Markdown instructions file prepended to the prompt. |
 | `sandbox` | no | Enables Gemini sandbox mode. The adapter otherwise passes `--sandbox=none`. |
@@ -54,13 +54,13 @@ seo_description: Run Google's Gemini CLI on the Paperclip host, with session res
 
 Gemini can run through one of two engines — ACP or the classic Gemini CLI — selected by the `engine` field:
 
-- **`auto` (default) — ACP preferred.** Paperclip runs Gemini through the Agent Client Protocol (ACP) when the host meets the prerequisites, and falls back to the Gemini CLI — with diagnostics explaining why — when it can't.
+- **`auto` (default) — ACP.** Paperclip runs Gemini through the Agent Client Protocol (ACP). If the host doesn't meet the ACP prerequisites, the run fails with a setup error explaining why — Paperclip never switches engines on its own.
 - **`acp` — always ACP.** Force the Agent Client Protocol path.
 - **`cli` — always the Gemini CLI.** Force the classic CLI wrapper and skip ACP entirely.
 
 ACP gives you a richer, structured live transcript: session identity, status with context-window usage, assistant and thinking token deltas, and tool-call updates that fold into a single card as they progress. That extra detail is most useful when you're watching a sandbox run stream in.
 
-When the engine resolves to ACP (either `acp`, or `auto` on a capable host), these extra fields apply:
+When the engine resolves to ACP (`auto` or `acp`), these extra fields apply:
 
 | Field | Default | Notes |
 |---|---|---|
@@ -76,7 +76,24 @@ When the engine resolves to ACP (either `acp`, or `auto` on a capable host), the
 
 You can keep `engine` on `auto` when this agent runs in a Paperclip sandbox environment. If that sandbox provides Paperclip's bidirectional process session, Paperclip keeps the ACP engine and its structured live transcript; you do not add a separate bridge setting to the adapter config.
 
-An environment that only runs one-shot commands cannot host an ACP session, so `auto` falls back to the Gemini CLI with a diagnostic. The same fallback applies to non-sandbox remote targets such as SSH. Choose `engine: "acp"` when ACP is required and a failed prerequisite should stop the run, or `engine: "cli"` when you always want the CLI lane.
+An environment that only runs one-shot commands cannot host an ACP session, so an `auto` run there fails with a setup error rather than switching to the Gemini CLI. Set `engine: "cli"` when you want the CLI lane — for example on such environments.
+
+---
+
+## Models
+
+Pick a Gemini model id in the `model` field. The known options are:
+
+- `auto` (the adapter default — Gemini CLI picks the model)
+- `gemini-3.1-pro-preview`
+- `gemini-3.1-pro-preview-customtools`
+- `gemini-2.5-pro`
+- `gemini-2.5-flash`
+- `gemini-2.5-flash-lite`
+- `gemini-2.0-flash`
+- `gemini-2.0-flash-lite`
+
+You can also type any model id your Gemini CLI accepts.
 
 ---
 
@@ -114,6 +131,8 @@ The `Test Environment` button checks:
 - The working directory is absolute and usable.
 - Authentication is available through `GEMINI_API_KEY`, `GOOGLE_API_KEY`, Google account login, or Gemini's CLI auth.
 - The hello probe can run `gemini --output-format json "Respond with hello."`
+
+The hello probe runs in the same unattended `yolo` approval mode that real runs use, unless you set `approvalMode` or turn `yolo` off.
 
 The test also detects auth and quota failures, so a passing install check does not automatically mean the account can still run work.
 

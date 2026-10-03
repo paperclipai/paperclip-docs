@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: Tool Gateway API
 seo_description: Agents decide what to do; the tool gateway decides whether they may. It sits between every agent and every external tool you have connected.
 ---
@@ -444,18 +444,7 @@ A **delegation** lets the owner of a personal grant lend that identity to an age
 
 Most of these routes gate on **configure access** — you are the connection's creator, or you hold `tools:manage_connections` — rather than on a single permission key. Viewers and members with no active company access are refused before anything else.
 
-#### Toolkit services and usage
-
-When a connection fronts a provider that bundles many toolkits, you connect and disconnect each toolkit **service** on its own:
-
-```
-GET    /api/tool-connections/{connectionId}/services
-POST   /api/tool-connections/{connectionId}/services/{toolkitSlug}/connect
-GET    /api/tool-connections/{connectionId}/services/{toolkitSlug}/status
-DELETE /api/tool-connections/{connectionId}/services/{toolkitSlug}
-```
-
-All four require configure access. `connect` takes an optional `authConfigId` and `callbackUrl` and responds `201 Created`; `status` polls where an in-flight connect got to; and the `DELETE` disconnects the toolkit and removes the catalog tools it contributed.
+#### Usage
 
 A usage summary rounds out the per-connection view:
 
@@ -464,6 +453,14 @@ GET /api/tool-connections/{connectionId}/usage?range={7d|30d}
 ```
 
 `range` defaults to `7d` and must be `7d` or `30d` — anything else returns `400 Bad Request` with `Usage range must be 7d or 30d`.
+
+#### Legacy Composio connections
+
+The old per-toolkit **services** routes under `/api/tool-connections/{connectionId}/services` are gone, along with the Composio broker they drove. Composio is now an ordinary remote MCP connection (see [Connect apps through an MCP aggregator](../../connectors/mcp-aggregators.md)).
+
+A connection saved under the old broker still exists, but Paperclip no longer runs it. It reads back with `healthStatus` `error`, its tools are left out of discovery, and a tool call, catalog refresh, reconnect, or OAuth start against it is refused with `422 Unprocessable Entity` and the code `composio_broker_retired`. The message tells you what to do:
+
+> *"This legacy Composio connection is no longer supported. Add a new Composio MCP connection from Connectors, then remove this connection. Existing credentials and permissions are not migrated."*
 
 Profiles, entries, and bindings:
 

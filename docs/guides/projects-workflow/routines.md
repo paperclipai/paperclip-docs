@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.626.0
+paperclip_version: v2026.1001.0
 seo_title: Heartbeats and Routines: Scheduling Work
 seo_description: Why timer heartbeats are opt-in, and how routines schedule recurring work without paused agents, surprise token bills, or a dashboard you fight with.
 ---
@@ -163,19 +163,20 @@ The header packs the always-available controls into one row:
 
 The left sub-sidebar lists the routine's sections in two groups, and each section is its own sub-route (`/routines/:id/<section>`) so you can deep-link and use the browser's back button. Older `?tab=` links still resolve — they redirect to the matching section.
 
-**Routine** (the editable parts of the template):
+The first group holds the editable parts of the template:
 
-- **Overview** — the assignment row ("For [assignee] in [project]"), priority, and the Markdown instructions editor.
+- **Overview** — the assignment row ("For [assignee] in [project]"), priority, and the Markdown instructions editor. It also shows a quick summary of the routine's **Triggers** and **Next run** (for a webhook-only routine that reads **On webhook delivery**), plus the five most recent runs with **View all runs** and **View routine activity** links.
 - **Triggers** — every trigger attached to the routine, each as its own card, plus a composer to add new ones.
 - **Variables** — the `{{name}}` placeholders detected in the title and instructions.
-- **Secrets** — environment values the routine's task can reference.
 - **Delivery** — the concurrency and catch-up policies.
+- **Secrets** — environment values the routine's task can reference.
 
-**Operate** (the read-only history):
+**Operate** keeps the routine's day-to-day operation inside the routine itself, so you never have to leave for a separate audit screen:
 
-- **Runs** — the execution history for this specific routine.
-- **Activity** — a structured audit log of edits, enables, pauses, trigger changes, and secret rotations, grouped by day.
-- **History** — the routine's revision history, with the ability to restore an earlier revision.
+- **Runs** — the tasks this routine has produced, which you can search and update in place (see [Run history](#run-history) below).
+- **Activity** — a timeline of routine, trigger, and run events — edits, enables, pauses, trigger changes, webhook deliveries, and key rotations — grouped by day.
+
+The routine's revision history lives behind the **History** button in the header, where you can restore an earlier revision; **Back to overview** takes you out again.
 
 A small amber dot appears next to any section with unsaved edits, and a blue pulsing dot appears on **Runs** when a run is live. On narrow screens the sidebar collapses into a single grouped section picker at the top.
 
@@ -199,7 +200,9 @@ Editing the description is a routine save like any other, and Paperclip surfaces
 
 ### Trigger cards and human-readable schedules
 
-On the **Triggers** section, each trigger is a card headed by its kind icon and label. For a schedule trigger, Paperclip shows the cron in **plain English** right under the label — "Every weekday at 09:00", "Every day at 10:00", "Every 15 minutes", "Day 1 of every month at 09:00" — translated from the raw expression as you edit it. (Shapes the translator doesn't recognise simply omit the plain-English line and keep the raw cron.) The card's top-right corner shows a `Next:` line with the resolved local timestamp of the next fire for schedule triggers, a `Webhook` label for webhook triggers, or `API` for manual ones. If a trigger has fired before, its last result also shows there as a badge — green for success, red otherwise — so you can spot a misfiring webhook without leaving the page.
+On the **Triggers** section, each trigger is a card headed by its kind icon and label. For a schedule trigger, Paperclip shows the cron in **plain English** right under the label — "Every weekday at 09:00", "Every day at 10:00", "Every 15 minutes", "Day 1 of every month at 09:00" — translated from the raw expression as you edit it. (Shapes the translator doesn't recognise simply omit the plain-English line and keep the raw cron.) The card's top-right corner shows a `Next:` line with the resolved local timestamp of the next fire for schedule triggers, a `Webhook` label for webhook triggers, or `API` for manual ones. If a trigger has fired before, its last result also shows there as a badge — red when the last firing failed, neutral otherwise, and simply **Task created** when it produced a task — so you can spot a misfiring webhook without leaving the page.
+
+Webhook cards also show the trigger's **Webhook URL** in a read-only field you can click to select and copy, with a reminder to send a POST with `Content-Type: application/json` and to keep the URL private when signing is disabled.
 
 Each card carries its own **Delete**, **Save trigger**, and — for webhook triggers — **Rotate secret** buttons.
 
@@ -207,9 +210,13 @@ Each card carries its own **Delete**, **Save trigger**, and — for webhook trig
 
 ![Run history](../../user-guides/screenshots/light/routines/run-history.png)
 
-The **Runs** section lists every execution the routine has produced, newest first. Above the list, three filter dropdowns — **Source**, **Status**, and **Date** (Any time, Last 24h, Last 7d, Last 30d) — narrow the view, and the active filters show as removable chips. When a run is live, a `LiveRunWidget` pins to the top and polls every three seconds so you can watch it progress without reloading.
+The **Runs** section shows every task this routine has created, using the same issue list you know from the rest of Paperclip. That means you get the familiar columns — status, priority, and assignee — along with search and the list's own view controls, all scoped to this one routine. A run that's in progress right now is marked as live.
 
-Each row leads with two badges — the run's **source** and its **status** — then the linked issue's identifier and title (or the trigger label when there's no issue yet), with a relative "time ago" on the right. The subtitle line does double duty: a **failed** run shows its failure reason inline, while a successful run shows the resolved variable values it ran with (for example `customer="Acme"`). Rows link straight to the execution issue they produced.
+Because it's a real issue list, you can manage runs right here: change a task's status, priority, or assignee inline without opening it, and the routine's run data refreshes as soon as the update lands. Click a row to open the task itself; the breadcrumb brings you back to **Runs** when you're done. Your view choices are remembered per routine.
+
+When you fire the routine from the **Run** button, Paperclip drops you on **Runs** so you can watch the new task appear.
+
+Runs that didn't create a task — a tick skipped by the concurrency policy or the activity gate, for example — have nothing to list here. You'll still see them on the **Overview** under recent runs, with their status badge, and the API's [List Runs](../../reference/api/routines.md#list-runs) endpoint gives the full record including `failureReason`.
 
 ---
 
@@ -239,14 +246,90 @@ Every schedule trigger is saved with an explicit **timezone**, derived from the 
 
 If you need to change the timezone later (for example, you moved), open the trigger and re-save — the editor stamps the current browser timezone onto the updated record. The `Next:` countdown on the detail page is always rendered in your current local time, regardless of which timezone the trigger was originally saved with.
 
-### Webhook triggers
+---
 
-Webhook triggers skip the cron editor entirely and show two fields instead:
+## Webhook triggers
 
-- **Signing mode** — `bearer`, `hmac_sha256`, `github_hmac`, or `none`. Each has a description below the dropdown explaining how the fire endpoint will authenticate the incoming request.
-- **Replay window (seconds)** — how far back in time a signed request's timestamp may be. Hidden for `github_hmac` and `none`, which don't carry a timestamp.
+A schedule is one way to start a routine; a webhook is the other. Instead of firing on a clock, a webhook trigger hands you a URL that an outside system POSTs to — a GitHub event, a deploy script, another SaaS tool — and that inbound call starts the routine. Reach for it whenever the work should happen *because something happened elsewhere*, not at a fixed time.
 
-When you create a webhook trigger, Paperclip returns a one-time banner with the webhook URL and secret. **This is the only time the secret is shown** — copy it now. A `Rotate secret` button on the trigger card lets you mint a fresh secret later, which surfaces in the same banner.
+You add a webhook trigger the same place you add a schedule: open a routine, go to its **Triggers** section, and add a trigger. A short wizard walks you through the rest.
+
+### Choosing schedule or webhook
+
+The first step asks **"When should this routine run?"** and offers two choices:
+
+- **On a schedule** — every day, on weekdays, or once a week. That's the cron path covered above.
+- **When another app sends a webhook** — when something happens in GitHub, another app, or a script.
+
+Pick the webhook option and Paperclip asks **what's sending the webhook**: **Another app or script**, or **GitHub**. Your answer decides how deliveries are authenticated and which setup instructions you see next: **Another app or script** uses a Bearer token in the `Authorization` header, while **GitHub** uses GitHub's own signed `X-Hub-Signature-256` header. From the next step on, Paperclip also checks the webhook URL and warns you if senders might not be able to reach it — more on that in [Is your webhook URL reachable?](#is-your-webhook-url-reachable).
+
+### Copying the URL and secret
+
+As soon as you continue, Paperclip creates the webhook and shows you two things to copy into the sending system:
+
+- a **Webhook URL** (labelled **Payload URL** on the GitHub path) — the address the outside system POSTs to
+- the credential that proves a delivery really came from your system — an **Authorization header value** (the full `Bearer <secret>` string, ready to paste) on the generic path, or a **Secret** on the GitHub path
+
+Copy both now. **The secret is only visible during setup** — once you leave the wizard it's hidden, and the field is replaced by a **Generate new key** button. If you didn't save it, generate a fresh one rather than hunting for the old value (see [Rotating the secret](#rotating-the-secret)).
+
+Paperclip also gives you a copy-ready **Agent instructions** block bundling the URL, the key, and step-by-step wiring — handy when you'd rather hand the connection off to one of your agents to set up.
+
+### The generic path (another app or script)
+
+For a custom app or a script, the setup is:
+
+- Add a webhook pointing at the **Webhook URL**, using the **POST** method.
+- Send a **JSON object** as the body — not an array or a bare string — with **`Content-Type: application/json`**.
+- Add a header named **`Authorization`** and set its value to the complete **Authorization header value** you copied — **`Bearer`**, a space, then the secret key.
+- Send a unique **`Idempotency-Key`** header for each event and reuse it on retries. That way a retried setup test can never start the routine once the webhook is live.
+
+### The GitHub path
+
+Choose **GitHub** and Paperclip gives you GitHub-shaped steps:
+
+1. In your repository, open **Settings → Webhooks → Add webhook**.
+2. Paste the **Webhook URL** into **Payload URL**, and set **Content type** to **application/json**.
+3. Paste the **Secret** into GitHub's **Secret** field. GitHub signs each request with an **`X-Hub-Signature-256`** header, so you don't use Bearer authentication on this path.
+4. Choose the events that should start the routine, enable the webhook, and save.
+
+### Is your webhook URL reachable?
+
+A webhook only works if the sending app can actually reach the URL Paperclip gives you. When the URL looks like it won't be reachable from outside, the wizard and the trigger's saved settings show a yellow warning banner explaining why:
+
+- **Other apps can’t reach this localhost URL** — the address points at `localhost` or a loopback address, which means "this machine" to whoever sends the request.
+- **This webhook URL appears to be private** — a private-network address or an internal hostname. Only senders on the same network can reach it; public apps like GitHub usually can't.
+- **This Tailscale URL may not be public** — a `.ts.net` address. Tailscale Serve is private to your tailnet even over HTTPS; senders outside the tailnet need Tailscale Funnel or another public HTTPS address. If Funnel is already on for this URL, you can carry on.
+- **Use HTTPS for webhooks from other apps** — the URL is plain HTTP. Many apps refuse it, and HTTP doesn't encrypt your webhook credentials or payloads.
+- **Check the webhook URL** — the address isn't a valid HTTP or HTTPS URL.
+
+The warning is advice, not a block: you can continue for local or private-network use, such as a script on the same machine. For public senders, give Paperclip a publicly reachable HTTPS address — the banner links to [HTTPS and public access](../../reference/deploy/https.md) for the setup. Paperclip can only judge the URL itself; it can't see your DNS, firewall, or whether Funnel is on, so a URL with no warning isn't a guarantee either.
+
+### Finishing setup to enable the webhook
+
+A brand-new webhook trigger starts in a **setup-pending** state, and that's on purpose. While setup is pending, any delivery that arrives **only tests the connection** — it doesn't start the routine or create a task. That lets you wire things up and confirm they work without kicking off real work by accident.
+
+The wizard's last step, **Check connection**, is where you verify it:
+
+- Send a test event from the sending app. In GitHub, open the webhook's **Recent Deliveries** and choose **Redeliver**; in another app, use its "send test" button or simply perform the action that should fire the webhook.
+- Keep the page open. The status flips to **Test event received · Connection working** once a delivery arrives and authentication passes — no run and no task are created. If you see **Event arrived, but the key was rejected**, go back, fix the key in the sending app, and resend.
+- Click **Finish setup** to enable the webhook. From then on, real events start the routine.
+
+One thing to know: **the test event is not replayed.** Finishing setup does not re-fire the delivery you sent while testing — only events that arrive *after* you enable the webhook start the routine. And if the routine itself is paused, finishing setup saves the webhook but leaves it dormant until you enable the routine's automatic triggers.
+
+### Signing modes and the replay window
+
+Under the hood, each webhook trigger carries a **signing mode** that decides how Paperclip authenticates an inbound call, plus — for the timestamped mode — a **replay window**:
+
+- **Signing mode** — `bearer`, `hmac_sha256`, `github_hmac`, or `none`. The **Another app or script** path creates a `bearer` trigger, and the **GitHub** path creates a `github_hmac` one. Each option has a short description below the dropdown explaining how the fire endpoint will authenticate the request.
+- **Replay window (seconds)** — how far back a signed request's timestamp may be, used only by the timestamped `hmac_sha256` mode. It defaults to 300 seconds and doesn't apply to the other modes, which don't carry a timestamp.
+
+### Rotating the secret
+
+If a secret leaks — or you just want to reissue credentials — use **Rotate secret** on the trigger card (the wizard's **Generate new key** button does the same thing). Rotation mints a fresh secret, invalidates the old one immediately, and **keeps the same webhook URL**, so you only have to update the secret in the sending app, never the endpoint. The new secret is shown once, in the same banner, so copy it right away.
+
+### Enabling, disabling, and archiving a trigger
+
+Each trigger has its own **enabled** state, so you can switch a single trigger off without touching the rest of the routine. You can also **archive** a trigger to retire it from the active set and **restore** it later, or **Delete** it to remove it for good. A routine can carry several triggers at once — a nightly schedule and a GitHub webhook side by side, for example — and they all fire independently.
 
 ---
 

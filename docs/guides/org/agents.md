@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1001.0
 seo_title: Agents: Your AI Employees
 seo_description: Hire agents, browse the agent list, and work the detail page — dashboard, instructions, and references — for the AI employees doing your company's work.
 ---
@@ -125,7 +126,7 @@ Click **Create agent**. On success Paperclip navigates you to the new agent's de
 
 Every agent page is built from the same shell:
 
-- A **header** with the agent's icon, name, role/title, status badge, and the action cluster (Assign Task, Run Heartbeat, Pause/Resume, overflow menu)
+- A **header** with the agent's character, name, role/title, status badge, and the action cluster (Assign Task, Run Heartbeat, Pause/Resume, overflow menu)
 - A **tab bar** with six tabs: Dashboard, Instructions, Skills, Configuration, Runs, Budget
 - The **selected tab's content** below
 
@@ -137,6 +138,29 @@ The action cluster in the header works on any tab:
 - **Overflow menu** — Copy Agent ID, Reset Sessions, Terminate
 
 > **Danger:** Terminate permanently shuts the agent down. Use Pause if you might want it back. See [Approvals — Board Override Powers](../day-to-day/approvals.md#board-override-powers) for the broader discussion of Pause vs Terminate vs Delete.
+
+### Your agent's character
+
+Every agent has its own character — a small illustrated figure in one of 17 colour palettes. It's how you tell your agents apart at a glance, and it follows the agent everywhere it shows up: the agent list and org chart, task threads and comments, the activity feed, the inbox, search results, and more.
+
+Here's how an agent gets its look:
+
+- **New agents** are given a palette at random when you create them. While you're setting up a new agent, you'll see a sleepy, greyed-out preview of its character; it brightens up and celebrates once the setup test passes or the agent is created. The character you saw during setup is the one the agent keeps.
+- **Agents that existed before characters arrived** were each given a palette based on their ID, so they have a stable look too.
+- **Imported companies** keep each agent's character when you export and re-import a company package.
+
+On the agent detail page, the character in the header reacts to what the agent is doing:
+
+| Agent status | Character pose |
+|---|---|
+| Running | Working |
+| Error | Confused |
+| Paused, terminated, or awaiting approval | Resting |
+| Anything else | Idle |
+
+The character animates and turns to follow your cursor. If your system is set to reduce motion, you see a still image instead. If the image can't load, Paperclip shows the agent's initials.
+
+> **Note:** There's no palette picker in the app yet. If you want to change an agent's character, send a new `appearance` value through the API — see [Agents API — Update Agent](../../reference/api/agents.md#update-agent).
 
 When the agent is in `pending_approval` status the Run Heartbeat button is disabled and a banner at the top of the page reminds you the agent cannot be invoked until the board approves the hire.
 

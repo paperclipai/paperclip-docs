@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: Plugin SDK
 seo_description: The worker-side authoring kit for Paperclip plugins. Import it in your worker entrypoint to declare a plugin and subscribe to host events.
 ---
@@ -37,9 +37,15 @@ Reach for the plugin SDK when you want to:
 The SDK package exposes two entrypoints:
 
 - `@paperclipai/plugin-sdk` — the worker-side surface documented on this page. Default for `definePlugin`, `runWorker`, `PluginContext`, the protocol helpers, and all manifest/protocol types.
-- `@paperclipai/plugin-sdk/ui` — UI-bundle surface for plugin UI contributions. Out of scope for this page; see [Administration → Plugins](../../administration/plugins.md) for the operator-facing view.
+- `@paperclipai/plugin-sdk/ui` — UI-bundle surface for plugin UI contributions. Mostly out of scope for this page; see [Administration → Plugins](../../administration/plugins.md) for the operator-facing view, and [A UI slot that wraps the whole app](#a-ui-slot-that-wraps-the-whole-app) below for the one app-wide slot.
 
 All identifiers below are exported from `@paperclipai/plugin-sdk`. They are the source of truth — copy names verbatim.
+
+### A UI slot that wraps the whole app
+
+Most UI slots mount on one page or one entity. One slot type in `PLUGIN_UI_SLOT_TYPES` instead attaches to the signed-in application shell itself:
+
+- **`appShellOverlay`** — a persistent piece of UI that lives alongside the whole app, such as a floating panel. It needs the `ui.action.register` capability and gets the same host context as a widget. It stays mounted while the user navigates between pages, and it's torn down when the user switches account or company, signs out, or enters onboarding — so cancel any requests or subscriptions when your component unmounts. Your plugin is responsible for the panel's accessibility.
 
 ---
 

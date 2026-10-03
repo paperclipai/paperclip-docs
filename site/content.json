@@ -186,6 +186,10 @@
               "file": "../docs/connectors/custom-mcp-servers.md"
             },
             {
+              "title": "MCP Aggregators",
+              "file": "../docs/connectors/mcp-aggregators.md"
+            },
+            {
               "title": "Google Workspace Setup",
               "file": "../docs/connectors/google-setup.md"
             }

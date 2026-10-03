@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.817.0
+paperclip_version: v2026.1001.0
 seo_title: Routines API
 seo_description: Paperclip's recurring execution layer. Run an agent on a schedule, fire it from a webhook, or kick it off manually, and see what a routine does not do.
 ---
@@ -365,14 +365,18 @@ Webhook triggers create a public URL and a secret. The public URL is returned on
 
 Supported signing modes in the code are:
 
-- `bearer`
-- `hmac_sha256`
-- `github_hmac`
-- `none`
+| Mode | What it accepts |
+|---|---|
+| `bearer` | A bearer token. This is the mode the UI's **Another app or script** setup creates. |
+| `hmac_sha256` | A timestamped HMAC-SHA256 signature. |
+| `github_hmac` | GitHub-style HMAC-SHA256 over the body, without a timestamp. This is the mode the UI's **GitHub** setup creates. |
+| `none` | No authentication. Anyone with the URL can fire the trigger. |
 
-The default is `bearer`.
+When you create a webhook trigger through the API and omit `signingMode`, the default is `bearer`.
 
-Replay windows are only used for the timestamped HMAC mode and must be between 30 and 86,400 seconds. The default is 300 seconds.
+Replay windows are only used for the timestamped `hmac_sha256` mode and must be between 30 and 86,400 seconds. The default is 300 seconds.
+
+The `webhookUrl` is built from the server's public origin. External senders such as GitHub can only deliver to a publicly reachable HTTPS address — see [HTTPS and public access](../deploy/https.md). The UI warns when a URL points at `localhost`, a private network, a Tailscale `.ts.net` host, or plain HTTP.
 
 ### API
 
@@ -461,6 +465,28 @@ created = response.json()
 
 ---
 
+## Webhook Setup And Test Deliveries
+
+A webhook trigger can start life in a **setup-pending** state. Pass `setupPending: true` in the create body to opt in; the trigger is stored but treats every inbound delivery as a connection test rather than a live firing.
+
+While a trigger is setup-pending:
+
+- a delivery to the [fire endpoint](#fire-public-trigger) is validated for signature and content, but **does not create a routine run or an execution issue**
+- the delivery is recorded as a content-free test receipt, keyed by the request's idempotency key, so a later retry of that same test cannot start the routine after the trigger goes live
+- the trigger's `lastWebhookDelivery` reflects the outcome so a client can show whether the test arrived
+
+The `lastWebhookDelivery` object has:
+
+| Field | Values | Notes |
+|---|---|---|
+| `status` | `received`, `rejected` | `received` means the signature and payload passed; `rejected` means authentication failed. |
+| `receivedAt` | ISO timestamp | When the delivery landed. |
+| `test` | boolean | `true` for a setup-pending test delivery. |
+
+To finish setup, `PATCH /api/routine-triggers/{triggerId}` with `setupPending: false`. From that point on, real deliveries create runs. The test delivery you sent during setup is **not** replayed — only events received after the trigger is enabled fire the routine.
+
+---
+
 ## Update Trigger
 
 ```http
@@ -474,6 +500,8 @@ You can update:
 - `enabled`
 - `cronExpression` and `timezone` for schedule triggers
 - `signingMode` and `replayWindowSec` for webhook triggers
+- `setupPending` — only the value `false` is accepted, which finishes setup and enables the webhook for real deliveries (see [Webhook setup and test deliveries](#webhook-setup-and-test-deliveries))
+- `archived` — `true` archives the trigger (retires it from the active set), `false` restores it
 
 If you enable a schedule trigger, the routine must still have resolvable required variables.
 
@@ -614,6 +642,8 @@ POST /api/routine-triggers/public/{publicId}/fire
 
 This endpoint is for external systems that call a routine's webhook trigger directly.
 
+The request must be sent with `Content-Type: application/json` and the body must be a JSON **object** — an array, a bare string, or a missing body is rejected. Sending the wrong content type returns `415 Unsupported Media Type`.
+
 What the code checks:
 
 - the `publicId` must match a webhook trigger
@@ -624,11 +654,15 @@ What the code checks:
 Accepted headers depend on signing mode:
 
 - `bearer` uses `Authorization: Bearer <secret>`
-- `hmac_sha256` uses `X-Paperclip-Signature` or `X-Hub-Signature-256`
-- `github_hmac` uses `X-Hub-Signature-256` or `X-Paperclip-Signature` plus `X-Paperclip-Timestamp`
+- `hmac_sha256` uses `X-Paperclip-Signature` plus `X-Paperclip-Timestamp`, signing the timestamp, a dot, and the exact body
+- `github_hmac` uses `X-Hub-Signature-256`, falling back to `X-Paperclip-Signature`, over the exact body with no timestamp
 - `none` does not require a signature
 
 For timestamped HMAC validation, the server enforces the replay window from the trigger.
+
+For deduplication the server reads an idempotency key from the `Idempotency-Key` header, falling back to `X-GitHub-Delivery`. Sending the same key on a retry prevents a duplicate run — and, during setup, prevents a retried test delivery from starting the routine once the trigger is enabled.
+
+If the trigger is still [setup-pending](#webhook-setup-and-test-deliveries), the endpoint validates the delivery and records it as a test receipt, but does not create a run.
 
 ### Example
 
@@ -732,17 +766,19 @@ Routine runs use these statuses:
 
 ### Why a run was skipped
 
-A suppressed automatic firing records a `failureReason` you can read back, and the UI turns each one into a one-line subtitle on the run row:
+A suppressed automatic firing records a `failureReason` you can read back from this endpoint, and the trigger's last result shows the matching value:
 
-| `failureReason` | Trigger last result | Run row subtitle | Meaning |
-|---|---|---|---|
-| `no_external_activity` | `skipped_no_activity` | Skipped — no activity since last run | The activity gate found nothing new since the routine's last dispatched run. |
-| `paused` | `Skipped because the project is paused` | Skipped — routine paused | The routine's project was paused at tick time. |
-| `worktree_execution_cutoff` | `skipped_worktree_execution_cutoff` | Skipped — worktree execution cutoff | The server is running inside a development worktree (`PAPERCLIP_IN_WORKTREE`) where automatic run execution is not armed for this routine — either the worktree isn't armed at all, or the routine was created before the worktree's activation cutoff. This applies to scheduled ticks and webhook firings alike. |
+| `failureReason` | Trigger last result | Meaning |
+|---|---|---|
+| `no_external_activity` | `skipped_no_activity` | The activity gate found nothing new since the routine's last dispatched run. |
+| `paused` | `Skipped because the project is paused` | The routine's project was paused at tick time. |
+| `worktree_execution_cutoff` | `skipped_worktree_execution_cutoff` | The server is running inside a development worktree (`PAPERCLIP_IN_WORKTREE`) where automatic run execution is not armed for this routine — either the worktree isn't armed at all, or the routine was created before the worktree's activation cutoff. This applies to scheduled ticks and webhook firings alike. |
 
 A run skipped by the concurrency policy carries no `failureReason` — it records the live execution issue in `linkedIssueId` instead.
 
 The list view also shows the current active issue for a routine when one exists.
+
+In the UI, a routine's **Runs** section lists the execution issues the routine created — the same issue list used elsewhere, filtered to this routine's `routine_execution` issues — so you can search them and change status, priority, or assignee in place. Runs that never created an issue, such as skipped ticks, appear only in this endpoint and in the recent runs on the routine's overview.
 
 ---
 

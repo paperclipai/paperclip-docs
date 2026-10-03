@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.529.0
+paperclip_version: v2026.1001.0
 seo_title: Plugins: Extending Paperclip
 seo_description: Add dashboard widgets, file browsers, and custom tooling. Covers the Plugin Manager, installing, self-installing plugins, enabling, and handling upgrades.
 ---
@@ -99,7 +99,7 @@ This used to be a Kubernetes-only shortcut. It's now a general path with a fixed
 | `modal` | `paperclip.modal-sandbox-provider` |
 | `novita` | `paperclip.novita-sandbox-provider` |
 
-The table is the whole allowlist: nothing outside it can arrive through auto-provisioning, no matter what an instance is configured to ask for. Everything else — reference examples, first-party plugins, third-party packages — still gets installed by you, the ordinary way.
+The table is the whole built-in allowlist. The only other way a plugin can arrive through auto-provisioning is if the release image itself ships it in a distribution catalog (see [Plugins shipped inside a custom image](#plugins-shipped-inside-a-custom-image) below). Everything else — reference examples, first-party plugins, third-party packages — still gets installed by you, the ordinary way.
 
 Once provisioned, these behave like any other installed plugin: same status badges, same detail page, same Configuration tab. You still choose whether and how to use one, by configuring a sandbox environment under **Settings → Instance settings → Environments**. See [Sandbox Providers](../reference/adapters/sandbox-providers.md) for each provider's fields.
 
@@ -129,7 +129,15 @@ Two environment variables let you point provisioning somewhere else on disk, whi
 - `PAPERCLIP_BUNDLED_PLUGIN_ROOT` — relocates the bundled plugin catalog root. It defaults to `/app/packages/plugins`, the location inside the release image.
 - `PAPERCLIP_KUBERNETES_PLUGIN_PATH` — points the `kubernetes` entry at a specific bundle path wherever it lives. This one predates the catalog and is kept for compatibility.
 
-On a cloud-managed instance the list comes from the fleet instead, as part of the managed configuration document the harness hands the instance ([Cloud-managed instances](../reference/deploy/environment-variables.md#cloud-managed-instances) has the details). That list is checked strictly: a key that isn't in the table above, or a bundle path that resolves outside the catalog root, makes the instance refuse to start rather than load something unexpected into the host. Failing loudly at boot is the point.
+On a cloud-managed instance the list comes from the fleet instead, as part of the managed configuration document the harness hands the instance ([Cloud-managed instances](../reference/deploy/environment-variables.md#cloud-managed-instances) has the details). That list is checked strictly: a key that isn't in the table above or in the image's distribution catalog, or a bundle path that resolves outside the catalog root, makes the instance refuse to start rather than load something unexpected into the host. Failing loudly at boot is the point.
+
+### Plugins shipped inside a custom image
+
+If you build your own Paperclip image — for a managed fleet or an in-house distribution — you can ship extra, prebuilt plugins inside it without adding them to Paperclip's built-in table. Put each plugin's built package in its own folder under a `distribution` directory in the bundled plugin catalog root, and list them in `distribution/catalog.json`. Each entry names the plugin's `key`, its `pluginKey`, the exact `version`, the `directory` it lives in, and a `digest` (`sha256:` followed by a hash of the folder's files).
+
+Paperclip checks the catalog before it runs any plugin code. The folder's contents must match the digest, the package's version and plugin ID must match the entry, its entrypoints must already be built, and nothing in it may be a symlink. An entry can't reuse the key or plugin ID of a built-in plugin. If any of that fails, Paperclip won't load the plugin — and for a bad catalog, digest, version, or entrypoint the server refuses to start rather than load something it can't vouch for. Once an entry passes, its `key` can go in the instance's auto-install list like any built-in key.
+
+Upgrading the image upgrades these plugins in place, but with one safeguard: if the new version asks for capabilities the installed one didn't have, the plugin lands in `upgrade_pending` and stays offline until an operator approves it on the plugin's detail page — exactly like any other upgrade. Disabled plugins stay disabled, and a plugin someone deliberately uninstalled stays uninstalled on a self-hosted instance.
 
 ---
 

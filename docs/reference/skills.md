@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.1001.0
 seo_title: Skills Reference
 seo_description: The reference for company skills: file shape on disk, the install pipeline, attaching to agents, scoping rules, canonical keys, and versioning.
 ---
@@ -136,6 +136,13 @@ So the skill holds agents to three rules:
 None of this rests on the agent's good manners. The disposition guard rejects an agent move to `in_review` with `invalid_issue_disposition` unless a real review path exists — an interaction, an approval, a human reviewer, a typed execution participant, or an actually-scheduled monitor with a real `monitorNextCheckAt` — and the recovery classifier flags `in_review_without_action_path` for anything parked with no live wake path.
 
 Issue monitors are a separate mechanism from [task watchdogs](../guides/projects-workflow/task-watchdogs.md), which you attach to an issue yourself to double-check a subtree that has come to rest.
+
+### Recent guidance in the bundled skills
+
+A few smaller changes to the bundled skills are worth knowing about, because they change what you'll see agents do:
+
+- **Open questions get a text box.** When an agent needs a free-text answer from you, the `paperclip` skill now gives it a complete `ask_user_questions` payload that renders a text field (a `questionSet` question with `answerMode: "text"`), instead of inventing multiple-choice options for something that isn't a choice. Choice cards are reserved for real decisions with at least two meaningful alternatives.
+- **`paperclip-create-agent` on Paperclip Runner.** Runner agents don't get `PAPERCLIP_API_URL` or `PAPERCLIP_API_KEY`, so the skill now tells them to use the runner's Paperclip tools instead — `get_task_context` and `list_agents` for context, then `search_api` to find the hiring endpoints and `call_api` to call them. If those API tools aren't available, the agent reports that you need to enable runner API tools for the company, keeps the proposed hire in the conversation, and doesn't claim an agent was created.
 
 ---
 

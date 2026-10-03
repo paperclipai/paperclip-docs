@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.1001.0
 seo_title: Company Skill Policy API
 seo_description: The guardrail on what agents may do to skills — create, import, install, edit, or remove — instead of leaving the whole library open to every agent.
 ---
@@ -81,6 +81,8 @@ The `subject` object is a tagged union on `type`:
 | `skills.test` | Running a skill test. |
 | `skills.reset` | Resetting a skill. |
 | `skills.remove` | Removing a skill. |
+
+**Skills an agent creates mid-task are checked as `skills.create`.** When an agent saves a new skill from inside a task (see [Skills your agents create during a task](../../guides/org/skills.md#skills-your-agents-create-during-a-task)), the request is evaluated exactly like a Skill Studio create: action `skills.create`, source type `generated`. To stop agents creating skills this way, deny `skills.create` for those agents. A rule on `sourceTypes: ["generated"]` alone won't single this path out — creating a skill from scratch in the UI carries the same source type, so it would block both.
 
 ### Resource selectors
 

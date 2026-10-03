@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: OpenCode Adapter
 seo_description: Run OpenCode on the Paperclip host when you want provider and model routing in OpenCode's own format, plus session resume across heartbeats.
 ---
@@ -31,7 +31,7 @@ seo_description: Run OpenCode on the Paperclip host when you want provider and m
 | `cwd` | no | Absolute working directory. Recommended. Created when permissions allow; otherwise falls back to the process working directory. |
 | `model` | **yes** | OpenCode model id in `provider/model` format (e.g. `openai/gpt-5.2-codex`, `anthropic/claude-sonnet-4-5`). |
 | `variant` | no | Provider-specific reasoning/profile variant passed as `--variant`. Accepts `minimal`, `low`, `medium`, `high`, `xhigh`, `max`. |
-| `dangerouslySkipPermissions` | no | Injects a temporary runtime config with `permission.external_directory=allow` so headless runs don't stall on approval prompts. Defaults to `true` for unattended Paperclip runs. |
+| `dangerouslySkipPermissions` | no | Injects a temporary runtime config with `permission=allow`, so every tool and connection runs without approval prompts. Defaults to `true` for unattended Paperclip runs. |
 | `promptTemplate` | no | Run prompt template. |
 | `instructionsFilePath` | no | Absolute path to a Markdown instructions file prepended to the run prompt. |
 | `command` | no | Defaults to `opencode`. Override only for a non-default executable path. |
@@ -55,7 +55,7 @@ OpenCode sessions are resumed with `--session` when the stored session `cwd` mat
 - Runs are invoked as `opencode run --format json ...`.
 - Model selection is passed via the `--model` CLI flag.
 - `OPENCODE_DISABLE_PROJECT_CONFIG=true` is set automatically to prevent OpenCode from writing config into the project directory.
-- When `dangerouslySkipPermissions` is enabled (the default for unattended runs), Paperclip copies your existing `opencode` config into a temporary `XDG_CONFIG_HOME`, merges `permission.external_directory=allow` into that copy's `opencode.json`, and points the run at it. This keeps unattended runs from stalling on approval prompts and never mutates your real config. The env overrides below (`PAPERCLIP_OPENCODE_PROVIDERS`, `PAPERCLIP_OPENCODE_SMALL_MODEL`) are written into this same temporary file, so they apply only when `dangerouslySkipPermissions` is on and the target runs locally.
+- When `dangerouslySkipPermissions` is enabled (the default for unattended runs), Paperclip copies your existing `opencode` config into a temporary `XDG_CONFIG_HOME`, sets `permission=allow` in that copy's `opencode.json`, and points the run at it. That puts OpenCode in full-auto mode for all tools and connections, so unattended runs never stall on approval prompts, and your real config is never touched. Any `permission` rules from your own config are replaced in that temporary copy, so set `dangerouslySkipPermissions` to `false` if you need OpenCode to honour them. The env overrides below (`PAPERCLIP_OPENCODE_PROVIDERS`, `PAPERCLIP_OPENCODE_SMALL_MODEL`) are written into this same temporary file, so they apply only when `dangerouslySkipPermissions` is on and the target runs locally.
 
 ---
 
@@ -115,7 +115,6 @@ OpenCode supports multiple providers. Common ids:
 | `openai/gpt-5.2` | OpenAI |
 | `openai/gpt-5.1-codex-max` | OpenAI |
 | `openai/gpt-5.1-codex-mini` | OpenAI |
-| `anthropic/claude-sonnet-4-5` | Anthropic |
 
 Run `opencode models` for the authoritative list on your machine.
 

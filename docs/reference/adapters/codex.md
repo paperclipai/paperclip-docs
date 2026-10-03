@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: Codex Adapter
 seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding agent, with persistent session state and a managed CODEX_HOME per agent.
 ---
@@ -30,20 +30,20 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 | Field | Required | Notes |
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
-| `engine` | no | How Codex is run: `auto` (the default — ACP preferred), `acp` (always the Agent Client Protocol), or `cli` (always the classic Codex CLI). See [ACP Engine](#acp-engine). |
+| `engine` | no | How Codex is run: `auto` (the default — runs ACP), `acp` (always the Agent Client Protocol), or `cli` (always the classic Codex CLI). See [ACP Engine](#acp-engine). |
 | `model` | no | Codex model id. See [Models](#models). If you leave it unset, the adapter omits `--model` so the Codex CLI uses its own default. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `instructionsFilePath` | no | Markdown file prepended to the stdin prompt sent to `codex exec`. |
 | `modelReasoningEffort` | no | Reasoning effort override passed through Codex config. Most models accept `minimal`, `low`, `medium`, `high`, or `xhigh`; `gpt-6-astra` instead accepts `low`, `medium`, `high`, `xhigh`, `max`, or `ultra`. |
 | `search` | no | Runs Codex with `--search`. |
 | `fastMode` | no | Enables Codex Fast mode by setting `service_tier="fast"` and `features.fast_mode=true`. Supported on `gpt-6-astra`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, and `gpt-5.4`, and passed through for manual model ids. When the configured model can't use it, Paperclip ignores the setting and notes why. |
-| `dangerouslyBypassApprovalsAndSandbox` | no | Bypasses Codex safety checks for unattended runs. |
+| `dangerouslyBypassApprovalsAndSandbox` | no | Runs Codex with `--dangerously-bypass-approvals-and-sandbox` so unattended runs never stop for approval. Defaults to on when you leave it unset — see [Permissions](#permissions). |
 | `command` | no | Defaults to `codex`. |
 | `extraArgs` | no | Extra CLI arguments appended to the Codex invocation. |
 | `env` | no | Environment variables passed to the runtime. Secret refs are supported. |
 | `timeoutSec` | no | Run timeout in seconds. On local and SSH targets, `0` means no adapter wall-clock timeout. On a sandbox target, `0` or an unset value uses the 14,400-second sandbox default; use a positive value to override it or a negative value to opt out of the adapter timeout. |
 | `graceSec` | no | Grace period before a forced stop. |
-| `outputInactivityTimeoutMs` | no | How long the adapter waits for Codex to produce output before treating the run as stuck. The timer resets every time Codex emits a parsed event, so a busy run never trips it. Defaults to 7 minutes (`420000`) when unset. Set it to `null` to switch the monitor off entirely — only do that for tasks you know go quiet for long stretches, since Paperclip's platform-level one-hour silent-run safety net still applies. When it fires, the adapter stops the Codex process and reports the run as failed with a message like `monitor: no codex output for 7m 0s`. |
+| `outputInactivityTimeoutMs` | no | How long the adapter waits for Codex to produce output before treating the run as stuck. The timer resets whenever Codex writes output (and, on Linux, when its processes show real CPU, disk, or child-process activity), so a busy run never trips it. Defaults to 30 minutes (`1800000`) when unset. Set it to `null` to switch the monitor off entirely — only do that for tasks you know go quiet for long stretches, since Paperclip's platform-level one-hour silent-run safety net still applies. When it fires, the adapter stops the Codex process and reports the run as failed with a message like `monitor: no codex activity (output or process) for 30m 0s`. |
 | `workspaceStrategy` | no | Execution workspace strategy, such as `git_worktree`. |
 | `workspaceRuntime` | no | Reserved workspace runtime metadata. |
 
@@ -51,17 +51,34 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 
 ---
 
+## Permissions
+
+Codex agents run in full-auto mode by default. If you leave `dangerouslyBypassApprovalsAndSandbox` unset, Paperclip passes `--dangerously-bypass-approvals-and-sandbox`, so Codex works through a task without pausing for approvals that no one is around to give.
+
+You stay in control when you say otherwise. Paperclip skips the bypass — keeping Codex in its writable workspace sandbox, or in the mode you picked — when any of these is true (the last three only count while `dangerouslyBypassApprovalsAndSandbox` is unset):
+
+- You set `dangerouslyBypassApprovalsAndSandbox` to `false`.
+- Your `extraArgs` pick a sandbox mode or profile yourself — for example `--sandbox`, `--profile`, `--full-auto`, or a `sandbox_mode=` config override.
+- Your `extraArgs` set an `approval_policy=` override, or switch network access off with `sandbox_workspace_write.network_access=false`.
+- The execution target denies network access.
+
+This bypass applies to the classic Codex CLI lane (`engine: "cli"`). The ACP engine keeps Codex in its writable workspace sandbox, with network access switched on for each turn.
+
+> **Heads-up:** Earlier versions kept Codex in the workspace sandbox unless you opted in to the bypass. If you relied on that, set `dangerouslyBypassApprovalsAndSandbox` to `false` explicitly.
+
+---
+
 ## ACP Engine
 
 Codex can run through one of two engines — ACP or the classic Codex CLI — selected by the `engine` field:
 
-- **`auto` (default) — ACP preferred.** Paperclip runs Codex through the Agent Client Protocol (ACP) when the host meets the prerequisites, and falls back to the Codex CLI — with diagnostics explaining why — when it can't.
+- **`auto` (default) — ACP.** Paperclip runs Codex through the Agent Client Protocol (ACP). If the host doesn't meet the ACP prerequisites, the run fails with a setup error explaining why — Paperclip never switches engines on its own.
 - **`acp` — always ACP.** Force the Agent Client Protocol path.
 - **`cli` — always the Codex CLI.** Force the classic CLI wrapper and skip ACP entirely.
 
 ACP gives you a richer, structured live transcript: session identity, status with context-window usage, assistant and thinking token deltas, and tool-call updates that fold into a single card as they progress. That extra detail is most useful when you're watching a sandbox run stream in.
 
-When the engine resolves to ACP (either `acp`, or `auto` on a capable host), these extra fields apply:
+When the engine resolves to ACP (`auto` or `acp`), these extra fields apply:
 
 | Field | Default | Notes |
 |---|---|---|
@@ -77,7 +94,7 @@ When the engine resolves to ACP (either `acp`, or `auto` on a capable host), the
 
 You can keep `engine` on `auto` when this agent runs in a Paperclip sandbox environment. If that sandbox provides Paperclip's bidirectional process session, Paperclip keeps the ACP engine and its structured live transcript; you do not add a separate bridge setting to the adapter config.
 
-An environment that only runs one-shot commands cannot host an ACP session, so `auto` falls back to the Codex CLI with a diagnostic. The same fallback applies to non-sandbox remote targets such as SSH. Choose `engine: "acp"` when ACP is required and a failed prerequisite should stop the run, or `engine: "cli"` when you always want the CLI lane.
+An environment that only runs one-shot commands cannot host an ACP session, so an `auto` run there fails with a setup error rather than switching to the Codex CLI. Set `engine: "cli"` when you want the CLI lane — for example on such environments.
 
 ---
 

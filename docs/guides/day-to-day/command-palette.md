@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: The Command Palette
 seo_description: Press Cmd+K or Ctrl+K to jump to any project, task, or page, start common actions, and search as you type without touching the sidebar.
 ---
@@ -46,7 +46,7 @@ The **Actions** group runs common create-flows without leaving the page you're o
 
 | Action | What it does |
 |--------|--------------|
-| **Create new task** | Opens the new-task dialog. The `C` hint next to it is the standalone keyboard shortcut for the same thing. |
+| **Create new task** | Opens the new-task dialog. The `C` hint next to it is the standalone keyboard shortcut for the same thing — it works once **Keyboard shortcuts** is turned on in [Instance settings → General](../../administration/settings.md#keyboard-shortcuts), an instance-wide setting that's off by default. |
 | **Create new agent** | Opens the new-agent flow. |
 | **Create new project** | Takes you to Projects to start a new one. |
 

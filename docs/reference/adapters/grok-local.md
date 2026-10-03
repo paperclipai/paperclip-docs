@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: Grok Local Adapter
 seo_description: Run xAI's Grok Build CLI on the Paperclip host as a local coding agent that resumes the same Grok session across every heartbeat.
 ---
@@ -67,7 +67,15 @@ The session codec preserves the same location hints used by other local adapters
 Grok Local authenticates in one of two modes, and the choice depends only on whether `XAI_API_KEY` is present in the run environment:
 
 - **API key.** Set `XAI_API_KEY` (usually as a secret ref inside `env`) and the adapter runs against that key. This is metered billing, so Paperclip surfaces the per-run cost xAI reports.
-- **Subscription (SuperGrok).** Leave `XAI_API_KEY` unset and Grok authenticates from a signed-in login instead. Paperclip points the run at a per-company Grok home (`GROK_HOME`) that holds that login's `auth.json`, so one company's login is never shared with another. Subscription runs carry no per-run dollar cost.
+- **Subscription (SuperGrok).** Leave `XAI_API_KEY` unset and Grok authenticates from a signed-in login instead. Subscription runs carry no per-run dollar cost.
+
+For subscription runs, which login Grok uses depends on where the agent runs:
+
+- **Local runs** use the host's own `grok login` (stored in `~/.grok`) until the company's Grok home holds a usable `auth.json` — for example after a sandbox device login. Once it does, Paperclip points the run at that per-company Grok home (`GROK_HOME`), so one company's login is never shared with another. If you already set `GROK_HOME` yourself (in the host environment or the agent's `env`) and there's no usable company login, Paperclip leaves your value alone.
+- **Sandbox and remote runs** always use the company's Grok home and never fall back to the host login.
+- **Managed AI connections** keep the Grok home the connection selected.
+
+> **Tip:** If the host has an `XAI_API_KEY` you don't want an agent to inherit, set `XAI_API_KEY` to an empty value in that agent's `env`. The empty override clears the inherited key and switches the agent to subscription authentication.
 
 ### Signing in for a subscription
 

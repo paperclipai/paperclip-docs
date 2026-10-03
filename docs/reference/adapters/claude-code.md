@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1001.0
 seo_title: Claude Code Adapter
 seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with session persistence, skills injection, and configuration managed from your agent.
 ---
@@ -30,7 +30,7 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 | Field | Required | Notes |
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
-| `engine` | no | How Claude Code is run: `auto` (the default — ACP preferred), `acp` (always the Agent Client Protocol), or `cli` (always the classic Claude CLI). See [ACP Engine](#acp-engine). |
+| `engine` | no | How Claude Code is run: `auto` (the default — runs ACP), `acp` (always the Agent Client Protocol), or `cli` (always the classic Claude CLI). See [ACP Engine](#acp-engine). |
 | `model` | no | Claude model id. Common choices include `claude-opus-4-8`, `claude-sonnet-5`, and `claude-fable-5-1`. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `env` | no | Environment variables passed to Claude Code. Secret refs are supported. |
@@ -39,7 +39,7 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 | `effort` | no | Reasoning effort passed with `--effort` (`low`, `medium`, or `high`). In a sandbox environment whose Claude CLI is too old to advertise `--effort`, Paperclip drops the flag and warns you to upgrade the environment's Claude Code to restore reasoning-effort control. |
 | `chrome` | no | Passes `--chrome` when enabled. |
 | `maxTurnsPerRun` | no | Caps the number of agentic turns in one heartbeat. Defaults to `300`. |
-| `dangerouslySkipPermissions` | no | Defaults to `true` because Paperclip runs Claude in headless `--print` mode. |
+| `dangerouslySkipPermissions` | no | Defaults to `true` because Paperclip runs Claude in headless `--print` mode. When on, local and remote runs alike get `--dangerously-skip-permissions`, covering built-in and connected tools. See [Permissions](#permissions). |
 | `timeoutSec` | no | Run timeout in seconds. On local and SSH targets, `0` means no adapter wall-clock timeout. On a sandbox target, `0` or an unset value uses the 14,400-second sandbox default; use a positive value to override it or a negative value to opt out of the adapter timeout. |
 | `graceSec` | no | Grace period before a forced stop. |
 | `workspaceStrategy` | no | Execution workspace strategy, such as `git_worktree`. |
@@ -49,17 +49,32 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 
 ---
 
+## Permissions
+
+Paperclip runs Claude Code without anyone watching, so there's no one to click "approve" on a permission prompt. With `dangerouslySkipPermissions` on (the default), Claude runs in full-auto mode: it can use its built-in tools and any tools from connected services — such as MCP servers — without stopping to ask.
+
+This works the same whether the agent runs on the Paperclip host or on a remote target. Remote runs used to get a hand-picked list of allowed tools instead of full bypass; that list missed connected tools and anything Claude added in later releases, so remote runs now get the same full bypass as local ones.
+
+A couple of things to know:
+
+- **Sandboxes running as root.** Claude refuses full bypass when it runs as the root user, unless it knows it's inside a sandbox. When the agent runs in a Paperclip-managed sandbox, Paperclip sets `IS_SANDBOX=1` so Claude accepts the bypass there.
+- **Other root processes.** Outside a managed sandbox, run Claude as a non-root user. Paperclip doesn't quietly fall back to a narrower permission mode — if Claude refuses to launch, the run fails so you can fix the setup.
+
+> **Tip:** Want Claude to stop and refuse anything it would normally ask about? Set `dangerouslySkipPermissions` to `false`. Keep in mind that in a headless run, a tool that needs approval simply won't run.
+
+---
+
 ## ACP Engine
 
 Claude Code can run through one of two engines — ACP or the classic Claude CLI — selected by the `engine` field:
 
-- **`auto` (default) — ACP preferred.** Paperclip runs Claude through the Agent Client Protocol (ACP) when the host meets the prerequisites, and falls back to the Claude CLI — with diagnostics explaining why — when it can't.
+- **`auto` (default) — ACP.** Paperclip runs Claude through the Agent Client Protocol (ACP). If the host doesn't meet the ACP prerequisites, the run fails with a setup error explaining why — Paperclip never switches engines on its own.
 - **`acp` — always ACP.** Force the Agent Client Protocol path.
 - **`cli` — always the Claude CLI.** Force the classic CLI wrapper and skip ACP entirely.
 
 ACP gives you a richer, structured live transcript: session identity, status with context-window usage, assistant and thinking token deltas, and tool-call updates that fold into a single card as they progress. That extra detail is most useful when you're watching a sandbox run stream in.
 
-When the engine resolves to ACP (either `acp`, or `auto` on a capable host), these extra fields apply:
+When the engine resolves to ACP (`auto` or `acp`), these extra fields apply:
 
 | Field | Default | Notes |
 |---|---|---|
@@ -75,7 +90,7 @@ When the engine resolves to ACP (either `acp`, or `auto` on a capable host), the
 
 You can keep `engine` on `auto` when this agent runs in a Paperclip sandbox environment. If that sandbox provides Paperclip's bidirectional process session, Paperclip keeps the ACP engine and its structured live transcript; you do not add a separate bridge setting to the adapter config.
 
-An environment that only runs one-shot commands cannot host an ACP session, so `auto` falls back to the Claude CLI with a diagnostic. The same fallback applies to non-sandbox remote targets such as SSH. Choose `engine: "acp"` when ACP is required and a failed prerequisite should stop the run, or `engine: "cli"` when you always want the CLI lane.
+An environment that only runs one-shot commands cannot host an ACP session, so an `auto` run there fails with a setup error rather than switching to the Claude CLI. Set `engine: "cli"` when you want the CLI lane — for example on such environments.
 
 ---
 
