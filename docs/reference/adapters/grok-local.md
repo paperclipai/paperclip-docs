@@ -138,6 +138,56 @@ If you supply an `instructionsFilePath`, Paperclip prefers staging it into the w
 
 ---
 
+## Grok Build On Paperclip Runner
+
+`grok_local` isn't the only way to run Grok. Grok Build is also available on **Paperclip Runner** (`paperclip_runner`), Paperclip's experimental native runner, which talks to Grok over the Agent Client Protocol (ACP) instead of wrapping the CLI. Pick it when you want the runner's durable sessions — a run that survives a server restart and picks up the same Grok conversation — and its built-in Paperclip tools.
+
+Your existing `grok_local` agents keep running on `grok_local`. Nothing migrates them; switching is a choice you make per agent.
+
+### Setting it up
+
+1. Create or edit an agent and choose **Paperclip Runner** as its adapter.
+2. Set **Provider** to **ACP agents**.
+3. Set **ACP agent** to **Grok Build**.
+
+The saved config looks like this. A new Grok runner agent defaults to the `grok-4.7` model:
+
+```json
+{
+  "adapterType": "paperclip_runner",
+  "adapterConfig": {
+    "provider": "acpx",
+    "acpxAgent": "grok",
+    "model": "grok-4.7"
+  }
+}
+```
+
+### Install Grok Build where the agent runs
+
+The runner doesn't download Grok for you, and it doesn't use a `grok` it finds on your `PATH`. It expects Grok Build 1.0.13 at this exact path in the execution environment:
+
+```
+/opt/paperclip/providers/grok/1.0.13/grok
+```
+
+- **Daytona sandboxes** built from Paperclip's standard runner image already have it.
+- **Custom sandbox images and local hosts** need you to provision it yourself.
+
+Before Grok starts, the runner checks that binary's checksum. If it's missing or doesn't match, the run stops with an error that names the path and version it needs. Only Linux x64 and macOS ARM64 are supported; an Intel Mac execution target is rejected. **Test Environment** confirms the runtime is installed and verified, and model access is checked when the agent actually runs.
+
+### Signing in
+
+Grok on the runner uses your company's Grok connection. A subscription sign-in is the normal path. An `XAI_API_KEY` you explicitly select as a company secret switches the agent to metered API billing instead. There's no automatic fallback from subscription to API key, so a lapsed sign-in never quietly starts spending. Remote runs never borrow the host's own Grok login.
+
+### Permissions
+
+The runner's **ACPX permission mode** (`acpxPermissionMode`) defaults to **Full auto (approve all)** (`approve-all`) for Grok, so the agent can work unattended without any extra setting. Full auto still runs inside your company permissions, governed approvals, and the execution environment's boundaries.
+
+The stricter **Automatic Paperclip actions** (`approve-paperclip`) and **Allow Paperclip reads** (`approve-reads`) modes are kept if you choose them, but Grok can't auto-approve Paperclip tool calls under them — those calls stop and wait for approval. **Deny all** (`deny-all`) rejects Grok's permission requests outright.
+
+---
+
 ## Next Steps
 
 - [Adapters Overview](./overview.md)

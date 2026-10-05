@@ -116,6 +116,8 @@ See [Skills](./skills.md) for how the library works and how to add skills to it.
 
 When *you* create an agent from this form, it's created immediately. When an *agent* creates one — by calling Paperclip's hire API — the request goes into the approval queue instead, and the new agent sits in `pending_approval` status until you decide. The proposal tells you the proposed agent's name and role, its capabilities, the adapter, the monthly budget it's asking for, and who it would report to. Review it like any other approval: Approve, Reject, or Request Revision. See [Approvals — Reviewing a Hire Request](../day-to-day/approvals.md#reviewing-a-hire-request) for details.
 
+Agents that draft hires with the bundled `paperclip-create-agent` skill now write a short role description for the new agent — who it is and what it owns — instead of a long operating manual. Reporting line, capabilities, and skills go in their own fields of the request. Any company-specific instructions you asked for are kept. If you want more in the new agent's `AGENTS.md`, ask for it, or add it on the [Instructions tab](#instructions-tab) after the hire.
+
 ### Create
 
 Click **Create agent**. On success Paperclip navigates you to the new agent's detail page, where you can refine everything that follows.
@@ -218,52 +220,66 @@ At the bottom, a summary of the agent's total input tokens, output tokens, cache
 
 ## Instructions Tab
 
-The Instructions tab is where you edit what the agent *is* — its system prompt, role description, and any additional instruction files it should read.
+The Instructions tab is where you edit what the agent *is* — its role description and any other files it should keep. For most agents it is also the agent's own folder: a place it can keep notes and working material from one task to the next.
 
 ![Instructions tab](../../user-guides/screenshots/light/agents/instructions.png)
 
 ### Managed vs external bundles
 
-Local adapters (Claude Code, Codex, Cursor, Gemini, OpenCode) support an **instructions bundle**: a folder of markdown files that live alongside the agent's working directory. Paperclip can manage that folder for you (it owns the filesystem layout) or you can point it at an existing folder on disk. The two modes are:
+Local adapters (Claude Code, Codex, Cursor, Gemini, OpenCode) support an **instructions bundle**: a folder of files that belongs to the agent. Paperclip can manage that folder for you (it owns the filesystem layout) or you can point it at an existing folder on disk. The two modes are:
 
-- **Managed** — Paperclip stores the files in its own location and you edit them through the UI
-- **External** — you give Paperclip a `rootPath` on disk and it reads/writes the files there; useful when the instructions already live in a repo you want to keep canonical
+- **Managed** — Paperclip keeps one folder per agent in its own storage. You edit it here, and the agent can add its own files to it. This is the mode that keeps agent files across tasks (see below).
+- **External** — you give Paperclip a `rootPath` on disk and it reads/writes the files there; useful when the instructions already live in a repo you want to keep canonical. External folders keep their existing behaviour and aren't treated as the agent's persistent personal folder.
 
 The mode toggle and root path field sit at the top of the tab. Changing them is a normal edit — the floating Save/Cancel bar appears as soon as the form is dirty.
 
 ### The entry file
 
-Every bundle has an **entry file**, usually `AGENTS.md`. That's the file the adapter feeds to the agent on every heartbeat. Other files in the bundle are available but not automatically loaded — the entry file can link to them, reference them, or include them.
+Every bundle has an **entry file**, usually `AGENTS.md`. That's the file the adapter feeds to the agent on every run. Other files in the folder are available but not automatically loaded — the entry file can point to them, and the agent can open them when it needs them. You can't delete the entry file.
+
+### Agent files persist across tasks
+
+With a managed bundle, the folder on this tab is the agent's single, current home directory. When a run starts, Paperclip gives the agent a private copy of that folder and points the `AGENT_HOME` environment variable at it. The agent reads its instructions there, and it can also create its own files and subfolders — notes, memory, reference material, even images or other binary files. When the run ends, Paperclip saves the files the agent changed or deleted back into the folder, so the next task starts where the last one left off.
+
+A few things are worth knowing:
+
+- **Task work stays separate.** The agent's folder lives outside the task's working directory. Deliverables still belong in the task workspace; the agent folder is for the agent's own working material, and it isn't part of the task's Git changes.
+- **There's no revision history.** Paperclip keeps the current files only. If two runs — or a run and your own edit in the browser — change the same file, the last save wins, and the overwritten version can't be recovered from Paperclip. Files nobody touched are left alone, and new unrelated files survive.
+- **Your edits are protected from stale saves.** If a file changed since you opened it, saving is refused and your unsaved draft is kept, so you can reload and reapply your change.
+- **Storage has limits.** A folder holds up to 100,000 files and folders, 256 MiB per file, and 2 GiB in total. Going over never pauses the agent or fails its run. Instead, the run shows an **Agent storage warning**, none of that run's folder changes are saved, and the next run starts from the last saved folder. Remove or shrink files and the warning clears. If saving fails for another reason, the run shows **Agent file sync failed for this run**.
+- **Back up the filesystem too.** Agent files live on the instance's storage, not in the database, so a backup needs both.
+
+Agents that existed before this change keep their files. Paperclip brings their current instructions into the folder the first time it's used.
+
+**Who can change the files.** An agent can edit its own folder, but only within what its responsible user is currently allowed to change. Reading or editing *another* agent's files needs permission to configure that agent; being in the same company isn't enough. A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't change its own instructions from ordinary work — the one exception is when its user asks it to, directly, in their own Agent Chat. See [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 
 ### Recommended bundle structure: AGENTS / SOUL / HEARTBEAT / TOOLS
 
-A single monolithic `AGENTS.md` works for simple roles, but as soon as an agent is doing non-trivial strategic or operational work you'll want to split instructions across multiple files and let the entry file reference them. Paperclip seeds the **CEO** role with this exact pattern out of the box, and it's the pattern we recommend for any senior or long-lived agent (CTO, CMO, UX lead, department heads).
+Start small. Paperclip's runtime already tells every agent how to work inside Paperclip — checking out tasks, commenting, delegating, asking you questions — and installed skills and repository instructions carry the detailed procedures. So a new agent's `AGENTS.md` only needs to say who the agent is and what it's responsible for. Don't paste a generic Paperclip operating manual into it; that repeats what the agent already gets, and can contradict it.
 
-The convention is four files:
+As an agent takes on non-trivial strategic or operational work, you may want to split extra guidance across a few files and let the entry file point to them. A common convention is four files:
 
 | File | Purpose | Answers the question |
 |------|---------|----------------------|
-| `AGENTS.md` | **What you do** — the operating manual. Responsibilities, delegation rules, what to do personally vs. delegate, escalation paths, safety rules. This is the entry file. | *"What's my job?"* |
+| `AGENTS.md` | **What you do** — the role. Responsibilities, what the agent owns, and any company-specific rules it must follow. This is the entry file. | *"What's my job?"* |
 | `SOUL.md` | **Who you are** — the persona. Strategic posture, voice and tone, decision-making philosophy, what you care about. Durable character, not tasks. | *"How should I think and speak?"* |
-| `HEARTBEAT.md` | **How you execute** — the per-heartbeat checklist. The concrete steps to run every time the agent wakes: check identity, read today's plan, pull assignments, delegate, extract facts, exit cleanly. | *"What do I do right now, in order?"* |
+| `HEARTBEAT.md` | **How you execute** — a role-specific checklist for agents with a real recurring routine. | *"What do I do right now, in order?"* |
 | `TOOLS.md` | **What you can use** — notes on the tools, APIs, and skills the agent has access to. Often starts empty and grows as the agent learns. | *"What's in my toolbox?"* |
 
-`AGENTS.md` ties the other three together at the bottom with a References section:
+If you split the files, have `AGENTS.md` point to the others at the bottom:
 
 ```markdown
 ## References
 
-These files are essential. Read them.
-
-- `./HEARTBEAT.md` — execution and extraction checklist. Run every heartbeat.
-- `./SOUL.md` — who you are and how you should act.
-- `./TOOLS.md` — tools you have access to.
+- `./HEARTBEAT.md` — my recurring checklist.
+- `./SOUL.md` — who I am and how I act.
+- `./TOOLS.md` — notes on my tools.
 ```
 
 Why split it up?
 
-- **Each file has one reason to change.** You tweak persona in `SOUL.md` without touching the operating procedure in `AGENTS.md`. You update the heartbeat flow without rewriting the persona.
-- **The model reads what matters most first.** `AGENTS.md` is short and action-oriented; the agent pulls in `SOUL.md` or `HEARTBEAT.md` as it needs them. This keeps the entry-file context lean.
+- **Each file has one reason to change.** You tweak persona in `SOUL.md` without touching the role in `AGENTS.md`. You update a routine without rewriting the persona.
+- **The entry file stays short.** `AGENTS.md` stays focused; the agent pulls in `SOUL.md` or `HEARTBEAT.md` as it needs them.
 - **It mirrors how humans think about roles.** Job description, personality, daily routine, tools — four separate things, badly confused when you mash them into one file.
 
 #### Writing `SOUL.md`
@@ -279,46 +295,45 @@ Good lines look like:
 Bad lines look like:
 
 - *"Be helpful and professional."* (too generic — no useful constraint)
-- *"When handling a P0 incident, first check the dashboard, then…"* (that's a procedure, it belongs in `HEARTBEAT.md` or `AGENTS.md`)
+- *"When handling a P0 incident, first check the dashboard, then…"* (that's a procedure, it belongs in `HEARTBEAT.md` or a skill)
 
 Think: *if we hired a new human into this role, what would we want them to internalize about how this role thinks?* That's `SOUL.md`.
 
 #### Writing `HEARTBEAT.md`
 
-`HEARTBEAT.md` is a numbered checklist the agent runs top-to-bottom every time it wakes. It should be boringly mechanical — "read this, call that, check this env var, comment, exit." The CEO's default heartbeat covers:
+`HEARTBEAT.md` is a short checklist for agents that do the same thing every time they wake — a weekly metrics digest, a content-calendar check, a review of the open PR queue. Keep it to the steps that are specific to this role. You don't need to restate how to check out a task, comment, or wrap up a run; Paperclip supplies that guidance on every run.
 
-1. Identity and context (check `PAPERCLIP_TASK_ID`, `PAPERCLIP_WAKE_REASON`, etc.)
-2. Local planning check (read today's plan from memory)
-3. Approval follow-up (if `PAPERCLIP_APPROVAL_ID` is set)
-4. Get assignments (GET issues filtered by assignee + status)
-5. Checkout and work
-6. Delegation (create subtasks with `parentId` and `goalId`)
-7. Fact extraction (extract durable facts to memory)
-8. Exit cleanly
-
-Tailor these steps to the role. A CTO's heartbeat might swap "fact extraction" for "review open PRs in the eng queue"; a CMO's might add "check content calendar." Keep each step short and include the exact API call or skill invocation the agent should make — this file is a script, not a philosophy.
+If a procedure is useful to more than one agent, it probably belongs in a [skill](./skills.md) instead.
 
 #### Writing `TOOLS.md`
 
-`TOOLS.md` often starts as a stub ("*Your tools will go here. Add notes about them as you acquire and use them.*") and grows organically. It's where you — or the agent itself — record quirks of specific tools, adapter-specific gotchas, or custom APIs the agent is expected to call. Don't worry about filling it in up front; treat it as a living notebook the agent maintains.
+`TOOLS.md` often starts as a stub and grows organically. It's where you — or the agent itself — record quirks of specific tools, adapter-specific gotchas, or custom APIs the agent is expected to call. Because the agent's folder persists across tasks, notes the agent writes here are still there next time. Don't worry about filling it in up front; treat it as a living notebook.
 
 #### When the simple pattern is fine
 
-Not every agent needs four files. A narrow-purpose worker — "summarize incoming support tickets," "post the weekly metrics digest" — can live happily in a single `AGENTS.md`. Use the multi-file pattern when any of these are true:
+Most agents need only a single `AGENTS.md` with a short role description. Reach for the extra files when any of these are true:
 
 - The agent has a distinct personality or voice that matters (customer-facing roles, executives).
-- The agent runs on a timer and does something on *every* heartbeat (anyone with a repeating checklist).
-- The instructions are starting to exceed one screen and blending responsibilities, persona, and procedure.
+- The agent has a genuine role-specific routine it repeats every time it wakes.
+- The role description is starting to exceed one screen and blending responsibilities, persona, and procedure.
 
 You can always start with a single file and split later — moving sections out of `AGENTS.md` into `SOUL.md` or `HEARTBEAT.md` is a normal refactor.
 
 #### How Paperclip seeds these files
 
-When you create a new agent with the **CEO** role, Paperclip pre-populates the bundle with the full four-file template (you'll see all four files appear in the file tree on the Instructions tab). Agents created with any other role are seeded with a single `AGENTS.md`. You can always add `SOUL.md`, `HEARTBEAT.md`, or `TOOLS.md` to any agent manually via the "New file" control — there's nothing special about those filenames beyond the convention, and the entry file is whatever you've set it to.
+Every new agent starts with a single, short `AGENTS.md`:
+
+- An agent with the **CEO** role gets a one-line role description: it leads company strategy, priorities, resource allocation, and coordination across the team.
+- Every other role gets a one-line placeholder saying it's an agent in a Paperclip company. Replace it with a sentence or two about the role.
+- Agents installed from the [Team Catalog](./team-catalog.md), and agents drafted by the `paperclip-create-agent` skill, also start with a short role description rather than a long operating manual.
+
+Existing agents keep whatever files they already have — Paperclip doesn't rewrite them. You can add `SOUL.md`, `HEARTBEAT.md`, `TOOLS.md`, or anything else with the **+** button in the file list; there's nothing special about those filenames beyond the convention, and the entry file is whatever you've set it to.
 
 ### Editing files
 
-The left pane shows the file tree. Click a file to open it in the markdown editor on the right. Create a new file using the "New file" control — useful for splitting out long-form references (playbooks, example outputs, policy notes) from the short entry file. Delete a file with the trash icon. Rename is via delete + create for now.
+The left pane shows the agent's files and folders. Click a file to open it in the markdown editor on the right. Add a file with the **+** button (**Add agent file**) at the top of the file list — type a name such as `TOOLS.md`, or a path with folders. Delete a file with the **Delete** button above the editor (it isn't offered for the entry file). Rename is via delete + create for now.
+
+The editor handles text files up to 1 MiB. For a binary file, or one too large to edit, the tab shows a download link instead.
 
 The markdown editor supports inline image uploads (drag-and-drop or paste) — images are uploaded to the company asset store and inserted as markdown image links.
 
@@ -328,7 +343,7 @@ For adapters that don't support a filesystem bundle (OpenClaw gateway and some r
 
 ### When changes take effect
 
-Edits are saved on **Save** (via the floating Save/Cancel bar that appears on any dirty state). The agent uses the new instructions on its next heartbeat — existing runs in flight are not interrupted. If you want to see the change immediately, click **Run Heartbeat** in the header after saving.
+Edits are saved on **Save** (via the floating Save/Cancel bar that appears on any dirty state). The agent uses the new instructions on its next run — runs already in flight are not interrupted. Changes the agent makes to its own folder during a run are saved when the run stops; check the run's detail view for any storage or sync warning. If you want to see your change immediately, click **Run Heartbeat** in the header after saving.
 
 ---
 

@@ -18,17 +18,18 @@ paperclipai connections request <service>
 
 ## Search for a connection
 
-`connections search` looks up services or capabilities in the connections catalog. The query is optional — omit it to browse.
+`connections search` looks up services or capabilities in the connections catalog. The query is optional — omit it to browse. You can pass a service name, or describe what you need in plain language: a whole sentence works, extra words don't stop a match, and small typos or split names such as "Agent Mail" still find the service.
 
 ```sh
 paperclipai connections search "google calendar"
 paperclipai connections search github
+paperclipai connections search "I need somewhere to receive customer emails for this task"
 paperclipai connections search
 ```
 
 | Argument / flag | Use |
 |---|---|
-| `[query]` | A service name or capability to search for. Optional; defaults to an empty search. |
+| `[query]` | A service name, capability, or plain-language description to search for, up to 4,000 characters. Optional; defaults to an empty search. |
 | `--retry-provider-choice` | Reconsider an earlier provider choice (or an earlier "None"). Use it only when the user explicitly asks to reconsider. |
 | `--json` | Print the result as formatted (indented) JSON. |
 
@@ -61,6 +62,8 @@ paperclipai connections request github --json
 Like `search`, the response prints to stdout as JSON, pretty-printed when you pass `--json`.
 
 The server double-checks both provider flags: the task, the requesting agent, the user's answer, and whether the route is still allowed. Neither flag grants any access the provider connection doesn't already have.
+
+For `agentmail`, the request puts an API-key card on the task for the responsible user, instead of a setup link. The card creates an inbox for the requesting agent. Wait for the request to complete before you tell anyone the agent's email address.
 
 > **Tip:** Search first, request second. Take the service slug from a `search` result and feed it straight into `request` so you are asking for a service the catalog actually knows about.
 

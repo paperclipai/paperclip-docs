@@ -98,11 +98,11 @@ The current UI uses **Issues** as the page name, even though the product languag
 
    | Mode | Chip colour | What happens |
    |------|-------------|--------------|
-   | **Agent mode** | Neutral | The agent picks up the issue, executes the work, and posts results. This is the default. |
+   | **Auto mode** | Neutral | The agent picks up the issue, executes the work, and posts results. This is the default. |
    | **Plan mode** | Amber | The agent produces a plan document first. You review the plan before implementation begins. |
    | **Ask mode** | Sky blue | The agent answers your question in the issue thread — no implementation, no code changes. |
 
-   Use **Ask mode** when you want a quick answer, a scope assessment, or a clarifying explanation rather than implementation work. Use **Plan mode** when you want to see a roadmap before the agent starts making changes. Use **Agent mode** (the default) for everything else.
+   Use **Ask mode** when you want a quick answer, a scope assessment, or a clarifying explanation rather than implementation work. Use **Plan mode** when you want to see a roadmap before the agent starts making changes. Use **Auto mode** (the default) for everything else.
 
 5. **Set a priority**
 
@@ -236,6 +236,8 @@ The Inbox URL has the shape `/inbox/<tab>`. Switching tabs navigates — it does
 
 **Mine**
 Issues and approvals that are currently assigned to you or were created by you, filtered to the active statuses (todo, in_progress, in_review, blocked). This is the tab most users live in. When the Inbox is empty here, it reads "Inbox zero." — a deliberate nudge that Mine is the queue that matters most.
+
+Mine also shows failed agent runs — but only the ones you're responsible for, such as a run that started from your request. When an agent run fails for a teammate, it stays out of your Mine and out of the red failure count on the Inbox badge; you can still see it under **All** → **Failed runs** and in the run details. Only an agent's most recent run counts, so an old failure on a shared agent doesn't resurface once a newer run has gone through. On a local single-user board, older failed runs that aren't tied to anyone still show in Mine, since they can only be yours.
 
 **Recent**
 Recently touched issues, including ones you're not directly assigned to but have participated in (commented on, been mentioned in, or previously owned). Useful for keeping an eye on work that is adjacent to yours.
@@ -390,7 +392,7 @@ If either action fails, the bar tells you plainly — *"Couldn't confirm — try
 
 #### The Artifacts tab
 
-**Artifacts** gathers what this task produced, grouped by the run that produced it, newest run first. Images and videos — attachments and work products alike — show as a gallery of preview tiles, laid out one, two, or three across depending on how wide the panel is. Click a tile to open it in the gallery viewer, where videos play and you can download the file. Documents and other files stay as full-width rows. The whole row or tile is clickable, not just its title.
+**Artifacts** gathers what this task produced, grouped by the run that produced it, newest run first. Each output gets a full-width card shaped to what it is — a pull request shows its state, checks, and changed lines; a commit its SHA and branch; a document expands with **Read document**; images and videos open in the gallery viewer; a CSV loads a table when you click **Preview data**. Markdown and text files open in a tab of their own with **Open in tab**. See [Artifacts](./artifacts.md#reaching-artifacts-from-a-task) for every card type.
 
 It's there to answer "what did this task produce?" without scrolling the thread. The tab is read-only, so there's no uploading or deleting from it, and the company-wide view of every output still lives on the [Artifacts page](./artifacts.md).
 

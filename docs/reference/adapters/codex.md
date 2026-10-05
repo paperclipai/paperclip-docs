@@ -98,23 +98,26 @@ An environment that only runs one-shot commands cannot host an ACP session, so a
 
 ## Models
 
-Pick any of the known Codex model ids in the `model` field. The current options are:
+Pick any of the known Codex model ids in the `model` field. The picker lists them the way the ChatGPT app orders Codex models — newest model version first, most capable first within each version, and older models at the end:
 
-- `gpt-5.6-sol` (the adapter default)
 - `gpt-6-astra`
 - `gpt-6-sol`
 - `gpt-6-luna`
+- `gpt-5.6-sol` (the adapter default)
 - `gpt-5.6-terra`
 - `gpt-5.6-luna`
+- `gpt-5.5`
 - `gpt-5.4`
 - `gpt-5.4-mini`
 - `gpt-5`
-- `o3`
-- `o4-mini`
 - `gpt-5-mini`
 - `gpt-5-nano`
+- `o3`
+- `o4-mini`
 - `o3-mini`
 - `codex-mini-latest`
+
+This is a curated list. Even when an OpenAI API key is available, the picker doesn't fill itself from OpenAI's model catalog, because that catalog also includes image, audio, and embedding models Codex can't run. If you need extra models in the dropdown — say, ones served through your own gateway — declare them with [`PAPERCLIP_ADAPTER_MODELS`](../deploy/environment-variables.md#adding-models-to-the-model-picker).
 
 You can also type a model id that is not in this list. Anything Paperclip does not recognize is treated as a manual model id and passed straight through to the Codex CLI.
 
@@ -200,7 +203,7 @@ That is separate from Codex's own repo instruction discovery. If the working dir
 Each `codex_local` agent runs against its own managed Codex home, so one agent can never spend against another agent's login or share its Codex state. Because that home starts empty, Paperclip seeds credentials into it for you before launching Codex:
 
 - **You inherit the host Codex login by default.** If you are already signed in to Codex on the Paperclip host (a ChatGPT-subscription login), Paperclip links that login into the agent's managed home automatically. You do not have to log in again per company or per agent.
-- **A per-agent API key wins when you set one.** If the agent's `env` carries an `OPENAI_API_KEY`, Paperclip writes that key into the managed home as API-key auth instead of borrowing the host login.
+- **A per-agent API key wins when you set one.** If the agent's `env` carries an `OPENAI_API_KEY`, Paperclip writes that key into the managed home as API-key auth instead of borrowing the host login. On the ACP engine, `CODEX_API_KEY` works the same way as an alternative name for that key.
 - **Your own `CODEX_HOME` is left alone.** If you point the adapter at a `CODEX_HOME` outside Paperclip's managed company tree, Paperclip treats it as self-managed and never seeds or overwrites it.
 - **No silent credential-less runs.** If a managed home ends up with no usable login and no configured API key, the run fails fast with a clear adapter error instead of starting Codex and hitting a `401` from the provider.
 

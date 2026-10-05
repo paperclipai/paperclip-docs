@@ -61,7 +61,9 @@ You can add a skill in one of several ways, depending on where it is coming from
 
 ### 1. Import from a GitHub repository
 
-Paste a GitHub URL (or a `skills.sh` install command) into the source field at the top of the Skills page and press **Add**. Paperclip clones the skill folder, detects the `SKILL.md`, and registers it in the library. GitHub-sourced skills are pinned to a specific commit — you can check for updates and upgrade the pin from the skill detail pane.
+If your skills live in a GitHub repository, the best home for them is **Skills → Sources**. Choose **Import from GitHub**, pick a repository, tick the skills you want, and Paperclip keeps them linked to that repository so you can refresh them later. [Sync skills from a GitHub repository](#sync-skills-from-a-github-repository) below walks through it.
+
+You can still paste a GitHub URL (or a `skills.sh` install command) into the source field at the top of the Skills page and press **Add**. A plain GitHub repository, folder, or `SKILL.md` URL is filed under **Sources** too, so it gets the same refresh controls. GitHub-sourced skills are pinned to a specific commit — you can check for updates and upgrade the pin from the skill detail pane.
 
 ![Add skill dialog with the source input, search button, and link to skills.sh](../../user-guides/screenshots/light/skills/add-skill-dialog.png)
 
@@ -72,6 +74,8 @@ Gists work through the same source field. Paste the gist URL and Paperclip treat
 ### 3. Import from a local file or folder
 
 You can also paste a local path (Linux, WSL, or Windows) into the source field. Paperclip walks the folder, finds any `SKILL.md` files, and imports them. This is the right choice when you already keep skills in a project workspace on disk — the scan button (circular arrow next to the plus icon) re-runs the local import across every project workspace in the company so newly added `SKILL.md` folders show up automatically.
+
+For safety, a local path has to sit inside a folder Paperclip already knows about: your company's managed skills folder, one of your project workspaces, or the folder Paperclip cloned a project into for you (a managed checkout). That last one means a project Paperclip checks out on your behalf can import its own skills in place, even if it has no workspace registered. A path anywhere else is refused with *"Local skill source is outside approved company workspace roots"* — add the folder as a project workspace first, or copy the skill somewhere Paperclip manages.
 
 ### 4. Import from the skills.sh marketplace
 
@@ -123,6 +127,48 @@ A few catalog skills aren't shipped inside the app at all — they're pulled fro
 Browse the catalog, pick a skill, and install it into your company library. Installing puts the skill in the library only — it doesn't attach it to any agent, so you stay in control of who uses it. From there it behaves like any other installed skill: open it, read its `SKILL.md`, and assign it to the agents that need it.
 
 Because these skills come from Paperclip, the app knows exactly which version you installed. That means a catalog skill can be **kept up to date**: Paperclip can check whether a newer version shipped and install the update, audit the skill's contents for safety before you trust it, and reset the skill back to its original shipped version if it was edited locally. For the mechanics of installing, updating, auditing, and resetting catalog skills, see the [Skills reference](../../reference/skills.md#3-app-shipped-catalog).
+
+---
+
+## Sync skills from a GitHub repository
+
+Plenty of teams already keep their skills in a GitHub repository, reviewed through pull requests like everything else. **Sources** lets you point Paperclip at that repository, choose which skills to bring in, and refresh them whenever the repository moves on — without retyping URLs or losing track of where each skill came from.
+
+You'll find it under **Sources** in the Skills sidebar, or through **Import from GitHub** and **Manage sources** in the Skills page's add menu.
+
+### Add a repository
+
+1. On the **Skill sources** page, click **Import from GitHub**.
+2. Pick a repository from the list. It combines repositories from every GitHub connection you can use in **Apps**, so you don't have to remember which account owns what. Private repositories show a lock icon.
+   - Haven't connected GitHub yet? Click **Connect GitHub to see your repos**. **Add repos** does the same when you need a repository that isn't listed. Either one takes you through the normal setup in Apps and then brings you straight back to the importer with your draft intact.
+   - Want a public repository you haven't connected? Click **... or add public repo by URL** and paste it into **Repository URL**. A plain repository URL follows the default branch; paste a branch URL such as `https://github.com/owner/repository/tree/my-branch` to follow a different branch.
+3. Click **Find skills**. Paperclip scans the whole repository — hidden and nested folders included — and shows its progress as it goes. You can **Cancel scan** at any point; nothing is imported until you say so.
+4. Review what it found. Every skill package starts out checked. You select whole packages, not individual files: a package brings along every file in its folder, and a skill nested inside another skill's folder is selected separately. **Search skills or files…** narrows a long list.
+5. Click the **Import** button — it counts the skills you've checked, as in **Import 3 skills** — to bring them in. Any skill with validation errors is skipped, and you're told how many.
+
+Before you import, it's worth opening a skill to look inside. Click it (or one of its files) for a read-only preview of the exact files at the scanned commit. The preview lists any **Runtime requirements** the author declared — Paperclip only shows these; importing never installs dependencies or runs scripts. **Check references** flags links and relative file paths that point outside the package, so you can spot a skill that relies on files it won't bring with it.
+
+Imported skills go straight into your company library, ready to assign to agents like any other skill.
+
+### Keep sources up to date
+
+Back on **Skill sources**, each repository lists the skills you installed from it. Its menu has three actions:
+
+- **Refresh** fetches the branch's latest commit and updates the skills you're syncing. Paperclip never refreshes on its own, so you decide when new instructions reach your agents.
+- **Select skills** reopens the picker. New skills that appeared in the repository wait here — the row reads *"1 new skill available"* (or however many) — until you tick them and click **Save selection**. Unticking an installed skill stops syncing it, but *"Unchecked skills stay installed."*: the skill keeps its content and its agent assignments.
+- **Disconnect source** stops syncing the whole repository. The installed skills stay in your library; remove them separately if you want them gone.
+
+A refresh keeps each skill's identity, folder, assignments, and history, and creates a new version only when the files actually changed. Agents already mid-run, and agents pinned to a specific version, keep what they had. If a refresh fails, your agents keep the last good version and the source shows the error with a **Review source** link. A skill that was deleted upstream stays installed and is marked **Removed from source · last installed version retained**.
+
+Because Paperclip stores a complete copy of every synced skill, agents can use them without reaching GitHub during a run.
+
+### Synced skills are read-only
+
+A skill synced from GitHub belongs to its repository, so you change it there and refresh. In Skill Studio it carries a **Read-only** badge and the note *"This skill is synced from GitHub and is read-only."* The skill's detail pane shows where it came from — **Synced from GitHub**, its path in the repository, and the commit — with a **Manage source** link back to Sources.
+
+If you want to tweak one for your company without touching the repository, click **Make a copy** to create an editable copy (see [Editing a skill that isn't yours to edit](#editing-a-skill-that-isnt-yours-to-edit)).
+
+Skills you imported from GitHub before Sources existed are picked up automatically and appear under Sources; refresh them once to complete their local copy.
 
 ---
 
@@ -211,7 +257,7 @@ You don't always have to write the skill yourself. Say you ask an agent to turn 
 
 A few things keep this predictable:
 
-- **It only happens in Agent mode.** The tool is available when the task runs in Agent mode (and in skill test runs), not in Ask or Plan mode — see [Work Modes](../day-to-day/work-modes.md).
+- **It only happens in Auto mode.** The tool is available when the task runs in Auto mode (and in skill test runs), not in Ask or Plan mode — see [Work Modes](../day-to-day/work-modes.md).
 - **It follows your skill policy.** Creating a skill this way goes through the same rules as creating one in Skill Studio. With no policy in place, agents are allowed; if you've restricted `skills.create`, the agent is refused just like anyone else. See [Who is allowed to change skills](#who-is-allowed-to-change-skills).
 - **It doesn't attach the skill to anyone.** The new skill lands in the library only. No agent starts using it until you (or an agent allowed to) assign it — see [Assigning a skill to an agent](#assigning-a-skill-to-an-agent).
 - **Retries don't make duplicates.** If the agent's request is interrupted and retried, it gets back the skill it already made instead of a second copy.
@@ -219,6 +265,17 @@ A few things keep this predictable:
 When a skill is created, a **Skill created** card appears in the task's thread with the skill's name and description. Click it and the skill opens in its own tab in the task's side panel, showing its slug, current revision, and instructions. That tab always reads the live library copy, so it's not a second version to keep in sync. Use **Open in Skill Studio** to edit it; when you come back to the task, the tab shows what you saved. If the skill is later deleted, or you don't have access to it, the tab tells you so — *"Skill no longer available."* or *"You do not have access to this skill."* — while the card in the thread stays as a record that it was created.
 
 The creation is also logged as `company.skill_created`, and it shows up in the task's own history as well as the company activity log.
+
+### Letting an agent improve an existing skill
+
+Skills get better with use, and often the agent that just followed one is the best placed to fix it — "the checklist missed the changelog step; add it." The native runner also gives agents an **Update skill** tool for exactly that. It rewrites a skill's whole `SKILL.md` in one go, the same way a save in Skill Studio does.
+
+It's built so an agent can't trample anyone's work:
+
+- **Same modes, same rules.** Like **Create skill**, it's only offered in Auto mode and skill test runs, and it obeys your skill policy — here the `skills.edit` rule. If an agent may not edit that skill, it's refused. It can only change skills you could edit in Studio, so read-only skills (the built-in catalog, GitHub sources, skills.sh) are off limits.
+- **No overwriting newer edits.** The agent has to say which version of the skill it read. If someone saved a change in the meantime, the update is refused with *"Skill version changed. Read the current version before retrying."* — the agent rereads the skill and tries again on top of the latest version instead of silently undoing it.
+- **Retries don't double up.** If the request is interrupted and retried, the agent gets back the original result instead of creating a second version.
+- **Everything is recorded.** Each update becomes a new version in the skill's history, so you can compare or restore it in Studio, and it's logged as `company.skill_file_updated` against the task that made it.
 
 ---
 
@@ -247,9 +304,9 @@ If you'd rather script it, the endpoint is `POST /api/companies/{companyId}/skil
 
 ## Editing a skill that isn't yours to edit
 
-Plenty of good skills come from somewhere you don't control: a GitHub repository, skills.sh, the built-in catalog. Those are read-only on purpose, so nobody quietly rewrites a pinned skill under your agents' feet. Open one in Studio and you'll see a **Read-only** badge, an explanation of why, and a **Edit a copy** button.
+Plenty of good skills come from somewhere you don't control: a GitHub repository, skills.sh, the built-in catalog. Those are read-only on purpose, so nobody quietly rewrites a pinned skill under your agents' feet. Open one in Studio and you'll see a **Read-only** badge, an explanation of why, and a **Make a copy** button.
 
-**Edit a copy** forks the skill into an editable, Paperclip-managed copy in your library. Before it does anything it runs a precheck and tells you plainly how many agents currently use the original — and offers a switch, on by default, to move those agents over to your copy. That's the decision that actually matters: fork without moving the agents and you've made a copy nobody runs; fork with the switch on and your edits take effect on the next run. The original is left untouched either way.
+**Make a copy** opens a dialog titled *Edit a copy of …* that forks the skill into an editable, Paperclip-managed copy in your library. Before it does anything it runs a precheck and tells you plainly how many agents currently use the original — and offers a switch, on by default, to move those agents over to your copy. That's the decision that actually matters: fork without moving the agents and you've made a copy nobody runs; fork with the switch on and your edits take effect on the next run. The original is left untouched either way.
 
 Once the copy exists, its Studio header carries a lineage chip reading **Forked from `owner/repo` @ `<short sha>`**, linking back to the skill it came from — so months later it's still obvious where this thing started. And if you already made a copy of this skill and haven't diverged from it, Studio offers to open that existing copy instead of minting another one.
 
@@ -405,6 +462,7 @@ The skills must already be installed at the company level before you can attach 
 
 - [Skills reference](../../reference/skills.md) — everything about how skills work on disk and over the wire.
 - [Agents API → Skills](../../reference/api/agents.md#skills) — request/response shapes for the agent-level routes.
+- [Skills reference → GitHub skill sources](../../reference/skills.md#github-skill-sources) — the routes behind **Skills → Sources**.
 - [Folders API](../../reference/api/folders.md) — creating, nesting, and reordering the skill folder tree.
 - [Company Skill Policy API](../../reference/api/company-skill-policy.md) — restricting who may create, import, edit, test, or remove skills.
 

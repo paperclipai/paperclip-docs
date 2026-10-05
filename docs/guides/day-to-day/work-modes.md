@@ -20,7 +20,7 @@ Ask mode removes the ceremony. The question goes in as a task like any other; th
 
 A work mode is a contract about the deliverable, set on the task rather than buried in its description.
 
-In standard mode (labeled "Agent mode" in the UI), the contract is an artifact: code, documents, configuration, some change in the world. The execution workflow exists to produce and account for that artifact.
+In standard mode (labeled "Auto mode" in the UI), the contract is an artifact: code, documents, configuration, some change in the world. The execution workflow exists to produce and account for that artifact.
 
 ![A standard-mode task mid-execution, with its workspace attached and the agent working in the thread.](../../user-guides/screenshots/light/work-modes/standard-mode-run.png)
 
@@ -38,7 +38,7 @@ The mode is the reader's promise too. A task in ask mode tells everyone who open
 
 Work mode is set when creating a task and can be changed from the task's detail view. Standard is the default; nothing changes for existing tasks or for anyone who never touches the setting. Each mode has a distinct icon and color in the UI, so a board scattered with questions, plans, and work reads at a glance.
 
-![The work-mode selector on the new-task form, offering Agent mode, Plan mode, and Ask mode.](../../user-guides/screenshots/light/work-modes/work-mode-picker.png)
+![The work-mode selector on the new-task form, offering Auto mode, Plan mode, and Ask mode.](../../user-guides/screenshots/light/work-modes/work-mode-picker.png)
 
 Everything else about the task stays ordinary. An ask-mode task has an assignee, a priority, a thread, and a status. It shows up in the agent's inbox like any other assignment. Approvals, budgets, and company boundaries still apply. The mode changes what the agent does with the task, not how the task moves through the system.
 

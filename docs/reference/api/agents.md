@@ -309,6 +309,7 @@ Important behavior:
 - `adapterConfig.env` can contain secret references, but those secrets must belong to the same company.
 - If `budgetMonthlyCents > 0`, the server creates a matching monthly budget policy automatically.
 - If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
+- For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds a short default `AGENTS.md`: a one-line role description for `role: "ceo"`, or a one-line generic placeholder for every other role. Keep it short — Paperclip's runtime and installed skills already supply the operating procedures. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
 
 ### Example
@@ -1031,7 +1032,7 @@ Important notes:
 
 ## Instructions Bundle
 
-These routes are for file-based instructions management:
+These routes manage the agent's instruction files:
 
 `PATCH /api/agents/{agentId}/instructions-path`
 `GET /api/agents/{agentId}/instructions-bundle`
@@ -1040,13 +1041,72 @@ These routes are for file-based instructions management:
 `PUT /api/agents/{agentId}/instructions-bundle/file`
 `DELETE /api/agents/{agentId}/instructions-bundle/file`
 
-Use them when the agent’s prompt instructions are stored as files instead of only inline config.
+Use them when the agent's prompt instructions are stored as files instead of only inline config.
+
+For a **managed** bundle, these files are the agent's persistent folder: it holds the entry file (usually `AGENTS.md`) plus any notes, subfolders, or binary files the agent or you add. Paperclip keeps the current files only — there's no revision history for new saves. The bundle response marks this with `persistence: "agent_files"`. See [Agents → Agent files persist across tasks](../../guides/org/agents.md#agent-files-persist-across-tasks) for how runs read and save the folder.
+
+### Reading files
+
+`GET /api/agents/{agentId}/instructions-bundle/file?path=AGENTS.md`
+
+The `path` query parameter is required. The response includes the file's `content` and its `contentHash` — keep the hash, because you need it to save or delete the file.
+
+For a managed bundle, add `download=true` to stream the raw bytes as an attachment instead. Use this for binary files, or files too large for the editor:
+
+```bash
+curl -s -o notes.png \
+  "http://localhost:3100/api/agents/{agentId}/instructions-bundle/file?path=notes/diagram.png&download=true" \
+  -H "Authorization: Bearer <token>"
+```
+
+### Saving files
+
+`PUT /api/agents/{agentId}/instructions-bundle/file`
+
+| Field | Notes |
+|---|---|
+| `path` | File path inside the bundle, e.g. `AGENTS.md` or `notes/today.md`. |
+| `content` | The full text content, up to 1 MiB. |
+| `baseHash` | The `contentHash` you read. Send `null` when you're creating a new file. Required for managed bundles. |
+| `clearLegacyPromptTemplate` | Optional. `true` also clears the agent's old inline prompt template. Needs permission to manage the instructions path. |
+
+Saves are guarded against lost updates: if the file changed since you read it, the save is rejected with `409 Conflict` and nothing is written. Read the file again, reapply your change, and retry with the new hash. A save with no `baseHash` on a managed bundle returns `422`.
+
+```bash
+curl -s -X PUT http://localhost:3100/api/agents/{agentId}/instructions-bundle/file \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "path": "AGENTS.md",
+    "content": "You are the CTO. You own technical direction and the engineering team.",
+    "baseHash": "<contentHash from your last read>"
+  }'
+```
+
+To delete a file from a managed bundle, pass the same hash as a query parameter: `DELETE /api/agents/{agentId}/instructions-bundle/file?path=notes/old.md&baseHash=<contentHash>`. The entry file can't be deleted.
+
+### Storage limits
+
+A managed folder holds up to 100,000 files and folders, 256 MiB per file, and 2 GiB in total. An API save that would go over a limit returns `422` and leaves the saved files unchanged. When a *run* goes over, its folder changes aren't saved; the run's save receipt reports `AGENT_FILES_LIMIT_EXCEEDED`, and the run detail shows a storage warning. The agent keeps running either way.
+
+### Older revision and conflict routes
+
+`GET /api/agents/{agentId}/instructions-bundle/history`
+`GET /api/agents/{agentId}/instructions-bundle/revision/{revisionId}`
+`GET /api/agents/{agentId}/instructions-bundle/diff?from={revisionId}&to={revisionId}`
+`POST /api/agents/{agentId}/instructions-bundle/restore`
+`GET /api/agents/{agentId}/instructions-bundle/candidates`
+`POST /api/agents/{agentId}/instructions-bundle/candidates/{runId}/resolve`
+
+These exist for compatibility with instances that saved instruction revisions before agent files arrived. New saves never add revisions, so `history` only lists entries recorded before the upgrade. `restore` takes `path`, `revisionId`, and `baseRevisionId`. The `candidates` routes list and resolve edits preserved from older instruction-only sessions; `resolve` takes `baseRevisionId` and `content`.
 
 Notes:
 
 - The target agent or an ancestor manager can manage the instructions path.
-- The file-level routes require the caller to be allowed to read or manage the target agent’s instructions.
+- An agent can read and save its own files within what its responsible user is currently allowed to do. Reading or saving another agent's files needs permission to configure that agent.
+- A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't save its own instructions from ordinary work. The exception is an edit its user asks for directly in their own Agent Chat — see [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 - Relative instructions paths require `adapterConfig.cwd`.
+- External bundles keep their existing behaviour; `download=true` and the `baseHash` rules above apply to managed bundles.
 
 ---
 

@@ -15,7 +15,7 @@ Agents can work with your Airtable bases — finding records, reading fields, an
 ## Connect Airtable
 
 1. Open **Connectors** and select **Airtable**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 3. Select **Sign in with Airtable** and complete browser sign-in, choosing what to share when Airtable asks.
 
 Paperclip registers its client with Airtable automatically, so there is nothing to set up in a developer console.

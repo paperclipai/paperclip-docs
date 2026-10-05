@@ -522,6 +522,10 @@
           "file": "../docs/experimental/plan-decomposition-panel.md"
         },
         {
+          "title": "Agent Chat",
+          "file": "../docs/experimental/agent-chat.md"
+        },
+        {
           "title": "Chat-Style Tasks",
           "file": "../docs/experimental/task-chat.md"
         },

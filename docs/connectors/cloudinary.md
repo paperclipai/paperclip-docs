@@ -17,7 +17,7 @@ This connection is Cloudinary's asset-management surface. It is about finding an
 ## Connect Cloudinary
 
 1. Open **Connectors** and select **Cloudinary**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 3. Select **Sign in with Cloudinary** and complete browser sign-in.
 
 Paperclip registers its client automatically, so there is nothing to configure in a developer console.

@@ -22,7 +22,9 @@ This guide walks through both, section by section.
 
 ![Profile settings](../user-guides/screenshots/light/settings/profile.png)
 
-Open the Profile page from the account menu in the sidebar. It's scoped to you — nobody else's profile changes when you edit yours.
+To get here, click your avatar at the bottom of the sidebar to open the account menu, then click your picture and name at the top of the menu. That opens your public profile page; click **Edit profile** there to land on this page. It's scoped to you — nobody else's profile changes when you edit yours.
+
+> **Tip:** The account menu also has an **Invite** row when you're allowed to invite people. On a self-hosted instance it opens the **Members** page on its **Invites** tab, and it shows for company owners and admins, instance admins, and local boards. On Paperclip Cloud it opens the People settings for your stack instead, and shows only to the stack's owner or admins.
 
 You get three things to work with:
 
@@ -36,11 +38,11 @@ Click **Save profile** to persist name or avatar changes. The button is disabled
 
 ### Keyboard shortcuts
 
-Below the profile form there's a **Keyboard shortcuts** toggle. Turn it on to use the app's keyboard shortcuts — inbox navigation, plus global shortcuts like creating tasks or toggling panels. It's off by default, because shortcuts can clash with browser or screen-reader shortcuts for some people.
+Keyboard shortcuts are always on for everyone who's signed in — there's nothing to turn on, here or anywhere else. That covers inbox and task-list navigation plus the global shortcuts: `c` to create a task, `/` to search, `?` for the shortcuts cheatsheet, and `[` and `]` to toggle the sidebar and the side panel.
 
-This is a personal preference: it applies only to your account, but it follows you across every organization and device you sign in from. You don't need to be an instance admin to change it, and flipping it doesn't affect anyone else. The toggle is disabled until a company is selected, because the change is recorded in that company's activity log.
+Shortcuts stay out of your way while you type: they ignore key presses inside text fields, and they don't fire while a dialog is open.
 
-> **Upgrading from an older release?** Keyboard shortcuts used to be one instance-wide switch on the General page. That switch no longer controls anything in the app, so after the upgrade everyone who wants shortcuts turns them on here for themselves.
+> **Upgrading from an older release?** Earlier releases had a **Keyboard shortcuts** switch — first on the instance **General** page, then on this Profile page, off by default. Both switches are gone, so after the upgrade shortcuts simply work for every signed-in user.
 
 ---
 
@@ -219,6 +221,7 @@ Each flag has its own page in the [Experimental](../experimental/overview.md) se
 - **[Experimental File Viewer](../experimental/file-viewer.md)** — task-detail controls for browsing and previewing workspace files.
 - **[Enable External Objects](../experimental/external-objects.md)** — detects external URLs in issues and shows live status for referenced pull requests and tickets.
 - **[Task Plan Decomposition Panel](../experimental/plan-decomposition-panel.md)** — accepted-plan decomposition history on task detail pages, for debugging sub-task creation.
+- **[Agent Chat](../experimental/agent-chat.md)** — one persistent conversation per agent, behind a **Chat** sidebar entry; agents hand work off to tasks and report back when they're done.
 - **[Task Watchdogs](../experimental/task-watchdogs.md)** — per-task watchdog agents that verify stopped task subtrees and restore live paths.
 - **[Cloud Sync](../experimental/cloud-sync.md)** — **retired.** Removed upstream together with its experimental toggle, so it no longer appears in this list on a current build. To move a company between instances, use [company Import/Export](../how-to/back-up-and-restore-a-company.md).
 - **[Server Info Debug View](../experimental/server-info-debug-view.md)** — a "Server" section in the account drawer with restart time, running commit, and checkout state.
@@ -244,7 +247,7 @@ The keys you can list:
 - **Instance pages** — `instance.profile`, `instance.environments`, `instance.access`, `instance.experimental`, `instance.plugins`, `instance.adapters`. (The Instance General page is the settings root and can't be hidden; hide its sections individually instead.)
 - **Company pages** — `company.members`, `company.invites`, `company.secrets`, `company.export`, `company.import`. Hiding `company.import` also floors the import API; the other company keys are UI-only.
 - **Company sub-tabs** — `company.secrets.vaults`, `company.secrets.proposals` (hide one tab while the Secrets page stays up).
-- **Instance General sections** — `instance.general.deploymentStatus`, `instance.general.censorUsernameInLogs`, `instance.general.keyboardShortcuts`, `instance.general.backupRetention`, `instance.general.feedbackDataSharingPreference`, `instance.general.signOut`. Field-backed sections also floor writes to that field; `deploymentStatus` and `signOut` are read-only UI.
+- **Instance General sections** — `instance.general.deploymentStatus`, `instance.general.censorUsernameInLogs`, `instance.general.backupRetention`, `instance.general.feedbackDataSharingPreference`, `instance.general.signOut`. Field-backed sections also floor writes to that field; `deploymentStatus` and `signOut` are read-only UI. The old `instance.general.keyboardShortcuts` key no longer exists — keyboard shortcuts are always on — so if it's still in your list, Paperclip ignores it and logs a warning.
 - **Experimental flags** — `instance.experimental.<flagKey>` for any individual flag, or hide the whole page with `instance.experimental`.
 - **Every experimental flag, now and later** — `instance.experimental.*`. The wildcard hides every toggle in the server's own feature catalog, so toggles added by a future upgrade arrive hidden too, with no change to your environment. The Experimental page itself stays reachable. To keep a few toggles available, add exceptions prefixed with `!`, such as `!instance.experimental.enableEnvironments`.
 

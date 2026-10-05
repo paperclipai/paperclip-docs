@@ -40,8 +40,8 @@ The region and group are fixed on the connection. To change either, make a new c
 ## Connect Postman
 
 1. Open **Connectors** and select **Postman**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Choose the option matching your region and capability group.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+3. Check that the selected option matches your region and capability group. To pick another, select **Change**.
 4. For US, complete Postman's browser sign-in. For EU, paste your Postman API key.
 
 ## Choose access

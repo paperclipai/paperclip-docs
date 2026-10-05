@@ -91,21 +91,30 @@ The thread follows new content while you're at the bottom, and stops following t
 
 The composer sits pinned at the bottom of the thread: a text box over a row of controls.
 
-**Pick a mode per message.** The chip on the left names the mode this submission will run in, tinted to match it. Open it and you get all three:
+**Pick a mode per message.** Messages run in **Auto mode** — the agent makes changes and runs the work — unless you choose otherwise. Click the **+** button on the left to open the **Add** menu, where you'll find two other modes:
 
 | Mode | What it does |
 | --- | --- |
-| **Agent mode** | Make changes and run work |
-| **Plan mode** | Draft a plan before acting |
-| **Ask mode** | Answer questions only, no changes |
+| **Plan mode** | Plan before acting |
+| **Ask mode** | Answer without changes |
 
-The placeholder text follows your choice, so you can tell at a glance what will happen — *"Message Ada — describe what you want done…"*, *"Plan with Ada — shapes the plan doc, no code changes…"*, or *"Ask Ada a question — read-only, nothing runs…"*. Press **Shift+Tab** in the text box to cycle through the three. The mode is applied when you send, not when you pick it.
+Pick one and a tinted chip appears next to the **+**, so you can see what this message will do. Plan and Ask can't both be on — picking one replaces the other. Click the chip to remove it and go back to Auto mode. If you'd rather stay on the keyboard, press **⌘+.** (Ctrl+. on Windows and Linux) or **Shift+Tab** in the text box to cycle through the three modes.
 
-![The composer's mode picker open, offering Agent mode, Plan mode, and Ask mode](../user-guides/screenshots/light/task-chat/composer-modes.png)
+The placeholder text follows your choice, so you can tell at a glance what will happen — *"Message Ada — describe what you want done…"*, *"Plan with Ada — shapes the plan doc, no code changes…"*, or *"Ask Ada a question — read-only, nothing runs…"*. The mode is applied when you send, not when you pick it.
 
-**Attach files** with the **+** button, by pasting them, or by dropping them onto the composer. Each file becomes a chip that reads *Uploading…* and then *Attached*, with a thumbnail for images, and a link to it is added to your message.
+**Attach files** with **Files and images** in the same **Add** menu, by pasting them, or by dropping them onto the composer. Each file becomes a chip that reads *Uploading…* and then *Attached*, with a thumbnail for images, and a link to it is added to your message. When the agent's runner supports it, the menu also offers **Goal** (*"Keep pursuing"*) to give the agent a goal to keep working toward.
 
-**Reassign as you reply.** When reassignment is available, a control on the right names the current assignee and lets you hand the task to someone else with the same message. Sending to an agent on a task that's `done`, `cancelled`, or `blocked` reopens it.
+**Choose who answers, and how hard they think.** On the right, one button shows who the message goes to and which model they'll use — for example *Ada · Harness default*, plus the effort level once you change it. Click it to open a single picker with three parts:
+
+- **The assignee.** Click the name to search your agents by name, role, or harness (Claude Code, Codex, and so on), or choose **No assignee**. Picking someone else hands the task to them along with your message. Sending to an agent on a task that's `done`, `cancelled`, or `blocked` reopens it.
+- **Model.** Choose the exact model for this message from the list, or type in **Search or paste a model ID** to use one that isn't listed. Leave it on the harness default if you don't mind which.
+- **Effort.** A slider sets how much effort the model puts in — from **Off** or **Minimal** up to **Extra High**, **Max**, or **Ultra**, depending on the model. It only offers the levels that model and its engine actually support, so you won't see a control the agent would quietly ignore. Codex agents also get a **Fast mode** toggle.
+
+**Reset to agent default** puts the model and effort back to how the agent is configured. Agents that don't let Paperclip pick a model — ones that run a command, call an HTTP endpoint, or route through a gateway — say so in the picker instead of showing a model list. On a phone, the picker opens full-screen.
+
+**Questions wait above the composer.** When an agent asks you a question, wants a confirmation, or has something for you to review, the card sits just above the composer — and the composer stays usable underneath it. Sending an ordinary message doesn't throw the card away: it stays pending until you answer it, unless the agent set it up to be replaced by your next reply.
+
+**Queued messages.** A message you send while the agent is mid-run waits in the queue above the composer. **Steer** pushes it into the run that's going now, and **Interrupt** stops that run and starts a fresh one with your message. Either way your message shows up in the conversation straight away. If it can't be delivered, it goes back into the queue with an error explaining why, so nothing you typed is lost. And if a run was stopped before it really got going, the conversation offers **Retry**, or you can just send a new message to start a fresh turn.
 
 **Send with ⌘+Enter** (or Ctrl+Enter). Plain **Enter** inserts a newline — it was too easy to send half a thought otherwise.
 
@@ -119,7 +128,7 @@ Its header holds up to three tabs, and a tab only appears when it has something 
 
 - **Properties** — the same task properties as always: assignee, project, blockers, and the rest.
 - **Plan** — the task's plan document with its revision number and last-updated time, above the accepted-plan history. Before there's anything to show it reads *"No plan yet. The plan document, accepted plans, and their revisions will appear here."*
-- **Artifacts** — a read-only view of the task's work products, documents, and attachments, grouped by run. Images and videos show as a gallery of preview tiles you can click to view, play, or download; other files are full-width rows. Empty, it reads *"No artifacts yet. Work products, documents, and agent-produced files will appear here."* See [Artifacts](../guides/day-to-day/artifacts.md#reaching-artifacts-from-a-task).
+- **Artifacts** — a read-only view of the task's work products, documents, and attachments, grouped by run. Each one gets a card shaped to what it is — pull request, commit, document, image, video, link preview, CSV data, or file — with the right action to open it. Markdown and text files open in a tab of their own in this pane. Empty, it reads *"No artifacts yet. Work products, documents, and agent-produced files will appear here."* See [Artifacts](../guides/day-to-day/artifacts.md#reaching-artifacts-from-a-task).
 
 With neither a plan nor artifacts, the header just says **Properties** rather than showing a one-tab strip.
 
@@ -135,12 +144,12 @@ Purely presentational. Turning on **Classic Task Interface** restores the old ta
 
 - This is a redesign of a page you probably use all day, and it's under active iteration. Expect details — labels, spacing, which things fold — to move between releases.
 - **Classic Task Interface** is instance-wide, so switching back changes the task page for every person on the instance. There's no per-user opt-out.
-- The Artifacts tab is read-only for now. Uploading, previewing, and deleting attachments still happen on the existing attachment surfaces.
+- The Artifacts tab is read-only for now. Uploading and deleting attachments still happen on the existing attachment surfaces.
 - Live structured plan checklists (an agent ticking off plan steps as it goes) depend on adapter support and aren't wired into the live thread yet — the Plan tab shows the plan document and accepted-plan history.
 
 ## Where to go next
 
-- [Work Modes](../guides/day-to-day/work-modes.md) — what Agent, Plan, and Ask modes actually change about a run.
+- [Work Modes](../guides/day-to-day/work-modes.md) — what Auto, Plan, and Ask modes actually change about a run.
 - [Issues](../guides/day-to-day/issues.md) — the task detail page, sub-tasks, and blockers.
 - [Artifacts](../guides/day-to-day/artifacts.md) — where a task's outputs come from.
 - [Experimental features overview](overview.md)

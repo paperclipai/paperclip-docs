@@ -18,7 +18,7 @@ The same Atlassian server also covers Confluence, so a connection made here may 
 ## Connect Jira
 
 1. Open **Connectors** and select **Jira**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 3. Select **Sign in with Jira** and complete Atlassian's authorization in the browser.
 4. If your Atlassian account has more than one site, choose the site you want during Atlassian's flow. This is the decision to get right — it is made at Atlassian, not in Paperclip.
 

@@ -20,6 +20,12 @@ What happens next depends on the server:
 - **It wants a key.** Paperclip asks for it, and states where it goes: *"Paperclip sends your key as an Authorization header."* Custom headers are available for servers that expect something else.
 - **It wants nothing.** Paperclip says so plainly: *"The server is open to anyone with the address."* Treat that address as the credential.
 
+### Staying signed in after the access token expires
+
+Many OAuth servers hand out short-lived access tokens. To keep a custom server connected past that, Paperclip also asks for `offline_access` when the server's authorization server lists it as supported and does not rule out refresh tokens, even if the MCP server itself only mentions its tool scopes. When the provider issues a refresh token, Paperclip renews access in the background and agents keep working without another sign-in.
+
+The provider still decides whether to issue one. If it does not, the connection needs a fresh sign-in each time the access token expires. An older custom connection made before this change picks up refresh support the next time you select **Reconnect**.
+
 A server outside the reviewed catalog is labelled **Unverified server**. That label is a statement about review, not about whether the connection works.
 
 ## Paste a config

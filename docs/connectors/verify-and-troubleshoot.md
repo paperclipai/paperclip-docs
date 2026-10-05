@@ -14,7 +14,7 @@ The read-test procedure below is for **app tool** connections. The other shapes 
 | Shape | How you verify it |
 | --- | --- |
 | **App tools** — Notion, Jira, Stripe, and most of the catalog | The read test below |
-| **Messaging channels** — Slack chat, Discord, Telegram, Teams, iMessage Photon, GitHub chat | Send a real message from the provider and wait for the agent's reply. There is no action list to test against, and setup is not complete until a reply is delivered. The connector's own page has the sequence |
+| **Messaging channels** — Slack chat, Discord, Telegram, Teams, iMessage Photon, GitHub Code Review Bot, AgentMail | Send a real message from the provider and wait for the agent's reply. There is no action list to test against, and setup is not complete until a reply is delivered. The connector's own page has the sequence |
 | **Model providers** — Anthropic, OpenAI, OpenRouter, Grok | Run a short task on an agent whose runtime matches, and watch the run. A connected badge says nothing about runtime compatibility. See [Anthropic](anthropic.md) |
 
 [How connector access works](access-model.md) explains why the controls differ.
@@ -27,7 +27,7 @@ Always start with a read.
 2. Confirm the action list loaded. For an app-tool connection, an empty list can mean discovery is incomplete or the provider returned no tools for this credential. Select **Refresh actions** and inspect any error; model credentials and chat channels do not have an action catalog.
 3. Confirm every write and destructive action is **Off** or **Ask first** while you are testing.
 4. Run one read action as a specific agent using the connector's built-in test call. Paperclip asks **Choose which agent to test as**, because the answer depends on the agent's effective policy, not just on the connection.
-5. Read the result. **Worked** means the call succeeded; **Worked. No data to show.** means it succeeded and returned nothing. **Show raw response** gives you the provider's actual payload.
+5. Read the result. Paperclip lays out what came back as readable fields, a table, or cards when it can, so you can check it without reading JSON. A summary line tells you how it went — for example **Worked. 3 rows came back.**, or **Worked. No data to show.** when the call succeeded and returned nothing. **Show raw response** gives you the provider's actual payload; it opens on its own when the result cannot be laid out safely.
 
 The API equivalents:
 
@@ -65,6 +65,18 @@ Select **Reconnect** and sign in again. The connection, its agent access, and it
 ### The key stopped working
 
 *"The key stopped working — reconnect to fix."* For an API-key connection, select **Replace the stored credential** and **Paste your new key**. Paperclip validates it before saving: *"That key didn't check out. Try another."* means the value was rejected by the provider, not mistyped into the wrong field.
+
+### The credential belongs to someone else
+
+*"This connection's credential does not belong to the selected identity. Its owner must reconnect it."*
+
+A personal connection must run on a credential owned by that person. Some personal connections made with earlier versions stored their key or secret URL as a company credential instead, and those now stop with this message rather than quietly using the wrong one. The person who owns the connection should select **Reconnect** and enter a fresh key or secret URL. The connection keeps its name, its agent access, and its action settings; only the credential moves to the owner. Nobody else can do this on their behalf.
+
+### The provider says a permission is missing
+
+*"The provider has not granted the permissions needed for this action. Reconnect this connection and allow the required read and write access."*
+
+The sign-in or key does not cover what the action needs. Reconnect and approve the requested access, or for an API key, create a key with read and write permissions and paste it in. Paperclip cannot widen a key or token that already exists.
 
 ### Authorization never completes
 

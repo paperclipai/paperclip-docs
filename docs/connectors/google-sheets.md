@@ -7,6 +7,8 @@ seo_description: Two ways to connect Google Sheets: a Google sign-in, or sharing
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
+> **Note:** While verification is pending, the Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. This hides them from the list only. Existing Google connections keep running with their access and permissions unchanged, and an agent that needs a Google service can still ask you for it with a connection card on its task.
+
 Agents can read spreadsheet values and structure, and on a writing connection update them.
 
 Sheets is the one connector with two genuinely different setups: sign in with Google, or share named spreadsheets with a Paperclip robot account. They differ in what agents can reach and what they can do, so choose before you start.
@@ -35,16 +37,18 @@ The robot account is the stronger boundary: Paperclip checks each call against t
 
 | Group | What agents can do | Scopes requested |
 | --- | --- | --- |
-| **Read only** | Read spreadsheet values and structure | `drive.readonly`, `spreadsheets.readonly` |
-| **Read & edit** | The above, plus update values, formulas, and dimensions | `drive.readonly`, `drive.file`, `spreadsheets` |
+| **Read only** | Read spreadsheet values and structure | `spreadsheets.readonly` |
+| **Read & edit** | The above, plus update values, formulas, and dimensions | `spreadsheets` |
+
+Neither group asks for Google Drive access. The Sheets scope alone is enough to read and edit spreadsheets the account can open, by spreadsheet ID. Connections made with an earlier version asked for more. If a **Connect with Paperclip** connection from before this change stops working, select **Reconnect** to sign in with the smaller set. A connection using your own OAuth app keeps its earlier grant until you reconnect it.
 
 Reviewed operations: `get-spreadsheet` and `get-values` in both groups; `update-spreadsheet`, `update-values`, `update-formulas`, and `insert-dimension` in the editing group only. There is no delete operation on this path.
 
 ### Steps
 
 1. Open **Connectors** and select **Google Sheets**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Choose the capability group, then **Connect with Paperclip** or **Use your own Google OAuth app**.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+3. Check the capability group. Setup starts on the group that can make changes; to connect read-only, select **Change** and pick it under **What should Paperclip be able to do?**. Paperclip uses **Connect with Paperclip** when your instance offers it. To use your own client instead, select **Use your own Google OAuth app** and supply the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
 4. Complete Google's consent screen with the registered Workspace account.
 
 > **Note:** The connector's guidance is that spreadsheet updates should be approved. Leave the write operations on **Ask first**.
@@ -57,8 +61,8 @@ This path requires the instance administrator to have configured a service accou
 
 ### Steps
 
-1. Open **Connectors** and select **Google Sheets**, then choose **Use the Paperclip robot account**.
-2. On the **Access** step, choose which agents may use the connection. This method does not ask for a personal Google identity.
+1. Open **Connectors** and select **Google Sheets**. Select **Change** and, under **What should Paperclip be able to do?**, choose **Share selected sheets** — the **Use the Paperclip robot account** method.
+2. Read the access line above the main button, which says which agents can use the connection. Select **Change** to narrow the agents. This method does not ask for a personal Google identity.
 3. Paperclip shows the robot account's email address. In Google Sheets, share each spreadsheet with that address:
    - **Viewer** is enough for reading.
    - **Editor** is required for appending, updating, adding tabs, clearing values, or deleting rows.

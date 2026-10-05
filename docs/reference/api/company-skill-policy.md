@@ -84,6 +84,10 @@ The `subject` object is a tagged union on `type`:
 
 **Skills an agent creates mid-task are checked as `skills.create`.** When an agent saves a new skill from inside a task (see [Skills your agents create during a task](../../guides/org/skills.md#skills-your-agents-create-during-a-task)), the request is evaluated exactly like a Skill Studio create: action `skills.create`, source type `generated`. To stop agents creating skills this way, deny `skills.create` for those agents. A rule on `sourceTypes: ["generated"]` alone won't single this path out — creating a skill from scratch in the UI carries the same source type, so it would block both.
 
+**Skills an agent updates mid-task are checked as `skills.edit`.** The native runner's **Update skill** tool saves through the same file route as Skill Studio, so it's evaluated exactly like a Studio edit of that skill. The check runs on every attempt, including a retry of a request that already succeeded — revoking `skills.edit` takes effect immediately. See [Letting an agent improve an existing skill](../../guides/org/skills.md#letting-an-agent-improve-an-existing-skill).
+
+**GitHub skill sources use source type `git`.** Scanning, previewing, and adding a repository under **Skills → Sources** check `skills.import`; a refresh checks `skills.update`; changing which skills are selected, or disconnecting the source, checks `skills.edit`. The locator is the repository URL, so a `sourceLocators` rule can allow or deny a single repository. See [Skills reference → GitHub skill sources](../skills.md#github-skill-sources).
+
 ### Resource selectors
 
 `resources` narrows a rule. At least one of these keys must be present, and unknown keys are rejected:

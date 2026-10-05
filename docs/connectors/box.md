@@ -23,7 +23,7 @@ Most of this happens in Box's Admin Console and needs an administrator. Start in
 
 ### 1. Read Paperclip's callback URI
 
-Open **Connectors** → **Box** → the **Access** step → **Use your own OAuth app**. Paperclip displays the callback URI; copy it and give it to whoever does step 3.
+Open **Connectors** → **Box**. Box needs an OAuth app you register yourself, so the setup screen opens on **Box needs its own OAuth app** and displays the callback URI. Copy it and give it to whoever does step 3.
 
 ### 2. Turn on Box AI for the enterprise
 

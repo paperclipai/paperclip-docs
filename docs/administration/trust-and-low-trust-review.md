@@ -99,7 +99,7 @@ When a run resolves to `low_trust_review`, Paperclip refuses to start it unless 
 
 - **Isolated workspaces are enabled** for the instance. Without them there is nowhere safe to contain the work.
 - **The execution workspace mode is `isolated_workspace`.** A shared or host-local workspace is not acceptable for low-trust work.
-- **The issue being run is inside the resolved boundary** — either directly named, in an allowed project, or a descendant of the boundary's `rootIssueId` (ancestry is checked up to a bounded depth). An issue outside the boundary is rejected.
+- **The issue being run is inside the resolved boundary** — either directly named, in an allowed project, or a descendant of the boundary's `rootIssueId` (ancestry is checked up to a bounded depth) — or it's the exact task a person directed the agent to (see [Work a person asks for directly](#work-a-person-asks-for-directly)). Any other issue outside the boundary is rejected.
 - **The environment uses the `sandbox` driver.** A host-local adapter process is not allowed for managed low-trust execution; you need a sandboxed environment instead.
 
 On top of that, two further constraints apply:
@@ -109,7 +109,52 @@ On top of that, two further constraints apply:
 
 The built-in low-trust tool classes are read-only and conservative by design: `git.read`, `github.pr.read`, and `tests.local`. That is the shape of work this preset is meant for — read the untrusted change, run local tests, report back — not reach out and mutate the wider company.
 
+**No repository? The task gets a private folder.** When the task's project has no workspace configured and nothing else picks a workspace strategy, a low-trust run works in a private directory just for that company and task, inside the sandbox. It doesn't need a Git repository, and it keeps its contents across turns and if the task is reassigned. It never pulls in the shared project directory or the agent's own folder. If you *have* configured a workspace or an explicit Git strategy, it still has to be usable — a missing or broken checkout doesn't quietly fall back to an empty folder.
+
 If you have been doing untrusted-PR review by hand with a local Docker workflow, that still works for manual review. But anything Paperclip runs as managed low-trust execution goes through the sandboxed, isolated path described above.
+
+---
+
+## What a low-trust agent can still do
+
+Containment is about outside input, not about shutting out the people who run the agent. A few kinds of work stay open to a low-trust agent, each tied to a specific, recorded source of authority.
+
+### Work a person asks for directly
+
+You can talk to a low-trust agent in your own Agent Chat, or assign it a task that sits outside its normal boundary. Paperclip treats that as your direction and lets the agent work on it.
+
+The exception is narrow on purpose:
+
+- **It comes from real records.** Paperclip uses your chat conversation, or the signed-in person recorded on the run's wake request when you assigned the task. Nobody has to fill in a separate permission, and a client can't claim to be you.
+- **Only a signed-in board user counts.** The agent's responsible user, a sender attributed by an outside connector, a plugin acting "for" a user, or a claim from another agent don't qualify.
+- **It covers one task.** The agent can read, comment on, and update that exact task. It doesn't extend to other tasks, children, the whole project, configuration, instructions, secrets, or runtime management. Normal responsible-user checks still apply.
+- **Reassigning cancels it.** When the task changes hands, earlier human requests are cancelled, and assigning it back doesn't revive them. Automatic retries of the same task carry the direction forward; a cancelled run can't authorize a retry.
+- **The sandbox rules don't relax.** The run still needs the sandbox driver and an isolated workspace, and the exception is never written into the agent's inherited boundary.
+
+If you assign a task into the backlog, the assignment is remembered so the later launch is authorized, without starting work early.
+
+### Creating tasks inside the boundary
+
+Low trust doesn't stop an agent from organizing its own work. It can create tasks assigned to itself, and subtasks of its own tasks, as long as they stay inside its project or root-task scope:
+
+- Creating a task goes through the normal assignment permission checks — including any assignment restrictions and the responsible user's authority — even when the new task is unassigned.
+- Assigning to another agent only works if that agent is explicitly allowed by the boundary. Assigning to a board user is refused.
+- New tasks keep the creator's containment and its quarantined source attribution.
+- An exact `issueIds` allow-list doesn't automatically cover new child tasks, and a permitted parent doesn't open up an unrelated project. A `rootIssueId` scope does include its descendants.
+
+### Instruction edits from your own chat
+
+Normally a low-trust agent can't change its own instructions. There's one exception: when you, in **your own** Agent Chat with that agent, ask it to update its instructions, it can save its own `AGENTS.md` — even under `low_trust_review`.
+
+What makes this safe enough:
+
+- **The chat turn is the permission.** It needs the agent's current identity and a recorded, signed-in message from you in that chat. Your name on a task, a message from a connector or plugin, an ordinary task or subtask, or a message from another user doesn't qualify. An earlier message from you can't authorize a later outside request, and content the agent reads during the chat isn't a request from you.
+- **Your current permission is checked at every save.** If you can't edit that agent's instructions, the save fails — including when the agent's private folder is collected after a run that succeeded, failed, or timed out. Cancelling the run, resetting the chat, reassigning, deleting the message, or losing access ends the exception.
+- **It stays small.** It only covers the agent's own instructions. It doesn't let the agent edit another agent's instructions, change general configuration, or reach other privileged APIs, and it's never written into the agent's trust policy.
+
+One honest caveat: Paperclip checks *who* sent the message, not what it means, and it doesn't ask you to approve each edit. If the agent reads something hostile during your chat, prompt injection is still possible, so keep an eye on what it changes.
+
+When a save is refused, the agent should tell you which action was blocked and why — for example, that the current run isn't your direct chat, or that you don't have edit permission. You can then ask in your own chat or make the edit yourself on the [Instructions tab](../guides/org/agents.md#instructions-tab). Creating another task doesn't authorize the change.
 
 ---
 

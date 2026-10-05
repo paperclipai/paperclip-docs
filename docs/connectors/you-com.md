@@ -18,7 +18,7 @@ You have three options, and one of them needs nothing at all:
 ## Connect You.com
 
 1. Open **Connectors** and select **You.com**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 3. Pick how to connect:
    - **Sign in with You.com** — complete browser sign-in. Paperclip registers its client automatically.
    - **Use an API key** — paste your key into the **You.com API key** field. Use this when browser sign-in is not suitable.
