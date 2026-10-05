@@ -28,8 +28,8 @@ The token carries that user's permissions. If an agent should only read, issue t
 ## Connect PagerDuty
 
 1. Open **Connectors** and select **PagerDuty**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Choose **US service region** or **EU service region**.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+3. Check the service region. To switch between **US service region** and **EU service region**, select **Change**.
 4. Paste the **PagerDuty API key**. Paperclip stores it as a secret.
 
 ### Which PagerDuty token to create

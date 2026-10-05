@@ -226,6 +226,8 @@ A note on imports: the domain types these methods hand back — `IssueThreadInte
 
 Interactions are the decision cards an agent posts into an issue thread: suggested tasks, questions, confirmations. Your plugin could already create them; now it can read them back and resolve them.
 
+When you create one with `ctx.issues.createInteraction` or `ctx.issues.askUserQuestions`, the payload is typed as `CreateIssueThreadInteractionInput` (exported from the SDK). It's the input shape the host validates, so you can leave out fields the host fills with defaults instead of building the fully stored form yourself.
+
 | Method | Signature | Capability |
 |---|---|---|
 | `ctx.issues.listInteractions` | `listInteractions(issueId, companyId)` → `Promise<IssueThreadInteraction[]>` | `issue.interactions.read` |
@@ -452,6 +454,19 @@ The worker sends only that validated record back to the host — never the provi
 
 Two helpers round this out: `readEnvironmentCreationCleanupError(error)` returns the validated `PluginEnvironmentCreationCleanup` from an error (or `null`), and `environmentCreationCleanupErrorData(error)` builds the wire payload the worker attaches to the JSON-RPC error. Drivers that can't leak an allocation this way can ignore all of it.
 
+#### Stopping a sandbox without deleting it (optional)
+
+Sometimes the host needs a sandbox to stop *and keep its files* — for example while it recovers a workspace export from a run that ended badly, or when a reusable sandbox finishes a turn. Your ordinary release hook can't promise that, because its behaviour follows the environment's release policy, and an ephemeral sandbox gets deleted on release.
+
+Implement `onEnvironmentStopLease(params: PluginEnvironmentReleaseLeaseParams): Promise<PluginEnvironmentTerminationReceipt>` to support this. The worker advertises the matching `environmentStopLease` RPC method only when you define the hook, so the host can tell older drivers apart and hold the cleanup until a capable driver is available. When the host calls it, `params.resourceDisposition` is `"stop_and_retain"`.
+
+Two rules keep this safe:
+
+- **Stop that exact allocation, whatever its release policy says.** Return a `PluginEnvironmentTerminationReceipt` with `state: "stopped"` and the `providerLeaseId` you stopped.
+- **Throw if you can't confirm the stop.** Never fall back to deleting the sandbox. A failed stop leaves the cleanup pending, and the host retries later rather than reaching for release or destroy.
+
+If your provider has no way to stop without deleting, leave the hook out. The host then never asks your driver to retain a sandbox.
+
 #### Running a command outside the persistent session
 
 `PluginEnvironmentExecuteParams` carries an optional `bypassSession?: boolean`. It matters only if your driver opens a **persistent session** — one shell or connection it keeps alive across a lease's commands.
@@ -584,7 +599,7 @@ Types: `PluginBundlerPresetInput`, `PluginBundlerPresets`, `EsbuildLikeOptions`,
 The SDK ships a first-class test harness so you do not have to spin up a real host:
 
 - `createTestHarness` — base harness for unit-testing a plugin against in-memory host stubs.
-- `createEnvironmentTestHarness` — harness for testing environment-driver plugins.
+- `createEnvironmentTestHarness` — harness for testing environment-driver plugins. Its driver options accept an `onStopLease` hook, and the harness exposes a matching `stopLease(params)` call so you can exercise stop-and-retain without a real provider.
 - `createFakeEnvironmentDriver` — synthesised driver implementation for assertions.
 - `filterEnvironmentEvents`, `assertEnvironmentEventOrder`, `assertLeaseLifecycle`, `assertWorkspaceRealizationLifecycle`, `assertExecutionLifecycle`, `assertEnvironmentError` — assertion helpers for the environment-driver flow.
 

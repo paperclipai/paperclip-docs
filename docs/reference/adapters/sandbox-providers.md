@@ -92,6 +92,17 @@ Beyond `reuseLease`, two fields control how the `paperclip_runner` process lives
 
 `livenessTimeoutMs` (default `30000`) is the per-call timeout for the sandbox liveness read. If a sandbox connection goes silently unresponsive, the read fails fast with an error instead of stalling until the outer operation timeout. Set it to `0` or less to disable the bound. The `timeoutMs` create/start/stop/execute budget is unaffected — start and recovery calls derive their deadline from `timeoutMs`, not this field.
 
+### When the live log stream drops
+
+Daytona streams a command's output to Paperclip over a log socket, and occasionally that socket closes or simply goes quiet while the command is still running. The driver doesn't take a dropped stream as the end of the command, so you don't lose output or get a run marked finished too early:
+
+- **It waits for a real exit.** A command only counts as complete once Daytona records its exit. After a clean close, the driver reconnects the stream once, then checks the command's status and log snapshot at most once a second until the exit shows up.
+- **Quiet sockets switch to polling sooner.** If the socket delivers no output for 15 seconds — even if it never finished connecting — the driver stops waiting on it and moves straight to polling.
+- **Nothing runs twice.** The command is never sent again, output you've already seen isn't repeated in the run log, and a final snapshot fills in anything written after the socket closed.
+- **A timeout stays honest.** If reading the logs times out, you keep the partial output, and the log says whether the command's exit is still unconfirmed. It isn't reported as a success.
+
+There's nothing to configure for this.
+
 ### Interactive agent login
 
 Daytona is the one bundled provider that hosts an interactive coding-agent login on a real pseudo-terminal inside the sandbox (it advertises `supportsLoginPty`). This is what lets you sign an agent into its upstream CLI — Claude (`claude setup-token`), Codex (`codex login --device-auth`), or Grok (`grok login --device-auth`) — from inside a Daytona sandbox. The login runs on a terminal so its browser device code and prompts stream back to you, and Paperclip delivers the code you paste plus the Enter keystroke over the terminal rather than on a command line. Credentials land in a per-login session home under `/tmp/paperclip-adapter-login/` inside the sandbox. No configuration is required to enable this — it's available on every configured Daytona image or snapshot.

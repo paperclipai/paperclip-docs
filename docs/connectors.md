@@ -12,6 +12,8 @@ A **connector** is a saved connection to an outside service: a Gmail mailbox, a 
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
+> **Note:** While Google verification is pending, the nine Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. Only the list changes: existing Google connections keep running with their access and permissions, and an agent that needs a Google service can still ask you for it with a connection card on its task.
+
 ## Start here
 
 - [Connect your first connector](connectors/first-connector.md) — a worked setup, end to end, finishing with one read-only task an agent actually runs.
@@ -27,7 +29,7 @@ The **Connectors** list holds three kinds of connection. They look alike — eac
 
 **Chat channels — Experimental** let people talk to your agents from a messaging app. An administrator must enable **Chat connectors**, which is off by default. Setup connects a provider app or bot to Paperclip; eligible messages can start or continue agent tasks.
 
-One service can do more than one of these. Slack offers an app integration and an experimental chat channel, configured separately with separate credentials. Google Chat is an app integration: agents read and post in it, but people cannot use it to talk to an agent. GitHub is listed under Developer tools, including its separate issue and pull-request workflows.
+One service can do more than one of these. Slack offers an app integration and an experimental chat channel, configured separately with separate credentials. Google Chat is an app integration: agents read and post in it, but people cannot use it to talk to an agent. GitHub has two entries: **GitHub** for repository tools under Developer tools, and **GitHub Code Review Bot** for the experimental review bot under chat channels.
 
 ## Connection methods
 
@@ -42,7 +44,13 @@ Every row in the catalog lists the methods that connector supports. The names me
 | Provider app registration | You create an app or bot in the provider's developer console, give it the documented permissions and events, and connect its credentials. Provider-specific channel guides describe exceptions, such as managed inboxes. |
 | No credential | Nothing to sign in to. You identify the target — a store domain, a generated URL, a shared file — and that is the whole setup. |
 
-Which methods you actually see depends on your instance. **Connect with Paperclip** is hidden unless your instance is enrolled with Paperclip Cloud and Cloud advertises a profile for that connector. Every chat channel, and AgentMail's email inboxes with them, is behind the **Chat connectors** instance setting, which is off by default. The [memory providers](#memory-experimental) are behind a separate **Memory connectors** setting, also off by default. Each connector page lists its own prerequisites.
+Which methods you actually see depends on your instance. **Connect with Paperclip** is hidden unless your instance is enrolled with Paperclip Cloud and Cloud advertises a profile for that connector. Every chat channel is behind the **Chat connectors** instance setting, which is off by default. AgentMail is not: its email inboxes are available on every instance. The [memory providers](#memory-experimental) are behind a separate **Memory connectors** setting, also off by default. Each connector page lists its own prerequisites.
+
+### What setup looks like
+
+Connecting a catalog app is one screen. Paperclip picks the recommended method for you and asks only for what proves who you are: a provider sign-in, a key, or an address. A catalog card that says **Add key** means you will paste a key; every other card says **Connect**.
+
+Above the main button, one line states the access Paperclip will use, such as *"Connects for everyone in your organization, available to all agents."* When an agent asked for the connection from a task, it reads *"available to the agent that asked for it"* instead. Select **Change** to pick a different identity, narrow the agents, or choose another method or capability; everything there can also be changed afterwards. Individual actions are set on the **Permissions** tab once you are connected — see [Set action permissions](connectors/action-permissions.md).
 
 ## The catalog
 
@@ -69,12 +77,12 @@ Find an app and open its setup guide.
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
 | [Arcade](connectors/arcade.md) | Tool gateway combining the tools you select from several servers behind one URL. Agents use the exposed tools; authentication follows your gateway settings. Setup is unverified. | Gateway URL · Browser sign-in or token/headers |
-| [Asana](connectors/asana.md) | Work management for team projects, tasks, and goals. Agents work with the projects and tasks your Asana app can reach. | Your own OAuth app |
+| [Asana](connectors/asana.md) | Work management for team projects, tasks, and goals. Agents work with the projects and tasks the authorizing Asana account can reach. | Connect with Paperclip · Your own OAuth app |
 | [Composio](connectors/composio.md) | App discovery and execution through Composio Connect or a configured session. Upstream app authorization happens in Composio; broad execution actions need separate review. Setup is unverified. | Composio Connect sign-in · Configured session URL and headers |
 | [Executor](connectors/executor.md) | One remote endpoint for configured integrations. Agents use its exposed actions within Executor's upstream policies. Setup is unverified. | Deployment URL · Browser sign-in or token/headers |
 | [Fireflies](connectors/fireflies.md) — **Live exception; not yet stable** | Meeting transcripts, summaries, and action items the connected account can access. Setup is unverified. | Sign in with Fireflies · API key |
 | [Jira](connectors/jira.md) | Atlassian's issue tracker for software teams. Agents work with the issues on the Jira site you connect. | Sign in with Jira |
-| [Linear](connectors/linear.md) | Issue tracking for product and engineering teams. Agents create, update, and read issues across whatever the authorizing Linear account can reach. | Your own OAuth app |
+| [Linear](connectors/linear.md) | Issue tracking for product and engineering teams. Agents create, update, and read issues across whatever the authorizing Linear account can reach. | Sign in with Linear |
 | [Miro](connectors/miro.md) | Shared online whiteboards for diagrams, planning, and workshops. Agents work with the boards your Miro account can reach. | Sign in with Miro |
 | [Notion](connectors/notion.md) | Workspace for notes, documents, and databases. Agents read and update content accessible to the Notion account you authorize. Paperclip does not add a page-level filter. | Sign in with Notion |
 | [Todoist](connectors/todoist.md) | Task lists for individuals and small teams. Agents work with the tasks and projects in your Todoist account. | Sign in with Todoist |
@@ -95,7 +103,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
-| [AgentMail](connectors/agentmail.md) — **Experimental** | Email inboxes built for software agents. Gives an agent its own inbox and turns each email conversation into a Paperclip task. Requires the **Chat connectors** experimental setting. | API key |
+| [AgentMail](connectors/agentmail.md) | Email inboxes built for software agents. Gives an agent its own inbox and turns each email conversation into a Paperclip task. Available on every instance; no experimental setting needed. | API key |
 | [Resend](connectors/resend.md) | Transactional email delivery for developers. Agents work with the sending domains and delivery records your Resend account can reach. | Sign in with Resend |
 | [Slack](connectors/slack.md) | Team messaging. As an app integration, agents read and post within the authorizing account's access. Its separate **experimental** chat channel lets people work with one agent from Slack. | Agent-tool setup: see compatibility notice · Provider app registration for chat |
 
@@ -104,7 +112,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
 | [Cloudflare](connectors/cloudflare.md) | DNS, CDN, and edge compute. Agents work with the account your Cloudflare sign-in can reach. | Sign in with Cloudflare · API key |
-| [GitHub](connectors/github.md) | Code hosting and review. Agents use repository tools with the connected credential's permissions. A separate **experimental** GitHub App workflow lets people start and continue work from issue and pull-request comments. See the guide for setup and shell-access boundaries. | Connect with Paperclip · API key · Provider app registration for issue workflows |
+| [GitHub](connectors/github.md) | Code hosting and review. Agents use repository tools with the connected credential's permissions. See the guide for setup and shell-access boundaries. The pull-request review bot is its own entry, **GitHub Code Review Bot**, under [Chat channels](#chat-channels). | Connect with Paperclip · API key |
 | [Netlify](connectors/netlify.md) | Hosting and deploys for web front ends. Agents work with the teams and sites your Netlify account can reach. | Sign in with Netlify |
 | [PagerDuty](connectors/pagerduty.md) | On-call scheduling and incident response. Agents work with the incidents, services, and schedules your token can reach. Choose the US or EU service region when you connect. | API key |
 | [Postman](connectors/postman.md) | API development and testing workspace. Agents work with the collections and APIs your Postman account can reach. Choose a toolset: Minimal, Code, or Full. Minimal is not read-only; set action permissions separately. | Sign in with Postman · API key |
@@ -145,7 +153,7 @@ Services whose subject matter is machine learning. They are ordinary app integra
 
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
-| [Hugging Face](connectors/hugging-face.md) | Public hub for open machine-learning models, datasets, and demos. Agents search models, datasets, and Spaces. The sign-in asks for a read-only scope, which makes this the shortest connector to try first. | Sign in with Hugging Face |
+| [Hugging Face](connectors/hugging-face.md) | Public hub for open machine-learning models, datasets, and demos. Agents search models, datasets, and Spaces. The sign-in is quick and needs no app registration, which makes this the shortest connector to try first; it also asks for repository and job access, so switch its writes off while you learn. | Sign in with Hugging Face |
 | [You.com](connectors/youcom.md) | Hosted web intelligence. The free profile has a reduced read-only tool set; provider limits apply. Setup is unverified. | Sign in with You.com · API key · No credential (free profile) |
 
 <span id="memory-experimental"></span>
@@ -181,6 +189,7 @@ These give people a place to talk to an agent. They require an administrator to 
 
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
+| [GitHub Code Review Bot](connectors/github-review-bot-setup.md) | Have an agent review pull requests and answer mentions in GitHub, through a GitHub App you register. Selecting it goes straight to choosing the agent. | Provider app registration |
 | [Discord](connectors/discord.md) | Mention the agent in a server channel and Paperclip opens a thread, keeping it tied to one task. | Provider app registration |
 | [iMessage Photon](connectors/imessage-photon.md) | Message the agent from Apple Messages through a Photon Cloud project. Shared Pro lines carry direct messages; a dedicated line also carries groups you enable. | Provider app registration |
 | [Microsoft Teams](connectors/microsoft-teams.md) | Message the agent in a chat, a team channel, or a group chat. Needs a work or school Microsoft 365 organization; personal Teams accounts cannot complete the setup. | Provider app registration |

@@ -30,7 +30,7 @@ GET  /mcp/runtime-tools
 POST /mcp/runtime-tools
 ```
 
-The `GET` is a discovery response: `{ "name": "paperclip-runtime-tools", "protocolVersion": "2025-03-26" }`. The `POST` speaks JSON-RPC 2.0.
+The endpoint speaks JSON-RPC 2.0 over `POST` only. A `GET` returns `405 Method Not Allowed` with an `Allow: POST` header, so an MCP client that tries to open a server-sent events stream learns straight away that this endpoint does not offer one.
 
 | Method | What happens |
 |---|---|
@@ -45,7 +45,7 @@ The two tools:
 
 | Tool | Arguments | Purpose |
 |---|---|---|
-| `connections_search` | `query` (string, optional) | List connectable services, filtered by a free-text query, with each one's readiness for this agent. |
+| `connections_search` | `query` (string, optional) | List connectable services matching a service name or a plain-language description of the need, with each one's readiness for this agent. |
 | `connection_request` | `service` (string, required) | Ask for a specific service by slug; returns it ready if already usable, otherwise opens an intent. |
 
 ### REST convenience routes
@@ -57,7 +57,7 @@ POST /runtime-tools/connections/search
 POST /runtime-tools/connections/request
 ```
 
-`search` takes a body of `{ "query": <string> }` — trimmed, up to 200 characters, defaulting to `""` (which lists everything). It returns:
+`search` takes a body of `{ "query": <string> }` — trimmed, up to 4,000 characters, defaulting to `""` (which lists everything). The query can be a service name or a whole sentence describing what the agent needs. Names rank ahead of capabilities, extra words don't stop a match, and small typos and split names ("Agent Mail") still find the service. Results are capped at 40. It returns:
 
 ```json
 {
@@ -69,13 +69,15 @@ POST /runtime-tools/connections/request
       "name": "GitHub",
       "description": "...",
       "logoUrl": "...",
-      "methods": [ { "key": "...", "label": "...", "auth": "..." } ],
+      "methods": [ { "key": "...", "label": "...", "auth": "...", "purpose": "tool" } ],
       "state": "ready",
       "connectionId": "..."
     }
   ]
 }
 ```
+
+Each method can carry a `purpose` of `tool`, `channel`, or `ai`. Channel and AI methods also carry a company-scoped `setupPath` pointing at their own setup flow, which the agent shares with the user. Tool methods and AgentMail use `connection_request` instead. Chat channel methods appear only when the instance's **Chat connectors** setting is on; AgentMail always appears. A search match is not proof that an account is authorized or that a tool is installed.
 
 Each result's `state` is one of `ready` (a connection is connected and usable by this agent right now, with `connectionId` set), `needs_user_action` (a matching connection exists but isn't usable yet), `available` (the service can be connected but nothing exists), or `unavailable` (the service offers no connection methods).
 
@@ -92,6 +94,8 @@ Each result's `state` is one of `ready` (a connection is connected and usable by
 }
 ```
 
+For `agentmail`, the card is an inline API-key card addressed to the responsible user. It shares the key with every person in the company, installs access for the requesting agent only, creates or connects an inbox, and completes only once the server confirms that inbox is usable. A saved key alone does not make the request ready. If setup stops partway, it resumes after a reload under the same request without duplicating the account or the inbox.
+
 If the service is already connected, `state` is `ready`, `connectionId` is set, `interactionId` is `null`, and the instruction says the service is available in this run. Requests are idempotent per run and service, so calling twice won't spawn two cards.
 
 ---
@@ -106,7 +110,7 @@ These are mounted under `/api` and answer the connection card. Every one is a bo
 GET /api/connection-intents/{interactionId}/setup-options
 ```
 
-Returns what the person needs to answer the card: the interaction itself, the requested `service` (name, description, logo, and connection `methods`), any `existingConnections` for that service they're eligible to use, and the `requestedAgentId`. If the service is no longer offered, this responds `404` with `Connection service is no longer available`.
+Returns what the person needs to answer the card: the interaction itself, the requested `service` (name, description, logo, and connection `methods`), any `existingConnections` for that service they're eligible to use, and the `requestedAgentId`. For an AgentMail card that was partly completed, it also returns `emailSetup` with the saved `credentialConnectionId` and `readyConnectionId`, so the card can resume. If the service is no longer offered, this responds `404` with `Connection service is no longer available`.
 
 ### Update the phase
 

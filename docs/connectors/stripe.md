@@ -25,8 +25,8 @@ Restricted keys are the main control on this connector. Stripe lets you grant re
 ## Connect Stripe
 
 1. Open **Connectors** and select **Stripe**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Choose how to authenticate:
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+3. Check how you will authenticate. Setup starts on the recommended method; to use the other one, select **Change**:
    - **Sign in with Stripe** — browser sign-in.
    - **Use an API key** — paste a Stripe key, created under [API keys](https://dashboard.stripe.com/apikeys) in the Stripe dashboard.
 4. Finish setup.

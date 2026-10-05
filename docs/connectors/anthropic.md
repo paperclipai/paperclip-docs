@@ -27,8 +27,9 @@ Subscription plans carry their own usage limits, and those limits are Anthropic'
 ## Connect Anthropic
 
 1. Open **Connectors** and select **Anthropic**.
-2. On the **Access** step, choose whether the credential is **Personal** or **Company shared**, and which agents may use it.
-3. Choose the sign-in method.
+2. Choose the sign-in method.
+
+Setup is a single screen with no separate access step. Once the account is saved, you change which people and agents may use it from the saved connection.
 
 ### With an API key
 
@@ -87,6 +88,35 @@ The practical consequence: **a binding cannot substitute for a responsible user.
 
 A **Personal** connection stays yours; **Company shared** makes one account available to eligible agents on runs whose responsible person is in its human audience. The model itself is chosen in the agent's configuration, not here.
 
+### Connect from an agent's settings
+
+You can also connect an account without leaving the agent. In the agent's **AI connection** field:
+
+- **Reconnect account** appears when your current personal default needs attention. It signs you in again and repairs that same account, so its default and its agent access stay as they were.
+- **Connect another account** opens **Connect account**, which tells you up front that the new account *"will become your default for this provider."* Your tasks use it; other people keep their own defaults.
+
+When you connect a brand-new account this way, you also see **Allow all agents in this company to use this account for my tasks**. It starts ticked if you can manage connections. Clear it to keep the account to this agent only. Either way, the account backs only tasks you are responsible for, and a reconnect never widens access an account already has. If sign-in succeeds but the default cannot be saved, **Retry default selection** tries again without another sign-in.
+
+## Check your usage limits
+
+Before you hand an agent a long task, you can see how much of the provider's allowance is left. Open the saved account and find **Usage**, then select **Check usage**. This works for a Anthropic subscription. An API-key account shows *"Unavailable for this sign-in method."* instead of the button, because the provider has no single-key allowance to read.
+
+Paperclip reads the limits only when you ask. Opening the account, listing connections, and starting a run never trigger a check. Each limit window shows how much is used and when it resets, and is marked **Limit reached** or **Blocked** when the provider says so. **Overage** shows whether extra paid usage is available. Anything the provider leaves out shows as **Not reported**, never as zero. After a successful check, the button becomes **Refresh**.
+
+Some Claude subscription credentials are allowed to run models but not to read usage. In that case you see *"Usage access denied."* That is a limit of the stored sign-in, not a sign that your plan is exhausted, and signing in again for model access alone does not change it.
+
+
+Checking is read-only. It does not move work to another account, stop runs at a limit, refresh the credential, or buy credit.
+
+| Message | What it means |
+| --- | --- |
+| *"Sign in again to check usage."* | The stored credential has expired. Reconnect the account |
+| *"Usage access denied."* | The provider refused to share usage for this credential |
+| *"Too many checks. Try again later."* | The provider rate-limited the check itself. Your allowance is not affected |
+| *"Reconnect to check usage."* | The account is not usable right now. Reconnect it first |
+
+Board users can run the same check over the API with `GET /api/companies/{companyId}/ai-connections/{connectionId}/usage`.
+
 ## Try it
 
 Before you run anything, read the agent's configuration and note which AI connection it is set to use — the responsible user's default, or a specific shared connection. That setting, not the run output, is where the intended credential is visible.
@@ -118,7 +148,7 @@ Watch the run rather than a status badge: a connection can show as connected and
 | The sign-in command does nothing | The `claude` CLI is not installed on the host you ran it on, or you ran it on the wrong machine | Install the CLI and run the command on the Paperclip server host. This branch also requires that you are operating Paperclip locally rather than over a remote board session |
 | *"Another sign-in is still open"* | A previous attempt has not expired | Finish or wait out the open attempt, then retry |
 | Status **expired** or **needs attention** | A subscription credential rotated, or the API key was revoked | Reconnect the account |
-| Runs fail with a provider quota error | Anthropic's plan or key limits, not a Paperclip limit | Check usage with Anthropic |
+| Runs fail with a provider quota error | Anthropic's plan or key limits, not a Paperclip limit | On a subscription, select **Check usage** on the saved account to see which window is exhausted and when it resets. Otherwise check usage with Anthropic |
 
 Limitations: one connection is one provider account. This connector grants no tool access of any kind. Model choice and the agent's runtime are configured on the agent, not on the connection.
 

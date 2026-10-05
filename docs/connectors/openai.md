@@ -29,8 +29,9 @@ Confirm current plan entitlements and limits with OpenAI rather than assuming; t
 ## Connect OpenAI
 
 1. Open **Connectors** and select **OpenAI**.
-2. On the **Access** step, choose whether the credential is **Personal** or **Company shared**, and which agents may use it.
-3. Choose the sign-in method.
+2. Choose the sign-in method.
+
+Setup is a single screen with no separate access step. Once the account is saved, you change which people and agents may use it from the saved connection.
 
 ### With an API key
 
@@ -85,6 +86,32 @@ So **a binding cannot substitute for a responsible user**: with no responsible p
 
 **Personal** keeps the credential yours; **Company shared** makes one account available to eligible agents on runs whose responsible person is in its human audience. The model is chosen in the agent's configuration, not here.
 
+### Connect from an agent's settings
+
+You can also connect an account without leaving the agent. In the agent's **AI connection** field:
+
+- **Reconnect account** appears when your current personal default needs attention. It signs you in again and repairs that same account, so its default and its agent access stay as they were.
+- **Connect another account** opens **Connect account**, which tells you up front that the new account *"will become your default for this provider."* Your tasks use it; other people keep their own defaults.
+
+When you connect a brand-new account this way, you also see **Allow all agents in this company to use this account for my tasks**. It starts ticked if you can manage connections. Clear it to keep the account to this agent only. Either way, the account backs only tasks you are responsible for, and a reconnect never widens access an account already has. If sign-in succeeds but the default cannot be saved, **Retry default selection** tries again without another sign-in.
+
+## Check your usage limits
+
+Before you hand an agent a long task, you can see how much of the provider's allowance is left. Open the saved account and find **Usage**, then select **Check usage**. This works for a OpenAI subscription. An API-key account shows *"Unavailable for this sign-in method."* instead of the button, because the provider has no single-key allowance to read.
+
+Paperclip reads the limits only when you ask. Opening the account, listing connections, and starting a run never trigger a check. Each limit window shows how much is used and when it resets, and is marked **Limit reached** or **Blocked** when the provider says so. **Overage** shows whether extra paid usage is available. Anything the provider leaves out shows as **Not reported**, never as zero. After a successful check, the button becomes **Refresh**.
+
+Checking is read-only. It does not move work to another account, stop runs at a limit, refresh the credential, or buy credit.
+
+| Message | What it means |
+| --- | --- |
+| *"Sign in again to check usage."* | The stored credential has expired. Reconnect the account |
+| *"Usage access denied."* | The provider refused to share usage for this credential |
+| *"Too many checks. Try again later."* | The provider rate-limited the check itself. Your allowance is not affected |
+| *"Reconnect to check usage."* | The account is not usable right now. Reconnect it first |
+
+Board users can run the same check over the API with `GET /api/companies/{companyId}/ai-connections/{connectionId}/usage`.
+
 ## Try it
 
 First read the agent's configuration and note which AI connection it is set to use. That setting, not the run output, is where the intended credential is visible. Then:
@@ -114,7 +141,7 @@ Watch the run itself — a connection can look healthy and still fail at run tim
 | **Sign in** is unavailable | No sign-in environment is offered on this deployment | Ask an administrator whether a sandbox sign-in environment can be enabled; otherwise use an API key |
 | The sign-in command does nothing | The `codex` CLI is missing on the host you ran it on, or you ran it on the wrong machine | Install the CLI and run the command on the Paperclip server host. This branch also requires operating Paperclip locally rather than over a remote board session |
 | Status **expired** or **needs attention** | The credential rotated or the key was revoked | Reconnect the account |
-| Runs fail with a quota error | OpenAI's plan or key limits, not a Paperclip limit | Check usage with OpenAI |
+| Runs fail with a quota error | OpenAI's plan or key limits, not a Paperclip limit | On a subscription, select **Check usage** on the saved account to see which window is exhausted and when it resets. Otherwise check usage with OpenAI |
 
 Limitations: one connection is one provider account, and it grants no tool access. The subscription path is tied to the Codex CLI rather than being a general OpenAI API credential.
 

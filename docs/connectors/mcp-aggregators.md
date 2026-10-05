@@ -55,6 +55,8 @@ You do not have to set these up in advance. When an agent needs an app that Pape
 
 > *"Connect HubSpot through an external service? These services handle the connection and requests to HubSpot. Connecting a provider does not yet authorize HubSpot."*
 
+Agents find these apps the same way they find any connector: by name, or by describing what they need in plain language. A whole sentence works, and so do small typos and split names. To know which apps an aggregator can reach, Paperclip keeps its own list built from the providers' published catalogs, including Composio's public toolkit catalog, so the agent's search never leaves Paperclip. A match in that list is a lead, not a promise: it does not mean your provider account is connected to the app.
+
 The options list the providers that support that app, with the first one marked **Recommended**, plus **None for now**. Paperclip ranks them Composio, Arcade, Executor, then Zapier. Choosing **None for now** stops there: nothing is connected.
 
 If you pick a provider you already have a connection for, the setup card offers to reuse it (*"Use an existing connection or connect a new account"*), or you can select **Connect new**. Reusing an account keeps its existing access as it was.

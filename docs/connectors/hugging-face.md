@@ -20,7 +20,7 @@ That is genuinely all for public content. Connect with an account that belongs t
 ## Connect Hugging Face
 
 1. Open **Connectors** and select **Hugging Face**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 3. Select **Sign in with Hugging Face** and complete browser sign-in.
 
 Paperclip registers its client automatically, so there is nothing to configure in a developer console.
@@ -34,9 +34,9 @@ Two tiers of content, and the difference is worth stating:
 | Public models, datasets, and papers | Anyone. Connecting adds no privileged access to these |
 | Private or gated repositories | Only if the authorizing account already has access |
 
-Because most of the value here is public content, this is one of the lower-risk connectors to give an agent. The exception is an account with access to private organization repositories — that account's reach becomes the agent's.
+Because most of the value here is public content, this is one of the lower-risk connectors to give an agent once its writes are switched off. The exception is an account with access to private organization repositories — that account's reach becomes the agent's.
 
-Paperclip asks Hugging Face for the `read-mcp` scope, which is what makes this a low-risk connector to start with. Treat that as the intent rather than a guarantee you need not check: the action list is the provider's, so read it on the **Permissions** tab and set anything that is not a read appropriately. See [Set action permissions](action-permissions.md).
+Paperclip asks Hugging Face for the `read-mcp`, `read-repos`, `contribute-repos`, and `jobs` scopes. That covers reading, but also contributing to repositories and running jobs, so this is not a read-only connection by default. Read the action list on the **Permissions** tab and set anything that is not a read to **Ask first** or **Off** until you need it. See [Set action permissions](action-permissions.md).
 
 > **Note:** The connection targets the Hub's own tools, and Paperclip requests the endpoint with Gradio tooling switched off — so the interactive applications hosted on Spaces are not part of this connection's surface.
 

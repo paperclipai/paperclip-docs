@@ -23,6 +23,20 @@ Every action a connector exposes has one of three settings, per connection. This
 
 Changes take effect on the next call. There is no reconnect and no restart.
 
+## Change a whole group at once
+
+The list is split into **Read** and **Write** groups. Next to each group heading is a **Set all** menu. Choose **Set all: Off**, **Set all: Ask first**, or **Set all: Allowed** to change every action in that group in one go. When the actions in a group have different settings, the menu shows **Mixed**.
+
+This is the quick way to lock down a fresh connection: set the whole **Write** group to **Ask first** or **Off**, then open up individual actions on their own rows as you need them. Per-action settings always stay available underneath.
+
+## Why new connections can make changes
+
+When you connect a service, Paperclip asks the provider for the permissions its read **and** write actions need, and where a connector offers a read-only and a read-and-write version, setup starts on the one that can make changes. That way an agent is not blocked later by a credential that cannot do the job. The read-only choices are still there under **Change** when you connect.
+
+What an agent may actually do is still decided here, action by action. Connecting with write access does not switch any action from **Off** or **Ask first** to **Allowed**, and reconnecting or changing sign-in settings never does either.
+
+For an API-key connection, the key carries whatever the provider gave it. Paperclip cannot add permissions to a key that already exists, so if an action fails for lack of access, create a key with the permissions you need and reconnect. When a provider explicitly says a sign-in lacks a permission, the action fails with *"The provider has not granted the permissions needed for this action. Reconnect this connection and allow the required read and write access."*
+
 The summary above the list reads back the current state — **Allowed for**, **Ask first for**, and **Off for** — so you can confirm a bulk change without scrolling the whole catalog.
 
 ## Read the risk classification

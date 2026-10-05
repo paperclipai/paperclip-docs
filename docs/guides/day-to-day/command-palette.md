@@ -46,7 +46,7 @@ The **Actions** group runs common create-flows without leaving the page you're o
 
 | Action | What it does |
 |--------|--------------|
-| **Create new task** | Opens the new-task dialog. The `C` hint next to it is the standalone keyboard shortcut for the same thing — it works once you turn on **Keyboard shortcuts** in your [Profile settings](../../administration/settings.md#keyboard-shortcuts), a personal setting that's off by default. |
+| **Create new task** | Opens the new-task dialog. The `C` hint next to it is the standalone keyboard shortcut for the same thing — it's always on, as long as you aren't typing in a text field (see [Keyboard shortcuts](../../administration/settings.md#keyboard-shortcuts)). |
 | **Create new agent** | Opens the new-agent flow. |
 | **Create new project** | Takes you to Projects to start a new one. |
 

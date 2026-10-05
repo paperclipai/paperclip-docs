@@ -154,15 +154,7 @@ GET  /api/tool-gateway/gateways/{gatewayId}/mcp
 POST /api/tool-gateway/gateways/{gatewayId}/mcp
 ```
 
-The `GET` is a small discovery document telling a client how to connect:
-
-```json
-{
-  "transport": "streamable_http",
-  "endpoint": "/mcp/gateways/{gatewayPublicId}",
-  "authentication": "bearer"
-}
-```
+The gateway speaks MCP's streamable HTTP transport over `POST` only. A `GET` returns `405 Method Not Allowed` with an `Allow: POST` header, which tells an MCP client straight away that there is no server-sent events stream to open.
 
 The `POST` speaks JSON-RPC. Authenticate with `Authorization: Bearer <gateway-token>`; without it you get `401 Unauthorized` and `{ "error": "Bearer token is required" }`.
 

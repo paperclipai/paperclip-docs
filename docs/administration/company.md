@@ -16,7 +16,7 @@ This guide walks through each of those surfaces in the order you typically meet 
 
 The **General** page groups the settings that apply to the whole organization rather than to any one agent or project. Open it from the sidebar under the organization name.
 
-Company and instance settings now share one navigation, so this is also where the instance-wide general controls appear. If you are an instance admin, the deployment and auth readiness summary, backup retention, log censoring, and AI feedback-sharing controls all render on this same **General** page — see [Settings](./settings.md#instance-general) for what each one does. Keyboard shortcuts are no longer here: they're a personal preference now, on your [Profile](./settings.md#keyboard-shortcuts). The sections below cover the organization-specific settings.
+Company and instance settings now share one navigation, so this is also where the instance-wide general controls appear. If you are an instance admin, the deployment and auth readiness summary, backup retention, log censoring, and AI feedback-sharing controls all render on this same **General** page — see [Settings](./settings.md#instance-general) for what each one does. Keyboard shortcuts are no longer a setting at all — they're [always on](./settings.md#keyboard-shortcuts) for every signed-in user. The sections below cover the organization-specific settings.
 
 ![Company general settings](../user-guides/screenshots/light/company/settings.png)
 

@@ -17,7 +17,7 @@ The practical case is CMS content: an agent drafting, checking, or updating coll
 ## Connect Webflow
 
 1. Open **Connectors** and select **Webflow**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 3. Select **Sign in with Webflow** and complete browser sign-in, authorizing the sites you want when Webflow asks.
 
 Paperclip registers its client automatically, so there is nothing to configure in a developer console.

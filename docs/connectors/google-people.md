@@ -7,6 +7,8 @@ seo_description: Let agents look up contacts and Workspace directory profiles. R
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
+> **Note:** While verification is pending, the Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. This hides them from the list only. Existing Google connections keep running with their access and permissions unchanged, and an agent that needs a Google service can still ask you for it with a connection card on its task.
+
 Agents can search your Google contacts, search your organization's Workspace directory, and read your own profile.
 
 This connector is read-only. There is no capability group that writes, so an agent cannot create, edit, or delete a contact.
@@ -22,8 +24,8 @@ This connector is read-only. There is no capability group that writes, so an age
 ## Connect Google People
 
 1. Open **Connectors** and select **Google People**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Select **Connect with Paperclip**, or **Use your own Google OAuth app** — the latter needs the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+3. Paperclip uses **Connect with Paperclip** when your instance offers it. To use your own client instead, select **Use your own Google OAuth app** and supply the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
 4. Complete Google's consent screen.
 
 There is one capability group, **Read contacts**, requesting `directory.readonly`, `userinfo.profile`, and `contacts.readonly`.

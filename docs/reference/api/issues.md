@@ -207,7 +207,7 @@ Create a new issue in a company. This endpoint accepts the full `createIssueSche
 
 Notable inputs:
 
-- `title` is required.
+- `title` is optional when you send a `description`. Send at least one of them, or the request fails validation. Without a title, the task starts with a provisional title taken from the start of the description (up to 120 characters). Markdown is stripped first, so the title reads as plain text: images are dropped, link labels and inline code keep their text, and a description that's only an image uses the image's alt text (or `Image`). `titleNeedsGeneration` is `true`, and the assigned agent is asked to give it a proper name early — see [Set Task Title](#set-task-title).
 - `status` defaults to `backlog`.
 - `priority` defaults to `medium`.
 - `projectId`, `goalId`, and `parentId` establish the issue's placement.
@@ -386,6 +386,39 @@ response = requests.patch(
 
 ---
 
+## Set Task Title
+
+```
+PUT /api/issues/{issueId}/title
+```
+
+Rename a task without touching anything else. This is how an agent names a task you started with just a prompt: when the task has `titleNeedsGeneration: true`, the assigned agent replaces the provisional title with a short, outcome-focused one. It doesn't change the task's status, assignee, or description, and it's allowed in standard, Ask, and Plan modes.
+
+| Field | Notes |
+|---|---|
+| `title` | The new title, 1–240 characters. |
+| `onlyIfProvisional` | Optional, defaults to `false`. Send `true` for automatic naming: the title only changes while it's still provisional, so a title you (or anyone else) already chose is never overwritten — even if you edit it at the same moment. |
+| `idempotencyKey` | Optional retry key. Only accepted from an agent's run. |
+
+```bash
+curl -s -X PUT http://localhost:3100/api/issues/{issueId}/title \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID" \
+  -H "Content-Type: application/json" \
+  -d '{ "title": "Fix sign-in redirect", "onlyIfProvisional": true }'
+```
+
+The response tells you what happened: `{ "id", "title", "titleNeedsGeneration", "changed" }`. `changed: false` means the title was left alone — for example because it was no longer provisional.
+
+Notes:
+
+- An agent can only rename a task it's assigned to, from the run that currently owns that task. Otherwise the request returns `403`.
+- Any explicit title edit — through this route or a normal update — clears `titleNeedsGeneration`.
+- Title changes are recorded in the activity log like other issue updates.
+- Agents on Paperclip Runner use the `set_task_title` tool for the same thing.
+
+---
+
 ## Checkout a Task
 
 ```
@@ -486,18 +519,43 @@ That lets a fresh run adopt the stale checkout lock safely.
 POST /api/issues/{issueId}/release
 ```
 
-Release a checked-out issue and return it to `todo`.
+Release a checked-out issue's execution locks. What else happens depends on whether the work is finished.
 
 Release semantics:
 
-- The issue's `status` is set to `todo`.
-- `assigneeAgentId` is cleared.
-- `checkoutRunId` is cleared.
+- `checkoutRunId` and `executionRunId` are always cleared.
+- **Unfinished issues:** `assigneeAgentId` is cleared, and an `in_progress` issue goes back to `todo`. Other unfinished statuses keep their status.
+- **Finished issues (`done` or `cancelled`):** the assignee, the final status, and the `completedAt` / `cancelledAt` timestamps are kept, even if you release more than once. Ownership stays part of the work history.
 - `assigneeUserId` is preserved — release only unassigns the agent, not a paired user.
 - Board users can release without matching checkout ownership.
 - Agent-authenticated releases must come from the assignee's current checkout run.
 
 If you need to give the issue back to the backlog instead of just releasing it, do that as a separate update.
+
+---
+
+## Agent Chat conversations
+
+With the experimental [Agent Chat](../../experimental/agent-chat.md) feature on, each person gets one persistent conversation per agent in a company. Each conversation is an ordinary issue, so you read and write it with the normal issue, comment, document, and attachment routes. These three routes find and create them.
+
+```
+GET  /api/companies/{companyId}/chats
+GET  /api/companies/{companyId}/chats/{agentRef}
+POST /api/companies/{companyId}/chats/{agentRef}
+```
+
+| Route | What it does |
+|---|---|
+| `GET .../chats` | Lists the signed-in user's conversations in this company, filtered to the ones they can read. |
+| `GET .../chats/{agentRef}` | Returns the signed-in user's conversation with that agent, or `null` if there isn't one yet. Read-only — it never creates anything. |
+| `POST .../chats/{agentRef}` | Returns the existing conversation, or creates it. A new one is titled `Chat with <agent name>`, assigned to the agent, and starts `in_review` with `conversationState: "waiting"`. Creation is logged as `issue.conversation_opened`. |
+
+`{agentRef}` accepts an agent ID or the agent's URL reference. Notes:
+
+- Only signed-in board users can call these routes; anything else gets `403` with `Board user access required`.
+- While Agent Chat is off, all three return `404` with `Agent Chat is disabled`.
+- An unknown agent returns `404` (`Agent not found`); a reference that matches more than one agent returns `409` (`Agent reference is ambiguous`).
+- Conversations follow ordinary company task visibility — teammates can read yours — but only the person who owns a conversation can post messages in it. Anyone else gets `403` with `Only the conversation owner can send messages or start a new session`.
 
 ---
 
@@ -1252,9 +1310,11 @@ Two related guarantees come with it:
 
 ### Cards superseded by a comment
 
-There is a second automatic expiry, and it also runs when you list an issue's interactions. If a pending card carries `supersedeOnUserComment: true` in its payload — the default for `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`, and `request_item_verdicts` — and a genuine human comment was posted at or after the card was created, the card expires and `result.commentId` points at the comment that replaced it. Confirmation and verdict cards record this as `result.outcome: "superseded_by_comment"`; `ask_user_questions` records it as `result.expirationReason: "superseded_by_comment"` instead.
+There is a second automatic expiry, and it also runs when you list an issue's interactions. If a pending card carries `supersedeOnUserComment: true` in its payload and a genuine human comment was posted at or after the card was created, the card expires and `result.commentId` points at the comment that replaced it. Confirmation and verdict cards record this as `result.outcome: "superseded_by_comment"`; `ask_user_questions` records it as `result.expirationReason: "superseded_by_comment"` instead.
 
-Only real human comments count: the comment must have a user author and must not have been written by an agent run. Set `supersedeOnUserComment: false` in the payload when a card must survive discussion in the thread.
+This is opt-in. For `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`, and `request_item_verdicts` the server fills in `supersedeOnUserComment: false` when you leave it out, so an ordinary comment leaves the card pending and someone can still answer it. Set it to `true` when a reply in the thread should replace the card. Connection-intent cards, and confirmations bound to a tool action, never expire this way.
+
+Only real human comments count: the comment must have a user author and must not have been written by an agent run.
 
 Both sweeps run on `GET /api/issues/{issueId}/interactions`, so a caller that lists interactions always sees settled state — no separate cleanup call needed.
 
@@ -1556,7 +1616,7 @@ When the server transitions an issue, it also:
 | `→ done` | Sets `completedAt`. Wakes any issues whose `blockedByIssueIds` are now fully resolved (`issue_blockers_resolved`). Wakes the parent if all children are now terminal (`issue_children_completed`). |
 | `→ cancelled` | Sets `cancelledAt`. Cancelled issues do **not** count as resolved blockers — replace or remove them explicitly to unblock dependents. |
 | `→ blocked` | Records the unresolved blocker count. Does not auto-resolve when the parent is closed. |
-| `release` | Clears `assigneeAgentId` and `checkoutRunId`, sets status to `todo`. `assigneeUserId` is preserved. |
+| `release` | Clears `checkoutRunId` and `executionRunId`. On unfinished issues it also clears `assigneeAgentId` and moves `in_progress` back to `todo`; on `done` or `cancelled` issues the assignee and status are kept. `assigneeUserId` is preserved. |
 | `reopen: true` | If the issue is `done` or `cancelled`, resets to `todo` (or another status if explicitly provided). |
 
 ### Review stages and `executionState`

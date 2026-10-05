@@ -33,6 +33,8 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 > **Note:** On Paperclip Cloud, the new-agent picker offers Claude, Codex, OpenCode, and Grok. Grok agents connect with an xAI subscription or API key during setup.
 
+> **Tip:** Grok Build can also run on the experimental **Paperclip Runner** adapter (`paperclip_runner`) — choose **ACP agents** as the provider, then **Grok Build**. It needs Grok Build installed at a fixed path in the execution environment. See [Grok Build on Paperclip Runner](../../reference/adapters/grok-local.md#grok-build-on-paperclip-runner).
+
 ### Agents run in full auto by default
 
 Agents do their work while nobody is watching, so there's no one around to answer "may I run this command?" prompts. That's why the coding adapters start in full-auto mode: Claude Code, Codex, OpenCode, and Gemini CLI agents use their tools — including tools from connected services such as MCP servers — without stopping to ask for approval.

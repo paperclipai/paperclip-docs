@@ -13,23 +13,54 @@ This is a conversation channel, not a set of tools an agent calls against your o
 
 ## Before you connect
 
-- **Chat connectors** must be switched on for the instance. It is an experimental setting and it is off by default; an instance administrator enables it under experimental settings. Without it, email and chat setup is hidden.
-- An AgentMail account and an API key from the [AgentMail console](https://console.agentmail.to).
+- An AgentMail account and an API key from [AgentMail's API-key page](https://console.agentmail.to/dashboard/api-keys). An organization or pod key can create new addresses; a key limited to one inbox can only connect that inbox.
 - The agent that will own the inbox. One inbox belongs to one agent.
-- To use your own domain, verify it in AgentMail first. Inboxes on `agentmail.to` need no verification.
+- To use your own domain, verify it in AgentMail first. Inboxes on `agentmail.to` need no verification. Paperclip does not register domains or manage DNS; see AgentMail's [custom domains guide](https://docs.agentmail.to/custom-domains).
+
+AgentMail is available on every instance. You do not need to turn on any experimental setting.
 
 ## Connect AgentMail
 
-1. Open **Connectors** and select **AgentMail**.
-2. On the **Access** step, choose the identity and which agents may use the connection, then select **Save and continue**.
-3. Paste your **AgentMail API key**. Paperclip stores it as a secret.
-4. Create a new inbox or select an existing one. If you create one, choose the address and, for a custom domain, pick a domain you have already verified.
-5. Choose how Paperclip receives mail:
-   - **Live connection** — Paperclip holds an outbound connection to AgentMail and reconnects on its own. No public URL is needed. This is the simpler choice and works behind a firewall.
-   - **Webhook** — AgentMail posts to Paperclip. Your API key must have webhook create, read, and delete permission for the inbox, or setup fails with a message telling you to fix the key or use **Live connection**.
-6. Assign the inbox to its agent and finish.
+Setup is two short steps: pick the agent, then pick its address.
 
-> **Note:** If the owning agent runs at low trust, it needs an active sandbox environment before its inbox can be connected.
+1. Open **Connectors**, find **AgentMail**, and select **Add connection**. The screen reads **Give an agent an email address**.
+2. On the **Agent** step, choose the agent under **Agent**.
+3. Supply the API key. If you or your team already saved an AgentMail key you can use, Paperclip offers it in the list; otherwise choose **Enter a new API key** and paste one. Paperclip stores it as a secret and never shows it to agents. Select **Continue**.
+4. On the **Email address** step, type the name and pick the domain from the dropdown beside it. The domain starts on your first verified custom domain, or `agentmail.to` if you have none. Paperclip checks the address as you type:
+   - *"This email address is already in use. Choose a different address."* means someone already has it. Pick one of the suggestions after **Try:**, or type another.
+   - *"AgentMail confirms availability when you create the address."* means Paperclip could not tell yet. You can still go ahead; AgentMail has the final say when the address is created.
+5. To use an inbox that already exists in your AgentMail account instead, select **Use an existing inbox** and pick it from the list. Inboxes already assigned to another agent are marked **already assigned**.
+6. Select **Create email address** (or **Connect email address** for an existing inbox).
+
+When the screen reads **Your agent’s email is ready**, the agent can receive mail at that address. Select **Done** to go back to **Connectors**, or **Email settings** to open the inbox's settings.
+
+A new key starts out usable by every person in the company and by the selected agent only. If you reuse a saved key, its existing access is kept as it was. You can adjust access later on the inbox's **Access** tab.
+
+### Advanced options
+
+**Advanced options** on the email step holds the settings most people can leave alone:
+
+- **Set up a custom domain ↗** links to AgentMail's domain guide.
+- **Receiving** chooses how Paperclip gets new mail:
+  - **Live connection** (the default) — Paperclip holds an outbound connection to AgentMail and reconnects on its own. No public URL is needed, so it works behind a firewall.
+  - **Webhook** — AgentMail posts to Paperclip. Your API key must have webhook create, read, and delete permission for the inbox, or setup fails with a message telling you to fix the key or use **Live connection**.
+- A reminder that an unrestricted inbox can receive mail from anyone, and **Review trust settings** to check which tasks and tools this agent can reach.
+
+> **Note:** If the owning agent runs at low trust, it needs a work boundary and an active sandbox environment before its inbox can be connected. On the **Agent** step, Paperclip says *"This agent needs a work boundary before it can receive email."* — select **Configure work boundary** to set it.
+
+### If setup is interrupted
+
+You can leave and come back. A browser refresh keeps what you typed, except the API key, which is never saved in the browser. An unfinished inbox shows on **Connectors** with **Finish setup**, which picks up exactly where you stopped, including an address that was already created before something went wrong.
+
+If an address was created but the connection did not finish, the email step shows the address with **Finish connecting**. To use another address instead, select **Choose a different address**. The first inbox stays in your AgentMail account; Paperclip never silently creates a replacement.
+
+To remove an unfinished or finished inbox from Paperclip, use **Remove connection** on **Connectors**. The inbox and its mail stay in AgentMail, and task history stays in Paperclip.
+
+## When an agent asks for an email address
+
+You do not have to set the inbox up in advance. When an agent working on a task needs its own email address, it asks you with a card on the task rather than a setup link or a request to paste a key in chat.
+
+The card asks only for the API key. Choose a saved key or enter a new one, then select **Connect AgentMail**. Paperclip saves the key, creates an address for that agent (or connects the one inbox an inbox-limited key allows), and lets the agent carry on only once the inbox is actually usable. The new key is usable by everyone in the company and by that one agent. If the key is wrong, **Change API key** lets you try another before any address is created; **Not now** declines.
 
 ## How email becomes work
 
@@ -73,16 +104,27 @@ That confirms the whole receiving path — credential, inbox assignment, and rou
 
 > **Note:** Procedure, not a recorded test result. It sends one message from your own account to your own inbox; nothing is delivered to a third party.
 
+## Manage an inbox
+
+Open the inbox from **Connectors**. Each inbox has its own **Settings**, **Access**, **Conversations**, and **Activity** tabs.
+
+- **Settings** leads with the agent's address. Click it to copy it, or select **View inbox** to open the inbox in AgentMail's console. Below that, **Receiving email** shows the receiving mode and the **Last mail check**, with **Pause** and **Resume**. **Reconnect inbox** lets you paste a **New API key** or switch receiving mode, and **Disconnect inbox** stops receiving email in Paperclip while the inbox stays in AgentMail.
+- **Access** holds the saved account's credential and agent controls. Changes there apply to every inbox that uses the same AgentMail account.
+- **Conversations** links each email thread to its task.
+- **Activity** shows deliveries and anything Paperclip published.
+
 ## Troubleshooting and limitations
 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
-| AgentMail does not appear in **Connectors** | **Chat connectors** is off for the instance | Ask an administrator to enable it in experimental settings |
+| *"This email address is already in use."* | Someone else already has that address | Pick a suggestion after **Try:**, or type another name |
+| The key only connects one inbox | It is an inbox-limited key | Choose a saved account key or enter one to create a new address, or select **Use the existing inbox instead** |
 | Setup fails asking about webhook permissions | The API key cannot manage webhooks for this inbox | Grant webhook create, read, and delete permission in AgentMail, or choose **Live connection** |
 | Mail arrives in AgentMail but no task appears | Receiving is not established, or the inbox is not assigned to an agent | Check the connection's health and that the inbox has an owning agent |
 | A custom-domain inbox cannot be created | The domain is not verified in AgentMail | Verify the domain in AgentMail, then retry |
 | The agent cannot read a thread you can see | The thread is on an inbox that is not assigned to that agent | Assign the inbox to that agent, or give the work to the agent that owns it |
 | The inbox was disconnected and will not come back | A disconnected inbox is not reusable | Create a new inbox connection |
+| An address was created but setup stopped | A provider or network error after the address was allocated | Select **Finish setup** on **Connectors** to resume; nothing is duplicated |
 
 Limitations: one inbox, one owning agent. Paperclip does not enforce who may write to the inbox. Attachments and thread history come from AgentMail, so what an agent can see is what AgentMail retains.
 

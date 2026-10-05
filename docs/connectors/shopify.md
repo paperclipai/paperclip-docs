@@ -33,8 +33,8 @@ Shopify offers two, and Paperclip exposes both:
 
 1. Confirm the storefront is public.
 2. Open **Connectors** and select **Shopify**.
-3. On the **Access** step, choose the identity and which agents may use the connection.
-4. Choose the server option.
+3. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+4. Check the server option, and select **Change** to pick a different one.
 5. Enter the **Store domain** as the bare permanent host — `your-store.myshopify.com`, with no `https://` and no trailing path. Paperclip validates the format and rejects anything that is not a `myshopify.com` host.
 6. Finish setup.
 

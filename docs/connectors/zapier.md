@@ -22,7 +22,7 @@ The actions an agent can call are decided in Zapier, not Paperclip. This is the 
 1. In Zapier, create an MCP server and enable only the actions agents should have. Start with the smallest useful set.
 2. Copy the server's complete generated connection URL.
 3. Open **Connectors** and select **Zapier**.
-4. On the **Access** step, choose the identity and which agents may use the connection.
+4. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 5. Paste the full URL on the **Add MCP URL** step and select **Check link**. Paperclip verifies it can reach the server, then stores the URL as a secret.
 
 Paste the URL exactly as Zapier generated it, including the token portion. A truncated URL fails the check.

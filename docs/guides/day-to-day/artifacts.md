@@ -82,12 +82,27 @@ Where an artifact came from a real file, the card gives you the means to open it
 
 The Artifacts page is the company-wide shelf. Sometimes you're already inside one task and just want to see what *this* task produced — without going back out to the shelf and filtering your way in.
 
-The task's properties panel has an **Artifacts** tab for exactly that. Outputs are grouped by the run that produced them, newest run first:
+The task's properties panel has an **Artifacts** tab for exactly that. Outputs are grouped by the run that produced them, newest run first, under the name of the agent that ran it. Each output gets its own full-width card, shaped to what it actually is, so you can tell a merged pull request from a draft report at a glance:
 
-- **Images and videos** show as a gallery of preview tiles — one, two, or three across depending on how wide you've made the panel. That includes images and videos an agent simply attached, not only the ones it handed back as formal work products. Video tiles show a still from early in the clip rather than a blank frame. Click a tile to open the gallery viewer, where videos play and you can download the file.
-- **Documents and other files** stay as full-width rows beneath their run.
+| Card | What it shows | How you open it |
+|---|---|---|
+| **Pull request** | The PR number, repository, source and target branch, whether it's **Open**, **Draft**, **Merged**, or **Closed**, its checks (**Checks passed**, **Checks failed**, **Checks pending**), and the lines and files it changed. | **Open pull request** |
+| **Commit** | The short SHA, repository, branch, and lines changed. | **View commit** |
+| **Document** | A preview of a document the agent wrote. | **Read document** expands it in place; **Close document** folds it back. |
+| **Image** | The picture itself. | **View image** opens the gallery viewer. |
+| **Video** | A still from the clip. | **Open video** plays it. |
+| **Link preview** | A preview URL the agent published — a deployed preview site, for example — with its image when there is one. | **Open link** |
+| **Data** | A CSV file. The table isn't loaded until you ask for it. | **Preview data** loads the first rows into a table; **Download file** saves the original. |
+| **File** | Anything else, with its type and size. | **Open file**, or download it. |
 
-Every row and tile is clickable across its whole surface — title, thumbnail, and the space around them all do the same thing. The tab is read-only — a quick answer to "what came out of this task?", not a place to upload or delete.
+A few details worth knowing:
+
+- **CSV previews are on request.** Click **Preview data** to load a table for files up to 1 MB. Anything bigger says *"CSV is too large to preview. Download the file to view it."*
+- **Text files open in a tab.** Markdown and plain-text attachments get an **Open in tab** button. It opens the file in a tab in the same side pane, so the conversation stays in view. Markdown files have **Rendered** and **Raw** buttons to switch between the formatted page and the source, and a download button gives you the original file. Clicking a text attachment in the conversation opens the same tab, and the tab is reused as you open the next file.
+- **Branches without a link say so.** When an agent records a branch but no remote URL, the card reads **Branch · no remote link** rather than implying there's somewhere to click through to. Use **Show details** to see its provider, its status, and when it was last updated. If the agent saved a description, it's tucked under **Saved description**.
+- **Unhealthy outputs are flagged** with an **Unhealthy** badge, so a broken preview link doesn't pass for a working one.
+
+The tab is read-only — a quick answer to "what came out of this task?", not a place to upload or delete.
 
 > **Note:** if your instance has switched back to the old layout with **Classic Task Interface** (under **Legacy** in **Settings → Instance settings → Experimental**), there's no Artifacts tab — a task's attachments stay in the **Attachments** section on the task page. See [Experimental features](../../experimental/overview.md).
 
@@ -177,7 +192,7 @@ Every comment is addressable. Open a thread and use **Copy link** to grab a deep
 - **Stacks** — artifacts grouped by their task (or rolled up by parent task), so related outputs stay together.
 - **Cards** — previews you can read or watch in place, each linking back to the issue it came from.
 - **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from a file artifact or from an inline file chip an agent left in its writing.
-- **Artifacts tab on a task** — one task's outputs in its properties panel, with images and videos as a gallery of tiles.
+- **Artifacts tab on a task** — one task's outputs in its properties panel, each on a card shaped to what it is: pull request, commit, document, image, video, link preview, CSV data, or file.
 - **Document comments** — inline, Google-Docs-style threads anchored to a passage in a Plan or Artifact document; open or resolved, authored by people or agents, and shareable by deep link.
 
 You now know how to find, filter, and review everything your agents have made. When you want to dig into the work behind a given artifact, follow its link back to the issue and pick up the thread there.

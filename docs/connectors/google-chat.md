@@ -7,6 +7,8 @@ seo_description: Let agents search and read Google Chat conversations, and optio
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
+> **Note:** While verification is pending, the Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. This hides them from the list only. Existing Google connections keep running with their access and permissions unchanged, and an agent that needs a Google service can still ask you for it with a connection card on its task.
+
 Agents can search Google Chat conversations and read messages, and on a sending connection post messages to spaces the authorizing account belongs to.
 
 This is a tool connector: an agent reads and writes Chat using *your* Google account. It is not a channel for people to start work by messaging an agent — Google Chat is not one of Paperclip's conversation channels. If that is what you want, see [Slack](slack.md), [Discord](discord.md), [Microsoft Teams](microsoft-teams.md), or [Telegram](telegram.md).
@@ -43,8 +45,8 @@ The group is fixed for the life of the connection.
 ## Connect Google Chat
 
 1. Open **Connectors** and select **Google Chat**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Choose the capability group, then the path you settled above — **Connect with Paperclip**, or **Use your own Google OAuth app** with the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+3. Check the capability group. Setup starts on the group that can make changes; to connect read-only, select **Change** and pick it under **What should Paperclip be able to do?**. Paperclip uses **Connect with Paperclip** when your instance offers it. To use your own client instead, select **Use your own Google OAuth app** and supply the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
 4. Complete Google's consent screen with the registered Workspace account.
 
 ## Choose access
