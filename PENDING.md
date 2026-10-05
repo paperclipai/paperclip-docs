@@ -2,114 +2,92 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.916.1` → parent master `0f14d261` (@ 2026-09-27T11:42Z), 170 commits, 24h quarantine applied. 1,671 files in window; compare truncation 0.
-- **Base note:** `v2026.916.1` is tagged off-master (1 hotfix commit touching `services/documents.ts` / `IssueDetail.tsx`, not on master), so the cumulative base is the merge-base `dffc2b3` (= the `v2026.916.0` SHA).
-- **Merge main → nightly:** nothing to absorb. `main` (`478d24c`) was already merged into nightly (`f65e481`), so ancestry is intact.
-- **Verification:** the GitHub REST quota ran out mid-run, so every changed page was checked adversarially against a local checkout of the parent at `0f14d261`, not by `verify-edit` alone. The checkers fixed several drafting errors before commit (see *Verification corrections*).
+- **Window (cumulative):** base release tag `v2026.1001.0` (`8f8a0ab7`) → parent master `994d6edc` (@ 2026-10-04T02:19Z), 264 commits, 24h quarantine applied. 1,960 files in window; compare truncation 0.
+- **Base note:** `v2026.1001.0` is on master this time (compare status `ahead`, behind 0), so the tag SHA is the cumulative base directly.
+- **Merge main → nightly:** nothing to absorb. `main` (`186095c`) was already merged by the post-release realign (`2ee3523`).
+- **Already on nightly:** drafts for commits up to `0f14d261`, kept on nightly as post-tag drafts by the v2026.1001.0 realign. This run covers the 171 newer commits, `0f14d261..994d6edc`.
+- **Verification:** every changed page was re-run through `verify-edit --against 994d6edc` after drafting. Each remaining flag was checked by hand against a local checkout of the parent at `994d6edc` (see *Verification notes*).
 
 ## Applied this run (PR-tier drafts on `nightly`)
 
-- **Composio broker retired (`b82661b5`).** Removed the four deleted `/api/tool-connections/{connectionId}/services…` routes from `docs/reference/api/tool-gateway.md` (the usage route is kept) and documented the `422 composio_broker_retired` behaviour for leftover broker connections. `recognized-providers.md` now says Composio is listed again as an MCP aggregator. **This resolves the 4 new tool-gateway drift records.**
-- **MCP aggregators, memory connectors, native-first provider choice (`e8c8ba3c`, `8781f06a`, `18dac1e1`, `aa8fc863`, `b41ccf09`, `4721f558`).**
-  - New page `docs/connectors/mcp-aggregators.md`, added to the nav under Shared Guides.
-  - Catalog sections in `docs/connectors.md`.
-  - `experimental/connections-apps.md` covers the **Memory connectors** toggle, off by default, and notes that `enableMcpAggregators` is deprecated.
-  - `connectors/mem0.md` now notes the toggle is required.
-  - `reference/cli/connections.md` documents `--retry-provider-choice`, `--target-service` and `--selection-interaction-id`.
-- **New connectors (`24429024`, `6fe8e306`, `fcdb3f24`).** New pages `connectors/fireflies.md`, `connectors/railway.md` and `connectors/you-com.md`, with catalog rows and nav entries. All three are visible by default.
-- **Slack (`924f07be`, `d9b3a565`, `a10702a8`, `b0155a68`, `57fd8b70`, `8725d6ce`, `a7d3b17a`).** Rewrote `connectors/slack.md`:
-  - the seven-step setup wizard and account linking
-  - communication instructions
-  - governed Slack tools and which ones need approval
-  - the Idle state
-  - scheduling through routines plus `slack_open_dm`
+- **Company skills (`d432dc7f`, `eb049aeb`, `427e0484`).**
+  - New GitHub skill **Sources**: add a repo, pick skills, then **Refresh**, **Select skills** or **Disconnect source**. Synced skills are read-only.
+  - The agent **Update skill** tool, with its version guard and `skills.edit` policy.
+  - The local-import folder boundary, which now includes managed checkouts.
+  - Pages: `guides/org/skills.md`, `reference/skills.md`, `how-to/write-a-company-skill.md`, `reference/api/company-skill-policy.md`.
+- **Agents (`3ca196b0`, `b17019e1`, `862a5758`, `4039d4f0`, `0829d94a`, `f7e36ba3`, `01899314`).**
+  - Agent files persist across tasks with no revision history: `baseHash` stale-save protection, storage limits, and the older compatibility routes.
+  - A new CEO gets a one-line `AGENTS.md`, and hire drafts are short role descriptions.
+  - Low-trust agents can do the work a person asks for directly, and can edit instructions from the owner's chat.
+  - `PUT /api/issues/{issueId}/title` added, and `title` is now optional on create.
+- **Connectors (`467125fa`, `6c1a75da`, `7d59de61`, `4ac37410`, `33f2b3a1`, `25c422ba`, `c8f87431`, `ad55d0a2`, `839cac13`, `6d654f63`, `a36cbffa`, `e00d10d5`, `cad26c6b`).**
+  - The separate **Access** step is gone. It is replaced by a default access line plus **Change** across ~32 tool connector pages and `first-connector.md`.
+  - AgentMail is a default connection with inline setup and is no longer experimental.
+  - **Check usage** for AI connections, via `GET .../ai-connections/{connectionId}/usage`.
+  - **Asana**: sign-in through Paperclip's shared app. **Linear**: Paperclip now registers its own OAuth client.
+  - **GitHub**: the Code Review Bot is now a separate entry from the GitHub tools.
+  - **Google**: minimal scopes, and Google connectors are hidden from the Connectors page while verification is pending.
+  - **Hugging Face** is no longer read-only. Its scopes and the tutorial are corrected.
+  - **MCP**: custom servers stay signed in with `offline_access`, test results are readable, and the gateway answers GET with `405`.
+- **Tasks and chat (`f38b5693`, `83076d7e`, `1b48e73e`, `33a00d2f`, `0be2afcc`, `29c8fb0b`, `24c58e47`, `db72ad4c`, `e912f0df`, `76369664`, `d6fa1fd1`, `cc67d4e1`, `c9b93d7e`, `994d6edc`).**
+  - Keyboard shortcuts are always on, and `GET/PATCH /api/auth/preferences` was removed. This **reverses last cycle's draft**; see Reconcile.
+  - New page `experimental/agent-chat.md` (added to the nav under Experimental), plus the chats routes in `api/issues.md`.
+  - Composer: the **Add** menu, **Auto mode** (renamed from "Agent mode" everywhere), the combined model/effort picker, and Steer/Interrupt with Retry.
+  - Artifacts: rich card types, CSV preview, and **Branch · no remote link**.
+  - Inbox: **Mine** only shows your own failed runs.
+  - The account menu has an **Invite** row and **Edit profile**.
+  - `issue release` keeps the assignee on finished tasks.
+  - `supersedeOnUserComment` now defaults to `false`.
+- **Adapters, environment variables, plugin SDK (`f1a394bd`, `18e8c121`, `92ad158c`, `d9b64ee2`, `4e524632`, `0d3e7bf6`).**
+  - Grok Build on **Paperclip Runner**, covered in `grok-local.md`. `connectors/xai.md` no longer says the runner can't use the Grok credential.
+  - Claude and Codex model ordering, and `CODEX_API_KEY` on Codex's ACP engine.
+  - Daytona recovers when its log stream drops.
+  - New env vars: `PAPERCLIP_WORKSPACE_GIT_SNAPSHOT_TIMEOUT_MS`, `PAPERCLIP_WORKSPACE_MANIFEST_MIN_FREE_BYTES`, `PAPERCLIP_RUNNER_API_COMPANY_CAPTURE_MAX_BYTES`.
+  - `PAPERCLIP_ADAPTER_MODELS` is now documented. It existed at the tag but was never covered.
+  - Plugin SDK: `onEnvironmentStopLease` / `stop_and_retain` and `CreateIssueThreadInteractionInput`.
 
-  The chat route is still behind the experimental **Chat connectors** setting.
-- **Routines (`da257c30`, `f589660e`, `24429024`).**
-  - New `app_webhook` signing mode (Bearer or body HMAC), plus the legacy `fireflies_hmac`.
-  - The webhook-URL reachability warning banner.
-  - Runs are now shown as an in-routine issue list, and History moved to a header button.
-  - A Fireflies example on the generic webhook path. There is no Fireflies trigger kind.
-  - Also fixes wrong pre-existing header lists for `hmac_sha256`/`github_hmac`, and an example that created a `github_hmac` trigger but fired it with Bearer.
-- **Tasks (`d0b67bfe`, `1ccae464`, `9fd2e503`, `11921075`, `6bc830b6`, `2788f20f`).**
-  - Answers are queued while a run is active (Steer/Interrupt).
-  - Artifact media gallery.
-  - Agent-created company skills (`skills.create`, source `generated`).
-  - The `first-task` onboarding skill.
-  - Retry-budget escalation to `blocked`.
-  - The Ancestors list in the Tasks panel.
-  - Also corrects older pages that still called Chat-Style Tasks opt-in. It has been the default since `815e49bb`, and the old page is the **Classic Task Interface** legacy toggle. Fixed in `task-chat.md`, `experimental/overview.md` and `plan-decomposition-panel.md`.
-- **Settings, members, plugins (`01d9a121`, `e2f1a66a`, `794b09f8`, `c341588b`, `8c6cc7dc`, `7badae69`, `b70641f2`, `1dbffb4c`).**
-  - Keyboard shortcuts are now a per-user Profile preference.
-  - `PAPERCLIP_HIDDEN_SETTINGS` accepts the `instance.experimental.*` wildcard with `!` exceptions.
-  - Cloud **Invite people** button.
-  - Cloud lifecycle routes.
-  - Plugin `appShellOverlay` / `organizationSwitcher` slots, environment-creation cleanup helpers, and distribution plugin catalogs.
-- **Bundled skills and environment (`4b8ec588`, `7944ed3d`, …).** `reference/skills.md` has a summary of the recent guidance. `PAPERCLIP_WAKE_PAYLOAD_JSON` is marked retired in `environment-variables.md`: wake context now travels in the prompt.
-- **Agents and adapters (`1ef3b087`, `45c99a0d`, `cdf04a33`, `83abfa46`, `327ab2fe`, `7944ed3d`, `9335b7db`, `e18ed02a`).**
-  - Agent character `appearance` and the `GET /api/agent-avatars/{version}/{palette}/{pose}.png` route.
-  - Full-auto permission defaults for Claude remote/`IS_SANDBOX`, Codex and OpenCode.
-  - Model and reasoning-effort refresh on the Claude, Codex, Gemini, Grok, Kimi, OpenCode and Cursor pages.
-  - Grok in the Cloud agent picker.
-  - `inheritRuntimeFrom: "caller"` on hires.
+**Not covered here, on purpose:** Browser Use Cloud (`d72389be`) and Neon (`5b8b2b38`) connector pages are drafted in open PR **#143**. That PR targets `main`, but both connectors are post-tag (`master` only), so it should be retargeted to `nightly` or held until the next stable release.
 
-**Carried from prior nightly runs (still in window, unchanged):** CreateOS sandbox provider (`a8d32e5e`) and routine webhook setup (`f589660e`).
+**Auto-merge tier:** empty. The env-vars watcher only matched `server/src/config.ts`, which was a refactor (the deployment-mode read moved to `config-file.ts`) and added or removed nothing. The env-var edits that were made span several files and include a rename, so they are PR tier.
 
-**Auto-merge tier:** empty. The env-vars watcher flagged only `sandbox-providers/createos/src/config.ts`, a plugin config parser rather than an env schema, the same as last run.
+## ↻ Reconcile
 
-### Verification corrections (caught before commit)
+- **Keyboard shortcuts as a per-user Profile preference** was drafted last cycle from `01d9a121`. Upstream reversed it in `f38b5693`, which also added migration `0289_drop_user_keyboard_shortcuts`. That draft entry has left the manifest. This run already rewrote the affected pages (`administration/settings.md`, `administration/company.md`, `guides/day-to-day/command-palette.md`, `reference/api/instance-admin.md`), so nothing is left to undo.
 
-- `slack.md`: removed a fabricated `slack_schedule_message` tool; setup copy is now gated on **Chat connectors**.
-- `connectors.md` You.com row: dropped the unsupported "news / read pages" claim.
-- "Any human in the organization": renamed only where the **setup flow** is described. The connection identity card still reads "Any human in the company", so `share-access.md`, `access-model.md` and `gmail-setup.md` are unchanged.
-- `mcp-aggregators.md`: removed a quoted banner that never renders in production.
-- `cli/connections.md`: an explicit provider request can override a native match; the option label is "None for now".
-- `issues.md` / `artifacts.md` / `task-chat.md`: corrected the recovery notice titles, the artifact run ordering and empty-state text, and the Steer/Interrupt availability.
-- `plugins.md`: a plugin-ID mismatch is skipped and logged, not a boot failure.
-- `sdk.md`: `organizationSwitcher` props arrive nested.
-- `api/agents.md`:
-  - The avatar route's `429` means rate-limited and `503` means the render failed.
-  - `inheritRuntimeFrom: "caller"` copies the *caller's* adapter config and default environment.
-  - The test-environment route needs permission to create agents. The existing line saying otherwise was wrong.
-- `codex.md`: the exceptions to the full-auto bypass only apply while `dangerouslyBypassApprovalsAndSandbox` is unset.
+## ⚠ Drift (checked against master @ `994d6edc`)
 
-### Pre-existing drift fixed along the way
+High-confidence:
+- **`PAPERCLIP_ID_CONNECTOR_*` (5 vars), real.** They are retired: the code reads them only to fail with `CONNECTOR_MIGRATION_REQUIRED`, and the live names are `PAPERCLIP_CLOUD_CONNECTOR_*` (`server/src/services/paperclip-cloud-connector.ts`). Fixed on nightly. **This was already true at `v2026.1001.0`, so `main` documents the wrong variables. A hot-fix on `main` is warranted.**
+- **`PAPERCLIP_WORKSPACE_GIT_SCAN_*` (4 vars), false positive.** They are read through an `envInteger(env, "...")` helper in `server/src/services/workspace-git-operation-scheduler.ts` that the checker doesn't scan.
 
-- `claude-code.md`, `codex.md`, `gemini-cli.md`, `kimi-local.md`: `engine: auto` no longer falls back to the CLI. It runs ACP and fails with a setup error when prerequisites are missing. `claude-local/src/server/acp.ts`, `kimi-local/src/index.ts`
-- `codex.md`: the `outputInactivityTimeoutMs` default is 30 minutes (`1800000`), not 7. `codex-local/src/server/output-inactivity-monitor.ts`
+Medium (Verify):
+- `GET /api/auth/preferences` / `PATCH /api/auth/preferences`: **real.** Removed in `f38b5693`, and now gone from the docs.
+- Verify: `GET /api/agent-avatars/{version}/{palette}/{pose}.png` is a **false positive**. The route is `/agent-avatars/:version/:palette/:file` in `server/src/routes/agent-avatars.ts`, and `:file` must end in `.png`.
+- Verify: `/api/companies/import/transfers*` (5 routes) are a **false positive**. They are registered through the `COMPANY_IMPORT_TRANSFERS_ROUTE_PATH` constant in `server/src/routes/companies.ts`.
 
-## ⛔ Quarantined (held <24h — reconsider next run)
+## Verification notes
 
-Commits after `0f14d261` (2026-09-27T11:42Z), about 24 commits from 2026-09-28 onward, including:
-- `f1a394bd` Grok Build through native ACP
-- `24c58e47` rich task artifact cards and editable stories
-- `0be2afcc` task composer controls
-- `270afd2f` staging account menu commit
-- `d9d21471` Cloud sign-in flow
-- `bacc0e6a` coordination skill escalation removal
+All of the following were checked by hand at `994d6edc` and are present:
+- `acpxAgent` / `paperclip_runner` in `grok-local.md`: the checker only searched the grok-local package.
+- `CODEX_API_KEY`: in `packages/paperclip-runner/src/drivers/acpx/environment.ts`.
+- `PAPERCLIP_CLOUD_CONNECTOR_*`: in `paperclip-cloud-connector.ts`.
+- The new env vars: in `git-workspace-sync.ts`, `workspace-manifest.ts` and `runner-api-response-limits.ts`.
+- The `/companies/:companyId/chats[/:agentRef]` routes: in `issues.ts:17265`, `17276`.
+- `issue` CLI flags `--answers-json`, `--outcome`, `--source-issue-status`: in `cli/src/commands/client/issue.ts`.
 
-## Deferred / needs a human
+Known false-flag classes, left as they are:
+- The all-caps SDK constants in `plugins/sdk.md` (`PLUGIN_*`, `PRINCIPAL_TYPES`, …).
+- Runtime-injected `PAPERCLIP_RUNTIME_TOOLS_*` in `cli/connections.md`, and `PAPERCLIP_GITHUB_TOKEN` in `day-to-day/issues.md`.
+- `secret_ref` / `secretId` values in the adapter pages.
+- `PAPERCLIP_CLOUD_PROD_PROVIDER_RAILWAY_TOKEN` (`environment-variables.md:341`) is pre-existing, not in this diff, and not found at `994d6edc`. It needs a separate look.
 
-- **Chat-style task side panel.** It is now a launcher of closable tabs (Properties, Tasks and Artifacts are always offered; the plan opens as a document tab). The "Tabs in the properties panel" section of `guides/day-to-day/issues.md` and the side-pane section of `experimental/task-chat.md` still describe "earned" tabs and need a rewrite. `TaskSidePanel.tsx`
-- **Plan decomposition flag title** is now **Task Plan Decomposition** in the UI. The docs still say "…Panel".
-- **Paperclip Runner defaults** (`7bc03e0a`, `f2ed0b65`): ACPX `approve-all`, the new `approve-paperclip` mode, and `PAPERCLIP_RUNNER_API_TOOLS_ENABLED`. No docs page covers the Runner provider yet.
-- **Onboarding ClipLab hero / Setup Wizard** (`86b7ee99`) and **native agent review** (`84fe8990`): screenshot-dependent or server-internal, still deferred to a release-branch pass.
-- **Railway action quarantine:** `railway.md` says newly added Railway actions are quarantined on refresh. The logic exists, but where `quarantineNewEntries` gets set for Railway was not traced.
-- **History notes the shallow checkout can't confirm.** Each is plausible; a reviewer should check them:
-  - Gemini 2.0 Flash models have been dropped.
-  - Codex used to run sandboxed by default.
-  - Remote Claude runs used to get a hand-picked tool list.
-  - With `dangerouslySkipPermissions: false`, a tool that needs approval simply won't run.
-- **Screenshots:** 256 of 350 stale across 56 routes (see `SCREENSHOTS_PENDING.md`). New captures wanted: the Slack wizard steps, provider-choice card, routine reachability banner and Runs list, the Skill created card, the artifact gallery, queued answers, agent characters, and the effort dropdowns.
+## Follow-ups for a human
 
-## ⚠ Drift (Phase 1.5)
-
-18 records against master. 14 are the known false positives and 4 were real and are now fixed:
-
-- **rest-route `tool-connections/{id}/services…` (medium, 4): real.** Removed upstream by `b82661b5`; fixed this run in `tool-gateway.md`.
-- **env-var `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (high, 4) and `PAPERCLIP_ID_CONNECTOR_*` (high, 5): false positives.** These vars sit in commented or grouped blocks in `.env.example`.
-- **rest-route companies `import/transfers` (medium, 5): false positives.** They're registered through `COMPANY_IMPORT_TRANSFERS_ROUTE_PATH`.
-
-## ⚠ Reconcile (Phase 3.5)
-
-- None. Both previously applied entries (CreateOS, routine webhook triggers) are still in the cumulative window.
+- **Chat channel setup wording:** `discord.md`, `telegram.md`, `microsoft-teams.md` and `imessage-photon.md` still say "On the **Access** step", but chat setup starts at **Choose agent**. This predates the window; fix separately.
+- **Google pages:** they still open with "Open **Connectors** and select …" while the Google entries are hidden. Each page has a note pointing to the agent-raised card, but no direct setup URL has been confirmed.
+- **Undocumented routes:**
+  - `POST /api/agents/{id}/connection-intents/{interactionId}/adopt` (`2f6fa3b6`).
+  - `distinctTasks` on `GET /api/companies/{companyId}/live-runs` (`efc2e681`); that route has no API reference page at all.
+- **Paperclip Runner (`paperclip_runner`):** still has no adapter reference page, and `adapters/overview.md` doesn't list it.
+- **Task watchdogs:** `task-watchdogs.md` could cover the new silence thresholds from `22cea6b2`: suspicious after 5 minutes, critical after 15.
+- **Screenshots:** `agents/instructions.png` (new + / Delete controls) and `task-chat/composer-modes.png` (old mode picker, now removed from the page) need re-shooting. See `SCREENSHOTS_PENDING.md`: 180 of 350 are stale.
