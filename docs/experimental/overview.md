@@ -17,10 +17,10 @@ This section has one page per experimental feature: why it exists, how to turn i
 An experimental feature in Paperclip:
 
 - **Has shipped and works.** These aren't stubs — each flag gates a complete surface.
-- **Is opt-in.** Everything stays hidden until you flip the flag, so the UI stays out of your way if you don't use it.
+- **Has a feature gate.** Most flags are off by default. Paperclip Runner is experimental even though its gate defaults to on for self-hosted instances; Cloud can manage a different value.
 - **Comes with no compatibility guarantees.** The app puts it plainly when you open the page: *"Experimental features may break at any time. These features are opt-in and come with no compatibility guarantees. They may change, break, or be removed without notice. Avoid relying on them for critical or production workflows."*
 
-Turning a flag on is not dangerous in the "this will corrupt your data" sense, and flipping one back off is always safe — features are hidden, not deleted, and any data they created is kept. But don't build a workflow that has to stay stable on top of one, and expect to re-read the release notes after an upgrade: experimental features may be renamed, reworked, promoted to core settings, or retired between releases.
+Check the feature's own page before changing its flag: hiding a surface and disabling execution can have different effects. Avoid relying on experimental behavior for a workflow that must stay stable, and read the release notes after an upgrade. Features may be renamed, reworked, promoted to core settings, or retired between releases.
 
 ## Turning a feature on
 
@@ -58,6 +58,10 @@ Only some features are managed this way. Anything without the badge is still you
 | [Task Plan Decomposition Panel](plan-decomposition-panel.md) | Shows accepted-plan decomposition history on task detail pages. |
 | [Chat-Style Tasks](task-chat.md) | **Now the default.** The task detail page as a live conversation: chat bubbles, streaming activity that folds into a one-line summary, a three-mode composer, and a resizable Properties · Plan · Artifacts pane. The old page is behind the **Classic Task Interface** toggle under **Legacy**. |
 | [Agent Chat](agent-chat.md) | One ongoing conversation per agent, reached from a **Chat** entry in the sidebar. Agents clarify your goal, hand real work off to tasks, and report back in the chat when those tasks are done. |
+| [Assistant connections (MCP)](assistant-connections.md) | **Experimental; off by default.** Connect an external assistant as your user through OAuth, with separate read, write, and configuration scopes. |
+| [Memory connectors](../connectors/memory-connectors.md) | **Experimental; off by default.** Set up Mem0, Zep, Supermemory, Cognee, or Honcho for agents. Existing connections keep running when setup is hidden. |
+| [Paperclip Runner](../reference/adapters/paperclip-runner.md) | **Experimental.** Native agent execution, enabled by default for self-hosted instances and disabled by default on Cloud. Agents must be explicitly configured to use it. |
+| [Combined Inbox + Task List](task-chat.md#an-optional-combined-task-list) | **Experimental; off by default.** Reach inbox and task views from one **Tasks** navigation entry. |
 | [Task Watchdogs](task-watchdogs.md) | Watchdog agents that verify stopped task subtrees and restore live paths when work should continue. |
 | [Status Cards](status-cards.md) | A shared board of living summaries: one message per card, compiled into a watch query and kept current by the Summarizer. |
 | [Cloud Sync](cloud-sync.md) | **Retired.** Host-to-host Cloud Sync has been removed upstream, toggle included — you won't find it on the Experimental page any more. Use [company Import/Export](../how-to/back-up-and-restore-a-company.md) to move a company between instances. |

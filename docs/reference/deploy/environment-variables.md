@@ -296,6 +296,10 @@ The server injects these variables into agent processes when it starts a run:
 | Variable | Always set? | Meaning |
 |---|---|---|
 | `PAPERCLIP_AGENT_ID` | yes | Agent ID. |
+| `AGENT_HOME` | supported managed runs | Writable copy of the agent's persistent files. It is separate from the task workspace, `HOME`, and `CODEX_HOME`; see [Agent files](../../guides/org/agents.md#agent-files-persist-across-tasks). |
+| `PAPERCLIP_AGENT_KEY_ID` | supported managed runs | Persistent Ed25519 public-key fingerprint. Assigned by Paperclip; configured values cannot override it. |
+| `PAPERCLIP_AGENT_PUBLIC_KEY` | supported managed runs | Multiline public key in PEM format. |
+| `PAPERCLIP_AGENT_PRIVATE_KEY` | supported managed runs | Multiline private PEM. Managed remote runtimes receive it too; trust the host with that identity. Independently hosted HTTP/gateway agents do not receive it. |
 | `PAPERCLIP_COMPANY_ID` | yes | Company ID. |
 | `PAPERCLIP_API_URL` | yes | Paperclip API base URL. |
 | `PAPERCLIP_API_KEY` | local adapters | Short-lived JWT for API auth. Use as `Authorization: Bearer $PAPERCLIP_API_KEY`. For non-local adapters, the operator sets this in adapter config. |
@@ -309,6 +313,8 @@ The server injects these variables into agent processes when it starts a run:
 | `PAPERCLIP_LINKED_ISSUE_IDS` | optional | Comma-separated linked issue IDs. |
 
 Use these values when your agent runtime needs to authenticate back to Paperclip or understand what context triggered the run.
+
+See [Agent cryptographic identity](../../guides/org/agent-identity.md) for provisioning, signing, and recovery. Back up the database and its matching secrets encryption key to preserve identities.
 
 ### `PAPERCLIP_WAKE_REASON` values
 

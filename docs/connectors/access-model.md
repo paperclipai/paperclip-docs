@@ -71,6 +71,8 @@ You do not have to answer this before you connect. Setup states the identity it 
 
 Creating a personal connection is available to any active member. Creating an organization or dedicated-agent grant is a manager operation — Paperclip rejects the request with *"Only a connection manager can share this credential with the organization"* if you lack the permission, and it enforces that on the server rather than trusting the browser.
 
+AgentMail is a setup exception: its new key defaults to everyone in the company and only the selected inbox owner. Reusing a key retains its existing grants.
+
 An organization grant has its own human audience, set on the connector's identity card: **Any human in the company**, or **Humans I pick** with a named member list. That audience governs which people's runs the shared credential will back.
 
 [Use separate accounts for people and agents](separate-accounts.md) walks through choosing between them.
@@ -82,9 +84,15 @@ Independently of the grant, each connection says which agents may use it at all.
 - **Any agent** — *"Available across your company."*
 - **Just agents I pick** — *"Available only to selected agents."* You then choose the agents.
 
-New connections default to `all_agents`. That is an open default, not an approval bypass: creating the connection is itself an authorized, audited operation, and every individual action still has its own permission.
+New tool connections normally default to `all_agents`; setup for a requesting agent narrows access to that agent. Methods and saved connections can carry more specific access. This does not bypass approval: creating the connection is itself an authorized, audited operation, and every individual action still has its own permission.
 
 For a dedicated agent identity the question narrows to *"Which agent owns this GitHub account?"* — the identity and the agent are the same decision.
+
+## Saved connection guidance
+
+Some connections also contribute editable instructions to an eligible agent's task context. The five experimental memory providers include defaults; saved instructions can be used with other connections too.
+
+Guidance never grants access or removes an approval requirement. Turning it off retains tool access, and a connection must still have an accessible tool and current grant before its enabled guidance is delivered. See [Saved connection instructions](connection-instructions.md).
 
 ## Action permission: which calls are allowed
 
@@ -143,3 +151,8 @@ Access decisions resolve at call time, not at setup time. The tool gateway holds
 - [Set action permissions](action-permissions.md)
 - [Tool Gateway](../reference/api/tool-gateway.md)
 - [Trust and low-trust review](../administration/trust-and-low-trust-review.md)
+
+## Sources
+
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

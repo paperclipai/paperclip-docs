@@ -158,7 +158,7 @@ Back on **Skill sources**, each repository lists the skills you installed from i
 - **Select skills** reopens the picker. New skills that appeared in the repository wait here — the row reads *"1 new skill available"* (or however many) — until you tick them and click **Save selection**. Unticking an installed skill stops syncing it, but *"Unchecked skills stay installed."*: the skill keeps its content and its agent assignments.
 - **Disconnect source** stops syncing the whole repository. The installed skills stay in your library; remove them separately if you want them gone.
 
-A refresh keeps each skill's identity, folder, assignments, and history, and creates a new version only when the files actually changed. Agents already mid-run, and agents pinned to a specific version, keep what they had. If a refresh fails, your agents keep the last good version and the source shows the error with a **Review source** link. A skill that was deleted upstream stays installed and is marked **Removed from source · last installed version retained**.
+A refresh keeps each skill's identity, folder, assignments, and history, and creates a new version only when the files actually changed. Agents already mid-run, and agents pinned to a specific version, keep what they had. If a refresh fails, your agents keep the last good version and the source shows the error with a **Review source** link. A skill that was deleted upstream stays installed and is marked **Removed from source · installed copy retained**.
 
 Because Paperclip stores a complete copy of every synced skill, agents can use them without reaching GitHub during a run.
 
@@ -270,12 +270,16 @@ The creation is also logged as `company.skill_created`, and it shows up in the t
 
 Skills get better with use, and often the agent that just followed one is the best placed to fix it — "the checklist missed the changelog step; add it." The native runner also gives agents an **Update skill** tool for exactly that. It rewrites a skill's whole `SKILL.md` in one go, the same way a save in Skill Studio does.
 
+The tool is named `update_skill`. The agent reads the skill and its `currentVersionId`, then sends the complete primary file with `expectedVersionId` and an `idempotencyKey` — not just the lines it wants to change.
+
 It's built so an agent can't trample anyone's work:
 
 - **Same modes, same rules.** Like **Create skill**, it's only offered in Auto mode and skill test runs, and it obeys your skill policy — here the `skills.edit` rule. If an agent may not edit that skill, it's refused. It can only change skills you could edit in Studio, so read-only skills (the built-in catalog, GitHub sources, skills.sh) are off limits.
 - **No overwriting newer edits.** The agent has to say which version of the skill it read. If someone saved a change in the meantime, the update is refused with *"Skill version changed. Read the current version before retrying."* — the agent rereads the skill and tries again on top of the latest version instead of silently undoing it.
 - **Retries don't double up.** If the request is interrupted and retried, the agent gets back the original result instead of creating a second version.
-- **Everything is recorded.** Each update becomes a new version in the skill's history, so you can compare or restore it in Studio, and it's logged as `company.skill_file_updated` against the task that made it.
+- **Everything is recorded.** Each changed update becomes a new version in the skill's history, so you can compare or restore it in Studio, and it's logged as `company.skill_file_updated` against the task that made it.
+
+After a version conflict, the agent rereads the skill and uses a new retry key for its revised request. The [Skills reference](../../reference/skills.md#native-runner-skill-tools) shows the input shape. Implementation reference: [tool contract](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/paperclip-runner/src/protocol-actions/update-skill.ts) and [file API binding](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/skill-tools.ts).
 
 ---
 

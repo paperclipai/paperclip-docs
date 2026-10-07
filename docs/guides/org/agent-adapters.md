@@ -22,7 +22,8 @@ Without an adapter, an agent is just a record in a database. With one, it's a wo
 | `codex_local` | OpenAI users — runs Codex on your Mac | Codex CLI installed, OpenAI API key |
 | `gemini_local` | Gemini users — runs Gemini CLI on your Mac | Gemini CLI installed, Google credentials |
 | `opencode_local` | Multi-provider flexibility, switchable models | OpenCode CLI installed, relevant API keys |
-| `cursor` | Users already working inside Cursor | Cursor installed and configured |
+| `cursor` | Cursor Agent CLI with resumable local runs | Cursor Agent CLI installed and authenticated |
+| `paperclip_runner` | Native sessions and Paperclip task tools | Runner enabled, prepared execution environment, compatible provider credential |
 | `pi_local` | Pi users wanting Pi's built-in tool set | Pi CLI installed, relevant API keys |
 | `grok_local` | xAI users — runs the Grok Build CLI | Grok CLI installed, xAI API key or SuperGrok login |
 | `hermes_local` | Persistent memory, 30+ tools, 80+ skills | Hermes Agent installed (Python 3.10+) |
@@ -34,6 +35,12 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 > **Note:** On Paperclip Cloud, the new-agent picker offers Claude, Codex, OpenCode, and Grok. Grok agents connect with an xAI subscription or API key during setup.
 
 > **Tip:** Grok Build can also run on the experimental **Paperclip Runner** adapter (`paperclip_runner`) — choose **ACP agents** as the provider, then **Grok Build**. It needs Grok Build installed at a fixed path in the execution environment. See [Grok Build on Paperclip Runner](../../reference/adapters/grok-local.md#grok-build-on-paperclip-runner).
+
+### Choose Paperclip Runner explicitly
+
+For the native lifecycle, choose **Paperclip Runner** and then select the provider. Codex and OpenCode have native routes; **ACP agents** offers Claude, Grok Build, and Cursor. Existing direct-adapter agents keep their current runtime until you change the adapter.
+
+This feature is experimental: `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. Cursor needs a prepared pinned runtime (`paperclipai runtime setup cursor`), an explicit model, and an Agent, Plan, or Ask session mode. Its token totals and per-run dollar cost are unavailable. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md) and [native Cursor setup](../../reference/adapters/cursor-local.md#cursor-on-paperclip-runner).
 
 ### Agents run in full auto by default
 

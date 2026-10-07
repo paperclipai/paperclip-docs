@@ -34,7 +34,7 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `appearance` | The agent's character (avatar) identity: `{ "schemaVersion": 1, "characterVersion": "cap-v1", "paletteId": "<palette>" }`. See [Agent Avatars](#agent-avatars) for the palette ids. |
 | `avatarUrl` | Read-only. A ready-made URL for the agent's character image, derived from `appearance`. |
 | `reportsTo` | Parent agent in the org tree. Must be in the same company and cannot create a cycle. |
-| `adapterType` | Runtime type such as `process`, `http`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `hermes_local`, `cursor`, or `openclaw_gateway`. External adapters can also be registered. |
+| `adapterType` | Runtime type such as `process`, `http`, `paperclip_runner`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `hermes_local`, `cursor`, or `openclaw_gateway`. External adapters can also be registered. |
 | `adapterConfig` | Adapter-specific config. Secret references are allowed inside `env`. |
 | `runtimeConfig` | Runtime settings. `heartbeat.enabled` defaults to `false` when you create an agent. |
 | `budgetMonthlyCents` | Monthly budget in cents. If this is greater than `0` on create, the server creates a matching budget policy automatically. |
@@ -132,6 +132,27 @@ res = requests.get(
 agent = res.json()
 ```
 <!-- /tabs -->
+
+---
+
+## Public Identity
+
+Read an agent's public cryptographic identity:
+
+`GET /api/agents/{id}/identity`
+
+Use the agent UUID and the same authorization required to read that agent. The response is `null` if the agent has not been provisioned, otherwise an object with:
+
+| Field | Value |
+| --- | --- |
+| `algorithm` | `Ed25519`. |
+| `keyId` | `sha256:` followed by the base64url SHA-256 fingerprint of the public key's SPKI DER bytes. |
+| `publicKeyPem` | Public key in SPKI PEM format. |
+| `createdAt` | Identity creation timestamp. |
+
+This read does not create an identity. New agents receive one at creation; older agents receive one on their next supported managed run. The endpoint never returns a private key. See [Agent cryptographic identity](../../guides/org/agent-identity.md) for signing and recovery. These keys do not replace agent API tokens.
+
+For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api).
 
 ---
 
@@ -1087,7 +1108,13 @@ To delete a file from a managed bundle, pass the same hash as a query parameter:
 
 ### Storage limits
 
+Managed bundles accept regular files and directories, including binary files. Symlinks and special files are rejected. The instruction entry remains a valid UTF-8 file of at most 1 MiB; other persisted files can use the larger per-file limit below.
+
 A managed folder holds up to 100,000 files and folders, 256 MiB per file, and 2 GiB in total. An API save that would go over a limit returns `422` and leaves the saved files unchanged. When a *run* goes over, its folder changes aren't saved; the run's save receipt reports `AGENT_FILES_LIMIT_EXCEEDED`, and the run detail shows a storage warning. The agent keeps running either way.
+
+Run synchronization saves only changed or deleted files. If separate runs or a browser save modify the same path, the last completed synchronization wins. Unchanged files remain intact. Current bytes live under `<paperclipInstanceRoot>/companies/<companyId>/agents/<agentId>/instructions/`, so include the instance filesystem in your backup as well as the database. Temporary working copies are cleaned up when their session stops and provide no new revision history.
+
+Implementation reference: [file store](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-file-store.ts), [managed directory path](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instructions.ts), and [instruction entry validation](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instruction-files.ts).
 
 ### Older revision and conflict routes
 

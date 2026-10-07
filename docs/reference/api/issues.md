@@ -536,7 +536,7 @@ If you need to give the issue back to the backlog instead of just releasing it, 
 
 ## Agent Chat conversations
 
-With the experimental [Agent Chat](../../experimental/agent-chat.md) feature on, each person gets one persistent conversation per agent in a company. Each conversation is an ordinary issue, so you read and write it with the normal issue, comment, document, and attachment routes. These three routes find and create them.
+With the experimental, off-by-default [Agent Chat](../../experimental/agent-chat.md) feature on, each person gets one persistent conversation per agent in a company. Each conversation is an ordinary issue, so you read and write it with the normal issue, comment, document, and attachment routes. These three routes find and create them.
 
 ```
 GET  /api/companies/{companyId}/chats
@@ -556,6 +556,10 @@ POST /api/companies/{companyId}/chats/{agentRef}
 - While Agent Chat is off, all three return `404` with `Agent Chat is disabled`.
 - An unknown agent returns `404` (`Agent not found`); a reference that matches more than one agent returns `409` (`Agent reference is ambiguous`).
 - Conversations follow ordinary company task visibility — teammates can read yours — but only the person who owns a conversation can post messages in it. Anyone else gets `403` with `Only the conversation owner can send messages or start a new session`.
+
+A comment whose trimmed body is exactly `/new` starts a fresh provider session while preserving conversation history. The session generation fences older turns; pending questions from the prior session expire. Handoff completion reports belong to the session that created them: tasks still run, but their completion updates are not delivered into a later `/new` session. Only a transition to `done` queues a completion report; other task states do not.
+
+Implementation reference: [conversation session boundaries](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-conversations.ts) and [handoff completion delivery](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/chat-completion-delivery.ts).
 
 ---
 
@@ -1364,6 +1368,43 @@ The request body is empty. The response always includes `outcome`, `message`, an
 | `gate_suppressed` | The promotion was blocked by a heartbeat gate (e.g. concurrency or budget); the run stays scheduled. |
 
 Activity is logged as `issue.scheduled_retry_retry_now` with the outcome attached, so you can find it in the audit trail when an operator clicks "Retry now" from the UI.
+
+---
+
+## Task pause holds and resume
+
+Use a pause hold to stop a task's work without cancelling the task. A hold applies to the root task and its eligible descendants. The task composer **Stop** and the menu's **Pause work** / **Pause subtree** actions use these routes.
+
+All routes below are board-only and check company access to the root task.
+
+| Route | Purpose |
+|---|---|
+| `POST /api/issues/{issueId}/tree-control/preview` | Preview a `mode` (`pause`, `resume`, `cancel`, or `restore`) and optional `releasePolicy`. |
+| `POST /api/issues/{issueId}/tree-holds` | Apply the mode. Accepts `mode`, optional `reason`, `releasePolicy`, and `metadata`. Returns `{ hold, preview }`. |
+| `GET /api/issues/{issueId}/tree-control/state` | Read the task's effective `activePauseHold`, including a hold inherited from an ancestor, or `null`. |
+| `GET /api/issues/{issueId}/tree-holds` | List holds. Optional query fields: `status`, `mode`, `includeMembers`. |
+| `GET /api/issues/{issueId}/tree-holds/{holdId}` | Read a hold. |
+| `POST /api/issues/{issueId}/tree-holds/{holdId}/release` | Release a hold. Accepts optional `reason`, `releasePolicy`, and `metadata`. |
+
+For a manual pause, send:
+
+```json
+{ "mode": "pause" }
+```
+
+To release the pause without waking agents, post `{}` to its release route. To request wakeups as well, send:
+
+```json
+{ "metadata": { "wakeAgents": true } }
+```
+
+Wakeups apply only to eligible assigned tasks in `todo`, `in_progress`, or `in_review`; parked and terminal tasks are left alone. Before a release with wakeups, the server checks execution blockers. A blocked request returns `409` and preserves the pause so uncertain provider actions aren't replayed. A successful release can include `wakeFailures`, an array of `{ issueId, message }`; those failures do not undo the release or stop wake requests for other eligible tasks.
+
+While an effective task or ancestor pause is active, a board comment — including a `PATCH` that includes a comment — is rejected with `409`. Interrupted agents can still report their results. [Agent Chat](#agent-chat-conversations) has its own `/new` reset for resuming a stopped conversation.
+
+The UI waits for affected runs to stop and reports an inline error if stopping cannot be confirmed. Receiving a hold response alone is not proof that a provider stopped or that interrupted effects are reconciled. See [Stop, pause, and resume](../../experimental/task-chat.md#stop-pause-and-resume).
+
+Implementation reference: [routes and release checks](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/routes/issue-tree-control.ts), [request schemas](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/validators/issue-tree-control.ts), and [tree membership rules](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/issue-tree-control.ts).
 
 ---
 

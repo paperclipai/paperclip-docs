@@ -34,7 +34,7 @@ Setup is two short steps: pick the agent, then pick its address.
 
 When the screen reads **Your agent’s email is ready**, the agent can receive mail at that address. Select **Done** to go back to **Connectors**, or **Email settings** to open the inbox's settings.
 
-A new key starts out usable by every person in the company and by the selected agent only. If you reuse a saved key, its existing access is kept as it was. You can adjust access later on the inbox's **Access** tab.
+A new key starts out usable by every person in the company and by the selected agent only. If you reuse a saved key, its existing access is kept as it was. You can adjust access later on the inbox's **Access** tab. Those saved-account changes apply to every inbox that uses the same key.
 
 ### Advanced options
 
@@ -66,7 +66,7 @@ The card asks only for the API key. Choose a saved key or enter a new one, then 
 
 | Stage | What happens |
 | --- | --- |
-| A message arrives | Paperclip creates a task for the owning agent, with the message as the opening context |
+| A message arrives | A new thread creates a task for the owning agent; later messages on that thread continue the same task |
 | The agent works | Ordinary task work. Internal comments and the agent's final response stay in Paperclip and never send email |
 | The agent replies | Only an explicit send or reply leaves Paperclip. A reply continues the existing thread; a new message starts a separate child task |
 | Delivery | The agent can check delivery status for something it sent |
@@ -134,3 +134,8 @@ Limitations: one inbox, one owning agent. Paperclip does not enforce who may wri
 - [Verify a connector and fix a broken one](verify-and-troubleshoot.md)
 - [Gmail](gmail.md) — read your own mailbox instead of giving an agent its own.
 - [AgentMail inbox documentation](https://docs.agentmail.to/inboxes)
+
+## Sources
+
+- [AgentMail setup and inline flow](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/AgentMailIntentSetup.tsx) — default access and saved-key setup for the requesting agent.
+- [Email connection service](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/email-channels.ts) — inbox ownership and conversation lifecycle.

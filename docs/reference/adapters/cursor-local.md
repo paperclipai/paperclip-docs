@@ -5,7 +5,7 @@ seo_description: Run Cursor's Agent CLI on the Paperclip host, keeping chat sess
 
 # Cursor Local
 
-`cursor` runs Cursor's Agent CLI on the same machine as Paperclip. Use it when you want Cursor chat session resume across heartbeats and structured stream output in run logs.
+`cursor` runs Cursor's Agent CLI on the same machine as Paperclip. Use it when you want Cursor chat session resume across heartbeats and structured stream output in run logs. This page also covers the separate [Cursor route on Paperclip Runner](#cursor-on-paperclip-runner). Existing `cursor` agents keep using the CLI adapter until you change them.
 
 ---
 
@@ -96,7 +96,68 @@ grok, kimi-k2.5
 
 ---
 
+## Cursor On Paperclip Runner
+
+Choose this experimental route when you want the native Runner lifecycle and Paperclip task tools with Cursor. It uses the `paperclip_runner` adapter and a pinned ACP runtime, rather than the `agent` executable on your `PATH`.
+
+### Prepare the execution host
+
+Run this under the same OS account that runs Paperclip, on the host where the agent executes:
+
+```sh
+paperclipai runtime setup cursor
+```
+
+The command downloads and verifies the pinned runtime without making model calls. It supports macOS ARM64, macOS x64, and Linux x64. Custom execution images need the matching runtime prepared too. See [Runtime commands](../cli/runtime.md).
+
+Runtime installation does not authenticate Cursor. Supply `CURSOR_API_KEY` or `CURSOR_AUTH_TOKEN` through the agent's secret-backed environment. The native route uses private runtime state rather than borrowing a personal interactive Cursor login.
+
+### Configure the agent
+
+1. Enable **Paperclip Runner** in Experimental settings if it is disabled on your instance.
+2. Choose **Paperclip Runner**, set **Harness** to **ACP agents**, and select **Cursor** as the **ACP agent**.
+3. Enter an explicit Cursor model ID; this route has no default model.
+4. Select **Cursor mode**, review the ACP permissions, and save.
+5. Use **Test Environment** to check readiness before assigning work.
+
+```json
+{
+  "adapterType": "paperclip_runner",
+  "adapterConfig": {
+    "provider": "acpx",
+    "acpxAgent": "cursor",
+    "model": "composer-2.5",
+    "acpxSessionMode": "agent",
+    "acpxPermissionMode": "approve-all"
+  }
+}
+```
+
+The example model is a selection, not proof your Cursor account can use it. Model admission and authentication are checked before work starts.
+
+| Cursor mode | Configuration value | Behavior |
+| --- | --- | --- |
+| **Agent** | `agent` | Default autonomous Cursor session mode. |
+| **Plan** | `plan` | Native planning mode. Accepting a plan does not automatically switch to Agent or schedule implementation. |
+| **Ask** | `ask` | Native question/research mode. |
+
+Session mode is separate from `acpxPermissionMode` and the task's work mode. Changing it does not widen company permissions or turn the execution environment into an OS sandbox. An accepted native plan can leave the task waiting for your next message while its planning run succeeds.
+
+### Current limits
+
+- Cursor uses Paperclip's question tools for user input; do not assume every interactive Cursor CLI feature appears in Paperclip.
+- Native load restores a Runner-owned session. Provider-native fork and resume methods are unavailable, and live steering is unsupported; follow-ups use the controller queue.
+- Partial native counters may appear as diagnostic notices. They do not establish authoritative token totals or a per-run dollar cost.
+- The Runner rejects ambient MCP, hook, and plugin execution configuration. Connect allowed tools through Paperclip instead of relying on project discovery.
+- Runtime verification establishes installation readiness. It does not prove model entitlement or successful paid execution.
+
+See [Paperclip Runner](paperclip-runner.md) for the feature defaults, provider choices, and permission modes.
+
+---
+
 ## Next Steps
 
+- [Paperclip Runner](./paperclip-runner.md)
+- [Runtime Commands](../cli/runtime.md)
 - [Creating an Adapter](./creating-an-adapter.md)
 - [Adapter UI Parser Contract](./adapter-ui-parser.md)

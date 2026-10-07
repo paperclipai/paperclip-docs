@@ -62,6 +62,12 @@ Because the server has not been reviewed, two habits are worth keeping:
 - Start with every write **Off** and promote deliberately. A name-based classification is the fallback when a server publishes no annotations, and an unfamiliar naming scheme can under-classify.
 - Re-run **Refresh actions** after you change the server, then review the list. On a pasted-URL connection a newly discovered action becomes active under the policies already in force — it is not held back for approval — so a refresh can widen what agents can call.
 
+## Add saved guidance
+
+A custom connection can store optional `agentInstructions` through the connection API. The guidance is included only for authorized runs that can use at least one of its tools, and it never grants additional access.
+
+The current **Agent instructions** editor appears only when a connector declares a template; it is not shown on every custom server. Paperclip does not automatically adopt the server's initialization prose as trusted instructions. See [Saved connection instructions](connection-instructions.md) for the setting and its behavior.
+
 ## Not the same as an adapter MCP server
 
 Attaching an MCP server to an agent's *runtime* — through the adapter's own configuration — is a different mechanism with different governance. Paperclip's action permissions and review queue do not sit in front of it. See [Add an MCP server to an agent](../how-to/add-mcp-server-to-agent.md) for that path, and pick it deliberately rather than by accident.
@@ -74,3 +80,8 @@ Attaching an MCP server to an agent's *runtime* — through the adapter's own co
 - [Zapier](zapier.md)
 - [Connect apps through an MCP aggregator](mcp-aggregators.md)
 - [Tool Gateway](../reference/api/tool-gateway.md)
+
+## Sources
+
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

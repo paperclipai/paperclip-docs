@@ -8,6 +8,40 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Already on nightly:** drafts for commits up to `0f14d261`, kept on nightly as post-tag drafts by the v2026.1001.0 realign. This run covers the 171 newer commits, `0f14d261..994d6edc`.
 - **Verification:** every changed page was re-run through `verify-edit --against 994d6edc` after drafting. Each remaining flag was checked by hand against a local checkout of the parent at `994d6edc` (see *Verification notes*).
 
+## Approved documentation follow-up — 2026-10-06
+
+This scoped follow-up checks the 17 approved audit groups against parent master `a6306ba606eb87c89b9ef0344e9fe8e0025580f9`. It preserves correct nightly coverage and fills gaps without advancing `.sync-state.json`: the other audit groups and the complete newer master window have not been applied as a full sync.
+
+| Audit group | Coverage |
+| --- | --- |
+| 2 — MCP aggregators | Availability, gateway management, app discovery, account grouping, and provider filters. |
+| 3 — AgentMail | Standard availability, simplified and task-inline setup, inbox selection. |
+| 4 — Keyboard shortcuts | Always-on behavior, removed settings, typing and dialog boundaries. |
+| 5 — Agent Chat | Persistent conversation, `/new`, task handoff/results, navigation and side-panel cards. **Experimental.** |
+| 6 — Assistant connections | User OAuth, read/write/configure scopes, direct MCP tools, device login and stdio proxy, revocation. **Experimental.** |
+| 7 — AI connections | Custom/local API routes, harness compatibility, model selection, usage and reconnect. |
+| 8 — Skills | GitHub Sources, refresh/update workflows, agent `update_skill` version checks. |
+| 9 — Agent files | `AGENT_HOME`, supported files and limits, sync failures, and filesystem backup boundaries. |
+| 10 — Browser Use Cloud | Setup, saved profiles, task viewer controls, recorded costs, caps, and cleanup. Unreleased; no experimental gate. |
+| 11 — Memory | Mem0, Zep, Supermemory, Cognee, Honcho and setup/access guidance. **Experimental.** |
+| 12 — Connection instructions | Saved text, opt-out, reset, From connections, and task-dependent delivery. |
+| 13 — Connector setup | One-screen defaults, access changes, action discovery, account groups, synchronization. |
+| 15 — Native runtimes | Runner, Cursor, Grok Build, explicit runtime configuration, CLI setup. **Native Runner is experimental.** |
+| 16 — Composer | Model/effort and assignee controls, Add, pending messages, Stop/pause/resume, recovery, auth failures. |
+| 17 — Artifacts | Rich cards, media/CSV/text previews, and branches without a remote URL. |
+| 18 — Agent identity | Public key, managed-runtime trust, provisioning, identity API, encryption-key recovery. |
+| 19 — Complaints and suggestions | Default operational skills, native tools, submission API, local storage, operator inspection. |
+
+**Experimental status:** Agent Chat, Assistant connections, Memory connectors, and Combined Inbox + Task List default to off. Paperclip Runner is experimental but defaults to on for self-hosted instances and off for Cloud. Managed configuration can override these defaults. AgentMail and MCP aggregators no longer require experimental enablement.
+
+New pages are versionless nightly drafts. Existing stable version metadata is unchanged. This follow-up does not claim provider onboarding or live agent execution was tested. Existing screenshot staleness remains tracked in `SCREENSHOTS_PENDING.md`; no new screenshots were fabricated or captured.
+
+**Review overlap:** Browser Use Cloud was also drafted in [PR #143](https://github.com/paperclipai/paperclip-docs/pull/143). This follow-up includes only its approved Browser Use topic on nightly; the Neon draft stays outside this scope.
+
+**Validation:** `docs:build` and all eight `docs:test` suites pass. `sync:test` passes all 39 tests, including its live GitHub comparison. Internal-link, nav, and screenshot-registry checks pass; nav reports four pre-existing orphan pages. All 125 heading links in changed pages and all 92 source links pinned to `a6306ba6` resolve. Existing stable version fields are unchanged. Source helpers used inputs generated from the clean pinned parent checkout; parser advisories were checked manually, including CLI command registration, native config searched under legacy adapter paths, injected variables, and dynamic avatar/chat routes. Tutorial pages with no extracted claims also received manual source review.
+
+**Optional browser harness:** `docs:test:client-nav` reports 4 failures in 867 checks on this branch. The unchanged nightly base reports 3 in 767 checks, with the same failure types: denied clipboard writes when heading-copy links are treated as navigation, aborted startup manifest requests, and a back-navigation heading checked before rendering completes. Manual browser review confirms the assistant and memory experimental notices, memory-provider navigation, back, forward, and reload. These results are not a claim that the optional harness passed.
+
 ## Applied this run (PR-tier drafts on `nightly`)
 
 - **Company skills (`d432dc7f`, `eb049aeb`, `427e0484`).**
@@ -46,7 +80,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
   - `PAPERCLIP_ADAPTER_MODELS` is now documented. It existed at the tag but was never covered.
   - Plugin SDK: `onEnvironmentStopLease` / `stop_and_retain` and `CreateIssueThreadInteractionInput`.
 
-**Not covered here, on purpose:** Browser Use Cloud (`d72389be`) and Neon (`5b8b2b38`) connector pages are drafted in open PR **#143**. That PR targets `main`, but both connectors are post-tag (`master` only), so it should be retargeted to `nightly` or held until the next stable release.
+**Original sync exclusions:** Browser Use Cloud (`d72389be`) and Neon (`5b8b2b38`) were left to open PR **#143** by the cumulative sync above. Browser Use is now included in the approved follow-up. Neon remains outside this follow-up. Both are post-tag (`master` only); release review must keep them out of `main` until the matching stable release.
 
 **Auto-merge tier:** empty. The env-vars watcher only matched `server/src/config.ts`, which was a refactor (the deployment-mode read moved to `config-file.ts`) and added or removed nothing. The env-var edits that were made span several files and include a rename, so they are PR tier.
 
@@ -88,6 +122,6 @@ Known false-flag classes, left as they are:
 - **Undocumented routes:**
   - `POST /api/agents/{id}/connection-intents/{interactionId}/adopt` (`2f6fa3b6`).
   - `distinctTasks` on `GET /api/companies/{companyId}/live-runs` (`efc2e681`); that route has no API reference page at all.
-- **Paperclip Runner (`paperclip_runner`):** still has no adapter reference page, and `adapters/overview.md` doesn't list it.
+- **Paperclip Runner (`paperclip_runner`):** resolved by the approved follow-up's new adapter reference and overview entry.
 - **Task watchdogs:** `task-watchdogs.md` could cover the new silence thresholds from `22cea6b2`: suspicious after 5 minutes, critical after 15.
 - **Screenshots:** `agents/instructions.png` (new + / Delete controls) and `task-chat/composer-modes.png` (old mode picker, now removed from the page) need re-shooting. See `SCREENSHOTS_PENDING.md`: 180 of 350 are stale.
