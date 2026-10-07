@@ -126,6 +126,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | --- | --- | --- |
 | [Airtable](connectors/airtable.md) | Spreadsheet-database hybrid for structured team data. Agents work with the bases your Airtable sign-in can reach. | Sign in with Airtable |
 | [ClickHouse](connectors/clickhouse.md) | Columnar database built for analytical queries over very large datasets. Agents query the ClickHouse Cloud service you name. | Sign in with ClickHouse |
+| [Enterpret](connectors/enterpret.md) — **Preview draft** | Analyze customer feedback and retrieve quotes with citations through the official read-only endpoint. Release availability is not confirmed. | Use an auth token · Sign in with Enterpret |
 | [Mixpanel](connectors/mixpanel.md) | Product analytics for user and event behaviour. Agents work with the events and reports your Mixpanel account can reach. | Sign in with Mixpanel |
 | [PostHog](connectors/posthog.md) | Product analytics with session replay, feature flags, and experiments. Agents analyse product usage, errors, flags, and experiments. | Sign in with PostHog · API key |
 | [Supabase](connectors/supabase.md) | Hosted Postgres with authentication, storage, and edge functions. Agents work with the Supabase project you scope the connection to. Use a development project. | Sign in with Supabase · API key |
