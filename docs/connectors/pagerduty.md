@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: PagerDuty Connector
 seo_description: Let agents read PagerDuty incidents, services, and schedules. Choosing the right service region, token scope, a safe read test, and troubleshooting.
 ---

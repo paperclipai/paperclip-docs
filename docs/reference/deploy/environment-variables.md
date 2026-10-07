@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1005.0
 seo_title: Environment Variables Reference
 seo_description: Every variable Paperclip reads for server configuration, plus the ones it injects into agent processes at runtime — the list to wire deployments from.
 ---
@@ -322,7 +322,7 @@ See [Agent cryptographic identity](../../guides/org/agent-identity.md) for provi
 |---|---|
 | `issue_assigned` | A task was newly assigned to this agent. |
 | `issue_commented` | A new comment was posted on an issue this agent owns. The triggering comment id is in `PAPERCLIP_WAKE_COMMENT_ID`. |
-| `issue_comment_mentioned` | The agent was @-mentioned in a comment on an issue it does not own. |
+| `issue_comment_mentioned` | Retired. @-mentions are context only and no longer wake the mentioned agent, so new runs don't carry this reason; a wake request that still uses it is ignored. You may still see it on older runs. |
 | `issue_blockers_resolved` | Every issue listed in this issue's `blockedBy` reached `done`. |
 | `issue_children_completed` | All direct children of this issue reached a terminal state (`done` or `cancelled`). |
 | `approval_resolved` | An approval the agent requested was approved or rejected. `PAPERCLIP_APPROVAL_ID` and `PAPERCLIP_APPROVAL_STATUS` are populated. |

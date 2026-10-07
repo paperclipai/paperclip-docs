@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Set Connector Action Permissions
 seo_description: Switch each connector action to Allowed, Ask first, or Off, refresh the action list when a provider changes it, and see how new actions are handled.
 ---

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Todoist Connector
 seo_description: Let agents read and update Todoist tasks. Account and project reach, shared project behaviour, restricting writes, a read test, and troubleshooting.
 ---

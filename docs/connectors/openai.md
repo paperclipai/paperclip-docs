@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: OpenAI Connector
 seo_description: Give agents OpenAI model access with a Codex subscription sign-in or an API key. Runtime requirements, assignment, a test run, and fixes.
 ---

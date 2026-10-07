@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: How Connector Access Works
 seo_description: Which access controls apply depends on the kind of connector. This explains the four gates on tool connections, and what governs channels and models.
 ---

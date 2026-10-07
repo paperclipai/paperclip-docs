@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Google Sheets Connector
 seo_description: Two ways to connect Google Sheets: a Google sign-in, or sharing named spreadsheets with the Paperclip robot account. Groups, a read test, and fixes.
 ---

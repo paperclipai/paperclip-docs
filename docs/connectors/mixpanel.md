@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Mixpanel Connector
 seo_description: Let agents query Mixpanel product analytics. Project and region selection, the beta caveat, a small bounded test, and telling errors apart.
 ---

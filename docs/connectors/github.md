@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: GitHub Connector
 seo_description: Two separate GitHub setups: repository tools for agents, or people working with an agent from issues. Includes the shell Git and gh exception.
 ---

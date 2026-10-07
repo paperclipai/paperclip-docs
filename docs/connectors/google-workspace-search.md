@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Google Workspace Search Connector
 seo_description: One read-only search across Gmail, Drive, Calendar, and Chat. When to use it instead of the single-app connectors, what it requests, and a test.
 ---

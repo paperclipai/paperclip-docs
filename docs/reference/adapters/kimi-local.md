@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Kimi Code Adapter
 seo_description: Run Moonshot's Kimi Code CLI on the Paperclip host as a local coding agent, on the shared ACP engine by default, with an optional headless-CLI lane.
 ---

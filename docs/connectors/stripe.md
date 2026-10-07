@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Stripe Connector
 seo_description: Let agents read Stripe data and, with approval, act on it. Test mode first, restricted keys, why financial actions need review, and troubleshooting.
 ---

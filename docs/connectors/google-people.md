@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Google People Connector
 seo_description: Let agents look up contacts and Workspace directory profiles. Read-only, no writes in any group. Account requirements, a lookup test, and troubleshooting.
 ---

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Documentation Changelog
 seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
@@ -13,6 +13,36 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.1005.0 <span class="accordion-meta">October 5, 2026</span></summary>
+<div class="accordion-body">
+
+This release lets agents carry more with them: their own files that persist across tasks, company skills synced from GitHub, a live browser you can watch and take over, and Grok Build on the native runner. It also brings three breaking changes you may notice. @-mentioning an agent no longer starts a run, keyboard shortcuts are always on, and connectors set up from a single screen.
+
+**New pages**
+
+- [Browser Use Cloud](../connectors/browser-use-cloud.md) — give agents a governed browser, follow along from the task's browser tabs, take over the page yourself, and see what each session cost.
+- [Memory connectors](../connectors/memory-connectors.md), with guides for [Cognee](../connectors/cognee.md), [Honcho](../connectors/honcho.md), [Supermemory](../connectors/supermemory.md), and [Zep](../connectors/zep.md) — five experimental long-term memory providers behind the default-off **Memory connectors** setting, and how to choose between them.
+- [Agent Chat](../experimental/agent-chat.md) — one ongoing conversation per agent, with its own sidebar and landing page, tasks that report back to the chat when they finish, and approvals you can answer in the conversation.
+- [Paperclip Runner](adapters/paperclip-runner.md) — the native runner: which providers it runs, Grok Build included, its permission modes, and the governed `search_api` and `call_api` tools it now enables by default.
+
+**Updated pages**
+
+- [Issues](../guides/day-to-day/issues.md), [Issues API](api/issues.md), and [Agents](../guides/org/agents.md) — a mention is now context only. To bring another agent onto a task, assign it or request a review. Also: tasks can be created from a prompt alone, and the agent names them.
+- [Agents](../guides/org/agents.md), [Agents API](api/agents.md), and [Back up and restore a company](../how-to/back-up-and-restore-a-company.md) — an agent's files now persist across tasks and are shared with the Instructions editor, along with where they live and how to back them up.
+- [Skills](../guides/org/skills.md), [Skills Reference](skills.md), and [Write a company skill](../how-to/write-a-company-skill.md) — the new **Sources** tab: pick skill folders from a GitHub repository, refresh on demand, and keep the last good version if a refresh fails.
+- [Your first connector](../connectors/first-connector.md) and the connector guides — setup is now one screen. It states who the connection signs in as and which agents can use it, and **Change** adjusts either. The MCP aggregators ([Zapier](../connectors/zapier.md), [Arcade](../connectors/arcade.md), [Composio](../connectors/composio.md), [Executor](../connectors/executor.md)) no longer need an experimental setting.
+- [Slack](../connectors/slack.md) and [Wire Slack and Discord notifications](../how-to/wire-slack-discord-notifications.md) — replies you post on the board reach the Slack thread. Agents also get their Slack tools during ordinary tasks and routines.
+- [GitHub](../connectors/github.md), [Linear](../connectors/linear.md), [Hugging Face](../connectors/hugging-face.md), and the Google connector guides — the GitHub Code Review Bot gets its own card, Linear gets browser sign-in, and Hugging Face's scopes are corrected. The Google guides cover the smaller scopes Google connectors now request, and that those connectors are temporarily hidden from the Connections page.
+- [Settings](../administration/settings.md), [Command Palette](../guides/day-to-day/command-palette.md), and [Instance Admin API](api/instance-admin.md) — keyboard shortcuts are always on, and the instance toggle, profile preference, and `/api/auth/preferences` routes are gone. `PAPERCLIP_HIDDEN_SETTINGS` also accepts a wildcard with named exceptions.
+- [Artifacts](../guides/day-to-day/artifacts.md), [Chat-Style Tasks](../experimental/task-chat.md), and [Work Modes](../guides/day-to-day/work-modes.md) — rich artifact cards with previews, the per-message model and effort picker, and Markdown and text attachments that open in task tabs.
+- [Grok](adapters/grok-local.md), [Claude Code](adapters/claude-code.md), [Codex](adapters/codex.md), [OpenCode](adapters/opencode.md), and the other adapter pages — Grok Build on Paperclip Runner, refreshed model catalogs and harness pins, and `CODEX_API_KEY` for Codex's ACP engine.
+- [Environment Variables](deploy/environment-variables.md) — Runner API tool and capture limits, workspace snapshot timeouts, and the corrected `PAPERCLIP_CLOUD_CONNECTOR_*` names.
+- Smaller updates: [Trust & Low-Trust Review](../administration/trust-and-low-trust-review.md), [Members & Access](../guides/org/members-and-access.md), [Routines](../guides/projects-workflow/routines.md), [Sandbox Providers](adapters/sandbox-providers.md), [Plugin SDK](plugins/sdk.md), [Connection Intents API](api/connection-intents.md), [Company Skill Policy](api/company-skill-policy.md), and [The connections Command](cli/connections.md).
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.1001.0 <span class="accordion-meta">October 1, 2026</span></summary>
 <div class="accordion-body">
 

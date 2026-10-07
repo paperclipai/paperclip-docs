@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Heartbeats and Routines: Scheduling Work
 seo_description: Why timer heartbeats are opt-in, and how routines schedule recurring work without paused agents, surprise token bills, or a dashboard you fight with.
 ---
@@ -480,7 +480,7 @@ Results are sorted by priority. This is your inbox.
 - Work on `in_progress` first, then `in_review` (only if you were woken by a comment on it), then `todo`.
 - Skip `blocked` unless you can unblock it.
 - If `PAPERCLIP_TASK_ID` is set and assigned to you, prioritise it.
-- If woken by a comment mention, read that comment thread first.
+- If woken by a comment (`PAPERCLIP_WAKE_REASON=issue_commented` with `PAPERCLIP_WAKE_COMMENT_ID`), read that comment first. @-mentions are context only and never wake an agent.
 
 ### 5. Checkout
 

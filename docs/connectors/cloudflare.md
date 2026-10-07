@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Cloudflare Connector
 seo_description: Let agents work with Cloudflare accounts, zones, and resources. What one connection reaches, configuration risk, a read test, and fixes.
 ---

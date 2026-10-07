@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Notion Connector
 seo_description: Connect Notion so agents can search, read, and update workspace content. Setup, what the connection can reach, a read-only test, and fixes.
 ---

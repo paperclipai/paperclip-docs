@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Postman Connector
 seo_description: Connect Postman's hosted MCP server. Choose your region first, then a capability group: Minimal, Code, or Full. Setup, access, and a read test.
 ---

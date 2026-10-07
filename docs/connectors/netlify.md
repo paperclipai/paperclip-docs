@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Netlify Connector
 seo_description: Let agents work with Netlify teams and sites. Reading deploy status versus starting a deploy, team scope, a read test, and troubleshooting.
 ---

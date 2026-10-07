@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Zapier Connector
 seo_description: Reach thousands of apps through a Zapier MCP server. The generated URL is a credential — how to set it up safely, choose exposed actions, and troubleshoot.
 ---

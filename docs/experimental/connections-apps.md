@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Connections v3 Foundation
 seo_description: The rebuilt connection storage and authorization layer under Paperclip Connectors: stable identities, subject-aware grants, and the mcp_remote rename.
 ---

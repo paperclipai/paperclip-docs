@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: PostHog Connector
 seo_description: Let agents analyze product usage, errors, and feature flags in PostHog. Project pinning, read-only mode, and why classification is conservative.
 ---

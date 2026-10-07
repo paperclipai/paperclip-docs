@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Verify and Fix a Connector
 seo_description: Confirm a new connector works using a read-only test call, read the status words in the connector list, and fix the common failure modes.
 ---

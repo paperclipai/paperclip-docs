@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Back Up and Restore a Company
 seo_description: Export a company package for portability, and keep database and agent-file backups for full recovery. Preview and verify each restore before using it.
 ---

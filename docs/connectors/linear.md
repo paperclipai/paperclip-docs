@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Linear Connector
 seo_description: Let agents read, create, and update Linear issues. Browser sign-in with no OAuth app to register, what workspace scope means, a read test, and fixes.
 ---

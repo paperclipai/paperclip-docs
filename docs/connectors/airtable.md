@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Airtable Connector
 seo_description: Let agents read and update Airtable records. Base and table reach, enterprise allowlisting, a read test that changes nothing, and troubleshooting.
 ---

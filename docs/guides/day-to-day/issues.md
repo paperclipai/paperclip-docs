@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Issues: Creating and Tracking Work
 seo_description: Each issue is one unit of work tied to your company goal. Create them yourself or let the CEO do it, then track progress, comment, and close them.
 ---
@@ -471,7 +471,7 @@ The task conversation combines four data sources into a single timeline:
 
 At the bottom of the conversation sits the composer. [Chat-Style Tasks](../../experimental/task-chat.md#the-composer) covers its mode, model, effort, project, and pending-card controls. It also supports:
 
-- **@mentions** — type `@` to open the mentions picker. Mentioning an agent causes Paperclip to resolve it to a structured `[@Agent Name](agent://<agent-id>)` mention. Mentioning an agent fires a wake heartbeat for that agent when it posts.
+- **@mentions** — type `@` to open the mentions picker. Mentioning an agent causes Paperclip to resolve it to a structured `[@Agent Name](agent://<agent-id>)` mention. A mention is context only: it doesn't wake the agent, start a run, hand it the task, or forward your comment to another task. To bring another agent in, assign the task or request a review.
 - **Reassignment on comment** — if your comment is directed at a different participant, the composer offers to reassign the issue along with the comment in one action (using the current vs suggested assignee values).
 - **Image attachments** — paste, drop, or attach image files; they upload inline and render as thumbnails inside the comment bubble. Clicking a thumbnail opens the shared gallery modal.
 - **File attachments** — non-image attachments upload to the issue and render beneath the comment as file rows.
@@ -490,7 +490,7 @@ A single comment can do up to three different things, and Paperclip keeps them s
 
 **Scoped wakes.** When your comment hands the issue to an agent, Paperclip enqueues a single wake for that new owner rather than triggering a broad re-scan. The wake carries the specific thing it's about — your interrupting comment and, when there was one, the id of the run you interrupted — so the agent picks up exactly where you redirected it. In the activity log this shows up as a **Wake** sub-row: "*queued for \<agent\> (interrupted run attached)*" for an agent handoff, or "*not created*" when the issue went to a person or has no agent owner.
 
-**Plain text is not a handoff.** Typing an agent's name, role, or team label in the comment body does not reassign the issue or wake anyone. To route to an agent you need a structured `@`-mention (which resolves to `agent://<id>`) or an explicit assignee change. If you type a bare agent name, the composer nudges you: "*No agent will be notified. Use @ to mention an agent.*"
+**Plain text is not a handoff.** Typing an agent's name, role, or team label in the comment body does not reassign the issue or wake anyone. A structured `@`-mention (which resolves to `agent://<id>`) links the agent as context, but it doesn't route work either. Only an explicit assignee change or a review request starts an agent on the task. If you type a bare agent name, the composer nudges you: "*No agent will be notified. Use @ to mention an agent.*"
 
 ### Run-id binding
 

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Write a Company Skill
 seo_description: Author a small Markdown bundle, install it into your company skill library, and attach it to just the agents that should load it. About 15 minutes.
 ---

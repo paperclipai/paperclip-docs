@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Wix Connector
 seo_description: Let agents work with your Wix sites. Site selection, why the connector is narrower than the Wix editor, a read test, and troubleshooting.
 ---

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Recognized but Unlisted Providers
 seo_description: The provider definitions present in the Paperclip catalog but withheld from the Connectors list, and the providers that gate access behind their own approval.
 ---

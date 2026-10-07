@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Cloudinary Connector
 seo_description: Let agents search and manage Cloudinary assets. What the asset-management connection covers, role-based limits, billing-relevant actions, and troubleshooting.
 ---

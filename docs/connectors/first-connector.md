@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Connect Your First Connector
 seo_description: Connect one read-only service to Paperclip and give an agent a task that uses it, without granting write access to anything.
 ---
