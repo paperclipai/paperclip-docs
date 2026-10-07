@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Codex Adapter
 seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding agent, with persistent session state and a managed CODEX_HOME per agent.
 ---
@@ -34,9 +34,9 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 | `model` | no | Codex model id. See [Models](#models). If you leave it unset, the adapter omits `--model` so the Codex CLI uses its own default. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `instructionsFilePath` | no | Markdown file prepended to the stdin prompt sent to `codex exec`. |
-| `modelReasoningEffort` | no | Reasoning effort override passed through Codex config. Most models accept `minimal`, `low`, `medium`, `high`, or `xhigh`; `gpt-6-astra` instead accepts `low`, `medium`, `high`, `xhigh`, `max`, or `ultra`. |
+| `modelReasoningEffort` | no | Reasoning effort override passed through Codex config. The choices depend on the model — see [Reasoning Effort](#reasoning-effort). |
 | `search` | no | Runs Codex with `--search`. |
-| `fastMode` | no | Enables Codex Fast mode by setting `service_tier="fast"` and `features.fast_mode=true`. Supported on `gpt-6-astra`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, and `gpt-5.4`, and passed through for manual model ids. When the configured model can't use it, Paperclip ignores the setting and notes why. |
+| `fastMode` | no | Enables Codex Fast mode by setting `service_tier="fast"` and `features.fast_mode=true`. Supported on `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, and `gpt-5.4`, and passed through for manual model ids. When the configured model can't use it, Paperclip ignores the setting and notes why. |
 | `dangerouslyBypassApprovalsAndSandbox` | no | Runs Codex with `--dangerously-bypass-approvals-and-sandbox` so unattended runs never stop for approval. Defaults to on when you leave it unset — see [Permissions](#permissions). |
 | `command` | no | Defaults to `codex`. |
 | `extraArgs` | no | Extra CLI arguments appended to the Codex invocation. |
@@ -104,8 +104,11 @@ Pick any of the known Codex model ids in the `model` field. The current options 
 
 - `gpt-5.6-sol` (the adapter default)
 - `gpt-6-astra`
+- `gpt-6-sol`
+- `gpt-6-luna`
 - `gpt-5.6-terra`
 - `gpt-5.6-luna`
+- `gpt-5.5`
 - `gpt-5.4`
 - `gpt-5.4-mini`
 - `gpt-5`
@@ -116,11 +119,25 @@ Pick any of the known Codex model ids in the `model` field. The current options 
 - `o3-mini`
 - `codex-mini-latest`
 
+This is a curated list. Even when an OpenAI API key is available, the picker doesn't fill itself from OpenAI's model catalog, because that catalog also includes image, audio, and embedding models Codex can't run. If you need other models in the dropdown — say, ones served through your own gateway — declare the list you want with [`PAPERCLIP_ADAPTER_MODELS`](../deploy/environment-variables.md#adding-models-to-the-model-picker).
+
 You can also type a model id that is not in this list. Anything Paperclip does not recognize is treated as a manual model id and passed straight through to the Codex CLI.
 
 > **Heads-up:** The default is now the concrete `gpt-5.6-sol` slug. The bare `gpt-5.6` alias has no OpenAI-published metadata, so Paperclip rewrites `gpt-5.6` to `gpt-5.6-sol` automatically — an agent still configured with the old alias keeps working and stops triggering the CLI's "model metadata not found" warning.
 
 > **Tip:** Leave `model` empty to let Codex choose. When no model is set, the adapter omits the `--model` flag entirely so the Codex CLI falls back to its own default model.
+
+### Reasoning Effort
+
+The `modelReasoningEffort` choices follow the model you pick:
+
+| Model | Effort levels |
+|---|---|
+| `gpt-6-astra`, `gpt-6-sol`, `gpt-5.6-sol`, `gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` |
+| `gpt-6-luna`, `gpt-5.6-luna` | `low`, `medium`, `high`, `xhigh`, `max` |
+| Other models | `minimal`, `low`, `medium`, `high`, `xhigh` |
+
+If you switch to a model that doesn't support the effort you had selected, the agent form clears the effort so it falls back to Auto.
 
 ---
 
@@ -188,7 +205,7 @@ That is separate from Codex's own repo instruction discovery. If the working dir
 Each `codex_local` agent runs against its own managed Codex home, so one agent can never spend against another agent's login or share its Codex state. Because that home starts empty, Paperclip seeds credentials into it for you before launching Codex:
 
 - **You inherit the host Codex login by default.** If you are already signed in to Codex on the Paperclip host (a ChatGPT-subscription login), Paperclip links that login into the agent's managed home automatically. You do not have to log in again per company or per agent.
-- **A per-agent API key wins when you set one.** If the agent's `env` carries an `OPENAI_API_KEY`, Paperclip writes that key into the managed home as API-key auth instead of borrowing the host login.
+- **A per-agent API key wins when you set one.** If the agent's `env` carries an `OPENAI_API_KEY`, Paperclip writes that key into the managed home as API-key auth instead of borrowing the host login. On the ACP engine, `CODEX_API_KEY` works the same way as an alternative name for that key.
 - **Your own `CODEX_HOME` is left alone.** If you point the adapter at a `CODEX_HOME` outside Paperclip's managed company tree, Paperclip treats it as self-managed and never seeds or overwrites it.
 - **No silent credential-less runs.** If a managed home ends up with no usable login and no configured API key, the run fails fast with a clear adapter error instead of starting Codex and hitting a `401` from the provider.
 

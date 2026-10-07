@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Experimental Features
 seo_description: Real, working features shipped behind opt-in flags while they are evaluated against live usage. What lives here, and what turning one on commits you to.
 ---
@@ -17,10 +17,10 @@ This section has one page per experimental feature: why it exists, how to turn i
 An experimental feature in Paperclip:
 
 - **Has shipped and works.** These aren't stubs — each flag gates a complete surface.
-- **Is opt-in.** Everything stays hidden until you flip the flag, so the UI stays out of your way if you don't use it.
+- **Has a feature gate.** Most flags are off by default. Paperclip Runner is experimental even though its gate defaults to on for self-hosted instances; Cloud can manage a different value.
 - **Comes with no compatibility guarantees.** The app puts it plainly when you open the page: *"Experimental features may break at any time. These features are opt-in and come with no compatibility guarantees. They may change, break, or be removed without notice. Avoid relying on them for critical or production workflows."*
 
-Turning a flag on is not dangerous in the "this will corrupt your data" sense, and flipping one back off is always safe — features are hidden, not deleted, and any data they created is kept. But don't build a workflow that has to stay stable on top of one, and expect to re-read the release notes after an upgrade: experimental features may be renamed, reworked, promoted to core settings, or retired between releases.
+Check the feature's own page before changing its flag: hiding a surface and disabling execution can have different effects. Avoid relying on experimental behavior for a workflow that must stay stable, and read the release notes after an upgrade. Features may be renamed, reworked, promoted to core settings, or retired between releases.
 
 ## Turning a feature on
 
@@ -31,7 +31,7 @@ All experimental flags live in one place, and they're instance-wide (they apply 
 
 Changes take effect immediately — no restart, no migration. Each feature page in this section repeats the exact toggle name to look for.
 
-The page groups its toggles into three sections — **Experimental features**, **Paperclip Developer Mode**, and **Legacy** (*"These features are going to be removed."*) — so you know roughly where to look for a name.
+The page groups its toggles into up to three sections — **Experimental features**, **Paperclip Developer Mode**, and **Legacy** — and lists the cards alphabetically within each one, so you can scan for a name. If every toggle in the developer or legacy section is hidden, that section heading disappears too.
 
 ## If a toggle is missing
 
@@ -57,6 +57,9 @@ Only some features are managed this way. Anything without the badge is still you
 | [External Objects](external-objects.md) | Detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects. |
 | [Task Plan Decomposition Panel](plan-decomposition-panel.md) | Shows accepted-plan decomposition history on task detail pages. |
 | [Chat-Style Tasks](task-chat.md) | **Now the default.** The task detail page as a live conversation: chat bubbles, streaming activity that folds into a one-line summary, a three-mode composer, and a resizable Properties · Plan · Artifacts pane. The old page is behind the **Classic Task Interface** toggle under **Legacy**. |
+| [Agent Chat](agent-chat.md) | One ongoing conversation per agent, reached from a **Chat** entry in the sidebar. Agents clarify your goal, hand real work off to tasks, and report back in the chat when those tasks are done. |
+| [Memory connectors](../connectors/memory-connectors.md) | **Experimental; off by default.** Set up Mem0, Zep, Supermemory, Cognee, or Honcho for agents. Existing connections keep running when setup is hidden. |
+| [Paperclip Runner](../reference/adapters/paperclip-runner.md) | **Experimental.** Native agent execution, enabled by default for self-hosted instances and disabled by default on Cloud. Agents must be explicitly configured to use it. |
 | [Task Watchdogs](task-watchdogs.md) | Watchdog agents that verify stopped task subtrees and restore live paths when work should continue. |
 | [Status Cards](status-cards.md) | A shared board of living summaries: one message per card, compiled into a watch query and kept current by the Summarizer. |
 | [Cloud Sync](cloud-sync.md) | **Retired.** Host-to-host Cloud Sync has been removed upstream, toggle included — you won't find it on the Experimental page any more. Use [company Import/Export](../how-to/back-up-and-restore-a-company.md) to move a company between instances. |

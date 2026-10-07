@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1005.0
 seo_title: Trust and Low-Trust Review
 seo_description: Contain work born from input you cannot vouch for. How presets are chosen, what changes at runtime, and how to review and promote low-trust output.
 ---
@@ -108,6 +108,8 @@ On top of that, two further constraints apply:
 - **Runtime services are denied by default.** A low-trust run cannot start or mutate workspace runtime services unless the boundary explicitly grants the `runtime.manage` tool class. If it tries to and that grant is absent, the run is stopped.
 
 The built-in low-trust tool classes are read-only and conservative by design: `git.read`, `github.pr.read`, and `tests.local`. That is the shape of work this preset is meant for — read the untrusted change, run local tests, report back — not reach out and mutate the wider company.
+
+**No repository? The task gets a private folder.** When the task's project has no workspace configured and nothing else picks a workspace strategy, a low-trust run works in a private directory just for that company and task, inside the sandbox. It doesn't need a Git repository, and it keeps its contents across turns and if the task is reassigned. It never pulls in the shared project directory or the agent's own folder. If you *have* configured a workspace or an explicit Git strategy, it still has to be usable — a missing or broken checkout doesn't quietly fall back to an empty folder.
 
 If you have been doing untrusted-PR review by hand with a local Docker workflow, that still works for manual review. But anything Paperclip runs as managed low-trust execution goes through the sandboxed, isolated path described above.
 

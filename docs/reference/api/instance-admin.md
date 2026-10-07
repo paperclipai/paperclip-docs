@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1005.0
 seo_title: Instance Admin API
 seo_description: Instance-scoped endpoints that fit nowhere else: general and experimental settings, on-demand database backups, and the LLM reflection endpoint.
 ---
@@ -27,6 +27,8 @@ These surfaces are stable enough to call from your own tooling, but they are int
 
 The two `GET` routes only need authenticated org access; every `PATCH` requires instance-admin (a `local_implicit` board session in local trusted mode also passes). On a cloud-managed instance the platform pins `executionMode` in general settings, so an attempt to change it returns `403` with code `execution_mode_platform_managed`; settings the hosting operator has hidden are likewise floored with code `settings_operator_managed`, though a same-value write always passes.
 
+General settings no longer have a `keyboardShortcuts` field. Keyboard shortcuts are always on for every signed-in user, so there's no instance switch and no personal preference to read or change. The general-settings patch body is strict: sending `keyboardShortcuts` now fails with `400`. The per-user preferences endpoints that briefly held a personal shortcuts switch have been removed too.
+
 The experimental-settings response and patch body include `enableBuiltInAgents` as a boolean. Set it to `true` before using the [Built-in Agents API](./built-in-agents.md); while it is off, those routes return `404 Not Found`.
 
 ---
@@ -42,6 +44,17 @@ Task drain is an instance-wide pause on picking up new work: while it is on, age
 | `DELETE /api/instance/task-drain` | Stop draining. Returns `{ "wasActive": <boolean> }` — whether a drain was in effect when you called. |
 
 Reading the status needs only authenticated org access; starting and stopping a drain require instance-admin. Overlapping start/stop calls are serialised, so the audit log and the live drain state always agree.
+
+---
+
+## Cloud lifecycle
+
+These two routes exist for instances managed by Paperclip Cloud, so the Cloud control plane can keep its view of your organization's archive state in step with the instance. On a self-hosted instance both return `404` with `{ "error": "not_cloud_managed" }`. Both require instance-admin.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/instance/lifecycle` | Report the Cloud-pinned primary company's state: `primaryCompanyId`, `primaryCompanyStatus` (`"missing"` if that company no longer exists), and `otherUnarchivedCompanyCount`. |
+| `POST /api/instance/lifecycle/unarchive-primary` | Bring an archived primary company back to `active` — what happens when you resume an organization from Paperclip Cloud. Returns `{ "status": ..., "changed": true }`, or `changed: false` if the company wasn't archived. Returns `404` with `primary_company_not_found` if the company is gone. |
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1005.0
 seo_title: Checkbox Confirmations API
 seo_description: An issue-thread interaction that asks a person to select any subset of a known option list, then confirm or reject the whole request in one action.
 ---
@@ -102,7 +102,7 @@ Fields of `payload` (`RequestCheckboxConfirmationPayload`):
 | `rejectReasonLabel` | string (1-160 chars) or `null` | no | `null` | Field label for the reject reason input. |
 | `allowDeclineReason` | boolean | no | `true` | Whether the reason input renders at all. |
 | `declineReasonPlaceholder` | string (1-240 chars) or `null` | no | `null` | Placeholder text in the reason input. |
-| `supersedeOnUserComment` | boolean | no | `true` (set server-side) | When `true`, a later board or user comment resolves the pending interaction with `outcome: "superseded_by_comment"`. |
+| `supersedeOnUserComment` | boolean | no | `false` (set server-side) | When `true`, a later board or user comment resolves the pending interaction with `outcome: "superseded_by_comment"`. Leave it off and the card stays pending while people keep talking in the thread. |
 | `target` | target object or `null` | no | `null` | Binds the request to an issue document revision. See [Target binding and staleness](#target-binding-and-staleness). |
 
 Option object fields:

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: OpenRouter Connector
 seo_description: Give agents model access through OpenRouter with an API key. Runtime and model-prefix requirements, assignment, a bounded test, and fixes.
 ---
@@ -18,8 +19,9 @@ OpenRouter is API key only. There is no subscription sign-in for this provider, 
 ## Connect OpenRouter
 
 1. Open **Connectors** and select **OpenRouter**.
-2. On the **Access** step, choose whether the credential is **Personal** or **Company shared**, and which agents may use it.
-3. Paste the API key. Paperclip stores it as a secret and it is not readable afterwards.
+2. Paste the API key. Paperclip stores it as a secret and it is not readable afterwards.
+
+Setup is a single screen with no separate access step. Once the account is saved, you change which people and agents may use it from the saved connection.
 
 ## Assign the credential
 

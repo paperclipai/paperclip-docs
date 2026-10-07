@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Asana Connector
 seo_description: Let agents read and update Asana tasks. Registering the required OAuth app, workspace and project reach, a read test, and troubleshooting.
 ---
@@ -20,7 +21,7 @@ The callback URI comes from Paperclip and the client credentials come from Asana
 ### 1. Read Paperclip's callback URI
 
 1. Open **Connectors** and select **Asana**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity or narrow the agents, select **Change**.
 3. Select **Use your own OAuth app**. Paperclip displays the exact callback URI — copy it. It is the `/api/tools/oauth/callback` route on your instance's origin. Leave this screen open.
 
 ### 2. Create the Asana MCP app

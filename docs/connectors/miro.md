@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Miro Connector
 seo_description: Let agents read and update Miro boards. Team and board reach, what board objects are actually available, a read test, and troubleshooting.
 ---
@@ -15,7 +16,7 @@ Agents can work with your Miro boards — finding them, reading their contents, 
 ## Connect Miro
 
 1. Open **Connectors** and select **Miro**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 3. Select **Sign in with Miro** and complete browser sign-in, choosing the team when Miro asks.
 
 Paperclip registers its client automatically, so there is nothing to configure in a developer console.

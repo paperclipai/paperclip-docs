@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Cloudflare Connector
 seo_description: Let agents work with Cloudflare accounts, zones, and resources. What one connection reaches, configuration risk, a read test, and fixes.
 ---
@@ -19,8 +20,8 @@ Cloudflare's API tokens are precise — you can scope them to specific zones, ac
 ## Connect Cloudflare
 
 1. Open **Connectors** and select **Cloudflare**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Choose how to authenticate:
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+3. Check how you will authenticate. Setup starts on the recommended method; to use the other one, select **Change**:
    - **Sign in with Cloudflare** — browser sign-in, which carries the signed-in user's access.
    - **Use an API key** — paste a Cloudflare API token, which carries exactly the scope you gave it.
 4. Finish setup.

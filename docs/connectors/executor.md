@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Executor Connector
 seo_description: Connect a hosted Executor endpoint and govern its exposed actions. Includes upstream policy boundaries and explicitly unverified setup.
 ---
@@ -8,9 +8,10 @@ seo_description: Connect a hosted Executor endpoint and govern its exposed actio
 
 Executor puts one endpoint in front of configured integrations. Paperclip connects to that endpoint; Executor handles the upstream connections and its own policies.
 
+Executor is available on every instance; no experimental setting is required.
+
 ## Before you connect
 
-- The experimental **MCP aggregators** setting turned on. It is off by default, and until an administrator turns it on, Executor does not appear in **Connectors**. See [MCP aggregators](mcp-aggregators.md#turn-them-on-first).
 - An Executor deployment with the integrations and connections you intend to expose.
 - A reachable remote endpoint URL and its required authentication details.
 
@@ -21,10 +22,10 @@ Use the URL for your deployment. Paperclip's connector definition does not suppl
 > **Unverified setup:** This procedure follows the pinned Paperclip definition and Executor's MCP Proxy documentation. It has not been tested with a live Executor connection. Each step below is unverified.
 
 1. **Unverified:** Configure the intended integrations, credentials, and policies in Executor. Obtain the remote endpoint URL for that deployment.
-2. **Unverified:** Open **Connectors**, select **Executor**, and choose **Connect MCP server**.
-3. **Unverified:** On **Access**, choose the identity and the agents that may use it.
-4. **Unverified:** Paste the endpoint URL. Sign in if required, or add a token or headers under **Advanced authentication** according to your deployment's instructions.
-5. **Unverified:** Select **Check link** and inspect the exposed action list.
+2. **Unverified:** Open **Connectors** and select **Executor**.
+3. **Unverified:** Read the access line above the main button. Select **Change** to choose the identity or narrow the agents that may use it.
+4. **Unverified:** Paste the endpoint URL. Sign in if required, or add a token or headers under **Authentication** after selecting **Change** according to your deployment's instructions.
+5. **Unverified:** Select **Connect Executor** and inspect the exposed action list.
 
 A local command such as `executor mcp` is not a remote URL. Use [Connect a custom MCP server](custom-mcp-servers.md) for the distinction between remote connectors and adapter-level local processes.
 
@@ -62,4 +63,4 @@ Executor deployment versions can expose different interfaces. This page does not
 
 ## Sources
 
-- [Paperclip connector definition](https://github.com/paperclipai/paperclip/blob/3166e93a7eee315e3bfbda622e080044ec5c343d/packages/shared/src/app-definitions/executor.json#L16) — method names, authentication, endpoints, and connector-specific limits at the pinned product version. Provider setup documentation is linked above.
+- [Paperclip connector definition](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/app-definitions/executor.json#L16) — method names, authentication, endpoints, and connector-specific limits at the pinned product version. Provider setup documentation is linked above.

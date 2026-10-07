@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Database Configuration
 seo_description: Paperclip runs PostgreSQL through Drizzle ORM. One schema across every supported mode — what differs is where Postgres runs and how it is reached.
 ---
@@ -119,5 +120,9 @@ export function createDb(url: string) {
 | `postgres://...supabase.com...` | Hosted PostgreSQL |
 
 The Drizzle schema under `packages/db/src/schema/` stays the same in every case.
+
+## What a database backup preserves
+
+The database does not contain the bytes of persistent agent files or locally stored uploads. Back up those filesystem directories or your configured asset storage as well; see [Storage](storage.md#persistent-agent-files).
 
 > **Tip:** If your deployment feels healthy but the data keeps disappearing, check whether you are still on embedded PostgreSQL. That mode is intentionally local and persistent only inside the instance directory.

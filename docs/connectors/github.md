@@ -1,18 +1,19 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: GitHub Connector
 seo_description: Two separate GitHub setups: repository tools for agents, or people working with an agent from issues. Includes the shell Git and gh exception.
 ---
 
 # GitHub
 
-GitHub supports repository tools and an experimental chat/review bot in Paperclip. Choose the setup for the work you want to do.
+GitHub supports repository tools and an experimental chat/review bot in Paperclip. They are two separate entries on the **Connectors** page: **GitHub** for repository tools, and **GitHub Code Review Bot** for the bot. Choose the one for the work you want to do.
 
 ## Which do you want?
 
 | If you want | Set up | What it gives you |
 | --- | --- | --- |
-| Agents to read and act on repositories as part of their own work | **Use this connection as an agent tool** | GitHub actions an agent can call, and for a managed identity the credential the run's shell uses |
-| People to start work from GitHub, or an agent to review PRs | **Chat with an agent** | A bot App assigned to one agent, with task-bound review tools and PR checks when enabled |
+| Agents to read and act on repositories as part of their own work | **GitHub** → **Connect GitHub** | GitHub actions an agent can call, and for a managed identity the credential the run's shell uses |
+| People to start work from GitHub, or an agent to review PRs | **GitHub Code Review Bot** | A bot App assigned to one agent, with task-bound review tools and PR checks when enabled |
 
 A personal GitHub connection does not create a bot App. Use [GitHub connector setup](github-setup.md) for regular repository tools, or [Set up a GitHub review bot](github-review-bot-setup.md) for the experimental chat journey. Read [Understanding GitHub PR review bots](understanding-github-review-bots.md) to distinguish installation, triggers, and merge requirements.
 
@@ -42,7 +43,7 @@ The practical consequence: for an agent that will push code, the limits that mat
 
 | Path | When to use it | Availability |
 | --- | --- | --- |
-| **Use this connection as an agent tool** | The default. Paperclip manages the GitHub App authorization, and the identity is also available to shell Git and `gh` | Only when the instance is enrolled with Paperclip Cloud and Cloud advertises the GitHub connector profile |
+| **Connect GitHub** | The default. Paperclip manages the GitHub App authorization, and the identity is also available to shell Git and `gh` | Only when the instance is enrolled with Paperclip Cloud and Cloud advertises the GitHub connector profile |
 | **Personal access token (advanced)** | No Cloud enrollment, or you want a token you control directly | Always |
 
 The two are not equivalent. A fine-grained personal access token carries the permissions you select on the token. The managed path's permissions come from the GitHub App registration and the repositories chosen on the installation — GitHub returns no OAuth scope list for it, so there is no scope string to inspect. If you need to reason precisely about permissions, a fine-grained token is easier to audit; if you need a durable identity for shell work, the managed path is the one that provides it.
@@ -137,8 +138,8 @@ Provider channel or repository access determines where a message can reach the i
 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
-| **Use this connection as an agent tool** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the GitHub profile | Use **Personal access token (advanced)** |
-| **Chat with an agent** is not offered | **Chat connectors** is off for the instance | Ask an administrator to enable it |
+| **Connect GitHub** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the GitHub profile | Use **Personal access token (advanced)** |
+| **GitHub Code Review Bot** is not listed | **Chat connectors** is off for the instance | Ask an administrator to enable it |
 | The agent sees fewer repositories than expected | The installation does not include them | **Add More Repos on GitHub**, then **Refresh access** |
 | *"You don't have permission to reconnect this identity."* | The identity belongs to another person or agent | Ask its owner, or use your own |
 | Tool calls succeed but shell `git push` fails | The account's repository permissions, or branch protection | Check both on GitHub |

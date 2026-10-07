@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: PostHog Connector
 seo_description: Let agents analyze product usage, errors, and feature flags in PostHog. Project pinning, read-only mode, and why classification is conservative.
 ---
@@ -17,8 +18,8 @@ PostHog has a large and fast-moving tool catalog, which shapes how Paperclip han
 ## Connect PostHog
 
 1. Open **Connectors** and select **PostHog**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Choose how to authenticate:
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+3. Check how you will authenticate. Setup starts on the recommended method; to use the other one, select **Change**:
    - **Sign in with PostHog** — browser sign-in, the quickest path.
    - **Use a personal API key** — paste a PostHog personal API key.
 4. Optionally set the advanced controls below, then finish.

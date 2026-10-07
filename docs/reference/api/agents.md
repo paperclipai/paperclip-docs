@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Agents API
 seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate keys, sync skills, trigger runs, and register managed and remote agent profiles.
 ---
@@ -34,7 +34,7 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `appearance` | The agent's character (avatar) identity: `{ "schemaVersion": 1, "characterVersion": "cap-v1", "paletteId": "<palette>" }`. See [Agent Avatars](#agent-avatars) for the palette ids. |
 | `avatarUrl` | Read-only. A ready-made URL for the agent's character image, derived from `appearance`. |
 | `reportsTo` | Parent agent in the org tree. Must be in the same company and cannot create a cycle. |
-| `adapterType` | Runtime type such as `process`, `http`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `hermes_local`, `cursor`, or `openclaw_gateway`. External adapters can also be registered. |
+| `adapterType` | Runtime type such as `process`, `http`, `paperclip_runner`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `hermes_local`, `cursor`, or `openclaw_gateway`. External adapters can also be registered. |
 | `adapterConfig` | Adapter-specific config. Secret references are allowed inside `env`. |
 | `runtimeConfig` | Runtime settings. `heartbeat.enabled` defaults to `false` when you create an agent. |
 | `budgetMonthlyCents` | Monthly budget in cents. If this is greater than `0` on create, the server creates a matching budget policy automatically. |
@@ -309,6 +309,7 @@ Important behavior:
 - `adapterConfig.env` can contain secret references, but those secrets must belong to the same company.
 - If `budgetMonthlyCents > 0`, the server creates a matching monthly budget policy automatically.
 - If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
+- For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds Paperclip's default instructions: `AGENTS.md`, `HEARTBEAT.md`, `SOUL.md`, and `TOOLS.md` for `role: "ceo"`, or a default `AGENTS.md` for every other role. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
 
 ### Example
@@ -442,6 +443,7 @@ Important behavior:
 
 - The request body accepts the same core agent fields as create.
 - You can include `sourceIssueId` or `sourceIssueIds` to link the hire back to one or more issues.
+- An agent on the `paperclip_runner` adapter can send `"inheritRuntimeFrom": "caller"` to give the new hire the calling agent's runner settings and default environment. The new agent must also use `adapterType: "paperclip_runner"`, and you can't combine this with `adapterConfig`, `runtimeConfig`, or `defaultEnvironmentId` — the server copies the adapter config and default environment from the calling agent. Board users can't use this option; it's rejected with `403 Forbidden`.
 - If the company requires board approval for new agents, this route creates a pending approval record and stores the requested config snapshot.
 - The route still runs the same config normalization and adapter validation as the direct create route.
 
@@ -1030,7 +1032,7 @@ Important notes:
 
 ## Instructions Bundle
 
-These routes are for file-based instructions management:
+These routes manage the agent's instruction files:
 
 `PATCH /api/agents/{agentId}/instructions-path`
 `GET /api/agents/{agentId}/instructions-bundle`
@@ -1039,13 +1041,77 @@ These routes are for file-based instructions management:
 `PUT /api/agents/{agentId}/instructions-bundle/file`
 `DELETE /api/agents/{agentId}/instructions-bundle/file`
 
-Use them when the agent’s prompt instructions are stored as files instead of only inline config.
+Use them when the agent's prompt instructions are stored as files instead of only inline config.
+
+For a **managed** bundle, these files are the agent's persistent folder: it holds the entry file (usually `AGENTS.md`) plus any notes, subfolders, or binary files the agent or you add. Paperclip keeps the current files only — there's no revision history for new saves. The bundle response marks this with `persistence: "agent_files"`. See [Agents → Agent files persist across tasks](../../guides/org/agents.md#agent-files-persist-across-tasks) for how runs read and save the folder.
+
+### Reading files
+
+`GET /api/agents/{agentId}/instructions-bundle/file?path=AGENTS.md`
+
+The `path` query parameter is required. The response includes the file's `content` and its `contentHash` — keep the hash, because you need it to save or delete the file.
+
+For a managed bundle, add `download=true` to stream the raw bytes as an attachment instead. Use this for binary files, or files too large for the editor:
+
+```bash
+curl -s -o notes.png \
+  "http://localhost:3100/api/agents/{agentId}/instructions-bundle/file?path=notes/diagram.png&download=true" \
+  -H "Authorization: Bearer <token>"
+```
+
+### Saving files
+
+`PUT /api/agents/{agentId}/instructions-bundle/file`
+
+| Field | Notes |
+|---|---|
+| `path` | File path inside the bundle, e.g. `AGENTS.md` or `notes/today.md`. |
+| `content` | The full text content, up to 1 MiB. |
+| `baseHash` | The `contentHash` you read. Send `null` when you're creating a new file. Required for managed bundles. |
+| `clearLegacyPromptTemplate` | Optional. `true` also clears the agent's old inline prompt template. Needs permission to manage the instructions path. |
+
+Saves are guarded against lost updates: if the file changed since you read it, the save is rejected with `409 Conflict` and nothing is written. Read the file again, reapply your change, and retry with the new hash. A save with no `baseHash` on a managed bundle returns `422`.
+
+```bash
+curl -s -X PUT http://localhost:3100/api/agents/{agentId}/instructions-bundle/file \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "path": "AGENTS.md",
+    "content": "You are the CTO. You own technical direction and the engineering team.",
+    "baseHash": "<contentHash from your last read>"
+  }'
+```
+
+To delete a file from a managed bundle, pass the same hash as a query parameter: `DELETE /api/agents/{agentId}/instructions-bundle/file?path=notes/old.md&baseHash=<contentHash>`. The entry file can't be deleted.
+
+### Storage limits
+
+Managed bundles accept regular files and directories, including binary files. Symlinks and special files are rejected. The instruction entry remains a valid UTF-8 file of at most 1 MiB; other persisted files can use the larger per-file limit below.
+
+A managed folder holds up to 100,000 files and folders, 256 MiB per file, and 2 GiB in total. An API save that would go over a limit returns `422` and leaves the saved files unchanged. When a *run* goes over, its folder changes aren't saved; the run's save receipt reports `AGENT_FILES_LIMIT_EXCEEDED`, and the run detail shows a storage warning. The agent keeps running either way.
+
+Run synchronization saves only changed or deleted files. If separate runs or a browser save modify the same path, the last completed synchronization wins. Unchanged files remain intact. Current bytes live under `<paperclipInstanceRoot>/companies/<companyId>/agents/<agentId>/instructions/`, so include the instance filesystem in your backup as well as the database. Temporary working copies are cleaned up when their session stops and provide no new revision history.
+
+Implementation reference: [file store](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-file-store.ts), [managed directory path](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instructions.ts), and [instruction entry validation](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instruction-files.ts).
+
+### Older revision and conflict routes
+
+`GET /api/agents/{agentId}/instructions-bundle/history`
+`GET /api/agents/{agentId}/instructions-bundle/revision/{revisionId}`
+`GET /api/agents/{agentId}/instructions-bundle/diff?from={revisionId}&to={revisionId}`
+`POST /api/agents/{agentId}/instructions-bundle/restore`
+`GET /api/agents/{agentId}/instructions-bundle/candidates`
+`POST /api/agents/{agentId}/instructions-bundle/candidates/{runId}/resolve`
+
+These exist for compatibility with instances that saved instruction revisions before agent files arrived. New saves never add revisions, so `history` only lists entries recorded before the upgrade. `restore` takes `path`, `revisionId`, and `baseRevisionId`. The `candidates` routes list and resolve edits preserved from older instruction-only sessions; `resolve` takes `baseRevisionId` and `content`.
 
 Notes:
 
 - The target agent or an ancestor manager can manage the instructions path.
-- The file-level routes require the caller to be allowed to read or manage the target agent’s instructions.
+- An agent can read and save its own files within what its responsible user is currently allowed to do. Reading or saving another agent's files needs permission to configure that agent.
 - Relative instructions paths require `adapterConfig.cwd`.
+- External bundles keep their existing behaviour; `download=true` and the `baseHash` rules above apply to managed bundles.
 
 ---
 

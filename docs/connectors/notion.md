@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Notion Connector
 seo_description: Connect Notion so agents can search, read, and update workspace content. Setup, what the connection can reach, a read-only test, and fixes.
 ---
@@ -18,7 +19,7 @@ Notion's hosted connection lets agents search your workspace, read pages and dat
 ## Connect Notion
 
 1. Open **Connectors** and select **Notion**.
-2. On the **Access** step, choose the identity that owns the credential and which agents may use the connection. Select **Continue to Notion**.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity or narrow the agents, select **Change**. Then select **Continue to Notion**.
 3. Sign in as the Notion account you chose above, and pick the workspace you want to connect. Everything that account can open in that workspace becomes reachable.
 4. Approve the authorization. Notion returns you to Paperclip and the connection becomes **Ready**.
 

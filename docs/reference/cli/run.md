@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1005.0
 seo_title: CLI Run and Heartbeat Commands
 seo_description: A heartbeat run is one server-side execution of an agent. Trigger runs, follow them, and inspect what the adapter actually did.
 ---
@@ -14,7 +14,7 @@ A *heartbeat run* is a single server-side execution of an agent: the moment the 
 
 ## The execution model in one breath
 
-Agents do not run inside the CLI. When an agent wakes (via `agent wake`, `heartbeat run`, a comment mention, a routine, or the scheduler), the **server** runs the adapter and produces a heartbeat run. The CLI is a window onto that run: it reads run records, events, and logs through the API, and it can ask the server to cancel a run or record a watchdog decision. Nothing you type here executes a model — you are observing and steering work that lives server-side.
+Agents do not run inside the CLI. When an agent wakes (via `agent wake`, `heartbeat run`, an assignment or comment on its task, a routine, or the scheduler), the **server** runs the adapter and produces a heartbeat run. The CLI is a window onto that run: it reads run records, events, and logs through the API, and it can ask the server to cancel a run or record a watchdog decision. Nothing you type here executes a model — you are observing and steering work that lives server-side.
 
 That framing matters for how you use these commands. `run log` and `run events` are *reads* of an in-flight or finished run; they do not "attach" to a process you own. `run cancel` is a request to the server, not a local kill. Treat every one of these as a control-plane call.
 

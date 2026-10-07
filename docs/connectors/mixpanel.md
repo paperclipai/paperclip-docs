@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Mixpanel Connector
 seo_description: Let agents query Mixpanel product analytics. Project and region selection, the beta caveat, a small bounded test, and telling errors apart.
 ---
@@ -17,7 +18,7 @@ Agents can query your Mixpanel product analytics — running reports, checking e
 ## Connect Mixpanel
 
 1. Open **Connectors** and select **Mixpanel**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 3. Select **Sign in with Mixpanel** and complete browser sign-in, choosing the project when prompted.
 
 Paperclip registers its client automatically, so there is nothing to configure in a developer console.

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1005.0
 seo_title: Company Administration
 seo_description: Set your company name and logo, manage members and invites, review join requests, and export or import the whole company from one cluster of screens.
 ---
@@ -16,7 +16,7 @@ This guide walks through each of those surfaces in the order you typically meet 
 
 The **General** page groups the settings that apply to the whole organization rather than to any one agent or project. Open it from the sidebar under the organization name.
 
-Company and instance settings now share one navigation, so this is also where the instance-wide general controls appear. If you are an instance admin, the deployment and auth readiness summary, backup retention, keyboard shortcuts, log censoring, and AI feedback-sharing controls all render on this same **General** page — see [Settings](./settings.md#instance-general) for what each one does. The sections below cover the organization-specific settings.
+Company and instance settings now share one navigation, so this is also where the instance-wide general controls appear. If you are an instance admin, the deployment and auth readiness summary, backup retention, log censoring, and AI feedback-sharing controls all render on this same **General** page — see [Settings](./settings.md#instance-general) for what each one does. Keyboard shortcuts are no longer a setting at all — they're [always on](./settings.md#keyboard-shortcuts) for every signed-in user. The sections below cover the organization-specific settings.
 
 ![Company general settings](../user-guides/screenshots/light/company/settings.png)
 

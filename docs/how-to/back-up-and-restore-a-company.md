@@ -1,11 +1,12 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Back Up and Restore a Company
-seo_description: Backups are exports and restores are imports, through one portable markdown package. Walks the API path: preview, export, import, then verify.
+seo_description: Export a company package for portability, and keep database and agent-file backups for full recovery. Preview and verify each restore before using it.
 ---
 
 # Back up and restore a company
 
-Backups are exports. Restores are imports. Both flow through the same portable markdown package — the same files you'd hand to a teammate or version-control. This recipe walks the API path: preview → export → import → verify, with the safety rails that the CEO-scoped routes enforce.
+You can save a portable company package and restore it with export and import — the same files you'd hand to a teammate or keep in version control. This recipe walks the API path: preview → export → import → verify, with the safety rails that the CEO-scoped routes enforce. For full instance recovery, also keep a database and filesystem backup, including the agent files described below.
 
 The same pair also moves a company from one instance to another: export on the old host, import on the new one. That is now the supported migration path, since host-to-host Cloud Sync has been retired.
 
@@ -53,6 +54,18 @@ Attachment bytes never sit inline in a markdown file. They live in `blobs/`, nam
 **Never in the bundle.** Secret values, API keys, machine paths, database ids. Anything environment-specific. The package declares the env vars an agent needs; the values stay on the source machine.
 
 **Deliberately left behind.** Approvals, cost events, and activity log entries. These describe what happened on the source instance rather than how the company is set up, so they don't travel. The next section shows you how to find out, before you export, whether your company has any.
+
+---
+
+## Keep agent files in your instance backup
+
+If you want an agent's notes, memory, and other personal files to survive an instance restore, back up the persistent instance filesystem alongside the database. Managed agent files are current bytes on disk, not new database revision rows. A database dump alone cannot restore those bytes.
+
+Each managed folder lives at `<paperclipInstanceRoot>/companies/<companyId>/agents/<agentId>/instructions/`. Keep that directory as part of your instance storage backup, and restore it with the matching database before letting agents run. If an agent uses an external instruction folder, include that configured folder in your own filesystem backup too.
+
+A run's temporary copy is not a backup: Paperclip removes it when the session stops. There is no new file revision history to roll back to, and the last completed synchronization wins if two writers change the same path. See [Agent files persist across tasks](../guides/org/agents.md#agent-files-persist-across-tasks) for the save rules and limits.
+
+Implementation reference: [managed storage path](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instructions.ts) and [run copy lifecycle](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-directory-working-copies.ts).
 
 ---
 

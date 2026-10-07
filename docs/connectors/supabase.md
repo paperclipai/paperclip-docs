@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Supabase Connector
 seo_description: Let agents work with a Supabase project. Scope it to a development project, use read-only mode, and understand the production risk before connecting.
 ---
@@ -36,11 +37,9 @@ Prefer a scoped token limited to the one development project. Note that scoping 
 ## Connect Supabase
 
 1. Open **Connectors** and select **Supabase**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Choose how to authenticate:
-   - **Sign in with Supabase** — browser sign-in.
-   - **Use an API key** — paste the personal access token described above.
-4. Set the scoping controls below.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+3. Check how you will authenticate. Setup starts on **Sign in with Supabase** (browser sign-in). To paste the personal access token described above instead, select **Change** and choose **Use an API key**.
+4. Set the scoping controls below. **Read-only mode** sits under **Change**, with the other advanced settings, and is off unless you turn it on.
 5. Finish setup.
 
 ## Scope the connection

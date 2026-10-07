@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Set Up Your Own Google OAuth App
 seo_description: One reusable procedure for connecting any Google Workspace connector with your own OAuth client — preview access, APIs, callback URI, and fixes.
 ---
@@ -6,6 +7,8 @@ seo_description: One reusable procedure for connecting any Google Workspace conn
 # Set up your own Google OAuth app
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
+
+> **Note:** While verification is pending, the Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. This hides them from the list only. Existing Google connections keep running with their access and permissions unchanged, and an agent that needs a Google service can still ask you for it with a connection card on its task.
 
 Nine connectors in this catalog talk to Google Workspace: Gmail, Calendar, Chat, Docs, Drive, People, Sheets, Slides, and Workspace Search. Connecting any of them with **your own** OAuth client follows the shared steps below, and this page is that procedure.
 
@@ -79,9 +82,9 @@ In the Cloud console, open the **Chat API** → **Configuration** and complete t
 ## 5. Connect in Paperclip
 
 1. Open **Connectors** and select the connector.
-2. On the **Access** step, choose the identity that owns the credential and which agents may use it.
-3. Choose the **capability group** — most Google connectors offer a read group and a write group. **This is fixed for the life of the connection**: to change it you make a new connection, because **Reconnect** re-runs sign-in for the same group.
-4. Choose **Use your own Google OAuth app** and supply the client ID and secret from step 3.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it.
+3. Check the **capability group**. Most Google connectors offer a read group and a write group, and setup starts on the write (or draft) group. To connect read-only instead, select **Change** and pick the read group under **What should Paperclip be able to do?**. **The group is fixed for the life of the connection**: to change it you make a new connection, because **Reconnect** re-runs sign-in for the same group.
+4. Select **Use your own Google OAuth app** and supply the client ID and secret from step 3.
 5. Complete Google's consent screen **signed in as the registered Workspace account**.
 
 Then open the **Permissions** tab and set the actions. Reads **Allowed**; writes and destructive actions **Ask first** or **Off** until you have watched the agent work.

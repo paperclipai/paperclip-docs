@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Cursor Local Adapter
 seo_description: Run Cursor's Agent CLI on the Paperclip host, keeping chat sessions alive across heartbeats and emitting structured stream output in run views.
 ---
@@ -28,7 +29,7 @@ seo_description: Run Cursor's Agent CLI on the Paperclip host, keeping chat sess
 | Field | Required | Notes |
 |---|---:|---|
 | `cwd` | no | Absolute working directory. Recommended. Created when permissions allow; otherwise falls back to the process working directory. |
-| `model` | no | Cursor model id. Defaults to `auto`. Common choices include `auto`, `composer-1.5`, `gpt-5.3-codex`, `opus-4.6-thinking`, `sonnet-4.6`, `gemini-3-pro`, `grok`. |
+| `model` | no | Cursor model id. Defaults to `auto`. Common choices include `auto`, `composer-2.5`, `claude-opus-5-5`, `gpt-5.6-sol`, `composer-1.5`, `gpt-5.3-codex`, `opus-4.6-thinking`, `sonnet-4.6`, `gemini-3-pro`, `grok`. |
 | `mode` | no | Cursor execution mode passed as `--mode`. Accepts `plan` or `ask`. Leave unset for normal autonomous runs. |
 | `promptTemplate` | no | Run prompt template. |
 | `instructionsFilePath` | no | Absolute path to a Markdown instructions file prepended to the run prompt. |
@@ -60,7 +61,12 @@ Common model ids accepted by the adapter:
 
 ```
 auto
-composer-1.5, composer-1
+composer-2.5, composer-1.5, composer-1
+claude-opus-5-5, claude-fable-5-1, claude-sonnet-5
+gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna
+gemini-3.8-flash
+muse-spark-1.3
+grok-4.7, grok-4.6, grok-4.5
 gpt-5.3-codex, gpt-5.3-codex-high, gpt-5.3-codex-xhigh
 gpt-5.2, gpt-5.2-codex, gpt-5.2-codex-high
 gpt-5.1-codex-max, gpt-5.1-codex-mini

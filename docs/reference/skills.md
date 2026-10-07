@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Skills Reference
 seo_description: The reference for company skills: file shape on disk, the install pipeline, attaching to agents, scoping rules, canonical keys, and versioning.
 ---
@@ -12,7 +12,7 @@ For the conceptual introduction and the UI walkthrough, read the [Skills guide](
 
 If you want to browse Paperclip's shipped skill catalog, start with the [Bundled skills](./skills/bundled.md) and [Optional skills](./skills/optional.md) indexes. Those pages group every shipped catalog skill by category and link to the full per-skill reference pages.
 
-> **Adapter caveat.** Some adapters (notably `openclaw_gateway`) cannot push skill files into the runtime. Assignment is still recorded, but the actual sync mode is reported as `unsupported`. This is covered under [Scoping rules](#scoping-rules) below.
+> **Adapter caveat.** Some adapters (notably `openclaw_gateway`) cannot push skill files into the runtime. Assignment is still recorded, but the actual sync mode is reported as `unsupported`. This is covered under [Scoping rules](#5-scoping-rules) below.
 
 ---
 
@@ -55,7 +55,7 @@ The frontmatter is parsed by Paperclip's own minimal YAML reader (`parseFrontmat
 | `name` | recommended | string | Human-readable label. Falls back to the slug when missing. |
 | `description` | recommended | string | The routing logic the agent reads first. Block scalars (`>`, `|`) are supported. |
 | `slug` | optional | string | Stable kebab-case identifier. Derived from `name` (or the folder name) if absent, normalized via `normalizeAgentUrlKey`. |
-| `key` / `skillKey` | optional | string | Canonical key override. See [Naming collisions](#naming-collisions-and-resolution). |
+| `key` / `skillKey` | optional | string | Canonical key override. See [Naming collisions](#7-naming-collisions-and-resolution). |
 | `metadata` | optional | object | Arbitrary record persisted alongside the skill. Recognised sub-fields are listed below. |
 
 Recognised `metadata` sub-fields (all optional):
@@ -141,7 +141,9 @@ Issue monitors are a separate mechanism from [task watchdogs](../guides/projects
 
 A few smaller changes to the bundled skills are worth knowing about, because they change what you'll see agents do:
 
+- **Wake context comes in the prompt.** The `paperclip` skill now tells agents that adapters deliver the wake payload — the compact issue summary plus the batch of new comments that triggered the run — as a section of the run prompt, and to read that section first. Agents no longer look for it in a separate environment variable.
 - **Open questions get a text box.** When an agent needs a free-text answer from you, the `paperclip` skill now gives it a complete `ask_user_questions` payload that renders a text field (a `questionSet` question with `answerMode: "text"`), instead of inventing multiple-choice options for something that isn't a choice. Choice cards are reserved for real decisions with at least two meaningful alternatives.
+- **Hiring from Paperclip Runner.** The skill's API reference now tells native runner agents to use the `hire_agent` tool when it's available. The new teammate inherits the caller's validated runner, model, permission settings, default environment, and managed AI connection, but gets its own instructions — the caller's secrets, workspace paths, sessions, and instructions aren't copied. Over the REST API the same thing is `"inheritRuntimeFrom": "caller"` on the hire request, which can't be combined with a non-empty `adapterConfig`, `runtimeConfig`, or an explicit `defaultEnvironmentId`. Your hiring permissions and approval policy still apply.
 - **`paperclip-create-agent` on Paperclip Runner.** Runner agents don't get `PAPERCLIP_API_URL` or `PAPERCLIP_API_KEY`, so the skill now tells them to use the runner's Paperclip tools instead — `get_task_context` and `list_agents` for context, then `search_api` to find the hiring endpoints and `call_api` to call them. If those API tools aren't available, the agent reports that you need to enable runner API tools for the company, keeps the proposed hire in the conversation, and doesn't claim an agent was created.
 
 ---
@@ -167,6 +169,14 @@ Skills are installed at the **company** level. Once installed, any agent in that
 
 Mutating routes require either `agents:create` permission or `permissions.canCreateAgents=true` on the calling agent.
 
+### Native Runner skill tools
+
+An agent using the native Runner can save a reusable procedure with the `create_skill` tool. It's available in Auto (`standard`) and skill-test work, not Ask or pre-acceptance Plan work. It uses the company skill API and its existing policy; creating a skill adds it to the library without assigning it to agents.
+
+`create_skill` takes `name`, `description`, `markdown`, and `idempotencyKey`, plus an optional `slug`. The name is lowercase and hyphenated; the complete file's name and description must match those inputs, and a supplied slug must equal the name. Company, agent, task, and run identity come from the authenticated run. Reuse the same `idempotencyKey` when you retry. A successful creation appears as a **Skill created** card in the task thread; see [Skills your agents create during a task](../guides/org/skills.md#skills-your-agents-create-during-a-task).
+
+Implementation reference: [create tool contract](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/paperclip-runner/src/protocol-actions/create-skill.ts) and [tool validation and REST binding](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/skill-tools.ts).
+
 ### Import: accepted sources
 
 `POST /api/companies/{companyId}/skills/import` takes one field — `source`. The string is parsed by `parseSkillImportSourceInput`, so all of the following are valid:
@@ -189,12 +199,14 @@ Resolution rules:
 - `https://skills.sh/...` URLs and `npx skills add ...` commands are unwrapped to the underlying GitHub URL — but the skill is recorded with `sourceType: skills_sh` and the original locator preserved.
 - `tree/<ref>` and `blob/<ref>` URLs pin to whatever ref you pass; bare repo URLs resolve the default branch.
 - Local paths can point at a single `SKILL.md` file, a folder containing one, or a folder containing many — every `SKILL.md` under it is imported.
+- Local paths must resolve (after following symlinks) inside an approved root: the company's managed skills folder, a registered project workspace, or a project's server-managed checkout folder. Anything else is rejected with `403`, code `skill_workspace_boundary_denied`, and the message *"Local skill source is outside approved company workspace roots"*.
+- GitHub repository, `tree/…`, and `blob/…` URLs on `github.com`, plus the `owner/repo` shorthand, are filed under a [GitHub skill source](#github-skill-sources): the import creates the source (or adds to the existing one for that repository and branch) and selects the matching skills. These imports return `imported` and `warnings` only and are logged as `company.skill_source_refreshed`. `skills.sh` forms (including `owner/repo/skill`), gists, and other URLs keep the behaviour described below.
 
 ### What happens during import
 
 1. Resolve the source (parse → fetch metadata → walk for `SKILL.md` files).
 2. For each found skill: parse frontmatter, derive `slug`, derive canonical `key`, walk the file inventory, classify each entry, derive `trustLevel`.
-3. Persist as a row in the `companySkills` table (one row per `(companyId, key)` — see [Naming collisions](#naming-collisions-and-resolution)).
+3. Persist as a row in the `companySkills` table (one row per `(companyId, key)` — see [Naming collisions](#7-naming-collisions-and-resolution)).
 4. Materialise files for catalog-style sources into `<paperclipInstanceRoot>/skills/{companyId}/__catalog__/<runtimeName>/` so adapters can read them.
 5. Log a `company.skills_imported` activity entry and emit a `skill_imported` telemetry event.
 
@@ -215,6 +227,46 @@ The scan is non-destructive: it returns `imported`, `updated`, `skipped`, `confl
 Editable, Paperclip-managed skills are written to `<paperclipInstanceRoot>/skills/{companyId}/<slug>/`. Read-only sources (GitHub, skills.sh, URL) keep the `markdown` body in the database row and only materialise into a temporary location when an adapter needs the files on disk.
 
 Bundled skills (those shipped in the server's `skills/` directory) are re-imported on every list call (`ensureBundledSkills`). They cannot be edited or deleted — installing the same Paperclip release will recreate them.
+
+GitHub-synced skills (see the next section) are the exception to the "body in the database" rule: each refresh stores a complete snapshot of every file in the package at the scanned commit, so agents run them without fetching from GitHub.
+
+### GitHub skill sources
+
+A skill source links a company to one GitHub repository and branch. It remembers which skill packages you selected and lets you refresh them together. In the UI this is **Skills → Sources** — see [Sync skills from a GitHub repository](../guides/org/skills.md#sync-skills-from-a-github-repository).
+
+| Action | Endpoint |
+|---|---|
+| List repositories you can pick from | `GET /api/companies/{companyId}/skill-sources/repositories` |
+| List sources | `GET /api/companies/{companyId}/skill-sources` |
+| Scan a repository for skills | `POST /api/companies/{companyId}/skill-sources/discover` |
+| Preview one file of a scanned package | `POST /api/companies/{companyId}/skill-sources/preview` |
+| Create a source and import a selection | `POST /api/companies/{companyId}/skill-sources` |
+| Source detail | `GET /api/companies/{companyId}/skill-sources/{sourceId}` |
+| Change the selection (and refresh) | `PATCH /api/companies/{companyId}/skill-sources/{sourceId}` |
+| Refresh from the tracked branch | `POST /api/companies/{companyId}/skill-sources/{sourceId}/refresh` |
+| Disconnect | `DELETE /api/companies/{companyId}/skill-sources/{sourceId}` |
+
+**Repository access.** The repository list merges every GitHub connection the caller can use, with duplicates removed. Each GitHub read re-checks the caller's access; public repositories can also be read without a connection. `repositoryUrl` must be an HTTPS `github.com` repository or branch URL (`https://github.com/owner/repo` or `https://github.com/owner/repo/tree/<branch>`); a bare repository URL follows the default branch.
+
+**Discover.** `discover` takes `repositoryUrl` and optional `trackingRef` and `connectionId`. It returns the resolved `commitSha`, the `trackingRef`, the `candidates` (each with `path`, `name`, `description`, `fileCount`, and any `error` or `warnings`), and overall `warnings`. Send `Accept: application/x-ndjson` to stream it instead: you get `progress` and `candidate` events as the scan runs, then a final `complete` event carrying the discovery (or an `error` event).
+
+**Create.** `POST /skill-sources` takes the discovery fields plus the 40-character `commitSha` you scanned, `selectedPaths` (the `SKILL.md` paths to import), and optional `excludedFolders`. It responds `201` with `source`, `imported`, `updated`, `unchanged`, and `warnings`. Adding a repository and branch that's already a source returns `409` — manage the existing source instead.
+
+**Selection.** `PATCH` takes `revision` (the source's current revision, as an optimistic lock), `selectedPaths`, `excludedFolders`, and optional `connectionId`, then refreshes. A stale `revision` returns `409` with *"This source changed. Reload before saving your selection."* Saving a selection also reconnects a disconnected source.
+
+**What a refresh does.**
+
+- Selected packages with no validation error are imported or updated. A new version is created only when the package's files change, and the skill keeps its `id`, key, folder, and agent assignments.
+- New packages found upstream are recorded as `new` and are not imported until you select them.
+- Unselected installed skills stop syncing but stay installed. Skills whose package disappeared upstream stay installed and are marked as removed.
+- Only one refresh per source runs at a time; a concurrent one returns `409`. If a refresh fails, installed skills keep their last good version and the error is saved on the source as `lastError`.
+- Each refresh is logged as `company.skill_source_refreshed`; a disconnect as `company.skill_source_disconnected`.
+
+**Disconnect.** `DELETE` stops syncing every skill in the source and keeps them all installed. Remove skills individually if you want them gone.
+
+**Policy.** Scanning, previewing, and creating check `skills.import`; a refresh checks `skills.update`; changing the selection and disconnecting check `skills.edit`. The policy resource uses source type `git` and the repository URL as its locator — see [Company Skill Policy](./api/company-skill-policy.md).
+
+Synced skills are read-only. To change one, edit the repository and refresh, or fork it into an editable copy.
 
 ---
 
@@ -501,6 +553,7 @@ Behaviour depends on the source:
 | Source | Pinned? | Update path | Notes |
 |---|---|---|---|
 | `github` | Yes — `sourceRef` stores the resolved commit SHA | `GET /skills/{id}/update-status` → `POST /skills/{id}/install-update` | `metadata.trackingRef` records the branch or tag; updates compare the latest commit on that ref against the pinned SHA. |
+| `github` (synced source) | Yes — snapshot of the last scanned commit | `POST /skill-sources/{sourceId}/refresh`, or `install-update` on any of its skills | Belongs to a [GitHub skill source](#github-skill-sources). `update-status` compares the branch's latest commit with the source's last scanned commit; `install-update` refreshes the whole source. |
 | `skills_sh` | Yes (resolves to GitHub under the hood) | Same as `github` | The original `skills.sh/...` URL is preserved in `sourceLocator` so the badge and label stay correct. |
 | `url` | No | None | Treat as a point-in-time snapshot. Re-import the URL to refresh. |
 | `local_path` (managed) | Live | None — files refresh on read | Stored under `<paperclipInstanceRoot>/skills/{companyId}/`. Edited via `PATCH /skills/{id}/files`. |
@@ -522,6 +575,8 @@ Behaviour depends on the source:
 ```
 
 For non-GitHub sources, `supported: false` is returned with a reason. Calling `install-update` on an unsupported skill rejects with `422 Unprocessable Entity`.
+
+For a skill that belongs to a GitHub skill source, `update-status` returns `supported: false` with the reason *"Source is disconnected. Reconnect it in Skills → Sources."* when the source is disconnected or the skill is no longer selected. `install-update` on such a skill returns `409` if it's no longer selected (*"This skill is no longer selected. Manage its source to resume syncing."*) or if the refresh left it in an error state or removed upstream.
 
 ### Install-update semantics
 
@@ -597,8 +652,18 @@ Walk down this list in order. The first match is usually the problem.
 
 ### "GitHub skill is stuck on an old commit"
 
-- `update-status` reports `hasUpdate: false`? You're already on the latest commit of the tracked ref. To follow a different ref (e.g. switch from `main` to a tag), re-import the source URL with the explicit `tree/<ref>` path. The new install replaces the old row by canonical key.
+- `update-status` reports `hasUpdate: false`? You're already on the latest commit of the tracked ref. To follow a different ref (e.g. switch from `main` to a tag), re-import the source URL with the explicit `tree/<ref>` path. For `github.com` URLs this adds a separate [skill source](#github-skill-sources) for that branch, with its own installed skills — reassign agents to them and disconnect the old source if you no longer need it.
 - `install-update` returned a 422? The source no longer parses (e.g. someone deleted the `SKILL.md` upstream). Pin manually via a `tree/<sha>/...` URL or remove the skill.
+
+### "Local skill source is outside approved company workspace roots"
+
+- The path you imported isn't inside the company's managed skills folder, a registered project workspace, or a project's server-managed checkout folder (code `skill_workspace_boundary_denied`). Register the folder as a project workspace, or move the skill into one, and import again. Symlinks are followed before the check, so a link that points elsewhere is refused too.
+
+### "A GitHub-synced skill didn't pick up an upstream change"
+
+- Sources never refresh automatically. Use **Refresh** on **Skills → Sources**, or `POST /skill-sources/{sourceId}/refresh`.
+- A brand-new skill upstream is only offered, not installed — select it and save the selection.
+- Check the source's `lastError`. A failed refresh keeps the last good version installed.
 
 ### "Frontmatter changes aren't taking effect"
 

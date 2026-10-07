@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: OpenAI Connector
 seo_description: Give agents OpenAI model access with a Codex subscription sign-in or an API key. Runtime requirements, assignment, a test run, and fixes.
 ---
@@ -12,7 +13,7 @@ Two ways to authenticate: a subscription sign-in through the Codex CLI, or an Op
 ## Before you connect
 
 - Either a plan that covers Codex CLI sign-in, or an OpenAI API key from the [OpenAI dashboard](https://platform.openai.com/api-keys).
-- An agent that runs on the Codex runtime. This credential is only usable by an agent whose harness resolves to Codex; a Claude or OpenCode agent cannot use it.
+- An agent that runs on Codex: the **Codex** adapter, or **Paperclip Runner** with the **Codex** provider. A standard OpenAI connection is not compatible with a Claude or OpenCode harness.
 - For subscription sign-in only: a sign-in environment — either the Paperclip server host, or a sandbox environment that supports interactive sign-in. See [With a subscription](#with-a-subscription).
 
 ## Choose a sign-in method
@@ -29,8 +30,9 @@ Confirm current plan entitlements and limits with OpenAI rather than assuming; t
 ## Connect OpenAI
 
 1. Open **Connectors** and select **OpenAI**.
-2. On the **Access** step, choose whether the credential is **Personal** or **Company shared**, and which agents may use it.
-3. Choose the sign-in method.
+2. Choose the sign-in method.
+
+Setup is a single screen with no separate access step. Once the account is saved, you change which people and agents may use it from the saved connection.
 
 ### With an API key
 
@@ -84,6 +86,10 @@ A specific binding is not unconditional. Every run through it must satisfy all t
 So **a binding cannot substitute for a responsible user**: with no responsible person there is nobody for the permission check to evaluate, and the run is refused whatever binding is set.
 
 **Personal** keeps the credential yours; **Company shared** makes one account available to eligible agents on runs whose responsible person is in its human audience. The model is chosen in the agent's configuration, not here.
+
+### Reconnect from a task
+
+If a task shows an authentication card, select **Fix connection** to repair the selected account without leaving the task. The account owner signs in again; the card explains when another owner must do it. After setup completes, the task resumes through normal admission. Reconnecting preserves the account's audience and agent access.
 
 ## Try it
 

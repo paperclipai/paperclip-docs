@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Write a Company Skill
 seo_description: Author a small Markdown bundle, install it into your company skill library, and attach it to just the agents that should load it. About 15 minutes.
 ---
@@ -94,13 +95,25 @@ Then drop a reference example next to it at `references/example.md` so the agent
 
 ---
 
+### Let an agent save the procedure
+
+If the agent is using Paperclip's native Runner, you can ask it to save a procedure it just learned: “Turn the release-note review you just did into a company skill.” In Auto mode, its `create_skill` tool saves a complete single-file `SKILL.md` to the library. You still assign the new skill to the agents that should use it.
+
+Ask and Plan modes don't expose this tool.
+
+You can review the new skill from its **Skill created** card in the task, then use **Open in Skill Studio** to edit the live library copy. For the exact inputs and retry rules, see [Native Runner skill tools](../reference/skills.md#native-runner-skill-tools). Implementation reference: [tool validation and API binding](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/skill-tools.ts).
+
+---
+
 ## 3. Install the skill at company level
 
 `POST /api/companies/{companyId}/skills/import` is the one route. It accepts a `source` string and figures out the rest.
 
 ### From a local path
 
-The fastest path while you're iterating. Point the API at the parent folder that contains the skill folder you just wrote (`~/skills` in this example), so supporting files under `release-note-writer/references/` are included in the inventory:
+The fastest path while you're iterating. Point the API at the parent folder that contains the skill folder you just wrote (`~/skills` in this example), so supporting files under `release-note-writer/references/` are included in the inventory.
+
+The folder has to live somewhere Paperclip already trusts: inside one of your project workspaces, or in the company's managed skills folder. In practice, keep `~/skills` inside a project workspace — a path outside those roots is refused with `skill_workspace_boundary_denied`.
 
 ```bash
 curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/skills/import" \
@@ -138,6 +151,8 @@ curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/skills/import" \
   -H "Content-Type: application/json" \
   -d '{ "source": "https://skills.sh/acme/agent-skills/release-note-writer" }'
 ```
+
+Each `github.com` import is filed under **Skills → Sources** as a GitHub skill source, so you can later refresh it, pick up new skills from the same repository, or stop syncing from one place. If you'd rather browse the repository and tick skills by hand, use **Skills → Sources → Import from GitHub** in the UI instead — see [Sync skills from a GitHub repository](../guides/org/skills.md#sync-skills-from-a-github-repository).
 
 The full list of accepted source forms (npx commands, gist URLs, raw URLs, `owner/repo/skill` shorthand) is in [Company Skills → Source types](../reference/skills.md#import-accepted-sources).
 
@@ -179,7 +194,7 @@ curl "$PAPERCLIP_API_URL/api/agents/$CODER_AGENT_ID/skills" \
   -H "Authorization: Bearer $PAPERCLIP_API_KEY"
 ```
 
-The response (an `AgentSkillSnapshot`) lists every entry the agent currently has, with `state` (`configured`, `installed`, `available`, etc.) and `mode` (the runtime sync strategy — see below). The full schema is at [Skills reference → Assigning skills to agents](../reference/skills.md#3-assigning-skills-to-agents).
+The response (an `AgentSkillSnapshot`) lists every entry the agent currently has, with `state` (`configured`, `installed`, `available`, etc.) and `mode` (the runtime sync strategy — see below). The full schema is at [Skills reference → Assigning skills to agents](../reference/skills.md#4-assigning-skills-to-agents).
 
 Each `desiredSkills` entry can be:
 
@@ -260,7 +275,7 @@ On the agent's next heartbeat, open its run viewer (**Agents → `<agent>` → R
 - the `SKILL.md` body in the run's tool/context output, or
 - the agent's response visibly following the skill's section order and voice rules.
 
-If neither is true, walk down the troubleshooting checklist in the [Skills reference](../reference/skills.md#8-troubleshooting-why-a-skill-isnt-loading). The two most common failures: the routing description is too vague for the agent to match, or the adapter's sync mode is `unsupported`.
+If neither is true, walk down the troubleshooting checklist in the [Skills reference](../reference/skills.md#9-troubleshooting-why-a-skill-isnt-loading). The two most common failures: the routing description is too vague for the agent to match, or the adapter's sync mode is `unsupported`.
 
 > **Tightening the description is the lever, not the body.** If the agent doesn't load the skill when it should, the body is rarely the problem. Rewrite the `description` to name the trigger more concretely ("Use when the user asks for *release notes* or a *changelog*…"). The body only matters once the skill is actually loaded.
 
@@ -274,7 +289,7 @@ Behaviour depends on where the skill came from.
 |---|---|---|
 | **Local path** (`/Users/.../release-note-writer`) | No — live | Edit the file on disk. The next read picks it up. Re-import only if you change the source location. |
 | **Paperclip-managed** (created from the UI's **+** button) | No — live | Edit in the Markdown editor on the Skills page. |
-| **GitHub** | Yes — pinned to a commit SHA | `GET /skills/{id}/update-status` shows the latest commit on the tracked ref. `POST /skills/{id}/install-update` re-imports it. |
+| **GitHub** | Yes — pinned to a commit SHA | `GET /skills/{id}/update-status` shows the latest commit on the tracked ref. `POST /skills/{id}/install-update` refreshes its source. You can also use **Refresh** on **Skills → Sources**. |
 | **skills.sh** | Yes — resolves to GitHub under the hood | Same as GitHub. |
 | **URL / raw file** | No | Re-import the URL to refresh. |
 | **Bundled with Paperclip** | Pinned to the Paperclip release | Upgrade Paperclip itself; bundled skills can't be edited. |
@@ -318,7 +333,7 @@ Local-path skills aren't pinned, so they don't expose `update-status` — the re
 - **Bundled skills are forced on.** `paperclipai/paperclip/*` skills are unioned into every resolved set; you can't drop them.
 - **Adapter sync mode is the runtime gate.** If `mode: "unsupported"`, the assignment exists but no files reach the runtime. Either switch adapters or manage skills in the remote runtime.
 
-The full set of rules — required vs. optional, bundled-required, materialisation strategy, conflict resolution — is at [Skills reference → Scoping rules](../reference/skills.md#4-scoping-rules).
+The full set of rules — required vs. optional, bundled-required, materialisation strategy, conflict resolution — is at [Skills reference → Scoping rules](../reference/skills.md#5-scoping-rules).
 
 ---
 
@@ -326,6 +341,9 @@ The full set of rules — required vs. optional, bundled-required, materialisati
 
 **`Missing permission: can create agents`.**
 The route requires `agents:create` capability. Run the call as the board user, the CEO agent, or an agent with `permissions.canCreateAgents=true`. The same gate applies to import, scan, sync, and the per-skill detail/files routes.
+
+**`Local skill source is outside approved company workspace roots`.**
+The local path isn't inside a project workspace or the company's managed skills folder (code `skill_workspace_boundary_denied`). Move the skill folder into a project workspace — or register its folder as one — and import again.
 
 **`Invalid company skill selection (ambiguous references: <slug>; …)`.**
 Two installed skills share the same slug. Switch the call to use the canonical `key` — list `/companies/{id}/skills`, find the row, copy the `key` field, send that.
@@ -345,7 +363,7 @@ Re-import from the parent folder that contains the skill directory (`/Users/me/s
 **Bundled skill keeps re-appearing after I delete it.**
 That's by design — `paperclip` and the other `paperclipai/paperclip/*` skills are re-imported on every list call. To suppress one, run a forked Paperclip build that doesn't ship it.
 
-For deeper debugging — wrong tool list, sync mode confusion, GitHub pin stuck on an old commit — walk the [full troubleshooting list](../reference/skills.md#8-troubleshooting-why-a-skill-isnt-loading).
+For deeper debugging — wrong tool list, sync mode confusion, GitHub pin stuck on an old commit — walk the [full troubleshooting list](../reference/skills.md#9-troubleshooting-why-a-skill-isnt-loading).
 
 ---
 

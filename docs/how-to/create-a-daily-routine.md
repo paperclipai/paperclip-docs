@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Create a Routine That Runs Daily
 seo_description: Describe recurring work once, attach a cron trigger, and Paperclip mints a fresh issue every tick with the same owner, parent, project, and goal.
 ---
@@ -291,7 +291,7 @@ Schedule isn't the only trigger. The same routine can carry any combination of `
 
 ### Webhook
 
-Use when an external system should kick the routine off. A deploy finished, a Stripe invoice was paid, a monitoring alert fired.
+Use when an external system should kick the routine off. A deploy finished, a Stripe invoice was paid, a monitoring alert fired, a meeting summary is ready.
 
 ```bash
 curl -X POST "$PAPERCLIP_API_URL/api/routines/$ROUTINE_ID/triggers" \
@@ -300,7 +300,7 @@ curl -X POST "$PAPERCLIP_API_URL/api/routines/$ROUTINE_ID/triggers" \
   -d '{
     "kind": "webhook",
     "label": "Deploy finished",
-    "signingMode": "bearer"
+    "signingMode": "app_webhook"
   }'
 ```
 
@@ -316,9 +316,9 @@ curl -X POST "$WEBHOOK_URL" \
   -d '{ "event": "deploy.finished", "environment": "production" }'
 ```
 
-`bearer` checks that `Authorization: Bearer` header. It's what the UI's **Another app or script** setup creates.
+`app_webhook` accepts either that `Authorization: Bearer` header or an HMAC-SHA256 signature of the body in `X-Hub-Signature` / `X-Hub-Signature-256` — the "signing secret" most SaaS tools offer. It's what the UI's **Another app or script** setup creates.
 
-Signing modes: `bearer` (the API default when you omit `signingMode`), `hmac_sha256`, `github_hmac`, or `none`. Pick `github_hmac` for GitHub, `bearer` for other apps and one-line scripts, `hmac_sha256` for timestamped signatures you compute yourself. Avoid `none` — the URL becomes anonymously fireable. The sender has to be able to reach the URL: public services need a publicly reachable HTTPS address, not `localhost` or a private network.
+Signing modes: `app_webhook`, `bearer` (the API default when you omit `signingMode`), `hmac_sha256`, `github_hmac`, or `none`. Pick `github_hmac` for GitHub, `app_webhook` for other apps, `hmac_sha256` for timestamped signatures you compute yourself, `bearer` for one-line scripts. Avoid `none` — the URL becomes anonymously fireable. The sender has to be able to reach the URL: public services need a publicly reachable HTTPS address, not `localhost` or a private network.
 
 ### Manual (`api`)
 

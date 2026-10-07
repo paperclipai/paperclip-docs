@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Share a Connector
 seo_description: Choose which people a connector credential covers and which agents may use it, and understand why the two lists are governed separately in Paperclip.
 ---
@@ -6,6 +7,12 @@ seo_description: Choose which people a connector credential covers and which age
 # Share a connector with people and agents
 
 For credentialed app-tool connections, there are two separate audiences: the people the credential belongs to, and the agents allowed to call through it. Widening one does not widen the other.
+
+## Check the setup default
+
+A new tool connection normally starts with everyone in your organization and all agents. Setup states the resolved identity and agent audience above the main button; select **Change** to narrow them on that same screen.
+
+Methods limited to personal sign-in use your identity. A connection requested for an agent from a task normally starts with you and that agent. Reusing a saved connection keeps its existing access.
 
 ## Choose the human audience
 
@@ -37,7 +44,7 @@ For an app-tool connection, open the **Permissions** tab and find **Which agents
 
 If the control is disabled with *"Unavailable while this connection is installed for every agent,"* the connection has a company-wide install that supersedes the per-agent list. Change the install first.
 
-Check the selected audience during setup; availability and defaults depend on the method, your permissions, and whether setup was opened for a particular agent. That is not a permission to act — the action list still decides what any of those agents may actually call. See [Set action permissions](action-permissions.md).
+Check the stated audience during setup and change it if needed. Access to a connection does not decide what an agent may do; the action list still controls each call. See [Set action permissions](action-permissions.md).
 
 ## Why these are two lists
 
@@ -55,3 +62,8 @@ The connector list shows the current state per connection. For a connection whos
 - [Use separate accounts for people and agents](separate-accounts.md)
 - [Set action permissions](action-permissions.md)
 - [Members and access](../guides/org/members-and-access.md)
+
+## Sources
+
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Google Calendar Connector
 seo_description: Let agents read calendars and availability, and optionally manage events. Capability groups, invitation side effects, and a safe read test.
 ---
@@ -6,6 +7,8 @@ seo_description: Let agents read calendars and availability, and optionally mana
 # Google Calendar
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
+
+> **Note:** While verification is pending, the Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. This hides them from the list only. Existing Google connections keep running with their access and permissions unchanged, and an agent that needs a Google service can still ask you for it with a connection card on its task.
 
 Agents can read the calendars on your Google account, look up events, and check availability. On a managing connection they can also create, update, delete, and respond to events.
 
@@ -24,13 +27,15 @@ The group is fixed for the life of the connection. To change it, make a new conn
 | Group | What agents can do | Scopes requested |
 | --- | --- | --- |
 | **Read only** | Read the calendar list, read and search events, check free/busy | `calendar.calendarlist.readonly`, `calendar.events.freebusy`, `calendar.events.readonly` |
-| **Read & manage** | The above, plus create, update, delete, and respond to events | `calendar.calendarlist.readonly`, `calendar.events.freebusy`, `calendar.events` |
+| **Read & manage** | The above, plus create, update, delete, and respond to events | `calendar.calendarlist.readonly`, `calendar.events` |
+
+**Read & manage** no longer asks for the separate free/busy scope; `calendar.events` already covers suggesting a time. Connections made with an earlier version asked for more. If a **Connect with Paperclip** connection from before this change stops working, select **Reconnect** to sign in with the smaller set. A connection using your own OAuth app keeps its earlier grant until you reconnect it.
 
 ## Connect Google Calendar
 
 1. Open **Connectors** and select **Google Calendar**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Choose the capability group, then the path: **Connect with Paperclip** for the managed Google client, or **Use your own Google OAuth app** — which needs the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+3. Check the capability group. Setup starts on the group that can make changes; to connect read-only, select **Change** and pick it under **What should Paperclip be able to do?**. Paperclip uses **Connect with Paperclip** when your instance offers it. To use your own client instead, select **Use your own Google OAuth app** and supply the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
 4. Complete Google's consent screen with the registered Workspace account.
 
 ## Choose access

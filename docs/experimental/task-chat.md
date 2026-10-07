@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Chat-Style Tasks
 seo_description: Read what an agent said and what it actually did in one stream — thinking, commands, and diffs inline, instead of a comment thread beside a transcript.
 ---
@@ -26,8 +26,6 @@ The thread *is* the page. Open any task and you'll notice:
 - The work-mode badge disappears from the header. Mode is now something you pick per message in the composer, and each agent reply carries the mode it ran under, so a task-wide badge would be misleading.
 
 Everything is still there. It just moved.
-
-![The chat-style task page: the thread fills the centre column as a conversation, with the properties pane on the right](../user-guides/screenshots/light/task-chat/thread.png)
 
 ## Reading the thread
 
@@ -91,23 +89,50 @@ The thread follows new content while you're at the bottom, and stops following t
 
 The composer sits pinned at the bottom of the thread: a text box over a row of controls.
 
-**Pick a mode per message.** The chip on the left names the mode this submission will run in, tinted to match it. Open it and you get all three:
+**Pick a mode per message.** Messages run in **Auto mode** — the agent makes changes and runs the work — unless you choose otherwise. Click the **+** button on the left to open the **Add** menu, where you'll find two other modes:
 
 | Mode | What it does |
 | --- | --- |
-| **Agent mode** | Make changes and run work |
-| **Plan mode** | Draft a plan before acting |
-| **Ask mode** | Answer questions only, no changes |
+| **Plan mode** | Plan before acting |
+| **Ask mode** | Answer without changes |
 
-The placeholder text follows your choice, so you can tell at a glance what will happen — *"Message Ada — describe what you want done…"*, *"Plan with Ada — shapes the plan doc, no code changes…"*, or *"Ask Ada a question — read-only, nothing runs…"*. Press **Shift+Tab** in the text box to cycle through the three. The mode is applied when you send, not when you pick it.
+Pick one and a tinted chip appears next to the **+**, so you can see what this message will do. Plan and Ask can't both be on — picking one replaces the other. Click the chip to remove it and go back to Auto mode. If you'd rather stay on the keyboard, press **⌘+.** (Ctrl+. on Windows and Linux) or **Shift+Tab** in the text box to cycle through the three modes.
 
-![The composer's mode picker open, offering Agent mode, Plan mode, and Ask mode](../user-guides/screenshots/light/task-chat/composer-modes.png)
+The placeholder text follows your choice, so you can tell at a glance what will happen — *"Message Ada — describe what you want done…"*, *"Plan with Ada — shapes the plan doc, no code changes…"*, or *"Ask Ada a question — read-only, nothing runs…"*. The mode is applied when you send, not when you pick it.
 
-**Attach files** with the **+** button, by pasting them, or by dropping them onto the composer. Each file becomes a chip that reads *Uploading…* and then *Attached*, with a thumbnail for images, and a link to it is added to your message.
+**Attach files** with **Files and images** in the same **Add** menu, by pasting them, or by dropping them onto the composer. Each file becomes a chip that reads *Uploading…* and then *Attached*, with a thumbnail for images, and a link to it is added to your message. When the agent's runner supports it, the menu also offers **Goal** (*"Keep pursuing"*) to give the agent a goal to keep working toward.
 
-**Reassign as you reply.** When reassignment is available, a control on the right names the current assignee and lets you hand the task to someone else with the same message. Sending to an agent on a task that's `done`, `cancelled`, or `blocked` reopens it.
+**Choose who answers, and how hard they think.** The selection control on the right has separate targets: click the agent name to choose the assignee, or the model label to choose the model and effort. These settings apply when you send this message:
 
-**Send with ⌘+Enter** (or Ctrl+Enter). Plain **Enter** inserts a newline — it was too easy to send half a thought otherwise.
+- **The assignee.** Click the name to search your agents by name, role, or harness (Claude Code, Codex, and so on), or choose **No assignee**. Picking someone else hands the task to them along with your message. Sending to an agent on a task that's `done`, `cancelled`, or `blocked` reopens it.
+- **Model.** Choose the exact model for this message from the list, or type in **Search or paste a model ID** to use one that isn't listed. Leave it on the harness default if you don't mind which.
+- **Effort.** A slider sets how much effort the model puts in — from **Off** or **Minimal** up to **Extra High**, **Max**, or **Ultra**, depending on the model. It only offers the levels that model and its engine actually support, so you won't see a control the agent would quietly ignore. Supported Codex configurations also offer a **Fast mode** toggle.
+
+The effort slider includes **Default** as well as the supported levels. **Reset to agent default** puts the model, effort, and Fast mode back to how the agent is configured. Agents that don't let Paperclip pick a model — ones that run a command, call an HTTP endpoint, or route through a gateway — say so in the picker instead of showing a model list. On a phone, the picker opens full-screen.
+
+**Questions wait above the composer.** When an agent asks a question, wants a confirmation, or has something for you to review, its card appears above the text box. If several need a response, the **pending** control lets you move between them. Dismissing the card folds it into a pending-input row you can reopen; it doesn't answer or reject it. The composer stays usable underneath. Sending an ordinary message doesn't throw the card away: it stays pending until you answer it, unless the agent set it up to be replaced by your next reply.
+
+**Queued messages.** A message you send while the agent is mid-run waits in the queue above the composer. **Steer** pushes it into the run that's going now, and **Interrupt** stops that run and starts a fresh one with your message.
+
+**Send with ⌘+Enter** (or Ctrl+Enter). Plain **Enter** inserts a newline.
+
+### Stop, pause, and resume
+
+While the task has a live run, an empty composer shows **Stop** to people who can manage task controls. Click it to pause the task's work; on a parent task this pauses the subtree too. The same action is available as **Pause work** or **Pause subtree** in the task menu. Typing text or adding an attachment changes the button back to Send. The keyboard send shortcut never invokes Stop.
+
+Paperclip waits for affected runs to stop. If stopping cannot be confirmed, you get an inline error; a saved pause by itself is not proof that the provider stopped. Cancellation remains a separate task-menu action.
+
+Once paused, an amber **Task is paused.** or **Subtree is paused.** panel replaces the task's input controls. Your text and attachments remain in the draft. Use **Resume task** or **Resume subtree** before sending another message. If the pause comes from an ancestor, the button takes you to that ancestor.
+
+Resume releases the hold. You can optionally wake eligible agents, but a task with uncertain execution outcomes needs recovery first; trying to wake it keeps the pause in place and explains what to review. Releasing without waking agents is still available. If the release succeeds but a wake fails, the page says that the pause was released and identifies the startup problem.
+
+### When a run needs attention
+
+When a run needs inspecting before it can safely continue, the notice reads **Recovery needed.** and points you to **Inspect run**. When a failed run can simply be retried, the notice offers **Retry** instead. Pasting an exact model ID into the picker doesn't guarantee provider access.
+
+If the run needs provider sign-in, complete the connection or authentication request shown in the thread before retrying. A missing secret or configuration binding is a setup problem to fix, not a reason to keep sending the same request. See [Recovery actions](../guides/day-to-day/issues.md#recovery-actions) for the wider task recovery flow.
+
+Implementation reference: [composer](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/components/task-chat/TaskChatComposer.tsx), [model and effort picker](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/components/task-chat/ComposerRunSettingsPicker.tsx), [pause release](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/routes/issue-tree-control.ts), [recovery notice](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/components/ExecutionBlockerNotice.tsx), and [authentication repair classification](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/ai-auth-failure.ts).
 
 ## The side pane
 
@@ -115,15 +140,13 @@ The properties pane on the right becomes resizable and maximizable.
 
 Drag its left edge to set the width; the pane remembers it, and **double-clicking the edge** resets it to the default. Use **Maximize panel** in the header to glide it out across the page for a proper read — the center column doesn't reflow while it's out — and **Restore panel** to send it back.
 
-Its header holds up to three tabs, and a tab only appears when it has something in it:
+The panel has a **+** menu for opening task surfaces and documents in tabs. The main views are:
 
 - **Properties** — the same task properties as always: assignee, project, blockers, and the rest.
-- **Plan** — the task's plan document with its revision number and last-updated time, above the accepted-plan history. Before there's anything to show it reads *"No plan yet. The plan document, accepted plans, and their revisions will appear here."*
-- **Artifacts** — a read-only list of the task's work products, documents, and agent-produced files, grouped by the run that produced them. Files show their size and open in a new tab. Empty, it reads *"No artifacts yet. Work products, documents, and agent-produced files will appear here."* See [Artifacts](../guides/day-to-day/artifacts.md#reaching-artifacts-from-a-task).
+- **Plan** — appears once the task has a plan document. It shows the revision number and last-updated time above the accepted-plan history.
+- **Artifacts** — a read-only view of the task's work products, documents, and attachments, grouped by run. Each one gets a card shaped to what it is — pull request, commit, document, image, video, link preview, CSV data, or file — with the right action to open it. Markdown and text files open in a tab of their own in this pane. Empty, it reads *"No artifacts yet. Work products, documents, and agent-produced files will appear here."* See [Artifacts](../guides/day-to-day/artifacts.md#reaching-artifacts-from-a-task).
 
-With neither a plan nor artifacts, the header just says **Properties** rather than showing a one-tab strip.
-
-![The side pane on the right of the task page, with its Properties, Plan, and Artifacts tabs](../user-guides/screenshots/light/task-chat/side-pane.png)
+You can also open **Tasks** to follow the ancestors, subtasks, and tasks created from this work, and a skill card can open its own named tab. Panels remember the tabs you opened. [Agent Chat](agent-chat.md) uses the same panel with agent-wide Tasks and Artifacts instead.
 
 One nice touch on the Plan tab: while a plan is waiting on your confirmation, its **accept** and **send back** buttons pin to the bottom of the pane and stay there while you scroll the plan itself — so you can read the whole thing and decide without hunting for the card back in the thread.
 
@@ -135,12 +158,12 @@ Purely presentational. Turning on **Classic Task Interface** restores the old ta
 
 - This is a redesign of a page you probably use all day, and it's under active iteration. Expect details — labels, spacing, which things fold — to move between releases.
 - **Classic Task Interface** is instance-wide, so switching back changes the task page for every person on the instance. There's no per-user opt-out.
-- The Artifacts tab is read-only for now. Uploading, previewing, and deleting attachments still happen on the existing attachment surfaces.
+- The Artifacts tab is read-only for now. Uploading and deleting attachments still happen on the existing attachment surfaces.
 - Live structured plan checklists (an agent ticking off plan steps as it goes) depend on adapter support and aren't wired into the live thread yet — the Plan tab shows the plan document and accepted-plan history.
 
 ## Where to go next
 
-- [Work Modes](../guides/day-to-day/work-modes.md) — what Agent, Plan, and Ask modes actually change about a run.
+- [Work Modes](../guides/day-to-day/work-modes.md) — what Auto, Plan, and Ask modes actually change about a run.
 - [Issues](../guides/day-to-day/issues.md) — the task detail page, sub-tasks, and blockers.
 - [Artifacts](../guides/day-to-day/artifacts.md) — where a task's outputs come from.
 - [Experimental features overview](overview.md)

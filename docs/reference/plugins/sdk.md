@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Plugin SDK
 seo_description: The worker-side authoring kit for Paperclip plugins. Import it in your worker entrypoint to declare a plugin and subscribe to host events.
 ---
@@ -37,15 +37,18 @@ Reach for the plugin SDK when you want to:
 The SDK package exposes two entrypoints:
 
 - `@paperclipai/plugin-sdk` — the worker-side surface documented on this page. Default for `definePlugin`, `runWorker`, `PluginContext`, the protocol helpers, and all manifest/protocol types.
-- `@paperclipai/plugin-sdk/ui` — UI-bundle surface for plugin UI contributions. Mostly out of scope for this page; see [Administration → Plugins](../../administration/plugins.md) for the operator-facing view, and [A UI slot that wraps the whole app](#a-ui-slot-that-wraps-the-whole-app) below for the one app-wide slot.
+- `@paperclipai/plugin-sdk/ui` — UI-bundle surface for plugin UI contributions. Mostly out of scope for this page; see [Administration → Plugins](../../administration/plugins.md) for the operator-facing view, and [UI slots that wrap the whole app](#ui-slots-that-wrap-the-whole-app) below for two app-wide slots.
 
 All identifiers below are exported from `@paperclipai/plugin-sdk`. They are the source of truth — copy names verbatim.
 
-### A UI slot that wraps the whole app
+### UI slots that wrap the whole app
 
-Most UI slots mount on one page or one entity. One slot type in `PLUGIN_UI_SLOT_TYPES` instead attaches to the signed-in application shell itself:
+Most UI slots mount on one page or one entity. Two slot types in `PLUGIN_UI_SLOT_TYPES` instead attach to the signed-in application shell itself:
 
 - **`appShellOverlay`** — a persistent piece of UI that lives alongside the whole app, such as a floating panel. It needs the `ui.action.register` capability and gets the same host context as a widget. It stays mounted while the user navigates between pages, and it's torn down when the user switches account or company, signs out, or enters onboarding — so cancel any requests or subscriptions when your component unmounts. Your plugin is responsible for the panel's accessibility.
+- **`organizationSwitcher`** — replaces the organization menu at the top of the sidebar with your own component. It needs the `ui.sidebar.register` capability, and it must be a React component (a custom-element export isn't supported for this slot). The host passes `PluginOrganizationSwitcherProps`, whose `organizationSwitcher` object holds the current company's `name` and `logoUrl` in `currentCompany`, the sidebar's `collapsed` and `open` state with `onOpenChange`, `onNavigate` to close mobile navigation before you leave the page, `onSignOut` and `signingOut` so you use the host's own sign-out, and `renderIcon` to draw a company icon the way the host does.
+
+The organization switcher is deliberately cautious. The host reserves the space while plugins load, and falls back to its built-in menu if no plugin contributes the slot, more than one does, discovery fails, or your component throws — so users can always reach their organizations. `currentCompany` describes the company inside this Paperclip instance; if your menu shows an external account or organization, fetch that from the service that owns it. For both slots, treat the props and host context as display information, not proof of who the user is: authenticate anything sensitive at the service that owns it. Replacing the menu changes only how it looks, not who can access which company.
 
 ---
 
@@ -434,6 +437,34 @@ The one method is `log(stream: "stdout" | "stderr", chunk: string): void`. Pass 
 
 So a provider that wants live output just calls `ctx.execution.log("stdout", chunk)` (or `"stderr"`) each time it reads a new chunk from the running command, and a provider that doesn't stream can ignore the client entirely.
 
+#### Cleaning up after a failed create
+
+Some sandbox providers allocate the machine first and only then wait for it to start. If that wait fails, the provider's own SDK may throw before it hands you a handle — leaving a sandbox running that nobody knows about. The plugin SDK gives your driver a way to hand the host enough evidence to clean that allocation up, even after a restart.
+
+When `environmentAcquireLease` (or `environmentDestroyLease`) fails after something may already have been allocated, throw a `PluginEnvironmentCreationCleanupError` instead of a plain error. Its constructor takes the underlying errors, a message, and a `PluginEnvironmentCreationCleanup` record describing exactly what you tried to create:
+
+- `providerLeaseId` — the name or ID you created the resource under, plus `observedProviderLeaseId` if you saw a real provider ID with matching ownership.
+- `companyId`, `environmentId`, an optional `runId`, and an `attemptId` unique to this creation attempt.
+- `accountFingerprint` — a 64-character lowercase hex fingerprint of the provider account.
+- `labels` — the ownership labels you stamped on the resource; up to 16 entries, each key starting with `paperclip-`.
+
+The worker sends only that validated record back to the host — never the provider exceptions themselves, since those can contain credentials. The host stores it as a pending cleanup and retries teardown of that exact, ownership-matched allocation, so it can never delete another attempt's resource. A record that fails validation is simply dropped. The acquisition still fails either way; a cleanup error never produces a lease.
+
+Two helpers round this out: `readEnvironmentCreationCleanupError(error)` returns the validated `PluginEnvironmentCreationCleanup` from an error (or `null`), and `environmentCreationCleanupErrorData(error)` builds the wire payload the worker attaches to the JSON-RPC error. Drivers that can't leak an allocation this way can ignore all of it.
+
+#### Stopping a sandbox without deleting it (optional)
+
+Sometimes the host needs a sandbox to stop *and keep its files* — for example while it recovers a workspace export from a run that ended badly, or when a reusable sandbox finishes a turn. Your ordinary release hook can't promise that, because its behaviour follows the environment's release policy, and an ephemeral sandbox gets deleted on release.
+
+Implement `onEnvironmentStopLease(params: PluginEnvironmentReleaseLeaseParams): Promise<PluginEnvironmentTerminationReceipt>` to support this. The worker advertises the matching `environmentStopLease` RPC method only when you define the hook, so the host can tell older drivers apart and hold the cleanup until a capable driver is available. When the host calls it, `params.resourceDisposition` is `"stop_and_retain"`.
+
+Two rules keep this safe:
+
+- **Stop that exact allocation, whatever its release policy says.** Return a `PluginEnvironmentTerminationReceipt` with `state: "stopped"` and the `providerLeaseId` you stopped.
+- **Throw if you can't confirm the stop.** Never fall back to deleting the sandbox. A failed stop leaves the cleanup pending, and the host retries later rather than reaching for release or destroy.
+
+If your provider has no way to stop without deleting, leave the hook out. The host then never asks your driver to retain a sandbox.
+
 #### Running a command outside the persistent session
 
 `PluginEnvironmentExecuteParams` carries an optional `bypassSession?: boolean`. It matters only if your driver opens a **persistent session** — one shell or connection it keeps alive across a lease's commands.
@@ -566,7 +597,7 @@ Types: `PluginBundlerPresetInput`, `PluginBundlerPresets`, `EsbuildLikeOptions`,
 The SDK ships a first-class test harness so you do not have to spin up a real host:
 
 - `createTestHarness` — base harness for unit-testing a plugin against in-memory host stubs.
-- `createEnvironmentTestHarness` — harness for testing environment-driver plugins.
+- `createEnvironmentTestHarness` — harness for testing environment-driver plugins. Its driver options accept an `onStopLease` hook, and the harness exposes a matching `stopLease(params)` call so you can exercise stop-and-retain without a real provider.
 - `createFakeEnvironmentDriver` — synthesised driver implementation for assertions.
 - `filterEnvironmentEvents`, `assertEnvironmentEventOrder`, `assertLeaseLifecycle`, `assertWorkspaceRealizationLifecycle`, `assertExecutionLifecycle`, `assertEnvironmentError` — assertion helpers for the environment-driver flow.
 

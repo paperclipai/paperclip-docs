@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1005.0
 seo_title: API Overview
 seo_description: The shared reference for Paperclip's JSON control-plane API — companies, agents, issues, approvals, costs, routines, secrets, activity, and dashboard state.
 ---
@@ -248,4 +248,3 @@ If you are building against the API from code, the safest mental model is:
 - pick the right caller identity first
 - keep every request company-scoped where the route expects it
 - treat `400`, `403`, `404`, `409`, and `422` as meaningful business signals, not just transport errors
-

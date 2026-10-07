@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Choosing an Agent Adapter
 seo_description: Compare the adapters that run your agents — Claude Code, Codex, OpenCode, HTTP webhook and more — and pick the right bridge for each role you hire.
 ---
@@ -22,7 +22,8 @@ Without an adapter, an agent is just a record in a database. With one, it's a wo
 | `codex_local` | OpenAI users — runs Codex on your Mac | Codex CLI installed, OpenAI API key |
 | `gemini_local` | Gemini users — runs Gemini CLI on your Mac | Gemini CLI installed, Google credentials |
 | `opencode_local` | Multi-provider flexibility, switchable models | OpenCode CLI installed, relevant API keys |
-| `cursor` | Users already working inside Cursor | Cursor installed and configured |
+| `cursor` | Cursor Agent CLI with resumable local runs | Cursor Agent CLI installed and authenticated |
+| `paperclip_runner` | Native sessions and Paperclip task tools | Runner enabled, prepared execution environment, compatible provider credential |
 | `pi_local` | Pi users wanting Pi's built-in tool set | Pi CLI installed, relevant API keys |
 | `grok_local` | xAI users — runs the Grok Build CLI | Grok CLI installed, xAI API key or SuperGrok login |
 | `hermes_local` | Persistent memory, 30+ tools, 80+ skills | Hermes Agent installed (Python 3.10+) |
@@ -31,7 +32,15 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 ![Adapter type dropdown showing all available options](../../user-guides/screenshots/light/agents/adapter-type-dropdown.png)
 
-> **Note:** On Paperclip Cloud, the new-agent picker offers Claude, Codex, and OpenCode.
+> **Note:** On Paperclip Cloud, the new-agent picker offers Claude, Codex, OpenCode, and Grok. Grok agents connect with an xAI subscription or API key during setup.
+
+> **Tip:** Grok Build can also run on the experimental **Paperclip Runner** adapter (`paperclip_runner`) — choose **Grok Build** as the provider. It needs Grok Build installed at a fixed path in the execution environment. See [Grok Build on Paperclip Runner](../../reference/adapters/grok-local.md#grok-build-on-paperclip-runner).
+
+### Choose Paperclip Runner explicitly
+
+For the native lifecycle, choose **Paperclip Runner** and then select the provider: **Codex**, **OpenCode**, **Claude Managed**, **AWS AgentCore**, **ACP agents**, or **Grok Build**. Under **ACP agents**, Claude is the qualified choice; Cursor, GitHub Copilot, and Pi are listed as awaiting qualification. Existing direct-adapter agents keep their current runtime until you change the adapter.
+
+This feature is experimental: `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md).
 
 ### Agents run in full auto by default
 
@@ -67,10 +76,10 @@ The folder on your Mac where the agent does its work — reads files, writes out
 
 **Model**
 Which Claude model to use. If you leave it blank, Paperclip uses `claude-opus-5`. Some common choices:
-- `claude-opus-5` — most capable, best reasoning, highest cost. Good for your CEO or complex strategic agents.
+- `claude-opus-5-5` or `claude-opus-5` — most capable, best reasoning, highest cost. Good for your CEO or complex strategic agents.
 - `claude-sonnet-5` — fast, capable, lower cost. Good for worker agents doing routine tasks.
 
-When in doubt, start with Sonnet for workers and Opus for the CEO.
+When in doubt, start with Sonnet for workers and Opus for the CEO. The **effort** options next to the model change with the model you pick — newer Opus, Sonnet 5, and Fable models add `xhigh` and `max`. See [Claude Code — Reasoning Effort](../../reference/adapters/claude-code.md#reasoning-effort).
 
 **Environment variables**
 The agent form includes an **Environment variables** section. Add `ANTHROPIC_API_KEY` there, either as a plain value or as a secret reference. If you're not sure what key name to use, `ANTHROPIC_API_KEY` is the standard one.
@@ -105,7 +114,7 @@ The fields are the same as `claude_local` — mainly model selection and environ
 
 **Model** examples for Codex:
 - `gpt-5.6-sol` — the default and the normal starting point
-- `gpt-6-astra` — GPT-6, with extra reasoning-effort levels
+- `gpt-6-astra`, `gpt-6-sol`, or `gpt-6-luna` — the GPT-6 family, with extra reasoning-effort levels
 - `o4-mini` — fast and cost-effective for routine tasks
 
 See [Codex — Models](../../reference/adapters/codex.md#models) for the full list.

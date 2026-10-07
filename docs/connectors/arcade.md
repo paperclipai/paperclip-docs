@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Arcade Connector
 seo_description: Connect tools selected in an Arcade gateway, choose agent access, and check authentication and action permissions. Setup is unverified.
 ---
@@ -8,9 +8,10 @@ seo_description: Connect tools selected in an Arcade gateway, choose agent acces
 
 Arcade gives agents access to the tools selected in your Arcade gateway. The gateway can combine tools from several servers behind one URL.
 
+Arcade is available on every instance; no experimental setting is required.
+
 ## Before you connect
 
-- The experimental **MCP aggregators** setting turned on. It is off by default, and until an administrator turns it on, Arcade does not appear in **Connectors**. See [MCP aggregators](mcp-aggregators.md#turn-them-on-first).
 - An Arcade account and a gateway with the tools you want to expose.
 - The gateway URL and the authentication mode chosen by its owner.
 
@@ -21,10 +22,10 @@ Arcade supports browser sign-in and header-based authentication. Follow your gat
 > **Unverified setup:** This procedure follows the pinned Paperclip definition and Arcade's documentation. It has not been tested with a live Arcade connection. Each step below is unverified.
 
 1. **Unverified:** In Arcade, create or select a gateway and select the tools agents should use. Copy its URL, in the form `https://api.arcade.dev/mcp/YOUR-GATEWAY-SLUG`.
-2. **Unverified:** Open **Connectors**, select **Arcade**, and choose **Connect MCP server**.
-3. **Unverified:** On **Access**, choose the identity and the agents that may use it.
-4. **Unverified:** Paste the gateway URL. Sign in if requested, or enter the required token and headers under **Advanced authentication**. Header-based gateways can require both an authorization token and an end-user identifier; use the values specified by the gateway owner.
-5. **Unverified:** Select **Check link**, then inspect the connection's action list before allowing agent work.
+2. **Unverified:** Open **Connectors** and select **Arcade**.
+3. **Unverified:** Read the access line above the main button. Select **Change** to choose the identity or narrow the agents that may use it.
+4. **Unverified:** Paste the gateway URL. Sign in if requested, or enter the required token and headers under **Authentication** after selecting **Change**. Header-based gateways can require both an authorization token and an end-user identifier; use the values specified by the gateway owner.
+5. **Unverified:** Select **Connect Arcade**, then inspect the connection's action list before allowing agent work.
 
 ## Choose access
 
@@ -59,4 +60,4 @@ The available tools depend on the gateway. A successful connection does not prov
 
 ## Sources
 
-- [Paperclip connector definition](https://github.com/paperclipai/paperclip/blob/3166e93a7eee315e3bfbda622e080044ec5c343d/packages/shared/src/app-definitions/arcade.json#L16) — method names, authentication, endpoints, and connector-specific limits at the pinned product version. Provider setup documentation is linked above.
+- [Paperclip connector definition](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/app-definitions/arcade.json#L16) — method names, authentication, endpoints, and connector-specific limits at the pinned product version. Provider setup documentation is linked above.

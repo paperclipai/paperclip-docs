@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Google Docs Connector
 seo_description: Let agents read Google Docs documents and optionally update them. Capability groups, document scope, what editing covers, a read test, and troubleshooting.
 ---
@@ -6,6 +7,8 @@ seo_description: Let agents read Google Docs documents and optionally update the
 # Google Docs
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
+
+> **Note:** While verification is pending, the Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. This hides them from the list only. Existing Google connections keep running with their access and permissions unchanged, and an agent that needs a Google service can still ask you for it with a connection card on its task.
 
 Agents can read the text and structure of Google Docs documents, and on an editing connection update them.
 
@@ -21,16 +24,18 @@ Agents can read the text and structure of Google Docs documents, and on an editi
 
 | Group | What agents can do | Scopes requested |
 | --- | --- | --- |
-| **Read only** | Read document text and structure | `drive.readonly`, `documents.readonly` |
-| **Read & edit** | The above, plus update a document | `drive.readonly`, `drive.file`, `documents` |
+| **Read only** | Read document text and structure | `documents.readonly` |
+| **Read & edit** | The above, plus update a document | `documents` |
+
+Neither group asks for Google Drive access. The Docs scope alone is enough to read and edit documents the account can open, by document ID. Connections made with an earlier version asked for more. If a **Connect with Paperclip** connection from before this change stops working, select **Reconnect** to sign in with the smaller set. A connection using your own OAuth app keeps its earlier grant until you reconnect it.
 
 The group is fixed for the life of the connection.
 
 ## Connect Google Docs
 
 1. Open **Connectors** and select **Google Docs**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
-3. Choose the capability group, then **Connect with Paperclip** or **Use your own Google OAuth app** — the latter needs the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+3. Check the capability group. Setup starts on the group that can make changes; to connect read-only, select **Change** and pick it under **What should Paperclip be able to do?**. Paperclip uses **Connect with Paperclip** when your instance offers it. To use your own client instead, select **Use your own Google OAuth app** and supply the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
 4. Complete Google's consent screen with the registered Workspace account.
 
 ## Choose access

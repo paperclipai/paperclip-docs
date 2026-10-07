@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Recognized but Unlisted Providers
 seo_description: The provider definitions present in the Paperclip catalog but withheld from the Connectors list, and the providers that gate access behind their own approval.
 ---
@@ -45,13 +45,13 @@ None of these have connector pages, and none can be added from the catalog.
 
 ## Composio: listed again, old connections retired
 
-Composio used to sit in the withheld list above. It is back in the **Connectors** list as a remote MCP connection through Composio Connect, one of the MCP aggregators. Like the other aggregators, it only appears once an administrator turns on the experimental **MCP aggregators** setting, which is off by default — see [Connect apps through an MCP aggregator](mcp-aggregators.md).
+Composio used to sit in the withheld list above. It is back in the **Connectors** list as a regular remote MCP connection through Composio Connect — see [Connect apps through an MCP aggregator](mcp-aggregators.md).
 
 Connections made through the older Composio broker are a different matter. That broker is retired, so those connections no longer run: they show as unhealthy, their tools are not offered to agents, and calls to them are refused. Paperclip tells you what to do in the connection itself:
 
 > *"This legacy Composio connection is no longer supported. Add a new Composio MCP connection from Connectors, then remove this connection. Existing credentials and permissions are not migrated."*
 
-In practice: with **MCP aggregators** turned on, connect Composio again from **Connectors**, set up access and action permissions on the new connection, then remove the old one. Nothing carries over automatically.
+In practice: connect Composio again from **Connectors**, set up access and action permissions on the new connection, then remove the old one. Nothing carries over automatically.
 
 ## Gated by the provider
 

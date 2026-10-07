@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Set Up a GitHub Review Bot
 seo_description: Build an experimental agent-powered Storybook reviewer, connect its GitHub App, configure mentions and push events, and verify failing-to-passing PR checks.
 ---
@@ -51,7 +52,7 @@ Configure it for [Low-trust review](../administration/trust-and-low-trust-review
 with a concrete work boundary and an isolated sandbox. A private PR can still
 contain hostile instructions or code.
 
-Open **Apps → GitHub → Chat with an agent** and choose that agent. The assignment
+Open **Connectors → GitHub Code Review Bot** and choose that agent. The assignment
 is permanent for this bot. Paperclip warns when the selected agent is not
 configured for low-trust review; continuing does not reduce its existing access.
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1005.0
 seo_title: Settings: Profile and Instance
 seo_description: Two settings surfaces and why the difference matters. Covers your profile plus instance general, access, adapters, and experimental flags.
 ---
@@ -22,7 +22,9 @@ This guide walks through both, section by section.
 
 ![Profile settings](../user-guides/screenshots/light/settings/profile.png)
 
-Open the Profile page from the account menu in the sidebar. It's scoped to you — nobody else's profile changes when you edit yours.
+To get here, click your avatar at the bottom of the sidebar to open the account menu, then click your picture and name at the top of the menu. That opens your public profile page; click **Edit profile** there to land on this page. It's scoped to you — nobody else's profile changes when you edit yours.
+
+> **Tip:** The account menu also has an **Invite** row when you're allowed to invite people. On a self-hosted instance it opens the **Members** page on its **Invites** tab, and it shows for company owners and admins, instance admins, and local boards. On Paperclip Cloud it opens the People settings for your stack instead, and shows only to the stack's owner or admins.
 
 You get three things to work with:
 
@@ -33,6 +35,14 @@ You get three things to work with:
 Click **Save profile** to persist name or avatar changes. The button is disabled while the name is empty or a save is in flight.
 
 > **Note:** The avatar is stored as an asset under the *selected company*, but the profile itself is a user-level record. If you switch which company is selected in the sidebar later, your avatar keeps working — it's just that new uploads go to whichever company is active when you upload.
+
+### Keyboard shortcuts
+
+Keyboard shortcuts are always on for everyone who's signed in — there's nothing to turn on, here or anywhere else. That covers inbox and task-list navigation plus the global shortcuts: `c` to create a task, `/` to search, `?` for the shortcuts cheatsheet, and `[` and `]` to toggle the sidebar and the side panel.
+
+Shortcuts stay out of your way while you type: they ignore key presses inside text fields, and they don't fire while a dialog is open.
+
+> **Upgrading from an older release?** Earlier releases had a **Keyboard shortcuts** switch — first on the instance **General** page, then on this Profile page, off by default. Both switches are gone, so after the upgrade shortcuts simply work for every signed-in user.
 
 ---
 
@@ -61,10 +71,6 @@ These fields are informational. To change them you change the deployment itself 
 ### Censor username in logs
 
 Hides the username segment inside home-directory paths and similar operator-visible log output. Useful if you're sharing screen recordings or pasting transcripts. Off by default. Note that bare username mentions outside of path strings are not masked in the live transcript view — this is a best-effort filter, not a guarantee.
-
-### Keyboard shortcuts
-
-Enables the app's keyboard shortcuts — inbox navigation, creating issues, toggling panels, and so on. Off by default because they conflict with browser or screen-reader shortcuts for some users. Turn it on if you want faster navigation.
 
 ### Backup retention
 
@@ -215,6 +221,9 @@ Each flag has its own page in the [Experimental](../experimental/overview.md) se
 - **[Experimental File Viewer](../experimental/file-viewer.md)** — task-detail controls for browsing and previewing workspace files.
 - **[Enable External Objects](../experimental/external-objects.md)** — detects external URLs in issues and shows live status for referenced pull requests and tickets.
 - **[Task Plan Decomposition Panel](../experimental/plan-decomposition-panel.md)** — accepted-plan decomposition history on task detail pages, for debugging sub-task creation.
+- **[Agent Chat](../experimental/agent-chat.md)** — one persistent conversation per agent, behind a **Chat** sidebar entry; agents hand work off to tasks and report back when they're done.
+- **[Memory connectors](../connectors/memory-connectors.md)** — exposes Mem0, Zep, Supermemory, Cognee, and Honcho setup. Experimental and off by default; hiding setup does not stop saved connections.
+- **[Paperclip Runner](../reference/adapters/paperclip-runner.md)** — enables explicitly configured native runs. Experimental; on by default on self-hosted instances and off by default on Cloud unless managed configuration changes it. Enabling the flag does not migrate existing agents.
 - **[Task Watchdogs](../experimental/task-watchdogs.md)** — per-task watchdog agents that verify stopped task subtrees and restore live paths.
 - **[Cloud Sync](../experimental/cloud-sync.md)** — **retired.** Removed upstream together with its experimental toggle, so it no longer appears in this list on a current build. To move a company between instances, use [company Import/Export](../how-to/back-up-and-restore-a-company.md).
 - **[Server Info Debug View](../experimental/server-info-debug-view.md)** — a "Server" section in the account drawer with restart time, running commit, and checkout state.
@@ -240,8 +249,17 @@ The keys you can list:
 - **Instance pages** — `instance.profile`, `instance.environments`, `instance.access`, `instance.experimental`, `instance.plugins`, `instance.adapters`. (The Instance General page is the settings root and can't be hidden; hide its sections individually instead.)
 - **Company pages** — `company.members`, `company.invites`, `company.secrets`, `company.export`, `company.import`. Hiding `company.import` also floors the import API; the other company keys are UI-only.
 - **Company sub-tabs** — `company.secrets.vaults`, `company.secrets.proposals` (hide one tab while the Secrets page stays up).
-- **Instance General sections** — `instance.general.deploymentStatus`, `instance.general.censorUsernameInLogs`, `instance.general.keyboardShortcuts`, `instance.general.backupRetention`, `instance.general.feedbackDataSharingPreference`, `instance.general.signOut`. Field-backed sections also floor writes to that field; `deploymentStatus` and `signOut` are read-only UI.
+- **Instance General sections** — `instance.general.deploymentStatus`, `instance.general.censorUsernameInLogs`, `instance.general.backupRetention`, `instance.general.feedbackDataSharingPreference`, `instance.general.signOut`. Field-backed sections also floor writes to that field; `deploymentStatus` and `signOut` are read-only UI. The old `instance.general.keyboardShortcuts` key no longer exists — keyboard shortcuts are always on — so if it's still in your list, Paperclip ignores it and logs a warning.
 - **Experimental flags** — `instance.experimental.<flagKey>` for any individual flag, or hide the whole page with `instance.experimental`.
+- **Every experimental flag, now and later** — `instance.experimental.*`. The wildcard hides every toggle in the server's own feature catalog, so toggles added by a future upgrade arrive hidden too, with no change to your environment. The Experimental page itself stays reachable. To keep a few toggles available, add exceptions prefixed with `!`, such as `!instance.experimental.enableEnvironments`.
+
+For example, this leaves only the Environments toggle on the Experimental page and hides the Plugins page:
+
+```sh
+PAPERCLIP_HIDDEN_SETTINGS='instance.plugins,instance.experimental.*,!instance.experimental.enableEnvironments'
+```
+
+Exceptions only loosen the wildcard. If you also list a toggle explicitly, or hide the whole `instance.experimental` page, that wins no matter what order the entries are in — and an exception without the wildcard does nothing. Hiding a toggle never changes its value: the setting keeps whatever it was set to, and the settings API still lets you read it, but trying to change it returns `403` with `settings_operator_managed`. Images that predate wildcard support ignore the wildcard and its exceptions, so during a rolling upgrade keep any explicit per-toggle entries until every image is on the newer release.
 
 Unknown keys are warned about and ignored rather than rejected, so you can roll one list across a fleet of mixed app versions — an image that predates a key simply keeps that surface visible instead of refusing to boot.
 

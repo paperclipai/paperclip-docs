@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Composio Connector
 seo_description: Connect Composio Connect or a configured session URL. Understand app authorization, aggregator permissions, and unverified setup steps.
 ---
@@ -8,9 +8,10 @@ seo_description: Connect Composio Connect or a configured session URL. Understan
 
 Composio lets agents discover and use apps through Composio Connect. App authorization happens in Composio as well as access selection in Paperclip.
 
+Composio is available on every instance; no experimental setting is required.
+
 ## Before you connect
 
-- The experimental **MCP aggregators** setting turned on. It is off by default, and until an administrator turns it on, Composio does not appear in **Connectors**. See [MCP aggregators](mcp-aggregators.md#turn-them-on-first).
 - A Composio account and access to the apps you intend to authorize.
 - For an externally configured session, its URL and required headers from its owner.
 
@@ -18,9 +19,9 @@ Composio lets agents discover and use apps through Composio Connect. App authori
 
 > **Unverified setup:** This procedure follows the pinned Paperclip definition and Composio's documentation. It has not been tested with a live Composio connection. Each step below is unverified.
 
-1. **Unverified:** Open **Connectors**, select **Composio**, and choose **Composio Connect**.
-2. **Unverified:** On **Access**, choose the identity and the agents that may use the connection.
-3. **Unverified:** Use the default `https://connect.composio.dev/mcp` endpoint and complete browser sign-in when requested. Alternatively, paste an externally configured session URL and its required headers.
+1. **Unverified:** Open **Connectors** and select **Composio**.
+2. **Unverified:** Read the access line above the main button. Select **Change** to choose the identity or narrow the agents that may use it.
+3. **Unverified:** Select **Connect Composio** to use the prefilled `https://connect.composio.dev/mcp` endpoint and complete browser sign-in. For an externally configured session, replace the **MCP server URL** with its URL, then select **Change** and add its required headers under **Authentication**.
 4. **Unverified:** Finish the connection check and inspect the exposed actions in Paperclip.
 5. **Unverified:** When Composio requests authorization for an upstream app, inspect the app and requested access before completing that separate browser flow.
 
@@ -61,4 +62,4 @@ The connector's reach depends on upstream accounts and the selected endpoint. Re
 
 ## Sources
 
-- [Paperclip connector definition](https://github.com/paperclipai/paperclip/blob/3166e93a7eee315e3bfbda622e080044ec5c343d/packages/shared/src/app-definitions/composio.json#L20) — method names, authentication, endpoints, and connector-specific limits at the pinned product version. Provider setup documentation is linked above.
+- [Paperclip connector definition](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/app-definitions/composio.json#L20) — method names, authentication, endpoints, and connector-specific limits at the pinned product version. Provider setup documentation is linked above.

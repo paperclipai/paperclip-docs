@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: The Command Palette
 seo_description: Press Cmd+K or Ctrl+K to jump to any project, task, or page, start common actions, and search as you type without touching the sidebar.
 ---
@@ -16,6 +16,8 @@ Think of it as the fast lane. Everything the palette does is reachable elsewhere
 
 - **Open:** press **⌘K** / **Ctrl+K** from any page. On a small screen the sidebar tucks away automatically so the palette has room.
 - **Close:** press **Esc**, or click outside the palette.
+
+Keyboard shortcuts are always available; you do not enable an experimental toggle first. Press **?** outside a text field to see the shortcut list. **/** focuses the current page's search when it has one, and otherwise opens quick search. Single-key shortcuts pause while you are typing or a modal dialog is open. The [shortcut handler](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/hooks/useKeyboardShortcuts.ts) defines those boundaries.
 
 The search box is focused the moment it opens, so you can start typing straight away. Its placeholder — *"Search tasks, agents, projects…"* — is a hint at what it can find.
 
@@ -46,7 +48,7 @@ The **Actions** group runs common create-flows without leaving the page you're o
 
 | Action | What it does |
 |--------|--------------|
-| **Create new task** | Opens the new-task dialog. The `C` hint next to it is the standalone keyboard shortcut for the same thing — it works once **Keyboard shortcuts** is turned on in [Instance settings → General](../../administration/settings.md#keyboard-shortcuts), an instance-wide setting that's off by default. |
+| **Create new task** | Opens the new-task dialog. The `C` hint next to it is the standalone keyboard shortcut for the same thing — it's always on, as long as you aren't typing in a text field (see [Keyboard shortcuts](../../administration/settings.md#keyboard-shortcuts)). |
 | **Create new agent** | Opens the new-agent flow. |
 | **Create new project** | Takes you to Projects to start a new one. |
 

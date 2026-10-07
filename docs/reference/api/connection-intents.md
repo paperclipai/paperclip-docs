@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1005.0
 seo_title: Connection Intents API
 seo_description: When an agent needs a service it cannot reach, it opens a connection intent so the responsible person can connect the app and unblock the task.
 ---
@@ -46,7 +46,7 @@ The two tools:
 
 | Tool | Arguments | Purpose |
 |---|---|---|
-| `connections_search` | `query` (string, optional) | List connectable services, filtered by a free-text query, with each one's readiness for this agent. |
+| `connections_search` | `query` (string, optional) | List connectable services matching a service name or a plain-language description of the need, with each one's readiness for this agent. |
 | `connection_request` | `service` (string, required) | Ask for a specific service by slug; returns it ready if already usable, otherwise opens an intent. |
 
 ### REST convenience routes
@@ -58,7 +58,7 @@ POST /runtime-tools/connections/search
 POST /runtime-tools/connections/request
 ```
 
-`search` takes a body of `{ "query": <string> }` — trimmed, up to 200 characters, defaulting to `""` (which lists everything). It returns:
+`search` takes a body of `{ "query": <string> }` — trimmed, up to 4,000 characters, defaulting to `""` (which lists everything). The query can be a service name or a whole sentence describing what the agent needs. Names rank ahead of capabilities, extra words don't stop a match, and small typos and split names ("Agent Mail") still find the service. Results are capped at 40. It returns:
 
 ```json
 {
@@ -70,13 +70,15 @@ POST /runtime-tools/connections/request
       "name": "GitHub",
       "description": "...",
       "logoUrl": "...",
-      "methods": [ { "key": "...", "label": "...", "auth": "..." } ],
+      "methods": [ { "key": "...", "label": "...", "auth": "...", "purpose": "tool" } ],
       "state": "ready",
       "connectionId": "..."
     }
   ]
 }
 ```
+
+Each method can carry a `purpose` of `tool`, `channel`, or `ai`. Channel and AI methods also carry a company-scoped `setupPath` pointing at their own setup flow, which the agent shares with the user. Tool methods use `connection_request` instead. Chat channel methods appear only when the instance's **Chat connectors** setting is on. A search match is not proof that an account is authorized or that a tool is installed.
 
 Each result's `state` is one of `ready` (a connection is connected and usable by this agent right now, with `connectionId` set), `needs_user_action` (a matching connection exists but isn't usable yet), `available` (the service can be connected but nothing exists), or `unavailable` (the service offers no connection methods).
 

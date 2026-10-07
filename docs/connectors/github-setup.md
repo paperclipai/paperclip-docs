@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Set Up the GitHub Connector
 seo_description: Step-by-step setup for both GitHub routes — repository tools with a managed identity or a fine-grained token, and the GitHub App for chat from issues.
 ---
@@ -29,21 +30,20 @@ For anything that pushes code, a dedicated account is the better answer. Its act
 
 1. Select **Connectors** in the sidebar.
 2. Find **GitHub** and select **Connect**.
-3. On the **Access** step, choose which agents may use the connection: **Any agent**, or **Just agents I pick**. For a dedicated identity this is already settled — that agent owns the account.
-4. Choose the credential path:
+3. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To change either, select **Change**: answer **Connect GitHub as** with the identity from step 1, and choose **Any agent** or **Only agents I choose**. For a dedicated identity the agent question is already settled — Paperclip asks **Which agent owns this GitHub account?** instead.
+4. Check the credential path. When the managed path is offered, setup starts on it; the token path sits under **Change** as the alternative:
 
 | Path | What it is | Offered when |
 | --- | --- | --- |
-| **Use this connection as an agent tool** | Paperclip's managed GitHub App authorization | Only when the instance is enrolled with Paperclip Cloud and Cloud advertises the GitHub connector profile |
+| **Connect GitHub** | Paperclip's managed GitHub App authorization | Only when the instance is enrolled with Paperclip Cloud and Cloud advertises the GitHub connector profile |
 | **Personal access token (advanced)** | A fine-grained token you create and control | Always |
 
 **The two branches do not share steps from here.** Follow 3a or 3b, not both.
 
 ### 3a. Managed path — authorize and choose repositories in GitHub
 
-1. Answer **Connect GitHub as** with the identity from step 1. For a dedicated account, Paperclip asks **Which agent owns this GitHub account?**
-2. Select **Continue to GitHub** and authorize.
-3. On GitHub's installation screen, select the specific repositories the agent should reach. Avoid **All current and future repositories** unless that is genuinely the intent — Paperclip flags such an installation in the repository row, because it widens on its own as the organization grows.
+1. Select **Continue to GitHub** and authorize.
+2. On GitHub's installation screen, select the specific repositories the agent should reach. Avoid **All current and future repositories** unless that is genuinely the intent — Paperclip flags such an installation in the repository row, because it widens on its own as the organization grows.
 
 Back in Paperclip, the identity card shows **Accessible GitHub repositories**. To change the list later use **Add More Repos on GitHub** or **Configure access on GitHub**, then **Refresh access** so Paperclip re-reads the installation.
 
@@ -91,6 +91,8 @@ Do not verify with a push, a pull request, or a merge.
 
 > **Experimental:** Enable **Chat connectors** in the instance's experimental settings before starting this path.
 
+The review bot has its own entry on the **Connectors** page, **GitHub Code Review Bot**, separate from the **GitHub** entry for repository tools. Selecting it goes straight to choosing the agent.
+
 Follow [Set up a GitHub review bot](github-review-bot-setup.md) for the complete
 chat setup, including an optional Storybook reviewer. It covers manifest
 registration, separate App installation and repository enablement, effective
@@ -109,7 +111,7 @@ merges. Installing the App does neither by itself.
 | A fine-grained token is rejected, or reaches nothing | It targets an organization that has not approved it, or its repository selection is empty | Check for a pending approval under the organization's personal-access-token settings, and confirm the token's selected repositories |
 | A token connection stops working on a particular date | The token expired | Issue a new token with the same scope and reconnect |
 | No webhook URL is shown on the chat setup | The instance has no public base URL configured | Ask an administrator to configure it |
-| **Chat with an agent** is missing | **Chat connectors** is off for the instance | Ask an administrator to enable it |
+| **GitHub Code Review Bot** is missing from **Connectors** | **Chat connectors** is off for the instance | Ask an administrator to enable it |
 | Fewer repositories than expected | The installation does not include them | Fix it on GitHub, then **Refresh access** |
 | *"You don't have permission to reconnect this identity."* | The identity belongs to someone else, or to another agent | Ask its owner, or use your own |
 | Tool calls work but `git push` is rejected | Account permissions or branch protection on GitHub | Check both on GitHub |

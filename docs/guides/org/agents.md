@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Agents: Your AI Employees
 seo_description: Hire agents, browse the agent list, and work the detail page — dashboard, instructions, and references — for the AI employees doing your company's work.
 ---
@@ -8,7 +8,7 @@ seo_description: Hire agents, browse the agent list, and work the detail page �
 
 Agents are the AI employees that make up your Paperclip company. They're where the work actually happens: the CEO setting strategy, the engineer shipping code, the marketer drafting posts. Everything else in Paperclip — tasks, approvals, skills, budgets — exists to coordinate and govern what your agents do.
 
-Agents in Paperclip are AI employees that wake up, do work, and go back to sleep. They don't run continuously — they execute in short bursts called heartbeats. Between heartbeats the agent is dormant: it consumes no budget, holds no context in memory, and takes no action. A heartbeat is triggered by something concrete (a schedule, a mention, an assignment, a manual invoke), the adapter brings the agent runtime online just long enough to make progress, and then the agent exits and the adapter records what happened.
+Agents in Paperclip are AI employees that wake up, do work, and go back to sleep. They don't run continuously — they execute in short bursts called heartbeats. Between heartbeats the agent is dormant: it consumes no budget, holds no context in memory, and takes no action. A heartbeat is triggered by something concrete (a schedule, an assignment, a review request, a manual invoke), the adapter brings the agent runtime online just long enough to make progress, and then the agent exits and the adapter records what happened.
 
 This guide walks through the entire agent surface in Paperclip: the list page you land on when you click **Agents**, the flow for hiring a new one, and every tab on the agent detail page. If you're new to Paperclip, read this top to bottom. If you're here to change one specific thing — a budget limit, a model, an instruction file — jump to the matching tab section.
 
@@ -218,22 +218,42 @@ At the bottom, a summary of the agent's total input tokens, output tokens, cache
 
 ## Instructions Tab
 
-The Instructions tab is where you edit what the agent *is* — its system prompt, role description, and any additional instruction files it should read.
+The Instructions tab is where you edit what the agent *is* — its role description and any other files it should keep. For most agents it is also the agent's own folder: a place it can keep notes and working material from one task to the next.
 
 ![Instructions tab](../../user-guides/screenshots/light/agents/instructions.png)
 
 ### Managed vs external bundles
 
-Local adapters (Claude Code, Codex, Cursor, Gemini, OpenCode) support an **instructions bundle**: a folder of markdown files that live alongside the agent's working directory. Paperclip can manage that folder for you (it owns the filesystem layout) or you can point it at an existing folder on disk. The two modes are:
+Local adapters (Claude Code, Codex, Cursor, Gemini, OpenCode) support an **instructions bundle**: a folder of files that belongs to the agent. Paperclip can manage that folder for you (it owns the filesystem layout) or you can point it at an existing folder on disk. The two modes are:
 
-- **Managed** — Paperclip stores the files in its own location and you edit them through the UI
-- **External** — you give Paperclip a `rootPath` on disk and it reads/writes the files there; useful when the instructions already live in a repo you want to keep canonical
+- **Managed** — Paperclip keeps one folder per agent in its own storage. You edit it here, and the agent can add its own files to it. This is the mode that keeps agent files across tasks (see below).
+- **External** — you give Paperclip a `rootPath` on disk and it reads/writes the files there; useful when the instructions already live in a repo you want to keep canonical. External folders keep their existing behaviour and aren't treated as the agent's persistent personal folder.
 
 The mode toggle and root path field sit at the top of the tab. Changing them is a normal edit — the floating Save/Cancel bar appears as soon as the form is dirty.
 
 ### The entry file
 
-Every bundle has an **entry file**, usually `AGENTS.md`. That's the file the adapter feeds to the agent on every heartbeat. Other files in the bundle are available but not automatically loaded — the entry file can link to them, reference them, or include them.
+Every bundle has an **entry file**, usually `AGENTS.md`. That's the file the adapter feeds to the agent on every run. Other files in the folder are available but not automatically loaded — the entry file can point to them, and the agent can open them when it needs them. You can't delete the entry file.
+
+### Agent files persist across tasks
+
+With a managed bundle, the folder on this tab is the agent's single, current home directory. When a run starts, Paperclip gives the agent a private copy of that folder and points the `AGENT_HOME` environment variable at it. The agent reads its instructions there, and it can also create its own files and subfolders — notes, memory, reference material, even images or other binary files. Paperclip saves validated changes at turn boundaries: a warm native Codex session keeps the same writable copy between turns, while other sessions are collected after the provider stops. Only files the agent changed or deleted are synchronized back, so the next task starts from the saved folder.
+
+A few things are worth knowing:
+
+- **Task work stays separate.** The agent's folder lives outside the task's working directory. Deliverables still belong in the task workspace; the agent folder is for the agent's own working material, and it isn't part of the task's Git changes.
+- **There's no revision history.** Paperclip keeps the current files only. If two runs — or a run and your own edit in the browser — change the same file, the last completed synchronization wins, and the overwritten version can't be recovered from Paperclip. Files nobody touched are left alone, and new unrelated files survive. Temporary run copies are removed when the owning session stops; they aren't archives.
+- **Your edits are protected from stale saves.** If a file changed since you opened it, saving is refused and your unsaved draft is kept, so you can reload and reapply your change.
+- **Regular files persist.** Text and binary files are supported; symlinks and special files are not. The instruction entry must remain valid UTF-8 and no larger than 1 MiB.
+- **Storage has limits.** A folder holds up to 100,000 files and folders, 256 MiB per file, and 2 GiB in total. Going over never pauses the agent or fails its run. Instead, the run shows an **Agent storage warning**, none of that run's folder changes are saved, and the next run starts from the last saved folder. Remove or shrink files and the warning clears. If saving fails for another reason, the run shows **Agent file sync failed for this run**.
+- **Check the save result.** A successful task does not by itself prove that its agent-file changes were saved. Read the run's file-sync warning or receipt before relying on those changes in another task.
+- **Back up the filesystem too.** Agent files live on the instance's storage, not in the database, so a backup needs both. See [Keeping agent files in an instance backup](../../how-to/back-up-and-restore-a-company.md#keep-agent-files-in-your-instance-backup).
+
+Agents that existed before this change keep their files. Paperclip brings their current instructions into the folder the first time it's used.
+
+Implementation reference: [runtime file instructions](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instruction-working-copies.ts) and [file storage limits and synchronization](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-file-store.ts).
+
+**Who can change the files.** An agent can edit its own folder, but only within what its responsible user is currently allowed to change. Reading or editing *another* agent's files needs permission to configure that agent; being in the same company isn't enough. A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't change its own instructions.
 
 ### Recommended bundle structure: AGENTS / SOUL / HEARTBEAT / TOOLS
 
@@ -300,7 +320,7 @@ Tailor these steps to the role. A CTO's heartbeat might swap "fact extraction" f
 
 #### Writing `TOOLS.md`
 
-`TOOLS.md` often starts as a stub ("*Your tools will go here. Add notes about them as you acquire and use them.*") and grows organically. It's where you — or the agent itself — record quirks of specific tools, adapter-specific gotchas, or custom APIs the agent is expected to call. Don't worry about filling it in up front; treat it as a living notebook the agent maintains.
+`TOOLS.md` often starts as a stub ("*Your tools will go here. Add notes about them as you acquire and use them.*") and grows organically. It's where you — or the agent itself — record quirks of specific tools, adapter-specific gotchas, or custom APIs the agent is expected to call. Because the agent's folder persists across tasks, notes the agent writes here are still there next time. Don't worry about filling it in up front; treat it as a living notebook the agent maintains.
 
 #### When the simple pattern is fine
 
@@ -314,11 +334,13 @@ You can always start with a single file and split later — moving sections out 
 
 #### How Paperclip seeds these files
 
-When you create a new agent with the **CEO** role, Paperclip pre-populates the bundle with the full four-file template (you'll see all four files appear in the file tree on the Instructions tab). Agents created with any other role are seeded with a single `AGENTS.md`. You can always add `SOUL.md`, `HEARTBEAT.md`, or `TOOLS.md` to any agent manually via the "New file" control — there's nothing special about those filenames beyond the convention, and the entry file is whatever you've set it to.
+When you create a new agent with the **CEO** role, Paperclip pre-populates the bundle with the full four-file template (you'll see all four files appear in the file tree on the Instructions tab). Agents created with any other role are seeded with a single `AGENTS.md`. You can always add `SOUL.md`, `HEARTBEAT.md`, or `TOOLS.md` to any agent manually with the **+** button in the file list — there's nothing special about those filenames beyond the convention, and the entry file is whatever you've set it to.
 
 ### Editing files
 
-The left pane shows the file tree. Click a file to open it in the markdown editor on the right. Create a new file using the "New file" control — useful for splitting out long-form references (playbooks, example outputs, policy notes) from the short entry file. Delete a file with the trash icon. Rename is via delete + create for now.
+The left pane shows the agent's files and folders. Click a file to open it in the markdown editor on the right. Add a file with the **+** button (**Add agent file**) at the top of the file list — type a name such as `TOOLS.md`, or a path with folders. Delete a file with the **Delete** button above the editor (it isn't offered for the entry file). Rename is via delete + create for now.
+
+The editor handles text files up to 1 MiB. For a binary file, or one too large to edit, the tab shows a download link instead.
 
 The markdown editor supports inline image uploads (drag-and-drop or paste) — images are uploaded to the company asset store and inserted as markdown image links.
 
@@ -328,7 +350,7 @@ For adapters that don't support a filesystem bundle (OpenClaw gateway and some r
 
 ### When changes take effect
 
-Edits are saved on **Save** (via the floating Save/Cancel bar that appears on any dirty state). The agent uses the new instructions on its next heartbeat — existing runs in flight are not interrupted. If you want to see the change immediately, click **Run Heartbeat** in the header after saving.
+Edits are saved on **Save** (via the floating Save/Cancel bar that appears on any dirty state). The agent uses the new instructions on its next run — runs already in flight are not interrupted. Changes the agent makes to its own folder during a run are saved when the run stops; check the run's detail view for any storage or sync warning. If you want to see your change immediately, click **Run Heartbeat** in the header after saving.
 
 ---
 
@@ -387,7 +409,7 @@ Common fields:
 - **Adapter** — dropdown of every adapter enabled for your instance. Switching adapters is a structural change and typically resets model/options to safe defaults for the new adapter. Pick deliberately.
 - **Model** — the list Paperclip fetched from the adapter. Some adapters (OpenCode, Gemini local) require a specific format; the form will block submission with an inline error if the model can't be validated.
 - **Working directory (cwd)** — the filesystem path the adapter runs in. Relative instruction paths resolve from here.
-- **Heartbeat interval** — the minimum number of seconds between automatic heartbeats. This is a floor, not a guarantee; a busy agent with many assignments may run more often if events (mentions, approvals, assignments) trigger wakes.
+- **Heartbeat interval** — the minimum number of seconds between automatic heartbeats. This is a floor, not a guarantee; a busy agent with many assignments may run more often if events (approvals, assignments, comments on its tasks) trigger wakes. @-mentions don't wake an agent; they're context only.
 - **Heartbeat enabled** — toggle on/off. A disabled agent only runs on explicit event triggers or when you click **Run Heartbeat** manually.
 
 Adapter-specific fields (Claude login, Codex sandbox bypass, Cursor options, etc.) appear as extra rows underneath. Adapter-specific fields only modify this agent — changing them has no effect on any other agent.
@@ -540,7 +562,7 @@ This section collects the conceptual material you need to reason about what an a
 
 Every heartbeat follows the same six-step arc:
 
-1. **Trigger** — something wakes the agent (schedule, assignment, mention, manual invoke)
+1. **Trigger** — something wakes the agent (schedule, assignment, review request, manual invoke). An @-mention isn't a trigger: to bring another agent in, assign the task or request a review.
 2. **Adapter invocation** — Paperclip calls the agent's configured adapter
 3. **Agent process** — the adapter spawns the agent runtime (e.g. Claude Code CLI)
 4. **Paperclip API calls** — the agent checks assignments, claims tasks, does work, updates status
@@ -566,7 +588,7 @@ Additional context variables are set when the wake has a specific trigger:
 | Variable | Description |
 |----------|-------------|
 | `PAPERCLIP_TASK_ID` | Issue that triggered this wake |
-| `PAPERCLIP_WAKE_REASON` | Why the agent was woken (e.g. `issue_assigned`, `issue_comment_mentioned`) |
+| `PAPERCLIP_WAKE_REASON` | Why the agent was woken (e.g. `issue_assigned`, `issue_commented`) |
 | `PAPERCLIP_WAKE_COMMENT_ID` | Specific comment that triggered this wake |
 | `PAPERCLIP_APPROVAL_ID` | Approval that was resolved |
 | `PAPERCLIP_APPROVAL_STATUS` | Approval decision (`approved`, `rejected`) |

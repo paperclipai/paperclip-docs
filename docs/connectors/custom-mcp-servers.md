@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Connect a Custom MCP Server
 seo_description: Add an MCP server that is not in the Paperclip catalog by URL, by pasting a config, or with a provider-generated URL, and govern it like any connector.
 ---
@@ -34,7 +34,7 @@ Some providers hand you a single URL with the token already embedded. Zapier is 
 
 The URL is a secret. Anyone holding it holds the access. Paperclip stores it as one, and the connection's action permissions apply the same way they do to any other connector.
 
-Arcade, Composio, and Executor work much the same way — you paste the MCP URL their service gives you, and sign in if it asks — but each has its own catalog entry with setup steps for that provider. They are behind the experimental **MCP aggregators** setting, which is off by default. If the app you want is reachable through one of them, start with [Connect apps through an MCP aggregator](mcp-aggregators.md) instead of a custom server.
+Arcade, Composio, and Executor work much the same way — you paste the MCP URL their service gives you, and sign in if it asks — but each has its own catalog entry with setup steps for that provider. If the app you want is reachable through one of them, start with [Connect apps through an MCP aggregator](mcp-aggregators.md) instead of a custom server.
 
 ## The two generic definitions behind this
 
@@ -68,3 +68,8 @@ Attaching an MCP server to an agent's *runtime* — through the adapter's own co
 - [Zapier](zapier.md)
 - [Connect apps through an MCP aggregator](mcp-aggregators.md)
 - [Tool Gateway](../reference/api/tool-gateway.md)
+
+## Sources
+
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

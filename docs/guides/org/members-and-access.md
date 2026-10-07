@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1005.0
 seo_title: Members and Access: People in a Company
 seo_description: How humans fit alongside agents: one membership model, roles versus grants, instance admin, member profiles, and why leaving a project keeps access.
 ---
@@ -50,6 +50,20 @@ This trips people up, so it's worth stating plainly: **the human roles on this p
 - **The agent org chart** describes *reporting lines* between agents — who delegates to whom, whose budget rolls up where.
 
 A human "Owner" is not the CEO agent's boss in the org-chart sense; they're the person who administers the company around the agents. The two models are deliberately independent. For the agent side, see [Org Structure](./org-structure.md).
+
+---
+
+## Inviting people on Paperclip Cloud
+
+If your organization runs on Paperclip Cloud, the people who can sign in are managed by Cloud, not by the instance. So when you're an owner or admin of the current Cloud organization, the Members page (headed **Organization Members**) shows an **Invite people** button in its top-right corner. Clicking it takes you out of the app to that organization's **People** settings in Paperclip Cloud, where you send the invitation.
+
+A few things decide whether you see the button:
+
+- **Your Cloud role, not your company role.** Only the current Cloud organization's owner or admin gets it. Being an owner of the company inside Paperclip — or owning some *other* Cloud organization — isn't enough.
+- **Cloud has to answer.** The button stays hidden until Paperclip knows your Cloud role, and it doesn't appear at all if that lookup fails.
+- **It's separate from the Invites tab.** If your operator has hidden the in-app Invites tab, the Cloud button still shows for the people allowed to use it.
+
+Self-hosted instances never show this button — you invite people with the in-app invite links described in [Add a human teammate](../../how-to/add-a-human-teammate.md).
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Artifacts: Files Your Agents Produce
 seo_description: Documents, images, video, and exports from every task in one place. Filter by type, browse stacks by task, and read files in the in-app viewer.
 ---
@@ -82,13 +82,33 @@ Where an artifact came from a real file, the card gives you the means to open it
 
 The Artifacts page is the company-wide shelf. Sometimes you're already inside one task and just want to see what *this* task produced — without going back out to the shelf and filtering your way in.
 
-The task's properties panel has an **Artifacts** tab for exactly that. It lists the task's work products, documents, and agent-produced files, grouped by the run that produced them — newest run first, each headed by the agent's name and when the run started. Files show their filename and size; click one to open it in a new tab.
+The task's properties panel has an **Artifacts** tab for exactly that. Outputs are grouped by the run that produced them, newest run first, under the name of the agent that ran it. Each output gets its own full-width card, shaped to what it actually is, so you can tell a merged pull request from a draft report at a glance:
+
+| Card | What it shows | How you open it |
+|---|---|---|
+| **Pull request** | The PR number, repository, source and target branch, whether it's **Open**, **Draft**, **Merged**, or **Closed**, its checks (**Checks passed**, **Checks failed**, **Checks pending**), and the lines and files it changed. | **Open pull request** |
+| **Commit** | The short SHA, repository, branch, and lines changed. | **View commit** |
+| **Document** | A preview of a document the agent wrote. | **Read document** expands it in place; **Close document** folds it back. |
+| **Image** | The picture itself. | **View image** opens the gallery viewer. |
+| **Video** | A still from the clip. | **Open video** plays it. |
+| **Link preview** | A preview URL the agent published — a deployed preview site, for example — with its image when there is one. | **Open link** |
+| **Data** | A CSV file. The table isn't loaded until you ask for it. | **Preview data** loads the first rows into a table; **Download file** saves the original. |
+| **File** | Anything else, with its type and size. | **Open file**, or download it. |
+
+A few details worth knowing:
+
+- **Images and videos share a gallery.** Open an image or video card to review it in the task's media viewer. Use **Previous** and **Next**, or the left and right arrow keys, when more than one item is available. Videos have playback controls; the header offers download, and **Esc** closes the viewer.
+- **CSV previews are on request.** Click **Preview data** to load a table for files up to 1 MiB. The preview shows at most 200 data rows and accepts up to 50 columns. Larger or unsupported previews explain why they cannot load and leave download available; a failed fetch offers a retry.
+- **Text files open in a tab.** Markdown and plain-text attachments get an **Open in tab** button. It opens the file in a tab in the same side pane, so the conversation stays in view. Markdown files have **Rendered** and **Raw** buttons to switch between the formatted page and the source, and a download button gives you the original file. Clicking a text attachment in the conversation opens the same tab, and the tab is reused as you open the next file.
+- **Unhealthy outputs are flagged** with an **Unhealthy** badge, so a broken preview link doesn't pass for a working one.
 
 The tab is read-only — a quick answer to "what came out of this task?", not a place to upload or delete.
 
+Implementation reference: [artifact cards](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/components/artifacts/IssueArtifactCard.tsx), [CSV preview limits](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/lib/artifact-card-data.ts), and [media gallery](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/components/ImageGalleryModal.tsx).
+
 > **Note:** if your instance has switched back to the old layout with **Classic Task Interface** (under **Legacy** in **Settings → Instance settings → Experimental**), there's no Artifacts tab — a task's attachments stay in the **Attachments** section on the task page. See [Experimental features](../../experimental/overview.md).
 
-Either way, the Artifacts page remains the place to see everything at once, across every task and project. See [Issues](./issues.md#tabs-in-the-properties-panel-experimental) for the rest of what those tabs hold.
+Either way, the Artifacts page remains the place to see everything at once, across every task and project. See [Issues](./issues.md#tabs-in-the-properties-panel) for the rest of what those tabs hold.
 
 ---
 
@@ -174,7 +194,7 @@ Every comment is addressable. Open a thread and use **Copy link** to grab a deep
 - **Stacks** — artifacts grouped by their task (or rolled up by parent task), so related outputs stay together.
 - **Cards** — previews you can read or watch in place, each linking back to the issue it came from.
 - **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from a file artifact or from an inline file chip an agent left in its writing.
-- **Artifacts tab on a task** — one task's outputs in its properties panel, grouped by the run that produced them.
+- **Artifacts tab on a task** — one task's outputs in its properties panel, each on a card shaped to what it is: pull request, commit, document, image, video, link preview, CSV data, or file.
 - **Document comments** — inline, Google-Docs-style threads anchored to a passage in a Plan or Artifact document; open or resolved, authored by people or agents, and shareable by deep link.
 
 You now know how to find, filter, and review everything your agents have made. When you want to dig into the work behind a given artifact, follow its link back to the issue and pick up the thread there.

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: How Connector Access Works
 seo_description: Which access controls apply depends on the kind of connector. This explains the four gates on tool connections, and what governs channels and models.
 ---
@@ -14,7 +15,7 @@ Four shapes, with genuinely different controls. Reading the wrong section is the
 | Shape | Examples | What governs access |
 | --- | --- | --- |
 | **App tools** | Notion, Jira, Stripe, Supabase | The four gates below. This is the majority of the catalog and the rest of this page is about it |
-| **Messaging channels** | Slack chat, Discord, Telegram, Microsoft Teams, iMessage Photon, GitHub chat, AgentMail | **No action list and no per-action switches.** Reach is where the app is installed and which senders are linked. See the connector's own page |
+| **Messaging channels** | Slack chat, Discord, Telegram, Microsoft Teams, iMessage Photon, GitHub Code Review Bot, AgentMail | **No action list and no per-action switches.** Reach is where the app is installed and which senders are linked. See the connector's own page |
 | **Model providers** | Anthropic, OpenAI, OpenRouter, Grok | **No tools at all.** These supply the credential a model runs on. There is nothing to permit; what matters is credential sharing, the responsible user, and agent eligibility. See [Anthropic](anthropic.md) for the full rule |
 | **Mixed purpose** | [GitHub](github.md), [Slack](slack.md) | Two separate connections with separate credentials — one tool, one channel. Each follows its own row above |
 
@@ -64,8 +65,10 @@ A grant answers "whose account is this?". Paperclip supports three kinds. Availa
 | Setup choice | Grant kind | Credential policy | What it means |
 | --- | --- | --- | --- |
 | **Just me** | `user` | `per_user` | Your account. Agents use it only for runs where you are the responsible person. |
-| **Organization identity** | `organization` | shared | One account for the company. Eligible agents use it for runs whose responsible person is in the credential's human audience. |
-| **Dedicated agent identity** | `agent` | `per_agent` | An account that belongs to one agent and is always used by that agent, regardless of who started the run. |
+| **Any human in the organization** | `organization` | shared | One account for the company. Eligible agents use it for runs whose responsible person is in the credential's human audience. |
+| **A dedicated account for an agent** | `agent` | `per_agent` | An account that belongs to one agent and is always used by that agent, regardless of who started the run. |
+
+You do not have to answer this before you connect. Setup states the identity it will use in one line above the main button, and **Change** opens these choices. A new connection starts on the organization identity when the method allows it; a method that only supports personal or dedicated-agent access starts on one of those. When an agent asked for the connection from a task, setup starts on **Just me** and on that agent alone.
 
 Creating a personal connection is available to any active member. Creating an organization or dedicated-agent grant is a manager operation — Paperclip rejects the request with *"Only a connection manager can share this credential with the organization"* if you lack the permission, and it enforces that on the server rather than trusting the browser.
 
@@ -75,12 +78,12 @@ An organization grant has its own human audience, set on the connector's identit
 
 ## Agent access: which agents may use it
 
-Independently of the grant, each connection says which agents may use it at all. Two options, on the **Permissions** tab under **Which agents can use this connection**:
+Independently of the grant, each connection says which agents may use it at all. Two options, under **Which agents can use this connection?** — behind **Change** while you connect, and on the **Permissions** tab afterwards:
 
 - **Any agent** — *"Available across your company."*
 - **Just agents I pick** — *"Available only to selected agents."* You then choose the agents.
 
-New connections default to `all_agents`. That is an open default, not an approval bypass: creating the connection is itself an authorized, audited operation, and every individual action still has its own permission.
+New tool connections normally default to `all_agents`; setup for a requesting agent narrows access to that agent. Methods and saved connections can carry more specific access. This does not bypass approval: creating the connection is itself an authorized, audited operation, and every individual action still has its own permission.
 
 For a dedicated agent identity the question narrows to *"Which agent owns this GitHub account?"* — the identity and the agent are the same decision.
 
@@ -141,3 +144,8 @@ Access decisions resolve at call time, not at setup time. The tool gateway holds
 - [Set action permissions](action-permissions.md)
 - [Tool Gateway](../reference/api/tool-gateway.md)
 - [Trust and low-trust review](../administration/trust-and-low-trust-review.md)
+
+## Sources
+
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

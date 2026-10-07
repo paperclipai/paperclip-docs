@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Gmail Connector
 seo_description: Let agents search and read Gmail, and optionally draft replies. Sending is not reachable. Setup choices, access scope, a read test, and fixes.
 ---
@@ -6,6 +7,8 @@ seo_description: Let agents search and read Gmail, and optionally draft replies.
 # Gmail
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
+
+> **Note:** While verification is pending, the Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. This hides them from the list only. Existing Google connections keep running with their access and permissions unchanged, and an agent that needs a Google service can still ask you for it with a connection card on its task.
 
 Agents can search and read your Gmail, and on a draft connection leave drafts in your drafts folder for you to review. Sending is not reachable through this connector.
 
@@ -22,7 +25,7 @@ One decision matters more than the rest, and it is fixed for the life of the con
 | **Read only** | Search and read messages, threads, drafts, and labels | `gmail.readonly` |
 | **Read & create drafts** | The above, plus create a draft for a person to review and send | `gmail.readonly`, `gmail.compose` |
 
-Start with **Read only** unless you have a concrete reason for drafts. To change groups later, create a second connection with the group you want and remove the first; the group is not a switch on an existing connection.
+Setup starts on **Read & create drafts**; switch to **Read only** under **Change** when you connect unless you have a concrete reason for drafts. To change groups later, create a second connection with the group you want and remove the first; the group is not a switch on an existing connection.
 
 ## Why sending is not reachable
 

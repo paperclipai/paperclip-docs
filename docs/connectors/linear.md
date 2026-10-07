@@ -1,6 +1,7 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Linear Connector
-seo_description: Let agents read, create, and update Linear issues. Registering the OAuth app, what workspace scope really means, a read test, and troubleshooting.
+seo_description: Let agents read, create, and update Linear issues. Browser sign-in with no OAuth app to register, what workspace scope means, a read test, and fixes.
 ---
 
 # Linear
@@ -10,32 +11,18 @@ Agents can read Linear issues, create new ones, and update existing ones — use
 ## Before you connect
 
 - A Linear account with access to the workspace and teams you want agents to use.
-- You must register your own Linear OAuth app. This Paperclip connection method asks for registered client credentials. This is a constraint of the documented Paperclip route, not a claim that Linear lacks dynamic client registration. Add Paperclip's redirect URI to the app; Paperclip shows the exact URI during setup.
+
+That is all. Paperclip registers its own OAuth client with Linear's MCP server when you connect, so there is no app to create in Linear's developer settings.
 
 ## Connect Linear
 
-Paperclip supplies the redirect URI and Linear supplies the credentials, so start in Paperclip.
+1. Open **Connectors** and select **Linear**.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity or narrow the agents, select **Change**.
+3. Select **Continue to Linear**, sign in as the account whose access the connection should have, and approve access.
 
-### 1. Read Paperclip's redirect URI
+Paperclip asks Linear for the `read` and `write` scopes, so agents can read issues and also create and update them. Which of those actions an agent may actually run is still your call on the **Permissions** tab.
 
-Open **Connectors** → **Linear**, choose the identity and agents on the **Access** step, and copy the redirect URI Paperclip displays. Leave the screen open.
-
-### 2. Create the Linear OAuth application
-
-At [Linear's new OAuth application form](https://linear.app/settings/api/applications/new):
-
-1. Give the application a name.
-2. Add the redirect URI from step 1 under the **redirect callback URLs**.
-3. Create it, then copy the **client ID** and **client secret**.
-
-Two things worth knowing before you do this:
-
-- **Every admin in the workspace can see and manage the application.** Linear's own recommendation is to create a dedicated workspace for managing OAuth applications rather than putting it in your main one.
-- **Scopes are chosen at authorization, not on the application.** Linear's set is `read` (always present), `write`, `issues:create`, `comments:create`, `timeSchedule:write`, and `admin`. Grant the narrowest set that covers the work — `admin` in particular is full access to admin-level endpoints and is not needed for issue work.
-
-### 3. Finish in Paperclip
-
-Supply the client ID and secret, then authorize in Linear as the account whose access the connection should have.
+> **Note:** Earlier versions of this guide had you register your own Linear OAuth application first. That is no longer needed. A connection you already made with your own application keeps working.
 
 ## Choose access
 
@@ -61,8 +48,7 @@ Compare against the issue in Linear. A read of a known issue confirms the creden
 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
-| Setup asks for a client ID and secret | Expected for this Paperclip connection method | Register the app in Linear's settings |
-| Authorization fails with a redirect error | The redirect URI on the Linear app does not match the one Paperclip shows | Copy the URI exactly and retry |
+| Authorization does not finish | The Linear window was closed, or consent was declined | Return to the connection and try again; your setup is kept |
 | An issue cannot be found | The authorizing account cannot see that team or project | Grant access in Linear; no reconnect needed |
 | The agent reaches more teams than expected | Reach follows the authorizing account, not a Paperclip filter | Authorize with a more limited account |
 | Agent-created issues look like they came from a person | The connection uses a personal identity | Use a dedicated agent account |

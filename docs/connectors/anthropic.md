@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Anthropic Connector
 seo_description: Give agents Claude model access with a subscription or an Anthropic API key. Runtime requirements, credential assignment, a test run, and fixes.
 ---
@@ -12,7 +13,7 @@ Two ways to authenticate: a Claude subscription, or an Anthropic API key.
 ## Before you connect
 
 - Either a Claude subscription, or an Anthropic API key from the [Anthropic console](https://console.anthropic.com/settings/keys).
-- An agent that runs on the Claude runtime. This credential is only usable by an agent whose harness resolves to Claude; a Codex or OpenCode agent cannot use it. Check the agent's runtime before connecting.
+- An agent that runs on the Claude runtime: **Claude Code**, or **Paperclip Runner → ACP agents → Claude**. A standard Anthropic connection is not compatible with a Codex or OpenCode harness.
 - For subscription sign-in only: a sign-in environment. Paperclip offers two kinds — the Paperclip server host itself, or a sandbox environment that supports interactive sign-in. Which you get depends on how your instance is configured; see [With a Claude subscription](#with-a-claude-subscription).
 
 ## Choose a sign-in method
@@ -27,8 +28,9 @@ Subscription plans carry their own usage limits, and those limits are Anthropic'
 ## Connect Anthropic
 
 1. Open **Connectors** and select **Anthropic**.
-2. On the **Access** step, choose whether the credential is **Personal** or **Company shared**, and which agents may use it.
-3. Choose the sign-in method.
+2. Choose the sign-in method.
+
+Setup is a single screen with no separate access step. Once the account is saved, you change which people and agents may use it from the saved connection.
 
 ### With an API key
 
@@ -86,6 +88,10 @@ Binding a specific connection is not unconditional. Every run through it must st
 The practical consequence: **a binding cannot substitute for a responsible user.** If a run has no responsible person, there is no one for the permission check to evaluate, and the run is refused whichever binding is set.
 
 A **Personal** connection stays yours; **Company shared** makes one account available to eligible agents on runs whose responsible person is in its human audience. The model itself is chosen in the agent's configuration, not here.
+
+### Reconnect from a task
+
+If a task shows an authentication card, select **Fix connection** to repair the selected account without leaving the task. The account owner signs in again; the card explains when another owner must do it. After setup completes, the task resumes through normal admission. Reconnecting preserves the account's audience and agent access.
 
 ## Try it
 

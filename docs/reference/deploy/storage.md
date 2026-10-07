@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Storage Configuration
 seo_description: Where attachments, screenshots, and other uploads are kept, and how to point Paperclip at a different storage provider when local disk is not enough.
 ---
@@ -61,5 +62,17 @@ Use this when the instance may run on more than one machine or when local disk w
 The storage layer is used for uploaded files that belong to company activity, including issue attachments and images.
 
 If you are trying to track down a missing upload, verify both the storage provider and the instance data directory.
+
+### Persistent agent files
+
+An agent's personal files use the instance filesystem separately from the upload storage provider. Their saved directory is:
+
+```txt
+<instance>/companies/<company>/agents/<agent>/instructions/
+```
+
+This includes the instruction entry and any notes, folders, or binary files the agent keeps in its personal directory. Managed runs receive a writable copy through `AGENT_HOME`; task workspace files stay separate. Selecting S3 for uploads does not move these agent files to S3.
+
+Include the saved agent directories in filesystem backups. A database backup alone cannot restore their bytes, and a company export is not a complete copy of this personal storage. See [Agents](../../guides/org/agents.md#agent-files-persist-across-tasks) for limits and sync behavior, and [Back up and restore a company](../../how-to/back-up-and-restore-a-company.md) for recovery boundaries.
 
 > **Tip:** If a local upload disappears after a restart, check whether you were running inside a container or another ephemeral environment without the bind mount you expected.

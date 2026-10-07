@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Netlify Connector
 seo_description: Let agents work with Netlify teams and sites. Reading deploy status versus starting a deploy, team scope, a read test, and troubleshooting.
 ---
@@ -15,7 +16,7 @@ Agents can work with your Netlify teams and sites — checking deploy status, in
 ## Connect Netlify
 
 1. Open **Connectors** and select **Netlify**.
-2. On the **Access** step, choose the identity and which agents may use the connection.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 3. Select **Sign in with Netlify** and complete browser sign-in.
 
 Paperclip registers its client with Netlify automatically, so there is nothing to set up in a developer console.

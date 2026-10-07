@@ -1,6 +1,7 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Grok Connector
-seo_description: Give agents xAI Grok model access with a subscription or an API key. The Grok adapter requirement, credential assignment, a test run, and fixes.
+seo_description: Give agents xAI Grok model access with a subscription or an API key. Which agents can use it, credential assignment, a test run, and fixes.
 ---
 
 # Grok
@@ -12,7 +13,7 @@ Two ways to authenticate: a subscription sign-in through the Grok CLI, or an xAI
 ## Before you connect
 
 - Either a subscription that covers Grok CLI sign-in, or an xAI API key from the [xAI console](https://console.x.ai/).
-- An agent running on the **Grok** adapter. This is the requirement that catches people out: the credential is only usable by an agent on the Grok adapter, and the general-purpose Paperclip runner harness does not resolve to it. Set the agent's adapter to Grok rather than expecting a runner-based agent to pick this up.
+- An agent that runs Grok: either the **Grok** adapter, or **Paperclip Runner** with **Provider** set to **Grok Build** (see [Grok Build On Paperclip Runner](../reference/adapters/grok-local.md#grok-build-on-paperclip-runner)). This is the requirement that catches people out: a runner agent pointed at any other provider won't pick the credential up.
 - For subscription sign-in only: a sign-in environment — either the Paperclip server host, or a sandbox environment that supports interactive sign-in. See [With a subscription](#with-a-subscription).
 
 ## Choose a sign-in method
@@ -27,8 +28,9 @@ Do not assume the two are equivalent. The subscription path authenticates the Gr
 ## Connect Grok
 
 1. Open **Connectors** and select **Grok**.
-2. On the **Access** step, choose whether the credential is **Personal** or **Company shared**, and which agents may use it.
-3. Choose the sign-in method.
+2. Choose the sign-in method.
+
+Setup is a single screen with no separate access step. Once the account is saved, you change which people and agents may use it from the saved connection.
 
 ### With an API key
 
@@ -83,6 +85,10 @@ A binding therefore **cannot substitute for a responsible user**.
 
 **Personal** keeps the credential yours; **Company shared** makes one account available to eligible agents on runs whose responsible person is in its human audience. The model is chosen in the agent's configuration.
 
+### Reconnect from a task
+
+If a task shows an authentication card, select **Fix connection** to repair the selected account without leaving the task. The account owner signs in again; the card explains when another owner must do it. After setup completes, the task resumes through normal admission. Reconnecting preserves the account's audience and agent access.
+
 ## Try it
 
 Check the agent's adapter is Grok and note which AI connection it is configured to use. Then:
@@ -101,7 +107,7 @@ If the run reports an incompatible connection, check the adapter before anything
 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
-| *"Select an AI connection compatible with this harness and model"* | The agent is not on the Grok adapter — most often it is on the general runner harness, which does not resolve to Grok | Set the agent's adapter to Grok |
+| *"Select an AI connection compatible with this harness and model"* | The agent isn't set up to run Grok — most often it's a runner agent whose provider isn't Grok Build | Set the agent's adapter to Grok, or set the runner's **Provider** to **Grok Build** |
 | *"Connect an account and choose your personal default"* | The agent uses the responsible user's connection and that person has no default | Connect an account and mark it as your default |
 | *"This run needs a responsible user to select an AI connection"* | The run has no responsible person to evaluate the credential checks against | Give the work an eligible responsible user. Binding a shared connection does **not** work around this |
 | *"This credential is not shared with the responsible user"* | The connection is shared with named people and the responsible user is not among them | Add that person to the connection's audience |

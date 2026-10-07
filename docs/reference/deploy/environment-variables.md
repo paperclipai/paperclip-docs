@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1005.0
 seo_title: Environment Variables Reference
 seo_description: Every variable Paperclip reads for server configuration, plus the ones it injects into agent processes at runtime — the list to wire deployments from.
 ---
@@ -29,8 +29,13 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `PAPERCLIP_TAILNET_BIND_HOST` | auto-detected via `tailscale ip -4` | Tailnet IPv4 address the server binds to when bind mode is `tailnet`. Set explicitly to skip the `tailscale` CLI probe. |
 | `PAPERCLIP_WORKSPACE_GIT_SCAN_CONCURRENCY` | `2` | How many expensive full-tree workspace Git scans may run at once. Clamped to 1–16. |
 | `PAPERCLIP_WORKSPACE_GIT_SCAN_QUEUE_CAPACITY` | `32` | How many scans may wait in the queue before new ones are rejected. Clamped to 0–1024. |
-| `PAPERCLIP_WORKSPACE_GIT_SCAN_TIMEOUT_MS` | `8000` | Per-scan timeout, in milliseconds, before a workspace Git scan is abandoned. Clamped to 100–120000. |
+| `PAPERCLIP_WORKSPACE_GIT_SCAN_TIMEOUT_MS` | `8000` | Per-scan timeout, in milliseconds, before a quick workspace Git scan (the changed-files browser and cleanliness checks) is abandoned. Clamped to 100–120000. Workspace snapshots use `PAPERCLIP_WORKSPACE_GIT_SNAPSHOT_TIMEOUT_MS` instead. |
 | `PAPERCLIP_WORKSPACE_GIT_SCAN_CACHE_TTL_MS` | `10000` | How long a completed scan's result is reused before a fresh scan runs, in milliseconds. Clamped to 0–60000. |
+| `PAPERCLIP_WORKSPACE_GIT_SNAPSHOT_TIMEOUT_MS` | `1800000` (30 minutes) | How long a workspace snapshot may take, in milliseconds, before it's abandoned. Snapshots list a workspace's changed, untracked, and ignored files before a sandbox run, and the deadline includes time spent waiting on a slow disk. Raise it for very large trees or slow storage. Values below `1000` fall back to the default; values above `86400000` (24 hours) are capped there. |
+| `PAPERCLIP_WORKSPACE_MANIFEST_MIN_FREE_BYTES` | `268435456` (256 MiB) | Free disk space, in bytes, that workspace snapshots always leave on the host. Snapshots write their file lists to temporary on-disk manifests and stop with an error rather than eat into this reserve. Values below `67108864` (64 MiB) fall back to the default. |
+| `PAPERCLIP_RUNNER_API_COMPANY_CAPTURE_MAX_BYTES` | `21474836480` (20 GiB) | Total bytes of large API responses that Paperclip Runner agents can save for one company. When an agent's API call returns more than fits in a single reply, the response is saved as a company asset the agent pages through, and this cap bounds how much those saved responses can add up to. Deleting the assets frees the space. Values below `1073741824` (1 GiB) fall back to the default. |
+| `PAPERCLIP_RUNNER_API_TOOLS_ENABLED` | on (unset) | Whether Paperclip Runner agents get the broad Paperclip API tools (`search_api`, `call_api`, and `hire_agent`). They're on by default; set the variable to anything other than `true` to switch them off for every company. |
+| `PAPERCLIP_RUNNER_API_TOOLS_COMPANY_IDS` | unset (all companies) | Comma-separated company IDs. When set, only those companies' Runner agents get the API tools. It can only narrow access — it has no effect if `PAPERCLIP_RUNNER_API_TOOLS_ENABLED` turns the tools off. |
 | `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` | `7` | How many days the terminal-workspace reaper waits after an issue tree becomes terminal before archiving its workspace. Someone can reopen the work inside this window. `0` disables the cooldown and restores immediate reaping; a negative or non-numeric value falls back to the default. |
 
 > **Note:** `DATABASE_URL` is the main switch between the embedded database and external PostgreSQL.
@@ -281,7 +286,7 @@ If you host Paperclip for other people, these two variables let you shape which 
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `PAPERCLIP_HIDDEN_SETTINGS` | unset | Comma-separated list of settings-surface keys to hide from the UI — instance pages, company pages (Members, Invites, Secrets, Export, Import), individual sections and tabs, and individual experimental flags. Some keys also floor their mutation API with a `403`; the rest hide UI only. Unknown keys are warned about and ignored, so one list can roll across a fleet of mixed app versions. |
+| `PAPERCLIP_HIDDEN_SETTINGS` | unset | Comma-separated list of settings-surface keys to hide from the UI — instance pages, company pages (Members, Invites, Secrets, Export, Import), individual sections and tabs, and individual experimental flags. Some keys also floor their mutation API with a `403`; the rest hide UI only. Use `instance.experimental.*` to hide every experimental toggle, and add `!instance.experimental.<key>` entries to keep specific ones visible. Unknown keys are warned about and ignored, so one list can roll across a fleet of mixed app versions. |
 | `PAPERCLIP_SETTING_DEFAULTS` | unset | JSON object that replaces the schema default of selected instance settings, e.g. `{"feedbackDataSharingPreference":"allowed"}`. An explicit user choice always wins; only values still sitting at the schema default resolve to yours. Malformed JSON or an invalid value for a known field stops the server from booting; unknown field names are warned about and ignored. |
 
 ---
@@ -290,19 +295,18 @@ If you host Paperclip for other people, these two variables let you shape which 
 
 The server injects these variables into agent processes when it starts a run:
 
-| Variable | Meaning |
-|---|---|
 | Variable | Always set? | Meaning |
 |---|---|---|
 | `PAPERCLIP_AGENT_ID` | yes | Agent ID. |
+| `AGENT_HOME` | supported managed runs | Writable copy of the agent's persistent files. It is separate from the task workspace, `HOME`, and `CODEX_HOME`; see [Agent files](../../guides/org/agents.md#agent-files-persist-across-tasks). |
 | `PAPERCLIP_COMPANY_ID` | yes | Company ID. |
 | `PAPERCLIP_API_URL` | yes | Paperclip API base URL. |
 | `PAPERCLIP_API_KEY` | local adapters | Short-lived JWT for API auth. Use as `Authorization: Bearer $PAPERCLIP_API_KEY`. For non-local adapters, the operator sets this in adapter config. |
 | `PAPERCLIP_RUN_ID` | yes | Current heartbeat run ID. Pass back as the `X-Paperclip-Run-Id` header on any request that mutates an issue, so server-side audit log entries link to this run. |
 | `PAPERCLIP_TASK_ID` | wake-driven | Issue that triggered the wake. Empty for scheduled or unsolicited wakes. |
 | `PAPERCLIP_WAKE_REASON` | wake-driven | Why this run was triggered. See enum below. |
-| `PAPERCLIP_WAKE_COMMENT_ID` | comment wakes | Specific comment that triggered the wake (set with `issue_commented` and `issue_comment_mentioned`). |
-| `PAPERCLIP_WAKE_PAYLOAD_JSON` | some adapters | Inline JSON wake payload: a compact issue summary plus the ordered batch of new comment payloads. Adapters that inject this let an agent skip the initial `GET /api/issues/:id` and `GET /api/issues/:id/comments` round-trips on comment wakes. |
+| `PAPERCLIP_WAKE_COMMENT_ID` | comment wakes | Specific comment that triggered the wake (set with `issue_commented`). |
+| `PAPERCLIP_WAKE_PAYLOAD_JSON` | retired | No longer set. The wake context (the issue summary and the new comments) now travels in the run prompt instead, because a copy in the environment could exceed the operating system's process-launch limits. Paperclip also rejects this key if you put it in an adapter's `env` config. |
 | `PAPERCLIP_APPROVAL_ID` | approval wakes | Resolved approval ID. |
 | `PAPERCLIP_APPROVAL_STATUS` | approval wakes | Approval decision. |
 | `PAPERCLIP_LINKED_ISSUE_IDS` | optional | Comma-separated linked issue IDs. |
@@ -315,7 +319,7 @@ Use these values when your agent runtime needs to authenticate back to Paperclip
 |---|---|
 | `issue_assigned` | A task was newly assigned to this agent. |
 | `issue_commented` | A new comment was posted on an issue this agent owns. The triggering comment id is in `PAPERCLIP_WAKE_COMMENT_ID`. |
-| `issue_comment_mentioned` | The agent was @-mentioned in a comment on an issue it does not own. |
+| `issue_comment_mentioned` | Retired. @-mentions are context only and no longer wake the mentioned agent, so new runs don't carry this reason; a wake request that still uses it is ignored. You may still see it on older runs. |
 | `issue_blockers_resolved` | Every issue listed in this issue's `blockedBy` reached `done`. |
 | `issue_children_completed` | All direct children of this issue reached a terminal state (`done` or `cancelled`). |
 | `approval_resolved` | An approval the agent requested was approved or rejected. `PAPERCLIP_APPROVAL_ID` and `PAPERCLIP_APPROVAL_STATUS` are populated. |
@@ -354,6 +358,7 @@ You can define your own environment variables on an agent, project, routine, or 
 | `ANTHROPIC_API_KEY` | Anthropic API key for `claude_local` |
 | `OPENAI_API_KEY` | OpenAI API key for `codex_local` |
 | `GEMINI_API_KEY` | Gemini API key for `gemini_local` |
+| `CODEX_API_KEY` | Accepted in place of `OPENAI_API_KEY` for `codex_local` when it runs through ACP |
 | `GOOGLE_API_KEY` | Alternate Google API key path for `gemini_local` |
 
 > **Tip:** If an adapter test is failing, start by checking whether the expected provider key is present in the process environment.
@@ -373,21 +378,43 @@ The local CLI adapters can be pointed at a custom or remote OpenAI-compatible ga
 
 Values support `{env:VAR}` placeholders, which are expanded server-side so secrets stay out of the stored JSON.
 
+### Adding models to the model picker
+
+If an adapter's model dropdown is missing a model you can actually run — for example a model behind your own gateway that the server can't discover — set `PAPERCLIP_ADAPTER_MODELS` on the Paperclip host. Its value is a JSON object that maps an adapter type to the list of models to offer:
+
+```json
+{ "codex_local": [{ "id": "my-gateway-model", "label": "My gateway model" }] }
+```
+
+Each entry needs a non-empty `id`; `label` is optional and defaults to the `id`. When an adapter has a list here, the dropdown — and its refresh control — shows exactly that list instead of the adapter's built-in or discovered models. Malformed JSON is logged and ignored, so the pickers fall back to their normal lists.
+
 ---
 
-## Paperclip ID Connector (Gmail OAuth broker)
+## Paperclip Cloud Connector (Google OAuth broker)
 
-These variables point your instance at the Paperclip ID OAuth broker that brokers Gmail and Google Workspace connections for your agents. They are optional — leave them unset unless you run against a self-managed broker. Enroll the instance with Paperclip Cloud first, and keep both private keys in your deployment's secret manager rather than in plain config.
+These variables connect your instance to the Paperclip Cloud broker, which brokers Gmail and Google Workspace sign-ins for your agents. Most of the time you don't need any of them: on a self-hosted instance, enrolling from the Apps setup generates the instance keys and stores them for you, and Cloud-hosted instances receive their values automatically. Set them only when you manage the instance identity yourself, and keep both private keys in your deployment's secret manager rather than in plain config.
 
-They work as a set: once the connector is configured, the instance ID, both keys, and the environment all have to be present and valid, or the server rejects the configuration.
+The instance ID, both private keys, and the environment work as a set. Once you set any of the three identity values, all four have to be present and valid, or the server rejects the configuration.
 
 | Variable | Meaning |
 |---|---|
-| `PAPERCLIP_ID_CONNECTOR_BASE_URL` | Broker base URL. Must use HTTPS; plain `http://` is accepted only for loopback hosts (for example `http://localhost:3000`). URLs carrying userinfo, a query string, or a fragment are rejected. |
-| `PAPERCLIP_ID_CONNECTOR_ENVIRONMENT` | Broker environment. One of `development`, `staging`, or `production`; any other value is rejected. |
-| `PAPERCLIP_ID_CONNECTOR_INSTANCE_ID` | Instance identifier issued when you enroll with the broker. |
-| `PAPERCLIP_ID_CONNECTOR_SIGN_PRIVATE_KEY` | Private signing key for connector requests. Keep it in your secret manager. |
-| `PAPERCLIP_ID_CONNECTOR_SEAL_PRIVATE_KEY` | Private sealing key for connector payloads. Keep it in your secret manager. |
+| `PAPERCLIP_CLOUD_CONNECTOR_BASE_URL` | Broker base URL. Defaults to `https://my.paperclip.app`. Must use HTTPS; plain `http://` is accepted only for loopback hosts. URLs carrying userinfo, a query string, or a fragment are rejected. |
+| `PAPERCLIP_CLOUD_CONNECTOR_ENVIRONMENT` | Broker environment. One of `development`, `staging`, or `production`; any other value is rejected. It has to match the broker — `https://my.paperclip.app` is `production` and `https://my-staging.paperclip.app` is `staging`. |
+| `PAPERCLIP_CLOUD_CONNECTOR_INSTANCE_ID` | Instance identifier issued when you enroll with Paperclip Cloud. |
+| `PAPERCLIP_CLOUD_CONNECTOR_SIGN_PRIVATE_KEY` | Private Ed25519 signing key for connector requests. Keep it in your secret manager. |
+| `PAPERCLIP_CLOUD_CONNECTOR_SEAL_PRIVATE_KEY` | Private X25519 sealing key for connector payloads. Keep it in your secret manager. |
+
+### Retired: `PAPERCLIP_ID_CONNECTOR_*`
+
+| Variable | Status |
+|---|---|
+| `PAPERCLIP_ID_CONNECTOR_BASE_URL` | retired |
+| `PAPERCLIP_ID_CONNECTOR_ENVIRONMENT` | retired |
+| `PAPERCLIP_ID_CONNECTOR_INSTANCE_ID` | retired |
+| `PAPERCLIP_ID_CONNECTOR_SIGN_PRIVATE_KEY` | retired |
+| `PAPERCLIP_ID_CONNECTOR_SEAL_PRIVATE_KEY` | retired |
+
+These belonged to the older Paperclip ID broker, which used a different, incompatible protocol. They are not aliases for the `PAPERCLIP_CLOUD_CONNECTOR_*` variables above. If an instance still sets them and has no Paperclip Cloud enrollment, the Google connector reports `CONNECTOR_MIGRATION_REQUIRED`. To fix it, enroll the instance with Paperclip Cloud, remove the old values, and reconnect each Google account that was linked through the old broker.
 
 ---
 

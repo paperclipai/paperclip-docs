@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1005.0
 seo_title: Issues API
 seo_description: The core work objects: hierarchy, blockers, approvals, agent checkout, comments, and keyed extensions. Endpoints for creating, reading, and moving issues.
 ---
@@ -28,7 +28,7 @@ On issue-scoped routes, `{issueId}` can be either:
 
 The server resolves the identifier before handling the request.
 
-Mutating requests can also trigger activity logs, comment wakeups, mention wakeups, and blocker-resolution wakeups. When an issue is checked out by an agent, agent-authenticated updates and comments may require the current `X-Paperclip-Run-Id` header so the server can verify run ownership.
+Mutating requests can also trigger activity logs, comment wakeups, and blocker-resolution wakeups. When an issue is checked out by an agent, agent-authenticated updates and comments may require the current `X-Paperclip-Run-Id` header so the server can verify run ownership.
 
 ---
 
@@ -207,7 +207,7 @@ Create a new issue in a company. This endpoint accepts the full `createIssueSche
 
 Notable inputs:
 
-- `title` is required.
+- `title` is optional when you send a `description`. Send at least one of them, or the request fails validation. Without a title, the task starts with a provisional title taken from the start of the description (up to 120 characters, with whitespace collapsed). `titleNeedsGeneration` is `true`, and the assigned agent is asked to give it a proper name early — see [Set Task Title](#set-task-title).
 - `status` defaults to `backlog`.
 - `priority` defaults to `medium`.
 - `projectId`, `goalId`, and `parentId` establish the issue's placement.
@@ -386,6 +386,39 @@ response = requests.patch(
 
 ---
 
+## Set Task Title
+
+```
+PUT /api/issues/{issueId}/title
+```
+
+Rename a task without touching anything else. This is how an agent names a task you started with just a prompt: when the task has `titleNeedsGeneration: true`, the assigned agent replaces the provisional title with a short, outcome-focused one. It doesn't change the task's status, assignee, or description, and it's allowed in standard, Ask, and Plan modes.
+
+| Field | Notes |
+|---|---|
+| `title` | The new title, 1–240 characters. |
+| `onlyIfProvisional` | Optional, defaults to `false`. Send `true` for automatic naming: the title only changes while it's still provisional, so a title you (or anyone else) already chose is never overwritten — even if you edit it at the same moment. |
+| `idempotencyKey` | Optional retry key. Only accepted from an agent's run. |
+
+```bash
+curl -s -X PUT http://localhost:3100/api/issues/{issueId}/title \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID" \
+  -H "Content-Type: application/json" \
+  -d '{ "title": "Fix sign-in redirect", "onlyIfProvisional": true }'
+```
+
+The response tells you what happened: `{ "id", "title", "titleNeedsGeneration", "changed" }`. `changed: false` means the title was left alone — for example because it was no longer provisional.
+
+Notes:
+
+- An agent can only rename a task it's assigned to, from the run that currently owns that task. Otherwise the request returns `403`.
+- Any explicit title edit — through this route or a normal update — clears `titleNeedsGeneration`.
+- Title changes are recorded in the activity log like other issue updates.
+- Agents on Paperclip Runner use the `set_task_title` tool for the same thing.
+
+---
+
 ## Checkout a Task
 
 ```
@@ -486,18 +519,47 @@ That lets a fresh run adopt the stale checkout lock safely.
 POST /api/issues/{issueId}/release
 ```
 
-Release a checked-out issue and return it to `todo`.
+Release a checked-out issue's execution locks. What else happens depends on whether the work is finished.
 
 Release semantics:
 
-- The issue's `status` is set to `todo`.
-- `assigneeAgentId` is cleared.
-- `checkoutRunId` is cleared.
+- `checkoutRunId` and `executionRunId` are always cleared.
+- **Unfinished issues:** `assigneeAgentId` is cleared, and an `in_progress` issue goes back to `todo`. Other unfinished statuses keep their status.
+- **Finished issues (`done` or `cancelled`):** the assignee, the final status, and the `completedAt` / `cancelledAt` timestamps are kept, even if you release more than once. Ownership stays part of the work history.
 - `assigneeUserId` is preserved — release only unassigns the agent, not a paired user.
 - Board users can release without matching checkout ownership.
 - Agent-authenticated releases must come from the assignee's current checkout run.
 
 If you need to give the issue back to the backlog instead of just releasing it, do that as a separate update.
+
+---
+
+## Agent Chat conversations
+
+With the experimental, off-by-default [Agent Chat](../../experimental/agent-chat.md) feature on, each person gets one persistent conversation per agent in a company. Each conversation is an ordinary issue, so you read and write it with the normal issue, comment, document, and attachment routes. These three routes find and create them.
+
+```
+GET  /api/companies/{companyId}/chats
+GET  /api/companies/{companyId}/chats/{agentRef}
+POST /api/companies/{companyId}/chats/{agentRef}
+```
+
+| Route | What it does |
+|---|---|
+| `GET .../chats` | Lists the signed-in user's conversations in this company, filtered to the ones they can read. |
+| `GET .../chats/{agentRef}` | Returns the signed-in user's conversation with that agent, or `null` if there isn't one yet. Read-only — it never creates anything. |
+| `POST .../chats/{agentRef}` | Returns the existing conversation, or creates it. A new one is titled `Chat with <agent name>`, assigned to the agent, and starts `in_review` with `conversationState: "waiting"`. Creation is logged as `issue.conversation_opened`. |
+
+`{agentRef}` accepts an agent ID or the agent's URL reference. Notes:
+
+- Only signed-in board users can call these routes; anything else gets `403` with `Board user access required`.
+- While Agent Chat is off, all three return `404` with `Agent Chat is disabled`.
+- An unknown agent returns `404` (`Agent not found`); a reference that matches more than one agent returns `409` (`Agent reference is ambiguous`).
+- Conversations follow ordinary company task visibility — teammates can read yours — but only the person who owns a conversation can post messages in it. Anyone else gets `403` with `Only the conversation owner can send messages or start a new session`.
+
+A comment whose trimmed body is exactly `/new` starts a fresh provider session while preserving conversation history. The session generation fences older turns; pending questions from the prior session expire. Handoff completion reports belong to the session that created them: tasks still run, but their completion updates are not delivered into a later `/new` session. Only a transition to `done` queues a completion report; other task states do not.
+
+Implementation reference: [conversation session boundaries](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-conversations.ts) and [handoff completion delivery](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/chat-completion-delivery.ts).
 
 ---
 
@@ -543,7 +605,7 @@ Behavior to know:
 
 - `interrupt` only works for board users.
 - `reopen` only has an effect when the issue is `done` or `cancelled`.
-- `@mentions` in the comment body trigger wakeups for matching agents.
+- `@mentions` in the comment body are context only. They don't wake the mentioned agent.
 - Comments are accepted on open and closed issues.
 
 ### Comment style
@@ -570,20 +632,21 @@ When an agent run ends without the agent posting a comment of its own, Paperclip
 
 ### @-mentions
 
-Mention another agent by name with `@AgentName` to wake them:
+Use a mention to point at another agent for context:
 
 ```
 POST /api/issues/{issueId}/comments
-{ "body": "@EngineeringLead I need a review on this implementation." }
+{ "body": "@EngineeringLead made the original call on this, for context." }
 ```
 
-The name must match the agent's `name` field exactly (case-insensitive). Mentions also work inside the `comment` field of `PATCH /api/issues/{issueId}`.
+A mention is a link, not a request for work. It doesn't wake the mentioned agent, start a run, hand over ownership, or forward the comment anywhere. Mentions also work inside the `comment` field of `PATCH /api/issues/{issueId}`.
 
 **Mention rules:**
 
-- **Don't overuse mentions** — each mention triggers a budget-consuming heartbeat.
-- **Don't use mentions for assignment** — create or assign a task instead.
-- **Mention-handoff exception** — if an agent is explicitly @-mentioned with a clear directive to take a task, they may self-assign via checkout.
+- **Use a mention for context only** — it never triggers a heartbeat.
+- **Bring an agent in by assigning or requesting review** — assign the task (or create one for them), or send an explicit review request. Only assignment and review requests start work.
+- **A mention doesn't authorize taking a task** — an agent that's mentioned must not check out another agent's task because of it.
+- **Machine-authored comments** should link the agent explicitly with `[@Agent Name](agent://<agent-id>)`.
 
 ### Example
 
@@ -1252,9 +1315,11 @@ Two related guarantees come with it:
 
 ### Cards superseded by a comment
 
-There is a second automatic expiry, and it also runs when you list an issue's interactions. If a pending card carries `supersedeOnUserComment: true` in its payload — the default for `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`, and `request_item_verdicts` — and a genuine human comment was posted at or after the card was created, the card expires and `result.commentId` points at the comment that replaced it. Confirmation and verdict cards record this as `result.outcome: "superseded_by_comment"`; `ask_user_questions` records it as `result.expirationReason: "superseded_by_comment"` instead.
+There is a second automatic expiry, and it also runs when you list an issue's interactions. If a pending card carries `supersedeOnUserComment: true` in its payload and a genuine human comment was posted at or after the card was created, the card expires and `result.commentId` points at the comment that replaced it. Confirmation and verdict cards record this as `result.outcome: "superseded_by_comment"`; `ask_user_questions` records it as `result.expirationReason: "superseded_by_comment"` instead.
 
-Only real human comments count: the comment must have a user author and must not have been written by an agent run. Set `supersedeOnUserComment: false` in the payload when a card must survive discussion in the thread.
+This is opt-in. For `ask_user_questions`, `request_confirmation`, `request_checkbox_confirmation`, and `request_item_verdicts` the server fills in `supersedeOnUserComment: false` when you leave it out, so an ordinary comment leaves the card pending and someone can still answer it. Set it to `true` when a reply in the thread should replace the card. Connection-intent cards, and confirmations bound to a tool action, never expire this way.
+
+Only real human comments count: the comment must have a user author and must not have been written by an agent run.
 
 Both sweeps run on `GET /api/issues/{issueId}/interactions`, so a caller that lists interactions always sees settled state — no separate cleanup call needed.
 
@@ -1304,6 +1369,43 @@ The request body is empty. The response always includes `outcome`, `message`, an
 | `gate_suppressed` | The promotion was blocked by a heartbeat gate (e.g. concurrency or budget); the run stays scheduled. |
 
 Activity is logged as `issue.scheduled_retry_retry_now` with the outcome attached, so you can find it in the audit trail when an operator clicks "Retry now" from the UI.
+
+---
+
+## Task pause holds and resume
+
+Use a pause hold to stop a task's work without cancelling the task. A hold applies to the root task and its eligible descendants. The task composer **Stop** and the menu's **Pause work** / **Pause subtree** actions use these routes.
+
+All routes below are board-only and check company access to the root task.
+
+| Route | Purpose |
+|---|---|
+| `POST /api/issues/{issueId}/tree-control/preview` | Preview a `mode` (`pause`, `resume`, `cancel`, or `restore`) and optional `releasePolicy`. |
+| `POST /api/issues/{issueId}/tree-holds` | Apply the mode. Accepts `mode`, optional `reason`, `releasePolicy`, and `metadata`. Returns `{ hold, preview }`. |
+| `GET /api/issues/{issueId}/tree-control/state` | Read the task's effective `activePauseHold`, including a hold inherited from an ancestor, or `null`. |
+| `GET /api/issues/{issueId}/tree-holds` | List holds. Optional query fields: `status`, `mode`, `includeMembers`. |
+| `GET /api/issues/{issueId}/tree-holds/{holdId}` | Read a hold. |
+| `POST /api/issues/{issueId}/tree-holds/{holdId}/release` | Release a hold. Accepts optional `reason`, `releasePolicy`, and `metadata`. |
+
+For a manual pause, send:
+
+```json
+{ "mode": "pause" }
+```
+
+To release the pause without waking agents, post `{}` to its release route. To request wakeups as well, send:
+
+```json
+{ "metadata": { "wakeAgents": true } }
+```
+
+Wakeups apply only to eligible assigned tasks in `todo`, `in_progress`, or `in_review`; parked and terminal tasks are left alone. Before a release with wakeups, the server checks execution blockers. A blocked request returns `409` and preserves the pause so uncertain provider actions aren't replayed. A successful release can include `wakeFailures`, an array of `{ issueId, message }`; those failures do not undo the release or stop wake requests for other eligible tasks.
+
+While an effective task or ancestor pause is active, a board comment — including a `PATCH` that includes a comment — is rejected with `409`. Interrupted agents can still report their results. [Agent Chat](#agent-chat-conversations) has its own `/new` reset for resuming a stopped conversation.
+
+The UI waits for affected runs to stop and reports an inline error if stopping cannot be confirmed. Receiving a hold response alone is not proof that a provider stopped or that interrupted effects are reconciled. See [Stop, pause, and resume](../../experimental/task-chat.md#stop-pause-and-resume).
+
+Implementation reference: [routes and release checks](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/routes/issue-tree-control.ts), [request schemas](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/validators/issue-tree-control.ts), and [tree membership rules](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/issue-tree-control.ts).
 
 ---
 
@@ -1556,7 +1658,7 @@ When the server transitions an issue, it also:
 | `→ done` | Sets `completedAt`. Wakes any issues whose `blockedByIssueIds` are now fully resolved (`issue_blockers_resolved`). Wakes the parent if all children are now terminal (`issue_children_completed`). |
 | `→ cancelled` | Sets `cancelledAt`. Cancelled issues do **not** count as resolved blockers — replace or remove them explicitly to unblock dependents. |
 | `→ blocked` | Records the unresolved blocker count. Does not auto-resolve when the parent is closed. |
-| `release` | Clears `assigneeAgentId` and `checkoutRunId`, sets status to `todo`. `assigneeUserId` is preserved. |
+| `release` | Clears `checkoutRunId` and `executionRunId`. On unfinished issues it also clears `assigneeAgentId` and moves `in_progress` back to `todo`; on `done` or `cancelled` issues the assignee and status are kept. `assigneeUserId` is preserved. |
 | `reopen: true` | If the issue is `done` or `cancelled`, resets to `todo` (or another status if explicitly provided). |
 
 ### Review stages and `executionState`
