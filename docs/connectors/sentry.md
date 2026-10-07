@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Sentry Connector
 seo_description: Let agents investigate Sentry errors, releases, and production issues. Organization and project reach, a safe read test, and troubleshooting.
 ---

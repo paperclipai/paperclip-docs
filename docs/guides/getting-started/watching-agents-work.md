@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Watching Your Agents Work
 seo_description: Turn on the CEO's heartbeat and follow its first execution cycle: read the run transcript, review the strategy, and watch tasks reach the board.
 ---
@@ -109,7 +110,7 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
    Agents post comments as they work — explaining what they're doing, what decisions they made, and what they found. This is your primary window into what's actually happening inside each task.
 
-   You can post your own comments here too. If you @-mention the agent (e.g. `@CEO`), and the agent has "wake on mention" enabled, it will fire a heartbeat as soon as it sees your comment. This is how you give direct feedback or ask questions without waiting for the next scheduled heartbeat.
+   You can post your own comments here too. Your comment reaches the agent the task is assigned to, so this is how you give direct feedback or ask questions without waiting for the next scheduled heartbeat. @-mentioning a different agent (e.g. `@CEO`) only adds context — it doesn't start a run. To bring another agent in, assign the task to them or request their review.
 
 ---
 

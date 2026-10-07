@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Agents API
 seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate keys, sync skills, trigger runs, and register managed and remote agent profiles.
 ---
@@ -132,27 +132,6 @@ res = requests.get(
 agent = res.json()
 ```
 <!-- /tabs -->
-
----
-
-## Public Identity
-
-Read an agent's public cryptographic identity:
-
-`GET /api/agents/{id}/identity`
-
-Use the agent UUID and the same authorization required to read that agent. The response is `null` if the agent has not been provisioned, otherwise an object with:
-
-| Field | Value |
-| --- | --- |
-| `algorithm` | `Ed25519`. |
-| `keyId` | `sha256:` followed by the base64url SHA-256 fingerprint of the public key's SPKI DER bytes. |
-| `publicKeyPem` | Public key in SPKI PEM format. |
-| `createdAt` | Identity creation timestamp. |
-
-This read does not create an identity. New agents receive one at creation; older agents receive one on their next supported managed run. The endpoint never returns a private key. See [Agent cryptographic identity](../../guides/org/agent-identity.md) for signing and recovery. These keys do not replace agent API tokens.
-
-For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api).
 
 ---
 
@@ -330,7 +309,7 @@ Important behavior:
 - `adapterConfig.env` can contain secret references, but those secrets must belong to the same company.
 - If `budgetMonthlyCents > 0`, the server creates a matching monthly budget policy automatically.
 - If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
-- For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds a short default `AGENTS.md`: a one-line role description for `role: "ceo"`, or a one-line generic placeholder for every other role. Keep it short — Paperclip's runtime and installed skills already supply the operating procedures. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
+- For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds Paperclip's default instructions: `AGENTS.md`, `HEARTBEAT.md`, `SOUL.md`, and `TOOLS.md` for `role: "ceo"`, or a default `AGENTS.md` for every other role. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
 
 ### Example
@@ -1114,7 +1093,7 @@ A managed folder holds up to 100,000 files and folders, 256 MiB per file, and 2 
 
 Run synchronization saves only changed or deleted files. If separate runs or a browser save modify the same path, the last completed synchronization wins. Unchanged files remain intact. Current bytes live under `<paperclipInstanceRoot>/companies/<companyId>/agents/<agentId>/instructions/`, so include the instance filesystem in your backup as well as the database. Temporary working copies are cleaned up when their session stops and provide no new revision history.
 
-Implementation reference: [file store](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-file-store.ts), [managed directory path](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instructions.ts), and [instruction entry validation](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instruction-files.ts).
+Implementation reference: [file store](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-file-store.ts), [managed directory path](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instructions.ts), and [instruction entry validation](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instruction-files.ts).
 
 ### Older revision and conflict routes
 
@@ -1131,7 +1110,6 @@ Notes:
 
 - The target agent or an ancestor manager can manage the instructions path.
 - An agent can read and save its own files within what its responsible user is currently allowed to do. Reading or saving another agent's files needs permission to configure that agent.
-- A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't save its own instructions from ordinary work. The exception is an edit its user asks for directly in their own Agent Chat — see [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 - Relative instructions paths require `adapterConfig.cwd`.
 - External bundles keep their existing behaviour; `download=true` and the `baseHash` rules above apply to managed bundles.
 

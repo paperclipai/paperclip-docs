@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Hugging Face Connector
 seo_description: Let agents search Hugging Face models, datasets, and papers. What discovery covers, why it does not run or host models, a search test, and troubleshooting.
 ---

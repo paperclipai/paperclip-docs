@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Executor Connector
 seo_description: Connect a hosted Executor endpoint and govern its exposed actions. Includes upstream policy boundaries and explicitly unverified setup.
 ---
@@ -35,16 +35,6 @@ Tools come from your Executor account and appear in Paperclip when you connect. 
 
 Every tool starts as **Allowed**. Set exposed actions to **Ask first** or **Off** on **Permissions** as needed. Executor's upstream policies are another layer; a Paperclip approval does not override an Executor denial. If an exposed action bundles several upstream operations, Paperclip governs that call rather than each internal operation.
 
-## See connected app accounts
-
-When your deployment exposes supported account inventory, its **Permissions** page lists **Connected apps** and offers **Refresh Executor**. Paperclip reads the deployment's connection and integration inventory; it does not execute generated code to guess what is connected.
-
-Accounts appear under their app cards, labelled **Managed by Executor**. Unknown integrations keep their own identities rather than receiving guessed branding. If discovery is unavailable, Paperclip says so; successful tool access alone does not verify an account's authorization.
-
-An optional **Console URL** tells Paperclip where **Open in Executor** should send you. Use your trusted HTTPS integrations page, including its workspace or self-hosted path. You can set it during setup or from the saved gateway's **Console URL** menu item.
-
-Executor remains available in **Connectors** even though its catalog filter is temporarily hidden. Gateway permissions still govern calls across its integrations, and account management stays in Executor.
-
 ## Try it
 
 Ask an eligible agent to perform one read-only lookup from an integration you configured. Compare the result with the source system and inspect the connector call.
@@ -73,6 +63,4 @@ Executor deployment versions can expose different interfaces. This page does not
 
 ## Sources
 
-- [Paperclip connector definition](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/app-definitions/executor.json#L16) — method names, authentication, endpoints, and connector-specific limits at the pinned master implementation. Provider setup documentation is linked above.
-- [Catalog and account grouping](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/pages/apps/Browse.tsx) — filters, grouped account rows, and gateway menus.
-- [Connected app list](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/pages/apps/app-detail/ConnectedAggregatorApps.tsx) — refresh controls and verification states.
+- [Paperclip connector definition](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/app-definitions/executor.json#L16) — method names, authentication, endpoints, and connector-specific limits at the pinned product version. Provider setup documentation is linked above.

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Sandbox Providers
 seo_description: Provider plugins that let Paperclip provision external compute as the execution environment for agent runs, instead of running them on the host.
 ---
@@ -97,7 +97,6 @@ Beyond `reuseLease`, two fields control how the `paperclip_runner` process lives
 Daytona streams a command's output to Paperclip over a log socket, and occasionally that socket closes or simply goes quiet while the command is still running. The driver doesn't take a dropped stream as the end of the command, so you don't lose output or get a run marked finished too early:
 
 - **It waits for a real exit.** A command only counts as complete once Daytona records its exit. After a clean close, the driver reconnects the stream once, then checks the command's status and log snapshot at most once a second until the exit shows up.
-- **Quiet sockets switch to polling sooner.** If the socket delivers no output for 15 seconds — even if it never finished connecting — the driver stops waiting on it and moves straight to polling.
 - **Nothing runs twice.** The command is never sent again, output you've already seen isn't repeated in the run log, and a final snapshot fills in anything written after the socket closed.
 - **A timeout stays honest.** If reading the logs times out, you keep the partial output, and the log says whether the command's exit is still unconfirmed. It isn't reported as a success.
 

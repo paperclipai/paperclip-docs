@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Mem0 Connector
 seo_description: Give agents a persistent memory store with Mem0. Whose memory is being read, how namespacing works, a scoped read test, and troubleshooting.
 ---
@@ -36,8 +37,6 @@ Memory writes are easy to make and accumulate. An agent that writes on every run
 
 Deletions remove memory; set them to **Off** if agents should not forget stored information.
 
-The connection includes editable recall and save guidance under **Agent instructions**. You can turn it off without removing the tools, or edit it to describe your memory context. See [Saved connection instructions](connection-instructions.md).
-
 ## Try it
 
 Use a namespace that already contains a known memory. Replace the example identifier with the one you use in Mem0:
@@ -74,5 +73,5 @@ Limitations: one Mem0 project per connection, and the key reaches all of it. Nam
 
 ## Sources
 
-- [Mem0 definition](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/app-definitions/mem0.json) — API-key setup and default guidance.
-- [Feature defaults](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/feature-catalog.ts) — off-by-default experimental setup.
+- [Mem0 definition](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/app-definitions/mem0.json) — API-key setup.
+- [Feature defaults](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/feature-catalog.ts) — off-by-default experimental setup.

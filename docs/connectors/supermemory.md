@@ -1,6 +1,7 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Supermemory Connector
-seo_description: Connect Supermemory through browser sign-in, select the workspace and tags it may reach, and review memory actions and saved agent guidance in Paperclip.
+seo_description: Connect Supermemory through browser sign-in, select the workspace and tags it may reach, and review which memory actions agents can run in Paperclip.
 ---
 
 # Supermemory
@@ -20,7 +21,7 @@ The hosted MCP connection uses browser sign-in. A developer API key is a separat
 1. Open **Connectors** and select **Supermemory**.
 2. Read the access summary. This method uses your personal sign-in; select **Change** to narrow which agents may use it.
 3. Complete **Sign in with Supermemory** and review the workspace, read or write access, and optional tags offered by the provider.
-4. Open **Permissions** and review the actions and **Agent instructions**.
+4. Open **Permissions** and review the actions.
 
 Paperclip connects to `https://mcp.supermemory.ai/mcp`. You do not need to register a separate OAuth app for this flow.
 
@@ -29,8 +30,6 @@ Paperclip connects to `https://mcp.supermemory.ai/mcp`. You do not need to regis
 Supermemory's consent controls the data this connection can reach. Paperclip's action switches cannot widen that consent. A tag supplied by an agent is not a substitute for provider authorization.
 
 Active actions start as **Allowed**, including writes and deletion-capable actions. The `add_memory` action can save or forget information, so Paperclip classifies it as destructive. Set it to **Ask first** or **Off** if you want to review or prevent those changes.
-
-The default guidance tells agents to recall and save within the authorized workspace and tags. You can edit or disable it under **Agent instructions**; see [Saved connection instructions](connection-instructions.md).
 
 ## Try it
 
@@ -57,5 +56,5 @@ Turning off the experimental setting leaves saved connections running and allows
 
 ## Sources
 
-- [Supermemory definition](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/app-definitions/supermemory.json) — personal OAuth sign-in, endpoint, consent guidance, and default instructions.
-- [Feature defaults](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/feature-catalog.ts) — experimental availability.
+- [Supermemory definition](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/app-definitions/supermemory.json) — personal OAuth sign-in, endpoint, and consent guidance.
+- [Feature defaults](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/feature-catalog.ts) — experimental availability.

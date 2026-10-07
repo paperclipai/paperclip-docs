@@ -1,6 +1,7 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Memory Connectors in Paperclip
-seo_description: Choose an experimental memory provider, enable its setup, and help agents recall useful context while keeping access and saved guidance under your control.
+seo_description: Choose an experimental memory provider, enable its setup, and help agents recall context while you keep access and action permissions under control.
 ---
 
 # Memory connectors
@@ -19,7 +20,7 @@ Turning the setting off hides catalog setup and prevents new curated connections
 | [Zep](zep.md) | Browser sign-in | A configured Memory MCP project, an assigned seat, and the work identity authorized by its administrator. |
 | [Supermemory](supermemory.md) | Browser sign-in | The workspace and optional tags to authorize during consent. |
 | [Cognee](cognee.md) | Cloud API Base URL and key | An active Cloud workspace and its tenant URL. |
-| [Honcho](honcho.md) | API key and workspace | An organization key and the workspace agents should use. |
+| [Honcho](honcho.md) | API key | A key for the Honcho account agents should use, plus the workspace and peer identifiers to name in tasks. |
 
 You manage every connection on its ordinary **Permissions** page. There is no separate memory page, automatic conversation upload, or background memory sync: an agent saves and retrieves context by calling the provider's tools.
 
@@ -30,12 +31,6 @@ Active actions start as **Allowed**, including memory writes and deletions. To r
 Paperclip classifies retrieval as read, storage and updates as write, and deletion or reset as destructive. Supermemory's `add_memory` can also forget information, so the whole action is classified as destructive.
 
 The provider's credential, consent, and access rules decide which data the connection can reach. A user identifier, dataset name, workspace argument, or tag is not by itself a new isolation boundary enforced by Paperclip. Use separate credentials or provider access controls when work must stay separate.
-
-## Tell agents when to remember
-
-All five providers include editable guidance under **Agent instructions**. It encourages relevant recall and concise, durable memories, without copying entire conversations or storing credentials.
-
-You can edit the text or turn off **Tell agents to use {provider}**. Turning it off preserves tool access and your saved text. [Saved connection instructions](connection-instructions.md) explains when the guidance reaches an agent and how to restore the default.
 
 ## Check a connection
 
@@ -49,10 +44,9 @@ An empty result may mean the wrong context, an empty store, or indexing that has
 
 - [How connector access works](access-model.md)
 - [Set action permissions](action-permissions.md)
-- [Saved connection instructions](connection-instructions.md)
 - [Experimental features](../experimental/overview.md)
 
 ## Sources
 
-- [Feature defaults](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/feature-catalog.ts) and [connection setup service](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/tool-access.ts) — the off-by-default setting and new-setup gate.
-- [Memory tool classification](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/tool-access.ts) — reviewed action risks.
+- [Feature defaults](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/feature-catalog.ts) and [connection setup service](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/tool-access.ts) — the off-by-default setting and new-setup gate.
+- [Memory tool classification](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/tool-access.ts) — reviewed action risks.

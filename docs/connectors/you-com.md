@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: You.com Connector
 seo_description: Give agents web search through You.com. Choose browser sign-in, an API key, or the keyless free profile, then run a quick search test and troubleshoot.
 ---

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Zep Memory Connector
 seo_description: Connect Zep Memory MCP with your work identity, choose agent access, and use personal memory or shared graphs authorized by your Zep administrator.
 ---
@@ -20,7 +21,7 @@ A Zep project API key does not authenticate this hosted Memory MCP endpoint.
 1. Open **Connectors** and select **Zep**.
 2. Read the access summary. This method uses your personal sign-in; select **Change** to narrow which agents may use it.
 3. Complete **Sign in with Zep** using the assigned work identity.
-4. Review **Permissions** and the provider's **Agent instructions**.
+4. Review the actions on **Permissions**.
 
 Paperclip uses the hosted MCP endpoint `https://api.getzep.com/mcp`. You do not need to register a separate OAuth app for this flow.
 
@@ -29,8 +30,6 @@ Paperclip uses the hosted MCP endpoint `https://api.getzep.com/mcp`. You do not 
 Zep controls the identity's memory and shared-graph access. Paperclip controls which eligible agents may call the exposed tools, and whether each action is **Allowed**, **Ask first**, or **Off**.
 
 Active actions start as **Allowed**. Choose **Ask first** for writes if you want to review saved memories. Do not use another graph or identity as a workaround for missing access; authorize the needed context in Zep instead.
-
-You can edit or disable the connection's recall and save guidance without removing its tools. See [Saved connection instructions](connection-instructions.md).
 
 ## Try it
 
@@ -57,5 +56,5 @@ Turning off the experimental setting leaves saved connections running and allows
 
 ## Sources
 
-- [Zep definition](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/app-definitions/zep.json) — personal OAuth sign-in, prerequisites, endpoint, and default guidance.
-- [Feature defaults](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/feature-catalog.ts) — experimental availability.
+- [Zep definition](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/app-definitions/zep.json) — personal OAuth sign-in, prerequisites, and endpoint.
+- [Feature defaults](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/feature-catalog.ts) — experimental availability.

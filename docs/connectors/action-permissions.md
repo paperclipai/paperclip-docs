@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Set Connector Action Permissions
 seo_description: Switch each connector action to Allowed, Ask first, or Off, refresh the action list when a provider changes it, and see how new actions are handled.
 ---
@@ -88,12 +89,6 @@ For the ordinary case, the wizard projects the app's action defaults into polici
 
 Two details worth knowing wherever held-back review does apply: an action you had already set to **Off** stays off rather than reappearing for review, and a connection configured for safe defaults exempts actions classified **read**, holding back only writes and destructive actions.
 
-## Instructions do not change permissions
-
-The **Agent instructions** toggle controls guidance in the agent's prompt, not its access to tools. Switching it off does not switch actions off, and switching it on does not make an **Off** action available. See [Saved connection instructions](connection-instructions.md).
-
-For aggregator accounts, the action list belongs to the saved gateway. An imported app card does not create a separate policy for that upstream app.
-
 ## Limits you cannot lift
 
 A permission switch cannot grant something the connector was never allowed to do.
@@ -117,5 +112,5 @@ When you change a permission on a GitHub connection bound to an agent identity, 
 
 ## Sources
 
-- [Connection setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
-- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

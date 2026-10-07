@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Supabase Connector
 seo_description: Let agents work with a Supabase project. Scope it to a development project, use read-only mode, and understand the production risk before connecting.
 ---

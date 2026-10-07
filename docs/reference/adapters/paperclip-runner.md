@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Paperclip Runner Setup and Providers
 seo_description: Configure Paperclip Runner for native agent sessions. Choose a supported provider, set permissions and model access, and understand runtime limits.
 ---
@@ -22,23 +23,22 @@ For source development, an enabled Runner requires a Rust toolchain or `PAPERCLI
 
 | Provider | Runtime and setup |
 | --- | --- |
-| **Codex** (`codex`) | Native Codex app-server route. Configure an OpenAI connection or another compatible Responses route. |
-| **OpenCode** (`opencode`) | Native OpenCode server route, pinned to `1.18.34`. Use a model in `provider/model` form. |
+| **Codex** (`codex`) | Native Codex app-server route. Configure an OpenAI connection. |
+| **OpenCode** (`opencode`) | Native OpenCode server route, pinned to `1.18.32`. Use a model in `provider/model` form. |
 | **ACP agents → Claude** (`acpx`, `claude`) | Qualified Claude ACP runtime. Configure a Claude-compatible AI connection. |
 | **ACP agents → Grok Build** (`acpx`, `grok`) | Qualified Grok Build runtime. See [Grok setup](grok-local.md#grok-build-on-paperclip-runner). |
-| **ACP agents → Cursor** (`acpx`, `cursor`) | Pinned Cursor runtime with an explicit model and Agent, Plan, or Ask mode. See [Cursor setup](cursor-local.md#cursor-on-paperclip-runner). |
 | **Claude Managed** (`claude_managed`) | A company-qualified managed-agent profile, retention acknowledgement, and session spend ceiling. |
 | **AWS AgentCore** (`aws_agentcore`) | A company-qualified remote-agent profile, retention acknowledgement, and estimated session spend ceiling. |
 
-GitHub Copilot and Pi appear as qualification-pending ACP choices and are disabled for production runs. Selecting an arbitrary executable does not create a qualified profile. Historical ACP Codex settings normalize to the native Codex provider when saved.
+Cursor, GitHub Copilot, and Pi appear as qualification-pending ACP choices and are disabled for production runs. The **Provider** list also offers **Grok Build** directly, which saves the same `acpx` provider with `acpxAgent: "grok"`. Selecting an arbitrary executable does not create a qualified profile. Historical ACP Codex settings normalize to the native Codex provider when saved.
 
 Managed providers need operator-prepared profiles; they are not configured by pasting a general model API key into the provider selector. See [Managed and remote agent profiles](../api/agents.md#managed-and-remote-agent-profiles).
 
 ## Configure an agent
 
 1. Create or edit the agent and choose **Paperclip Runner**.
-2. Select **Harness**. For **ACP agents**, select the **ACP agent** too.
-3. Select a model. For Codex, OpenCode, Claude, or Grok, choose a compatible **Connection**; Cursor uses its secret-backed credential environment instead.
+2. Select **Provider**. For **ACP agents**, select the **ACP agent** too.
+3. Select a model. When you edit a saved agent, choose a compatible **Connection** for Codex, OpenCode, Claude, or Grok.
 4. Choose the execution environment and review permissions.
 5. Save and use **Test Environment** before assigning work.
 
@@ -55,7 +55,7 @@ A minimal Codex configuration uses:
 }
 ```
 
-The credential binding is configured separately. [Custom model providers](../../connectors/custom-model-providers.md) explains which routes work with each harness.
+The credential binding is configured separately, through the agent's **Connection**.
 
 ## Permissions
 
@@ -66,19 +66,18 @@ The credential binding is configured separately. [Custom model providers](../../
 | ACP | `acpxPermissionMode` | `approve-all` (default), `approve-paperclip`, `approve-reads`, or `deny-all`. |
 | Managed providers | Provider-owned policy | Non-interactive execution under the qualified profile and Paperclip policy. |
 
-Company permissions, governed approvals, and budgets still apply. Grok cannot automatically approve Paperclip tool calls under the narrower ACP modes; those requests wait for approval. Cursor session mode is a separate setting from ACP permission policy.
+Company permissions, governed approvals, and budgets still apply. Grok cannot automatically approve Paperclip tool calls under the narrower ACP modes; those requests wait for approval.
 
 ## Sessions and task modes
 
 The Runner records native session identity and recovers through the provider's supported session-load path. Recovery rechecks the saved provider, environment, credential, and task authority; a durable run is not a guarantee that every interrupted provider operation can resume.
 
-Standard, planning, and ask tasks are supported. Cursor additionally has `acpxSessionMode`: `agent` (default), `plan`, or `ask`. Selecting Plan or Ask changes native Cursor session behavior, while Paperclip permissions and environment boundaries remain in force.
+Standard, planning, and ask tasks are supported.
 
 Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, and `opencode_local` agents remain direct adapters until you explicitly choose Runner. A saved obsolete native-runner toggle on a direct adapter does not switch fresh runs to this path.
 
 ## Current limits
 
-- Cursor requires an explicit model. Its partial native counters are diagnostic observations; authoritative per-run token totals and dollar cost are unavailable.
 - Grok's native Runner usage accounting is not qualified. Do not infer zero spend from a missing cost.
 - ACP live steering is unsupported. Follow-up work uses the controller's queue instead of claiming provider-native queueing.
 - Native session capabilities differ by provider. Session load does not imply native fork or resume methods are available.
@@ -86,7 +85,5 @@ Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, and `opencode_lo
 
 ## Next steps
 
-- [Cursor Local and native Cursor](cursor-local.md)
 - [Grok Local and native Grok](grok-local.md)
-- [Runtime setup command](../cli/runtime.md)
 - [Adapters overview](overview.md)

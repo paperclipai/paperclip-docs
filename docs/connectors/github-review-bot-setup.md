@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Set Up a GitHub Review Bot
 seo_description: Build an experimental agent-powered Storybook reviewer, connect its GitHub App, configure mentions and push events, and verify failing-to-passing PR checks.
 ---

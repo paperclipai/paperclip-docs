@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Agents: Your AI Employees
 seo_description: Hire agents, browse the agent list, and work the detail page — dashboard, instructions, and references — for the AI employees doing your company's work.
 ---
@@ -8,7 +8,7 @@ seo_description: Hire agents, browse the agent list, and work the detail page �
 
 Agents are the AI employees that make up your Paperclip company. They're where the work actually happens: the CEO setting strategy, the engineer shipping code, the marketer drafting posts. Everything else in Paperclip — tasks, approvals, skills, budgets — exists to coordinate and govern what your agents do.
 
-Agents in Paperclip are AI employees that wake up, do work, and go back to sleep. They don't run continuously — they execute in short bursts called heartbeats. Between heartbeats the agent is dormant: it consumes no budget, holds no context in memory, and takes no action. A heartbeat is triggered by something concrete (a schedule, a mention, an assignment, a manual invoke), the adapter brings the agent runtime online just long enough to make progress, and then the agent exits and the adapter records what happened.
+Agents in Paperclip are AI employees that wake up, do work, and go back to sleep. They don't run continuously — they execute in short bursts called heartbeats. Between heartbeats the agent is dormant: it consumes no budget, holds no context in memory, and takes no action. A heartbeat is triggered by something concrete (a schedule, an assignment, a review request, a manual invoke), the adapter brings the agent runtime online just long enough to make progress, and then the agent exits and the adapter records what happened.
 
 This guide walks through the entire agent surface in Paperclip: the list page you land on when you click **Agents**, the flow for hiring a new one, and every tab on the agent detail page. If you're new to Paperclip, read this top to bottom. If you're here to change one specific thing — a budget limit, a model, an instruction file — jump to the matching tab section.
 
@@ -115,8 +115,6 @@ See [Skills](./skills.md) for how the library works and how to add skills to it.
 ### Approvals when agents hire agents
 
 When *you* create an agent from this form, it's created immediately. When an *agent* creates one — by calling Paperclip's hire API — the request goes into the approval queue instead, and the new agent sits in `pending_approval` status until you decide. The proposal tells you the proposed agent's name and role, its capabilities, the adapter, the monthly budget it's asking for, and who it would report to. Review it like any other approval: Approve, Reject, or Request Revision. See [Approvals — Reviewing a Hire Request](../day-to-day/approvals.md#reviewing-a-hire-request) for details.
-
-Agents that draft hires with the bundled `paperclip-create-agent` skill now write a short role description for the new agent — who it is and what it owns — instead of a long operating manual. Reporting line, capabilities, and skills go in their own fields of the request. Any company-specific instructions you asked for are kept. If you want more in the new agent's `AGENTS.md`, ask for it, or add it on the [Instructions tab](#instructions-tab) after the hire.
 
 ### Create
 
@@ -253,37 +251,39 @@ A few things are worth knowing:
 
 Agents that existed before this change keep their files. Paperclip brings their current instructions into the folder the first time it's used.
 
-Implementation reference: [runtime file instructions](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instruction-working-copies.ts) and [file storage limits and synchronization](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-file-store.ts).
+Implementation reference: [runtime file instructions](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instruction-working-copies.ts) and [file storage limits and synchronization](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-file-store.ts).
 
-**Who can change the files.** An agent can edit its own folder, but only within what its responsible user is currently allowed to change. Reading or editing *another* agent's files needs permission to configure that agent; being in the same company isn't enough. A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't change its own instructions from ordinary work — the one exception is when its user asks it to, directly, in their own Agent Chat. See [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
+**Who can change the files.** An agent can edit its own folder, but only within what its responsible user is currently allowed to change. Reading or editing *another* agent's files needs permission to configure that agent; being in the same company isn't enough. A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't change its own instructions.
 
 ### Recommended bundle structure: AGENTS / SOUL / HEARTBEAT / TOOLS
 
-Start small. Paperclip's runtime already tells every agent how to work inside Paperclip — checking out tasks, commenting, delegating, asking you questions — and installed skills and repository instructions carry the detailed procedures. So a new agent's `AGENTS.md` only needs to say who the agent is and what it's responsible for. Don't paste a generic Paperclip operating manual into it; that repeats what the agent already gets, and can contradict it.
+A single monolithic `AGENTS.md` works for simple roles, but as soon as an agent is doing non-trivial strategic or operational work you'll want to split instructions across multiple files and let the entry file reference them. Paperclip seeds the **CEO** role with this exact pattern out of the box, and it's the pattern we recommend for any senior or long-lived agent (CTO, CMO, UX lead, department heads).
 
-As an agent takes on non-trivial strategic or operational work, you may want to split extra guidance across a few files and let the entry file point to them. A common convention is four files:
+The convention is four files:
 
 | File | Purpose | Answers the question |
 |------|---------|----------------------|
-| `AGENTS.md` | **What you do** — the role. Responsibilities, what the agent owns, and any company-specific rules it must follow. This is the entry file. | *"What's my job?"* |
+| `AGENTS.md` | **What you do** — the operating manual. Responsibilities, delegation rules, what to do personally vs. delegate, escalation paths, safety rules. This is the entry file. | *"What's my job?"* |
 | `SOUL.md` | **Who you are** — the persona. Strategic posture, voice and tone, decision-making philosophy, what you care about. Durable character, not tasks. | *"How should I think and speak?"* |
-| `HEARTBEAT.md` | **How you execute** — a role-specific checklist for agents with a real recurring routine. | *"What do I do right now, in order?"* |
+| `HEARTBEAT.md` | **How you execute** — the per-heartbeat checklist. The concrete steps to run every time the agent wakes: check identity, read today's plan, pull assignments, delegate, extract facts, exit cleanly. | *"What do I do right now, in order?"* |
 | `TOOLS.md` | **What you can use** — notes on the tools, APIs, and skills the agent has access to. Often starts empty and grows as the agent learns. | *"What's in my toolbox?"* |
 
-If you split the files, have `AGENTS.md` point to the others at the bottom:
+`AGENTS.md` ties the other three together at the bottom with a References section:
 
 ```markdown
 ## References
 
-- `./HEARTBEAT.md` — my recurring checklist.
-- `./SOUL.md` — who I am and how I act.
-- `./TOOLS.md` — notes on my tools.
+These files are essential. Read them.
+
+- `./HEARTBEAT.md` — execution and extraction checklist. Run every heartbeat.
+- `./SOUL.md` — who you are and how you should act.
+- `./TOOLS.md` — tools you have access to.
 ```
 
 Why split it up?
 
-- **Each file has one reason to change.** You tweak persona in `SOUL.md` without touching the role in `AGENTS.md`. You update a routine without rewriting the persona.
-- **The entry file stays short.** `AGENTS.md` stays focused; the agent pulls in `SOUL.md` or `HEARTBEAT.md` as it needs them.
+- **Each file has one reason to change.** You tweak persona in `SOUL.md` without touching the operating procedure in `AGENTS.md`. You update the heartbeat flow without rewriting the persona.
+- **The model reads what matters most first.** `AGENTS.md` is short and action-oriented; the agent pulls in `SOUL.md` or `HEARTBEAT.md` as it needs them. This keeps the entry-file context lean.
 - **It mirrors how humans think about roles.** Job description, personality, daily routine, tools — four separate things, badly confused when you mash them into one file.
 
 #### Writing `SOUL.md`
@@ -299,39 +299,42 @@ Good lines look like:
 Bad lines look like:
 
 - *"Be helpful and professional."* (too generic — no useful constraint)
-- *"When handling a P0 incident, first check the dashboard, then…"* (that's a procedure, it belongs in `HEARTBEAT.md` or a skill)
+- *"When handling a P0 incident, first check the dashboard, then…"* (that's a procedure, it belongs in `HEARTBEAT.md` or `AGENTS.md`)
 
 Think: *if we hired a new human into this role, what would we want them to internalize about how this role thinks?* That's `SOUL.md`.
 
 #### Writing `HEARTBEAT.md`
 
-`HEARTBEAT.md` is a short checklist for agents that do the same thing every time they wake — a weekly metrics digest, a content-calendar check, a review of the open PR queue. Keep it to the steps that are specific to this role. You don't need to restate how to check out a task, comment, or wrap up a run; Paperclip supplies that guidance on every run.
+`HEARTBEAT.md` is a numbered checklist the agent runs top-to-bottom every time it wakes. It should be boringly mechanical — "read this, call that, check this env var, comment, exit." The CEO's default heartbeat covers:
 
-If a procedure is useful to more than one agent, it probably belongs in a [skill](./skills.md) instead.
+1. Identity and context (check `PAPERCLIP_TASK_ID`, `PAPERCLIP_WAKE_REASON`, etc.)
+2. Local planning check (read today's plan from memory)
+3. Approval follow-up (if `PAPERCLIP_APPROVAL_ID` is set)
+4. Get assignments (GET issues filtered by assignee + status)
+5. Checkout and work
+6. Delegation (create subtasks with `parentId` and `goalId`)
+7. Fact extraction (extract durable facts to memory)
+8. Exit cleanly
+
+Tailor these steps to the role. A CTO's heartbeat might swap "fact extraction" for "review open PRs in the eng queue"; a CMO's might add "check content calendar." Keep each step short and include the exact API call or skill invocation the agent should make — this file is a script, not a philosophy.
 
 #### Writing `TOOLS.md`
 
-`TOOLS.md` often starts as a stub and grows organically. It's where you — or the agent itself — record quirks of specific tools, adapter-specific gotchas, or custom APIs the agent is expected to call. Because the agent's folder persists across tasks, notes the agent writes here are still there next time. Don't worry about filling it in up front; treat it as a living notebook.
+`TOOLS.md` often starts as a stub ("*Your tools will go here. Add notes about them as you acquire and use them.*") and grows organically. It's where you — or the agent itself — record quirks of specific tools, adapter-specific gotchas, or custom APIs the agent is expected to call. Because the agent's folder persists across tasks, notes the agent writes here are still there next time. Don't worry about filling it in up front; treat it as a living notebook the agent maintains.
 
 #### When the simple pattern is fine
 
-Most agents need only a single `AGENTS.md` with a short role description. Reach for the extra files when any of these are true:
+Not every agent needs four files. A narrow-purpose worker — "summarize incoming support tickets," "post the weekly metrics digest" — can live happily in a single `AGENTS.md`. Use the multi-file pattern when any of these are true:
 
 - The agent has a distinct personality or voice that matters (customer-facing roles, executives).
-- The agent has a genuine role-specific routine it repeats every time it wakes.
-- The role description is starting to exceed one screen and blending responsibilities, persona, and procedure.
+- The agent runs on a timer and does something on *every* heartbeat (anyone with a repeating checklist).
+- The instructions are starting to exceed one screen and blending responsibilities, persona, and procedure.
 
 You can always start with a single file and split later — moving sections out of `AGENTS.md` into `SOUL.md` or `HEARTBEAT.md` is a normal refactor.
 
 #### How Paperclip seeds these files
 
-Every new agent starts with a single, short `AGENTS.md`:
-
-- An agent with the **CEO** role gets a one-line role description: it leads company strategy, priorities, resource allocation, and coordination across the team.
-- Every other role gets a one-line placeholder saying it's an agent in a Paperclip company. Replace it with a sentence or two about the role.
-- Agents installed from the [Team Catalog](./team-catalog.md), and agents drafted by the `paperclip-create-agent` skill, also start with a short role description rather than a long operating manual.
-
-Existing agents keep whatever files they already have — Paperclip doesn't rewrite them. You can add `SOUL.md`, `HEARTBEAT.md`, `TOOLS.md`, or anything else with the **+** button in the file list; there's nothing special about those filenames beyond the convention, and the entry file is whatever you've set it to.
+When you create a new agent with the **CEO** role, Paperclip pre-populates the bundle with the full four-file template (you'll see all four files appear in the file tree on the Instructions tab). Agents created with any other role are seeded with a single `AGENTS.md`. You can always add `SOUL.md`, `HEARTBEAT.md`, or `TOOLS.md` to any agent manually with the **+** button in the file list — there's nothing special about those filenames beyond the convention, and the entry file is whatever you've set it to.
 
 ### Editing files
 
@@ -406,7 +409,7 @@ Common fields:
 - **Adapter** — dropdown of every adapter enabled for your instance. Switching adapters is a structural change and typically resets model/options to safe defaults for the new adapter. Pick deliberately.
 - **Model** — the list Paperclip fetched from the adapter. Some adapters (OpenCode, Gemini local) require a specific format; the form will block submission with an inline error if the model can't be validated.
 - **Working directory (cwd)** — the filesystem path the adapter runs in. Relative instruction paths resolve from here.
-- **Heartbeat interval** — the minimum number of seconds between automatic heartbeats. This is a floor, not a guarantee; a busy agent with many assignments may run more often if events (mentions, approvals, assignments) trigger wakes.
+- **Heartbeat interval** — the minimum number of seconds between automatic heartbeats. This is a floor, not a guarantee; a busy agent with many assignments may run more often if events (approvals, assignments, comments on its tasks) trigger wakes. @-mentions don't wake an agent; they're context only.
 - **Heartbeat enabled** — toggle on/off. A disabled agent only runs on explicit event triggers or when you click **Run Heartbeat** manually.
 
 Adapter-specific fields (Claude login, Codex sandbox bypass, Cursor options, etc.) appear as extra rows underneath. Adapter-specific fields only modify this agent — changing them has no effect on any other agent.
@@ -559,7 +562,7 @@ This section collects the conceptual material you need to reason about what an a
 
 Every heartbeat follows the same six-step arc:
 
-1. **Trigger** — something wakes the agent (schedule, assignment, mention, manual invoke)
+1. **Trigger** — something wakes the agent (schedule, assignment, review request, manual invoke). An @-mention isn't a trigger: to bring another agent in, assign the task or request a review.
 2. **Adapter invocation** — Paperclip calls the agent's configured adapter
 3. **Agent process** — the adapter spawns the agent runtime (e.g. Claude Code CLI)
 4. **Paperclip API calls** — the agent checks assignments, claims tasks, does work, updates status
@@ -585,18 +588,12 @@ Additional context variables are set when the wake has a specific trigger:
 | Variable | Description |
 |----------|-------------|
 | `PAPERCLIP_TASK_ID` | Issue that triggered this wake |
-| `PAPERCLIP_WAKE_REASON` | Why the agent was woken (e.g. `issue_assigned`, `issue_comment_mentioned`) |
+| `PAPERCLIP_WAKE_REASON` | Why the agent was woken (e.g. `issue_assigned`, `issue_commented`) |
 | `PAPERCLIP_WAKE_COMMENT_ID` | Specific comment that triggered this wake |
 | `PAPERCLIP_APPROVAL_ID` | Approval that was resolved |
 | `PAPERCLIP_APPROVAL_STATUS` | Approval decision (`approved`, `rejected`) |
 
 These are exactly what you'll see in the Invocation card on any run — Paperclip redacts secrets (anything that looks like an API key, a bearer token, a password, or a JWT) before displaying them, but the structure is the same as what the agent actually received.
-
-### Cryptographic identity
-
-The agent's **Identity** panel shows its persistent Ed25519 fingerprint and lets you copy its public PEM. New agents receive a keypair when created; older agents receive one on their next supported managed run. Before then, the panel says **Not created yet**.
-
-Managed runtimes receive the private key, including managed remote hosts. Choose hosts you trust with that identity. API bearer authentication stays separate, and company imports or agent copies get new identities. See [Agent cryptographic identity](agent-identity.md) for runtime variables and backup requirements.
 
 ### Session persistence
 
@@ -681,8 +678,6 @@ Use pause liberally — it's reversible, cheap, and the right default when somet
 ## Related guides
 
 - [Skills](./skills.md) — how the company skill library works, how skills are written, and how they keep agent context lean
-- [Agent cryptographic identity](agent-identity.md) — public keys, runtime trust, and identity recovery
-- [Agent complaints and suggestions](../../administration/agent-commentary.md) — default feedback skills and native tools, with records stored in the instance database
 - [Agent adapters](./agent-adapters.md) — which adapters are available, what each one is good at, and how to configure them
 - [Approvals](../day-to-day/approvals.md) — the governance layer around hire requests, strategy, and budget overrides
 - [Costs & budgets](../day-to-day/costs.md) — how API spend is computed, how budgets are enforced, and how to tune them across your whole company

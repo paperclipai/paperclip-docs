@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Experimental Features
 seo_description: Real, working features shipped behind opt-in flags while they are evaluated against live usage. What lives here, and what turning one on commits you to.
 ---
@@ -58,10 +58,8 @@ Only some features are managed this way. Anything without the badge is still you
 | [Task Plan Decomposition Panel](plan-decomposition-panel.md) | Shows accepted-plan decomposition history on task detail pages. |
 | [Chat-Style Tasks](task-chat.md) | **Now the default.** The task detail page as a live conversation: chat bubbles, streaming activity that folds into a one-line summary, a three-mode composer, and a resizable Properties · Plan · Artifacts pane. The old page is behind the **Classic Task Interface** toggle under **Legacy**. |
 | [Agent Chat](agent-chat.md) | One ongoing conversation per agent, reached from a **Chat** entry in the sidebar. Agents clarify your goal, hand real work off to tasks, and report back in the chat when those tasks are done. |
-| [Assistant connections (MCP)](assistant-connections.md) | **Experimental; off by default.** Connect an external assistant as your user through OAuth, with separate read, write, and configuration scopes. |
 | [Memory connectors](../connectors/memory-connectors.md) | **Experimental; off by default.** Set up Mem0, Zep, Supermemory, Cognee, or Honcho for agents. Existing connections keep running when setup is hidden. |
 | [Paperclip Runner](../reference/adapters/paperclip-runner.md) | **Experimental.** Native agent execution, enabled by default for self-hosted instances and disabled by default on Cloud. Agents must be explicitly configured to use it. |
-| [Combined Inbox + Task List](task-chat.md#an-optional-combined-task-list) | **Experimental; off by default.** Reach inbox and task views from one **Tasks** navigation entry. |
 | [Task Watchdogs](task-watchdogs.md) | Watchdog agents that verify stopped task subtrees and restore live paths when work should continue. |
 | [Status Cards](status-cards.md) | A shared board of living summaries: one message per card, compiled into a watch query and kept current by the Summarizer. |
 | [Cloud Sync](cloud-sync.md) | **Retired.** Host-to-host Cloud Sync has been removed upstream, toggle included — you won't find it on the Experimental page any more. Use [company Import/Export](../how-to/back-up-and-restore-a-company.md) to move a company between instances. |

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Browser Use Cloud Connector
 seo_description: Delegate website tasks to Browser Use Cloud, watch the live browser in Paperclip, and choose saved profiles, agent access, and spending limits.
 ---
@@ -7,7 +8,7 @@ seo_description: Delegate website tasks to Browser Use Cloud, watch the live bro
 
 You can give an agent website work and watch the hosted browser in the task's **Browser** tab. Browser Use Cloud runs the browsing task; Paperclip controls access, action approvals, and the recorded run costs.
 
-> **Nightly draft:** This guide covers the current master implementation. Browser Use Cloud does not require an experimental setting.
+Browser Use Cloud does not require an experimental setting.
 
 ## Before you connect
 
@@ -91,5 +92,5 @@ This connector delegates hosted tasks. It does not expose arbitrary browser-cont
 
 ## Sources
 
-- [Connector definition](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/app-definitions/browser-use-cloud.json) — setup method and credential fields.
-- [Browser settings](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/pages/apps/app-detail/BrowserUseSettingsPanel.tsx), [browser controls](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/task-side-panel/TaskBrowserFooter.tsx), and [browser service](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/browser-use.ts) — profiles, viewer behavior, lifecycle, and costs.
+- [Connector definition](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/app-definitions/browser-use-cloud.json) — setup method and credential fields.
+- [Browser settings](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/pages/apps/app-detail/BrowserUseSettingsPanel.tsx), [browser controls](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/components/task-side-panel/TaskBrowserFooter.tsx), and [browser service](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/browser-use.ts) — profiles, viewer behavior, lifecycle, and costs.

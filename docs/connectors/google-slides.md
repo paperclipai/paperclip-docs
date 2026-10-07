@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Google Slides Connector
 seo_description: Let agents read Google Slides presentations and optionally update them. Capability groups, what editing covers, a read test, and troubleshooting.
 ---

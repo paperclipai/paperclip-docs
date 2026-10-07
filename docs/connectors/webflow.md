@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Webflow Connector
 seo_description: Let agents work with Webflow sites and CMS collections. How roles limit reach, CMS content versus publishing, a read test, and troubleshooting.
 ---

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Storage Configuration
 seo_description: Where attachments, screenshots, and other uploads are kept, and how to point Paperclip at a different storage provider when local disk is not enough.
 ---

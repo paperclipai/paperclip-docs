@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Plugin SDK
 seo_description: The worker-side authoring kit for Paperclip plugins. Import it in your worker entrypoint to declare a plugin and subscribe to host events.
 ---
@@ -225,8 +225,6 @@ A note on imports: the domain types these methods hand back — `IssueThreadInte
 #### Reading and resolving issue-thread interactions
 
 Interactions are the decision cards an agent posts into an issue thread: suggested tasks, questions, confirmations. Your plugin could already create them; now it can read them back and resolve them.
-
-When you create one with `ctx.issues.createInteraction` or `ctx.issues.askUserQuestions`, the payload is typed as `CreateIssueThreadInteractionInput` (exported from the SDK). It's the input shape the host validates, so you can leave out fields the host fills with defaults instead of building the fully stored form yourself.
 
 | Method | Signature | Capability |
 |---|---|---|

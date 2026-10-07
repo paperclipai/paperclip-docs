@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1005.0
 seo_title: Checkbox Confirmations API
 seo_description: An issue-thread interaction that asks a person to select any subset of a known option list, then confirm or reject the whole request in one action.
 ---

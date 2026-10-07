@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Grok Connector
 seo_description: Give agents xAI Grok model access with a subscription or an API key. Which agents can use it, credential assignment, a test run, and fixes.
 ---
@@ -12,7 +13,7 @@ Two ways to authenticate: a subscription sign-in through the Grok CLI, or an xAI
 ## Before you connect
 
 - Either a subscription that covers Grok CLI sign-in, or an xAI API key from the [xAI console](https://console.x.ai/).
-- An agent that runs Grok: either the **Grok** adapter, or **Paperclip Runner** with **ACP agent** set to **Grok Build** (see [Grok Build On Paperclip Runner](../reference/adapters/grok-local.md#grok-build-on-paperclip-runner)). This is the requirement that catches people out: a runner agent pointed at any other provider won't pick the credential up.
+- An agent that runs Grok: either the **Grok** adapter, or **Paperclip Runner** with **Provider** set to **Grok Build** (see [Grok Build On Paperclip Runner](../reference/adapters/grok-local.md#grok-build-on-paperclip-runner)). This is the requirement that catches people out: a runner agent pointed at any other provider won't pick the credential up.
 - For subscription sign-in only: a sign-in environment — either the Paperclip server host, or a sandbox environment that supports interactive sign-in. See [With a subscription](#with-a-subscription).
 
 ## Choose a sign-in method
@@ -67,16 +68,16 @@ If server-host sign-in is unavailable you will see *"Server-host subscription si
 
 ## Assign the credential
 
-Open the saved connection and use **Make default** under **Personal default** for your own account. In the agent's **Connection** selector, choose **Responsible user’s default** to use each responsible person's account, or select a named compatible personal or company-shared account. Save the agent configuration.
+Open the saved connection and use **Make default** under **Personal default** for your own account. In the agent's **AI connection** selector, choose **Responsible user’s connection** to use each responsible person's default, or select a named compatible company-shared account. Save the agent configuration.
 
 - **Set it as your default** for the provider, and agents configured to use the responsible user's connection draw on each person's own account.
-- **Select a specific compatible connection** for the agent so eligible runs use that account.
+- **Bind a specific shared connection** to the agent so eligible runs use that account.
 
 A specific binding is not unconditional. Each run through it must satisfy all three, or be refused:
 
 | Requirement | Why a run fails without it |
 | --- | --- |
-| The selected binding matches the account | A named **Personal** account uses an explicit personal binding; a **Company shared** account uses a shared binding. Neither selection bypasses human access |
+| The connection is **Company shared** | A specific binding must point at a company-shared account; the older personal-account binding is a legacy format the current interface no longer creates |
 | The run has a **responsible user** who may use the credential | The human sharing audience governs every binding — *"This credential is not shared with the responsible user"* |
 | The connection is **installed for that agent** (or company-wide) | Otherwise *"This connection is not permitted for this agent"* |
 
@@ -84,38 +85,9 @@ A binding therefore **cannot substitute for a responsible user**.
 
 **Personal** keeps the credential yours; **Company shared** makes one account available to eligible agents on runs whose responsible person is in its human audience. The model is chosen in the agent's configuration.
 
-### Connect from an agent's settings
-
-You can also connect an account without leaving the agent. In the agent's **Connection** field:
-
-- **Reconnect account** appears when your current personal default needs attention. It signs you in again and repairs that same account, so its default and its agent access stay as they were.
-- **Connect an account…** opens **Connect account**, which tells you up front that the new account *"will become your default for this provider."* Your tasks use it; other people keep their own defaults.
-
-When you connect a brand-new account this way, you also see **Allow all agents in this company to use this account for my tasks**. It starts ticked if you can manage connections. Clear it to keep the account to this agent only. Either way, the account backs only tasks you are responsible for, and a reconnect never widens access an account already has. If sign-in succeeds but the default cannot be saved, **Retry default selection** tries again without another sign-in.
-
 ### Reconnect from a task
 
 If a task shows an authentication card, select **Fix connection** to repair the selected account without leaving the task. The account owner signs in again; the card explains when another owner must do it. After setup completes, the task resumes through normal admission. Reconnecting preserves the account's audience and agent access.
-
-## Check your usage limits
-
-Before you hand an agent a long task, you can see how much of the provider's allowance is left. Open the saved account and find **Usage**, then select **Check usage**. This works for a Grok subscription. An API-key account shows *"Unavailable for this sign-in method."* instead of the button, because the provider has no single-key allowance to read.
-
-Paperclip reads the limits only when you ask. Opening the account, listing connections, and starting a run never trigger a check. Each limit window shows how much is used and when it resets, and is marked **Limit reached** or **Blocked** when the provider says so. **Overage** shows whether extra paid usage is available. Anything the provider leaves out shows as **Not reported**, never as zero. After a successful check, the button becomes **Refresh**.
-
-Grok does not always report how much of the included plan you have used. When it leaves that out, Paperclip shows **Not reported** rather than guessing.
-
-
-Checking is read-only. It does not move work to another account, stop runs at a limit, refresh the credential, or buy credit.
-
-| Message | What it means |
-| --- | --- |
-| *"Sign in again to check usage."* | The stored credential has expired. Reconnect the account |
-| *"Usage access denied."* | The provider refused to share usage for this credential |
-| *"Too many checks. Try again later."* | The provider rate-limited the check itself. Your allowance is not affected |
-| *"Reconnect to check usage."* | The account is not usable right now. Reconnect it first |
-
-Board users can run the same check over the API with `GET /api/companies/{companyId}/ai-connections/{connectionId}/usage`.
 
 ## Try it
 
@@ -135,7 +107,7 @@ If the run reports an incompatible connection, check the adapter before anything
 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
-| *"Select an AI connection compatible with this harness and model"* | The agent isn't set up to run Grok — most often it's a runner agent whose ACP agent isn't Grok Build | Set the agent's adapter to Grok, or set the runner's **ACP agent** to **Grok Build** |
+| *"Select an AI connection compatible with this harness and model"* | The agent isn't set up to run Grok — most often it's a runner agent whose provider isn't Grok Build | Set the agent's adapter to Grok, or set the runner's **Provider** to **Grok Build** |
 | *"Connect an account and choose your personal default"* | The agent uses the responsible user's connection and that person has no default | Connect an account and mark it as your default |
 | *"This run needs a responsible user to select an AI connection"* | The run has no responsible person to evaluate the credential checks against | Give the work an eligible responsible user. Binding a shared connection does **not** work around this |
 | *"This credential is not shared with the responsible user"* | The connection is shared with named people and the responsible user is not among them | Add that person to the connection's audience |
@@ -143,7 +115,7 @@ If the run reports an incompatible connection, check the adapter before anything
 | **Sign in** is unavailable | No sign-in environment is offered on this deployment | Ask an administrator whether a sandbox sign-in environment can be enabled; otherwise use an API key |
 | The sign-in command does nothing | The `grok` CLI is missing on the host you ran it on, or you ran it on the wrong machine | Install the CLI and run the command on the Paperclip server host, operating Paperclip locally |
 | Status **expired** or **needs attention** | The credential rotated or the key was revoked | Reconnect the account |
-| Runs fail with a quota error | xAI's plan or key limits, not a Paperclip limit | On a subscription, select **Check usage** on the saved account to see which window is exhausted and when it resets. Otherwise check usage with xAI |
+| Runs fail with a quota error | xAI's plan or key limits, not a Paperclip limit | Check usage with xAI |
 
 Limitations: one connection is one xAI account, and it grants no tool access. The Grok adapter requirement is narrower than the other model providers — confirm it before planning work around this connector.
 
@@ -152,7 +124,5 @@ Limitations: one connection is one xAI account, and it grants no tool access. Th
 - [Connector overview](https://paperclip.ing/product/connectors/xai/)
 
 - [Anthropic](anthropic.md), [OpenAI](openai.md), [OpenRouter](openrouter.md) — the other model providers.
-- [Custom model providers](custom-model-providers.md) — compatible gateways, local endpoints, and Bedrock.
-- [Check AI account usage](ai-usage.md)
 - [How connector access works](access-model.md)
 - [xAI documentation](https://docs.x.ai/)

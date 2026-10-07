@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Google Docs Connector
 seo_description: Let agents read Google Docs documents and optionally update them. Capability groups, document scope, what editing covers, a read test, and troubleshooting.
 ---

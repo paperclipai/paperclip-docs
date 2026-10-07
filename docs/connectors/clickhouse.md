@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: ClickHouse Connector
 seo_description: Let agents query a ClickHouse Cloud ClickStack service. Finding the service ID, why self-hosted is not supported, bounded query testing, and troubleshooting.
 ---

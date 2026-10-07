@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Routines API
 seo_description: Paperclip's recurring execution layer. Run an agent on a schedule, fire it from a webhook, or kick it off manually, and see what a routine does not do.
 ---

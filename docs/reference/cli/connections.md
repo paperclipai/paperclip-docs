@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: The connections Command
 seo_description: Search the connections catalog or request access to a service from inside an active heartbeat run, using the runtime tools the run provides.
 ---
@@ -62,8 +63,6 @@ paperclipai connections request github --json
 Like `search`, the response prints to stdout as JSON, pretty-printed when you pass `--json`.
 
 The server double-checks both provider flags: the task, the requesting agent, the user's answer, and whether the route is still allowed. Neither flag grants any access the provider connection doesn't already have.
-
-For `agentmail`, the request puts an API-key card on the task for the responsible user, instead of a setup link. The card creates an inbox for the requesting agent. Wait for the request to complete before you tell anyone the agent's email address.
 
 > **Tip:** Search first, request second. Take the service slug from a `search` result and feed it straight into `request` so you are asking for a service the catalog actually knows about.
 

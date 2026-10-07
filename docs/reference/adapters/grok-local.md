@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Grok Local Adapter
 seo_description: Run xAI's Grok Build CLI on the Paperclip host as a local coding agent that resumes the same Grok session across every heartbeat.
 ---
@@ -148,7 +148,7 @@ Your existing `grok_local` agents keep running on `grok_local`. Nothing migrates
 
 1. Check that **Paperclip Runner** is enabled in Experimental settings. Its default is on for self-hosted instances and off for Cloud-managed instances.
 2. Create or edit an agent and choose **Paperclip Runner** as its adapter.
-3. Select **ACP agents**, then **Grok Build** as the **ACP agent**.
+3. Set **Provider** to **Grok Build**.
 
 The saved config looks like this. A new Grok runner agent defaults to the `grok-4.7` model:
 
@@ -185,12 +185,6 @@ Grok on the runner uses your company's Grok connection. A subscription sign-in i
 The runner's **ACPX permission mode** (`acpxPermissionMode`) defaults to **Full auto (approve all)** (`approve-all`) for Grok, so the agent can work unattended without any extra setting. Full auto still runs inside your company permissions, governed approvals, and the execution environment's boundaries.
 
 The stricter **Automatic Paperclip actions** (`approve-paperclip`) and **Allow Paperclip reads** (`approve-reads`) modes are kept if you choose them, but Grok can't auto-approve Paperclip tool calls under them — those calls stop and wait for approval. **Deny all** (`deny-all`) rejects Grok's permission requests outright.
-
-### Native route limits
-
-Grok's native Runner usage accounting is not qualified. Missing token or dollar totals do not prove a run was free; the billing details above describe `grok_local` and the chosen authentication method. Native session load supports recovery, but live steering is unsupported and follow-ups use the controller queue.
-
-See [Paperclip Runner](paperclip-runner.md) for supported task modes and admission requirements.
 
 ---
 

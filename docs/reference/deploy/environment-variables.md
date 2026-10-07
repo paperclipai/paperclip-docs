@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1005.0
 seo_title: Environment Variables Reference
 seo_description: Every variable Paperclip reads for server configuration, plus the ones it injects into agent processes at runtime — the list to wire deployments from.
 ---
@@ -34,6 +34,8 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `PAPERCLIP_WORKSPACE_GIT_SNAPSHOT_TIMEOUT_MS` | `1800000` (30 minutes) | How long a workspace snapshot may take, in milliseconds, before it's abandoned. Snapshots list a workspace's changed, untracked, and ignored files before a sandbox run, and the deadline includes time spent waiting on a slow disk. Raise it for very large trees or slow storage. Values below `1000` fall back to the default; values above `86400000` (24 hours) are capped there. |
 | `PAPERCLIP_WORKSPACE_MANIFEST_MIN_FREE_BYTES` | `268435456` (256 MiB) | Free disk space, in bytes, that workspace snapshots always leave on the host. Snapshots write their file lists to temporary on-disk manifests and stop with an error rather than eat into this reserve. Values below `67108864` (64 MiB) fall back to the default. |
 | `PAPERCLIP_RUNNER_API_COMPANY_CAPTURE_MAX_BYTES` | `21474836480` (20 GiB) | Total bytes of large API responses that Paperclip Runner agents can save for one company. When an agent's API call returns more than fits in a single reply, the response is saved as a company asset the agent pages through, and this cap bounds how much those saved responses can add up to. Deleting the assets frees the space. Values below `1073741824` (1 GiB) fall back to the default. |
+| `PAPERCLIP_RUNNER_API_TOOLS_ENABLED` | on (unset) | Whether Paperclip Runner agents get the broad Paperclip API tools (`search_api`, `call_api`, and `hire_agent`). They're on by default; set the variable to anything other than `true` to switch them off for every company. |
+| `PAPERCLIP_RUNNER_API_TOOLS_COMPANY_IDS` | unset (all companies) | Comma-separated company IDs. When set, only those companies' Runner agents get the API tools. It can only narrow access — it has no effect if `PAPERCLIP_RUNNER_API_TOOLS_ENABLED` turns the tools off. |
 | `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` | `7` | How many days the terminal-workspace reaper waits after an issue tree becomes terminal before archiving its workspace. Someone can reopen the work inside this window. `0` disables the cooldown and restores immediate reaping; a negative or non-numeric value falls back to the default. |
 
 > **Note:** `DATABASE_URL` is the main switch between the embedded database and external PostgreSQL.
@@ -297,16 +299,13 @@ The server injects these variables into agent processes when it starts a run:
 |---|---|---|
 | `PAPERCLIP_AGENT_ID` | yes | Agent ID. |
 | `AGENT_HOME` | supported managed runs | Writable copy of the agent's persistent files. It is separate from the task workspace, `HOME`, and `CODEX_HOME`; see [Agent files](../../guides/org/agents.md#agent-files-persist-across-tasks). |
-| `PAPERCLIP_AGENT_KEY_ID` | supported managed runs | Persistent Ed25519 public-key fingerprint. Assigned by Paperclip; configured values cannot override it. |
-| `PAPERCLIP_AGENT_PUBLIC_KEY` | supported managed runs | Multiline public key in PEM format. |
-| `PAPERCLIP_AGENT_PRIVATE_KEY` | supported managed runs | Multiline private PEM. Managed remote runtimes receive it too; trust the host with that identity. Independently hosted HTTP/gateway agents do not receive it. |
 | `PAPERCLIP_COMPANY_ID` | yes | Company ID. |
 | `PAPERCLIP_API_URL` | yes | Paperclip API base URL. |
 | `PAPERCLIP_API_KEY` | local adapters | Short-lived JWT for API auth. Use as `Authorization: Bearer $PAPERCLIP_API_KEY`. For non-local adapters, the operator sets this in adapter config. |
 | `PAPERCLIP_RUN_ID` | yes | Current heartbeat run ID. Pass back as the `X-Paperclip-Run-Id` header on any request that mutates an issue, so server-side audit log entries link to this run. |
 | `PAPERCLIP_TASK_ID` | wake-driven | Issue that triggered the wake. Empty for scheduled or unsolicited wakes. |
 | `PAPERCLIP_WAKE_REASON` | wake-driven | Why this run was triggered. See enum below. |
-| `PAPERCLIP_WAKE_COMMENT_ID` | comment wakes | Specific comment that triggered the wake (set with `issue_commented` and `issue_comment_mentioned`). |
+| `PAPERCLIP_WAKE_COMMENT_ID` | comment wakes | Specific comment that triggered the wake (set with `issue_commented`). |
 | `PAPERCLIP_WAKE_PAYLOAD_JSON` | retired | No longer set. The wake context (the issue summary and the new comments) now travels in the run prompt instead, because a copy in the environment could exceed the operating system's process-launch limits. Paperclip also rejects this key if you put it in an adapter's `env` config. |
 | `PAPERCLIP_APPROVAL_ID` | approval wakes | Resolved approval ID. |
 | `PAPERCLIP_APPROVAL_STATUS` | approval wakes | Approval decision. |
@@ -314,15 +313,13 @@ The server injects these variables into agent processes when it starts a run:
 
 Use these values when your agent runtime needs to authenticate back to Paperclip or understand what context triggered the run.
 
-See [Agent cryptographic identity](../../guides/org/agent-identity.md) for provisioning, signing, and recovery. Back up the database and its matching secrets encryption key to preserve identities.
-
 ### `PAPERCLIP_WAKE_REASON` values
 
 | Value | When it fires |
 |---|---|
 | `issue_assigned` | A task was newly assigned to this agent. |
 | `issue_commented` | A new comment was posted on an issue this agent owns. The triggering comment id is in `PAPERCLIP_WAKE_COMMENT_ID`. |
-| `issue_comment_mentioned` | The agent was @-mentioned in a comment on an issue it does not own. |
+| `issue_comment_mentioned` | Retired. @-mentions are context only and no longer wake the mentioned agent, so new runs don't carry this reason; a wake request that still uses it is ignored. You may still see it on older runs. |
 | `issue_blockers_resolved` | Every issue listed in this issue's `blockedBy` reached `done`. |
 | `issue_children_completed` | All direct children of this issue reached a terminal state (`done` or `cancelled`). |
 | `approval_resolved` | An approval the agent requested was approved or rejected. `PAPERCLIP_APPROVAL_ID` and `PAPERCLIP_APPROVAL_STATUS` are populated. |

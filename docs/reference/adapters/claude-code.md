@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Claude Code Adapter
 seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with session persistence, skills injection, and configuration managed from your agent.
 ---
@@ -118,8 +118,6 @@ Here's how the list is built:
 - **With an API key.** If `ANTHROPIC_API_KEY` is set, the adapter calls the Anthropic models endpoint (`/v1/models`) — at `ANTHROPIC_BASE_URL` if you've set one, otherwise `https://api.anthropic.com` — and offers everything it returns. The live results are merged with Paperclip's built-in list and de-duplicated, so you always see at least the known-good models, plus anything new from your account.
 - **On Bedrock.** If the adapter detects AWS Bedrock (for example `CLAUDE_CODE_USE_BEDROCK=1`), it offers the region-qualified Bedrock model IDs instead, such as `us.anthropic.claude-opus-5-5`, `us.anthropic.claude-sonnet-5`, and `us.anthropic.claude-fable-5-1`.
 - **No key, or the lookup fails.** If there's no API key, or the request times out or comes back empty, you simply get Paperclip's built-in fallback list. Discovery never blocks you from saving an adapter.
-
-Whichever way the list is built, the dropdown shows it in the same order the Claude app uses, so you find the model you expect where you expect it. The newest release of each family comes first, from most to least capable — Fable, Mythos, Opus, Sonnet, then Haiku — followed by older releases grouped by family with the newest versions first. A model alias sorts ahead of its dated snapshots, and any id that doesn't look like a Claude model keeps its place at the end of the list.
 
 Discovered models are cached for about a minute (keyed to the API key and base URL in use), so reopening the form is instant. When you want the freshest list — say you've just been granted access to a new model — use the model field's **refresh** control to force a new lookup that bypasses the cache.
 

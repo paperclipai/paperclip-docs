@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Wire Slack or Discord Notifications
 seo_description: Pipe approvals, blocked high-priority issues, and budget breaches into a channel so the board sees decisions without anyone watching the UI.
 ---

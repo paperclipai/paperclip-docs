@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Write a Company Skill
 seo_description: Author a small Markdown bundle, install it into your company skill library, and attach it to just the agents that should load it. About 15 minutes.
 ---
@@ -94,13 +95,13 @@ Then drop a reference example next to it at `references/example.md` so the agent
 
 ---
 
-### Let an agent save or improve the procedure
+### Let an agent save the procedure
 
 If the agent is using Paperclip's native Runner, you can ask it to save a procedure it just learned: “Turn the release-note review you just did into a company skill.” In Auto mode, its `create_skill` tool saves a complete single-file `SKILL.md` to the library. You still assign the new skill to the agents that should use it.
 
-For an existing editable skill, ask for the improvement directly: “Add a step checking the changelog to our release-review skill.” The agent reads the current version, then uses `update_skill` to replace the complete primary file with a version guard. If someone else saves first, the agent must reread and reapply its edit; retries with the same inputs do not create duplicate versions. Ask and pre-acceptance Plan modes do not expose these write tools.
+Ask and Plan modes don't expose this tool.
 
-You can review the new skill from its **Skill created** card in the task, then use **Open in Skill Studio** to edit the live library copy. For the exact inputs and retry rules, see [Native Runner skill tools](../reference/skills.md#native-runner-skill-tools). Implementation reference: [tool validation and API binding](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/skill-tools.ts).
+You can review the new skill from its **Skill created** card in the task, then use **Open in Skill Studio** to edit the live library copy. For the exact inputs and retry rules, see [Native Runner skill tools](../reference/skills.md#native-runner-skill-tools). Implementation reference: [tool validation and API binding](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/skill-tools.ts).
 
 ---
 
@@ -112,7 +113,7 @@ You can review the new skill from its **Skill created** card in the task, then u
 
 The fastest path while you're iterating. Point the API at the parent folder that contains the skill folder you just wrote (`~/skills` in this example), so supporting files under `release-note-writer/references/` are included in the inventory.
 
-The folder has to live somewhere Paperclip already trusts: inside one of your project workspaces, inside a project's managed checkout (the folder Paperclip cloned for you), or in the company's managed skills folder. In practice, keep `~/skills` inside a project workspace — a path outside those roots is refused with `skill_workspace_boundary_denied`.
+The folder has to live somewhere Paperclip already trusts: inside one of your project workspaces, or in the company's managed skills folder. In practice, keep `~/skills` inside a project workspace — a path outside those roots is refused with `skill_workspace_boundary_denied`.
 
 ```bash
 curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/skills/import" \
@@ -293,8 +294,6 @@ Behaviour depends on where the skill came from.
 | **URL / raw file** | No | Re-import the URL to refresh. |
 | **Bundled with Paperclip** | Pinned to the Paperclip release | Upgrade Paperclip itself; bundled skills can't be edited. |
 
-Your agents can help keep a Paperclip-managed skill current, too: on the native runner, an agent in Auto mode can rewrite the skill's `SKILL.md` with its **Update skill** tool, guarded so it never overwrites a newer save — see [Letting an agent improve an existing skill](../guides/org/skills.md#letting-an-agent-improve-an-existing-skill).
-
 Promote a skill to a GitHub source as soon as you want to share it across multiple agents or companies — that's the path that gives you reviewable diffs, a stable canonical key, and update-status tracking. The `id` doesn't change when you `install-update`, so anything that referenced the skill by `id` keeps working without re-syncing.
 
 To check for updates on a GitHub-sourced skill:
@@ -344,7 +343,7 @@ The full set of rules — required vs. optional, bundled-required, materialisati
 The route requires `agents:create` capability. Run the call as the board user, the CEO agent, or an agent with `permissions.canCreateAgents=true`. The same gate applies to import, scan, sync, and the per-skill detail/files routes.
 
 **`Local skill source is outside approved company workspace roots`.**
-The local path isn't inside a project workspace, a project's managed checkout, or the company's managed skills folder (code `skill_workspace_boundary_denied`). Move the skill folder into a project workspace — or register its folder as one — and import again.
+The local path isn't inside a project workspace or the company's managed skills folder (code `skill_workspace_boundary_denied`). Move the skill folder into a project workspace — or register its folder as one — and import again.
 
 **`Invalid company skill selection (ambiguous references: <slug>; …)`.**
 Two installed skills share the same slug. Switch the call to use the canonical `key` — list `/companies/{id}/skills`, find the row, copy the `key` field, send that.

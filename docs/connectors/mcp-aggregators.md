@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Connect Apps Through an MCP Aggregator
 seo_description: Reach apps that have no native Paperclip connector through Arcade, Composio, Executor, or Zapier, and pick the provider when an agent asks you to.
 ---
@@ -28,7 +29,7 @@ Each provider has its own catalog entry and its own connection. The setup screen
 
 1. In the left sidebar, select **Connectors**, find the provider, and select it.
 2. Read the access summary above the main button. New gateway setup normally starts with everyone in your organization and all agents; select **Change** to narrow either audience. [Share a connector with people and agents](share-access.md) explains the choices.
-3. Paste the address into **MCP server URL** and select **Connect {provider}**, such as **Connect Arcade**. Composio uses its prefilled URL unless you open **Reuse an existing session**. Paperclip shows *"Connecting and discovering tools…"* while it reaches the server and reads its tool list.
+3. Paste the address into **MCP server URL** and select **Connect {provider}**, such as **Connect Arcade**. Paperclip shows *"Connecting and discovering tools…"* while it reaches the server and reads its tool list.
 4. If the provider needs a sign-in, a provider window opens. Finish there and come back; Paperclip waits for confirmation.
 5. Review **Permissions** and set each tool to **Allowed**, **Ask first**, or **Off**, as on any connector — see [Set action permissions](action-permissions.md).
 
@@ -47,7 +48,7 @@ Two provider-specific notes from the setup screen: for Arcade headers, use an AP
 
 ### If sign-in does not finish
 
-Closing the provider window or declining consent does not lose your work. Paperclip shows that the connection could not connect, keeps your saved setup, and offers **Try again**. If you need to stop partway, you can leave and pick it up later — the connection shows **Resume setup** with your access choices intact.
+Cancelling the sign-in does not lose your work. Paperclip shows *"Connection cancelled. Your setup details are preserved; try again when you are ready."* and the button becomes **Try again**. If you need to stop partway, you can leave and pick it up later — the connection shows **Resume setup** with your access choices intact.
 
 ## When an agent asks for an app
 
@@ -70,23 +71,7 @@ Paperclip controls access to the tools it lists for the connection. App and acti
 So set up both layers deliberately:
 
 - In the provider, connect only the apps you need and expose only the actions you need.
-- In Paperclip, active actions start as **Allowed**, including writes. Set writes to **Off** or **Ask first** if you want narrower access, and run **Refresh actions** after changing the provider's tool selection. Review what appeared.
-
-## Find and manage app accounts
-
-The catalog starts on **Paperclip**. Use **Composio**, **Arcade**, **Installed**, or **All** to change the view. Search matches app names, aliases, providers, and saved accounts. The uninstalled catalog has pages of 50 entries; matching installed apps stay above it.
-
-An app without native setup can appear as one card with the logos of its available providers. **Connect** opens a provider choice when more than one supports it. A native connector keeps its own setup, even when the same app also appears in an external provider's catalog.
-
-Saved native and imported accounts are grouped under their app card. An imported row says **Managed by {provider}** and links to the saved gateway that supplies it. A provider filter includes a native app card when it has an account managed by that provider, not merely because the provider's public catalog lists that app.
-
-Composio, Arcade, and Executor gateways can show **Connected apps** on **Permissions**. Where discovery is available, Paperclip refreshes the list on first load. Use **Refresh Composio**, **Refresh Arcade**, or **Refresh Executor** there, or in the saved gateway's menu, to check that gateway again. Executor is still available as a connection; its catalog filter is temporarily hidden.
-
-A failed or incomplete check keeps last-known accounts marked **Not verified**. An expired account shows **Needs sign-in**. Replacing a credential hides observations from the previous credential until the new one is checked. Discovery reports accounts; it does not grant access or authorize an app.
-
-Imported account menus open the upstream provider. Rename, removal, and app authorization happen there. Paperclip's access and action settings stay on the parent gateway and apply across its apps; grouped cards do not create separate app-level access boundaries. Removing a saved gateway from Paperclip leaves the provider's accounts intact.
-
-For provider-specific setup and discovery, see [Composio](composio.md), [Arcade](arcade.md), and [Executor](executor.md).
+- In Paperclip, active actions start as **Allowed**, including writes. Set writes to **Off** or **Ask first** if you want narrower access, and run **Refresh tools** after changing the provider's tool selection. Review what appeared.
 
 ## Old Composio connections
 
@@ -100,8 +85,3 @@ Composio connections made through Paperclip's earlier Composio integration no lo
 - [How connector access works](access-model.md)
 - [Set action permissions](action-permissions.md)
 - [Tool Gateway](../reference/api/tool-gateway.md)
-
-## Sources
-
-- [Catalog and account grouping](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/pages/apps/Browse.tsx) — filters, grouped account rows, and gateway menus.
-- [Connected app list](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/pages/apps/app-detail/ConnectedAggregatorApps.tsx) — refresh controls and verification states.

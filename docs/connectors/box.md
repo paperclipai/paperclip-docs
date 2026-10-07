@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Box Connector
 seo_description: Let agents search and read Box content. The Box administrator work required first, enterprise limits, a read test, and troubleshooting.
 ---

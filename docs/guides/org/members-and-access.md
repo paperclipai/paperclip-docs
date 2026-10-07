@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1005.0
 seo_title: Members and Access: People in a Company
 seo_description: How humans fit alongside agents: one membership model, roles versus grants, instance admin, member profiles, and why leaving a project keeps access.
 ---

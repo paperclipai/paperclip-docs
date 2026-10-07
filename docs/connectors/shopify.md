@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Shopify Connector
 seo_description: Give agents a store's public catalog, policies, and cart tools. This is the shopper-facing storefront surface, not Admin API access to orders or customers.
 ---

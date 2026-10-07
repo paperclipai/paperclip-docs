@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Skills: Reusable Agent Procedures
 seo_description: Package a checklist, runbook, or template once and share it across agents. Covers adding skills, folders, Skill Studio, and the cost and performance payoff.
 ---
@@ -75,7 +75,7 @@ Gists work through the same source field. Paste the gist URL and Paperclip treat
 
 You can also paste a local path (Linux, WSL, or Windows) into the source field. Paperclip walks the folder, finds any `SKILL.md` files, and imports them. This is the right choice when you already keep skills in a project workspace on disk — the scan button (circular arrow next to the plus icon) re-runs the local import across every project workspace in the company so newly added `SKILL.md` folders show up automatically.
 
-For safety, a local path has to sit inside a folder Paperclip already knows about: your company's managed skills folder, one of your project workspaces, or the folder Paperclip cloned a project into for you (a managed checkout). That last one means a project Paperclip checks out on your behalf can import its own skills in place, even if it has no workspace registered. A path anywhere else is refused with *"Local skill source is outside approved company workspace roots"* — add the folder as a project workspace first, or copy the skill somewhere Paperclip manages.
+For safety, a local path has to sit inside a folder Paperclip already knows about: your company's managed skills folder or one of your project workspaces. A path anywhere else is refused with *"Local skill source is outside approved company workspace roots"* — add the folder as a project workspace first, or copy the skill somewhere Paperclip manages.
 
 ### 4. Import from the skills.sh marketplace
 
@@ -265,21 +265,6 @@ A few things keep this predictable:
 When a skill is created, a **Skill created** card appears in the task's thread with the skill's name and description. Click it and the skill opens in its own tab in the task's side panel, showing its slug, current revision, and instructions. That tab always reads the live library copy, so it's not a second version to keep in sync. Use **Open in Skill Studio** to edit it; when you come back to the task, the tab shows what you saved. If the skill is later deleted, or you don't have access to it, the tab tells you so — *"Skill no longer available."* or *"You do not have access to this skill."* — while the card in the thread stays as a record that it was created.
 
 The creation is also logged as `company.skill_created`, and it shows up in the task's own history as well as the company activity log.
-
-### Letting an agent improve an existing skill
-
-Skills get better with use, and often the agent that just followed one is the best placed to fix it — "the checklist missed the changelog step; add it." The native runner also gives agents an **Update skill** tool for exactly that. It rewrites a skill's whole `SKILL.md` in one go, the same way a save in Skill Studio does.
-
-The tool is named `update_skill`. The agent reads the skill and its `currentVersionId`, then sends the complete primary file with `expectedVersionId` and an `idempotencyKey` — not just the lines it wants to change.
-
-It's built so an agent can't trample anyone's work:
-
-- **Same modes, same rules.** Like **Create skill**, it's only offered in Auto mode and skill test runs, and it obeys your skill policy — here the `skills.edit` rule. If an agent may not edit that skill, it's refused. It can only change skills you could edit in Studio, so read-only skills (the built-in catalog, GitHub sources, skills.sh) are off limits.
-- **No overwriting newer edits.** The agent has to say which version of the skill it read. If someone saved a change in the meantime, the update is refused with *"Skill version changed. Read the current version before retrying."* — the agent rereads the skill and tries again on top of the latest version instead of silently undoing it.
-- **Retries don't double up.** If the request is interrupted and retried, the agent gets back the original result instead of creating a second version.
-- **Everything is recorded.** Each changed update becomes a new version in the skill's history, so you can compare or restore it in Studio, and it's logged as `company.skill_file_updated` against the task that made it.
-
-After a version conflict, the agent rereads the skill and uses a new retry key for its revised request. The [Skills reference](../../reference/skills.md#native-runner-skill-tools) shows the input shape. Implementation reference: [tool contract](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/paperclip-runner/src/protocol-actions/update-skill.ts) and [file API binding](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/skill-tools.ts).
 
 ---
 

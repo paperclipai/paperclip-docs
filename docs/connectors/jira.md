@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Jira Connector
 seo_description: Let agents read and update Jira issues through Atlassian's hosted server. Site selection, admin approval, and why a connection can find nothing.
 ---

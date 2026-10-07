@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Google Calendar Connector
 seo_description: Let agents read calendars and availability, and optionally manage events. Capability groups, invitation side effects, and a safe read test.
 ---

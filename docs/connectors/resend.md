@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Resend Connector
 seo_description: Let agents work with Resend email delivery — domains, audiences, and delivery status. Why sending is not a setup test, domain scope, and troubleshooting.
 ---

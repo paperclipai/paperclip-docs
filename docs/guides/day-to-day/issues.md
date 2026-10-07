@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Issues: Creating and Tracking Work
 seo_description: Each issue is one unit of work tied to your company goal. Create them yourself or let the CEO do it, then track progress, comment, and close them.
 ---
@@ -64,39 +64,88 @@ Open **Tasks** to see the work across your company. The API calls these records 
 
    Tasks with an agent actively running on them show a live-run indicator. Live updates keep that indicator current so you can see which tasks are being worked on without refreshing.
 
-Implementation reference: [Tasks page and live updates](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/pages/Issues.tsx).
+Implementation reference: [Tasks page and live updates](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/pages/Issues.tsx).
 
 ---
 
 ## Creating a New Issue
 
-1. **Click New Task**, or press **C** while you aren't typing in a field.
+1. **Click "New Task"**
 
-   The new-task dialog uses the same composer as a task conversation. Start with a clear brief: what you want done, any constraints, and what a good result looks like. You can describe the task without filling in a separate title first.
+   The button appears in the sidebar and in the Tasks view. You can also press **C** while you aren't typing in a field. Either way opens the new-task form.
 
-2. **Choose a project.**
+2. **Write a clear title, or leave it blank**
 
-   Click **Project** above the text box. Search for a project, choose a recent one, or select **No project**. The project sets where the task belongs; the model picker below controls how the agent answers.
+   The title is optional. If you leave it blank, Paperclip uses the start of your description as a provisional title, and the assigned agent names the task. If you do write one, use an action verb followed by a specific outcome. The title is the first thing an agent reads — it should be unambiguous.
 
-3. **Pick a work mode.**
+   | Instead of… | Write… |
+   |-------------|--------|
+   | Roadmap | Write the Q2 product roadmap |
+   | Bug fix | Fix the login redirect loop on mobile |
+   | Research | Research competitor pricing for the enterprise tier |
 
-   Auto mode is the default. Use the **+** menu to choose **Plan mode** when you want a plan before implementation, or **Ask mode** when you want an answer without changes. The selected mode appears as a removable chip. See [Work Modes](./work-modes.md).
+3. **Write a detailed description**
 
-4. **Choose the assignee, model, and effort.**
+   The description is the brief the agent works from. Agents read it completely before starting. The more precise your description, the better the output.
 
-   Click the agent name to choose who should handle the task. Click the model label beside it to choose a model and its supported effort level, or leave them on the agent's defaults. **Reset to agent default** clears your run-setting overrides. Model access is checked when the run starts, including for an exact ID you paste into the picker.
+   Include:
+   - What you want done (not just what, but to what standard)
+   - Any constraints ("must be under 500 words", "don't change the database schema")
+   - What "done" looks like (how will you know the issue is complete?)
+   - Any examples, links, or reference materials the agent should know about
 
-5. **Add files or images if they help.**
+   > **Tip:** The more specific your description, the better the output. An agent given "write a blog post about AI" will produce something generic. An agent given "write a 600-word blog post for a non-technical audience explaining how AI agents can automate customer support, in a conversational tone, targeting founders who manage support teams" will produce something useful.
 
-   Use **Files and images** in the **+** menu, paste, or drop files into the composer. Resolve an upload error before submitting so the agent receives the material you intended.
+4. **Choose a work mode**
 
-6. **Click Create task**, or press **⌘+Enter** (**Ctrl+Enter** on Windows and Linux).
+   The work mode tells the agent what kind of response you want. Click the mode chip in the issue form to cycle through the options:
 
-   The task opens after creation. Its **Properties** panel lets you adjust priority, status, parent, project, and the other task fields. A paused assignee can receive the task, but won't start until you resume it.
+   | Mode | Chip colour | What happens |
+   |------|-------------|--------------|
+   | **Auto mode** | Neutral | The agent picks up the issue, executes the work, and posts results. This is the default. |
+   | **Plan mode** | Amber | The agent produces a plan document first. You review the plan before implementation begins. |
+   | **Ask mode** | Sky blue | The agent answers your question in the issue thread — no implementation, no code changes. |
 
-When you create a subtask from an existing task, the dialog shows **Sub-task of** and uses **Create sub-task**. If the project supports isolated workspaces, the creation bar can also offer **Worktrees**: choose a new worktree or reuse an existing one. An unavailable selection produces an inline error so you can retry or choose another. See [Execution workspaces](../projects-workflow/workspaces.md).
+   Use **Ask mode** when you want a quick answer, a scope assessment, or a clarifying explanation rather than implementation work. Use **Plan mode** when you want to see a roadmap before the agent starts making changes. Use **Auto mode** (the default) for everything else.
 
-Implementation reference: [new-task dialog](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/NewIssueDialog.tsx) and [run settings picker](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/task-chat/ComposerRunSettingsPicker.tsx).
+5. **Set a priority**
+
+   Priority tells agents what to work on first when they have multiple issues assigned. Use it to signal urgency.
+
+   | Priority | Use for… |
+   |----------|----------|
+   | **Critical** | Blocking work; must be done immediately |
+   | **High** | Important this week |
+   | **Medium** | Normal workload |
+   | **Low** | Nice to have; do when nothing else is waiting |
+
+6. **Assign it to an agent**
+
+   Click the Assignee field and choose the agent that should do this work. If heartbeat wake-on-assignment is enabled (it is by default), the agent will receive a heartbeat trigger as soon as you save — it won't have to wait for its next scheduled wake.
+
+   > **Note:** Only one agent can hold an issue "in progress" at a time. If you assign an issue that's already in progress by another agent, the new agent won't check it out until the issue is released.
+
+7. **Set a parent issue (if relevant)**
+
+   If this issue is a subtask — part of a larger piece of work — link it to the parent. This keeps the issue hierarchy clean and helps the CEO understand how work fits together.
+
+8. **Choose where the work runs** *(when isolated workspaces are enabled)*
+
+   If the project uses isolated execution workspaces, the form includes a workspace mode picker:
+
+   | Mode | What happens |
+   |------|--------------|
+   | **Project default** | The run uses the project's configured workspace behaviour. |
+   | **New isolated workspace** | Paperclip provisions a fresh isolated workspace for this issue's run. |
+   | **Reuse existing workspace** | The run continues in an existing execution workspace you pick — handy for resuming where a previous task left off. |
+
+   Choosing **Reuse existing workspace** opens a searchable dropdown grouped into **Recent** and **All workspaces**. Type to filter by workspace name, branch, or local folder; matches on the visible workspace name rank ahead of hidden path text, so searching by a branch or task name lands on the workspace you mean rather than an unrelated path that happens to share some letters. Each option shows the workspace's status next to its branch or folder.
+
+   See [Execution workspaces](../projects-workflow/workspaces.md) for how Paperclip keeps reused workspaces consistent across runs.
+
+9. **Save the task**
+
+   Click **Create Task**. The task appears in the list and the assigned agent is notified.
 
 ---
 
@@ -180,8 +229,6 @@ The issue is no longer needed and won't be completed. This is also a terminal st
 ---
 
 ## The Inbox
-
-The separate Inbox is the default navigation. The experimental **Combined Inbox + Task List** option is off by default. When you enable it in the streamlined interface, its views move into **Tasks → Views**, and the unread badge moves to Tasks. See [An optional combined task list](../../experimental/task-chat.md#an-optional-combined-task-list).
 
 The **Inbox** is the human-facing triage view. Where the Issues page is an exhaustive index of every issue in the company, the Inbox surfaces only the things that need **your** attention right now — issues you're involved in, approvals waiting on you, failed heartbeat runs, and pending join requests — grouped into four tabs.
 
@@ -326,7 +373,7 @@ Drag the panel's left edge to resize it, or use **Maximize panel** and **Restore
 
 [Agent Chat](../../experimental/agent-chat.md) uses this panel too, with **Tasks** and **Artifacts** scoped to the agent's work across the company.
 
-Implementation reference: [side-panel tabs and launcher](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/task-side-panel/TaskSidePanel.tsx).
+Implementation reference: [side-panel tabs and launcher](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/components/task-side-panel/TaskSidePanel.tsx).
 
 #### The Plan tab
 
@@ -469,9 +516,9 @@ The task conversation combines four data sources into a single timeline:
 
 ### Composer
 
-At the bottom of the conversation sits the composer. [Chat-Style Tasks](../../experimental/task-chat.md#the-composer) covers its mode, model, effort, project, and pending-card controls. It also supports:
+At the bottom of the conversation sits the composer. [Chat-Style Tasks](../../experimental/task-chat.md#the-composer) covers its mode, model, effort, and pending-card controls. It also supports:
 
-- **@mentions** — type `@` to open the mentions picker. Mentioning an agent causes Paperclip to resolve it to a structured `[@Agent Name](agent://<agent-id>)` mention. Mentioning an agent fires a wake heartbeat for that agent when it posts.
+- **@mentions** — type `@` to open the mentions picker. Mentioning an agent causes Paperclip to resolve it to a structured `[@Agent Name](agent://<agent-id>)` mention. A mention is context only: it doesn't wake the agent, start a run, hand it the task, or forward your comment to another task. To bring another agent in, assign the task or request a review.
 - **Reassignment on comment** — if your comment is directed at a different participant, the composer offers to reassign the issue along with the comment in one action (using the current vs suggested assignee values).
 - **Image attachments** — paste, drop, or attach image files; they upload inline and render as thumbnails inside the comment bubble. Clicking a thumbnail opens the shared gallery modal.
 - **File attachments** — non-image attachments upload to the issue and render beneath the comment as file rows.
@@ -490,7 +537,7 @@ A single comment can do up to three different things, and Paperclip keeps them s
 
 **Scoped wakes.** When your comment hands the issue to an agent, Paperclip enqueues a single wake for that new owner rather than triggering a broad re-scan. The wake carries the specific thing it's about — your interrupting comment and, when there was one, the id of the run you interrupted — so the agent picks up exactly where you redirected it. In the activity log this shows up as a **Wake** sub-row: "*queued for \<agent\> (interrupted run attached)*" for an agent handoff, or "*not created*" when the issue went to a person or has no agent owner.
 
-**Plain text is not a handoff.** Typing an agent's name, role, or team label in the comment body does not reassign the issue or wake anyone. To route to an agent you need a structured `@`-mention (which resolves to `agent://<id>`) or an explicit assignee change. If you type a bare agent name, the composer nudges you: "*No agent will be notified. Use @ to mention an agent.*"
+**Plain text is not a handoff.** Typing an agent's name, role, or team label in the comment body does not reassign the issue or wake anyone. A structured `@`-mention (which resolves to `agent://<id>`) links the agent as context, but it doesn't route work either. Only an explicit assignee change or a review request starts an agent on the task. If you type a bare agent name, the composer nudges you: "*No agent will be notified. Use @ to mention an agent.*"
 
 ### Run-id binding
 
@@ -583,7 +630,7 @@ An empty composer shows **Stop** while the task is running and you can manage ta
 
 While paused, the composer says **Task is paused.** or **Subtree is paused.**, preserves your draft, and offers **Resume task** or **Resume subtree**. Resume releases the hold; waking agents is optional. If an interrupted run has uncertain outcomes, a resume that also tries to wake it is refused and the pause remains. Inspect the stopped run and follow its recovery instructions before continuing. See [Stop, pause, and resume](../../experimental/task-chat.md#stop-pause-and-resume) for the complete flow.
 
-**Model unavailable.** means the provider rejected the selected model: choose a supported model or clear the task override, then retry. A provider sign-in request needs your authentication step before the run can continue. Saved messages remain attached to the task while recovery is pending.
+A provider sign-in request needs your authentication step before the run can continue.
 
 ## Recovery actions
 

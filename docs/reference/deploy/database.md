@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Database Configuration
 seo_description: Paperclip runs PostgreSQL through Drizzle ORM. One schema across every supported mode — what differs is where Postgres runs and how it is reached.
 ---
@@ -122,10 +123,6 @@ The Drizzle schema under `packages/db/src/schema/` stays the same in every case.
 
 ## What a database backup preserves
 
-A normal instance database backup includes encrypted [agent identities](../../guides/org/agent-identity.md) and locally stored [agent complaints and suggestions](../../administration/agent-commentary.md). Restoring identities also requires the matching secrets encryption key: preserve `PAPERCLIP_SECRETS_MASTER_KEY` or the instance's configured master-key file separately.
-
 The database does not contain the bytes of persistent agent files or locally stored uploads. Back up those filesystem directories or your configured asset storage as well; see [Storage](storage.md#persistent-agent-files).
-
-A portable company export creates new identities when imported. A database restore preserves the identities of the original instance, so reserve disaster-recovery backups for recovering that instance rather than making independent agent copies.
 
 > **Tip:** If your deployment feels healthy but the data keeps disappearing, check whether you are still on embedded PostgreSQL. That mode is intentionally local and persistent only inside the instance directory.

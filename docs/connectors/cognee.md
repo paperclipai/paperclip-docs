@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Cognee Cloud Memory Connector
 seo_description: Connect an active Cognee Cloud workspace with its tenant URL and API key, then choose how agents recall, save, or forget memory through Paperclip.
 ---
@@ -20,7 +21,7 @@ You do not need to install a local MCP runtime for this connection. The bundled 
 1. Open **Connectors** and select **Cognee**.
 2. Read the access line above the main button. Select **Change** to choose a personal credential or narrow the agents that may use it.
 3. Enter **API Base URL** and **Cognee API key**, then complete setup.
-4. Review **Permissions** and **Agent instructions**.
+4. Review the actions on **Permissions**.
 
 Use the HTTPS tenant origin in the form `https://your-tenant.aws.cognee.ai`, without an API path, query, or custom port. Paperclip validates the origin and saves both values securely. Setup checks Cloud access before completing.
 
@@ -35,8 +36,6 @@ Use the HTTPS tenant origin in the form `https://your-tenant.aws.cognee.ai`, wit
 Active actions start as **Allowed**. Use **Ask first** for saved memories and **Off** for deletion if you want narrower access.
 
 The Cloud key determines the reachable data. A dataset or session name is context for the call, not a new isolation boundary enforced by Paperclip. Use provider permissions or separate credentials when work must stay separate.
-
-You can edit or disable the guidance that accompanies this connection under **Agent instructions**. See [Saved connection instructions](connection-instructions.md).
 
 ## Try it
 
@@ -64,5 +63,5 @@ Turning off the experimental setting leaves saved connections running and allows
 
 ## Sources
 
-- [Cognee definition](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/app-definitions/cognee.json) — credential fields and default instructions.
-- [Bundled Cloud client](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/cognee-connection.ts) and [tool connection service](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/tool-access.ts) — reviewed tools and setup behavior.
+- [Cognee definition](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/app-definitions/cognee.json) — credential fields.
+- [Bundled Cloud client](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/cognee-connection.ts) and [tool connection service](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/tool-access.ts) — reviewed tools and setup behavior.

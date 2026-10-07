@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Set Up Your Own Google OAuth App
 seo_description: One reusable procedure for connecting any Google Workspace connector with your own OAuth client — preview access, APIs, callback URI, and fixes.
 ---

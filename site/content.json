@@ -107,10 +107,6 @@
           "file": "../docs/guides/org/agents.md"
         },
         {
-          "title": "Agent Identity",
-          "file": "../docs/guides/org/agent-identity.md"
-        },
-        {
           "title": "Skills",
           "file": "../docs/guides/org/skills.md"
         },
@@ -174,10 +170,6 @@
               "file": "../docs/connectors/action-permissions.md"
             },
             {
-              "title": "Connection Instructions",
-              "file": "../docs/connectors/connection-instructions.md"
-            },
-            {
               "title": "Review Requests",
               "file": "../docs/connectors/review-requests.md"
             },
@@ -200,14 +192,6 @@
             {
               "title": "Google Workspace Setup",
               "file": "../docs/connectors/google-setup.md"
-            },
-            {
-              "title": "Custom Model Providers",
-              "file": "../docs/connectors/custom-model-providers.md"
-            },
-            {
-              "title": "Check AI Usage",
-              "file": "../docs/connectors/ai-usage.md"
             },
             {
               "title": "Memory Connectors (Experimental)",
@@ -566,10 +550,6 @@
           "file": "../docs/experimental/agent-chat.md"
         },
         {
-          "title": "Assistant Connections (MCP)",
-          "file": "../docs/experimental/assistant-connections.md"
-        },
-        {
           "title": "Chat-Style Tasks",
           "file": "../docs/experimental/task-chat.md"
         },
@@ -748,10 +728,6 @@
           "file": "../docs/administration/settings.md"
         },
         {
-          "title": "Agent Complaints and Suggestions",
-          "file": "../docs/administration/agent-commentary.md"
-        },
-        {
           "title": "Trust & Low-Trust Review",
           "file": "../docs/administration/trust-and-low-trust-review.md"
         },
@@ -778,10 +754,6 @@
         {
           "title": "Authentication",
           "file": "../docs/reference/api/authentication.md"
-        },
-        {
-          "title": "Assistant MCP",
-          "file": "../docs/reference/api/assistant-mcp.md"
         },
         {
           "title": "Companies",
@@ -924,10 +896,6 @@
           "file": "../docs/reference/cli/setup-commands.md"
         },
         {
-          "title": "Runtime Setup",
-          "file": "../docs/reference/cli/runtime.md"
-        },
-        {
           "title": "Test Drive",
           "file": "../docs/reference/cli/test-drive.md"
         },
@@ -946,10 +914,6 @@
         {
           "title": "Connect",
           "file": "../docs/reference/cli/connect.md"
-        },
-        {
-          "title": "MCP",
-          "file": "../docs/reference/cli/mcp.md"
         },
         {
           "title": "Token",

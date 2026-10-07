@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Artifacts: Files Your Agents Produce
 seo_description: Documents, images, video, and exports from every task in one place. Filter by type, browse stacks by task, and read files in the in-app viewer.
 ---
@@ -100,12 +100,11 @@ A few details worth knowing:
 - **Images and videos share a gallery.** Open an image or video card to review it in the task's media viewer. Use **Previous** and **Next**, or the left and right arrow keys, when more than one item is available. Videos have playback controls; the header offers download, and **Esc** closes the viewer.
 - **CSV previews are on request.** Click **Preview data** to load a table for files up to 1 MiB. The preview shows at most 200 data rows and accepts up to 50 columns. Larger or unsupported previews explain why they cannot load and leave download available; a failed fetch offers a retry.
 - **Text files open in a tab.** Markdown and plain-text attachments get an **Open in tab** button. It opens the file in a tab in the same side pane, so the conversation stays in view. Markdown files have **Rendered** and **Raw** buttons to switch between the formatted page and the source, and a download button gives you the original file. Clicking a text attachment in the conversation opens the same tab, and the tab is reused as you open the next file.
-- **Branches without a link say so.** When an agent records a branch but no remote URL, the card reads **Branch · no remote link** rather than implying there's somewhere to click through to. Use **Show details** to see its provider, its status, and when it was last updated. If the agent saved a description, it's tucked under **Saved description**.
 - **Unhealthy outputs are flagged** with an **Unhealthy** badge, so a broken preview link doesn't pass for a working one.
 
 The tab is read-only — a quick answer to "what came out of this task?", not a place to upload or delete.
 
-Implementation reference: [artifact cards](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/artifacts/IssueArtifactCard.tsx), [CSV preview limits](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/lib/artifact-card-data.ts), and [media gallery](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/ImageGalleryModal.tsx).
+Implementation reference: [artifact cards](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/components/artifacts/IssueArtifactCard.tsx), [CSV preview limits](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/lib/artifact-card-data.ts), and [media gallery](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/components/ImageGalleryModal.tsx).
 
 > **Note:** if your instance has switched back to the old layout with **Classic Task Interface** (under **Legacy** in **Settings → Instance settings → Experimental**), there's no Artifacts tab — a task's attachments stay in the **Attachments** section on the task page. See [Experimental features](../../experimental/overview.md).
 

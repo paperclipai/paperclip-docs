@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Connect a Custom MCP Server
 seo_description: Add an MCP server that is not in the Paperclip catalog by URL, by pasting a config, or with a provider-generated URL, and govern it like any connector.
 ---
@@ -19,12 +19,6 @@ What happens next depends on the server:
 - **It advertises OAuth.** Paperclip registers a client and takes you through browser sign-in. If the authorization server supports neither Client ID Metadata Documents nor dynamic registration, Paperclip stops and asks you for a client you registered yourself rather than losing the draft connection.
 - **It wants a key.** Paperclip asks for it, and states where it goes: *"Paperclip sends your key as an Authorization header."* Custom headers are available for servers that expect something else.
 - **It wants nothing.** Paperclip says so plainly: *"The server is open to anyone with the address."* Treat that address as the credential.
-
-### Staying signed in after the access token expires
-
-Many OAuth servers hand out short-lived access tokens. To keep a custom server connected past that, Paperclip also asks for `offline_access` when the server's authorization server lists it as supported and does not rule out refresh tokens, even if the MCP server itself only mentions its tool scopes. When the provider issues a refresh token, Paperclip renews access in the background and agents keep working without another sign-in.
-
-The provider still decides whether to issue one. If it does not, the connection needs a fresh sign-in each time the access token expires. An older custom connection made before this change picks up refresh support the next time you select **Reconnect**.
 
 A server outside the reviewed catalog is labelled **Unverified server**. That label is a statement about review, not about whether the connection works.
 
@@ -62,12 +56,6 @@ Because the server has not been reviewed, two habits are worth keeping:
 - Start with every write **Off** and promote deliberately. A name-based classification is the fallback when a server publishes no annotations, and an unfamiliar naming scheme can under-classify.
 - Re-run **Refresh actions** after you change the server, then review the list. On a pasted-URL connection a newly discovered action becomes active under the policies already in force — it is not held back for approval — so a refresh can widen what agents can call.
 
-## Add saved guidance
-
-A custom connection can store optional `agentInstructions` through the connection API. The guidance is included only for authorized runs that can use at least one of its tools, and it never grants additional access.
-
-The current **Agent instructions** editor appears only when a connector declares a template; it is not shown on every custom server. Paperclip does not automatically adopt the server's initialization prose as trusted instructions. See [Saved connection instructions](connection-instructions.md) for the setting and its behavior.
-
 ## Not the same as an adapter MCP server
 
 Attaching an MCP server to an agent's *runtime* — through the adapter's own configuration — is a different mechanism with different governance. Paperclip's action permissions and review queue do not sit in front of it. See [Add an MCP server to an agent](../how-to/add-mcp-server-to-agent.md) for that path, and pick it deliberately rather than by accident.
@@ -83,5 +71,5 @@ Attaching an MCP server to an agent's *runtime* — through the adapter's own co
 
 ## Sources
 
-- [Connection setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
-- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

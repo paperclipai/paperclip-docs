@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Skills Reference
 seo_description: The reference for company skills: file shape on disk, the install pipeline, attaching to agents, scoping rules, canonical keys, and versioning.
 ---
@@ -159,7 +159,7 @@ Skills are installed at the **company** level. Once installed, any agent in that
 | List skills | `GET /api/companies/{companyId}/skills` |
 | Skill detail (with usage) | `GET /api/companies/{companyId}/skills/{skillId}` |
 | Read a file from a skill | `GET /api/companies/{companyId}/skills/{skillId}/files?path=SKILL.md` |
-| Update a file (editable skills) | `PATCH /api/companies/{companyId}/skills/{skillId}/files` — see [Safe file updates](#safe-file-updates) |
+| Update a file (editable skills) | `PATCH /api/companies/{companyId}/skills/{skillId}/files` |
 | Update status (GitHub-managed) | `GET /api/companies/{companyId}/skills/{skillId}/update-status` |
 | Pull latest commit | `POST /api/companies/{companyId}/skills/{skillId}/install-update` |
 | Delete | `DELETE /api/companies/{companyId}/skills/{skillId}` |
@@ -169,55 +169,13 @@ Skills are installed at the **company** level. Once installed, any agent in that
 
 Mutating routes require either `agents:create` permission or `permissions.canCreateAgents=true` on the calling agent.
 
-### Safe file updates
-
-`PATCH /api/companies/{companyId}/skills/{skillId}/files` writes one file in an editable skill. The body takes `path`, `content`, and optionally `encoding` (`utf8` or `base64`) and `executable`. Two more optional fields protect you from lost edits:
-
-| Field | What it does |
-|---|---|
-| `expectedVersionId` | The skill's `currentVersionId` as you last read it. If the skill has moved on since, the write is rejected with `409` and *"Skill version changed. Read the current version before retrying."* Reread the skill and apply your change to the latest version. |
-| `idempotencyKey` | 1–240 characters. Makes the write safe to retry: repeat the exact same request with the same key and you get the original result back, with no second version and no second activity entry. Reusing a key with different inputs returns `409` with *"Skill file idempotency key was used with different inputs"*. |
-
-Without `idempotencyKey`, the route responds with the updated file, as before. With it, the response is a small receipt instead:
-
-```json
-{
-  "skillId": "…",
-  "path": "SKILL.md",
-  "versionId": "…",
-  "studioPath": "/skills/studio/…"
-}
-```
-
-Either way the write is checked against the `skills.edit` policy action (even on an exact retry), recorded as a new version when the bytes or executable flag changed, and logged as `company.skill_file_updated`. This is the same route the native runner's **Update skill** tool calls when an agent edits a skill — see [Letting an agent improve an existing skill](../guides/org/skills.md#letting-an-agent-improve-an-existing-skill).
-
 ### Native Runner skill tools
 
-An agent using the native Runner can save a reusable procedure with `create_skill` or improve an existing editable skill with `update_skill`. These tools are available in Auto (`standard`) and skill-test work, not Ask or pre-acceptance Plan work. They use the company skill API and its existing policy; creating a skill adds it to the library without assigning it to agents.
+An agent using the native Runner can save a reusable procedure with the `create_skill` tool. It's available in Auto (`standard`) and skill-test work, not Ask or pre-acceptance Plan work. It uses the company skill API and its existing policy; creating a skill adds it to the library without assigning it to agents.
 
-`update_skill` requires these inputs:
+`create_skill` takes `name`, `description`, `markdown`, and `idempotencyKey`, plus an optional `slug`. The name is lowercase and hyphenated; the complete file's name and description must match those inputs, and a supplied slug must equal the name. Company, agent, task, and run identity come from the authenticated run. Reuse the same `idempotencyKey` when you retry. A successful creation appears as a **Skill created** card in the task thread; see [Skills your agents create during a task](../guides/org/skills.md#skills-your-agents-create-during-a-task).
 
-| Field | What to send |
-|---|---|
-| `skillId` | UUID of the existing skill. |
-| `markdown` | The complete primary `SKILL.md`, including valid name and description frontmatter and a nonempty body. |
-| `expectedVersionId` | The `currentVersionId` you read before editing. |
-| `idempotencyKey` | A 1–240 character retry key. |
-
-```json
-{
-  "skillId": "<skill UUID>",
-  "expectedVersionId": "<currentVersionId>",
-  "markdown": "---\nname: release-review\ndescription: Review release notes.\n---\n\n# Review\nCheck each release note against its change.\n",
-  "idempotencyKey": "release-review-update-1"
-}
-```
-
-After a lost response, retry with exactly the same inputs and key to receive the original receipt. After a version conflict, read the current skill, reapply the edit, and use a new key. A key reused with different inputs is a conflict. Policy is checked again on exact retries.
-
-`create_skill` takes `name`, `description`, `markdown`, and `idempotencyKey`, plus an optional `slug`. The name is lowercase and hyphenated; the complete file's name and description must match those inputs, and a supplied slug must equal the name. Company, agent, task, and run identity come from the authenticated run. A successful creation appears as a **Skill created** card in the task thread; see [Skills your agents create during a task](../guides/org/skills.md#skills-your-agents-create-during-a-task).
-
-Implementation reference: [update tool contract](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/paperclip-runner/src/protocol-actions/update-skill.ts) and [tool validation and REST binding](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/skill-tools.ts).
+Implementation reference: [create tool contract](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/paperclip-runner/src/protocol-actions/create-skill.ts) and [tool validation and REST binding](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/skill-tools.ts).
 
 ### Import: accepted sources
 
@@ -700,10 +658,6 @@ Walk down this list in order. The first match is usually the problem.
 ### "Local skill source is outside approved company workspace roots"
 
 - The path you imported isn't inside the company's managed skills folder, a registered project workspace, or a project's server-managed checkout folder (code `skill_workspace_boundary_denied`). Register the folder as a project workspace, or move the skill into one, and import again. Symlinks are followed before the check, so a link that points elsewhere is refused too.
-
-### "Skill version changed. Read the current version before retrying."
-
-- You sent `expectedVersionId` on a file update and someone saved the skill after you read it. Fetch the skill again, reapply your change to the current content, and retry with the new `currentVersionId` (and a new `idempotencyKey` if you use one).
 
 ### "A GitHub-synced skill didn't pick up an upstream change"
 

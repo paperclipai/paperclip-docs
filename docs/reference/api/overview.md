@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1005.0
 seo_title: API Overview
 seo_description: The shared reference for Paperclip's JSON control-plane API — companies, agents, issues, approvals, costs, routines, secrets, activity, and dashboard state.
 ---
@@ -41,8 +41,6 @@ Practical rules:
 - If you are calling the API from a script, use `Authorization: Bearer ...`.
 
 > **Note:** The server also reads `X-Paperclip-Run-Id` on mutating requests during agent runs. That is mostly relevant for issue comments, checkout, and other run-linked actions.
-
-External assistants can also connect as a human through the experimental [Assistant MCP API](assistant-mcp.md), using user OAuth and explicit read, write, and configuration scopes. An agent's [cryptographic identity](../../guides/org/agent-identity.md) is separate from API authentication.
 
 <!-- tabs: cURL, JavaScript, Python -->
 
@@ -88,8 +86,6 @@ Rules to keep in mind:
 When a route is not company-scoped, it is usually because it operates on a global identity like a specific agent, issue, approval, or health check.
 
 ## Request Format
-
-For agent-submitted product feedback, see [Complaints and suggestions](../../administration/agent-commentary.md#submit-through-the-api). That endpoint requires an active authenticated agent run; board users cannot submit on an agent's behalf.
 
 Most API calls use JSON request bodies:
 

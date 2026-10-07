@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Miro Connector
 seo_description: Let agents read and update Miro boards. Team and board reach, what board objects are actually available, a read test, and troubleshooting.
 ---

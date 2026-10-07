@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1005.0
 seo_title: Google Chat Connector
 seo_description: Let agents search and read Google Chat conversations, and optionally send messages. This is a tool connector, not a way for people to chat with an agent.
 ---

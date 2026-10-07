@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1005.0
 seo_title: Codex Adapter
 seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding agent, with persistent session state and a managed CODEX_HOME per agent.
 ---
@@ -62,6 +62,8 @@ You stay in control when you say otherwise. Paperclip skips the bypass — keepi
 - Your `extraArgs` set an `approval_policy=` override, or switch network access off with `sandbox_workspace_write.network_access=false`.
 - The execution target denies network access.
 
+This bypass applies to the classic Codex CLI lane (`engine: "cli"`). The ACP engine keeps Codex in its writable workspace sandbox, with network access switched on for each turn.
+
 > **Heads-up:** Earlier versions kept Codex in the workspace sandbox unless you opted in to the bypass. If you relied on that, set `dangerouslyBypassApprovalsAndSandbox` to `false` explicitly.
 
 ---
@@ -98,26 +100,26 @@ An environment that only runs one-shot commands cannot host an ACP session, so a
 
 ## Models
 
-Pick any of the known Codex model ids in the `model` field. The picker lists them the way the ChatGPT app orders Codex models — newest model version first, most capable first within each version, and older models at the end:
+Pick any of the known Codex model ids in the `model` field. The current options are:
 
+- `gpt-5.6-sol` (the adapter default)
 - `gpt-6-astra`
 - `gpt-6-sol`
 - `gpt-6-luna`
-- `gpt-5.6-sol` (the adapter default)
 - `gpt-5.6-terra`
 - `gpt-5.6-luna`
 - `gpt-5.5`
 - `gpt-5.4`
 - `gpt-5.4-mini`
 - `gpt-5`
-- `gpt-5-mini`
-- `gpt-5-nano`
 - `o3`
 - `o4-mini`
+- `gpt-5-mini`
+- `gpt-5-nano`
 - `o3-mini`
 - `codex-mini-latest`
 
-This is a curated list. Even when an OpenAI API key is available, the picker doesn't fill itself from OpenAI's model catalog, because that catalog also includes image, audio, and embedding models Codex can't run. If you need extra models in the dropdown — say, ones served through your own gateway — declare them with [`PAPERCLIP_ADAPTER_MODELS`](../deploy/environment-variables.md#adding-models-to-the-model-picker).
+This is a curated list. Even when an OpenAI API key is available, the picker doesn't fill itself from OpenAI's model catalog, because that catalog also includes image, audio, and embedding models Codex can't run. If you need other models in the dropdown — say, ones served through your own gateway — declare the list you want with [`PAPERCLIP_ADAPTER_MODELS`](../deploy/environment-variables.md#adding-models-to-the-model-picker).
 
 You can also type a model id that is not in this list. Anything Paperclip does not recognize is treated as a manual model id and passed straight through to the Codex CLI.
 
