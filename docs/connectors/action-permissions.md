@@ -15,6 +15,8 @@ Every action a connector exposes has one of three settings, per connection. This
 | **Ask first** | *"A human must approve each call."* The agent waits; the call becomes a review request. |
 | **Off** | *"Agents cannot run this action."* |
 
+Active actions on a normal new connection start as **Allowed**, including writes and destructive actions. Choose **Ask first** or **Off** when you want a narrower policy. Provider consent remains a separate limit: an Allowed action cannot exceed the credential's upstream permissions.
+
 ## Change one action
 
 1. Open the connector and select the **Permissions** tab.
@@ -54,6 +56,7 @@ Some providers get provider-specific handling because a generic rule would be wr
 - **PostHog** — an unannotated tool is treated as a **write**, not a read. Its `exec` tool is always **destructive**.
 - **Notion** — mutations whose names do not use a create/update/delete verb (move, duplicate, convert) are enumerated explicitly as writes.
 - **Shopify** — `cancel-cart`, `cancel-checkout`, and `complete-checkout` are always **destructive**.
+- **Memory providers** — reviewed retrieval tools are reads, storage and updates are writes, and forgetting or reset tools are destructive. Supermemory's `add_memory` can also forget, so the whole action is **destructive**.
 
 ## Refresh the action list
 
@@ -85,6 +88,12 @@ For the ordinary case, the wizard projects the app's action defaults into polici
 
 Two details worth knowing wherever held-back review does apply: an action you had already set to **Off** stays off rather than reappearing for review, and a connection configured for safe defaults exempts actions classified **read**, holding back only writes and destructive actions.
 
+## Instructions do not change permissions
+
+The **Agent instructions** toggle controls guidance in the agent's prompt, not its access to tools. Switching it off does not switch actions off, and switching it on does not make an **Off** action available. See [Saved connection instructions](connection-instructions.md).
+
+For aggregator accounts, the action list belongs to the saved gateway. An imported app card does not create a separate policy for that upstream app.
+
 ## Limits you cannot lift
 
 A permission switch cannot grant something the connector was never allowed to do.
@@ -105,3 +114,8 @@ When you change a permission on a GitHub connection bound to an agent identity, 
 - [Answer a connector review request](review-requests.md)
 - [Tool Gateway](../reference/api/tool-gateway.md)
 - [Execution policy](../guides/power/execution-policy.md)
+
+## Sources
+
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

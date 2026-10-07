@@ -21,7 +21,7 @@ The worked example is **Hugging Face**, chosen because it offers a simple setup:
 
 In the left sidebar, select **Connectors**.
 
-The page lists every connector Paperclip can set up. Use **Search connectors** to find **Hugging Face**, then select **Connect**.
+The catalog starts on **Paperclip**. Use **Search connectors** to find **Hugging Face**, then select **Connect**. **Installed** shows saved accounts; **All** also includes apps offered through external providers. Native and imported accounts are grouped under the app they belong to.
 
 ## 2. Check who it is for
 
@@ -44,7 +44,7 @@ You do not create an OAuth app, and you do not paste a token. If the provider ev
 
 Open the connector's **Permissions** tab. You will see the action list Hugging Face published, each row classified **read**, **write**, or **destructive**, and each one set to **Allowed**, **Ask first**, or **Off**.
 
-Set every non-read action to **Off**. The quickest way is the **Set all** menu next to the **Write** heading: choose **Set all: Off** and every write changes at once. Hugging Face's sign-in includes repository and job access, so expect some writes to switch off. Check the list rather than assume, because it comes from the provider and can change when they change it.
+Active actions start as **Allowed**, including writes. Before the first agent task, set every non-read action to **Off**. The quickest way is the **Set all** menu next to the **Write** heading: choose **Set all: Off** and every write changes at once. Hugging Face's sign-in includes repository and job access, so expect some writes to switch off. Check the list rather than assume, because it comes from the provider and can change when they change it.
 
 Leave the reads **Allowed**. You now have a connector that can only look things up.
 
@@ -79,3 +79,8 @@ One connection, scoped to you, usable by one agent, restricted to reads. That is
 - [How connector access works](access-model.md) — what the choices in steps 2 and 4 actually control, and how other connector shapes differ.
 - [Set action permissions](action-permissions.md) — turning on a write, with **Ask first** as the middle setting.
 - [Connectors](../connectors.md) — the rest of the catalog.
+
+## Sources
+
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

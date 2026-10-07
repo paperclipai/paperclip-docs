@@ -12,7 +12,7 @@ Two ways to authenticate: a Claude subscription, or an Anthropic API key.
 ## Before you connect
 
 - Either a Claude subscription, or an Anthropic API key from the [Anthropic console](https://console.anthropic.com/settings/keys).
-- An agent that runs on the Claude runtime. This credential is only usable by an agent whose harness resolves to Claude; a Codex or OpenCode agent cannot use it. Check the agent's runtime before connecting.
+- An agent that runs on the Claude runtime: **Claude Code**, or **Paperclip Runner → ACP agents → Claude**. A standard Anthropic connection is not compatible with a Codex or OpenCode harness. For other Claude-compatible endpoints, see [Custom model providers](custom-model-providers.md).
 - For subscription sign-in only: a sign-in environment. Paperclip offers two kinds — the Paperclip server host itself, or a sandbox environment that supports interactive sign-in. Which you get depends on how your instance is configured; see [With a Claude subscription](#with-a-claude-subscription).
 
 ## Choose a sign-in method
@@ -69,18 +69,18 @@ If server-host sign-in is unavailable you will see *"Server-host subscription si
 
 ## Assign the credential
 
-Open the saved connection and use **Make default** under **Personal default** for your own account. In the agent's **AI connection** selector, choose **Responsible user’s connection** to use each responsible person's default, or select a named compatible company-shared account. Save the agent configuration.
+Open the saved connection and use **Make default** under **Personal default** for your own account. In the agent's **Connection** selector, choose **Responsible user’s default** to use each responsible person's account, or select a named compatible personal or company-shared account. Save the agent configuration.
 
 A connected account is not yet the account a run uses. Two ways to bind it:
 
 - **Set it as your default** for the provider. Agents configured to use the responsible user's connection then pick up whichever account that person has made their default, so each person's runs draw on their own credential.
-- **Bind a specific shared connection** to the agent, so eligible runs use that account rather than the starter's own default.
+- **Select a specific compatible connection** for the agent, so eligible runs use that account rather than the starter's own default.
 
 Binding a specific connection is not unconditional. Every run through it must still satisfy all three of these, or the run is refused:
 
 | Requirement | Why a run fails without it |
 | --- | --- |
-| The connection is **Company shared** | A specific binding must point at a company-shared account. Personal accounts can only be reached through their owner's default; the older "pick someone's personal account" binding is a legacy format the current interface no longer creates |
+| The selected binding matches the account | A named **Personal** account uses an explicit personal binding; a **Company shared** account uses a shared binding. Neither selection bypasses human access |
 | The run has a **responsible user**, and that person is allowed to use the credential | The human sharing audience governs every binding. If the connection is restricted to named people, the responsible user must be one of them — *"This credential is not shared with the responsible user"* |
 | The connection is **installed for that agent** (or company-wide) | Otherwise *"This connection is not permitted for this agent"* |
 
@@ -90,12 +90,16 @@ A **Personal** connection stays yours; **Company shared** makes one account avai
 
 ### Connect from an agent's settings
 
-You can also connect an account without leaving the agent. In the agent's **AI connection** field:
+You can also connect an account without leaving the agent. In the agent's **Connection** field:
 
 - **Reconnect account** appears when your current personal default needs attention. It signs you in again and repairs that same account, so its default and its agent access stay as they were.
-- **Connect another account** opens **Connect account**, which tells you up front that the new account *"will become your default for this provider."* Your tasks use it; other people keep their own defaults.
+- **Connect an account…** opens **Connect account**, which tells you up front that the new account *"will become your default for this provider."* Your tasks use it; other people keep their own defaults.
 
 When you connect a brand-new account this way, you also see **Allow all agents in this company to use this account for my tasks**. It starts ticked if you can manage connections. Clear it to keep the account to this agent only. Either way, the account backs only tasks you are responsible for, and a reconnect never widens access an account already has. If sign-in succeeds but the default cannot be saved, **Retry default selection** tries again without another sign-in.
+
+### Reconnect from a task
+
+If a task shows an authentication card, select **Fix connection** to repair the selected account without leaving the task. The account owner signs in again; the card explains when another owner must do it. After setup completes, the task resumes through normal admission. Reconnecting preserves the account's audience and agent access.
 
 ## Check your usage limits
 
@@ -119,7 +123,7 @@ Board users can run the same check over the API with `GET /api/companies/{compan
 
 ## Try it
 
-Before you run anything, read the agent's configuration and note which AI connection it is set to use — the responsible user's default, or a specific shared connection. That setting, not the run output, is where the intended credential is visible.
+Before you run anything, read the agent's configuration and note which AI connection it is set to use — the responsible user's default, or a named compatible connection. That setting, not the run output, is where the intended credential is visible.
 
 Then give the agent a short, cheap task:
 
@@ -157,5 +161,7 @@ Limitations: one connection is one provider account. This connector grants no to
 - [Connector overview](https://paperclip.ing/product/connectors/anthropic/)
 
 - [OpenAI](openai.md), [OpenRouter](openrouter.md), [Grok](xai.md) — the other model providers.
+- [Custom model providers](custom-model-providers.md) — compatible gateways, local endpoints, and Bedrock.
+- [Check AI account usage](ai-usage.md)
 - [How connector access works](access-model.md)
 - [Anthropic API documentation](https://docs.anthropic.com/)

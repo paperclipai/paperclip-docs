@@ -8,7 +8,7 @@ seo_description: Every service Paperclip can connect, grouped by what it is for,
 
 A **connector** is a saved connection to an outside service: a Gmail mailbox, a GitHub organization, a Notion workspace, a PostHog project. You set one up once, decide who and what it is for, and Paperclip carries that decision into every run.
 
-> **Note:** These guides cover the connector model in Paperclip **v2026.1001.0**. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
+> **Note:** This nightly draft includes unreleased connector changes from Paperclip master. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
@@ -111,6 +111,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
+| [Browser Use Cloud](connectors/browser-use-cloud.md) | Run browser tasks in Browser Use Cloud, open a live browser session from the task, and reuse a browser profile. These master changes are not yet in the stable release. | API key |
 | [Cloudflare](connectors/cloudflare.md) | DNS, CDN, and edge compute. Agents work with the account your Cloudflare sign-in can reach. | Sign in with Cloudflare · API key |
 | [GitHub](connectors/github.md) | Code hosting and review. Agents use repository tools with the connected credential's permissions. See the guide for setup and shell-access boundaries. The pull-request review bot is its own entry, **GitHub Code Review Bot**, under [Chat channels](#chat-channels). | Connect with Paperclip · API key |
 | [Netlify](connectors/netlify.md) | Hosting and deploys for web front ends. Agents work with the teams and sites your Netlify account can reach. | Sign in with Netlify |
@@ -165,10 +166,12 @@ Long-term memory services that agents can store to and recall from across runs. 
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
 | [Mem0](connectors/mem0.md) | Hosted long-term memory for AI applications. Agents store and recall facts across runs in your Mem0 project. | API key |
-| Zep | Retrieve temporal graph memory and authorized business context. Needs a Zep project with Memory MCP enabled; project API keys do not work here. | Sign in with Zep |
-| Supermemory | Search and save shared memories, documents, and profiles. You choose which spaces the connection may use. | Sign in with Supermemory |
-| Cognee | Build and recall shared graph memory from documents and conversations, using your Cognee Cloud tenant. It runs Cognee's MCP client on Paperclip's runtime host, so a public deployment needs a trusted MCP runtime host. | API key |
-| Honcho | Remember conversations and retrieve context about peers. | API key |
+| [Zep](connectors/zep.md) | Retrieve temporal graph memory and authorized business context. Needs a Zep project with Memory MCP enabled; project API keys do not work here. | Sign in with Zep |
+| [Supermemory](connectors/supermemory.md) | Search and save shared memories, documents, and profiles. You choose which spaces the connection may use. | Sign in with Supermemory |
+| [Cognee](connectors/cognee.md) | Build and recall shared graph memory from documents and conversations, using your Cognee Cloud tenant. It runs Cognee's MCP client on Paperclip's runtime host, so a public deployment needs a trusted MCP runtime host. | API key |
+| [Honcho](connectors/honcho.md) | Remember conversations and retrieve context about peers. | API key |
+
+See [Memory connectors](connectors/memory-connectors.md) for the experimental gate, provider differences, and what is shared through a connection.
 
 ### Model providers
 
@@ -180,6 +183,9 @@ These hold the credential Paperclip uses to run models. They publish no actions 
 | [OpenAI](connectors/openai.md) | Run OpenAI models. | OpenAI subscription · API key |
 | [OpenRouter](connectors/openrouter.md) | Run models from many vendors through one credential and one bill. | API key |
 | [Grok](connectors/xai.md) | Run xAI's Grok models. | Grok subscription · API key |
+| [Custom model providers](connectors/custom-model-providers.md) | Use a compatible custom or local endpoint through a supported agent harness. Compatibility depends on the API route. | API key · Endpoint URL |
+
+[Check AI usage](connectors/ai-usage.md) explains provider-supported usage snapshots and reconnect messages. These credentials are separate from [assistant connections (MCP)](experimental/assistant-connections.md), which let an external assistant sign in as a person and work with Paperclip.
 
 <span id="chat-channels"></span>
 
@@ -232,6 +238,7 @@ Use these guides for the controls your connector exposes. Action permissions and
 | [Reauthorize, revoke, or disconnect](connectors/reauthorize-and-disconnect.md) | Rotating a credential, removing one person's access, or deleting the connection. |
 | [Connect a custom MCP server](connectors/custom-mcp-servers.md) | The service is not in the catalog, or you have a URL or config to paste. |
 | [Connect apps through an MCP aggregator](connectors/mcp-aggregators.md) | The app has no native connector, or an agent asked you to pick an external provider. |
+| [Connection instructions](connectors/connection-instructions.md) | Saving service-specific instructions an agent should receive with a connection. |
 
 ## Related
 

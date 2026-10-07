@@ -7,6 +7,12 @@ seo_description: Choose which people a connector credential covers and which age
 
 For credentialed app-tool connections, there are two separate audiences: the people the credential belongs to, and the agents allowed to call through it. Widening one does not widen the other.
 
+## Check the setup default
+
+A new tool connection normally starts with everyone in your organization and all agents. Setup states the resolved identity and agent audience above the main button; select **Change** to narrow them on that same screen.
+
+Methods limited to personal sign-in use your identity. A connection requested for an agent from a task normally starts with you and that agent; AgentMail instead uses company-wide human access and the selected inbox owner. Reusing a saved connection keeps its existing access.
+
 ## Choose the human audience
 
 Open the connector and find its identity card.
@@ -37,7 +43,7 @@ For an app-tool connection, open the **Permissions** tab and find **Which agents
 
 If the control is disabled with *"Unavailable while this connection is installed for every agent,"* the connection has a company-wide install that supersedes the per-agent list. Change the install first.
 
-Check the selected audience during setup; availability and defaults depend on the method, your permissions, and whether setup was opened for a particular agent. That is not a permission to act — the action list still decides what any of those agents may actually call. See [Set action permissions](action-permissions.md).
+Check the stated audience during setup and change it if needed. Access to a connection does not decide what an agent may do; the action list still controls each call. See [Set action permissions](action-permissions.md).
 
 ## Why these are two lists
 
@@ -49,9 +55,16 @@ They come apart constantly in practice. A finance connector might be shared with
 
 The connector list shows the current state per connection. For a connection whose identity is mixed across installations, the card reads *"Mixed access; scope varies by installation"* rather than flattening it into a single claim.
 
+Accounts imported from Composio, Arcade, or Executor are shown under their app cards. Their access is managed on the saved provider gateway and applies across the gateway's apps. Refreshing that account inventory never broadens the human or agent audience.
+
 ## Related
 
 - [How connector access works](access-model.md)
 - [Use separate accounts for people and agents](separate-accounts.md)
 - [Set action permissions](action-permissions.md)
 - [Members and access](../guides/org/members-and-access.md)
+
+## Sources
+
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

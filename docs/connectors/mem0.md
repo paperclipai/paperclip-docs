@@ -11,8 +11,8 @@ The question to settle before connecting is *whose* memory an agent is reading a
 
 ## Before you connect
 
-- The **Memory connectors** experimental setting turned on. It's off by default, and Mem0 doesn't appear in **Connectors** until it's on — see [Connections and Apps](../experimental/connections-apps.md). Turning it off later hides setup only; a Mem0 connection you already have keeps running.
-- A Mem0 account and an API key from it. Keys look like `m0sk_…`.
+- The **Memory connectors** experimental setting turned on. It's off by default, and Mem0 doesn't appear in **Connectors** until it's on — see [Connections and Apps](../experimental/connections-apps.md). Turning it off later prevents new curated setup; a saved Mem0 connection keeps running and can reconnect or rotate its key. See [Memory connectors](memory-connectors.md) for the full provider family.
+- A Mem0 account and an API key from its dashboard.
 - A decision about how you will namespace memories — per agent, per user, per project — and which identifiers agents should use.
 
 ## Connect Mem0
@@ -30,9 +30,13 @@ Two practical consequences:
 - If different agents must not see each other's memories, give them **separate connections with separate Mem0 projects and keys**. Do not rely on identifier discipline alone.
 - Be deliberate about what goes in. Memories persist across tasks and are readable later by anything holding the key, so personal data or secrets written into Mem0 outlive the conversation that produced them.
 
-Memory writes are cheap to make and easy to accumulate. An agent that writes on every run will build a store nobody curates, which degrades retrieval quality as much as it costs. Consider leaving writes on **Ask first** at the start so you can see what an agent wants to remember. See [Set action permissions](action-permissions.md).
+Active actions start as **Allowed**, including writes and deletion.
 
-Deletions remove memory permanently; keep them **Off** unless you have a reason.
+Memory writes are easy to make and accumulate. An agent that writes on every run will build a store nobody curates, which degrades retrieval quality as much as it costs. Consider setting writes to **Ask first** at the start so you can see what an agent wants to remember. See [Set action permissions](action-permissions.md).
+
+Deletions remove memory; set them to **Off** if agents should not forget stored information.
+
+The connection includes editable recall and save guidance under **Agent instructions**. You can turn it off without removing the tools, or edit it to describe your memory context. See [Saved connection instructions](connection-instructions.md).
 
 ## Try it
 
@@ -67,3 +71,8 @@ Limitations: one Mem0 project per connection, and the key reaches all of it. Nam
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)
 - [Mem0 MCP documentation](https://docs.mem0.ai/platform/mem0-mcp)
+
+## Sources
+
+- [Mem0 definition](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/app-definitions/mem0.json) — API-key setup and default guidance.
+- [Feature defaults](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/feature-catalog.ts) — off-by-default experimental setup.

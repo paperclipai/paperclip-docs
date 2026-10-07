@@ -94,6 +94,16 @@ Then drop a reference example next to it at `references/example.md` so the agent
 
 ---
 
+### Let an agent save or improve the procedure
+
+If the agent is using Paperclip's native Runner, you can ask it to save a procedure it just learned: “Turn the release-note review you just did into a company skill.” In Auto mode, its `create_skill` tool saves a complete single-file `SKILL.md` to the library. You still assign the new skill to the agents that should use it.
+
+For an existing editable skill, ask for the improvement directly: “Add a step checking the changelog to our release-review skill.” The agent reads the current version, then uses `update_skill` to replace the complete primary file with a version guard. If someone else saves first, the agent must reread and reapply its edit; retries with the same inputs do not create duplicate versions. Ask and pre-acceptance Plan modes do not expose these write tools.
+
+You can review the new skill from its **Skill created** card in the task, then use **Open in Skill Studio** to edit the live library copy. For the exact inputs and retry rules, see [Native Runner skill tools](../reference/skills.md#native-runner-skill-tools). Implementation reference: [tool validation and API binding](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/skill-tools.ts).
+
+---
+
 ## 3. Install the skill at company level
 
 `POST /api/companies/{companyId}/skills/import` is the one route. It accepts a `source` string and figures out the rest.
@@ -183,7 +193,7 @@ curl "$PAPERCLIP_API_URL/api/agents/$CODER_AGENT_ID/skills" \
   -H "Authorization: Bearer $PAPERCLIP_API_KEY"
 ```
 
-The response (an `AgentSkillSnapshot`) lists every entry the agent currently has, with `state` (`configured`, `installed`, `available`, etc.) and `mode` (the runtime sync strategy — see below). The full schema is at [Skills reference → Assigning skills to agents](../reference/skills.md#3-assigning-skills-to-agents).
+The response (an `AgentSkillSnapshot`) lists every entry the agent currently has, with `state` (`configured`, `installed`, `available`, etc.) and `mode` (the runtime sync strategy — see below). The full schema is at [Skills reference → Assigning skills to agents](../reference/skills.md#4-assigning-skills-to-agents).
 
 Each `desiredSkills` entry can be:
 
@@ -264,7 +274,7 @@ On the agent's next heartbeat, open its run viewer (**Agents → `<agent>` → R
 - the `SKILL.md` body in the run's tool/context output, or
 - the agent's response visibly following the skill's section order and voice rules.
 
-If neither is true, walk down the troubleshooting checklist in the [Skills reference](../reference/skills.md#8-troubleshooting-why-a-skill-isnt-loading). The two most common failures: the routing description is too vague for the agent to match, or the adapter's sync mode is `unsupported`.
+If neither is true, walk down the troubleshooting checklist in the [Skills reference](../reference/skills.md#9-troubleshooting-why-a-skill-isnt-loading). The two most common failures: the routing description is too vague for the agent to match, or the adapter's sync mode is `unsupported`.
 
 > **Tightening the description is the lever, not the body.** If the agent doesn't load the skill when it should, the body is rarely the problem. Rewrite the `description` to name the trigger more concretely ("Use when the user asks for *release notes* or a *changelog*…"). The body only matters once the skill is actually loaded.
 
@@ -324,7 +334,7 @@ Local-path skills aren't pinned, so they don't expose `update-status` — the re
 - **Bundled skills are forced on.** `paperclipai/paperclip/*` skills are unioned into every resolved set; you can't drop them.
 - **Adapter sync mode is the runtime gate.** If `mode: "unsupported"`, the assignment exists but no files reach the runtime. Either switch adapters or manage skills in the remote runtime.
 
-The full set of rules — required vs. optional, bundled-required, materialisation strategy, conflict resolution — is at [Skills reference → Scoping rules](../reference/skills.md#4-scoping-rules).
+The full set of rules — required vs. optional, bundled-required, materialisation strategy, conflict resolution — is at [Skills reference → Scoping rules](../reference/skills.md#5-scoping-rules).
 
 ---
 
@@ -354,7 +364,7 @@ Re-import from the parent folder that contains the skill directory (`/Users/me/s
 **Bundled skill keeps re-appearing after I delete it.**
 That's by design — `paperclip` and the other `paperclipai/paperclip/*` skills are re-imported on every list call. To suppress one, run a forked Paperclip build that doesn't ship it.
 
-For deeper debugging — wrong tool list, sync mode confusion, GitHub pin stuck on an old commit — walk the [full troubleshooting list](../reference/skills.md#8-troubleshooting-why-a-skill-isnt-loading).
+For deeper debugging — wrong tool list, sync mode confusion, GitHub pin stuck on an old commit — walk the [full troubleshooting list](../reference/skills.md#9-troubleshooting-why-a-skill-isnt-loading).
 
 ---
 

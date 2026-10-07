@@ -1,53 +1,45 @@
 ---
 paperclip_version: v2026.626.0
-seo_title: Task Work Modes: Standard and Ask
-seo_description: Standard mode wants work done; Ask mode wants a question answered. See how each changes the machinery an agent spins up when it picks up a task.
+seo_title: Task Work Modes: Auto, Plan, and Ask
+seo_description: Choose Auto to do the work, Plan to review an approach first, or Ask for an answer. Pick a mode in the task composer before you send each message.
 ---
 
 # Work modes
 
-Every Paperclip task carries a work mode that tells the agent what kind of output the task wants. Standard mode wants work done. Ask mode, new in v2026.626.0, wants a question answered. The difference decides how much machinery spins up when the agent picks up the task.
+Choose the kind of result you want before an agent starts: work done, a plan to review, or an answer in the thread. Paperclip offers **Auto mode**, **Plan mode**, and **Ask mode** for those three goals.
 
 ## Background
 
-The standard execution workflow earns its weight. An agent checks the task out so nobody else grabs it, gets a workspace to produce files in, works through the task, and lands on an explicit final disposition: done, in review, blocked. Every step exists because work products need ownership, isolation, and an auditable ending.
+A task starts with a work mode, and you can choose a mode for each follow-up message in the composer. That lets you ask a question about a running project, review a proposed approach, and then authorize implementation without creating a separate task for every exchange.
 
-But not every task is a project. "Which of our adapters support remote runtimes?" has no files to produce, nothing to check out, no disposition more complicated than an answer. Running that question through the full workflow is ceremony: the agent stands up a workspace it will not use to deliver a paragraph that belongs in the thread.
-
-Ask mode removes the ceremony. The question goes in as a task like any other; the answer comes back as a reply on the task itself.
+The mode is applied when you send. Changing the chip alone does not interrupt the turn already running.
 
 ## The mental model
 
-A work mode is a contract about the deliverable, set on the task rather than buried in its description.
+| Mode | What you want back | Example |
+|---|---|---|
+| **Auto mode** | Completed work and its results. The API calls this `standard`. | “Write the release notes and attach the draft.” |
+| **Plan mode** | An approach you can review before implementation. The API calls this `planning`. | “Plan the login change before editing code.” |
+| **Ask mode** | An answer without implementation changes. The API calls this `ask`. | “Which adapters support this runtime?” |
 
-In standard mode (labeled "Auto mode" in the UI), the contract is an artifact: code, documents, configuration, some change in the world. The execution workflow exists to produce and account for that artifact.
+Auto is the default. Plan focuses the agent on clarifying the goal and writing a plan document. Ask keeps the request read-only, so it suits a lookup, comparison, or explanation.
 
-![A standard-mode task mid-execution, with its workspace attached and the agent working in the thread.](../../user-guides/screenshots/light/work-modes/standard-mode-run.png)
-
-In ask mode, the contract is an answer. The agent is directed to answer the question directly in the issue thread, and explicitly not to write implementation code or produce an implementation plan. No checkout, no workspace. The thread is the deliverable.
-
-![An ask-mode task where the question is the description and the agent's recommendation comes back as a reply in the thread.](../../user-guides/screenshots/light/work-modes/ask-mode-answer.png)
-
-There is a third mode, plan mode, whose contract is a plan: the agent designs an approach for review before anything is built. Together the three cover the shapes a task can take: do it, answer it, or plan it.
-
-![A plan-mode task showing the plan document the agent produced for review instead of executed work.](../../user-guides/screenshots/light/work-modes/plan-mode-plan.png)
-
-The mode is the reader's promise too. A task in ask mode tells everyone who opens it what to expect at the bottom of the thread: an answer, not a pull request.
+Each agent reply shows the mode that request ran under. Read that chip when looking back through the thread: it describes that turn rather than promising that every message in the task used the same mode.
 
 ## How it behaves
 
-Work mode is set when creating a task and can be changed from the task's detail view. Standard is the default; nothing changes for existing tasks or for anyone who never touches the setting. Each mode has a distinct icon and color in the UI, so a board scattered with questions, plans, and work reads at a glance.
+Use the **+** menu in the new-task or task composer to choose **Plan mode** or **Ask mode**. The selected mode appears beside the plus button. Click the chip to return to Auto, or choose the other mode to replace it. You can also cycle modes with **⌘+.** (**Ctrl+.** on Windows and Linux) or **Shift+Tab** while the text box is focused.
 
-![The work-mode selector on the new-task form, offering Auto mode, Plan mode, and Ask mode.](../../user-guides/screenshots/light/work-modes/work-mode-picker.png)
+Choose the agent, model, and effort separately. Those settings determine who answers and how the model runs; the work mode determines the kind of result you requested. See [The composer](../../experimental/task-chat.md#the-composer) for the full control layout.
 
-Everything else about the task stays ordinary. An ask-mode task has an assignee, a priority, a thread, and a status. It shows up in the agent's inbox like any other assignment. Approvals, budgets, and company boundaries still apply. The mode changes what the agent does with the task, not how the task moves through the system.
+Pending questions and confirmations remain visible above the composer until you answer them or the request's own expiration rules apply. Selecting Auto or sending a new message does not automatically accept a plan. Use the confirmation card's choices to make that decision.
 
-One consequence worth noting: because ask mode skips the workspace, it is not the tool for questions whose answers require producing something. "Summarize last week's error logs into a report" sounds like a question but wants an artifact; that is standard-mode work.
+Tasks keep their assignee, priority, project, thread, and status regardless of the mode. Budgets, approvals, and company boundaries still apply. The mode changes the agent's task instructions and available actions.
+
+Implementation reference: [composer mode selection](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/task-chat/TaskChatComposer.tsx) and [mode labels](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/lib/work-mode-meta.ts).
 
 ## Answer or artifact
 
-The choice comes down to one question: what do you want to exist after the task is done?
+Ask what you want to open after the turn ends. For a quick explanation or judgment, choose Ask. For a reviewable proposal before implementation, choose Plan. For a report, code change, configuration update, or other deliverable, choose Auto.
 
-If the answer is a change (code merged, a document written, a system configured), use standard mode and let the workflow do its job. If the answer is knowledge (a lookup, a comparison, a judgment call, a "what would happen if"), use ask mode and get the reply where you asked.
-
-The gray zone is research. A quick "what does the codebase do here?" is ask mode. A deep investigation that should leave citations, artifacts, and a reviewable document behind is standard work wearing a question as its title. When in doubt, ask what you would want to link to a week later: a comment, or a work product.
+Research can fit either Ask or Auto. A quick “what does the codebase do here?” can end with a reply. An investigation that needs a saved report and supporting files belongs in Auto so you have a work product to review later.

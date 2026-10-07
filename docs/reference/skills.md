@@ -12,7 +12,7 @@ For the conceptual introduction and the UI walkthrough, read the [Skills guide](
 
 If you want to browse Paperclip's shipped skill catalog, start with the [Bundled skills](./skills/bundled.md) and [Optional skills](./skills/optional.md) indexes. Those pages group every shipped catalog skill by category and link to the full per-skill reference pages.
 
-> **Adapter caveat.** Some adapters (notably `openclaw_gateway`) cannot push skill files into the runtime. Assignment is still recorded, but the actual sync mode is reported as `unsupported`. This is covered under [Scoping rules](#scoping-rules) below.
+> **Adapter caveat.** Some adapters (notably `openclaw_gateway`) cannot push skill files into the runtime. Assignment is still recorded, but the actual sync mode is reported as `unsupported`. This is covered under [Scoping rules](#5-scoping-rules) below.
 
 ---
 
@@ -55,7 +55,7 @@ The frontmatter is parsed by Paperclip's own minimal YAML reader (`parseFrontmat
 | `name` | recommended | string | Human-readable label. Falls back to the slug when missing. |
 | `description` | recommended | string | The routing logic the agent reads first. Block scalars (`>`, `|`) are supported. |
 | `slug` | optional | string | Stable kebab-case identifier. Derived from `name` (or the folder name) if absent, normalized via `normalizeAgentUrlKey`. |
-| `key` / `skillKey` | optional | string | Canonical key override. See [Naming collisions](#naming-collisions-and-resolution). |
+| `key` / `skillKey` | optional | string | Canonical key override. See [Naming collisions](#7-naming-collisions-and-resolution). |
 | `metadata` | optional | object | Arbitrary record persisted alongside the skill. Recognised sub-fields are listed below. |
 
 Recognised `metadata` sub-fields (all optional):
@@ -191,6 +191,34 @@ Without `idempotencyKey`, the route responds with the updated file, as before. W
 
 Either way the write is checked against the `skills.edit` policy action (even on an exact retry), recorded as a new version when the bytes or executable flag changed, and logged as `company.skill_file_updated`. This is the same route the native runner's **Update skill** tool calls when an agent edits a skill — see [Letting an agent improve an existing skill](../guides/org/skills.md#letting-an-agent-improve-an-existing-skill).
 
+### Native Runner skill tools
+
+An agent using the native Runner can save a reusable procedure with `create_skill` or improve an existing editable skill with `update_skill`. These tools are available in Auto (`standard`) and skill-test work, not Ask or pre-acceptance Plan work. They use the company skill API and its existing policy; creating a skill adds it to the library without assigning it to agents.
+
+`update_skill` requires these inputs:
+
+| Field | What to send |
+|---|---|
+| `skillId` | UUID of the existing skill. |
+| `markdown` | The complete primary `SKILL.md`, including valid name and description frontmatter and a nonempty body. |
+| `expectedVersionId` | The `currentVersionId` you read before editing. |
+| `idempotencyKey` | A 1–240 character retry key. |
+
+```json
+{
+  "skillId": "<skill UUID>",
+  "expectedVersionId": "<currentVersionId>",
+  "markdown": "---\nname: release-review\ndescription: Review release notes.\n---\n\n# Review\nCheck each release note against its change.\n",
+  "idempotencyKey": "release-review-update-1"
+}
+```
+
+After a lost response, retry with exactly the same inputs and key to receive the original receipt. After a version conflict, read the current skill, reapply the edit, and use a new key. A key reused with different inputs is a conflict. Policy is checked again on exact retries.
+
+`create_skill` takes `name`, `description`, `markdown`, and `idempotencyKey`, plus an optional `slug`. The name is lowercase and hyphenated; the complete file's name and description must match those inputs, and a supplied slug must equal the name. Company, agent, task, and run identity come from the authenticated run. A successful creation appears as a **Skill created** card in the task thread; see [Skills your agents create during a task](../guides/org/skills.md#skills-your-agents-create-during-a-task).
+
+Implementation reference: [update tool contract](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/paperclip-runner/src/protocol-actions/update-skill.ts) and [tool validation and REST binding](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/skill-tools.ts).
+
 ### Import: accepted sources
 
 `POST /api/companies/{companyId}/skills/import` takes one field — `source`. The string is parsed by `parseSkillImportSourceInput`, so all of the following are valid:
@@ -220,7 +248,7 @@ Resolution rules:
 
 1. Resolve the source (parse → fetch metadata → walk for `SKILL.md` files).
 2. For each found skill: parse frontmatter, derive `slug`, derive canonical `key`, walk the file inventory, classify each entry, derive `trustLevel`.
-3. Persist as a row in the `companySkills` table (one row per `(companyId, key)` — see [Naming collisions](#naming-collisions-and-resolution)).
+3. Persist as a row in the `companySkills` table (one row per `(companyId, key)` — see [Naming collisions](#7-naming-collisions-and-resolution)).
 4. Materialise files for catalog-style sources into `<paperclipInstanceRoot>/skills/{companyId}/__catalog__/<runtimeName>/` so adapters can read them.
 5. Log a `company.skills_imported` activity entry and emit a `skill_imported` telemetry event.
 

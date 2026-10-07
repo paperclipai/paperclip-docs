@@ -15,7 +15,8 @@ The read-test procedure below is for **app tool** connections. The other shapes 
 | --- | --- |
 | **App tools** — Notion, Jira, Stripe, and most of the catalog | The read test below |
 | **Messaging channels** — Slack chat, Discord, Telegram, Teams, iMessage Photon, GitHub Code Review Bot, AgentMail | Send a real message from the provider and wait for the agent's reply. There is no action list to test against, and setup is not complete until a reply is delivered. The connector's own page has the sequence |
-| **Model providers** — Anthropic, OpenAI, OpenRouter, Grok | Run a short task on an agent whose runtime matches, and watch the run. A connected badge says nothing about runtime compatibility. See [Anthropic](anthropic.md) |
+| **Model providers** — Anthropic, OpenAI, OpenRouter, Grok, custom endpoints, Bedrock | Select a compatible harness, Connection, and model, then run a short task in the agent's execution environment. A connected badge does not prove model access. See [Custom model providers](custom-model-providers.md) |
+| **Assistant Connection (MCP)** | Call `paperclip_connection` from the external assistant and verify the consenting person and organization. List agents or tasks before creating work. See [Assistant connections](../experimental/assistant-connections.md) |
 
 [How connector access works](access-model.md) explains why the controls differ.
 
@@ -92,6 +93,14 @@ The sign-in or key does not cover what the action needs. Reconnect and approve t
 ### The provider returns an error
 
 *"The app returned an error result."* with a code such as `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `INVALID_ARGUMENT`, `RATE_LIMIT`, or `RESOURCE_EXHAUSTED`. These come from the service. `RATE_LIMIT` and `RESOURCE_EXHAUSTED` are the provider throttling you; the rest point at the account's own permissions or at the arguments.
+
+### A task needs an AI credential
+
+Open the task's authentication card and select **Fix connection** or the displayed provider connection action. Connect your account or reconnect the existing one; successful setup resumes the task. If another person owns the credential, that person must repair it. Selecting a shared account does not bypass the responsible user's access check.
+
+For a quota error, use **Check usage** on the saved AI account where supported. Missing usage fields mean **Not reported**, not zero. See [AI usage and recovery](ai-usage.md).
+
+For a custom endpoint, check the API format against the harness, the model ID, and whether the service is reachable from the execution environment. A loopback URL points to the agent's host or sandbox. See [Custom model providers](custom-model-providers.md).
 
 ### The managed sign-in option is missing
 

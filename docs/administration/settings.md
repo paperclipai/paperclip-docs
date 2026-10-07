@@ -222,6 +222,10 @@ Each flag has its own page in the [Experimental](../experimental/overview.md) se
 - **[Enable External Objects](../experimental/external-objects.md)** — detects external URLs in issues and shows live status for referenced pull requests and tickets.
 - **[Task Plan Decomposition Panel](../experimental/plan-decomposition-panel.md)** — accepted-plan decomposition history on task detail pages, for debugging sub-task creation.
 - **[Agent Chat](../experimental/agent-chat.md)** — one persistent conversation per agent, behind a **Chat** sidebar entry; agents hand work off to tasks and report back when they're done.
+- **[Assistant connections (MCP)](../experimental/assistant-connections.md)** — lets external assistants sign in as a person to review work and delegate tasks. Experimental and off by default.
+- **[Memory connectors](../connectors/memory-connectors.md)** — exposes Mem0, Zep, Supermemory, Cognee, and Honcho setup. Experimental and off by default; hiding setup does not stop saved connections.
+- **[Paperclip Runner](../reference/adapters/paperclip-runner.md)** — enables explicitly configured native runs. Experimental; on by default on self-hosted instances and off by default on Cloud unless managed configuration changes it. Enabling the flag does not migrate existing agents.
+- **[Combined Inbox + Task List](../experimental/task-chat.md#an-optional-combined-task-list)** — combines inbox and task views under **Tasks**. Experimental and off by default.
 - **[Task Watchdogs](../experimental/task-watchdogs.md)** — per-task watchdog agents that verify stopped task subtrees and restore live paths.
 - **[Cloud Sync](../experimental/cloud-sync.md)** — **retired.** Removed upstream together with its experimental toggle, so it no longer appears in this list on a current build. To move a company between instances, use [company Import/Export](../how-to/back-up-and-restore-a-company.md).
 - **[Server Info Debug View](../experimental/server-info-debug-view.md)** — a "Server" section in the account drawer with restart time, running commit, and checkout state.
@@ -279,3 +283,4 @@ The two controls are orthogonal: pair them when you want a default *and* want th
 
 - [Heartbeats & Routines](../guides/projects-workflow/routines.md) — the full picture of timer vs. event-driven wakes, and how to configure individual agents.
 - [Environment Variables](../reference/deploy/environment-variables.md) — the deployment-level settings that the General page reports on (auth mode, bootstrap state, exposure).
+- [Agent complaints and suggestions](agent-commentary.md) — agent-submitted feedback stored in the instance database, separate from the AI feedback-sharing preference.
