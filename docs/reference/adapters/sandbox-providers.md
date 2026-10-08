@@ -117,9 +117,21 @@ Configure from **Settings → Instance settings → Environments**. Put the exe.
 
 The provider provisions VMs through exe.dev's HTTPS API and runs commands through direct SSH to the created VM. You need:
 
-- An exe.dev API token that allows the lifecycle commands `new`, `ls`, and `rm`. `whoami` and `help` are recommended for manual debugging.
+- An exe.dev API token that allows the lifecycle commands `new`, `ls`, and `rm` — plus `cp` if you use a source VM (see below). exe.dev answers with a 403 when the token doesn't list a command the provider needs. `whoami` and `help` are recommended for manual debugging.
 - SSH access from the Paperclip host to the resulting `*.exe.xyz` VMs.
 - An SSH private key exe.dev recognises. You can either paste the private key into the environment config via `sshPrivateKey`, or point `sshIdentityFile` at an absolute host path.
+
+### Start every run from a prepared VM
+
+By default, each run gets a brand-new VM from `exe.dev new`, so a large repository pays its full setup cost — toolchains, agent CLIs, package caches, test browsers — on every run. If you'd rather do that setup once, prepare a VM the way you like it and point the environment at it with **Source VM** (`sourceVm`, under the advanced **VM creation** settings). Each run then copies that VM with `exe.dev cp`, disk and config included, and starts from the copy. Leave the field blank to keep creating fresh VMs.
+
+A few things to know before you switch it on:
+
+- **Your token needs `cp`.** Add it to the API token's allowed commands, or every copy fails with a 403.
+- **Only the size settings apply.** A copy accepts just the VM name plus `cpu`, `memory`, and `disk`. Clear `image`, `command`, `comment`, `env`, `integrations`, `tags`, `setupScript`, and `prompt` — the environment won't save while any of them is set alongside `sourceVm`.
+- **The setup script doesn't run.** Prepare the source VM so it already has Node 24.11 or newer and accepts the SSH key the environment is configured with.
+- **Keep secrets off the source VM.** Every copy inherits its disk.
+- **Mind the 30-second limit.** The copy goes through exe.dev's `/exec` API, so a very large disk has to finish copying within that request timeout.
 
 ---
 

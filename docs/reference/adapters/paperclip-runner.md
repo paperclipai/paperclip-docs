@@ -22,9 +22,9 @@ For source development, an enabled Runner requires a Rust toolchain or `PAPERCLI
 
 | Provider | Runtime and setup |
 | --- | --- |
-| **Codex** (`codex`) | Native Codex app-server route. Configure an OpenAI connection or another compatible Responses route. |
+| **Codex** (`codex`) | Native Codex app-server route, pinned to Codex `0.160.0`. Configure an OpenAI connection or another compatible Responses route. |
 | **OpenCode** (`opencode`) | Native OpenCode server route, pinned to `1.18.34`. Use a model in `provider/model` form. |
-| **ACP agents → Claude** (`acpx`, `claude`) | Qualified Claude ACP runtime. Configure a Claude-compatible AI connection. |
+| **ACP agents → Claude** (`acpx`, `claude`) | Qualified Claude ACP runtime — Claude Agent SDK `0.3.286`, which runs Claude Code `2.1.286`. Configure a Claude-compatible AI connection. |
 | **ACP agents → Grok Build** (`acpx`, `grok`) | Qualified Grok Build runtime. See [Grok setup](grok-local.md#grok-build-on-paperclip-runner). |
 | **ACP agents → Cursor** (`acpx`, `cursor`) | Pinned Cursor runtime with an explicit model and Agent, Plan, or Ask mode. See [Cursor setup](cursor-local.md#cursor-on-paperclip-runner). |
 | **Claude Managed** (`claude_managed`) | A company-qualified managed-agent profile, retention acknowledgement, and session spend ceiling. |
@@ -83,6 +83,10 @@ Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, and `opencode_lo
 - ACP live steering is unsupported. Follow-up work uses the controller's queue instead of claiming provider-native queueing.
 - Native session capabilities differ by provider. Session load does not imply native fork or resume methods are available.
 - Environment readiness and model access are separate. A successful installation check does not prove that the provider accepts a paid run.
+
+## Running several Runners on one machine
+
+When a sandbox provider starts the Runner daemon (`paperclip-runnerd`) in listener mode, it listens on port `43127` by default. If you run more than one listening Runner on the same machine, give each its own port with `--listen-port` — any value from `1` to `65535`. The Runner still binds to `0.0.0.0`, accepts connections only on its run-specific path, and keeps the same authentication. A warm Runner that's reattached keeps the port it started with; asking it to switch ports is rejected.
 
 ## Next steps
 

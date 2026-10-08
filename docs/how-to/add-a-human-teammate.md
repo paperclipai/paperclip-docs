@@ -19,8 +19,8 @@ The whole round-trip takes a couple of minutes. Invites are **copy-link only** �
 Every invite carries a **default role** that gets attached to the join request so you can see it in context at approval time. Pick the smallest role that lets them do their job:
 
 - **Viewer** — read-only. Good for stakeholders.
-- **Operator** — can assign tasks. The default, and the right call for most hands-on teammates.
-- **Admin** — can also invite people, create agents, and approve joins.
+- **Operator** — can edit the company's work and invite people, but can't approve joins or manage permissions. The default, and the right call for most hands-on teammates.
+- **Admin** — can also approve joins.
 - **Owner** — full control, including managing other members' permissions.
 
 You can always change this after they're in (step 5), so don't overthink it. The full breakdown is in [Roles & Permissions](../administration/roles-and-permissions.md).

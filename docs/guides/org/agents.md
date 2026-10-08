@@ -118,6 +118,25 @@ When *you* create an agent from this form, it's created immediately. When an *ag
 
 Agents that draft hires with the bundled `paperclip-create-agent` skill now write a short role description for the new agent — who it is and what it owns — instead of a long operating manual. Reporting line, capabilities, and skills go in their own fields of the request. Any company-specific instructions you asked for are kept. If you want more in the new agent's `AGENTS.md`, ask for it, or add it on the [Instructions tab](#instructions-tab) after the hire.
 
+### What a new agent can do out of the box
+
+A new agent can help set up its teammates straight away, without you adding grants by hand. When a standard agent is created — or when its hire is approved — Paperclip gives it these permission keys:
+
+- **Agents and skills:** `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`
+- **Tools:** `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `tools:use`, `tools:manage_runtime`
+- **Audit and inbox:** `audit:view_agent_actions`, `inbox:manage` (limited to the inbox of the user the agent is responsible for)
+- **Tasks:** `tasks:assign`, `tasks:assign_scope` (limited to the agent's own reporting subtree), `tasks:manage_active_checkouts`
+
+It can also hire other agents, through its `canCreateAgents` setting rather than an `agents:create` grant. It does *not* get `environments:manage`, `tools:admin`, `users:invite`, `users:manage_permissions`, `pipelines:write`, or `joins:approve`.
+
+A few things keep this in check:
+
+- **Its responsible user still bounds it.** Grants don't let an agent do anything the person it acts for couldn't do, and approval gates and protected-change checks still apply.
+- **Low-trust and built-in agents are left out.** Agents on the [low-trust review preset](../../administration/trust-and-low-trust-review.md) and Paperclip's managed built-in agents keep their narrower permissions.
+- **Existing agents are unchanged.** The defaults apply to new agents only. Nothing is backfilled when you upgrade, and a grant you remove stays removed.
+
+See [Roles & Permissions](../../administration/roles-and-permissions.md#the-permission-keys) for what each key allows.
+
 ### Create
 
 Click **Create agent**. On success Paperclip navigates you to the new agent's detail page, where you can refine everything that follows.

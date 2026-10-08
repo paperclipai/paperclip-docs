@@ -110,6 +110,7 @@ OpenCode supports multiple providers. Common ids:
 |---|---|
 | `openai/gpt-5.2-codex` | OpenAI (default) |
 | `openai/gpt-6-astra` | OpenAI |
+| `openai/gpt-6.1-sol` | OpenAI |
 | `openai/gpt-6-sol` | OpenAI |
 | `openai/gpt-6-luna` | OpenAI |
 | `openai/gpt-5.6-sol` | OpenAI |
@@ -118,6 +119,7 @@ OpenCode supports multiple providers. Common ids:
 | `anthropic/claude-opus-5-5` | Anthropic |
 | `anthropic/claude-opus-5` | Anthropic |
 | `anthropic/claude-fable-5-1` | Anthropic |
+| `anthropic/claude-sonnet-5-5` | Anthropic |
 | `anthropic/claude-sonnet-5` | Anthropic |
 | `google/gemini-3.8-flash` | Google |
 | `xai/grok-4.7` | xAI |

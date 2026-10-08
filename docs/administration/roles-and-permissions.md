@@ -27,10 +27,19 @@ There is also one layer that sits *above* the company: the **instance admin**, c
 |---|---|---|
 | **Owner** | The people who run the company | `agents:create`, `agents:configure`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `joins:approve`, `tools:manage_connections`, `tools:manage_runtime`, `tools:use`, `tools:admin` |
 | **Admin** | Trusted operators who onboard people and agents | `agents:create`, `agents:configure`, `skills:create`, `environments:manage`, `users:invite`, `tasks:assign`, `joins:approve`, `tools:manage_connections`, `tools:manage_runtime`, `tools:use`, `tools:admin` |
-| **Operator** | Hands-on members who help run the work | `tasks:assign` |
+| **Operator** | Hands-on members who edit the company's work day to day — the default for new invites | `agents:create`, `agents:configure`, `skills:create`, `environments:manage`, `users:invite`, `tasks:assign`, `pipelines:write`, `tools:manage_connections`, `tools:manage_profiles`, `tools:manage_runtime`, `tools:use`, `tools:admin`, `tools:view_audit`, `audit:view_agent_actions` |
 | **Viewer** | Read-only observers | *(none)* |
 
 The only difference between **Owner** and **Admin** is `users:manage_permissions` — an Admin can invite people and approve them, but cannot change other members' roles or grants. That is deliberately reserved for Owners.
+
+**Operator** is the everyday editing role, and it's what an invite hands out unless you pick something else. An Operator can hire and configure agents, edit skills and environments, invite people, assign work, write pipelines, connect accounts and manage tools, and read both audit trails. What they *can't* do is approve join requests (`joins:approve`) or change anyone's role or grants (`users:manage_permissions`) — those two stay with Admins and Owners.
+
+That boundary carries over to invites, so an invite can never hand out more than its creator holds. An Operator can invite new Operators and Viewers. Inviting someone as an **Admin** also needs `joins:approve`, and inviting an **Owner** needs both `joins:approve` and `users:manage_permissions`.
+
+Two quirks are worth knowing:
+
+- **The Operator bundle has four keys the Owner and Admin bundles don't:** `pipelines:write`, `tools:manage_profiles`, `tools:view_audit`, and `audit:view_agent_actions`. If you want an Owner or Admin to write pipelines or read the audit feeds, give them those keys as explicit grants.
+- **Existing Operators catch up on restart.** When the Paperclip server starts, it adds any role defaults a member is missing. Operators who joined before the bundle grew get the new keys then, and grants they already hold keep their scopes.
 
 A fifth option, **Unset**, appears in the role drop-down. It leaves the member with no implicit grants at all — useful when you want to hand-pick permissions with explicit grants and nothing else. (Under the hood the older value `member` is treated as `operator`.)
 
@@ -38,30 +47,30 @@ A fifth option, **Unset**, appears in the role drop-down. It leaves the member w
 
 ## The permission keys
 
-There are twenty-one permission keys. Twelve of them show up as defaults on one or more roles; nine are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
+There are twenty-one permission keys. Sixteen of them show up as defaults on one or more roles; five are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
 
 | Permission key | What it allows | In which role by default |
 |---|---|---|
-| `agents:create` | Create (hire) new agents in the company | Owner, Admin |
-| `agents:configure` | Change an existing agent's setup — its adapter config, instructions, role, and budget | Owner, Admin |
+| `agents:create` | Create (hire) new agents in the company | Owner, Admin, Operator |
+| `agents:configure` | Change an existing agent's setup — its adapter config, instructions, role, and budget | Owner, Admin, Operator |
 | `agents:suggest-changes` | Propose changes to an agent's setup for review, without applying them directly | — (explicit only) |
-| `skills:create` | Create and manage company skills | Owner, Admin |
+| `skills:create` | Create and manage company skills | Owner, Admin, Operator |
 | `skills:suggest-changes` | Propose changes to a company skill for review, without applying them directly | — (explicit only) |
-| `environments:manage` | Create, edit, and remove the execution environments agents run in | Owner, Admin |
-| `tools:admin` | Set up the tool plumbing a company shares — the stdio command templates behind tool apps, and the MCP gateways agents connect through (including minting and revoking gateway tokens) | Owner, Admin |
-| `tools:manage_connections` | Choose which agents and projects a tool connection is installed on | Owner, Admin |
-| `tools:manage_profiles` | Reserved for tool profile management. It is grantable today but nothing checks it yet — see the note below | — (explicit only) |
-| `tools:view_audit` | Read the gateway's audit trail of tool calls | — (explicit only) |
-| `audit:view_agent_actions` | Open the company's **Audit** feed — the record of what agents did — and download it as CSV | — (explicit only) |
-| `tools:use` | Try a connection's tools from the board — the test-call surface | Owner, Admin |
-| `tools:manage_runtime` | Inspect the tool runtime slots that are running, and stop or restart them | Owner, Admin |
+| `environments:manage` | Create, edit, and remove the execution environments agents run in | Owner, Admin, Operator |
+| `tools:admin` | Set up the tool plumbing a company shares — the stdio command templates behind tool apps, and the MCP gateways agents connect through (including minting and revoking gateway tokens) | Owner, Admin, Operator |
+| `tools:manage_connections` | Choose which agents and projects a tool connection is installed on | Owner, Admin, Operator |
+| `tools:manage_profiles` | Reserved for tool profile management. It is grantable today but nothing checks it yet — see the note below | Operator |
+| `tools:view_audit` | Read the gateway's audit trail of tool calls | Operator |
+| `audit:view_agent_actions` | Open the company's **Audit** feed — the record of what agents did — and download it as CSV | Operator |
+| `tools:use` | Try a connection's tools from the board — the test-call surface | Owner, Admin, Operator |
+| `tools:manage_runtime` | Inspect the tool runtime slots that are running, and stop or restart them | Owner, Admin, Operator |
 | `inbox:manage` | Act on *another* person's inbox. An agent working its own responsible user's inbox does not need this key — see the note below | — (explicit only) |
-| `users:invite` | Create and revoke company invite links | Owner, Admin |
+| `users:invite` | Create and revoke company invite links | Owner, Admin, Operator |
 | `users:manage_permissions` | View and change members' roles and grants | Owner |
 | `tasks:assign` | Assign any issue to any agent or member in the company | Owner, Admin, Operator |
 | `tasks:assign_scope` | Assign issues, but only within a constrained scope (for example, a single manager's subtree). This is the *scoped fallback* Paperclip checks when a principal does **not** hold the broad `tasks:assign` grant | — (explicit only) |
 | `tasks:manage_active_checkouts` | Reassign or clear an issue that another assignee currently holds checked out — an override for unsticking work | — (explicit only) |
-| `pipelines:write` | Create and modify pipeline automations | — (explicit only) |
+| `pipelines:write` | Create and modify pipeline automations | Operator |
 | `joins:approve` | Approve or reject human and agent join requests | Owner, Admin |
 
 ### About the direct-vs-suggest pairs
@@ -73,17 +82,22 @@ Two of the keys come in matched pairs — a *direct* key that applies a change i
 
 ### About the explicit-only keys
 
-Nine keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
+Five keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
 
 - **`agents:suggest-changes`** and **`skills:suggest-changes`** — the review-gated proposal keys described just above. Grant them to a member (or agent) you want proposing improvements without direct write access.
 - **`tasks:assign_scope`** is how you let someone delegate *within their lane* without giving them company-wide assignment power. When a member has `tasks:assign_scope` but not `tasks:assign`, Paperclip evaluates the grant against the scope attached to it and allows the assignment only if the target falls inside that scope. Set the scope in the grant payload (via the member editor's grant, or `member role-and-grants` on the CLI).
 - **`tasks:manage_active_checkouts`** is an escape hatch. Normally an issue that an agent has checked out is off-limits to others until it's released; this grant lets the holder reassign or clear that active checkout — handy when an agent has stalled mid-task.
-- **`pipelines:write`** lets a member create and edit pipeline automations. Grant it to whoever runs your pipelines; it is kept off the standard roles so pipeline authorship is a deliberate choice.
-- **Two of the six `tools:*` keys** remain explicit-only: `tools:view_audit` (read the gateway's call trail without touching the setup) and `tools:manage_profiles` (reserved and unchecked — see the note below). The other four now ride along with the **Owner** and **Admin** roles by default — `tools:manage_connections` (decide which agents get a connection), `tools:manage_runtime` (babysit running tool processes), `tools:use` (test-call a tool), and `tools:admin` (wire up apps and gateways). If you want a non-Owner, non-Admin member to hold one of those four, grant it explicitly — and note that `tools:admin` is not a superset, so holding it does not imply the others. Grant each key you actually need.
-- **`audit:view_agent_actions`** opens the **Audit** page in the sidebar — the company-wide feed of what your agents did, and the matching **Audit** tab on an individual agent. It also covers the **Export CSV** button on that page. Without the grant, the page still loads but shows a permission notice instead of the feed, so you can hand it out to an auditor or a compliance reviewer without giving them anything else. Two exceptions bypass the check: instance admins, and a board running in local trusted mode. Worth knowing before you grant it — the export is itself recorded in the log, together with who ran it, which filters they used, and how many rows left the system. This key is separate from `tools:view_audit`: that one covers the tool gateway's call trail, this one covers agent actions across the company.
 - **`inbox:manage`** governs *cross-user* inbox access. It matters most for agents: an agent may act on the inbox of the user it is responsible for without holding this key at all, but the moment it needs to touch someone else's inbox, Paperclip looks for an `inbox:manage` grant — and then checks that the grant's scope actually covers the user being acted on. Grant it, scoped, to an agent you want triaging inboxes beyond its own responsible user.
 
 > **`inbox:manage` and the low-trust preset.** Agents running under the low-trust review preset are denied `inbox:manage` by default, alongside the other company-wide and privileged actions. Raising an agent's trust preset is a separate decision from granting the key — a low-trust agent holding the grant is still refused.
+
+### About the tool, pipeline, and audit keys
+
+These keys are no longer explicit-only, but they're spread unevenly across the roles, so it helps to see them together:
+
+- **`pipelines:write`** lets a member create and edit pipeline automations. It's part of the **Operator** bundle; Owners and Admins don't get it by default, so grant it to them explicitly if they author pipelines.
+- **The six `tools:*` keys.** Operators get all six. Owners and Admins get four — `tools:manage_connections` (decide which agents get a connection), `tools:manage_runtime` (babysit running tool processes), `tools:use` (test-call a tool), and `tools:admin` (wire up apps and gateways) — but not `tools:view_audit` (read the gateway's call trail without touching the setup) or `tools:manage_profiles` (reserved and unchecked — see the note below). Viewers get none. Note that `tools:admin` is not a superset, so holding it does not imply the others. Grant each key you actually need.
+- **`audit:view_agent_actions`** is part of the **Operator** bundle; anyone else needs an explicit grant. It opens the **Audit** page in the sidebar — the company-wide feed of what your agents did, and the matching **Audit** tab on an individual agent. It also covers the **Export CSV** button on that page. Without the grant, the page still loads but shows a permission notice instead of the feed, so you can hand it out to an auditor or a compliance reviewer without giving them anything else. Two exceptions bypass the check: instance admins, and a board running in local trusted mode. Worth knowing before you grant it — the export is itself recorded in the log, together with who ran it, which filters they used, and how many rows left the system. This key is separate from `tools:view_audit`: that one covers the tool gateway's call trail, this one covers agent actions across the company.
 
 > **`tools:manage_profiles` is not wired up yet.** The key exists and you can grant it, but no endpoint checks it in this build. Editing tool profiles today only requires an active membership with any role other than Viewer. Treat the key as reserved: granting it changes nothing, and withholding it blocks nothing.
 

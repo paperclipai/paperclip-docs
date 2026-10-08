@@ -128,7 +128,7 @@ The `companyId` has always travelled on the wire — it is the optional `company
 |---|---|
 | `PluginConfigClient` | Read and observe the plugin's resolved instance config. |
 | `PluginLocalFoldersClient` | Inspect and configure declared local-folder mounts (`PluginLocalFolderStatus`, `PluginLocalFolderListing`, `PluginLocalFolderProblem`, plus the newly exported `PluginLocalFolderConfigureInput`, `PluginLocalFolderListOptions`, and `PluginLocalFolderEntry` shapes for its `configure`/`list` calls). |
-| `PluginEventsClient` | Subscribe to host events (`ctx.events.on(...)`). |
+| `PluginEventsClient` | Subscribe to host events (`ctx.events.on(...)`), and read durable agent and project lifecycle hooks (`ctx.events.listLifecycle(...)`, `ctx.events.acknowledgeLifecycle(...)`) — see [Durable resource lifecycle hooks](#durable-resource-lifecycle-hooks). |
 | `PluginJobsClient` | Register handlers for declared jobs (`ctx.jobs.register(...)`). |
 | `PluginLaunchersClient` | Register launcher render and action handlers (`PluginLauncherRegistration`). |
 | `PluginHttpClient` | Outbound HTTP, host-policed. |
@@ -164,6 +164,63 @@ Workspace metadata for `ctx.executionWorkspaces`: `PluginExecutionWorkspaceMetad
 Agent-session helpers: `AgentSession`, `AgentSessionEvent`, `AgentSessionSendResult`. When you send a message with `ctx.agents.sessions.sendMessage(...)`, the `message` field on the `AgentSessionEvent` you receive with `eventType: "done"` is the canonical final user-facing assistant reply for that run — or `null` when the run produced no reply text. That is the field to relay back to whoever asked; you no longer need to reassemble it from the `"chunk"` events. An `eventType: "error"` event carries a run-status string in `message` instead.
 
 Workspace, event, and scope helpers: `PluginWorkspace`, `PluginEvent`, `EventFilter`, `ScopeKey`, `PluginJobContext`.
+
+#### Durable resource lifecycle hooks
+
+Say your plugin provisions something outside Paperclip for every agent or project — a mailbox, a cloud folder, a seat in another tool — and you need to tear it down again when the agent is terminated or the project is archived. `ctx.events.on(...)` is fire-and-forget, so a missed event means a missed provision. The lifecycle hooks give you a durable, per-plugin inbox instead: Paperclip writes a journal entry whenever an agent or project is created or changes state, and your plugin pulls entries and acknowledges each one once its own work has succeeded. Anything you don't acknowledge comes back on the next read.
+
+You use two calls on `ctx.events`, both gated by the `events.subscribe` capability and both scoped to one company:
+
+- `listLifecycle(companyId, limit?, afterId?)` returns up to `limit` pending events (default `50`, any integer from `1` to `100`) as `ResourceLifecycleEvent[]`. Pass the last `id` you saw as `afterId` to page forward.
+- `acknowledgeLifecycle(companyId, eventId)` marks one event as handled for your plugin. Call it only after the external operation has actually succeeded.
+
+Both calls are refused if the plugin isn't ready or has been disabled for that company.
+
+Each `ResourceLifecycleEvent` carries `id`, `companyId`, `resourceId`, `createdAt`, plus a `resourceType` and `action` pair:
+
+| `resourceType` | `action` | When Paperclip records it |
+|---|---|---|
+| `agent` | `create` | An agent is created without needing approval, or a pending hire is approved. |
+| `agent` | `pause` | The agent is paused — by a person or by a budget stop. |
+| `agent` | `resume` | A paused agent becomes active again. |
+| `agent` | `terminate` | The agent is terminated. |
+| `project` | `create` | A project is created. |
+| `project` | `update` | Project details or goal links change, a project workspace is added, edited, or removed, the project's linked repositories are synced, or an archived project is restored. |
+| `project` | `archive` | The project is archived. |
+
+Events are deliberately content-free: they tell you *which* resource changed and how, not what it looks like now. Re-read the agent or project through `ctx.agents` or `ctx.projects` before you act on it.
+
+A few delivery rules shape how you write the consumer:
+
+- **One event per resource at a time, creation first.** For each resource you only ever see its oldest unacknowledged event, with `create` always ahead of anything else. Events across different resources come back in `id` order. If you try to acknowledge a later event before an earlier one for the same resource, the call fails with "Acknowledge earlier lifecycle events for this resource first".
+- **Delivery is at-least-once.** An event repeats until you acknowledge it, so give whatever you create on the other side a company-scoped idempotency key — for example, the company id plus the event `id`.
+- **Restart paging every sweep.** Start each polling pass with no `afterId` and only use it to page within that pass. That way failed events and events that committed late are picked up again.
+- **Acknowledgements are per plugin.** Two plugins reading the same company each get their own copy of every event.
+
+When this feature first rolls out, Paperclip seeds a one-time baseline so your plugin doesn't miss what already exists: a `create` for every existing project and every agent that isn't pending approval or terminated, followed by a `pause`, `terminate`, or `archive` for agents and projects that are currently in that state. A plugin you install later sees the same backlog, so its first sweep catches up on the whole company.
+
+A scheduled job is a natural home for the sweep:
+
+```ts
+ctx.jobs.register("sync-lifecycle", async () => {
+  for (const company of await ctx.companies.list()) {
+    let afterId: string | undefined;
+    for (;;) {
+      const events = await ctx.events.listLifecycle(company.id, 100, afterId);
+      if (events.length === 0) break;
+      for (const event of events) {
+        try {
+          await provisionOrTearDown(event); // your provider call, keyed on event.id
+          await ctx.events.acknowledgeLifecycle(company.id, event.id);
+        } catch (err) {
+          ctx.logger.warn("lifecycle event failed; will retry next sweep", { id: event.id });
+        }
+      }
+      afterId = events[events.length - 1].id;
+    }
+  }
+});
+```
 
 ### Manifest types
 
@@ -400,6 +457,48 @@ You implement the lifecycle as three optional hooks on your plugin definition. E
 
 If you implement only `onResolveExternalObject`, the host refreshes objects one at a time within the window set by your `refreshPolicy`; declaring `onRefreshExternalObjects` lets you collapse those into a single round trip. For a concrete reference implementation, see the parent `server/src/services/github-external-object-provider.ts`.
 
+### AI connection routers
+
+A plugin can act as the routing brain behind [task-pinned AI routing](../../experimental/task-pinned-ai-routing.md): it decides which saved AI account in a connection pool takes the next task. Paperclip does everything else — authorization, pinning tasks to accounts, storing pools, and the setup and management screens — so a router plugin is a small amount of code.
+
+To declare one, add both of these to your manifest:
+
+```ts
+capabilities: ["ai.connections.route"],
+aiConnectionRouter: {
+  name: "AI connection pool",            // 1–100 characters
+  description: "Use existing AI connections.", // 1–500 characters
+},
+```
+
+The manifest validator rejects `aiConnectionRouter` without the `ai.connections.route` capability. Paperclip adds your router to the **Connectors** catalog with an **Add connection pool** action; you don't need a plugin page or sidebar entry. It is only available while the instance's `enableAiConnectionRouters` experimental flag is on and your plugin is ready.
+
+Then implement `onRouteAiConnection` on your plugin definition. The host calls it (the `routeAiConnection` worker method) when a task without a pinned account needs one:
+
+```ts
+export default definePlugin({
+  async setup() {},
+  async onRouteAiConnection(request) {
+    const next = request.candidates[0];
+    return next
+      ? { kind: "selected", memberId: next.member.id }
+      : { kind: "unavailable", skipped: {} };
+  },
+});
+```
+
+The `AiConnectionRouterRequest` carries the `companyId`, the `pool` (an `AiConnectionPool`), `agentId`, `taskKey`, `lastMemberId`, `cursorVersion`, the pool's `memberOrder`, an optional `pinnedMemberId`, the `candidates` the host has already authorized for this agent (each with its `member`, `runtimeConfig`, `notes`, and optional `usage`), and `now`. It contains no credentials and no raw provider responses.
+
+Return an `AiConnectionRouterResult`:
+
+| `kind` | Meaning |
+| --- | --- |
+| `selected` | Use `memberId`. Optionally explain skipped members in `skipped`, a map of member ID to reason. |
+| `exhausted` | Every candidate is over its limit. Paperclip defers the task until `retryAt` and shows **Pool exhausted**. Include `skipped`. |
+| `unavailable` | No candidate can run this task. Include `skipped`. |
+
+Your result is only a proposal. The host rechecks authorization and can't be made to use an account the responsible person isn't allowed to use. The SDK re-exports the related types: `AiConnectionPool`, `AiConnectionPoolConfig`, `AiConnectionPoolMember`, `AiConnectionRouterRequest`, `AiConnectionRouterResult`, and `AiConnectionRouterSelection`.
+
 ### JSON-RPC protocol
 
 The SDK speaks JSON-RPC 2.0 between host and worker. Most plugin authors never call these directly, but they are exported for advanced use (custom transports, tests, replay tools).
@@ -613,6 +712,8 @@ To test the interaction, approval, and attachment paths, seed them through `harn
 | `issueAttachments` | `Array<IssueAttachment & { contentBase64?: string }>` |
 | `approvals` | `Approval[]` |
 
+To exercise a lifecycle consumer, seed journal entries with `harness.seed({ lifecycleEvents: [...] })` (a `ResourceLifecycleEvent[]`). The harness's `ctx.events.listLifecycle` and `ctx.events.acknowledgeLifecycle` follow the same rules as the host: the `events.subscribe` capability check, the `1`–`100` limit, creation-first and one-event-per-resource delivery, and the error when you acknowledge out of order.
+
 The harness deliberately mirrors the host's own write bar rather than waving it through: `respondInteraction` and `approvals.decide` both throw when `actorUserId` is missing, when it is not an active `user` member of the company, or when that member's `membershipRole` is `viewer`. Seed the members you want to act as through `harness.seed({ accessMembers: [...] })`, and a plugin test can't pass an attribution production would reject. The harness also honours `maxBytes` on `getAttachmentContent` and returns `applied: false` on replays, so idempotency is testable without a real host.
 
 ### Re-exports
@@ -621,6 +722,7 @@ The harness deliberately mirrors the host's own write bar rather than waving it 
 - `NOOP_PLUGIN_TRACER`, `NOOP_PLUGIN_SPAN` — the default no-op tracer and span (values, not types). Handy as a stand-in when you want the do-nothing default explicitly, e.g. in tests.
 - Constants from `@paperclipai/shared`: `PLUGIN_API_VERSION`, `PLUGIN_STATUSES`, `PLUGIN_CATEGORIES`, `PLUGIN_CAPABILITIES`, `PLUGIN_UI_SLOT_TYPES`, `PLUGIN_UI_SLOT_ENTITY_TYPES`, `PLUGIN_RESERVED_COMPANY_SETTINGS_ROUTE_SEGMENTS`, `PLUGIN_STATE_SCOPE_KINDS`, `PLUGIN_JOB_STATUSES`, `PLUGIN_JOB_RUN_STATUSES`, `PLUGIN_JOB_RUN_TRIGGERS`, `PLUGIN_WEBHOOK_DELIVERY_STATUSES`, `PLUGIN_EVENT_TYPES`, `PLUGIN_BRIDGE_ERROR_CODES`.
 - Access and permission constant arrays from `@paperclipai/shared`, matching the domain types used by [`ctx.access` and `ctx.authorization`](#access-and-authorization): `PERMISSION_KEYS`, `HUMAN_COMPANY_MEMBERSHIP_ROLES`, `HUMAN_COMPANY_MEMBERSHIP_ROLE_LABELS`, `MEMBERSHIP_STATUSES`, `PRINCIPAL_TYPES`.
+- AI connection router types re-exported from `@paperclipai/shared` for [router plugins](#ai-connection-routers): `AiConnectionPool`, `AiConnectionPoolConfig`, `AiConnectionPoolMember`, `AiConnectionRouterRequest`, `AiConnectionRouterResult`, `AiConnectionRouterSelection`.
 - Connection-provider shapes re-exported from `@paperclipai/shared` for plugins that back a connection intent: `ConnectionIntentInteraction`, `ConnectionIntentPayload`, `ConnectionIntentResult`, `ConnectionIntentSetupOptions`, `ConnectionRequestResult`, `ConnectionsSearchResult`.
 
 ---

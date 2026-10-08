@@ -137,6 +137,21 @@ DELETE /api/mcp/connections/{id}
 
 The setup response provides the live gate, canonical server URL, and non-secret invitation. It does not grant access. The delete operation requires the configured browser origin and the grant's owner.
 
+Each item in the connections list carries `id`, `companyId`, `clientName`, `companyName`, `scopes`, `createdAt`, and `revokedAt`, plus a `user` object with the authorizing person's `name` and `image`. Older servers omit `user`, so treat it as optional. The list still includes revoked grants (with `revokedAt` set); Paperclip's own pages filter those out and show only active connections.
+
+### Browser consent endpoints
+
+The consent pages in the Paperclip UI use these endpoints. They are listed so you can recognise them in logs; assistants don't call them.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/mcp/requests/{id}` | Describe a pending browser authorization request on the `/mcp-connect/{id}` page. |
+| `POST /api/mcp/requests/{id}/consent` | Approve or decline that request. Requires a signed-in user and the Paperclip browser origin. |
+| `GET /api/mcp/device?user_code=...` | Describe a pending device authorization on the `/mcp-device` page. |
+| `POST /api/mcp/device/consent` | Approve or decline a device authorization by its user code. Requires a signed-in user and the Paperclip browser origin. |
+
+Device authorization returns `/mcp-device` as its `verification_uri` and expires after ten minutes. The temporary file links from `paperclip_get_upload_url` and `paperclip_get_download_url` point at `/mcp/files/upload` and `/mcp/files/download`; use the exact URL returned rather than building one.
+
 Use **Connectors → Assistant Connection (MCP)** for organization-specific management, or `/assistant-connections` for account-wide management. Revocation blocks future calls, without cancelling delegated tasks or undoing in-flight mutations.
 
 ## Related guides

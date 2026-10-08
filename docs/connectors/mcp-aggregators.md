@@ -96,7 +96,7 @@ Saved native and imported accounts are grouped under their app card. An imported
 
 Composio, Arcade, and Executor gateways can show **Connected apps** on **Permissions**. Where discovery is available, Paperclip refreshes the list on first load. Use **Refresh Composio**, **Refresh Arcade**, or **Refresh Executor** there, or in the saved gateway's menu, to check that gateway again. Executor is still available as a connection; its catalog filter is temporarily hidden.
 
-A failed or incomplete check keeps last-known accounts marked **Not verified**. An expired account shows **Needs sign-in**. Replacing a credential hides observations from the previous credential until the new one is checked. Discovery reports accounts; it does not grant access or authorize an app.
+A failed or incomplete check keeps last-known accounts marked **Not verified**. An account whose sign-in was started but not finished shows **Waiting for sign-in**, and an expired account shows **Needs sign-in**. Replacing a credential hides observations from the previous credential until the new one is checked. Discovery reports accounts; it does not grant access or authorize an app.
 
 Imported account menus open the upstream provider. Rename, removal, and app authorization happen there. Paperclip's access and action settings stay on the parent gateway and apply across its apps; grouped cards do not create separate app-level access boundaries. Removing a saved gateway from Paperclip leaves the provider's accounts intact.
 

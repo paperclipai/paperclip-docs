@@ -119,6 +119,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | [Postman](connectors/postman.md) | API development and testing workspace. Agents work with the collections and APIs your Postman account can reach. Choose a toolset: Minimal, Code, or Full. Minimal is not read-only; set action permissions separately. | Sign in with Postman · API key |
 | [Railway](connectors/railway.md) | Infrastructure work in consented workspaces, including service, deployment, and bounded log actions when API access is accepted. Live qualification is pending; container commands require separate SSH setup. | Sign in with Railway |
 | [Sentry](connectors/sentry.md) | Error and performance monitoring. Agents investigate errors, releases, and production issues in the Sentry organization you authorize. | Sign in with Sentry |
+| [Superagent](connectors/superagent.md) | Security platform. Agents review security findings, start red-team reports, and score content and packages. Some actions use credits or delete permanently, so gate them. | API key |
 
 ### Data and analytics
 
@@ -126,6 +127,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | --- | --- | --- |
 | [Airtable](connectors/airtable.md) | Spreadsheet-database hybrid for structured team data. Agents work with the bases your Airtable sign-in can reach. | Sign in with Airtable |
 | [ClickHouse](connectors/clickhouse.md) | Columnar database built for analytical queries over very large datasets. Agents query the ClickHouse Cloud service you name. | Sign in with ClickHouse |
+| [Enterpret](connectors/enterpret.md) | Customer feedback analysis. Agents ask about feedback themes and pull verbatim quotes with citations, through Enterpret's read-only server. Graph queries start on **Ask first**. | API key (auth token) · Sign in with Enterpret |
 | [Mixpanel](connectors/mixpanel.md) | Product analytics for user and event behaviour. Agents work with the events and reports your Mixpanel account can reach. | Sign in with Mixpanel |
 | [PostHog](connectors/posthog.md) | Product analytics with session replay, feature flags, and experiments. Agents analyse product usage, errors, flags, and experiments. | Sign in with PostHog · API key |
 | [Supabase](connectors/supabase.md) | Hosted Postgres with authentication, storage, and edge functions. Agents work with the Supabase project you scope the connection to. Use a development project. | Sign in with Supabase · API key |
@@ -155,6 +157,7 @@ Services whose subject matter is machine learning. They are ordinary app integra
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
 | [Hugging Face](connectors/hugging-face.md) | Public hub for open machine-learning models, datasets, and demos. Agents search models, datasets, and Spaces. The sign-in is quick and needs no app registration, which makes this the shortest connector to try first; it also asks for repository and job access, so switch its writes off while you learn. | Sign in with Hugging Face |
+| [Telem.AI](connectors/telem.md) | Web search and page reading across many search providers with one API key. Optional routing, tier, and provider lists. Usage bills to your Telem account. | API key |
 | [You.com](connectors/youcom.md) | Hosted web intelligence. The free profile has a reduced read-only tool set; provider limits apply. Setup is unverified. | Sign in with You.com · API key · No credential (free profile) |
 
 <span id="memory-experimental"></span>
