@@ -199,7 +199,7 @@ HTTPS certificate issuance in Step 7 will fail if DNS isn't pointing at the serv
 Paperclip requires **Node.js 24 or later** (24.11.0 or newer) and **pnpm**. Install Node.js from NodeSource:
 
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt-get install -y nodejs git ca-certificates
 ```
 
