@@ -36,7 +36,7 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 | `instructionsFilePath` | no | Markdown file prepended to the stdin prompt sent to `codex exec`. |
 | `modelReasoningEffort` | no | Reasoning effort override passed through Codex config. The choices depend on the model — see [Reasoning Effort](#reasoning-effort). |
 | `search` | no | Runs Codex with `--search`. |
-| `fastMode` | no | Enables Codex Fast mode by setting `service_tier="fast"` and `features.fast_mode=true`. Supported on `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, and `gpt-5.4`, and passed through for manual model ids. When the configured model can't use it, Paperclip ignores the setting and notes why. |
+| `fastMode` | no | Enables Codex Fast mode by setting `service_tier="fast"` and `features.fast_mode=true`. Supported on `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, and `gpt-5.4`, and passed through for manual model ids. When the configured model can't use it, Paperclip ignores the setting and notes why. |
 | `dangerouslyBypassApprovalsAndSandbox` | no | Runs Codex with `--dangerously-bypass-approvals-and-sandbox` so unattended runs never stop for approval. Defaults to on when you leave it unset — see [Permissions](#permissions). |
 | `command` | no | Defaults to `codex`. |
 | `extraArgs` | no | Extra CLI arguments appended to the Codex invocation. |
@@ -100,6 +100,7 @@ An environment that only runs one-shot commands cannot host an ACP session, so a
 
 Pick any of the known Codex model ids in the `model` field. The picker lists them the way the ChatGPT app orders Codex models — newest model version first, most capable first within each version, and older models at the end:
 
+- `gpt-6.1-sol`
 - `gpt-6-astra`
 - `gpt-6-sol`
 - `gpt-6-luna`
@@ -131,7 +132,7 @@ The `modelReasoningEffort` choices follow the model you pick:
 
 | Model | Effort levels |
 |---|---|
-| `gpt-6-astra`, `gpt-6-sol`, `gpt-5.6-sol`, `gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` |
+| `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6-sol`, `gpt-5.6-sol`, `gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` |
 | `gpt-6-luna`, `gpt-5.6-luna` | `low`, `medium`, `high`, `xhigh`, `max` |
 | Other models | `minimal`, `low`, `medium`, `high`, `xhigh` |
 

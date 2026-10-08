@@ -80,6 +80,8 @@ A personal connection must run on a credential owned by that person. Some person
 
 The sign-in or key does not cover what the action needs. Reconnect and approve the requested access, or for an API key, create a key with read and write permissions and paste it in. Paperclip cannot widen a key or token that already exists.
 
+Checking the grant's recorded scopes can help, but read them with care: some providers never say which scopes they granted, and then the list only shows what Paperclip asked for. [Scopes recorded on a sign-in grant](access-model.md#scopes-recorded-on-a-sign-in-grant) explains how to tell the two apart.
+
 ### Authorization never completes
 
 *"Authorization did not complete. Finish setup in the sign-in window or try again."* usually means the popup was closed early or the provider is waiting on an administrator. For providers whose authorization needs tenant approval, the warning on the provider page says so.

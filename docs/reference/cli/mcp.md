@@ -28,6 +28,8 @@ paperclipai mcp login --device --url <url> [--company <id>]
 
 Keep the command running. It prints an approval URL and a human verification code, then waits. Open the URL, sign in, compare the code, review the organization and permissions, and approve or decline. Requests expire after ten minutes; start again if the command expires.
 
+The approval URL opens your instance's `/mcp-device` page with the code already filled in. If you open `/mcp-device` yourself, type the code under **Enter the code shown by your assistant**. When you approve, the command prints `Connected to` with the MCP URL and `Organization:` with the approved organization's ID.
+
 The CLI requests read, write, configuration, and refresh access. Consent and your organization role determine which scopes you actually receive. Login verifies the approved organization with `paperclip_connection` before saving credentials.
 
 Use an HTTPS URL ending in `/mcp/paperclip`, without credentials, query parameters, or a fragment. HTTP is accepted only for localhost or loopback. The setup-page URL `/mcp/setup` is not the MCP resource URL.

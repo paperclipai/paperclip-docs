@@ -44,18 +44,21 @@ Sign-in runs in a **sign-in environment**, and there are two kinds. Which ones y
 
 | Sign-in environment | What it needs | How you sign in |
 | --- | --- | --- |
-| **The Paperclip server host** | The `codex` CLI installed on that host, shell access to it, and an active local environment. You must be operating Paperclip locally — a remote board session cannot start this attempt | Paperclip shows a command to paste into a terminal on that host |
+| **The Paperclip server host** | The `codex` CLI and Python 3 on that host (the Docker image includes both), and an active local environment | Paperclip runs the sign-in on the host for you and shows a **Sign in to OpenAI** link and a one-time code in your browser. You don't need a terminal |
 | **A sandbox environment** | A sandbox whose provider supports interactive sign-in, configured by an administrator | Sign-in happens in the environment Paperclip provides; no terminal on the server host is required |
 
 When both are available Paperclip shows a **Sign-in environment** selector. The environment used to sign in may differ from where the agent later runs; picking one here does not change agent routing.
 
 **On the Paperclip server host:**
 
-1. Select **Sign in**. Paperclip shows a command that sets `CODEX_HOME` to a directory for this attempt and runs `codex login --device-auth` with file-based credential storage.
-2. Run it in a terminal on that host and complete OpenAI's device sign-in.
-3. Paperclip detects the credential and finishes the connection. The attempt stays open for 30 minutes before it expires.
+1. Choose subscription sign-in. Paperclip shows *Preparing browser sign-in…* while it starts a private sign-in on the host.
+2. Paperclip displays a one-time code. Copy it with **Copy the code**.
+3. Select **Sign in to OpenAI**, enter the code on OpenAI's page, and authorize.
+4. When Paperclip says *"Codex CLI is signed in. Click Connect to use this account."*, select **Connect**. The attempt stays open for 30 minutes before it expires.
 
-> **Note:** The sign-in uses its own `CODEX_HOME`, so it neither reads nor disturbs your personal `codex` login on that machine.
+If you want a different OpenAI account before connecting, select **Use a different account**. If the attempt expires or fails, select **Start sign-in again**.
+
+> **Note:** Behind the scenes Paperclip runs `codex login --device-auth` with its own `CODEX_HOME` and file-based credential storage, so it neither reads nor disturbs your personal `codex` login on that machine.
 
 > **Note:** The 30-minute limit is documented for the server-host attempt. We have not established an equivalent figure for sandbox sign-in; complete any sandbox session promptly.
 
@@ -99,6 +102,8 @@ When you connect a brand-new account this way, you also see **Allow all agents i
 ### Reconnect from a task
 
 If a task shows an authentication card, select **Fix connection** to repair the selected account without leaving the task. The account owner signs in again; the card explains when another owner must do it. After setup completes, the task resumes through normal admission. Reconnecting preserves the account's audience and agent access.
+
+If you are the responsible person and simply haven't connected your own OpenAI account yet, the task chat shows **AI connection needed** instead of a failure, with a card titled **Connect your OpenAI account**. Select **Connect OpenAI**, connect your own account inside the card, and the task resumes automatically. Paperclip never borrows a teammate's credential to fill the gap.
 
 ## Check your usage limits
 
@@ -144,7 +149,7 @@ Watch the run itself — a connection can look healthy and still fail at run tim
 | *"This connection is not permitted for this agent"* | The connection is not installed for that agent or company-wide | Install it for the agent on the connection's access settings |
 | A subscription connection made during the preview stops working | Preview-era subscription credentials are not reusable and must be re-established | Reconnect the account |
 | **Sign in** is unavailable | No sign-in environment is offered on this deployment | Ask an administrator whether a sandbox sign-in environment can be enabled; otherwise use an API key |
-| The sign-in command does nothing | The `codex` CLI is missing on the host you ran it on, or you ran it on the wrong machine | Install the CLI and run the command on the Paperclip server host. This branch also requires operating Paperclip locally rather than over a remote board session |
+| Server-host sign-in never shows a code, or says *"The server restarted during sign-in. Start sign-in again."* | The `codex` CLI or Python 3 is missing on the Paperclip server host, or the server restarted mid-attempt | Install the missing tool on the host (the Docker image already has both), then select **Start sign-in again** |
 | Status **expired** or **needs attention** | The credential rotated or the key was revoked | Reconnect the account |
 | Runs fail with a quota error | OpenAI's plan or key limits, not a Paperclip limit | On a subscription, select **Check usage** on the saved account to see which window is exhausted and when it resets. Otherwise check usage with OpenAI |
 

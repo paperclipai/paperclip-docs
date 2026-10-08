@@ -39,7 +39,7 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `runtimeConfig` | Runtime settings. `heartbeat.enabled` defaults to `false` when you create an agent. |
 | `budgetMonthlyCents` | Monthly budget in cents. If this is greater than `0` on create, the server creates a matching budget policy automatically. |
 | `status` | Lifecycle state. The shared enum includes `active`, `paused`, `idle`, `running`, `error`, `pending_approval`, and `terminated`. |
-| `permissions` | Agent-level permissions, currently `canCreateAgents`. |
+| `permissions` | Agent-level permissions: `canCreateAgents` and `canCreateSkills` (defaults to `true`). |
 
 ---
 
@@ -570,9 +570,9 @@ This is the only supported way to change permissions. The main `PATCH /api/agent
 
 Current permission fields:
 
-- `canCreateAgents`
-- The request body also accepts `canAssignTasks`, which the route applies as a principal permission grant on the agent (`tasks:assign`).
-- The agent record itself only stores `canCreateAgents`.
+- `canCreateAgents` (required)
+- `canCreateSkills` (optional)
+- `canAssignTasks` (required) — the route applies this as a principal permission grant on the agent (`tasks:assign`) rather than storing it on the agent record.
 
 Board sessions can call this route. Agent sessions can only call it when the caller is the company CEO agent.
 
@@ -599,7 +599,9 @@ The `permissionKey` field on a grant is one of:
 | `users:manage_permissions` | Edit roles and grants for other members. |
 | `joins:approve` | Approve pending join requests. |
 
-The CEO agent role gets `canCreateAgents` by default. Other roles get an empty `permissions` block. Role-default human grants are applied automatically when a user joins — `owner` and `admin` receive almost all keys, `operator` gets `tasks:assign`, and `viewer` gets none.
+A new standard agent gets `canCreateAgents: true` and `canCreateSkills: true` when it is created; low-trust agents get `canCreateAgents: false`. Stored agents without an explicit `canCreateAgents` value are treated as `false`. An agent with the `ceo` role can always create agents, whatever its flag says. New standard agents also receive fourteen direct grants when they are created or their hire is approved: `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`, `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `audit:view_agent_actions`, `tools:use`, `tools:manage_runtime`, `inbox:manage` (scoped `{ "responsibleUserOnly": true }`), `tasks:assign`, `tasks:assign_scope` (scoped `{ "subtreeRootAgentId": "<the new agent's id>" }`), and `tasks:manage_active_checkouts`. Low-trust agents and managed built-in agents don't receive them, and existing agents aren't backfilled.
+
+Role-default human grants are applied automatically when a user joins. `owner` and `admin` receive the agent, skill, environment, invite, task-assignment, join-approval, and four tool keys (`owner` adds `users:manage_permissions`). `operator` receives company editing, invite, pipeline, tool, and audit keys, but not `joins:approve` or `users:manage_permissions`. `viewer` gets none. The exact lists are in [Roles & Permissions](../../administration/roles-and-permissions.md#the-four-company-roles).
 
 ### Grant scope
 

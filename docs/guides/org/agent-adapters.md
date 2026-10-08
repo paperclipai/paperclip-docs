@@ -77,9 +77,9 @@ The folder on your Mac where the agent does its work — reads files, writes out
 **Model**
 Which Claude model to use. If you leave it blank, Paperclip uses `claude-opus-5`. Some common choices:
 - `claude-opus-5-5` or `claude-opus-5` — most capable, best reasoning, highest cost. Good for your CEO or complex strategic agents.
-- `claude-sonnet-5` — fast, capable, lower cost. Good for worker agents doing routine tasks.
+- `claude-sonnet-5-5` or `claude-sonnet-5` — fast, capable, lower cost. Good for worker agents doing routine tasks. Sonnet 5.5 needs Claude Code `2.1.284` or newer.
 
-When in doubt, start with Sonnet for workers and Opus for the CEO. The **effort** options next to the model change with the model you pick — newer Opus, Sonnet 5, and Fable models add `xhigh` and `max`. See [Claude Code — Reasoning Effort](../../reference/adapters/claude-code.md#reasoning-effort).
+When in doubt, start with Sonnet for workers and Opus for the CEO. The **effort** options next to the model change with the model you pick — newer Opus, Sonnet 5 and 5.5, and Fable models add `xhigh` and `max`. See [Claude Code — Reasoning Effort](../../reference/adapters/claude-code.md#reasoning-effort).
 
 **Environment variables**
 The agent form includes an **Environment variables** section. Add `ANTHROPIC_API_KEY` there, either as a plain value or as a secret reference. If you're not sure what key name to use, `ANTHROPIC_API_KEY` is the standard one.
@@ -114,6 +114,7 @@ The fields are the same as `claude_local` — mainly model selection and environ
 
 **Model** examples for Codex:
 - `gpt-5.6-sol` — the default and the normal starting point
+- `gpt-6.1-sol` — the newest Codex model, with reasoning effort up to `ultra`
 - `gpt-6-astra`, `gpt-6-sol`, or `gpt-6-luna` — the GPT-6 family, with extra reasoning-effort levels
 - `o4-mini` — fast and cost-effective for routine tasks
 

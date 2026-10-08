@@ -42,7 +42,7 @@ Sign-in runs in a **sign-in environment**, and there are two kinds. Which ones y
 
 | Sign-in environment | What it needs | How you sign in |
 | --- | --- | --- |
-| **The Paperclip server host** | The `grok` CLI installed on that host, shell access to it, and an active local environment. You must be operating Paperclip locally — a remote board session cannot start this attempt | Paperclip shows a command to paste into a terminal on that host |
+| **The Paperclip server host** | The `grok` CLI installed on that host, shell access to it, and an active local environment | Paperclip shows a command to paste into a terminal on that host (**Copy sign-in command**) |
 | **A sandbox environment** | A sandbox whose provider supports interactive sign-in, configured by an administrator | Sign-in happens in the environment Paperclip provides |
 
 When both exist Paperclip shows a **Sign-in environment** selector. The sign-in environment may differ from where the agent later runs.
@@ -98,6 +98,8 @@ When you connect a brand-new account this way, you also see **Allow all agents i
 
 If a task shows an authentication card, select **Fix connection** to repair the selected account without leaving the task. The account owner signs in again; the card explains when another owner must do it. After setup completes, the task resumes through normal admission. Reconnecting preserves the account's audience and agent access.
 
+If you are the responsible person and simply haven't connected your own Grok account yet, the task chat shows **AI connection needed** instead of a failure, with a card titled **Connect your Grok account**. Select **Connect Grok**, connect your own account inside the card, and the task resumes automatically. Paperclip never borrows a teammate's credential to fill the gap.
+
 ## Check your usage limits
 
 Before you hand an agent a long task, you can see how much of the provider's allowance is left. Open the saved account and find **Usage**, then select **Check usage**. This works for a Grok subscription. An API-key account shows *"Unavailable for this sign-in method."* instead of the button, because the provider has no single-key allowance to read.
@@ -142,7 +144,7 @@ If the run reports an incompatible connection, check the adapter before anything
 | *"This credential is not shared with the responsible user"* | The connection is shared with named people and the responsible user is not among them | Add that person to the connection's audience |
 | A subscription connection made during the preview stops working | Preview-era subscription credentials are not reusable and must be re-established | Reconnect the account |
 | **Sign in** is unavailable | No sign-in environment is offered on this deployment | Ask an administrator whether a sandbox sign-in environment can be enabled; otherwise use an API key |
-| The sign-in command does nothing | The `grok` CLI is missing on the host you ran it on, or you ran it on the wrong machine | Install the CLI and run the command on the Paperclip server host, operating Paperclip locally |
+| The sign-in command does nothing | The `grok` CLI is missing on the host you ran it on, or you ran it on the wrong machine | Install the CLI and run the command in a terminal on the Paperclip server host itself |
 | Status **expired** or **needs attention** | The credential rotated or the key was revoked | Reconnect the account |
 | Runs fail with a quota error | xAI's plan or key limits, not a Paperclip limit | On a subscription, select **Check usage** on the saved account to see which window is exhausted and when it resets. Otherwise check usage with xAI |
 

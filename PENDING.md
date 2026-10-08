@@ -2,13 +2,51 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1001.0` (`8f8a0ab7`) → parent master `994d6edc` (@ 2026-10-04T02:19Z), 264 commits, 24h quarantine applied. 1,960 files in window; compare truncation 0.
-- **Base note:** `v2026.1001.0` is on master this time (compare status `ahead`, behind 0), so the tag SHA is the cumulative base directly.
-- **Merge main → nightly:** nothing to absorb. `main` (`186095c`) was already merged by the post-release realign (`2ee3523`).
-- **Already on nightly:** drafts for commits up to `0f14d261`, kept on nightly as post-tag drafts by the v2026.1001.0 realign. This run covers the 171 newer commits, `0f14d261..994d6edc`.
-- **Verification:** every changed page was re-run through `verify-edit --against 994d6edc` after drafting. Each remaining flag was checked by hand against a local checkout of the parent at `994d6edc` (see *Verification notes*).
+- **Window (cumulative):** base release tag `v2026.1005.0` (`467125fa`) → parent master `abbd8800` (@ 2026-10-07T12:07Z), 169 commits, 24h quarantine applied (cutoff 2026-10-07T12:25Z). 1,950 files in window.
+- **Compare truncation:** one leaf (`faa8e45..caf1201`) stayed truncated because a single commit, `a6306ba6` (Cursor consolidation), touches 304 files. Its file list was filled in from the commit API: 5 extra files, all under `tests/`. Effective truncation is 0.
+- **Merge main → nightly:** nothing to absorb (`3679b7e` already merged by the post-release realign).
+- **Already on nightly:** drafts for `467125fa..994d6edc` (previous full run) and the human-approved follow-up against `a6306ba6` (PR #146). This run covers the 84 newer commits, `994d6edc..abbd8800`, and fills the gaps #146 left between them.
+- **Verification:** every page changed this run was checked against `abbd8800`, either with `verify-edit` (24 pages) or, once GitHub's secondary rate limit blocked the contents API, by grepping each added backticked identifier in a clean pinned checkout (10 reference pages). Every remaining flag was confirmed present at the ref (see *Verification notes*).
 
-## Approved documentation follow-up — 2026-10-06
+## Applied this run (PR-tier drafts on `nightly`)
+
+- **Roles and permissions (`a1ab55a5`, `582911ba`).**
+  - Operator now gets 14 default keys, not just `tasks:assign`; the tables in `roles-and-permissions.md` are rebuilt from `company-member-roles.ts`.
+  - New agents get 14 default grants (new section in `guides/org/agents.md`), and `canCreateSkills` is on `PATCH /api/agents/{id}/permissions`.
+  - Operator wording fixed in `members-and-access.md`, `administration/company.md` and `how-to/add-a-human-teammate.md`.
+- **Costs and accounting (`799e4d55`, `eab93fd4`, `892b0b36`).**
+  - New **Accounting** API section: health, inspect, repair, retry, invoices, adjustments, provider-cost import; plus `GET .../costs/by-user`.
+  - Cost endpoints now default to the current UTC month (`period=all` for all-time).
+  - Hard-stop budgets can hold work below 100% while costs are pending or unpriced (`unpricedUsagePolicy`).
+  - Costs guide: estimated/unpriced costs, By user table, reorganised Overview, new date presets. Subscription quota is now read per connected account (`connectors/ai-usage.md`).
+- **AI connections (`0e0b63e5`, `9f7057e1`, `e38d6d16`, `2ca0d26a`, `99a9de99`).**
+  - New page `experimental/task-pinned-ai-routing.md` (connection pools, `enableAiConnectionRouters`, pool API), added to the Experimental nav and overview.
+  - Claude/OpenAI server-host sign-in is now a browser card that runs `claude setup-token` / `codex login --device-auth` on the host. The old "paste a terminal command" and "must operate locally" text is fixed in `anthropic.md`, `openai.md` and `xai.md`. Also covers the **Connect your … account** task card.
+  - The **Advanced** (Custom Gateway) tile in `custom-model-providers.md`.
+  - Assistant connections: personalised names/avatars, revoked grants hidden, `/mcp-device` confirmation, browser consent endpoints.
+- **Connectors (`88ff98b8`, `8cbd21b3`, `f77fcbf4`, `ea8e6861`, `b43073d1`).**
+  - New pages: **Enterpret**, **Superagent**, **Telem.AI**, each added to the catalog and the nav.
+  - Requested vs granted OAuth scopes (`scopeSource`, `requestedScopes`, `unrequestedScopes`) in `access-model.md`.
+  - **Waiting for sign-in** status in `mcp-aggregators.md`.
+- **Adapters and environments (`cab4263d`, `6c36c07a`, `0fe47882`, `bb73f2fe`).**
+  - `claude-sonnet-5-5`, which needs Claude Code 2.1.284+.
+  - `gpt-6.1-sol` for Codex and OpenCode.
+  - Runner harness pins: Codex `0.160.0`, Claude SDK `0.3.286`.
+  - `paperclip-runnerd --listen-port`.
+  - exe.dev **Source VM** (`sourceVm`).
+- **Plugin SDK (`984f092d`, `1cebdd4c`, `d9f60004`, `44e4979d`, `0e0b63e5`).** Durable resource lifecycle hooks (`listLifecycle` / `acknowledgeLifecycle`, the testing harness `lifecycleEvents`) and AI connection routers (`onRouteAiConnection`, `ai.connections.route`).
+- **Tasks UI (`228f0e28`, `59015846`, `faa8e452`).**
+  - Waiting on a pull request review: the banner, **Check status**, and the **Review requested** badge.
+  - Dismissed questions now stay in the feed as **Unanswered question**, and the agent stops reminding you once you've moved on.
+
+## Deferred to the next run
+
+- **Private tasks** (`b67db12d`, `3a726e67`): durable storage and permission enforcement (routes `GET /issues/:id/privacy-constraints`, `GET /issues/:id/access-grants`, `/projects/:id/access-members`, env `PAPERCLIP_RESPONSIBLE_USER_AUTHZ_CACHE_TTL_MS`). These are inside the window, but the creation/sharing UI (`b3155806`, #14718) landed 2 minutes after the quarantine cutoff, so the feature should be documented as one piece next run.
+- **Customer-success inspection APIs** (`a9a20fb5`, `/api/customer-success/v1`): deliberately not documented. It's Paperclip Cloud staff tooling, off unless Cloud-provisioned trust settings are present.
+
+## Earlier drafts still on nightly (unreleased)
+
+### Approved documentation follow-up — 2026-10-06 (PR #146)
 
 This scoped follow-up checks the 17 approved audit groups against parent master `a6306ba606eb87c89b9ef0344e9fe8e0025580f9`. It preserves correct nightly coverage and fills gaps without advancing `.sync-state.json`: the other audit groups and the complete newer master window have not been applied as a full sync.
 
@@ -42,7 +80,7 @@ New pages are versionless nightly drafts. Existing stable version metadata is un
 
 **Optional browser harness:** `docs:test:client-nav` reports 4 failures in 867 checks on this branch. The unchanged nightly base reports 3 in 767 checks, with the same failure types: denied clipboard writes when heading-copy links are treated as navigation, aborted startup manifest requests, and a back-navigation heading checked before rendering completes. Manual browser review confirms the assistant and memory experimental notices, memory-provider navigation, back, forward, and reload. These results are not a claim that the optional harness passed.
 
-## Applied this run (PR-tier drafts on `nightly`)
+### Previous full run — 2026-10-05 (`8f8a0ab7..994d6edc`, PR #144)
 
 - **Company skills (`d432dc7f`, `eb049aeb`, `427e0484`).**
   - New GitHub skill **Sources**: add a repo, pick skills, then **Refresh**, **Select skills** or **Disconnect source**. Synced skills are read-only.
@@ -86,37 +124,37 @@ New pages are versionless nightly drafts. Existing stable version metadata is un
 
 ## ↻ Reconcile
 
-- **Keyboard shortcuts as a per-user Profile preference** was drafted last cycle from `01d9a121`. Upstream reversed it in `f38b5693`, which also added migration `0289_drop_user_keyboard_shortcuts`. That draft entry has left the manifest. This run already rewrote the affected pages (`administration/settings.md`, `administration/company.md`, `guides/day-to-day/command-palette.md`, `reference/api/instance-admin.md`), so nothing is left to undo.
+None. There are no reverts in `994d6edc..abbd8800`, and no earlier manifest entry left the window.
 
-## ⚠ Drift (checked against master @ `994d6edc`)
+## ⚠ Drift (checked against master @ `abbd8800`)
 
 High-confidence:
-- **`PAPERCLIP_ID_CONNECTOR_*` (5 vars), real.** They are retired: the code reads them only to fail with `CONNECTOR_MIGRATION_REQUIRED`, and the live names are `PAPERCLIP_CLOUD_CONNECTOR_*` (`server/src/services/paperclip-cloud-connector.ts`). Fixed on nightly. **This was already true at `v2026.1001.0`, so `main` documents the wrong variables. A hot-fix on `main` is warranted.**
-- **`PAPERCLIP_WORKSPACE_GIT_SCAN_*` (4 vars), false positive.** They are read through an `envInteger(env, "...")` helper in `server/src/services/workspace-git-operation-scheduler.ts` that the checker doesn't scan.
+- **Env vars, all false positives.** Each of these was confirmed present at `abbd8800` in a local pinned checkout. The drift checker's GitHub-search path missed them:
+  - `PAPERCLIP_DEPLOYMENT_MODE` (`cli/src/commands/onboard.ts`, `Dockerfile`)
+  - `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (`envInteger` helper)
+  - `PAPERCLIP_WORKSPACE_GIT_SNAPSHOT_TIMEOUT_MS` (`adapter-utils/src/git-workspace-sync.ts`)
+  - `PAPERCLIP_RUNNER_API_*` (`native-runtime/runner-api-rollout.ts`)
+  - `PAPERCLIP_CLOUD_CONNECTOR_*` (`paperclip-cloud-connector-enrollment.ts`)
+- **`PAPERCLIP_ID_CONNECTOR_*` (5 vars), intentional.** The page lists them under "Retired", and the code reads them only to refuse startup.
+- **`operator` role default grants, real.** Fixed this run.
 
 Medium (Verify):
-- `GET /api/auth/preferences` / `PATCH /api/auth/preferences`: **real.** Removed in `f38b5693`, and now gone from the docs.
-- Verify: `GET /api/agent-avatars/{version}/{palette}/{pose}.png` is a **false positive**. The route is `/agent-avatars/:version/:palette/:file` in `server/src/routes/agent-avatars.ts`, and `:file` must end in `.png`.
-- Verify: `/api/companies/import/transfers*` (5 routes) are a **false positive**. They are registered through the `COMPANY_IMPORT_TRANSFERS_ROUTE_PATH` constant in `server/src/routes/companies.ts`.
+- Verify: `GET /api/agent-avatars/{version}/{palette}/{pose}.png`. False positive (`:file` param).
+- Verify: `/api/companies/import/transfers*` (5 routes). False positive (constant route path).
+- Verify: `GET|POST /api/companies/{companyId}/chats/{agentRef}`. False positive (registered in `issues.ts`).
 
 ## Verification notes
 
-All of the following were checked by hand at `994d6edc` and are present:
-- `acpxAgent` / `paperclip_runner` in `grok-local.md`: the checker only searched the grok-local package.
-- `CODEX_API_KEY`: in `packages/paperclip-runner/src/drivers/acpx/environment.ts`.
-- `PAPERCLIP_CLOUD_CONNECTOR_*`: in `paperclip-cloud-connector.ts`.
-- The new env vars: in `git-workspace-sync.ts`, `workspace-manifest.ts` and `runner-api-response-limits.ts`.
-- The `/companies/:companyId/chats[/:agentRef]` routes: in `issues.ts:17265`, `17276`.
-- `issue` CLI flags `--answers-json`, `--outcome`, `--source-issue-status`: in `cli/src/commands/client/issue.ts`.
-
-Known false-flag classes, left as they are:
-- The all-caps SDK constants in `plugins/sdk.md` (`PLUGIN_*`, `PRINCIPAL_TYPES`, …).
-- Runtime-injected `PAPERCLIP_RUNTIME_TOOLS_*` in `cli/connections.md`, and `PAPERCLIP_GITHUB_TOKEN` in `day-to-day/issues.md`.
-- `secret_ref` / `secretId` values in the adapter pages.
-- `PAPERCLIP_CLOUD_PROD_PROVIDER_RAILWAY_TOKEN` (`environment-variables.md:341`) is pre-existing, not in this diff, and not found at `994d6edc`. It needs a separate look.
+- `verify-edit` env-var flags confirmed present at `abbd8800`: `CLAUDE_CONFIG_DIR` (`claude-local/src/server/acp.ts`), `PAPERCLIP_MANAGED_CONFIG` (`shared/src/feature-catalog.ts`), `GH_TOKEN`, `PAPERCLIP_GITHUB_TOKEN` (`server/src/services/git-credentials.ts`), `AGENT_HOME` (`adapter-utils/src/server-utils.ts`).
+- Local identifier sweep of the 10 reference pages: only 4 misses, all fine. `/mcp-connect/{id}` is in `public-mcp/oauth.ts` and `ui/src/App.tsx`, `period=all` is in `routes/costs.ts`, `CLAUDE_CODE_USE_BEDROCK=1` is a value example, and `"0.0425"` is an example value.
 
 ## Follow-ups for a human
 
+- **Remote Runner env vars are undocumented** (this predates the window): `PAPERCLIP_RUNNER_PUBLIC_URL`, `PAPERCLIP_RUNNER_CA_BUNDLE_PATH`, `PAPERCLIP_RUNNER_REMOTE_BINARY_PATH`, `PAPERCLIP_RUNNER_REMOTE_CODEX_PATH`, `PAPERCLIP_RUNNER_REMOTE_CODEX_NPM_SPEC`, `PAPERCLIP_RUNNER_REMOTE_PROVIDER_PACK_PATH` are all in the parent's own env-var table but missing from `reference/deploy/environment-variables.md`.
+- **Native Runner troubleshooting** has nowhere to live yet. Candidates: interrupted Codex turns continue after restart (`63f3aa2d`), **Model unavailable** for ChatGPT accounts (`9b3fe260`), and **Model at capacity** with 2 automatic retries (`f2715e02`).
+- **AI credential task card:** `connectors/verify-and-troubleshoot.md` could mention the **AI connection needed** / **Connect your … account** card. `reference/api/instance-admin.md` could list `enableAiConnectionRouters`.
+- **Executor:** the **Console URL** menu item from `b43073d1` isn't in `connectors/executor.md` yet.
+- **Not verified:** the costs author reported possible backup-relevant folders (`quota-credential-recovery`, `accounting-receipts`). Neither name appears in code at `abbd8800`, so nothing was documented.
 - **Chat channel setup wording:** `discord.md`, `telegram.md`, `microsoft-teams.md` and `imessage-photon.md` still say "On the **Access** step", but chat setup starts at **Choose agent**. This predates the window; fix separately.
 - **Google pages:** they still open with "Open **Connectors** and select …" while the Google entries are hidden. Each page has a note pointing to the agent-raised card, but no direct setup URL has been confirmed.
 - **Undocumented routes:**
@@ -124,4 +162,4 @@ Known false-flag classes, left as they are:
   - `distinctTasks` on `GET /api/companies/{companyId}/live-runs` (`efc2e681`); that route has no API reference page at all.
 - **Paperclip Runner (`paperclip_runner`):** resolved by the approved follow-up's new adapter reference and overview entry.
 - **Task watchdogs:** `task-watchdogs.md` could cover the new silence thresholds from `22cea6b2`: suspicious after 5 minutes, critical after 15.
-- **Screenshots:** `agents/instructions.png` (new + / Delete controls) and `task-chat/composer-modes.png` (old mode picker, now removed from the page) need re-shooting. See `SCREENSHOTS_PENDING.md`: 180 of 350 are stale.
+- **Screenshots:** `agents/instructions.png` (new + / Delete controls) and `task-chat/composer-modes.png` (old mode picker, now removed from the page) need re-shooting. See `SCREENSHOTS_PENDING.md`: 178 of 350 are stale.

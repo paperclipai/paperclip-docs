@@ -275,6 +275,10 @@
               "file": "../docs/connectors/discord.md"
             },
             {
+              "title": "Enterpret",
+              "file": "../docs/connectors/enterpret.md"
+            },
+            {
               "title": "Executor",
               "file": "../docs/connectors/executor.md"
             },
@@ -440,12 +444,20 @@
               "file": "../docs/connectors/supabase.md"
             },
             {
+              "title": "Superagent",
+              "file": "../docs/connectors/superagent.md"
+            },
+            {
               "title": "Supermemory",
               "file": "../docs/connectors/supermemory.md"
             },
             {
               "title": "Telegram",
               "file": "../docs/connectors/telegram.md"
+            },
+            {
+              "title": "Telem.AI",
+              "file": "../docs/connectors/telem.md"
             },
             {
               "title": "Todoist",
@@ -568,6 +580,10 @@
         {
           "title": "Assistant Connections (MCP)",
           "file": "../docs/experimental/assistant-connections.md"
+        },
+        {
+          "title": "Task-Pinned AI Routing",
+          "file": "../docs/experimental/task-pinned-ai-routing.md"
         },
         {
           "title": "Chat-Style Tasks",

@@ -44,7 +44,7 @@ claude mcp add --transport http paperclip https://YOUR-PAPERCLIP-HOST/mcp/paperc
 
 Open `/mcp` in Claude Code and authenticate the Paperclip server. OpenCode, browser assistants, and other clients have their own tabs in the setup page. Preserve existing client settings; if `paperclip` already points to another instance, choose a different name and use it consistently.
 
-Keep the authorization command running while you approve. If it expires or stops, start a new request before using another approval link. For a client without a browser callback listener, use [device login and the stdio bridge](../reference/cli/mcp.md).
+Keep the authorization command running while you approve. If it expires or stops, start a new request before using another approval link. For a client without a browser callback listener, use [device login and the stdio bridge](../reference/cli/mcp.md). Device sign-ins send you to `/mcp-device` on your instance: check that the code shown there matches the one in your assistant (or type it under **Enter the code shown by your assistant**), then approve as usual.
 
 ## Choose access
 
@@ -78,6 +78,8 @@ You can configure a direct client without a store listing. Hosted broker deploym
 ## Revoke or disable access
 
 Return to **Assistant Connection (MCP)** to review and revoke your connections for the selected organization. `/assistant-connections` also provides account-wide management.
+
+Each connection appears under your profile picture with a name built from your first name and the assistant client, such as *Alex’s Codex connection*, followed by its access (for example *Connected as you · Read and write*). Only your own active connections are listed. When you select **Revoke**, the connection disappears from the list right away; Paperclip keeps the audit record.
 
 Revocation blocks future calls. Work you already delegated continues, and an in-flight change may already have completed. Manage that task or run in Paperclip if you need to stop it.
 

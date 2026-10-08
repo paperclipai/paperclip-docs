@@ -31,6 +31,18 @@ Paperclip records the **cache-adjusted** cost: what the provider actually billed
 
 The practical rule: the dollars you see are billed dollars. A run with a large cached-input count and a small dollar figure is healthy — it means the agent's context is being reused instead of re-billed. If you want to reason about a run in detail, read the token columns and the dollar figure together rather than trying to derive one from the other.
 
+### Estimated, unpriced, and still-being-counted costs
+
+Not every run arrives with a clean price tag. Paperclip tells you when a number is less than certain instead of quietly rounding it to a guess or to zero:
+
+- **Estimated** — the provider didn't report a price, but Paperclip knows the model's published rates and calculated one from the token counts. Rows built from these show an **Estimated** or **Partially estimated** badge; hover it to see how many charges were estimated. Your provider's bill may differ slightly.
+- **Unpriced** — the run used tokens but there's no reliable price at all. This happens, for example, when an agent's CLI points at an OpenAI-compatible endpoint other than OpenAI or OpenRouter: Paperclip won't assume OpenAI's prices for someone else's service. The tokens are kept, but the cost counts as unknown — never as `$0`.
+- **Awaiting accounting** — the run has finished, but its cost hasn't been recorded yet. Local CLI agents save their usage as they go, so even a run that crashes or times out part-way still gets its cost recorded once Paperclip catches up.
+
+When any of these affect the range you're looking at, a line at the top of the Costs page says so — for example *"Spend is incomplete: 3 usage events have no reliable price; 1 runs await accounting. Known spend is shown below."* Treat the totals on the page as **known** spend until that line goes away.
+
+Unpriced and still-being-counted usage also matters for budgets — see [When spend is uncertain](#when-spend-is-uncertain).
+
 Beyond per-request inference costs, there are also **account-level** charges — monthly subscription fees, credit top-ups, invoice adjustments, refunds — that don't map to a single API call. Paperclip tracks those separately in the finance ledger so you can reconcile your actual provider invoices against what Paperclip thinks you spent.
 
 ---
@@ -39,16 +51,18 @@ Beyond per-request inference costs, there are also **account-level** charges —
 
 Every tab on the Costs page shares the same header, so it's worth understanding what you're looking at before diving into the individual views.
 
-The page title reads **Costs**, with a subtitle that reminds you what's tracked: inference spend, platform fees, credits, and live quota windows.
+The page title reads **Costs**.
 
-To the right of the title is a **date-range selector** — a row of preset buttons (Today, Week-to-date, Month-to-date, custom, and so on) that scopes every chart, table, and metric on the page. If you pick **custom**, two date inputs appear and you enter the start and end date manually. Until both custom dates are filled in, most of the tabs show a prompt to pick a range before loading data.
+To the right of the title is a **date-range selector** — a row of preset buttons (**Month to Date**, **7 Days**, **30 Days**, **Year to Date**, **All Time**, and **Custom**) that scopes every chart, table, and metric on the page. Month to Date and Year to Date start at midnight UTC, the same clock your monthly budgets reset on. If you pick **Custom**, two date inputs appear and you enter the start and end date manually. Until both custom dates are filled in, most of the tabs show a prompt to pick a range before loading data.
 
 Below the header is a strip of four **metric tiles** that summarise the current range:
 
 - **Inference spend** — total dollars spent on per-request inference in the selected range, with the total token count shown underneath.
-- **Budget** — either a utilisation percentage (e.g. `62%` of the monthly cap), the count of active incidents if any budget has been breached, or the word `Open` if no monthly cap is configured. The subtitle explains which of those three is showing.
-- **Finance net** — debits minus credits for the account-level finance ledger across the range.
+- **Budget** — the count of active incidents if any budget has been breached; otherwise, with **Month to Date** selected, a utilisation percentage (e.g. `62%`) with a `$X of $Y this month` line. With any other range it shows the monthly limit itself, because a percentage of a monthly cap only makes sense for the current month. It reads `Open` if no monthly cap is configured.
+- **Recorded charges** — the net of the account-level finance ledger across the range, with debits and credits listed underneath.
 - **Finance events** — the number of finance events recorded, plus the total estimated (non-invoice-authoritative) debits still open.
+
+If your finance ledger holds amounts in more than one currency, a note explains that the headline totals are US dollars only — other currencies are listed separately, and Paperclip never converts between them.
 
 These tiles always reflect the selected date range, not an all-time total.
 
@@ -58,51 +72,47 @@ These tiles always reflect the selected date range, not an all-time total.
 
 ![Overview tab](../../user-guides/screenshots/light/costs/overview.png)
 
-The **Overview** tab is the default landing view. It gives you a single-screen readout of spend health without forcing you to drill into any one dimension.
+The **Overview** tab is the default landing view. It gives you a single-screen readout of spend health without forcing you to drill into any one dimension. The headline spend and budget figures live in the metric tiles above the tabs; the Overview tab breaks them down.
 
-### Inference ledger card
+### By agent
 
-The left side of the overview is the **Inference ledger** card. It restates the total inference spend for the range in large type, shows either the configured monthly budget (`Budget $X.XX`) or the words `Unlimited budget` when no cap is set, and puts the total token count in a small box to the right.
+On the left is the **By agent** card. Each agent that generated inference events in the range is listed with:
 
-If a monthly budget is configured, a horizontal utilisation bar sits below it. The bar colour reflects health:
+- Agent name and avatar, plus a `terminated` badge if the agent has been retired.
+- Total cost for the range, right-aligned, with an **Estimated** or **Partially estimated** badge when some of it was calculated from published rates rather than reported by the provider.
+- Token breakdown: `in <input+cached> (<cached> cached) · out <output>`.
+- Run-type breakdown: `runs: N api · N sub` — how many runs went through API-priced calls versus subscription-backed calls (see **Billers** below for the distinction).
 
-- **Green** — under 70% consumed.
-- **Yellow** — 70–90%.
-- **Red** — above 90%.
+If an agent has a per-model breakdown available, a caret appears on the left of the row. Clicking the row expands it to show one line per `provider / model / billingType` combination with its share of that agent's spend, the cost, the token count, and which biller handled the call. This is the fastest way to see "why is this particular agent spending so much" — you can immediately tell whether it's one runaway model or a healthy mix.
 
-Underneath the bar is a line like `62% of monthly budget consumed in this range.` This is the fastest answer to "are we on track this month?".
+### By user
+
+Under the agent card is the **By user** table. Every run records the person it was done for, and this table adds spend up by that person — handy when several people share one company and you want to know whose requests are driving the bill.
+
+Each row shows the user, how many **Runs** they account for, **Input** and **Output** tokens, and **Cost**. A few things to know:
+
+- Every active member is listed, even if they haven't spent anything in the range.
+- Spend with no recorded person — including anything run under the built-in local board login — lands in an **Unattributed** row, so the table always adds up to the company total.
+- When some of a person's usage is unpriced, the row says how many charges (for example `2 unpriced charges`). If all of their usage is unpriced, the cost shows `—` rather than `$0.00`.
+
+### By project
+
+To the right of the agent breakdown is the **By project** card. Paperclip attributes run costs to a project when the run was triggered by an issue that belongs to that project. Each row shows the project name and its total attributed cost. Runs that didn't happen inside a project-linked issue appear as `Unattributed`.
+
+### Active budget incidents (overview)
+
+If any agent or project has hit a hard stop, up to two **Budget incident cards** appear below the breakdowns. Each card shows the scope, the breach details, and two resolution buttons — **Keep paused** or **Raise budget and resume** (with an amount input). If the stop happened because spend is uncertain rather than over the limit, the card says *Accounting is incomplete* and points you to the pending or unpriced usage instead. The full incident list lives on the Budgets tab.
 
 ### Finance ledger card
 
-The right side of the overview is the **Finance ledger** card — the same four metrics as the page header tiles, restated in context:
+At the bottom of the overview is the **Finance ledger** card — the account-level ledger for the range:
 
 - **Debits** — account-level charges in the range, with the total event count.
 - **Credits** — refunds, offsets, and credit returns.
 - **Net** — debit minus credit for the period.
 - **Estimated** — debits that are not yet invoice-authoritative (for example, a Paperclip estimate of a subscription day that hasn't been reconciled with the provider's invoice yet).
 
-### By agent
-
-Below the ledger cards is the **By agent** card. Each agent that generated inference events in the range is listed with:
-
-- Agent name and avatar, plus a `terminated` badge if the agent has been retired.
-- Total cost for the range, right-aligned.
-- Token breakdown: `in <input+cached> · out <output>`.
-- Run-type breakdown: `N api · N subscription` — how many runs went through API-priced calls versus subscription-backed calls (see **Billers** below for the distinction).
-
-If an agent has a per-model breakdown available, a caret appears on the left of the row. Clicking the row expands it to show one line per `provider / model / billingType` combination with its share of that agent's spend, the cost, the token count, and which biller handled the call. This is the fastest way to see "why is this particular agent spending so much" — you can immediately tell whether it's one runaway model or a healthy mix.
-
-### By project
-
-To the right of the agent breakdown is the **By project** card. Paperclip attributes run costs to a project when the run was triggered by an issue that belongs to that project. Each row shows the project name and its total attributed cost. Runs that didn't happen inside a project-linked issue appear as `Unattributed`.
-
-### Finance timeline
-
-Under the project card is a compact **finance timeline** showing the most recent 6 account-level events (debits and credits) in the range. If there are no finance events yet, the card prompts you to add them once biller invoices or credits land.
-
-### Active budget incidents (overview)
-
-If any agent or project has breached its hard-stop budget, up to two **Budget incident cards** appear at the top of the Overview tab, above everything else. Each card shows the scope, the breach details, and two resolution buttons — **Keep paused** or **Raise budget and resume** (with an amount input). The full incident list lives on the Budgets tab.
+The individual finance events are listed on the **Finance** tab.
 
 ---
 
@@ -151,6 +161,17 @@ $0 ─────────────────────── 80% ─
 
 An auto-paused agent doesn't lose its work — any tasks it had in progress remain assigned to it and will pick up again once the agent is resumed.
 
+### When spend is uncertain
+
+A hard stop is only as good as the number behind it. So if a scope's spend can't be trusted yet, Paperclip holds new work for that scope even before it reaches 100%:
+
+- **A finished run is still waiting for its cost to be recorded.** New work waits until it's counted. This usually clears on its own within moments.
+- **There's unpriced usage in the budget window.** By default the scope stays blocked, because Paperclip can't tell how close to the limit you really are.
+
+The policy card explains which one is happening — for example *"2 completed runs await accounting."* or *"3 usage events are unpriced. Known spend excludes their unknown cost."*
+
+If you're comfortable treating unpriced usage as unknown, open the policy card's **Advanced settings** and clear **Block new work when usage has no reliable price**. Otherwise, the usage needs a price before the scope can resume — an operator can add one through the [accounting API](../../reference/api/costs.md#correct-a-charge).
+
 ### Active incidents
 
 If any budget policy has been breached, an **Active incidents** section appears under the control plane. Each incident card shows:
@@ -161,17 +182,23 @@ If any budget policy has been breached, an **Active incidents** section appears 
   - **Keep paused** — acknowledge the breach and leave the scope paused. Useful when you want the agent to stop for the rest of the month and resume naturally at rollover.
   - **Raise budget and resume** — increase the policy's amount (you enter the new cap in the card) and immediately un-pause the scope.
 
+Raising the budget won't work while the scope has runs awaiting accounting, or unpriced usage it's set to block on. In that case you'll see *Could not update the budget. Check any pending runs or unpriced usage shown on this page, then try again.* — sort those out first (see [When spend is uncertain](#when-spend-is-uncertain)).
+
 Both actions are logged and become part of the audit trail.
 
 ### Budget policies by scope
 
-Below the incidents, the rest of the tab is organised into three sections — **Company budgets**, **Agent budgets**, and **Project budgets** — with one Budget policy card per configured policy in each section.
+Below the incidents, the rest of the tab is organised into three sections — **Organization budgets** (the company-wide policy), **Agent budgets**, and **Project budgets** — with one Budget policy card per configured policy in each section.
 
 Each policy card shows:
 
 - The scope (who this applies to) and the window kind (monthly recurring for company and agent, lifetime for project).
 - The current cap and the current spend against it.
-- An editable amount field and a **Save** button.
+- Any runs awaiting accounting or unpriced usage in the window.
+- An editable amount field and a **Save** button. Saving `0` turns the policy off.
+- An **Advanced settings** section with two controls:
+  - **Block new work when usage has no reliable price** — on by default. See [When spend is uncertain](#when-spend-is-uncertain).
+  - **Reserve per run (USD)** — an estimate Paperclip sets aside from the budget before each run starts, saved with **Update reservation**. It stops a burst of runs from all starting at once and together blowing past the cap. Zero (the default) turns it off. If the amounts already set aside would push the scope over its cap, new runs wait until earlier ones finish. A reservation only controls when work can start — a run's real charge can still come in higher.
 
 If no policies exist yet, a single empty-state card appears with a pointer to set agent and project budgets from their detail pages and to use the existing company monthly budget control.
 
@@ -225,7 +252,7 @@ If an agent hits its 100% limit and auto-pauses, you have two options:
 2. Update the Monthly Budget field to a higher amount
 3. Save
 
-The agent will resume immediately. It won't wait for the month to roll over.
+The agent will resume immediately. It won't wait for the month to roll over — as long as its spend is fully counted. If it still has runs awaiting accounting or unpriced usage, it stays paused until that's sorted out (see [When spend is uncertain](#when-spend-is-uncertain)).
 
 **Option 2: Wait for the month to reset**
 
@@ -271,14 +298,15 @@ Selecting **All providers** renders a grid of provider cards (two per row on wid
 
 ### Quota windows
 
-For providers that have a subscription plan with a rolling usage window (e.g. Anthropic Pro/Max with a 5-hour window, daily, or weekly caps), the card also renders a **Quota windows** section. For each window Paperclip queries the provider and shows:
+When you've connected an Anthropic or OpenAI subscription in [AI connections](../../connectors/ai-usage.md), the Anthropic and OpenAI cards also show a **Subscription quota** section. Paperclip reads each connected subscription account separately, using that account's own stored sign-in — never whatever account happens to be logged in on the machine running Paperclip. You only see the accounts you're allowed to use.
 
-- Window label (e.g. "5-hour", "daily", "weekly").
-- How much of the window you've consumed.
-- How long until the window resets.
-- The data source (provider API, estimated, or last-known cached value).
+Each account appears under its name. For each usage window the provider reports (e.g. a 5-hour window, or a weekly cap), you see:
 
-If the provider's quota endpoint returned an error, the card surfaces that error inline instead of a bar. Quota data refreshes on its own schedule and shows a loading indicator the first time.
+- The window label.
+- How much of the window you've consumed. If the provider doesn't report a percentage, you get **Usage not reported** instead of a bar.
+- When the window resets, when the provider says.
+
+If a read fails for a moment — say the provider is slow — Paperclip keeps showing the last good reading with *Showing the last available quota. Updates will resume automatically.* If there's nothing to fall back on, you'll see *Subscription quota is currently unavailable. Check usage with your provider.* If the account isn't connected, or its sign-in has expired, the section reads *Connect or reconnect a subscription in AI connections to view its quota.* Any old reading is cleared rather than shown as if it were current.
 
 ### Provider window spend
 
@@ -350,6 +378,17 @@ Paperclip separates estimated debits from authoritative ones because your provid
 
 The **Estimated** metric at the top tells you, at a glance, how much of your finance ledger is still provisional. A small number means most of your ledger is invoice-backed; a large number means a lot of estimated spend is waiting for reconciliation.
 
+### Other currencies
+
+The headline debit, credit, net, and estimated totals are in US dollars. If you've recorded charges in another currency, they're listed separately with their own currency — Paperclip doesn't apply exchange rates.
+
+### Provider cost reports and invoices
+
+An operator can bring in the provider's own figures through the [accounting API](../../reference/api/costs.md#accounting):
+
+- **Provider cost reports** — daily totals pulled straight from your OpenAI or Anthropic organization. These overlap with invoices and with Paperclip's own run costs, so they're never added to your recorded charges. Instead, the Finance tab shows them on their own line: *Provider API cost reports: $X. Report totals overlap invoices and run estimates and are shown separately from recorded charges.* Use that line as a cross-check.
+- **Invoices** — an imported invoice adds its lines to the finance ledger and can be compared line by line with the recorded charges, so you can spot and correct any difference.
+
 ### Exporting finance data
 
 Finance events can be exported for use in external accounting systems. The export carries the same fields you see in the timeline (event kind, biller, debit/credit amounts, timestamps, authoritative flag) so the resulting file can be reconciled against provider invoices or uploaded into a ledger.
@@ -394,7 +433,7 @@ For anything cross-agent — "which provider got the most money this week?", "wh
 
 **Prefer subscriptions when usage is predictable.** If you have an agent whose workload is steady and fits comfortably inside a provider's plan window (e.g. an Anthropic Pro subscription), routing through the subscription biller can be cheaper than pay-as-you-go API pricing. Use the Providers tab's quota-window view to confirm the subscription has headroom before committing an agent to it.
 
-**Reconcile finance regularly.** Invoice-authoritative numbers are always more accurate than estimates. A few minutes a month importing the real invoice into the Finance tab keeps your ledger honest and catches pricing changes early.
+**Reconcile finance regularly.** Invoice-authoritative numbers are always more accurate than estimates. A few minutes a month importing the real invoice (through the [accounting API](../../reference/api/costs.md#import-provider-invoices)) keeps your ledger honest and catches pricing changes early.
 
 ---
 

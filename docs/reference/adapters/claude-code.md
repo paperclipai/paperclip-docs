@@ -31,7 +31,7 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 |---|---:|---|
 | `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
 | `engine` | no | How Claude Code is run: `auto` (the default — runs ACP), `acp` (always the Agent Client Protocol), or `cli` (always the classic Claude CLI). See [ACP Engine](#acp-engine). |
-| `model` | no | Claude model id. Common choices include `claude-opus-5-5`, `claude-opus-4-8`, `claude-sonnet-5`, and `claude-fable-5-1`. |
+| `model` | no | Claude model id. Common choices include `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-opus-4-8`, `claude-sonnet-5`, and `claude-fable-5-1`. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `env` | no | Environment variables passed to Claude Code. Secret refs are supported. |
 | `command` | no | Defaults to `claude`. Override only if you need a different executable path. |
@@ -70,7 +70,7 @@ The `effort` choices in the agent form follow the model you pick:
 
 | Model | Effort levels |
 |---|---|
-| `claude-opus-5-5`, `claude-opus-5`, `claude-opus-4-8`, `claude-opus-4-7`, `claude-sonnet-5`, `claude-fable-5-1`, `claude-fable-5` | `low`, `medium`, `high`, `xhigh`, `max` |
+| `claude-opus-5-5`, `claude-opus-5`, `claude-opus-4-8`, `claude-opus-4-7`, `claude-sonnet-5-5`, `claude-sonnet-5`, `claude-fable-5-1`, `claude-fable-5` | `low`, `medium`, `high`, `xhigh`, `max` |
 | `claude-opus-4-6`, `claude-sonnet-4-6` | `low`, `medium`, `high`, `max` |
 | `claude-haiku-4-5` | No effort control |
 | Other models | `low`, `medium`, `high` |
@@ -116,7 +116,7 @@ When you pick a model in the agent config form, Claude Code fills the model drop
 Here's how the list is built:
 
 - **With an API key.** If `ANTHROPIC_API_KEY` is set, the adapter calls the Anthropic models endpoint (`/v1/models`) — at `ANTHROPIC_BASE_URL` if you've set one, otherwise `https://api.anthropic.com` — and offers everything it returns. The live results are merged with Paperclip's built-in list and de-duplicated, so you always see at least the known-good models, plus anything new from your account.
-- **On Bedrock.** If the adapter detects AWS Bedrock (for example `CLAUDE_CODE_USE_BEDROCK=1`), it offers the region-qualified Bedrock model IDs instead, such as `us.anthropic.claude-opus-5-5`, `us.anthropic.claude-sonnet-5`, and `us.anthropic.claude-fable-5-1`.
+- **On Bedrock.** If the adapter detects AWS Bedrock (for example `CLAUDE_CODE_USE_BEDROCK=1`), it offers the region-qualified Bedrock model IDs instead, such as `us.anthropic.claude-opus-5-5`, `us.anthropic.claude-sonnet-5-5`, `us.anthropic.claude-sonnet-5`, and `us.anthropic.claude-fable-5-1`.
 - **No key, or the lookup fails.** If there's no API key, or the request times out or comes back empty, you simply get Paperclip's built-in fallback list. Discovery never blocks you from saving an adapter.
 
 Whichever way the list is built, the dropdown shows it in the same order the Claude app uses, so you find the model you expect where you expect it. The newest release of each family comes first, from most to least capable — Fable, Mythos, Opus, Sonnet, then Haiku — followed by older releases grouped by family with the newest versions first. A model alias sorts ahead of its dated snapshots, and any id that doesn't look like a Claude model keeps its place at the end of the list.
@@ -128,6 +128,7 @@ Discovered models are cached for about a minute (keyed to the API key and base U
 > **Heads-up:** Some newer models need a minimum Claude Code version on the CLI lane:
 >
 > - Claude Opus 5.5 (`claude-opus-5-5`, or `us.anthropic.claude-opus-5-5` on Bedrock) needs Claude Code `2.1.280` or newer.
+> - Claude Sonnet 5.5 (`claude-sonnet-5-5`, or `us.anthropic.claude-sonnet-5-5` on Bedrock) needs Claude Code `2.1.284` or newer.
 > - Claude Fable 5.1 (`claude-fable-5-1`, or `us.anthropic.claude-fable-5-1` on Bedrock) needs Claude Code `2.1.251` or newer.
 >
 > If the installed CLI is older, the environment test and the run both fail fast with `claude_cli_version_incompatible` instead of launching against an unsupported binary — upgrade Claude Code on the target host to use the model.

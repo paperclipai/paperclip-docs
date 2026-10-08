@@ -297,6 +297,7 @@ The sidebar exposes the following fields, in order:
 - **Reviewers** — agents or users that must review before the issue can complete. When a review stage is the next runnable execution stage, a **Run review** button appears next to the picker.
 - **Approvers** — agents or users that must approve before the issue can complete. Same runnable-stage behaviour as Reviewers but for the approval stage.
 - **Execution** — the current execution stage label, for example `Review pending with <participant>` or `Approval requested changes by <participant>`. Read-only; it is driven by the execution policy.
+- **Pull requests** — the pull requests saved on this task, with the ones waiting on your review first and marked **Review requested**. Each links straight to the PR and, when Paperclip can read it, shows its live GitHub status. A saved PR stays listed even when Paperclip can't look it up — for example, a private repository without a token — so you never lose the link. See [Waiting on your pull request review](#waiting-on-your-pull-request-review).
 - **Depth** — the depth of this issue in its parent hierarchy.
 - **Workspace** — when isolated execution workspaces are enabled, the workspace this issue's runs happen in.
 - **Branch** — the git branch associated with the current execution workspace, if any.
@@ -437,6 +438,16 @@ For a GitHub **issue**, the status is **Open**, or **Closed** (with the close re
 Each pill also carries a **liveness** signal so you can trust what you're reading. Most of the time a reference is **Fresh** — recently refreshed and accurate. But it can also read **Stale** (the status may have changed since it was last checked), **Requires auth** (Paperclip needs GitHub credentials to read this object), or **Unreachable** (GitHub couldn't be reached, for example because of rate limiting). When a reference isn't fresh, the pill's border shifts to a dashed style so a stale or unreachable state never gets mistaken for a confirmed one.
 
 > **Note:** To resolve live status for private repositories — or to avoid GitHub's unauthenticated rate limits — Paperclip reads a GitHub token from your company secrets, looking for `GITHUB_TOKEN`, `GH_TOKEN`, or `PAPERCLIP_GITHUB_TOKEN`. Without a token, public objects still resolve but you're more likely to see an **Unreachable** liveness when limits are hit.
+
+### Waiting on your pull request review
+
+Sometimes an agent opens a pull request, asks you to review it, and then waits on GitHub — checking on a schedule until the PR is merged or closed. While that's happening, the task makes the wait obvious instead of showing a generic countdown:
+
+- The banner under the task title and the strip above the composer read **Pull request review requested**, list the PR (or PRs) waiting on you, and show when the next check runs.
+- The hint underneath reads *Review on GitHub, then check status to have the agent verify the result.* Do your review on GitHub, then click **Check status** to run the check right away instead of waiting for the next one. If the check fails, the error appears right there.
+- The same PRs show in the **Pull requests** row of the properties panel, tagged **Review requested**.
+
+Once the PR is merged, closed, or archived, the review prompt goes away on its own, even if the agent never cleared its review request.
 
 ### Filtering and badges
 

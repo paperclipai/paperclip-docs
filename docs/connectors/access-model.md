@@ -76,6 +76,17 @@ AgentMail is a setup exception: its new key defaults to everyone in the company 
 
 An organization grant has its own human audience, set on the connector's identity card: **Any human in the company**, or **Humans I pick** with a named member list. That audience governs which people's runs the shared credential will back.
 
+### Scopes recorded on a sign-in grant
+
+When you connect with a provider sign-in, the grant also records the OAuth scopes. Not every provider says what it actually granted, so the record notes where the list came from. If you read grants through the API, look under `providerTenant.oauth`:
+
+- `scopeSource: "provider"` — the provider stated these scopes when it issued the token.
+- `scopeSource: "requested_fallback"` — the provider said nothing, so the list is only what Paperclip asked for. Treat it as unknown, not as proof of a narrow grant.
+- `requestedScopes` — what Paperclip asked for on this grant.
+- `unrequestedScopes` — scopes the provider stated that Paperclip never asked for. Empty unless the provider reported more.
+
+These fields are a record, not a control. A scope list does not decide which actions an agent may call — action permissions do, as described below. Grants made before this record existed keep their scope list without a source.
+
 [Use separate accounts for people and agents](separate-accounts.md) walks through choosing between them.
 
 ## Agent access: which agents may use it
@@ -157,3 +168,4 @@ Access decisions resolve at call time, not at setup time. The tool gateway holds
 
 - [Connection setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
 - [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.
+- [Connection grant type](https://github.com/paperclipai/paperclip/blob/abbd88007f059dbadbd3f266febf264577b6ee78/packages/shared/src/types/tool-access.ts) — recorded OAuth scopes and their source.
