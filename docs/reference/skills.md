@@ -726,7 +726,7 @@ Walk down this list in order. The first match is usually the problem.
 
 ### "I pinned a beta release but the agent still runs the default"
 
-- Check **Beta skills** on **Settings → Instance settings → Experimental**. With `enableBetaSkills` off, saved pins are ignored rather than deleted, and every agent resolves to the live skill.
+- Check **Beta skills** on **Settings → Experimental**. With `enableBetaSkills` off, saved pins are ignored rather than deleted, and every agent resolves to the live skill.
 - A pin only applies while its skill is in the agent's desired set. Detaching the skill drops the pin along with it.
 - Confirm the pin actually persisted: with the flag **on**, `GET /api/agents/{agentId}/skills` reports it under `desiredSkillEntries`. With the flag off that response reports `versionId: null` even though the pin is still stored on the agent — so use it to check a pin, not to conclude one was lost.
 

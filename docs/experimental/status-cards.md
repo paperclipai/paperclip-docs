@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Status Cards: Answers Without Filtering
 seo_description: Pin the questions you ask daily — is the launch blocked, what changed this week, what is the next action — and read the answer without working the board.
 ---
@@ -11,8 +12,8 @@ A **status card** does that for you and keeps the answer on a shelf. You write o
 
 ## Turn it on
 
-1. Go to **Settings → Instance settings → Experimental**.
-2. Turn on **Status Cards** — *"Enable the experimental shared status-card board, update engine, and gated API."*
+1. Go to **Settings → Experimental**.
+2. Turn on **Status Cards** — *"Enable the experimental shared status-card board and its gated API. Existing card data is kept when this is disabled."*
 
 This flag gates the whole feature, not just the UI. With it off, the **Status** item disappears from the sidebar, `/status` redirects you to the dashboard, and every status-card API route responds `404 Not Found` with `{ "error": "Status cards are not enabled" }`.
 

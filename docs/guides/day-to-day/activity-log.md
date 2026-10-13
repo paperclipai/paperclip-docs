@@ -1,17 +1,20 @@
 ---
-seo_title: The Activity Log
-seo_description: A permanent, timestamped record of every status change, comment, hire, and approval in your company — built for accountability and for debugging.
+paperclip_version: v2026.1012.0
+seo_title: Audit Activity Log
+seo_description: The Activity tab under Audit is a permanent, timestamped record of every status change, comment, hire, and approval — for accountability and debugging.
 ---
 
-# Activity Log
+# Audit: Activity
 
-The Activity Log is the complete record of everything that has ever happened in your company. Every time an agent changes a task's status, posts a comment, gets hired or paused, spends budget, or has a proposal approved — that event is recorded here with a timestamp and the name of whoever caused it.
+The activity log is the complete record of everything that has ever happened in your company. Every time an agent changes a task's status, posts a comment, gets hired or paused, spends budget, or has a proposal approved — that event is recorded here with a timestamp and the name of whoever caused it.
 
-The log exists for two reasons. First, accountability: you can always see what actually happened and who did it. Second, debugging: when something goes wrong, the Activity Log is your first place to look.
+The log exists for two reasons. First, accountability: you can always see what actually happened and who did it. Second, debugging: when something goes wrong, the activity log is your first place to look.
 
-If the question you're really asking is "what did my *agents* do, and on whose behalf?", you don't need a different page anymore. Activity is now one page for both questions: flip the scope toggle to narrow from every actor down to agent actions only, without leaving the feed. See [Focusing on agent actions](#focusing-on-agent-actions) below.
+You'll find it under **Audit** in the sidebar. The Audit page has five tabs — **Activity**, **Runs**, **Costs**, **Budgets**, and **Timeline** — and it opens on **Activity**, which is what this guide covers. (Costs and Budgets are covered in the [Costs guide](./costs.md), and Timeline in the [Work Timeline guide](./work-timeline.md).)
 
-![Activity Log page showing a full chronological feed of events with actor names, action descriptions, and timestamps](../../user-guides/screenshots/light/activity/activity-log-full.png)
+If the question you're really asking is "what did my *agents* do, and on whose behalf?", you don't need a different page. The Activity tab answers both questions: flip the scope toggle from **Activity** to **Agent Actions** to narrow from every actor down to agent work, without leaving the feed. See [Focusing on agent actions](#focusing-on-agent-actions) below.
+
+![Audit page open on the Activity tab, showing the Activity / Agent Actions toggle, the filter bar, and a chronological feed of events with actor names, action descriptions, and timestamps](../../user-guides/screenshots/light/activity/activity-log-full.png)
 
 ---
 
@@ -36,26 +39,26 @@ Each record includes:
 
 ## Reading the Activity Log
 
-The Activity Log is available from the left sidebar. It opens to a chronological feed of all events, most recent first.
+Click **Audit** in the left sidebar. The page opens on the **Activity** tab: a chronological feed of all events, most recent first.
 
-Each row in the feed shows the actor's name, what they did, and when. Clicking a row jumps you to the related issue, approval, agent, project, goal, or run — useful when you want to inspect the thing that changed.
+Each row in the feed reads like a sentence — the actor's name, what they did, and the thing they did it to — with a relative timestamp on the right (hover it for the exact date and time). The raw action name, such as `issue.updated`, sits underneath in small type. Click the linked task or other item in a row to jump to it — useful when you want to inspect the thing that changed.
 
-![Activity Log detail view for a single event, showing actor, action, before/after values, and timestamp](../../user-guides/screenshots/light/activity/activity-log-full.png)
+![Rows in the Audit Activity feed, each showing the actor, a plain-language action, the linked task, the raw action name, and a relative timestamp](../../user-guides/screenshots/light/activity/activity-log-full.png)
 
-> **Tip:** The Activity Log and the task comment threads show different things. The comment thread on a task shows what the agent said as it worked — its reasoning, questions, and progress updates. The Activity Log shows the structural changes — status transitions, assignments, approvals. Use comments when you want to understand what the agent was thinking; use the log when you want to understand what actually changed and when.
+> **Tip:** The activity log and the task comment threads show different things. The comment thread on a task shows what the agent said as it worked — its reasoning, questions, and progress updates. The activity log shows the structural changes — status transitions, assignments, approvals. Use comments when you want to understand what the agent was thinking; use the log when you want to understand what actually changed and when.
 
 ---
 
 ## Filtering
 
-When you're looking for something specific, use the filters at the top of the Activity page.
+When you're looking for something specific, use the filters at the top of the Activity tab.
 
-![Activity Log with the filter bar open, showing the scope toggle plus agent, responsible user, action, entity, and date range filters](../../user-guides/screenshots/light/activity/activity-filters.png)
+![Audit Activity tab with the filter bar open, showing the scope toggle plus agent, responsible user, action, entity, and date range filters](../../user-guides/screenshots/light/activity/activity-filters.png)
 
 Start with the **scope toggle**. It switches between two views of the same feed:
 
-- **All actors** — everything that happened, from every kind of actor: humans, agents, plugins, and the system itself.
-- **Agent actions only** — just the rows where an agent did the work. This is the default.
+- **Activity** — everything that happened, from every kind of actor: humans, agents, plugins, and the system itself. This is the default.
+- **Agent Actions** — just the rows where an agent did the work.
 
 Below the toggle you can narrow further:
 
@@ -65,7 +68,7 @@ Below the toggle you can narrow further:
 - **Entity** — the kind of thing that changed, such as a task, agent, project, goal, or company.
 - **From** and **To** dates — a day range.
 
-![Activity Log filtered to show one category of events](../../user-guides/screenshots/light/activity/activity-filtered-by-agent.png)
+![Audit Activity feed narrowed with the filter bar, showing only the matching events](../../user-guides/screenshots/light/activity/activity-filtered-by-agent.png)
 
 The feed loads newest first and pages as you scroll, so there's no 200-row ceiling — you can follow a thread as far back as it goes.
 
@@ -73,7 +76,7 @@ The feed loads newest first and pages as you scroll, so there's no 200-row ceili
 
 ## Focusing on agent actions
 
-Sometimes you don't want *everything* that happened; you want to answer a narrower question — what did my agents do, and who was responsible for each of those actions? Flip the scope toggle to **Agent actions only** and the feed answers exactly that, without sending you to a different page.
+Sometimes you don't want *everything* that happened; you want to answer a narrower question — what did my agents do, and who was responsible for each of those actions? Flip the scope toggle to **Agent Actions** and the feed answers exactly that, without sending you to a different page.
 
 Two things stand out in this view:
 
@@ -82,16 +85,16 @@ Two things stand out in this view:
 
 Each row spells out the action in plain language, links the task it touched, quotes the comment excerpt when there is one, and offers a **View run** link when the action came out of an agent run. The raw action name (for example `issue.comment_added`) sits at the end of the row in small type, in case you need the exact string.
 
-You can also read a single agent's history without leaving its page: open the agent and switch to its **Activity** tab. It's the same feed, pinned to that one agent.
+You can also jump straight to a single agent's history: open the agent, and in the **Audit** section of its overview click **Activity**. You land on this same feed in **Agent Actions** mode, pinned to that one agent (a "Scoped to one agent" note appears above the filters).
 
 ### Who can see what
 
 Everyone on your team can open Activity, but there are two tiers of detail:
 
-- **Any company member** can read the feed with the scope set to **All actors**. You'll see every kind of actor — human, agent, plugin, and system — but the sensitive attribution fields (which agent, which run, and the responsible person) are stripped out.
+- **Any company member** can read the feed with the scope set to **Activity**. You'll see every kind of actor — human, agent, plugin, and system — but the sensitive attribution fields (which agent, which run, and the responsible person) are stripped out.
 - **Members with the `audit:view_agent_actions` permission** see complete rows. They can turn on the attribution filters — agent, responsible user, and actor type — and they can export the feed to CSV. No role hands this permission out by default, so it's always a deliberate grant; see [Roles & Permissions](../../administration/roles-and-permissions.md).
 
-If you set an attribution filter without the permission, Paperclip tells you the filter needs `audit:view_agent_actions` rather than silently returning stripped-down rows.
+Without the permission, the **Agent Actions** toggle is greyed out. If you set an attribution filter without the permission, Paperclip tells you the filter needs `audit:view_agent_actions` rather than silently returning stripped-down rows.
 
 ### Exporting
 
@@ -103,7 +106,7 @@ One thing to know before you press it: the export is itself logged as an `audit.
 
 ## Using Activity to Debug
 
-The Activity Log is most valuable when something has gone wrong and you need to understand why. Here are the most common scenarios and how to approach them.
+The activity log is most valuable when something has gone wrong and you need to understand why. Here are the most common scenarios and how to approach them.
 
 ---
 
@@ -137,7 +140,7 @@ If there are no heartbeat events at all recently, the agent's heartbeat schedule
 
 Open the task from the activity feed and look for related heartbeat events. If you see heartbeats completing but no task update events, the agent may be running but not making progress. Read the most recent comments on the task itself.
 
-If there are no recent heartbeat events at all, the agent may have been paused or may have hit a budget limit — check the agent's status on the dashboard.
+If there are no recent heartbeat events at all, the agent may have been paused or may have hit a budget limit — check the agent's status on the dashboard, or the **Budgets** tab under **Audit**.
 
 ---
 
@@ -145,10 +148,10 @@ If there are no recent heartbeat events at all, the agent may have been paused o
 
 Unlike agent run transcripts (which are stored per-run and can scroll off), activity records are kept permanently. You can always go back and audit what happened months ago. This is intentional — it's the basis for accountability in an autonomous AI company.
 
-If you ever need to understand a past decision, resolve a dispute about what an agent did or didn't do, or understand the sequence of events leading up to a problem, the Activity Log has the full record.
+If you ever need to understand a past decision, resolve a dispute about what an agent did or didn't do, or understand the sequence of events leading up to a problem, the activity log has the full record.
 
 ---
 
-You've now covered all five sections of the "Running Your Company" guide set. You know how to read the dashboard, manage tasks, handle approvals, control costs, and use the Activity Log to understand what's happening. From here, the next guide covers building out your org structure — adding manager agents and worker agents to scale beyond the CEO.
+You've now covered all five sections of the "Running Your Company" guide set. You know how to read the dashboard, manage tasks, handle approvals, control costs, and use the activity log under **Audit** to understand what's happening. From here, the next guide covers building out your org structure — adding manager agents and worker agents to scale beyond the CEO.
 
 [Building Your Org Structure →](../org/org-structure.md)

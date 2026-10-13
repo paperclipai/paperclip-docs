@@ -145,7 +145,10 @@ const DECISION_SPECS = [
       "Upstream shipped a fix that covers our proxy case. Taking it now means one fewer local patch "
       + "to carry, but it pulls in a minor version bump.",
     options: [
-      { id: "adopt", label: "Adopt the upstream fix", effects: [] },
+      // The Decided card shows the chosen option through its effect results
+      // ("Commented on ACM-12"); with no effects it shows only the body. The
+      // marker is replaced with a real comment effect on the origin issue below.
+      { id: "adopt", label: "Adopt the upstream fix", effects: "comment-on-origin" },
       { id: "wait", label: "Stay on the local patch for now", effects: [] },
     ],
     resolve: { kind: "decide", optionId: "adopt" },
@@ -194,7 +197,18 @@ async function seedDecisions({ companyId, baseUrl, sql, agents }) {
         body: {
           title: spec.title,
           body: spec.body,
-          options: spec.options,
+          options: spec.options.map((option) =>
+            option.effects === "comment-on-origin"
+              ? {
+                  ...option,
+                  effects: [{
+                    type: "comment_on_issue",
+                    targetIssueId: origin.issueId,
+                    staleness: "lenient",
+                    bodyMarkdown: "Decision: adopt the upstream sandbox proxy fix and drop the local patch. Take the minor version bump in this task.",
+                  }],
+                }
+              : option),
           ...(spec.inputs ? { inputs: spec.inputs } : {}),
         },
       }),
@@ -287,7 +301,23 @@ async function seedDecisionQueues({ companyId, baseUrl, decisionIds }) {
 async function prepareSummarizer({ companyId, baseUrl, sql }) {
   const builtIns = await step("list built-in agents", () =>
     request("GET", `/api/companies/${companyId}/built-in-agents`, { baseUrl }), []);
-  const summarizer = asList(builtIns).find((b) => b.definition?.key === "summarizer");
+  let summarizer = asList(builtIns).find((b) => b.definition?.key === "summarizer");
+  // Since ~v2026.10xx built-in agents are listed but no longer auto-provisioned:
+  // the Summarizer reports `status: "not_provisioned"` with a null agentId until
+  // someone provisions it. Provision it here with the inert process adapter
+  // (reconfigured below) so the status-card surfaces have a real author.
+  if (summarizer && !summarizer.agentId) {
+    const provisioned = await step("provision summarizer built-in agent", () =>
+      request("POST", `/api/companies/${companyId}/built-in-agents/summarizer/provision`, {
+        baseUrl,
+        body: {
+          adapterType: "process",
+          adapterConfig: { command: "sh", args: ["-c", "echo 'Compiling status card…'"] },
+        },
+      }),
+    );
+    if (provisioned?.agentId) summarizer = provisioned;
+  }
   if (!summarizer?.agentId) {
     console.warn("[seed-new] no Summarizer built-in agent — skipping status cards");
     return null;
@@ -425,7 +455,55 @@ async function seedStatusCards({ companyId, baseUrl, sql }) {
   }
 
   console.log(`[seed-new] seeded ${Object.keys(ids).length} status card(s)`);
+  await quietSummarizer({ summarizerAgentId, baseUrl, sql });
   return ids;
+}
+
+/**
+ * Put the Summarizer back to rest once its cards are written.
+ *
+ * The generation runs are kept alive (`sleep 900`) only so the query/summary
+ * writes above can authenticate against an active run. Left alone they sit on
+ * the dashboard as two "Live" Summarizer runs for the whole capture, and the
+ * agents list shows "Live (2)". Cancel them (that also kills the sleeping
+ * process), then settle the rows the way a finished compile looks: runs
+ * succeeded, the hidden generation tasks done, and the Summarizer idle with an
+ * instant command. (Not paused: a paused Summarizer puts a "Summarizer is
+ * paused" banner on /workspaces and the status pages.) Done directly in the DB
+ * so none of it adds rows to the activity feeds being captured.
+ */
+async function quietSummarizer({ summarizerAgentId, baseUrl, sql }) {
+  const runs = await step("list summarizer runs", () => sql`
+    select id from heartbeat_runs
+    where agent_id = ${summarizerAgentId} and status in ('queued', 'running', 'scheduled_retry')`, []);
+  for (const run of runs) {
+    await step("cancel summarizer run", () =>
+      request("POST", `/api/heartbeat-runs/${run.id}/cancel`, { baseUrl }));
+  }
+  // Give the cancellation a moment to land before rewriting the rows.
+  await new Promise((r) => setTimeout(r, 1500));
+  await step("settle summarizer state", async () => {
+    await sql`
+      update heartbeat_runs set status = 'succeeded', error = null, error_code = null,
+        finished_at = coalesce(finished_at, now())
+      where agent_id = ${summarizerAgentId} and status in ('cancelled', 'queued', 'running')`;
+    // Push the compile runs back a few hours so they are not the newest runs on
+    // the dashboard's agent strip (they were two "Compile status card" tiles).
+    await sql`
+      update heartbeat_runs set
+        created_at = created_at - interval '6 hours',
+        started_at = started_at - interval '6 hours',
+        finished_at = finished_at - interval '6 hours' + interval '40 seconds'
+      where agent_id = ${summarizerAgentId}`;
+    await sql`
+      update issues set status = 'done', completed_at = coalesce(completed_at, now())
+      where assignee_agent_id = ${summarizerAgentId} and hidden_at is not null
+        and status not in ('done', 'cancelled')`;
+    await sql`
+      update agents set status = 'idle', paused_at = null, pause_reason = null,
+        adapter_config = ${sql.json({ command: "sh", args: ["-c", "echo 'Status summary is current.'"], timeoutSec: 30 })}
+      where id = ${summarizerAgentId}`;
+  });
 }
 
 // ── Secret proposals ─────────────────────────────────────────────────────────

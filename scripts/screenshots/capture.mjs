@@ -12,7 +12,7 @@
  *
  * CLI flags:
  *   --all                     Recapture every target regardless of staleness.
- *   --only <substr>           Only capture targets whose name contains <substr>.
+ *   --only <substr[,substr]>  Only capture targets whose name contains any <substr>.
  *   --theme <light|dark|both> Which theme to capture (default: both).
  *   --stale <comma-file-list> Capture only these registry file paths.
  *   --base-url <url>          Override BASE_URL (default: config.BASE_URL).
@@ -25,6 +25,8 @@ import { chromium } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import os from "node:os";
+import { realpathSync } from "node:fs";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
@@ -36,6 +38,7 @@ import {
   REGISTRY_PATH,
   SEED_IDS_PATH,
   PARENT_REPO,
+  openInstanceDb,
 } from "./config.mjs";
 import { CAPTURE_TARGETS, resolveRoute } from "./routes.mjs";
 
@@ -138,6 +141,206 @@ function themeInitScript(theme) {
 })();`;
 }
 
+// ── Environment-path masking ──────────────────────────────────────────────────
+
+/**
+ * Replacement pairs for host-specific paths that the server derives from the
+ * throw-away instance: the scratch PAPERCLIP_HOME under os.tmpdir() (agent
+ * workspaces, skill folders), the seeded demo worktree, and the parent checkout
+ * (bundled skills, run cwd). They render verbatim in Folder / Path / Working
+ * directory / SOURCE rows as `/var/folders/kb/…/paperclip-docs-shots-home/…` and
+ * `/private/tmp/pc-tag-1012`. They are rewritten to the locations a normal
+ * install shows — `~/.paperclip/instances/default/…` (the default
+ * PAPERCLIP_HOME + instance id) and `~/paperclip` — right before each shot.
+ * Only these exact prefixes are touched; ids and everything else stay real.
+ */
+function envPathReplacements() {
+  const variants = (p) => {
+    const out = new Set([p]);
+    try { out.add(realpathSync(p)); } catch {}
+    for (const v of [...out]) {
+      if (v.startsWith("/private/")) out.add(v.slice("/private".length));
+      else if (v.startsWith("/var/") || v.startsWith("/tmp/")) out.add(`/private${v}`);
+    }
+    return [...out];
+  };
+  const tmp = os.tmpdir();
+  const pairs = [];
+  for (const t of variants(tmp)) {
+    pairs.push([`${t}/paperclip-docs-shots-home/instances/docs-screenshots`, "~/.paperclip/instances/default"]);
+    pairs.push([`${t}/paperclip-docs-shots-home`, "~/.paperclip"]);
+    pairs.push([`${t}/paperclip-docs-shots-worktree`, "~/acme/website-worktrees"]);
+  }
+  for (const t of variants(tmp)) pairs.push([`${t}/paperclip-docs-shots-wiki`, "~/acme/wiki"]);
+  for (const r of variants(PARENT_REPO)) pairs.push([r, "~/paperclip"]);
+  // The seeded project workspace cwd (a path that need not exist).
+  pairs.push(["/srv/acme/website", "~/acme/website"]);
+  // Path cells middle-truncate in JS ("…/docs-screenshots/workspaces/<id>",
+  // "…/T/paperclip-docs-shots-worktree/ACM-204"), so the full prefixes above
+  // never match there. These fragments catch the truncated forms.
+  pairs.push(["/T/paperclip-docs-shots-worktree", "/acme/website-worktrees"]);
+  pairs.push(["paperclip-docs-shots-worktree", "website-worktrees"]);
+  pairs.push(["paperclip-docs-shots-home", ".paperclip"]);
+  pairs.push(["/docs-screenshots/", "/default/"]);
+  // Longest first so a nested prefix wins over its parent.
+  return pairs.sort((a, b) => b[0].length - a[0].length);
+}
+
+const ENV_PATH_REPLACEMENTS = envPathReplacements();
+
+/**
+ * Rewrite the same host paths in API responses, before the UI sees them.
+ *
+ * Several path cells shorten the string in JS ("/var/folders/kb/lqp9y0fn7nn…
+ * ACM-204"), which leaves no full prefix in the DOM for maskEnvPaths() to find.
+ * Masking the JSON at the source covers every rendering. Streaming endpoints
+ * (event streams, live log feeds) pass through untouched — fetching them here
+ * would block until the stream closes.
+ */
+async function installEnvPathMasking(context) {
+  const needles = ENV_PATH_REPLACEMENTS.map(([from]) => from);
+  await context.route("**/api/**", async (route) => {
+    const request = route.request();
+    const accept = request.headers()["accept"] ?? "";
+    const url = request.url();
+    // Opening a task marks it read (POST /api/issues/:id/read), which logs an
+    // "issue.read_marked" activity row and clears unread state. Over a full run
+    // that turned Recent Activity / the Audit feed into a wall of "Board read
+    // Design the homepage hero section" and changed the inbox between shots.
+    // The capture is an observer: answer the call locally, write nothing.
+    const readMatch = request.method() === "POST" && url.match(/\/api\/issues\/([^/?]+)\/read(?:\?|$)/);
+    if (readMatch) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ id: decodeURIComponent(readMatch[1]), lastReadAt: new Date().toISOString() }),
+      });
+    }
+    if (
+      request.method() !== "GET" ||
+      accept.includes("text/event-stream") ||
+      /\/(stream|events|live|logs?)(\/|\?|$)/.test(url)
+    ) {
+      return route.fallback();
+    }
+    let response;
+    try {
+      response = await route.fetch();
+    } catch {
+      return route.fallback();
+    }
+    const type = response.headers()["content-type"] ?? "";
+    if (!type.includes("json")) return route.fulfill({ response });
+    let body = await response.text();
+    if (needles.some((n) => body.includes(n))) {
+      for (const [from, to] of ENV_PATH_REPLACEMENTS) {
+        if (body.includes(from)) body = body.split(from).join(to);
+      }
+    }
+    return route.fulfill({ response, body });
+  });
+}
+
+/** Rewrite host paths in text nodes, form values and title attributes. */
+async function maskEnvPaths(page) {
+  try {
+    await page.evaluate((pairs) => {
+      const fix = (v) => {
+        if (!v) return v;
+        let out = v;
+        for (const [from, to] of pairs) if (out.includes(from)) out = out.split(from).join(to);
+        return out;
+      };
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      let n;
+      while ((n = walker.nextNode())) {
+        const next = fix(n.nodeValue);
+        if (next !== n.nodeValue) n.nodeValue = next;
+      }
+      for (const el of document.querySelectorAll("input, textarea")) {
+        const next = fix(el.value);
+        if (next !== el.value) el.value = next;
+      }
+      for (const el of document.querySelectorAll("[title]")) {
+        const next = fix(el.getAttribute("title"));
+        if (next !== el.getAttribute("title")) el.setAttribute("title", next);
+      }
+    }, ENV_PATH_REPLACEMENTS);
+  } catch {
+    // A navigation mid-evaluate is harmless — the shot just goes unmasked.
+  }
+}
+
+// ── Activity-log hygiene ──────────────────────────────────────────────────────
+
+/**
+ * Board-actor writes made *during* capture are capture artifacts, not part of
+ * the demo story: the per-shot experimental flag switches ("instance settings
+ * experimental updated"), the run.mjs status keeper's re-asserts ("changed
+ * status from in progress to todo"), and read-only page loads that the server
+ * audits ("provider trace metadata listed"). Left alone they push the real
+ * task / agent / approval events out of every activity feed. Drop them before
+ * each shot. Rows written by agents and the system during capture stay.
+ */
+const CAPTURE_NOISE_ACTIONS = [
+  "instance.settings.experimental_updated",
+  "provider_trace.metadata_listed",
+  "issue.read_marked",
+];
+
+async function pruneCaptureActivity(captureStartedAt) {
+  let sql;
+  try {
+    sql = openInstanceDb();
+  } catch {
+    return; // no local instance DB (e.g. --base-url against something else)
+  }
+  try {
+    await sql`
+      delete from activity_log
+      where action in ${sql(CAPTURE_NOISE_ACTIONS)}
+         or (actor_type = 'user' and created_at >= ${captureStartedAt})`;
+  } catch (err) {
+    console.warn("capture:   could not prune capture activity:", err.message);
+  } finally {
+    await sql.end().catch(() => {});
+  }
+}
+
+// ── Per-target experimental flags ─────────────────────────────────────────────
+
+/**
+ * Flip instance experimental flags for one capture and hand back a restore fn.
+ *
+ * A target can declare `experimental: { enableClassicTaskInterface: true }` when
+ * the surface it documents only exists behind a flag that must stay off for the
+ * rest of the run (the flags are instance-wide). The previous values are read
+ * first and written back after the shot, even if the capture throws.
+ */
+async function applyExperimentalFlags(baseUrl, flags) {
+  if (!flags || typeof flags !== "object") return async () => {};
+  const url = `${baseUrl}/api/instance/settings/experimental`;
+  let previous = {};
+  try {
+    const res = await fetch(url);
+    if (res.ok) previous = await res.json();
+  } catch {}
+  const restore = Object.fromEntries(Object.keys(flags).map((k) => [k, previous?.[k] ?? false]));
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(flags),
+  });
+  if (!res.ok) console.warn(`capture:   could not set experimental flags ${JSON.stringify(flags)} (HTTP ${res.status})`);
+  return async () => {
+    await fetch(url, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(restore),
+    }).catch((err) => console.warn("capture:   could not restore experimental flags:", err.message));
+  };
+}
+
 // ── Interaction step engine ───────────────────────────────────────────────────
 
 /**
@@ -154,7 +357,7 @@ function locate(page, sel) {
   if (sel.label) return page.getByLabel(sel.label).first();
   if (sel.title) return page.getByTitle(sel.title).first();
   if (sel.placeholder) return page.getByPlaceholder(sel.placeholder).first();
-  if (sel.text) return page.getByText(sel.text).first();
+  if (sel.text) return page.getByText(sel.text, sel.exact ? { exact: true } : {}).first();
   if (sel.css) return page.locator(sel.css).first();
   throw new Error(`unknown selector: ${JSON.stringify(sel)}`);
 }
@@ -165,7 +368,8 @@ function locate(page, sel) {
  * (a partial capture beats no capture, and surfaces selector drift in the log).
  *
  * Step shapes: { click }, { fill, value }, { waitFor }, { waitMs }, { press },
- * { select, value } (select a native option), { scrollTo } (bring an element into view — long pages like issue detail put
+ * { select, value } (select a native option), { scrollToTop } (align an element with
+ * the top of its scroll container), { scrollTo } (bring an element into view — long pages like issue detail put
  * the interesting section below the fold, and a 1440×900 shot of the top of the
  * page misses it entirely).
  *
@@ -182,6 +386,25 @@ async function runSteps(page, steps, label) {
         await locate(page, stepObj.waitFor).waitFor({ state: "visible", timeout: 8_000 });
       } else if (stepObj.scrollTo) {
         await locate(page, stepObj.scrollTo).scrollIntoViewIfNeeded({ timeout: 8_000 });
+      } else if (stepObj.scrollToTop) {
+        // Align the element with the top of its scroll container. scrollTo is a
+        // no-op for an element already (barely) on screen, which leaves cards
+        // that start near the fold cut off below it.
+        const el = locate(page, stepObj.scrollToTop);
+        await el.waitFor({ state: "attached", timeout: 8_000 });
+        await el.evaluate((node) => node.scrollIntoView({ block: "start" }));
+      } else if (stepObj.scrollToEnd) {
+        // Scroll a horizontally scrolling container all the way right.
+        await locate(page, stepObj.scrollToEnd).evaluate((el) => { el.scrollLeft = el.scrollWidth; });
+        await page.waitForTimeout(300);
+      } else if (stepObj.hover) {
+        await locate(page, stepObj.hover).hover({ timeout: 8_000 });
+      } else if (stepObj.scrollBy != null) {
+        // Wheel-scroll the content pane (pointer parked over it) by N px; used
+        // to nudge a heading out from under the sticky top bar.
+        await page.mouse.move(VIEWPORT.width * 0.6, VIEWPORT.height * 0.5);
+        await page.mouse.wheel(0, Number(stepObj.scrollBy));
+        await page.waitForTimeout(300);
       } else if (stepObj.click) {
         await locate(page, stepObj.click).click({ timeout: 8_000 });
       } else if (stepObj.select) {
@@ -227,6 +450,10 @@ export default async function capture(opts = {}) {
   } = opts;
 
   const seedIds = await loadSeedIds();
+  // Company-scoped storage dirs carry the company UUID ("…/skills/<uuid>").
+  if (seedIds.companyId && !ENV_PATH_REPLACEMENTS.some(([from]) => from.includes(seedIds.companyId))) {
+    ENV_PATH_REPLACEMENTS.unshift([`/skills/${seedIds.companyId}`, "/skills/acme-robotics"]);
+  }
   const sha = await parentHeadSha();
   const refName = await parentRefName();
 
@@ -240,7 +467,10 @@ export default async function capture(opts = {}) {
   // Filter targets.
   let targets = CAPTURE_TARGETS.filter((t) => (t.phase ?? "post-seed") === phase);
   if (only) {
-    targets = targets.filter((t) => t.name.includes(only));
+    // Comma-separated substrings are OR-ed, so one boot can recapture a handful
+    // of unrelated targets (e.g. --only agents/codex,routines/run-history).
+    const needles = String(only).split(",").map((n) => n.trim()).filter(Boolean);
+    targets = targets.filter((t) => needles.some((n) => t.name.includes(n)));
   }
 
   // Expand to (target, theme) pairs and apply staleness filter.
@@ -274,6 +504,7 @@ export default async function capture(opts = {}) {
   // Track which registry entries we stamped this run.
   const stampedFiles = new Set();
 
+  const captureStartedAt = new Date();
   const browser = await chromium.launch();
   try {
     for (const { target, theme, file } of work) {
@@ -289,7 +520,10 @@ export default async function capture(opts = {}) {
 
       // Create a fresh context per capture for full isolation.
       const context = await browser.newContext({
-        viewport: VIEWPORT,
+        // A target may ask for a taller viewport when its caption describes
+        // more of a page than fits in 900 px (the app scrolls inside <main>,
+        // so a full-page screenshot does not reach below the fold).
+        viewport: target.viewport ?? VIEWPORT,
         deviceScaleFactor: DEVICE_SCALE,
         colorScheme: theme, // CSS @media (prefers-color-scheme) emulation
       });
@@ -297,8 +531,12 @@ export default async function capture(opts = {}) {
       // Seed the localStorage key and toggle the html class BEFORE any page
       // script runs.  This is equivalent to the inline script in ui/index.html.
       await context.addInitScript(themeInitScript(theme));
+      await installEnvPathMasking(context);
 
       const page = await context.newPage();
+      const restoreFlags = await applyExperimentalFlags(baseUrl, target.experimental);
+      if (phase !== "pre-seed") await pruneCaptureActivity(captureStartedAt);
+      try {
       if (target.githubReviewStage) {
         const { installGitHubReviewFixture } = await import("./github-review-fixture.mjs");
         await installGitHubReviewFixture(page, seedIds, target.githubReviewStage);
@@ -332,6 +570,14 @@ export default async function capture(opts = {}) {
         }
       }
 
+      // `readyText`: wait for content that only renders once the page has
+      // really loaded (e.g. the task thread, which paints as skeletons first).
+      if (target.readyText) {
+        await page.getByText(target.readyText).first().waitFor({ state: "visible", timeout: 15_000 })
+          .catch(() => console.warn(`capture:   readyText for ${target.name} never appeared`));
+        await page.waitForTimeout(600);
+      }
+
       // Optional interaction steps (open a dialog, switch a tab, fill a field…).
       if (Array.isArray(target.steps) && target.steps.length) {
         await runSteps(page, target.steps, target.name);
@@ -343,10 +589,44 @@ export default async function capture(opts = {}) {
         await page.getByText(target.requiredText, { exact: true }).first().waitFor({ state: "visible", timeout: 10_000 });
       }
 
+      await maskEnvPaths(page);
+
       // `clip` captures a single element (e.g. one dashboard panel) instead of
       // the whole page. Falls back to a full-page shot if the element is missing.
       let clipped = false;
-      if (target.clip) {
+      // `clipContent`: crop to the union box of what is drawn inside a container
+      // (e.g. the org-chart tree inside its mostly empty pan/zoom canvas),
+      // ignoring anything matching `exclude`, plus `padding` px.
+      if (target.clipContent) {
+        try {
+          const box = await locate(page, target.clipContent).evaluate((root, opts) => {
+            const excluded = opts.exclude ? [...root.querySelectorAll(opts.exclude)] : [];
+            const rootBox = root.getBoundingClientRect();
+            let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+            for (const el of root.querySelectorAll("*")) {
+              if (el.children.length && el.tagName !== "svg") continue;
+              if (excluded.some((ex) => ex.contains(el))) continue;
+              const r = el.getBoundingClientRect();
+              if (!r.width || !r.height) continue;
+              if (r.right < rootBox.left || r.left > rootBox.right || r.bottom < rootBox.top || r.top > rootBox.bottom) continue;
+              x1 = Math.min(x1, r.left); y1 = Math.min(y1, r.top); x2 = Math.max(x2, r.right); y2 = Math.max(y2, r.bottom);
+            }
+            const pad = opts.padding ?? 24;
+            return {
+              x: Math.max(rootBox.left, x1 - pad), y: Math.max(rootBox.top, y1 - pad),
+              width: Math.min(rootBox.right, x2 + pad) - Math.max(rootBox.left, x1 - pad),
+              height: Math.min(rootBox.bottom, y2 + pad) - Math.max(rootBox.top, y1 - pad),
+            };
+          }, { exclude: target.clipContent.exclude ?? null, padding: target.clipContent.padding });
+          if (box && box.width > 0 && box.height > 0) {
+            await page.screenshot({ path: outPath, clip: box });
+            clipped = true;
+          }
+        } catch (err) {
+          console.warn(`capture:   clipContent for ${target.name} failed, full page instead: ${err.message.split("\n")[0]}`);
+        }
+      }
+      if (!clipped && target.clip) {
         try {
           await locate(page, target.clip).screenshot({ path: outPath, timeout: 8_000 });
           clipped = true;
@@ -359,6 +639,9 @@ export default async function capture(opts = {}) {
       }
       console.log(`capture: ok [${theme}] ${target.name} → ${file}`);
       stampedFiles.add(file);
+      } finally {
+        await restoreFlags();
+      }
 
       await context.close();
     }

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.513.0
+paperclip_version: v2026.1012.0
 seo_title: Blocked Inbox: Triaging Stalled Work
 seo_description: The Blocked tab surfaces issues waiting on a decision, a recovery run, an external person, or a paused owner — and shows who owns each unblock.
 ---
@@ -10,7 +10,7 @@ The **Blocked** tab in your Inbox is where stopped work goes to be triaged. The 
 
 If you've ever had an agent quietly sitting on `status = blocked` while you wondered why nothing was moving, this is the view that calls it out.
 
-![Inbox](../../user-guides/screenshots/light/issues/inbox.png)
+![The Inbox Blocked tab listing blocked tasks and why each is waiting](../../user-guides/screenshots/light/issues/inbox-blocked.png)
 
 ---
 

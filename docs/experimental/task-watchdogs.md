@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.707.0
+paperclip_version: v2026.1012.0
 seo_title: Task Watchdogs (Experimental)
 seo_description: A watchdog wakes when an agent misreads a blocker, claims done without proof, or gives up on a recoverable error, so the issue tree never just goes quiet.
 ---
@@ -10,12 +10,9 @@ Sometimes an agent stops work for the wrong reason — it misreads a blocker, de
 
 A **task watchdog** is an agent you attach to a task to double-check stopped work. When the watched task and all its descendants have come to rest with no live path forward, the watchdog wakes up, reads the evidence, and either accepts the stop or restores a live path so work continues.
 
-![A watchdog reporting its verdict in the task thread](../user-guides/screenshots/light/watchdogs/watchdog-thread-outcome.png)
-
 ## Turn it on
 
-1. Go to **Settings → Instance settings → Experimental**.
-2. Turn on **Task Watchdogs** — *"Show task detail controls for configuring watchdog agents that verify stopped task subtrees and restore live paths when work should continue."*
+There's nothing to turn on any more. Task watchdogs used to sit behind a **Task Watchdogs** toggle on the Experimental settings page; that flag has been removed, and the watchdog controls are now always available on every task. If you remember the toggle from an older release, you won't find it on **Settings → Experimental** now.
 
 ## Using it
 
@@ -32,9 +29,9 @@ When it does wake, the stopped-state comment it posts lists each stopped task wi
 
 The full lifecycle — when a watchdog wakes, what it's allowed to do, and how it differs from the other things called "watchdog" — is covered in the [Task Watchdogs guide](../guides/projects-workflow/task-watchdogs.md).
 
-## When it's off
+## Removing a watchdog
 
-The flag hides the configuration UI only. **Watchdogs you already configured keep running** — the scheduler evaluates them regardless of the flag, so this is a hide, not a kill switch. To actually stop a watchdog, remove it from the task's Watchdog row before turning the flag off.
+Because there's no flag, there's no global off switch either. To stop a watchdog, open the task, click its **Watchdog** row, and choose **Remove**.
 
 ## Caveats
 

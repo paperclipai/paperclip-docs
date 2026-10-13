@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Key Concepts: Companies, Agents, Tasks
 seo_description: The seven ideas behind Paperclip — company, agent, task, heartbeat, adapter, budget, approval — explained with analogies before the technical detail.
 ---
@@ -43,7 +44,7 @@ Every single thing in Paperclip — every agent, every task, every dollar spent 
 
 Agents are organised in a strict hierarchy. Every agent reports to exactly one manager. The CEO is the only agent with no manager — it reports directly to you, the board.
 
-![The org chart view showing agents in a hierarchy, with the CEO at the top and direct reports beneath](../../user-guides/screenshots/light/org/org-chart-view.png)
+![The Agents page in Org chart view, showing agents in a hierarchy with the CEO at the top and direct reports beneath](../../user-guides/screenshots/light/org/org-chart-view.png)
 
 > **Note:** The CEO agent is always the first agent you create. It's the entry point — once the CEO is running, it creates tasks and can request to hire its own reports.
 
@@ -86,7 +87,7 @@ They can also be marked `blocked` if an agent is waiting on something, or `cance
 
 **What you do with it:**
 - Configure how often each agent's heartbeat fires (e.g. every hour)
-- Use **Run Heartbeat** on the agent detail page when you want to trigger one manually
+- Use **Run now** on the agent's page when you want to trigger one manually
 - Use comments and assignments to wake agents on demand when their run policy allows it
 
 Each heartbeat is logged with a full transcript so you can read exactly what the agent did and why.
@@ -94,11 +95,11 @@ Each heartbeat is logged with a full transcript so you can read exactly what the
 A heartbeat can be triggered by:
 - **Schedule** — a timer fires at your configured interval
 - **Task assignment** — a new task is assigned to the agent
-- **Comment mention** — the agent is @-mentioned in a task comment
-- **Manual invoke** — you click **Run Heartbeat** on the agent detail page
+- **New comment** — someone comments on a task assigned to the agent (an @-mention on its own doesn't wake an agent)
+- **Manual invoke** — you click **Run now** on the agent's page
 - **Approval resolution** — a pending approval the agent submitted is approved or rejected
 
-![The agent detail page showing run history with heartbeat transcripts](../../user-guides/screenshots/light/agents/agent-detail-run-history.png)
+![The Audit page's Runs tab filtered to one agent, listing its recent heartbeat runs](../../user-guides/screenshots/light/agents/agent-detail-run-history.png)
 
 ---
 
@@ -113,7 +114,7 @@ A heartbeat can be triggered by:
 **What you do with it:**
 - Choose an adapter type when you hire an agent (Claude Code is the most common starting point)
 - Configure adapter-specific settings: which model to use, where files should be written, and which environment variables or secrets the agent needs
-- Use the "Test Environment" button to verify the adapter is working before enabling the agent
+- Use **Run test** in the **Test your agent** card to verify the adapter is working before enabling the agent
 
 Available adapter types:
 
@@ -145,13 +146,13 @@ For most people getting started, `claude_local` is the right choice.
 - Set a company-level budget (the ceiling for the whole organisation)
 - Set per-agent budgets (each agent has its own limit within the company ceiling)
 - Monitor spend on the dashboard's cost panel
-- Increase or decrease budgets at any time from the agent's settings
+- Increase or decrease budgets at any time from **Audit → Budgets**, once the agent has a budget policy; create one with the CLI or API (see [Agents: Budgets](../org/agents.md#budgets))
 
 Budget behaviour:
 - At **80% utilisation**: Paperclip shows a warning so you can intervene before the hard stop
 - At **100% utilisation**: the agent is automatically paused and no more heartbeats fire
 
-![The cost summary panel showing per-agent budget bars with current spend](../../user-guides/screenshots/light/costs/agent-budget-bar.png)
+![The Budgets tab on the Audit page, with the Budget control plane summary and active budget incidents](../../user-guides/screenshots/light/costs/agent-budget-bar.png)
 
 > **Warning:** The company budget and the per-agent budgets are separate. An agent can be paused by its own budget limit even if the company has remaining budget. Set both carefully.
 
@@ -178,7 +179,7 @@ The first two approval types most beginners encounter are:
 
 Paperclip can also surface budget override approvals when a hard stop is hit, and other board-level approval requests in more advanced flows.
 
-![The approvals list showing pending strategy and hire_agent approvals](../../user-guides/screenshots/light/approvals/approvals-list.png)
+![The Approvals page listing pending approvals, such as a CEO strategy proposal and a board approval request](../../user-guides/screenshots/light/approvals/approvals-list.png)
 
 > **Tip:** Approvals don't expire on their own. If an approval is pending, agents that are waiting on it will pause at that point until you take action. Keep an eye on your approval queue.
 

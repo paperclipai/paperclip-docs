@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Require Board Approval Before Spend
 seo_description: Caps are reactive. For lumpy, discrete spend — a $40/month SaaS signup — make agents ask a human first instead of warning you at 80 percent.
 ---
@@ -19,7 +20,7 @@ This guide wires that pattern end-to-end on a test company. Time to working appr
 | Direction | Reactive — fires after the dollars are spent | Proactive — fires before the action happens |
 | Granularity | Aggregate per scope (company, agent, project) per month | Per-decision, with the proposal in the payload |
 | What stops | The whole scope pauses (no more heartbeats) | Only the specific spend; the agent keeps working other tasks |
-| Who acts | Board resolves the incident on the Costs page | Board approves/rejects on the Approvals page |
+| Who acts | Board resolves the incident under **Audit → Budgets** | Board approves/rejects on the Approvals page |
 
 Use **both**. The cap is your safety net — it catches what slips through the contract. The approval gate is the contract: anything above $X, anything recurring, anything outside a pre-approved provider list, requires a board decision before the agent commits.
 
@@ -139,11 +140,11 @@ Open it. The detail view shows the three structured fields up top (title, summar
 
 The decision buttons sit at the bottom — same three buttons every approval gets:
 
-![Approve, Reject, and Request Revision buttons](../user-guides/screenshots/light/approvals/approve-reject-revision-buttons.png)
+![Approve, Reject, and Request revision buttons](../user-guides/screenshots/light/approvals/approve-reject-revision-buttons.png)
 
 - **Approve** — the agent is woken with `PAPERCLIP_APPROVAL_STATUS=approved` and proceeds with the spend.
 - **Reject** — the agent is woken with `PAPERCLIP_APPROVAL_STATUS=rejected` and abandons the spend per its instructions.
-- **Request Revision** — the approval enters `revision_requested`, your `decisionNote` is stored, and the agent is *not* automatically woken (see the gotcha at the end of Section 5).
+- **Request revision** — the approval enters `revision_requested` and the agent is *not* automatically woken (see the gotcha at the end of Section 5). The button doesn't take a note, so explain what you want in the **Comments** box (or send a `decisionNote` through the API, below).
 
 The same actions are available on the API:
 
@@ -238,7 +239,7 @@ Two important details about the wake:
 - **The wake covers `approved` and `rejected` only.** `request-revision` does not fire `PAPERCLIP_APPROVAL_ID`. The board's `decisionNote` is stored on the approval; the agent learns about it on its next normal heartbeat (or sooner if you also leave a comment on the source issue, which *does* fire a wake — see [Debug a stuck heartbeat](./debug-stuck-heartbeat.md) for the full set of wake reasons).
 - **Re-fetch the approval and the linked issues.** The env vars only carry the id and the verdict. The payload, the `decisionNote`, and the linked-issue list all live on the API and may have changed since the agent submitted the request — particularly after a revision round.
 
-For BYO-agent runtimes that don't get Paperclip-driven wakes at all (the polling pattern in [Bring your own agent → Option C](./bring-your-own-agent.md#option-c--custom-script-no-paperclip-adapter)), poll the approval directly: `GET /api/approvals/$APPROVAL_ID` returns the current status. Loop with backoff and bail when `status != "pending"`.
+For BYO-agent runtimes that don't get Paperclip-driven wakes at all (the polling pattern in [Bring your own agent → Option C](./bring-your-own-agent.md#option-c-custom-script-no-paperclip-adapter)), poll the approval directly: `GET /api/approvals/$APPROVAL_ID` returns the current status. Loop with backoff and bail when `status != "pending"`.
 
 ---
 
@@ -248,7 +249,7 @@ Before relying on the gate in production, prove the loop closes. Use a throwaway
 
 1. **Make sure the agent's instructions name the gate.** Open the agent → **Instructions**, paste a minimal version of the rule from Section 2, save.
 
-2. **Trigger the spend.** Assign the agent an issue that should hit the gate ("Sign up for the demo SaaS account"). Run a heartbeat — either let one fire on schedule or click **Run Heartbeat** in the agent header.
+2. **Trigger the spend.** Assign the agent an issue that should hit the gate ("Sign up for the demo SaaS account"). Run a heartbeat — either let one fire on schedule or click **Run now** in the agent header.
 
 3. **Confirm the approval lands.** Open **Approvals → Pending**. You should see the request, with the proposal payload your agent submitted. Confirm `issueIds` links to the source issue.
 

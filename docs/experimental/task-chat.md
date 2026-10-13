@@ -14,11 +14,11 @@ Watching an agent work on a task usually means reading two things at once: the c
 
 Chat-Style Tasks started life as an experimental toggle. It's now simply how the task page works — there's nothing to switch on.
 
-If you'd rather have the old page back, go to **Settings → Instance settings → Experimental** and, under **Legacy** (*"These features are going to be removed."*), turn on **Classic Task Interface**. It restores the previous task detail page — the page-level header, the plain comment thread, and the fixed Properties sidebar — and the chat-only features described below aren't available there. The card notes that *"Switching takes effect immediately. No task data is affected."* Like every flag on that page, it's instance-wide.
+If you'd rather have the old page back, go to **Settings → Experimental** and, under **Legacy** (*"These features are going to be removed."*), turn on **Classic Task Interface**. It restores the previous task detail page — the page-level header, the plain comment thread, and the fixed Properties sidebar — and the chat-only features described below aren't available there. The card notes that *"Switching takes effect immediately. No task data is affected."* Like every flag on that page, it's instance-wide.
 
 ## An optional combined task list
 
-The task conversation described here is standard behavior. **Combined Inbox + Task List** (setting key `enableCombinedInboxTasks`) is a separate experimental option, off by default, under **Settings → Instance settings → Experimental**. It only takes effect while **Streamlined UI** is on; if your instance has switched **Streamlined UI** off, turning this on changes nothing and the separate **Inbox** row stays.
+The task conversation described here is standard behavior. **Combined Inbox + Task List** (setting key `enableCombinedInboxTasks`) is a separate experimental option, off by default, under **Settings → Experimental**. It only takes effect while **Streamlined UI** is on; if your instance has switched **Streamlined UI** off, turning this on changes nothing and the separate **Inbox** row stays.
 
 With that option on in the streamlined interface, **Tasks** carries the unread and failed-run badge, and the separate **Inbox** sidebar row disappears. Open **Views** on Tasks to switch between **Mine**, **Unread**, **Blocked**, **Recent**, and **Everything**, or the organization views **All tasks**, **Active**, **Backlog**, and **Done**. Your inbox actions and task filters still belong to their respective views. Existing inbox links take you to the corresponding task view.
 

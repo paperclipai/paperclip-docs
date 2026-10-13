@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Set a Monthly Budget and Enforce It
 seo_description: A misconfigured loop can run a four-figure tab in a weekend. Set a cap Paperclip enforces automatically, with warnings before the hard stop.
 ---
@@ -75,9 +76,11 @@ Project policies default to lifetime caps — useful for one-shot work ("this pr
 
 ## 3. Where the warnings show up
 
-At 80% (or whatever `warnPercent` you set) Paperclip records a **soft incident** against the policy. At 100% it records a **hard incident** and pauses the scope. Both surface on the Budgets tab as cards above the policy list:
+At 80% (or whatever `warnPercent` you set) Paperclip records a **soft incident** against the policy. At 100% it records a **hard incident** and pauses the scope. In the UI, open **Audit** in the sidebar and switch to the **Budgets** tab. Open incidents appear there as cards above the policy list:
 
-![Budgets tab showing the control plane and active incidents grid](../user-guides/screenshots/light/costs/budgets.png)
+![Audit page on the Budgets tab, showing the Budget control plane card, active incidents, and budget policy cards](../user-guides/screenshots/light/costs/budgets.png)
+
+> **Heads-up:** in this release, every incident card is headed **… hard stop** and says *"This scope is paused"*, including the soft incident opened at the warning threshold. Check the policy card instead: a soft crossing shows a **Warning** badge and the agent keeps running. Only **Hard stop** or **Paused** means work has actually stopped.
 
 Paperclip does not push outbound webhooks today. If you want Slack or Discord pings on incidents, run a routine that diffs `GET /api/companies/{COMPANY_ID}/budgets/overview` against a cursor and posts to a webhook — the same shape as the approval notifier. See [Wire Slack/Discord notifications](./wire-slack-discord-notifications.md).
 
@@ -128,9 +131,9 @@ When the hard incident fires:
 1. The affected scope (company, agent, or project) is paused immediately. No more heartbeats are scheduled.
 2. Any in-progress run for the scope is cancelled — the issue stays where it was, the agent stops working it.
 3. The Budget control plane card increments **Paused agents** / **Paused projects**.
-4. The incident appears as a card on the Budgets tab and on the Overview tab (above the fold).
+4. The incident appears as a card on the **Budgets** tab under **Audit**, and at the top of the **Costs** tab's **Overview**.
 
-![Per-agent budget bar at 100% — red, agent shown as paused](../user-guides/screenshots/light/costs/agent-budget-100pct-paused.png)
+![Agent budget policy card on Audit → Budgets at 100% — full red bar, Paused status, and a note that heartbeats are paused until the budget is raised or the incident is dismissed](../user-guides/screenshots/light/costs/agent-budget-100pct-paused.png)
 
 Two things to know:
 
@@ -207,7 +210,7 @@ If the test agent never paused, the most likely culprits are: (a) the agent was 
 
 ## See also
 
-- [Costs guide](../guides/day-to-day/costs.md) — the full UI walkthrough for the Costs page (Overview, Budgets, Providers, Billers, Finance).
+- [Costs guide](../guides/day-to-day/costs.md) — the full UI walkthrough for the **Costs** and **Budgets** tabs under **Audit** (including the Overview, Providers, Billers, and Finance views).
 - [Costs API reference](../reference/api/costs.md) — every endpoint touched here, plus reading routes (`/costs/summary`, `/costs/by-agent`, `/costs/window-spend`).
 - [Handle board approvals for hires](./handle-board-approvals-for-hires.md) — the same governance flow but for new agent budgets at hire time.
 - [Require board approval before an agent spends money](./require-board-approval-before-spend.md) — the proactive half of spend control: the agent stops and asks the board before committing to a discrete spend, so the cap here is the safety net rather than the only line of defence.

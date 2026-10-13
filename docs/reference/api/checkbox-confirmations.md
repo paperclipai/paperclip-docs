@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Checkbox Confirmations API
 seo_description: An issue-thread interaction that asks a person to select any subset of a known option list, then confirm or reject the whole request in one action.
 ---
@@ -10,7 +10,7 @@ A checkbox confirmation is an issue-thread interaction that asks the board or a 
 
 Create one with `kind: request_checkbox_confirmation` on the interactions routes below. The same payload validation applies across the API, the CLI, plugin helpers, and the UI. Available since v2026.609.0.
 
-![A checkbox confirmation card in an issue thread: prompt, markdown details, a five-option list with three options checked, select-all and clear-selection controls, and custom accept and reject buttons.](../../user-guides/screenshots/light/interactions/checkbox-confirmation-card.png)
+![A checkbox confirmation card in a task thread: title and prompt, a five-option list with three options checked, a collapsed Details section, a selection summary, and custom accept and reject buttons.](../../user-guides/screenshots/light/interactions/checkbox-confirmation-card.png)
 
 All routes are mounted under `/api` and authenticate with `Authorization: Bearer {token}`.
 

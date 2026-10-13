@@ -30,7 +30,7 @@ Without an adapter, an agent is just a record in a database. With one, it's a wo
 
 For most people getting started, **`claude_local`** is the right choice. It runs directly on your Mac using the same Claude that powers Anthropic's Claude.ai, and it only needs Claude Code plus an API key wired through environment variables.
 
-![Adapter type dropdown showing all available options](../../user-guides/screenshots/light/agents/adapter-type-dropdown.png)
+![Step 2 of the new agent dialog, "Choose an adapter", with a card for each available adapter](../../user-guides/screenshots/light/agents/adapter-type-dropdown.png)
 
 > **Note:** On Paperclip Cloud, the new-agent picker offers Claude, Codex, OpenCode, and Grok. Grok agents connect with an xAI subscription or API key during setup.
 
@@ -60,7 +60,7 @@ You can dial this back per agent in the adapter's configuration. Each adapter re
 
 The `claude_local` adapter runs your agent using Claude Code — Anthropic's command-line AI tool — directly on your Mac. When Paperclip triggers a heartbeat, it launches Claude Code with the agent's context and task, waits for the run to complete, and reads back what Claude did.
 
-**What it means in practice:** Your agent thinks like Claude, can read and write files on your computer, browse the web, and run terminal commands — all within the working directory you specify. It's capable of doing real coding work, writing documents, doing research, and more.
+**What it means in practice:** Your agent thinks like Claude, can read and write files on your computer, browse the web, and run terminal commands — all within the workspace of the task it's working on. It's capable of doing real coding work, writing documents, doing research, and more.
 
 ### Prerequisites
 
@@ -69,10 +69,8 @@ The `claude_local` adapter runs your agent using Claude Code — Anthropic's com
 
 ### Configuration fields
 
-**Working directory**
-The folder on your Mac where the agent does its work — reads files, writes outputs, runs commands. If you're using this agent for a software project, point this to your project folder. If you're not sure, create a new folder called `paperclip-workspace` on your Desktop and use that.
-
-> **Tip:** Give each agent its own working directory if they're doing different kinds of work. Shared directories can lead to agents accidentally overwriting each other's files.
+**Working directory (deprecated)**
+You won't see this field when you create a new agent. It only appears when you edit an older local agent that already has a working directory saved, and it's there as a legacy fallback. New agents get their folder from the task's project workspace instead, so set up a [project workspace](../projects-workflow/workspaces.md) rather than pointing each agent at a folder. If an older agent still shows the field, you can leave it as it is or clear it once the agent's work lives in a project.
 
 **Model**
 Which Claude model to use. If you leave it blank, Paperclip uses `claude-opus-5`. Some common choices:
@@ -84,14 +82,14 @@ When in doubt, start with Sonnet for workers and Opus for the CEO. The **effort*
 **Environment variables**
 The agent form includes an **Environment variables** section. Add `ANTHROPIC_API_KEY` there, either as a plain value or as a secret reference. If you're not sure what key name to use, `ANTHROPIC_API_KEY` is the standard one.
 
-**Timeout (seconds)**
-How long a single heartbeat run is allowed to take before Paperclip cuts it off. 300 seconds (5 minutes) is a safe default for most tasks. Complex coding tasks may need longer — you can increase it to 600 or more. Setting it too low will cause agents to time out mid-task.
+**Timeout (sec)**
+How long a single heartbeat run is allowed to take before Paperclip cuts it off. You'll find it on an existing agent's **Harness / Runtime** page under **Run Policy → Advanced Run Policy**. It starts at `0`, which means no timeout. If you set one, leave plenty of headroom — complex coding tasks can run for 10 minutes or more, and a limit that's too low cuts agents off mid-task.
 
-![Claude local adapter configuration form with all fields filled in](../../user-guides/screenshots/light/agents/claude-local-config-filled.png)
+![The Adapter card on an agent's Harness / Runtime page, showing the Claude Code adapter type, Model, and Thinking effort, with the top of the Configuration card below](../../user-guides/screenshots/light/agents/claude-local-config-filled.png)
 
 ### Common errors
 
-**"Claude Code not found"** — Claude Code isn't installed, or isn't on the system PATH. Install it from [claude.ai/code](https://claude.ai/code) and then use the Test Environment button to verify Paperclip can find it.
+**"Claude Code not found"** — Claude Code isn't installed, or isn't on the system PATH. Install it from [claude.ai/code](https://claude.ai/code) and then click **Run test** in the **Test your agent** card (at the bottom of the agent's **Harness / Runtime** page) to verify Paperclip can find it.
 
 **"API key invalid"** — Check that the environment variable name matches exactly what you've configured, and that the key itself starts with `sk-ant-`. Anthropic keys are case-sensitive.
 
@@ -110,7 +108,7 @@ The `codex_local` adapter runs your agent using OpenAI's Codex CLI on your Mac. 
 
 ### Configuration fields
 
-The fields are the same as `claude_local` — mainly model selection and environment variables — but pointing to OpenAI instead of Anthropic.
+The fields are the same as `claude_local` — mainly model selection and environment variables — but pointing to OpenAI instead of Anthropic. As with Claude Code, **Working directory (deprecated)** only appears when you edit an older agent that already has one saved.
 
 **Model** examples for Codex:
 - `gpt-5.6-sol` — the default and the normal starting point
@@ -156,16 +154,16 @@ The `http` adapter connects to a web server or cloud function that you control. 
 
 ### Configuration fields
 
-**Endpoint URL**
-The full URL Paperclip will POST to when a heartbeat fires. This must be publicly accessible or reachable from your Paperclip instance.
+**Webhook URL** (`url`)
+The full URL Paperclip will call when a heartbeat fires. This must be publicly accessible or reachable from your Paperclip instance. It's the one HTTP-specific field shown in the **Configuration** card on the agent's **Harness / Runtime** page.
 
-**Authentication**
-A secret token that Paperclip includes in the request header, so your server can verify the call came from Paperclip and not someone else.
+**Headers** (`headers`)
+Extra request headers — typically a secret token, so your server can verify the call came from Paperclip and not someone else. Set this in the adapter config through the API or a company export; the form doesn't show it.
 
-**Timeout**
-How long Paperclip waits for a response before treating the heartbeat as failed.
+**Timeout** (`timeoutMs`)
+How long Paperclip waits for a response, in milliseconds, before treating the heartbeat as failed. Also set through the API or a company export.
 
-![HTTP adapter configuration form](../../user-guides/screenshots/light/agents/http-adapter-config.png)
+![The Harness / Runtime page for an agent using the HTTP adapter, with HTTP selected under Adapter type](../../user-guides/screenshots/light/agents/http-adapter-config.png)
 
 > **Note:** The HTTP adapter is aimed at developers building custom agent integrations. If you're using a standard AI provider locally, `claude_local` or `codex_local` is the simpler choice.
 

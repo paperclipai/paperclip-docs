@@ -1,50 +1,27 @@
 ---
-paperclip_version: v2026.707.0
-seo_title: Cloud Sync to a Paperclip Upstream
-seo_description: Push a local company — agents, projects, issues, skills, portability files — into a Paperclip Cloud stack, previewing exactly what would change first.
+paperclip_version: v2026.1012.0
+seo_title: Cloud Sync (Retired)
+seo_description: Cloud Sync, which pushed a local company into a Paperclip Cloud stack, is gone in this release. Here is what replaced it and where old links now go.
 ---
 
-# Cloud Sync
+# Cloud Sync (retired)
 
-> **Deprecated — being removed.** Host-to-host Cloud Sync has been retired upstream and replaced by full-fidelity **company Import/Export**, which moves a company — agents, projects, issues, skills, portability files — between any two instances (local-to-local, over a URL, or from GitHub) without the experimental flag or a live upstream connection. See [Back up and restore a company](../how-to/back-up-and-restore-a-company.md). This page is kept temporarily for anyone on an older build and will be removed in a future release.
+> **Removed in this release.** Cloud Sync no longer exists in Paperclip v2026.1012.0. There's no **Cloud upstream** screen, no **Cloud Sync** toggle on **Settings → Experimental**, no `paperclipai cloud push` command, and no cloud-upstream API. To move a company to another instance, including a hosted one, use company **Export** and **Import** instead. See [Back up and restore a company](../how-to/back-up-and-restore-a-company.md).
 
-**Cloud Sync** connects a locally-run Paperclip instance to a Paperclip Cloud upstream so you can push a local company — agents, projects, issues, skills, portability files — into a cloud stack. You preview exactly what would change, resolve conflicts, push, and then review activation before any automation resumes on the cloud side.
+## What it was
 
-![The Cloud upstream screen](../user-guides/screenshots/light/experimental/cloud-upstream.png)
+On older builds, **Cloud Sync** connected a locally run Paperclip instance to a Paperclip Cloud upstream. You could preview a push, resolve conflicts, push a local company (agents, projects, issues, skills, portability files) into a cloud stack, and then choose which agents, routines, and monitors woke up on the cloud side.
 
-## Why it exists
+## What you'll see now
 
-Plenty of companies start life on a laptop. Cloud Sync is the migration path: move that local company to a hosted stack without hand-exporting, with a dry-run preview and schema-compatibility check first, and with cloud automations **paused until you explicitly activate them** so nothing fires unexpectedly mid-move.
+If you follow an old link or bookmark to the Cloud upstream page (`/company/settings/cloud-upstream`), Paperclip sends you to the **Export** page instead:
 
-## Turn it on
+![On this release, the old Cloud upstream address opens the Export page](../user-guides/screenshots/light/experimental/cloud-upstream.png)
 
-1. Go to **Settings → Instance settings → Experimental**.
-2. Turn on **Cloud Sync** — *"Show local Paperclip Cloud upstream connection, preview, push, retry, and activation review surfaces."*
-
-Unlike most flags on the page, this one gates the API too: with it off, the cloud-upstream endpoints refuse requests and `paperclipai cloud push` errors out — not just hidden UI.
-
-## Using it
-
-1. Open **Company Settings → Cloud upstream** (the nav item appears once the flag is on).
-2. **Connect** — paste your Paperclip Cloud stack URL and approve the authorization grant on the cloud side.
-3. **Preview push** — a summary of what will be sent, with warnings, conflicts, and a schema-compatibility check. Push stays disabled until the schemas are compatible.
-4. **Push to cloud** — creates a push run with live progress, a downloadable report, and **Retry**/**Re-run** on failure.
-5. **Review activation** — after a push completes, the activation table lets you decide which entity types (agents, routines, monitors) wake up on the cloud stack.
-
-The step-by-step recipe — including the CLI flow and troubleshooting — is in [Sync a local company to a Paperclip Cloud upstream](../how-to/sync-to-cloud-upstream.md).
-
-## When it's off
-
-The Cloud upstream page shows *"Cloud sync is disabled. Enable it in Instance Settings to show upstream connection and push tools."*, the *Send to Paperclip Cloud* button disappears, and the API and CLI refuse cloud-sync operations. Saved connections and run history are preserved and return when you re-enable.
-
-## Caveats
-
-- Requires board-level access on the local instance and enough rights on the cloud stack to approve the authorization grant.
-- The target stack must advertise the `cloud_sync` transfer feature.
-- Pushes are gated on schema compatibility between the two stacks — upgrade the older side if the preview reports a mismatch.
+From there you can export the company to a portable package and import it on the other instance. Import/Export moves the same things Cloud Sync did, and it works local-to-local, over a URL, or from GitHub, with no live upstream connection and no experimental flag.
 
 ## Where to go next
 
-- [Sync a local company to a Paperclip Cloud upstream](../how-to/sync-to-cloud-upstream.md) — the full how-to.
-- [Company export & import](../administration/company.md) — the offline alternative for moving companies.
+- [Back up and restore a company](../how-to/back-up-and-restore-a-company.md): the replacement workflow.
+- [Company export & import](../administration/company.md): the Export and Import pages in detail.
 - [Experimental features overview](overview.md)
