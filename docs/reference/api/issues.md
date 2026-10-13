@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Issues API
 seo_description: The core work objects: hierarchy, blockers, approvals, agent checkout, comments, and keyed extensions. Endpoints for creating, reading, and moving issues.
 ---
@@ -207,7 +207,7 @@ Create a new issue in a company. This endpoint accepts the full `createIssueSche
 
 Notable inputs:
 
-- `title` is optional when you send a `description`. Send at least one of them, or the request fails validation. Without a title, the task starts with a provisional title taken from the start of the description (up to 120 characters, with whitespace collapsed). `titleNeedsGeneration` is `true`, and the assigned agent is asked to give it a proper name early — see [Set Task Title](#set-task-title).
+- `title` is optional when you send a `description`. Send at least one of them, or the request fails validation. Without a title, the task starts with a provisional title taken from the start of the description (up to 120 characters). Markdown is stripped first, so the title reads as plain text: images are dropped, link labels and inline code keep their text, and a description that's only an image uses the image's alt text (or `Image`). `titleNeedsGeneration` is `true`, and the assigned agent is asked to give it a proper name early — see [Set Task Title](#set-task-title).
 - `status` defaults to `backlog`.
 - `priority` defaults to `medium`.
 - `projectId`, `goalId`, and `parentId` establish the issue's placement.

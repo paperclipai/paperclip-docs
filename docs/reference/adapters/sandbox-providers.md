@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Sandbox Providers
 seo_description: Provider plugins that let Paperclip provision external compute as the execution environment for agent runs, instead of running them on the host.
 ---
@@ -97,6 +97,7 @@ Beyond `reuseLease`, two fields control how the `paperclip_runner` process lives
 Daytona streams a command's output to Paperclip over a log socket, and occasionally that socket closes or simply goes quiet while the command is still running. The driver doesn't take a dropped stream as the end of the command, so you don't lose output or get a run marked finished too early:
 
 - **It waits for a real exit.** A command only counts as complete once Daytona records its exit. After a clean close, the driver reconnects the stream once, then checks the command's status and log snapshot at most once a second until the exit shows up.
+- **Quiet sockets switch to polling sooner.** If the socket delivers no output for 15 seconds — even if it never finished connecting — the driver stops waiting on it and moves straight to polling.
 - **Nothing runs twice.** The command is never sent again, output you've already seen isn't repeated in the run log, and a final snapshot fills in anything written after the socket closed.
 - **A timeout stays honest.** If reading the logs times out, you keep the partial output, and the log says whether the command's exit is still unconfirmed. It isn't reported as a success.
 
@@ -116,9 +117,21 @@ Configure from **Settings → Instance settings → Environments**. Put the exe.
 
 The provider provisions VMs through exe.dev's HTTPS API and runs commands through direct SSH to the created VM. You need:
 
-- An exe.dev API token that allows the lifecycle commands `new`, `ls`, and `rm`. `whoami` and `help` are recommended for manual debugging.
+- An exe.dev API token that allows the lifecycle commands `new`, `ls`, and `rm` — plus `cp` if you use a source VM (see below). exe.dev answers with a 403 when the token doesn't list a command the provider needs. `whoami` and `help` are recommended for manual debugging.
 - SSH access from the Paperclip host to the resulting `*.exe.xyz` VMs.
 - An SSH private key exe.dev recognises. You can either paste the private key into the environment config via `sshPrivateKey`, or point `sshIdentityFile` at an absolute host path.
+
+### Start every run from a prepared VM
+
+By default, each run gets a brand-new VM from `exe.dev new`, so a large repository pays its full setup cost — toolchains, agent CLIs, package caches, test browsers — on every run. If you'd rather do that setup once, prepare a VM the way you like it and point the environment at it with **Source VM** (`sourceVm`, under the advanced **VM creation** settings). Each run then copies that VM with `exe.dev cp`, disk and config included, and starts from the copy. Leave the field blank to keep creating fresh VMs.
+
+A few things to know before you switch it on:
+
+- **Your token needs `cp`.** Add it to the API token's allowed commands, or every copy fails with a 403.
+- **Only the size settings apply.** A copy accepts just the VM name plus `cpu`, `memory`, and `disk`. Clear `image`, `command`, `comment`, `env`, `integrations`, `tags`, `setupScript`, and `prompt` — the environment won't save while any of them is set alongside `sourceVm`.
+- **The setup script doesn't run.** Prepare the source VM so it already has Node 24.11 or newer and accepts the SSH key the environment is configured with.
+- **Keep secrets off the source VM.** Every copy inherits its disk.
+- **Mind the 30-second limit.** The copy goes through exe.dev's `/exec` API, so a very large disk has to finish copying within that request timeout.
 
 ---
 

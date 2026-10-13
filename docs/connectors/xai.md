@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Grok Connector
 seo_description: Give agents xAI Grok model access with a subscription or an API key. Which agents can use it, credential assignment, a test run, and fixes.
 ---
@@ -42,7 +42,7 @@ Sign-in runs in a **sign-in environment**, and there are two kinds. Which ones y
 
 | Sign-in environment | What it needs | How you sign in |
 | --- | --- | --- |
-| **The Paperclip server host** | The `grok` CLI installed on that host, shell access to it, and an active local environment. You must be operating Paperclip locally — a remote board session cannot start this attempt | Paperclip shows a command to paste into a terminal on that host |
+| **The Paperclip server host** | The `grok` CLI installed on that host, shell access to it, and an active local environment | Paperclip shows a command to paste into a terminal on that host (**Copy sign-in command**) |
 | **A sandbox environment** | A sandbox whose provider supports interactive sign-in, configured by an administrator | Sign-in happens in the environment Paperclip provides |
 
 When both exist Paperclip shows a **Sign-in environment** selector. The sign-in environment may differ from where the agent later runs.
@@ -85,9 +85,37 @@ A binding therefore **cannot substitute for a responsible user**.
 
 **Personal** keeps the credential yours; **Company shared** makes one account available to eligible agents on runs whose responsible person is in its human audience. The model is chosen in the agent's configuration.
 
+### Connect from an agent's settings
+
+You can also connect an account without leaving the agent. In the agent's **AI connection** field:
+
+- **Reconnect account** appears when your current personal default needs attention. It signs you in again and repairs that same account, so its default and its agent access stay as they were.
+- **Connect another account** opens **Connect account**, which tells you up front that the new account *"will become your default for this provider."* Your tasks use it; other people keep their own defaults.
+
+When you connect a brand-new account this way, you also see **Allow all agents in this company to use this account for my tasks**. It starts ticked if you can manage connections. Clear it to keep the account to this agent only. Either way, the account backs only tasks you are responsible for, and a reconnect never widens access an account already has. If sign-in succeeds but the default cannot be saved, **Retry default selection** tries again without another sign-in.
+
 ### Reconnect from a task
 
 If a task shows an authentication card, select **Fix connection** to repair the selected account without leaving the task. The account owner signs in again; the card explains when another owner must do it. After setup completes, the task resumes through normal admission. Reconnecting preserves the account's audience and agent access.
+
+## Check your usage limits
+
+Before you hand an agent a long task, you can see how much of the provider's allowance is left. Open the saved account and find **Usage**, then select **Check usage**. This works for a Grok subscription. An API-key account shows *"Unavailable for this sign-in method."* instead of the button, because the provider has no single-key allowance to read.
+
+Paperclip reads the limits only when you ask. Opening the account, listing connections, and starting a run never trigger a check. Each limit window shows how much is used and when it resets, and is marked **Limit reached** or **Blocked** when the provider says so. **Overage** shows whether extra paid usage is available. Anything the provider leaves out shows as **Not reported**, never as zero. After a successful check, the button becomes **Refresh**.
+
+Grok does not always report how much of the included plan you have used. When it leaves that out, Paperclip shows **Not reported** rather than guessing.
+
+Checking is read-only. It does not move work to another account, stop runs at a limit, refresh the credential, or buy credit.
+
+| Message | What it means |
+| --- | --- |
+| *"Sign in again to check usage."* | The stored credential has expired. Reconnect the account |
+| *"Usage access denied."* | The provider refused to share usage for this credential |
+| *"Too many checks. Try again later."* | The provider rate-limited the check itself. Your allowance is not affected |
+| *"Reconnect to check usage."* | The account is not usable right now. Reconnect it first |
+
+Board users can run the same check over the API with `GET /api/companies/{companyId}/ai-connections/{connectionId}/usage`.
 
 ## Try it
 
@@ -113,9 +141,9 @@ If the run reports an incompatible connection, check the adapter before anything
 | *"This credential is not shared with the responsible user"* | The connection is shared with named people and the responsible user is not among them | Add that person to the connection's audience |
 | A subscription connection made during the preview stops working | Preview-era subscription credentials are not reusable and must be re-established | Reconnect the account |
 | **Sign in** is unavailable | No sign-in environment is offered on this deployment | Ask an administrator whether a sandbox sign-in environment can be enabled; otherwise use an API key |
-| The sign-in command does nothing | The `grok` CLI is missing on the host you ran it on, or you ran it on the wrong machine | Install the CLI and run the command on the Paperclip server host, operating Paperclip locally |
+| The sign-in command does nothing | The `grok` CLI is missing on the host you ran it on, or you ran it on the wrong machine | Install the CLI and run the command in a terminal on the Paperclip server host itself |
 | Status **expired** or **needs attention** | The credential rotated or the key was revoked | Reconnect the account |
-| Runs fail with a quota error | xAI's plan or key limits, not a Paperclip limit | Check usage with xAI |
+| Runs fail with a quota error | xAI's plan or key limits, not a Paperclip limit | On a subscription, select **Check usage** on the saved account to see which window is exhausted and when it resets. Otherwise check usage with xAI |
 
 Limitations: one connection is one xAI account, and it grants no tool access. The Grok adapter requirement is narrower than the other model providers — confirm it before planning work around this connector.
 
@@ -124,5 +152,6 @@ Limitations: one connection is one xAI account, and it grants no tool access. Th
 - [Connector overview](https://paperclip.ing/product/connectors/xai/)
 
 - [Anthropic](anthropic.md), [OpenAI](openai.md), [OpenRouter](openrouter.md) — the other model providers.
+- [Check AI account usage](ai-usage.md)
 - [How connector access works](access-model.md)
 - [xAI documentation](https://docs.x.ai/)

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Codex Adapter
 seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding agent, with persistent session state and a managed CODEX_HOME per agent.
 ---
@@ -36,7 +36,7 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 | `instructionsFilePath` | no | Markdown file prepended to the stdin prompt sent to `codex exec`. |
 | `modelReasoningEffort` | no | Reasoning effort override passed through Codex config. The choices depend on the model — see [Reasoning Effort](#reasoning-effort). |
 | `search` | no | Runs Codex with `--search`. |
-| `fastMode` | no | Enables Codex Fast mode by setting `service_tier="fast"` and `features.fast_mode=true`. Supported on `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, and `gpt-5.4`, and passed through for manual model ids. When the configured model can't use it, Paperclip ignores the setting and notes why. |
+| `fastMode` | no | Enables Codex Fast mode by setting `service_tier="fast"` and `features.fast_mode=true`. Supported on `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, and `gpt-5.4`, and passed through for manual model ids. When the configured model can't use it, Paperclip ignores the setting and notes why. |
 | `dangerouslyBypassApprovalsAndSandbox` | no | Runs Codex with `--dangerously-bypass-approvals-and-sandbox` so unattended runs never stop for approval. Defaults to on when you leave it unset — see [Permissions](#permissions). |
 | `command` | no | Defaults to `codex`. |
 | `extraArgs` | no | Extra CLI arguments appended to the Codex invocation. |
@@ -100,26 +100,27 @@ An environment that only runs one-shot commands cannot host an ACP session, so a
 
 ## Models
 
-Pick any of the known Codex model ids in the `model` field. The current options are:
+Pick any of the known Codex model ids in the `model` field. The picker lists them the way the ChatGPT app orders Codex models — newest model version first, most capable first within each version, and older models at the end:
 
-- `gpt-5.6-sol` (the adapter default)
+- `gpt-6.1-sol`
 - `gpt-6-astra`
 - `gpt-6-sol`
 - `gpt-6-luna`
+- `gpt-5.6-sol` (the adapter default)
 - `gpt-5.6-terra`
 - `gpt-5.6-luna`
 - `gpt-5.5`
 - `gpt-5.4`
 - `gpt-5.4-mini`
 - `gpt-5`
-- `o3`
-- `o4-mini`
 - `gpt-5-mini`
 - `gpt-5-nano`
+- `o3`
+- `o4-mini`
 - `o3-mini`
 - `codex-mini-latest`
 
-This is a curated list. Even when an OpenAI API key is available, the picker doesn't fill itself from OpenAI's model catalog, because that catalog also includes image, audio, and embedding models Codex can't run. If you need other models in the dropdown — say, ones served through your own gateway — declare the list you want with [`PAPERCLIP_ADAPTER_MODELS`](../deploy/environment-variables.md#adding-models-to-the-model-picker).
+This is a curated list. Even when an OpenAI API key is available, the picker doesn't fill itself from OpenAI's model catalog, because that catalog also includes image, audio, and embedding models Codex can't run. If you need extra models in the dropdown — say, ones served through your own gateway — declare them with [`PAPERCLIP_ADAPTER_MODELS`](../deploy/environment-variables.md#adding-models-to-the-model-picker).
 
 You can also type a model id that is not in this list. Anything Paperclip does not recognize is treated as a manual model id and passed straight through to the Codex CLI.
 
@@ -133,7 +134,7 @@ The `modelReasoningEffort` choices follow the model you pick:
 
 | Model | Effort levels |
 |---|---|
-| `gpt-6-astra`, `gpt-6-sol`, `gpt-5.6-sol`, `gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` |
+| `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6-sol`, `gpt-5.6-sol`, `gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` |
 | `gpt-6-luna`, `gpt-5.6-luna` | `low`, `medium`, `high`, `xhigh`, `max` |
 | Other models | `minimal`, `low`, `medium`, `high`, `xhigh` |
 
@@ -169,6 +170,15 @@ The session codec also preserves these location hints when present:
 - `repoRef`
 
 If the working directory changes, the adapter starts a fresh session instead of reusing the old response chain.
+
+### Native Codex on Paperclip Runner
+
+Codex can also run natively through [Paperclip Runner](paperclip-runner.md) (`paperclip_runner` with `provider: "codex"`) rather than through `codex_local`. A few behaviors are specific to that native path:
+
+- **Restarts don't cost you the conversation.** If a server restart kills a native Codex turn mid-flight, Paperclip first makes sure the old process is really gone. Then it resumes the request once, in the same conversation and workspace, and asks the agent to check any unfinished commands or outside actions before carrying on. It doesn't resend the task. The run log records the interrupted turn with `provider_turn_lost_on_restore`. Anything that can't be reconciled still stops for a person.
+- **Codex keeps its own base prompt.** Paperclip sends its task context as additive `developerInstructions` when a thread starts or resumes, so Codex's stock base instructions stay in place. Conversations created before this change keep their saved prompt when resumed; reset those sessions if you want the stock base instructions back.
+- **A model your ChatGPT account can't use says so.** When Codex rejects the selected model for a ChatGPT sign-in, the task shows **Model unavailable.** with *"The selected model is not supported by the current ChatGPT connection. Choose a supported model or a compatible AI connection."* Paperclip doesn't retry that request automatically. Choose a supported model or clear the task's model override, then retry.
+- **A busy model retries on its own.** When the selected model is at capacity, Paperclip shows **Model at capacity** and retries after one minute, then after two. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention).
 
 ---
 

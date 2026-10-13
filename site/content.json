@@ -170,6 +170,10 @@
               "file": "../docs/connectors/action-permissions.md"
             },
             {
+              "title": "Connection Instructions",
+              "file": "../docs/connectors/connection-instructions.md"
+            },
+            {
               "title": "Review Requests",
               "file": "../docs/connectors/review-requests.md"
             },
@@ -192,6 +196,10 @@
             {
               "title": "Google Workspace Setup",
               "file": "../docs/connectors/google-setup.md"
+            },
+            {
+              "title": "Check AI Usage",
+              "file": "../docs/connectors/ai-usage.md"
             },
             {
               "title": "Memory Connectors (Experimental)",
@@ -366,6 +374,10 @@
             {
               "title": "Mixpanel",
               "file": "../docs/connectors/mixpanel.md"
+            },
+            {
+              "title": "Neon",
+              "file": "../docs/connectors/neon.md"
             },
             {
               "title": "Netlify",
@@ -548,6 +560,14 @@
         {
           "title": "Agent Chat",
           "file": "../docs/experimental/agent-chat.md"
+        },
+        {
+          "title": "Assistant Connections (MCP)",
+          "file": "../docs/experimental/assistant-connections.md"
+        },
+        {
+          "title": "Task-Pinned AI Routing",
+          "file": "../docs/experimental/task-pinned-ai-routing.md"
         },
         {
           "title": "Chat-Style Tasks",
@@ -756,6 +776,10 @@
           "file": "../docs/reference/api/authentication.md"
         },
         {
+          "title": "Assistant MCP",
+          "file": "../docs/reference/api/assistant-mcp.md"
+        },
+        {
           "title": "Companies",
           "file": "../docs/reference/api/companies.md"
         },
@@ -914,6 +938,10 @@
         {
           "title": "Connect",
           "file": "../docs/reference/cli/connect.md"
+        },
+        {
+          "title": "MCP",
+          "file": "../docs/reference/cli/mcp.md"
         },
         {
           "title": "Token",

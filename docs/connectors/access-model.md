@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: How Connector Access Works
 seo_description: Which access controls apply depends on the kind of connector. This explains the four gates on tool connections, and what governs channels and models.
 ---
@@ -72,6 +72,8 @@ You do not have to answer this before you connect. Setup states the identity it 
 
 Creating a personal connection is available to any active member. Creating an organization or dedicated-agent grant is a manager operation — Paperclip rejects the request with *"Only a connection manager can share this credential with the organization"* if you lack the permission, and it enforces that on the server rather than trusting the browser.
 
+AgentMail is a setup exception: its new key defaults to everyone in the company and only the selected inbox owner. Reusing a key retains its existing grants.
+
 An organization grant has its own human audience, set on the connector's identity card: **Any human in the company**, or **Humans I pick** with a named member list. That audience governs which people's runs the shared credential will back.
 
 [Use separate accounts for people and agents](separate-accounts.md) walks through choosing between them.
@@ -86,6 +88,12 @@ Independently of the grant, each connection says which agents may use it at all.
 New tool connections normally default to `all_agents`; setup for a requesting agent narrows access to that agent. Methods and saved connections can carry more specific access. This does not bypass approval: creating the connection is itself an authorized, audited operation, and every individual action still has its own permission.
 
 For a dedicated agent identity the question narrows to *"Which agent owns this GitHub account?"* — the identity and the agent are the same decision.
+
+## Saved connection guidance
+
+Some connections also contribute editable instructions to an eligible agent's task context. The five experimental memory providers include defaults; saved instructions can be used with other connections too.
+
+Guidance never grants access or removes an approval requirement. Turning it off retains tool access, and a connection must still have an accessible tool and current grant before its enabled guidance is delivered. See [Saved connection instructions](connection-instructions.md).
 
 ## Action permission: which calls are allowed
 
@@ -137,6 +145,8 @@ This is not a general sandbox claim, and it is not a claim in the other directio
 
 Access decisions resolve at call time, not at setup time. The tool gateway holds the effective policy for an agent — the connection's own settings, plus any tool profiles and company tool policies that apply — and decides allow, ask, or deny before the request reaches the provider. Changing a permission takes effect on the next call; it does not require reconnecting.
 
+> **Note:** Custom `tools:use` permission grants — the stored per-agent or per-person kind, not the connection identities described above — are enforced exactly as written. A grant whose `scope.allow` list names a different tool, connection, or application doesn't cover the call, and a grant with an unrecognised selector or a malformed restriction covers nothing. Review custom grants after upgrading: if an agent loses a tool it used before, check its grant first. The [Tool Gateway reference](../reference/api/tool-gateway.md#explicit-tool-grants) lists the matching rules.
+
 ## Related
 
 - [Connectors](../connectors.md)
@@ -147,5 +157,5 @@ Access decisions resolve at call time, not at setup time. The tool gateway holds
 
 ## Sources
 
-- [Connection setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
-- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

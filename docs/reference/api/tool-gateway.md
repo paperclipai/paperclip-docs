@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1012.0
 seo_title: Tool Gateway API
 seo_description: Agents decide what to do; the tool gateway decides whether they may. It sits between every agent and every external tool you have connected.
 ---
@@ -57,6 +57,19 @@ The useful types are `allow`, `block`, `require_approval`, and `rate_limit`. Two
 A `rate_limit` policy needs a positive `limit` and `windowSeconds` in its `config`, or you get `422 Unprocessable Entity` with `Rate-limit policy config requires positive numeric limit and windowSeconds`. Its optional `keyBy` decides what the limit counts against; the default buckets by company, agent, connection, and tool.
 
 Conditions come in named groups — `arguments`, `actor`, `context`, `risk`, `credentialScope`, `trustBoundary`, and `timeWindow` — and all of them must hold for the policy to apply. The `arguments` group supports `fieldEquals`, `fieldNotEquals`, `fieldIn`, `fieldMatches`, `fieldExists`, and `fieldAbsent`. A `fieldMatches` pattern that looks dangerous to evaluate is rejected up front with `Tool policy fieldMatches includes an unsafe regular expression`.
+
+### Explicit tool grants
+
+Besides profiles and policies, an agent or a person can hold a stored `tools:use` permission grant. When no policy has already decided a call, Paperclip checks those grants before it looks at profiles, and a matching grant allows the call with reason `allow_explicit_grant`.
+
+A grant's `scope` decides what it covers, and it is enforced exactly as written:
+
+- A `null` or empty `{}` scope is a broad grant — it covers every tool.
+- An `allow` value (a single string or a list) must name the tool being called. Each entry is `tool:<name>` (the gateway name or the upstream tool name), `connection:<connectionId>`, or `application:<applicationId>`. If nothing in the list matches, the grant doesn't cover the call. An empty `allow` list, or one with a blank or non-string entry, covers nothing.
+- Any other keys narrow the grant further, and every one of them must match. The understood keys are `actorType`, `agentId`, `projectId`, `routineId`, `issueId`, `gatewayId`, `applicationId`, `connectionId`, `catalogEntryId`, `applicationKey`, `providerType`, `toolName`, and `riskLevel`, each as a non-empty string, or its plural form (`agentIds`, `toolNames`, and so on) as a non-empty list of strings.
+- A key Paperclip doesn't recognise, a value of the wrong type, or a scope that isn't an object makes the grant cover nothing.
+
+A grant that doesn't cover a call never widens into a broader allow. The call simply carries on to the profile check, and if no profile permits it either, it ends as `deny_default`. The same rules apply to discovery, so a tool outside the grant doesn't show up in the tool list. If an agent loses a tool it used before upgrading, check its grant's `scope` first.
 
 ### What a decision looks like
 
@@ -154,15 +167,7 @@ GET  /api/tool-gateway/gateways/{gatewayId}/mcp
 POST /api/tool-gateway/gateways/{gatewayId}/mcp
 ```
 
-The `GET` is a small discovery document telling a client how to connect:
-
-```json
-{
-  "transport": "streamable_http",
-  "endpoint": "/mcp/gateways/{gatewayPublicId}",
-  "authentication": "bearer"
-}
-```
+The gateway speaks MCP's streamable HTTP transport over `POST` only. A `GET` returns `405 Method Not Allowed` with an `Allow: POST` header, which tells an MCP client straight away that there is no server-sent events stream to open.
 
 The `POST` speaks JSON-RPC. Authenticate with `Authorization: Bearer <gateway-token>`; without it you get `401 Unauthorized` and `{ "error": "Bearer token is required" }`.
 
@@ -174,6 +179,8 @@ The `POST` speaks JSON-RPC. Authenticate with `Authorization: Bearer <gateway-to
 | `tools/call` | Runs a tool. Takes `params.name` and `params.arguments`; a missing name is a JSON-RPC error `-32602` with `params.name is required`. |
 
 Anything else returns `404` with JSON-RPC error `-32601`, `Method not found`. When a call is refused, the JSON-RPC `error` object carries a `data.reasonCode` so you can tell a policy block apart from a broken upstream.
+
+Paperclip limits how many tool listings run at once. When that limit is reached and the waiting queue is full too, `tools/list` returns `503 Service Unavailable` with JSON-RPC error `-32603`, the message `Tool discovery is busy. Retry shortly.`, and `data.reasonCode` `tool_discovery_busy`. Nothing is wrong with your gateway or token — wait a moment and list again.
 
 ---
 
@@ -217,6 +224,8 @@ POST /api/tool-gateway/tools/call
 ```
 
 Both authenticate with the session token in the `x-paperclip-tool-gateway-token` header — not `Authorization`. Without it you get `401 Unauthorized` and `{ "error": "Tool gateway session token is required" }`.
+
+Listing tools can also come back `503 Service Unavailable` with `{ "error": "Tool discovery is busy. Retry shortly.", "reasonCode": "tool_discovery_busy" }` when the server is already handling as many tool listings as it allows. It's a temporary back-pressure signal, so retry after a short pause.
 
 The call body takes:
 

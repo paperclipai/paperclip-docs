@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Costs: Budgets, Providers, and Spend
 seo_description: Set limits Paperclip enforces automatically. Five tabs cover overview, budgets, providers, billers, and finance, with headline spend metrics on top.
 ---
@@ -41,7 +42,7 @@ Every tab on the Costs page shares the same header, so it's worth understanding 
 
 The page title reads **Costs**, with a subtitle that reminds you what's tracked: inference spend, platform fees, credits, and live quota windows.
 
-To the right of the title is a **date-range selector** — a row of preset buttons (Today, Week-to-date, Month-to-date, custom, and so on) that scopes every chart, table, and metric on the page. If you pick **custom**, two date inputs appear and you enter the start and end date manually. Until both custom dates are filled in, most of the tabs show a prompt to pick a range before loading data.
+To the right of the title is a **date-range selector** — a row of preset buttons (**Month to Date**, **Last 7 Days**, **Last 30 Days**, **Year to Date**, **All Time**, and **Custom**) that scopes every chart, table, and metric on the page. If you pick **Custom**, two date inputs appear and you enter the start and end date manually. Until both custom dates are filled in, most of the tabs show a prompt to pick a range before loading data.
 
 Below the header is a strip of four **metric tiles** that summarise the current range:
 
@@ -267,7 +268,7 @@ Selecting **All providers** renders a grid of provider cards (two per row on wid
 
 - **Per-model spend** — one row per model used in the range, with input tokens, cached-input tokens, output tokens, and dollar cost. This is where you confirm, for example, that most of your Anthropic spend is on Claude Sonnet and not a stray Opus call.
 - **Current-week spend** — a separate roll-up showing what the provider cost you this calendar week, independent of the main range selector. Useful for catching week-over-week surprises.
-- **Share of budget** — the provider's share of the company monthly budget, with a deficit notch that lights up if the provider is projected to overshoot its fair share at the current burn rate (only shown when the date range is set to **Month-to-date**).
+- **Share of budget** — the provider's share of the company monthly budget, with a deficit notch that lights up if the provider is projected to overshoot its fair share at the current burn rate (only shown when the date range is set to **Month to Date**).
 
 ### Quota windows
 

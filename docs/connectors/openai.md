@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: OpenAI Connector
 seo_description: Give agents OpenAI model access with a Codex subscription sign-in or an API key. Runtime requirements, assignment, a test run, and fixes.
 ---
@@ -44,7 +44,7 @@ Sign-in runs in a **sign-in environment**, and there are two kinds. Which ones y
 
 | Sign-in environment | What it needs | How you sign in |
 | --- | --- | --- |
-| **The Paperclip server host** | The `codex` CLI installed on that host, shell access to it, and an active local environment. You must be operating Paperclip locally — a remote board session cannot start this attempt | Paperclip shows a command to paste into a terminal on that host |
+| **The Paperclip server host** | The `codex` CLI installed on that host, shell access to it, and an active local environment | Paperclip shows a command to paste into a terminal on that host (**Copy sign-in command**) |
 | **A sandbox environment** | A sandbox whose provider supports interactive sign-in, configured by an administrator | Sign-in happens in the environment Paperclip provides; no terminal on the server host is required |
 
 When both are available Paperclip shows a **Sign-in environment** selector. The environment used to sign in may differ from where the agent later runs; picking one here does not change agent routing.
@@ -52,8 +52,10 @@ When both are available Paperclip shows a **Sign-in environment** selector. The 
 **On the Paperclip server host:**
 
 1. Select **Sign in**. Paperclip shows a command that sets `CODEX_HOME` to a directory for this attempt and runs `codex login --device-auth` with file-based credential storage.
-2. Run it in a terminal on that host and complete OpenAI's device sign-in.
-3. Paperclip detects the credential and finishes the connection. The attempt stays open for 30 minutes before it expires.
+2. Run it in a terminal on that host and complete OpenAI's device sign-in. Paperclip checks automatically when you return.
+3. When Paperclip says *"Codex CLI is signed in. Click Connect to use this account."*, select **Connect**. The attempt stays open for 30 minutes before it expires.
+
+If you want a different OpenAI account before connecting, select **Use a different account**. If the attempt expires or fails, select **Start sign-in again**.
 
 > **Note:** The sign-in uses its own `CODEX_HOME`, so it neither reads nor disturbs your personal `codex` login on that machine.
 
@@ -87,9 +89,35 @@ So **a binding cannot substitute for a responsible user**: with no responsible p
 
 **Personal** keeps the credential yours; **Company shared** makes one account available to eligible agents on runs whose responsible person is in its human audience. The model is chosen in the agent's configuration, not here.
 
+### Connect from an agent's settings
+
+You can also connect an account without leaving the agent. In the agent's **AI connection** field:
+
+- **Reconnect account** appears when your current personal default needs attention. It signs you in again and repairs that same account, so its default and its agent access stay as they were.
+- **Connect another account** opens **Connect account**, which tells you up front that the new account *"will become your default for this provider."* Your tasks use it; other people keep their own defaults.
+
+When you connect a brand-new account this way, you also see **Allow all agents in this company to use this account for my tasks**. It starts ticked if you can manage connections. Clear it to keep the account to this agent only. Either way, the account backs only tasks you are responsible for, and a reconnect never widens access an account already has. If sign-in succeeds but the default cannot be saved, **Retry default selection** tries again without another sign-in.
+
 ### Reconnect from a task
 
 If a task shows an authentication card, select **Fix connection** to repair the selected account without leaving the task. The account owner signs in again; the card explains when another owner must do it. After setup completes, the task resumes through normal admission. Reconnecting preserves the account's audience and agent access.
+
+## Check your usage limits
+
+Before you hand an agent a long task, you can see how much of the provider's allowance is left. Open the saved account and find **Usage**, then select **Check usage**. This works for an OpenAI subscription. An API-key account shows *"Unavailable for this sign-in method."* instead of the button, because the provider has no single-key allowance to read.
+
+Paperclip reads the limits only when you ask. Opening the account, listing connections, and starting a run never trigger a check. Each limit window shows how much is used and when it resets, and is marked **Limit reached** or **Blocked** when the provider says so. **Overage** shows whether extra paid usage is available. Anything the provider leaves out shows as **Not reported**, never as zero. After a successful check, the button becomes **Refresh**.
+
+Checking is read-only. It does not move work to another account, stop runs at a limit, refresh the credential, or buy credit.
+
+| Message | What it means |
+| --- | --- |
+| *"Sign in again to check usage."* | The stored credential has expired. Reconnect the account |
+| *"Usage access denied."* | The provider refused to share usage for this credential |
+| *"Too many checks. Try again later."* | The provider rate-limited the check itself. Your allowance is not affected |
+| *"Reconnect to check usage."* | The account is not usable right now. Reconnect it first |
+
+Board users can run the same check over the API with `GET /api/companies/{companyId}/ai-connections/{connectionId}/usage`.
 
 ## Try it
 
@@ -118,9 +146,9 @@ Watch the run itself — a connection can look healthy and still fail at run tim
 | *"This connection is not permitted for this agent"* | The connection is not installed for that agent or company-wide | Install it for the agent on the connection's access settings |
 | A subscription connection made during the preview stops working | Preview-era subscription credentials are not reusable and must be re-established | Reconnect the account |
 | **Sign in** is unavailable | No sign-in environment is offered on this deployment | Ask an administrator whether a sandbox sign-in environment can be enabled; otherwise use an API key |
-| The sign-in command does nothing | The `codex` CLI is missing on the host you ran it on, or you ran it on the wrong machine | Install the CLI and run the command on the Paperclip server host. This branch also requires operating Paperclip locally rather than over a remote board session |
+| The sign-in command does nothing | The `codex` CLI is missing on the host you ran it on, or you ran it on the wrong machine | Install the CLI and run the command in a terminal on the Paperclip server host itself |
 | Status **expired** or **needs attention** | The credential rotated or the key was revoked | Reconnect the account |
-| Runs fail with a quota error | OpenAI's plan or key limits, not a Paperclip limit | Check usage with OpenAI |
+| Runs fail with a quota error | OpenAI's plan or key limits, not a Paperclip limit | On a subscription, select **Check usage** on the saved account to see which window is exhausted and when it resets. Otherwise check usage with OpenAI |
 
 Limitations: one connection is one provider account, and it grants no tool access. The subscription path is tied to the Codex CLI rather than being a general OpenAI API credential.
 
@@ -129,5 +157,6 @@ Limitations: one connection is one provider account, and it grants no tool acces
 - [Connector overview](https://paperclip.ing/product/connectors/openai/)
 
 - [Anthropic](anthropic.md), [OpenRouter](openrouter.md), [Grok](xai.md) — the other model providers.
+- [Check AI account usage](ai-usage.md)
 - [How connector access works](access-model.md)
 - [OpenAI platform documentation](https://platform.openai.com/docs)

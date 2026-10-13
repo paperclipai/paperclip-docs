@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Documentation Changelog
 seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
@@ -13,6 +13,37 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.1012.0 <span class="accordion-meta">October 12, 2026</span></summary>
+<div class="accordion-body">
+
+This release lets outside assistants join your team. Claude Code, Codex, OpenCode and other MCP clients can now sign in to Paperclip as you, then read, create and delegate work. Connections can also carry instructions that reach your agents automatically. The release has two breaking changes that operators should read before upgrading: workspace restore locks now use a new protocol, and stored tool grants are enforced exactly as written.
+
+**New pages**
+
+- [Assistant connections (MCP)](../experimental/assistant-connections.md), with the [Assistant MCP API](api/assistant-mcp.md) and [MCP Commands](cli/mcp.md) references — connect Claude Code, Codex, OpenCode or any MCP client with browser or device-code consent, choose whether it can write, and revoke it later.
+- [Saved connection instructions](../connectors/connection-instructions.md) — write usage notes on a connection once, and every agent allowed to use it receives them on each turn.
+- [Check AI account usage](../connectors/ai-usage.md) — read the current provider limits for a saved OpenAI (Codex), Claude, Grok or OpenRouter account from the **Check usage** action.
+- [Task-pinned AI routing](../experimental/task-pinned-ai-routing.md) — the experimental connection pools that rotate new tasks across saved AI accounts while each task stays on the account it started with.
+- [Neon](../connectors/neon.md) — connect serverless Postgres with Neon sign-in or an API key, pin it to one project, and keep it read-only if you want.
+
+**Updated pages**
+
+- [Update Paperclip](../how-to/update-paperclip.md) — the restore-lock breaking change: stop every old server and worker before you upgrade or roll back, and clear away the legacy lock folders. Also: which migration in this release changes existing rows.
+- [Tool Gateway API](api/tool-gateway.md) and [Access model](../connectors/access-model.md) — stored grants are now enforced as written, and a grant with an unknown selector denies access. Check your custom grants after upgrading.
+- [HTTP adapter](adapters/http.md), [Process adapter](adapters/process.md) and [Creating an adapter](adapters/creating-an-adapter.md) — how custom adapters receive connection instructions, through `connectionInstructions` or `PAPERCLIP_CONNECTION_INSTRUCTIONS_FILE`.
+- [Agents](../guides/org/agents.md), [Agents API](api/agents.md), [Delegation](../guides/org/delegation.md) and [Team catalog](../guides/org/team-catalog.md) — much shorter default instructions for new companies and hires, and the default configuration grants new agents now receive.
+- [Skills](../guides/org/skills.md), [Skills Reference](skills.md) and [Write a company skill](../how-to/write-a-company-skill.md) — agents can update company skills with the `update_skill` tool, which uses version checks and safe retries.
+- [MCP aggregators](../connectors/mcp-aggregators.md), [Composio](../connectors/composio.md), [Arcade](../connectors/arcade.md) and the [connector catalog](../connectors.md) — accounts you already connected upstream show up in one Apps catalog, grouped with your native accounts. AgentMail is now a default connection, and [Asana](../connectors/asana.md) signs in again.
+- [Agent Chat](../experimental/agent-chat.md), [Chat-Style Tasks](../experimental/task-chat.md) and [Issues](../guides/day-to-day/issues.md) — Chat leads the navigation, an optional combined Inbox and task list, the rebuilt **New task** dialog, and the "Model at capacity" and "Model unavailable" recovery cards.
+- [Claude Code](adapters/claude-code.md), [Codex](adapters/codex.md), [OpenCode](adapters/opencode.md), [Paperclip Runner](adapters/paperclip-runner.md) and [Agent adapters](../guides/org/agent-adapters.md) — Claude Sonnet 5.5, GPT-6.1 Sol, refreshed harness pins, the supported range for remote Codex, and Codex runs that survive server restarts.
+- [Anthropic](../connectors/anthropic.md), [OpenAI](../connectors/openai.md), [xAI](../connectors/xai.md) and [OpenRouter](../connectors/openrouter.md) — reconnect an unavailable account in place from agent settings, and check usage.
+- [Trust & Low-Trust Review](../administration/trust-and-low-trust-review.md) — low-trust agents can take self-assigned work inside their scope, accept work from a person who messages them or assigns them a task directly, and update their own `AGENTS.md` when you ask from their chat.
+- Smaller updates: [Settings](../administration/settings.md), [Experimental overview](../experimental/overview.md), [Task watchdogs](../guides/projects-workflow/task-watchdogs.md) (the new 5- and 15-minute silence thresholds), [Docker](deploy/docker.md), [Sandbox Providers](adapters/sandbox-providers.md) (exe.dev **Source VM**), [Plugin SDK](plugins/sdk.md) (AI connection routers), [Artifacts](../guides/day-to-day/artifacts.md), [Work Modes](../guides/day-to-day/work-modes.md), the memory connector guides, and [Verify and troubleshoot](../connectors/verify-and-troubleshoot.md).
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.1005.0 <span class="accordion-meta">October 5, 2026</span></summary>
 <div class="accordion-body">
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.1012.0
 seo_title: Costs API
 seo_description: Company-scoped endpoints for the four spend questions: what was spent, by whom, against which budget, and how close the company is to its cap.
 ---
@@ -257,7 +257,7 @@ The request body for both endpoints is the same:
 { "budgetMonthlyCents": 5000 }
 ```
 
-The budget window is calendar-month UTC for company and agent monthly budgets.
+The budget window is calendar-month UTC for company and agent monthly budgets. Sending `0` turns the matching policy off rather than setting a zero-dollar cap.
 
 <!-- tabs: cURL, JavaScript, Python -->
 <!-- tab: cURL -->

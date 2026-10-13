@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Paperclip Connectors
 seo_description: Every service Paperclip can connect, grouped by what it is for, with the access model, action permissions, and a setup guide behind each one.
 ---
@@ -8,7 +8,7 @@ seo_description: Every service Paperclip can connect, grouped by what it is for,
 
 A **connector** is a saved connection to an outside service: a Gmail mailbox, a GitHub organization, a Notion workspace, a PostHog project. You set one up once, decide who and what it is for, and Paperclip carries that decision into every run.
 
-> **Note:** These guides cover the connector model in Paperclip **v2026.1005.0**. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
+> **Note:** These guides cover the connector model in Paperclip **v2026.1012.0**. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
@@ -44,7 +44,7 @@ Every row in the catalog lists the methods that connector supports. The names me
 | Provider app registration | You create an app or bot in the provider's developer console, give it the documented permissions and events, and connect its credentials. Provider-specific channel guides describe exceptions, such as managed inboxes. |
 | No credential | Nothing to sign in to. You identify the target — a store domain, a generated URL, a shared file — and that is the whole setup. |
 
-Which methods you actually see depends on your instance. **Connect with Paperclip** is hidden unless your instance is enrolled with Paperclip Cloud and Cloud advertises a profile for that connector. Every chat channel, and AgentMail's email inboxes with them, is behind the **Chat connectors** instance setting, which is off by default. The [memory providers](#memory-experimental) are behind a separate **Memory connectors** setting, also off by default. Each connector page lists its own prerequisites.
+Which methods you actually see depends on your instance. **Connect with Paperclip** is hidden unless your instance is enrolled with Paperclip Cloud and Cloud advertises a profile for that connector. Every chat channel is behind the **Chat connectors** instance setting, which is off by default. AgentMail is not: its email inboxes are available on every instance. The [memory providers](#memory-experimental) are behind a separate **Memory connectors** setting, also off by default. Each connector page lists its own prerequisites.
 
 ### What setup looks like
 
@@ -77,7 +77,7 @@ Find an app and open its setup guide.
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
 | [Arcade](connectors/arcade.md) | Tool gateway combining the tools you select from several servers behind one URL. Agents use the exposed tools; authentication follows your gateway settings. Setup is unverified. | Gateway URL · Browser sign-in or token/headers |
-| [Asana](connectors/asana.md) | Work management for team projects, tasks, and goals. Agents work with the projects and tasks the authorizing Asana account can reach. | Your own OAuth app |
+| [Asana](connectors/asana.md) | Work management for team projects, tasks, and goals. Agents work with the projects and tasks the authorizing Asana account can reach. | Connect with Paperclip · Your own OAuth app |
 | [Composio](connectors/composio.md) | App discovery and execution through Composio Connect or a configured session. Upstream app authorization happens in Composio; broad execution actions need separate review. Setup is unverified. | Composio Connect sign-in · Configured session URL and headers |
 | [Executor](connectors/executor.md) | One remote endpoint for configured integrations. Agents use its exposed actions within Executor's upstream policies. Setup is unverified. | Deployment URL · Browser sign-in or token/headers |
 | [Fireflies](connectors/fireflies.md) — **Live exception; not yet stable** | Meeting transcripts, summaries, and action items the connected account can access. Setup is unverified. | Sign in with Fireflies · API key |
@@ -103,7 +103,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
-| [AgentMail](connectors/agentmail.md) — **Experimental** | Email inboxes built for software agents. Gives an agent its own inbox and turns each email conversation into a Paperclip task. Requires the **Chat connectors** experimental setting. | API key |
+| [AgentMail](connectors/agentmail.md) | Email inboxes built for software agents. Gives an agent its own inbox and turns each email conversation into a Paperclip task. Available on every instance; no experimental setting needed. | API key |
 | [Resend](connectors/resend.md) | Transactional email delivery for developers. Agents work with the sending domains and delivery records your Resend account can reach. | Sign in with Resend |
 | [Slack](connectors/slack.md) | Team messaging. As an app integration, agents read and post within the authorizing account's access. Its separate **experimental** chat channel lets people work with one agent from Slack. | Agent-tool setup: see compatibility notice · Provider app registration for chat |
 
@@ -127,6 +127,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | [Airtable](connectors/airtable.md) | Spreadsheet-database hybrid for structured team data. Agents work with the bases your Airtable sign-in can reach. | Sign in with Airtable |
 | [ClickHouse](connectors/clickhouse.md) | Columnar database built for analytical queries over very large datasets. Agents query the ClickHouse Cloud service you name. | Sign in with ClickHouse |
 | [Mixpanel](connectors/mixpanel.md) | Product analytics for user and event behaviour. Agents work with the events and reports your Mixpanel account can reach. | Sign in with Mixpanel |
+| [Neon](connectors/neon.md) | Serverless Postgres with branching. Agents manage projects and branches, run SQL, and inspect schemas, optionally pinned to one project. Use a development project. | Sign in with Neon · API key |
 | [PostHog](connectors/posthog.md) | Product analytics with session replay, feature flags, and experiments. Agents analyse product usage, errors, flags, and experiments. | Sign in with PostHog · API key |
 | [Supabase](connectors/supabase.md) | Hosted Postgres with authentication, storage, and edge functions. Agents work with the Supabase project you scope the connection to. Use a development project. | Sign in with Supabase · API key |
 
@@ -184,6 +185,8 @@ These hold the credential Paperclip uses to run models. They publish no actions 
 | [OpenRouter](connectors/openrouter.md) | Run models from many vendors through one credential and one bill. | API key |
 | [Grok](connectors/xai.md) | Run xAI's Grok models. | Grok subscription · API key |
 
+[Check AI usage](connectors/ai-usage.md) explains provider-supported usage snapshots and reconnect messages. These credentials are separate from [assistant connections (MCP)](experimental/assistant-connections.md), which let an external assistant sign in as a person and work with Paperclip.
+
 <span id="chat-channels"></span>
 
 ### Chat channels — Experimental
@@ -235,6 +238,7 @@ Use these guides for the controls your connector exposes. Action permissions and
 | [Reauthorize, revoke, or disconnect](connectors/reauthorize-and-disconnect.md) | Rotating a credential, removing one person's access, or deleting the connection. |
 | [Connect a custom MCP server](connectors/custom-mcp-servers.md) | The service is not in the catalog, or you have a URL or config to paste. |
 | [Connect apps through an MCP aggregator](connectors/mcp-aggregators.md) | The app has no native connector, or an agent asked you to pick an external provider. |
+| [Connection instructions](connectors/connection-instructions.md) | Saving service-specific instructions an agent should receive with a connection. |
 
 ## Related
 

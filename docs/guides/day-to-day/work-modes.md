@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Task Work Modes: Auto, Plan, and Ask
 seo_description: Choose Auto to do the work, Plan to review an approach first, or Ask for an answer. Pick a mode in the task composer before you send each message.
 ---
@@ -26,7 +26,7 @@ Auto is the default. Plan focuses the agent on clarifying the goal and writing a
 
 ## How it behaves
 
-In a task's composer, use the **+** menu to choose **Plan mode** or **Ask mode**. The selected mode appears beside the plus button. Click the chip to return to Auto, or choose the other mode to replace it. You can also cycle modes with **⌘+.** (**Ctrl+.** on Windows and Linux) or **Shift+Tab** while the text box is focused. On the new-task form, click the mode chip to pick a starting mode for the task.
+Use the **+** menu in the new-task or task composer to choose **Plan mode** or **Ask mode**. The selected mode appears beside the plus button. Click the chip to return to Auto, or choose the other mode to replace it. You can also cycle modes with **⌘+.** (**Ctrl+.** on Windows and Linux) or **Shift+Tab** while the text box is focused.
 
 Choose the agent, model, and effort separately. Those settings determine who answers and how the model runs; the work mode determines the kind of result you requested. See [The composer](../../experimental/task-chat.md#the-composer) for the full control layout.
 
@@ -34,7 +34,7 @@ Pending questions and confirmations remain visible above the composer until you 
 
 Tasks keep their assignee, priority, project, thread, and status regardless of the mode. Budgets, approvals, and company boundaries still apply. The mode changes the agent's task instructions and available actions.
 
-Implementation reference: [composer mode selection](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/components/task-chat/TaskChatComposer.tsx) and [mode labels](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/lib/work-mode-meta.ts).
+Implementation reference: [composer mode selection](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/task-chat/TaskChatComposer.tsx) and [mode labels](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/lib/work-mode-meta.ts).
 
 ## Answer or artifact
 

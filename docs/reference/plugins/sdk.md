@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Plugin SDK
 seo_description: The worker-side authoring kit for Paperclip plugins. Import it in your worker entrypoint to declare a plugin and subscribe to host events.
 ---
@@ -226,6 +226,8 @@ A note on imports: the domain types these methods hand back — `IssueThreadInte
 
 Interactions are the decision cards an agent posts into an issue thread: suggested tasks, questions, confirmations. Your plugin could already create them; now it can read them back and resolve them.
 
+When you create one with `ctx.issues.createInteraction`, the payload is typed as `CreateIssueThreadInteractionInput` (exported from the SDK); `ctx.issues.askUserQuestions` takes the same `ask_user_questions` shape without `kind`. It's the input shape the host validates, so you can leave out fields the host fills with defaults instead of building the fully stored form yourself.
+
 | Method | Signature | Capability |
 |---|---|---|
 | `ctx.issues.listInteractions` | `listInteractions(issueId, companyId)` → `Promise<IssueThreadInteraction[]>` | `issue.interactions.read` |
@@ -397,6 +399,48 @@ You implement the lifecycle as three optional hooks on your plugin definition. E
 - Returns `RefreshExternalObjectsResult`: `{ results }`, an array of `{ objectId, result }` where each `result` is a `PluginExternalObjectResolveResult` shaped exactly like the single-object resolve return.
 
 If you implement only `onResolveExternalObject`, the host refreshes objects one at a time within the window set by your `refreshPolicy`; declaring `onRefreshExternalObjects` lets you collapse those into a single round trip. For a concrete reference implementation, see the parent `server/src/services/github-external-object-provider.ts`.
+
+### AI connection routers
+
+A plugin can act as the routing brain behind [task-pinned AI routing](../../experimental/task-pinned-ai-routing.md): it decides which saved AI account in a connection pool takes the next task. Paperclip does everything else — authorization, pinning tasks to accounts, storing pools, and the setup and management screens — so a router plugin is a small amount of code.
+
+To declare one, add both of these to your manifest:
+
+```ts
+capabilities: ["ai.connections.route"],
+aiConnectionRouter: {
+  name: "AI connection pool",            // 1–100 characters
+  description: "Use existing AI connections.", // 1–500 characters
+},
+```
+
+The manifest validator rejects `aiConnectionRouter` without the `ai.connections.route` capability. Paperclip adds your router to the **Connectors** catalog with an **Add connection pool** action; you don't need a plugin page or sidebar entry. It is only available while the instance's `enableAiConnectionRouters` experimental flag is on and your plugin is ready.
+
+Then implement `onRouteAiConnection` on your plugin definition. The host calls it (the `routeAiConnection` worker method) when a task without a pinned account needs one:
+
+```ts
+export default definePlugin({
+  async setup() {},
+  async onRouteAiConnection(request) {
+    const next = request.candidates[0];
+    return next
+      ? { kind: "selected", memberId: next.member.id }
+      : { kind: "unavailable", skipped: {} };
+  },
+});
+```
+
+The `AiConnectionRouterRequest` carries the `companyId`, the `pool` (an `AiConnectionPool`), `agentId`, `taskKey`, `lastMemberId`, `cursorVersion`, the pool's `memberOrder`, an optional `pinnedMemberId`, the `candidates` the host has already authorized for this agent (each with its `member`, `runtimeConfig`, `notes`, and optional `usage`), and `now`. It contains no credentials and no raw provider responses.
+
+Return an `AiConnectionRouterResult`:
+
+| `kind` | Meaning |
+| --- | --- |
+| `selected` | Use `memberId`. Optionally explain skipped members in `skipped`, a map of member ID to reason. |
+| `exhausted` | Every candidate is over its limit. Paperclip defers the task until `retryAt` and shows **Pool exhausted**. Include `skipped`. |
+| `unavailable` | No candidate can run this task. Include `skipped`. |
+
+Your result is only a proposal. The host rechecks authorization and can't be made to use an account the responsible person isn't allowed to use. The SDK re-exports the related types: `AiConnectionPool`, `AiConnectionPoolConfig`, `AiConnectionPoolMember`, `AiConnectionRouterRequest`, `AiConnectionRouterResult`, and `AiConnectionRouterSelection`.
 
 ### JSON-RPC protocol
 
@@ -619,6 +663,7 @@ The harness deliberately mirrors the host's own write bar rather than waving it 
 - `NOOP_PLUGIN_TRACER`, `NOOP_PLUGIN_SPAN` — the default no-op tracer and span (values, not types). Handy as a stand-in when you want the do-nothing default explicitly, e.g. in tests.
 - Constants from `@paperclipai/shared`: `PLUGIN_API_VERSION`, `PLUGIN_STATUSES`, `PLUGIN_CATEGORIES`, `PLUGIN_CAPABILITIES`, `PLUGIN_UI_SLOT_TYPES`, `PLUGIN_UI_SLOT_ENTITY_TYPES`, `PLUGIN_RESERVED_COMPANY_SETTINGS_ROUTE_SEGMENTS`, `PLUGIN_STATE_SCOPE_KINDS`, `PLUGIN_JOB_STATUSES`, `PLUGIN_JOB_RUN_STATUSES`, `PLUGIN_JOB_RUN_TRIGGERS`, `PLUGIN_WEBHOOK_DELIVERY_STATUSES`, `PLUGIN_EVENT_TYPES`, `PLUGIN_BRIDGE_ERROR_CODES`.
 - Access and permission constant arrays from `@paperclipai/shared`, matching the domain types used by [`ctx.access` and `ctx.authorization`](#access-and-authorization): `PERMISSION_KEYS`, `HUMAN_COMPANY_MEMBERSHIP_ROLES`, `HUMAN_COMPANY_MEMBERSHIP_ROLE_LABELS`, `MEMBERSHIP_STATUSES`, `PRINCIPAL_TYPES`.
+- AI connection router types re-exported from `@paperclipai/shared` for [router plugins](#ai-connection-routers): `AiConnectionPool`, `AiConnectionPoolConfig`, `AiConnectionPoolMember`, `AiConnectionRouterRequest`, `AiConnectionRouterResult`, `AiConnectionRouterSelection`.
 - Connection-provider shapes re-exported from `@paperclipai/shared` for plugins that back a connection intent: `ConnectionIntentInteraction`, `ConnectionIntentPayload`, `ConnectionIntentResult`, `ConnectionIntentSetupOptions`, `ConnectionRequestResult`, `ConnectionsSearchResult`.
 
 ---

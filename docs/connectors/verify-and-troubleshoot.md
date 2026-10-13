@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Verify and Fix a Connector
 seo_description: Confirm a new connector works using a read-only test call, read the status words in the connector list, and fix the common failure modes.
 ---
@@ -17,6 +17,7 @@ The read-test procedure below is for **app tool** connections. The other shapes 
 | **App tools** — Notion, Jira, Stripe, and most of the catalog | The read test below |
 | **Messaging channels** — Slack chat, Discord, Telegram, Teams, iMessage Photon, GitHub Code Review Bot, AgentMail | Send a real message from the provider and wait for the agent's reply. There is no action list to test against, and setup is not complete until a reply is delivered. The connector's own page has the sequence |
 | **Model providers** — Anthropic, OpenAI, OpenRouter, Grok | Run a short task on an agent whose runtime matches, and watch the run. A connected badge says nothing about runtime compatibility. See [Anthropic](anthropic.md) |
+| **Assistant Connection (MCP)** | Call `paperclip_connection` from the external assistant and verify the consenting person and organization. List agents or tasks before creating work. See [Assistant connections](../experimental/assistant-connections.md) |
 
 [How connector access works](access-model.md) explains why the controls differ.
 
@@ -28,7 +29,7 @@ Always start with a read.
 2. Confirm the action list loaded. For an app-tool connection, an empty list can mean discovery is incomplete or the provider returned no tools for this credential. Select **Refresh actions** and inspect any error; model credentials and chat channels do not have an action catalog.
 3. Confirm every write and destructive action is **Off** or **Ask first** while you are testing.
 4. Run one read action as a specific agent using the connector's built-in test call. Paperclip asks **Choose which agent to test as**, because the answer depends on the agent's effective policy, not just on the connection.
-5. Read the result. **Worked** means the call succeeded; **Worked. No data to show.** means it succeeded and returned nothing. **Show raw response** gives you the provider's actual payload.
+5. Read the result. Paperclip lays out what came back as readable fields, a table, or cards when it can, so you can check it without reading JSON. A summary line tells you how it went — for example **Worked. 3 rows came back.**, or **Worked. No data to show.** when the call succeeded and returned nothing. **Show raw response** gives you the provider's actual payload; it opens on its own when the result cannot be laid out safely.
 
 The API equivalents:
 
@@ -94,9 +95,15 @@ The sign-in or key does not cover what the action needs. Reconnect and approve t
 
 *"The app returned an error result."* with a code such as `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `INVALID_ARGUMENT`, `RATE_LIMIT`, or `RESOURCE_EXHAUSTED`. These come from the service. `RATE_LIMIT` and `RESOURCE_EXHAUSTED` are the provider throttling you; the rest point at the account's own permissions or at the arguments.
 
+### Tool discovery is busy
+
+*"Tool discovery is busy. Retry shortly."* with the code `tool_discovery_busy` means the server is already listing tools for as many callers as it allows at once. Nothing is wrong with the connection or its credential. Wait a moment and list the tools again. See the [Tool Gateway reference](../reference/api/tool-gateway.md) for the API shape.
+
 ### A task needs an AI credential
 
 Open the task's authentication card and select **Fix connection** or the displayed provider connection action. Connect your account or reconnect the existing one; successful setup resumes the task. If another person owns the credential, that person must repair it. Selecting a shared account does not bypass the responsible user's access check.
+
+For a quota error, use **Check usage** on the saved AI account where supported. Missing usage fields mean **Not reported**, not zero. See [Check AI account usage](ai-usage.md).
 
 ### The managed sign-in option is missing
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Arcade Connector
 seo_description: Connect tools selected in an Arcade gateway, choose agent access, and check authentication and action permissions. Setup is unverified.
 ---
@@ -33,6 +33,16 @@ Tools come from your Arcade account and appear in Paperclip when you connect. Ar
 
 Every tool starts as **Allowed**. Set actions to **Ask first** or **Off** on **Permissions** where needed. Review the list after **Refresh actions** and after changing the gateway's tool selection.
 
+## See connected app accounts
+
+Open the saved gateway's **Permissions** page to see **Connected apps** and **Refresh Arcade**, when account discovery is available. The list is limited to the configured Arcade user and the tools this gateway exposes.
+
+If sync needs separate credentials, use **Set up account sync** in the gateway's menu. Enter a **Project API key** for the same Arcade project and its **Arcade user ID**, then select **Save and sync**. That key is stored separately and used only for account sync; your gateway can work without it.
+
+Accounts appear under their app cards in **Connectors**, labelled **Managed by Arcade**. Use **Open in Arcade** to manage them upstream. Paperclip access stays on the saved gateway and covers its exposed apps.
+
+A successful gateway setup is not proof that a particular app is authorized. The agent checks app access when it first uses it and may still need your help with provider authorization.
+
 ## Try it
 
 Ask an eligible agent to perform one read-only lookup that your gateway exposes. Compare the result with the source app and inspect the connector call in Paperclip.
@@ -60,4 +70,6 @@ The available tools depend on the gateway. A successful connection does not prov
 
 ## Sources
 
-- [Paperclip connector definition](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/app-definitions/arcade.json#L16) — method names, authentication, endpoints, and connector-specific limits at the pinned product version. Provider setup documentation is linked above.
+- [Paperclip connector definition](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/packages/shared/src/app-definitions/arcade.json#L16) — method names, authentication, endpoints, and connector-specific limits at the pinned product version. Provider setup documentation is linked above.
+- [Catalog and account grouping](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/pages/apps/Browse.tsx) — filters, grouped account rows, and gateway menus.
+- [Connected app list](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/pages/apps/app-detail/ConnectedAggregatorApps.tsx) — refresh controls and verification states.

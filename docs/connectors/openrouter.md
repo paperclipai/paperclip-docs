@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: OpenRouter Connector
 seo_description: Give agents model access through OpenRouter with an API key. Runtime and model-prefix requirements, assignment, a bounded test, and fixes.
 ---
@@ -42,6 +42,27 @@ Then set the agent's model to an `openrouter/`-prefixed id, for example `openrou
 
 > **Warning:** Authenticating successfully does not mean a particular model is available to you. OpenRouter decides which upstream models your account can route to, based on its own availability, your credit, and any provider-specific requirements. A key that works for one model can be refused for another.
 
+### Reconnect from a task
+
+If a task shows an authentication card, use **Fix connection** to replace the stored key. Only the account owner can reconnect. The existing sharing stays in place, and the task resumes after successful setup.
+
+## Check your usage limits
+
+Before you hand an agent a long task, you can see how much of the provider's allowance is left. Open the saved account and find **Usage**, then select **Check usage**. For an OpenRouter key, Paperclip asks OpenRouter for the key's credit cap, how often it resets, and any daily cap on free models, when OpenRouter returns them.
+
+Paperclip reads the limits only when you ask. Opening the account, listing connections, and starting a run never trigger a check. Each limit window shows how much is used and when it resets, and is marked **Limit reached** or **Blocked** when the provider says so. **Overage** shows whether extra paid usage is available. Anything the provider leaves out shows as **Not reported**, never as zero. After a successful check, the button becomes **Refresh**.
+
+Checking is read-only. It does not move work to another account, stop runs at a limit, refresh the credential, or buy credit.
+
+| Message | What it means |
+| --- | --- |
+| *"Sign in again to check usage."* | The stored credential has expired. Reconnect the account |
+| *"Usage access denied."* | The provider refused to share usage for this credential |
+| *"Too many checks. Try again later."* | The provider rate-limited the check itself. Your allowance is not affected |
+| *"Reconnect to check usage."* | The account is not usable right now. Reconnect it first |
+
+Board users can run the same check over the API with `GET /api/companies/{companyId}/ai-connections/{connectionId}/usage`.
+
 ## Try it
 
 ```txt
@@ -65,7 +86,7 @@ If it fails, change only one thing at a time — the model id is the most common
 | *"Connect an account and choose your personal default"* | The agent uses the responsible user's connection and that person has no default | Connect an account and mark it as your default |
 | *"This run needs a responsible user to select an AI connection"* | The run has no responsible person to evaluate the credential checks against | Give the work an eligible responsible user. Binding a shared connection does **not** work around this |
 | The key works but one model is refused | OpenRouter is not routing that model for your account | Choose another model, or check the model's requirements with OpenRouter |
-| Runs fail once usage rises | OpenRouter credit is exhausted or a rate limit applied | Top up or check limits in your OpenRouter account |
+| Runs fail once usage rises | OpenRouter credit is exhausted or a rate limit applied | Select **Check usage** on the saved account to see the key's credit cap, then top up or raise limits in OpenRouter |
 | Status **needs attention** | The key was revoked or rotated | Reconnect with a current key |
 
 Limitations: one connection is one OpenRouter account, and it grants no tool access. Only `openrouter/`-prefixed models are usable with it. Which upstream models are reachable is OpenRouter's decision, not Paperclip's.
@@ -75,5 +96,6 @@ Limitations: one connection is one OpenRouter account, and it grants no tool acc
 - [Connector overview](https://paperclip.ing/product/connectors/openrouter/)
 
 - [Anthropic](anthropic.md), [OpenAI](openai.md), [Grok](xai.md) — the other model providers.
+- [Check AI account usage](ai-usage.md)
 - [How connector access works](access-model.md)
 - [OpenRouter documentation](https://openrouter.ai/docs)

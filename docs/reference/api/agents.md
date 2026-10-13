@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Agents API
 seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate keys, sync skills, trigger runs, and register managed and remote agent profiles.
 ---
@@ -39,7 +39,7 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `runtimeConfig` | Runtime settings. `heartbeat.enabled` defaults to `false` when you create an agent. |
 | `budgetMonthlyCents` | Monthly budget in cents. If this is greater than `0` on create, the server creates a matching budget policy automatically. |
 | `status` | Lifecycle state. The shared enum includes `active`, `paused`, `idle`, `running`, `error`, `pending_approval`, and `terminated`. |
-| `permissions` | Agent-level permissions, currently `canCreateAgents`. |
+| `permissions` | Agent-level permissions: `canCreateAgents` and `canCreateSkills` (defaults to `true`). |
 
 ---
 
@@ -309,7 +309,7 @@ Important behavior:
 - `adapterConfig.env` can contain secret references, but those secrets must belong to the same company.
 - If `budgetMonthlyCents > 0`, the server creates a matching monthly budget policy automatically.
 - If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
-- For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds Paperclip's default instructions: `AGENTS.md`, `HEARTBEAT.md`, `SOUL.md`, and `TOOLS.md` for `role: "ceo"`, or a default `AGENTS.md` for every other role. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
+- For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds a short default `AGENTS.md`: a one-line role description for `role: "ceo"`, or a one-line generic placeholder for every other role. Keep it short — Paperclip's runtime and installed skills already supply the operating procedures. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
 
 ### Example
@@ -549,9 +549,9 @@ This is the only supported way to change permissions. The main `PATCH /api/agent
 
 Current permission fields:
 
-- `canCreateAgents`
-- The request body also accepts `canAssignTasks`, which the route applies as a principal permission grant on the agent (`tasks:assign`).
-- The agent record itself only stores `canCreateAgents`.
+- `canCreateAgents` (required)
+- `canCreateSkills` (optional)
+- `canAssignTasks` (required) — the route applies this as a principal permission grant on the agent (`tasks:assign`) rather than storing it on the agent record.
 
 Board sessions can call this route. Agent sessions can only call it when the caller is the company CEO agent.
 
@@ -578,7 +578,9 @@ The `permissionKey` field on a grant is one of:
 | `users:manage_permissions` | Edit roles and grants for other members. |
 | `joins:approve` | Approve pending join requests. |
 
-The CEO agent role gets `canCreateAgents` by default. Other roles get an empty `permissions` block. Role-default human grants are applied automatically when a user joins — `owner` and `admin` receive almost all keys, `operator` gets `tasks:assign`, and `viewer` gets none.
+A new standard agent gets `canCreateAgents: true` and `canCreateSkills: true` when it is created; low-trust agents get `canCreateAgents: false`. Stored agents without an explicit `canCreateAgents` value are treated as `false`. An agent with the `ceo` role can always create agents, whatever its flag says. New standard agents also receive fourteen direct grants when they are created or their hire is approved: `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`, `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `audit:view_agent_actions`, `tools:use`, `tools:manage_runtime`, `inbox:manage` (scoped `{ "responsibleUserOnly": true }`), `tasks:assign`, `tasks:assign_scope` (scoped `{ "subtreeRootAgentId": "<the new agent's id>" }`), and `tasks:manage_active_checkouts`. Low-trust agents and managed built-in agents don't receive them, and existing agents aren't backfilled.
+
+Role-default human grants are applied automatically when a user joins — `owner` and `admin` receive almost all keys, `operator` gets `tasks:assign`, and `viewer` gets none.
 
 ### Grant scope
 
@@ -1110,6 +1112,7 @@ Notes:
 
 - The target agent or an ancestor manager can manage the instructions path.
 - An agent can read and save its own files within what its responsible user is currently allowed to do. Reading or saving another agent's files needs permission to configure that agent.
+- A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't save its own instructions from ordinary work. The exception is an edit its user asks for directly in their own Agent Chat — see [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 - Relative instructions paths require `adapterConfig.cwd`.
 - External bundles keep their existing behaviour; `download=true` and the `baseHash` rules above apply to managed bundles.
 

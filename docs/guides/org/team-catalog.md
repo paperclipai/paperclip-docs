@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1012.0
 seo_title: Team Catalog: Ready-Made Starter Teams
 seo_description: Skip the blank page. Install a working team — agents, reporting lines, projects, routines, and skills — from the app or the terminal in one step.
 ---
@@ -52,7 +52,7 @@ A few choices happen at install time:
 
 Installing a team is a single action that builds out several things at once:
 
-- **Agents** — every agent the team defines, with its role, prompt, and place in the reporting hierarchy. The team's root agents either stand on their own or report to the manager you picked.
+- **Agents** — every agent the team defines, with its role, a short role description as its `AGENTS.md`, and its place in the reporting hierarchy. You can expand the description on each agent's [Instructions tab](./agents.md#instructions-tab). The team's root agents either stand on their own or report to the manager you picked.
 - **Projects** — the workspaces the team operates in, so its agents have somewhere to do the work.
 - **Tasks** — including any recurring routines the team ships, such as a CEO heartbeat or a weekly sync, imported the same careful way Paperclip imports any routine.
 - **Skills** — the team's required skills are prepared in the company library: catalog skills are installed for you, and external-source skills are imported once you've allowed their sources.

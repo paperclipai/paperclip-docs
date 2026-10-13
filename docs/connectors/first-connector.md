@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Connect Your First Connector
 seo_description: Connect one read-only service to Paperclip and give an agent a task that uses it, without granting write access to anything.
 ---
@@ -22,7 +22,7 @@ The worked example is **Hugging Face**, chosen because it offers a simple setup:
 
 In the left sidebar, select **Connectors**.
 
-The page lists every connector Paperclip can set up. Use **Search connectors** to find **Hugging Face**, then select **Connect**.
+The catalog starts on **Paperclip**. Use **Search connectors** to find **Hugging Face**, then select **Connect**. **Installed** shows saved accounts; **All** also includes apps offered through external providers. Native and imported accounts are grouped under the app they belong to.
 
 ## 2. Check who it is for
 
@@ -83,5 +83,5 @@ One connection, scoped to you, usable by one agent, restricted to reads. That is
 
 ## Sources
 
-- [Connection setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
-- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.
+- [Connection setup](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
+- [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.

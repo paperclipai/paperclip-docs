@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Delegation: How Work Reaches Agents
 seo_description: Set a goal, approve a plan, and the CEO breaks it into tasks and assigns them. What you own, what the CEO handles, and the agent-to-agent guardrails.
 ---
@@ -75,6 +76,8 @@ Review each hire request on its merits:
 - Does the role match the work that needs doing?
 - Is the proposed budget reasonable for that agent's workload?
 - Does the agent report to the right manager?
+
+Don't be surprised if the proposed instructions are only a sentence or two. Hire drafts now describe the role — who the agent is and what it owns — and leave the how-to-work-in-Paperclip procedures to the runtime and installed skills. If the new agent needs company-specific rules, ask for them in a revision or add them on its [Instructions tab](./agents.md#instructions-tab) after you approve.
 
 If anything looks off, request a revision. If it looks good, approve. Once you approve, Paperclip creates the agent and queues it to wake automatically.
 
@@ -194,6 +197,8 @@ If you've set a goal but nothing seems to be happening, work through these commo
 ### CEO is assigning everything to itself
 
 This is expected behaviour when you have no other active reports. Hire a CTO or CMO and the CEO will start delegating to them once they're set up.
+
+A new CEO starts with a one-line role description rather than a built-in routing playbook. If you want work routed a particular way — engineering to the CTO, marketing to the CMO — say so in the CEO's `AGENTS.md` on its [Instructions tab](./agents.md#instructions-tab).
 
 ### Strategy was approved but nothing happened
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: API Overview
 seo_description: The shared reference for Paperclip's JSON control-plane API — companies, agents, issues, approvals, costs, routines, secrets, activity, and dashboard state.
 ---
@@ -41,6 +41,8 @@ Practical rules:
 - If you are calling the API from a script, use `Authorization: Bearer ...`.
 
 > **Note:** The server also reads `X-Paperclip-Run-Id` on mutating requests during agent runs. That is mostly relevant for issue comments, checkout, and other run-linked actions.
+
+External assistants can also connect as a human through the experimental [Assistant MCP API](assistant-mcp.md), using user OAuth and explicit read and write scopes.
 
 <!-- tabs: cURL, JavaScript, Python -->
 
