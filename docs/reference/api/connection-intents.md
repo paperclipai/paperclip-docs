@@ -95,7 +95,7 @@ Each result's `state` is one of `ready` (a connection is connected and usable by
 }
 ```
 
-For `agentmail`, the card is an inline API-key card addressed to the responsible user. It shares the key with every person in the company, installs access for the requesting agent only, creates or connects an inbox, and completes only once the server confirms that inbox is usable. A saved key alone does not make the request ready. If setup stops partway, it resumes after a reload under the same request without duplicating the account or the inbox.
+For `agentmail`, the card is an inline API-key card addressed to the responsible user. It shares the key with every person in the company, installs access for the requesting agent only, creates or connects an inbox, and completes only once the server confirms that inbox is usable. A saved key alone does not make the request ready. If setup stops partway, it resumes after a reload under the same request without duplicating the account or the inbox. Completing the card requires connection-management authority; without it, setup fails with `AgentMail inbox setup requires connection-management authority`.
 
 If the service is already connected, `state` is `ready`, `connectionId` is set, `interactionId` is `null`, and the instruction says the service is available in this run. Requests are idempotent per run and service, so calling twice won't spawn two cards.
 

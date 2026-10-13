@@ -60,7 +60,7 @@ Saved instructions are a general connection capability. Custom and non-memory co
 
 The current editor appears only for connections with explicit template metadata. It is not a universal text box on every custom server. Paperclip does not automatically trust a remote MCP server's initialization prose as connection instructions.
 
-For a custom HTTP or process adapter, deliver the server-provided instruction snapshot alongside the agent's normal prompt and treat a changed snapshot as a session change. The [Tool Gateway reference](../reference/api/tool-gateway.md) covers the API surface.
+For a custom HTTP or process adapter, deliver the server-provided instruction snapshot alongside the agent's normal prompt and treat a changed snapshot as a session change. The [HTTP adapter](../reference/adapters/http.md#connection-instructions) and [Process adapter](../reference/adapters/process.md#connection-instructions) references describe exactly how the snapshot arrives.
 
 ## Related guides
 

@@ -95,7 +95,7 @@ Events-capable clients use `server/discover`, `events/list`, `events/subscribe`,
 | `paperclip.task.comment_created` | `companyId`, `taskId` | Comment ID and task link. |
 | `paperclip.task.document_updated` | `companyId`, `taskId` | Document key, revision number, and task link. |
 
-Delivery is by verified webhook. Your client supplies the callback URL and signing secret, then manages refresh and unsubscribe. Connect only when the user asks to monitor that task. Read current work after receiving an event; notifications carry identifiers rather than document or comment bodies.
+Delivery is by verified webhook. Your client supplies the callback URL and, optionally, a signing secret, then manages refresh and unsubscribe. Connect only when the user asks to monitor that task. Read current work after receiving an event; notifications carry identifiers rather than document or comment bodies.
 
 Connecting alone does not subscribe. Clients without Events support, including the CLI stdio proxy, can poll the read tools. Disabling the feature or revoking access stops future delivery.
 

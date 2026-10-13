@@ -44,7 +44,7 @@ Prefer a project-scoped key for one development project. Paperclip can't increas
 1. Open **Connectors** and select **Neon**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 3. Check how you'll authenticate. Setup starts on **Sign in with Neon**. To paste an API key instead, select **Change** and choose **Use an API key**.
-4. Optionally open the advanced settings to set **Pin to project ID** or turn on **Read-only mode**. Neither is required — you can continue straight away with Neon's defaults.
+4. Optionally select **Change** to reveal **Pin to project ID** and **Read-only mode**, then fill in either one. Neither is required — you can continue straight away with Neon's defaults.
 5. Finish setup. For browser sign-in, approve access in Neon; for the key method, paste the key and continue.
 
 Paperclip needs a public HTTPS origin, or a loopback HTTP origin such as `http://localhost:3100`, to complete browser sign-in. A plain HTTP tailnet hostname doesn't count as loopback — switch to HTTPS before you connect.

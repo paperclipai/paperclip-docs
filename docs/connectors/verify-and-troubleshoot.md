@@ -103,7 +103,7 @@ The sign-in or key does not cover what the action needs. Reconnect and approve t
 
 Open the task's authentication card and select **Fix connection** or the displayed provider connection action. Connect your account or reconnect the existing one; successful setup resumes the task. If another person owns the credential, that person must repair it. Selecting a shared account does not bypass the responsible user's access check.
 
-For a quota error, use **Check usage** on the saved AI account where supported. Missing usage fields mean **Not reported**, not zero. See [AI usage and recovery](ai-usage.md).
+For a quota error, use **Check usage** on the saved AI account where supported. Missing usage fields mean **Not reported**, not zero. See [Check AI account usage](ai-usage.md).
 
 ### The managed sign-in option is missing
 
