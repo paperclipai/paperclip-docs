@@ -107,10 +107,6 @@
           "file": "../docs/guides/org/agents.md"
         },
         {
-          "title": "Agent Identity",
-          "file": "../docs/guides/org/agent-identity.md"
-        },
-        {
           "title": "Skills",
           "file": "../docs/guides/org/skills.md"
         },
@@ -202,10 +198,6 @@
               "file": "../docs/connectors/google-setup.md"
             },
             {
-              "title": "Custom Model Providers",
-              "file": "../docs/connectors/custom-model-providers.md"
-            },
-            {
               "title": "Check AI Usage",
               "file": "../docs/connectors/ai-usage.md"
             },
@@ -273,10 +265,6 @@
             {
               "title": "Discord",
               "file": "../docs/connectors/discord.md"
-            },
-            {
-              "title": "Enterpret",
-              "file": "../docs/connectors/enterpret.md"
             },
             {
               "title": "Executor",
@@ -388,6 +376,10 @@
               "file": "../docs/connectors/mixpanel.md"
             },
             {
+              "title": "Neon",
+              "file": "../docs/connectors/neon.md"
+            },
+            {
               "title": "Netlify",
               "file": "../docs/connectors/netlify.md"
             },
@@ -444,20 +436,12 @@
               "file": "../docs/connectors/supabase.md"
             },
             {
-              "title": "Superagent",
-              "file": "../docs/connectors/superagent.md"
-            },
-            {
               "title": "Supermemory",
               "file": "../docs/connectors/supermemory.md"
             },
             {
               "title": "Telegram",
               "file": "../docs/connectors/telegram.md"
-            },
-            {
-              "title": "Telem.AI",
-              "file": "../docs/connectors/telem.md"
             },
             {
               "title": "Todoist",
@@ -764,10 +748,6 @@
           "file": "../docs/administration/settings.md"
         },
         {
-          "title": "Agent Complaints and Suggestions",
-          "file": "../docs/administration/agent-commentary.md"
-        },
-        {
           "title": "Trust & Low-Trust Review",
           "file": "../docs/administration/trust-and-low-trust-review.md"
         },
@@ -938,10 +918,6 @@
         {
           "title": "Setup Commands",
           "file": "../docs/reference/cli/setup-commands.md"
-        },
-        {
-          "title": "Runtime Setup",
-          "file": "../docs/reference/cli/runtime.md"
         },
         {
           "title": "Test Drive",

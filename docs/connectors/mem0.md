@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Mem0 Connector
 seo_description: Give agents a persistent memory store with Mem0. Whose memory is being read, how namespacing works, a scoped read test, and troubleshooting.
 ---
@@ -75,5 +75,5 @@ Limitations: one Mem0 project per connection, and the key reaches all of it. Nam
 
 ## Sources
 
-- [Mem0 definition](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/app-definitions/mem0.json) — API-key setup and default guidance.
-- [Feature defaults](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/feature-catalog.ts) — off-by-default experimental setup.
+- [Mem0 definition](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/packages/shared/src/app-definitions/mem0.json) — API-key setup and default guidance.
+- [Feature defaults](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/packages/shared/src/feature-catalog.ts) — off-by-default experimental setup.

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Artifacts: Files Your Agents Produce
 seo_description: Documents, images, video, and exports from every task in one place. Filter by type, browse stacks by task, and read files in the in-app viewer.
 ---
@@ -105,7 +105,7 @@ A few details worth knowing:
 
 The tab is read-only — a quick answer to "what came out of this task?", not a place to upload or delete.
 
-Implementation reference: [artifact cards](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/artifacts/IssueArtifactCard.tsx), [CSV preview limits](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/lib/artifact-card-data.ts), and [media gallery](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/ImageGalleryModal.tsx).
+Implementation reference: [artifact cards](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/artifacts/IssueArtifactCard.tsx), [CSV preview limits](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/lib/artifact-card-data.ts), and [media gallery](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/ImageGalleryModal.tsx).
 
 > **Note:** if your instance has switched back to the old layout with **Classic Task Interface** (under **Legacy** in **Settings → Instance settings → Experimental**), there's no Artifacts tab — a task's attachments stay in the **Attachments** section on the task page. See [Experimental features](../../experimental/overview.md).
 

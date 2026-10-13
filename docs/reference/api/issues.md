@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Issues API
 seo_description: The core work objects: hierarchy, blockers, approvals, agent checkout, comments, and keyed extensions. Endpoints for creating, reading, and moving issues.
 ---
@@ -559,7 +559,7 @@ POST /api/companies/{companyId}/chats/{agentRef}
 
 A comment whose trimmed body is exactly `/new` starts a fresh provider session while preserving conversation history. The session generation fences older turns; pending questions from the prior session expire. Handoff completion reports belong to the session that created them: tasks still run, but their completion updates are not delivered into a later `/new` session. Only a transition to `done` queues a completion report; other task states do not.
 
-Implementation reference: [conversation session boundaries](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-conversations.ts) and [handoff completion delivery](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/chat-completion-delivery.ts).
+Implementation reference: [conversation session boundaries](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-conversations.ts) and [handoff completion delivery](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/chat-completion-delivery.ts).
 
 ---
 
@@ -1405,7 +1405,7 @@ While an effective task or ancestor pause is active, a board comment — includi
 
 The UI waits for affected runs to stop and reports an inline error if stopping cannot be confirmed. Receiving a hold response alone is not proof that a provider stopped or that interrupted effects are reconciled. See [Stop, pause, and resume](../../experimental/task-chat.md#stop-pause-and-resume).
 
-Implementation reference: [routes and release checks](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/routes/issue-tree-control.ts), [request schemas](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/validators/issue-tree-control.ts), and [tree membership rules](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/issue-tree-control.ts).
+Implementation reference: [routes and release checks](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/routes/issue-tree-control.ts), [request schemas](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/validators/issue-tree-control.ts), and [tree membership rules](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/issue-tree-control.ts).
 
 ---
 

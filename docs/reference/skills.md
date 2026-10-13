@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Skills Reference
 seo_description: The reference for company skills: file shape on disk, the install pipeline, attaching to agents, scoping rules, canonical keys, and versioning.
 ---
@@ -217,7 +217,7 @@ After a lost response, retry with exactly the same inputs and key to receive the
 
 `create_skill` takes `name`, `description`, `markdown`, and `idempotencyKey`, plus an optional `slug`. The name is lowercase and hyphenated; the complete file's name and description must match those inputs, and a supplied slug must equal the name. Company, agent, task, and run identity come from the authenticated run. A successful creation appears as a **Skill created** card in the task thread; see [Skills your agents create during a task](../guides/org/skills.md#skills-your-agents-create-during-a-task).
 
-Implementation reference: [update tool contract](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/paperclip-runner/src/protocol-actions/update-skill.ts) and [tool validation and REST binding](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/skill-tools.ts).
+Implementation reference: [update tool contract](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/packages/paperclip-runner/src/protocol-actions/update-skill.ts) and [tool validation and REST binding](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/skill-tools.ts).
 
 ### Import: accepted sources
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Chat-Style Tasks
 seo_description: Read what an agent said and what it actually did in one stream — thinking, commands, and diffs inline, instead of a comment thread beside a transcript.
 ---
@@ -18,11 +18,11 @@ If you'd rather have the old page back, go to **Settings → Instance settings �
 
 ## An optional combined task list
 
-The task conversation described here is standard behavior. **Combined Inbox + Task List** is a separate experimental option, off by default, under **Settings → Instance settings → Experimental**.
+The task conversation described here is standard behavior. **Combined Inbox + Task List** (setting key `enableCombinedInboxTasks`) is a separate experimental option, off by default, under **Settings → Instance settings → Experimental**. It only takes effect while **Streamlined UI** is on; if your instance has switched **Streamlined UI** off, turning this on changes nothing and the separate **Inbox** row stays.
 
 With that option on in the streamlined interface, **Tasks** carries the unread and failed-run badge, and the separate **Inbox** sidebar row disappears. Open **Views** on Tasks to switch between **Mine**, **Unread**, **Blocked**, **Recent**, and **Everything**, or the organization views **All tasks**, **Active**, **Backlog**, and **Done**. Your inbox actions and task filters still belong to their respective views. Existing inbox links take you to the corresponding task view.
 
-You can enable it independently of [Agent Chat](agent-chat.md). See the [view registry](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/lib/task-views.ts) and [sidebar behavior](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/Sidebar.tsx) for the current mapping.
+You can enable it independently of [Agent Chat](agent-chat.md). See the [view registry](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/lib/task-views.ts) and [sidebar behavior](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/Sidebar.tsx) for the current mapping.
 
 ## What changes on the task page
 
@@ -125,11 +125,9 @@ Questions and other cards behave a little differently when you'd rather not deal
 - **A question you dismiss moves into the conversation.** It stays where it was asked as a compact **Unanswered question** entry, and its form and pending badge leave the composer. The same happens when you just send a newer message instead of answering. Either way the question isn't answered or rejected — open the entry whenever you're ready, and the original form comes back with any answer you'd started. Your dismissal is remembered for you on that task, so reloading the page doesn't bring the form back. A new question from the agent still opens its own form.
 - **Confirmations and reviews keep a pending row.** Dismissing one folds it into a pending-input row you can reopen; it doesn't answer or reject it. Sending an ordinary message doesn't throw it away either: it stays pending until you answer it, unless the agent set it up to be replaced by your next reply.
 
-Moving on from a question also tells the agent you've moved on. Once you've sent a newer message, the old question counts as history: the agent won't keep reminding you to answer it, and it can finish the work you asked for without waiting on that answer. You can still answer the old question afterwards — it won't reopen the task or wake the agent. Approvals, permission and credential requests, review stages, and newer questions still hold the task until you deal with them.
-
 **Queued messages.** A message you send while the agent is mid-run waits in the queue above the composer. **Steer** pushes it into the run that's going now, and **Interrupt** stops that run and starts a fresh one with your message. Either way your message shows up in the conversation straight away. If it can't be delivered, it goes back into the queue with an error explaining why, so nothing you typed is lost. And if a run was stopped before it really got going, the conversation offers **Retry**, or you can just send a new message to start a fresh turn.
 
-**Choose a project when you create the task.** **New Task** uses the same composer, with a **Project** picker above the text box. Search by project name, choose a recent project, or select **No project**. Model and effort are part of the task's initial run settings; the project is a property of the task, not a per-message override.
+**Choose a project when you create the task.** **New Task** uses the same composer, with a **Project** picker above the text box. Search by project name or choose a recent project. Model and effort are part of the task's initial run settings; the project is a property of the task, not a per-message override.
 
 **Send with ⌘+Enter** (or Ctrl+Enter). Plain **Enter** inserts a newline.
 
@@ -147,9 +145,11 @@ Resume releases the hold. You can optionally wake eligible agents, but a task wi
 
 **Recovery needed.** points you to **Inspect run** and offers **Continue** or **Retry** only when that action is available. Saved follow-up messages remain attached to the task while recovery is pending. A model rejected by the provider reads **Model unavailable.**: choose a supported model or clear the task's model override, then retry. Pasting an exact model ID into the picker doesn't guarantee provider access.
 
+**Model at capacity** is different: the model exists and you can use it, it's just too busy right now. When a native Codex turn fails because the selected model is at capacity, the task doesn't drop into recovery. Instead a **Retry scheduled** card shows the reason **Model at capacity** and *"Last attempt failed: Selected model is at capacity. Please try a different model. Paperclip will retry automatically."* Paperclip retries after one minute, and if that fails too, after two more minutes, keeping the same model and the task's history. Click **Retry now** if you don't want to wait. If both automatic retries hit the same wall, the task is blocked with *"Automatic retries exhausted; retry later or choose a different model."* — retry later, or pick another model.
+
 If the run needs provider sign-in, complete the connection or authentication request shown in the thread before retrying. A missing secret or configuration binding is a setup problem to fix, not a reason to keep sending the same request. See [Recovery actions](../guides/day-to-day/issues.md#recovery-actions) for the wider task recovery flow.
 
-Implementation reference: [composer](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/task-chat/TaskChatComposer.tsx), [new-task project picker](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/NewIssueDialog.tsx), [model and effort picker](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/task-chat/ComposerRunSettingsPicker.tsx), [pause release](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/routes/issue-tree-control.ts), [recovery notice](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/ExecutionBlockerNotice.tsx), and [authentication repair classification](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/ai-auth-failure.ts).
+Implementation reference: [composer](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/task-chat/TaskChatComposer.tsx), [new-task project picker](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/NewIssueDialog.tsx), [model and effort picker](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/task-chat/ComposerRunSettingsPicker.tsx), [pause release](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/routes/issue-tree-control.ts), [recovery notice](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/ExecutionBlockerNotice.tsx), and [authentication repair classification](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/ai-auth-failure.ts).
 
 ## The side pane
 

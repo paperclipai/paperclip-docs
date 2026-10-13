@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Agents API
 seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate keys, sync skills, trigger runs, and register managed and remote agent profiles.
 ---
@@ -132,27 +132,6 @@ res = requests.get(
 agent = res.json()
 ```
 <!-- /tabs -->
-
----
-
-## Public Identity
-
-Read an agent's public cryptographic identity:
-
-`GET /api/agents/{id}/identity`
-
-Use the agent UUID and the same authorization required to read that agent. The response is `null` if the agent has not been provisioned, otherwise an object with:
-
-| Field | Value |
-| --- | --- |
-| `algorithm` | `Ed25519`. |
-| `keyId` | `sha256:` followed by the base64url SHA-256 fingerprint of the public key's SPKI DER bytes. |
-| `publicKeyPem` | Public key in SPKI PEM format. |
-| `createdAt` | Identity creation timestamp. |
-
-This read does not create an identity. New agents receive one at creation; older agents receive one on their next supported managed run. The endpoint never returns a private key. See [Agent cryptographic identity](../../guides/org/agent-identity.md) for signing and recovery. These keys do not replace agent API tokens.
-
-For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api).
 
 ---
 
@@ -601,7 +580,7 @@ The `permissionKey` field on a grant is one of:
 
 A new standard agent gets `canCreateAgents: true` and `canCreateSkills: true` when it is created; low-trust agents get `canCreateAgents: false`. Stored agents without an explicit `canCreateAgents` value are treated as `false`. An agent with the `ceo` role can always create agents, whatever its flag says. New standard agents also receive fourteen direct grants when they are created or their hire is approved: `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`, `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `audit:view_agent_actions`, `tools:use`, `tools:manage_runtime`, `inbox:manage` (scoped `{ "responsibleUserOnly": true }`), `tasks:assign`, `tasks:assign_scope` (scoped `{ "subtreeRootAgentId": "<the new agent's id>" }`), and `tasks:manage_active_checkouts`. Low-trust agents and managed built-in agents don't receive them, and existing agents aren't backfilled.
 
-Role-default human grants are applied automatically when a user joins. `owner` and `admin` receive the agent, skill, environment, invite, task-assignment, join-approval, and four tool keys (`owner` adds `users:manage_permissions`). `operator` receives company editing, invite, pipeline, tool, and audit keys, but not `joins:approve` or `users:manage_permissions`. `viewer` gets none. The exact lists are in [Roles & Permissions](../../administration/roles-and-permissions.md#the-four-company-roles).
+Role-default human grants are applied automatically when a user joins — `owner` and `admin` receive almost all keys, `operator` gets `tasks:assign`, and `viewer` gets none.
 
 ### Grant scope
 
@@ -1116,7 +1095,7 @@ A managed folder holds up to 100,000 files and folders, 256 MiB per file, and 2 
 
 Run synchronization saves only changed or deleted files. If separate runs or a browser save modify the same path, the last completed synchronization wins. Unchanged files remain intact. Current bytes live under `<paperclipInstanceRoot>/companies/<companyId>/agents/<agentId>/instructions/`, so include the instance filesystem in your backup as well as the database. Temporary working copies are cleaned up when their session stops and provide no new revision history.
 
-Implementation reference: [file store](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-file-store.ts), [managed directory path](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instructions.ts), and [instruction entry validation](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instruction-files.ts).
+Implementation reference: [file store](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-file-store.ts), [managed directory path](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instructions.ts), and [instruction entry validation](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instruction-files.ts).
 
 ### Older revision and conflict routes
 

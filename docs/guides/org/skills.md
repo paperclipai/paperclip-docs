@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Skills: Reusable Agent Procedures
 seo_description: Package a checklist, runbook, or template once and share it across agents. Covers adding skills, folders, Skill Studio, and the cost and performance payoff.
 ---
@@ -279,7 +279,7 @@ It's built so an agent can't trample anyone's work:
 - **Retries don't double up.** If the request is interrupted and retried, the agent gets back the original result instead of creating a second version.
 - **Everything is recorded.** Each changed update becomes a new version in the skill's history, so you can compare or restore it in Studio, and it's logged as `company.skill_file_updated` against the task that made it.
 
-After a version conflict, the agent rereads the skill and uses a new retry key for its revised request. The [Skills reference](../../reference/skills.md#native-runner-skill-tools) shows the input shape. Implementation reference: [tool contract](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/paperclip-runner/src/protocol-actions/update-skill.ts) and [file API binding](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/skill-tools.ts).
+After a version conflict, the agent rereads the skill and uses a new retry key for its revised request. The [Skills reference](../../reference/skills.md#native-runner-skill-tools) shows the input shape. Implementation reference: [tool contract](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/packages/paperclip-runner/src/protocol-actions/update-skill.ts) and [file API binding](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/skill-tools.ts).
 
 ---
 

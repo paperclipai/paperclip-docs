@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Agents: Your AI Employees
 seo_description: Hire agents, browse the agent list, and work the detail page — dashboard, instructions, and references — for the AI employees doing your company's work.
 ---
@@ -272,7 +272,7 @@ A few things are worth knowing:
 
 Agents that existed before this change keep their files. Paperclip brings their current instructions into the folder the first time it's used.
 
-Implementation reference: [runtime file instructions](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instruction-working-copies.ts) and [file storage limits and synchronization](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-file-store.ts).
+Implementation reference: [runtime file instructions](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instruction-working-copies.ts) and [file storage limits and synchronization](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-file-store.ts).
 
 **Who can change the files.** An agent can edit its own folder, but only within what its responsible user is currently allowed to change. Reading or editing *another* agent's files needs permission to configure that agent; being in the same company isn't enough. A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't change its own instructions from ordinary work — the one exception is when its user asks it to, directly, in their own Agent Chat. See [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 
@@ -611,12 +611,6 @@ Additional context variables are set when the wake has a specific trigger:
 
 These are exactly what you'll see in the Invocation card on any run — Paperclip redacts secrets (anything that looks like an API key, a bearer token, a password, or a JWT) before displaying them, but the structure is the same as what the agent actually received.
 
-### Cryptographic identity
-
-The agent's **Identity** panel shows its persistent Ed25519 fingerprint and lets you copy its public PEM. New agents receive a keypair when created; older agents receive one on their next supported managed run. Before then, the panel says **Not created yet**.
-
-Managed runtimes receive the private key, including managed remote hosts. Choose hosts you trust with that identity. API bearer authentication stays separate, and company imports or agent copies get new identities. See [Agent cryptographic identity](agent-identity.md) for runtime variables and backup requirements.
-
 ### Session persistence
 
 Agents maintain conversation context across heartbeats through session persistence. The adapter serializes session state (e.g. Claude Code session ID) after each run and restores it on the next wake. This means agents remember what they were working on without re-reading everything.
@@ -700,8 +694,6 @@ Use pause liberally — it's reversible, cheap, and the right default when somet
 ## Related guides
 
 - [Skills](./skills.md) — how the company skill library works, how skills are written, and how they keep agent context lean
-- [Agent cryptographic identity](agent-identity.md) — public keys, runtime trust, and identity recovery
-- [Agent complaints and suggestions](../../administration/agent-commentary.md) — default feedback skills and native tools, with records stored in the instance database
 - [Agent adapters](./agent-adapters.md) — which adapters are available, what each one is good at, and how to configure them
 - [Approvals](../day-to-day/approvals.md) — the governance layer around hire requests, strategy, and budget overrides
 - [Costs & budgets](../day-to-day/costs.md) — how API spend is computed, how budgets are enforced, and how to tune them across your whole company

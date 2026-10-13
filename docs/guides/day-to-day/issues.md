@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Issues: Creating and Tracking Work
 seo_description: Each issue is one unit of work tied to your company goal. Create them yourself or let the CEO do it, then track progress, comment, and close them.
 ---
@@ -64,7 +64,7 @@ Open **Tasks** to see the work across your company. The API calls these records 
 
    Tasks with an agent actively running on them show a live-run indicator. Live updates keep that indicator current so you can see which tasks are being worked on without refreshing.
 
-Implementation reference: [Tasks page and live updates](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/pages/Issues.tsx).
+Implementation reference: [Tasks page and live updates](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/pages/Issues.tsx).
 
 ---
 
@@ -76,7 +76,7 @@ Implementation reference: [Tasks page and live updates](https://github.com/paper
 
 2. **Choose a project.**
 
-   Click **Project** above the text box. Search for a project, choose a recent one, or select **No project**. The project sets where the task belongs; the model picker below controls how the agent answers.
+   Click **Project** above the text box. Search for a project, choose a recent one, or select **No project**. The project sets where the task belongs; the model picker below controls how the agent answers. Paperclip remembers the last project you picked in this company and starts the next new task there.
 
 3. **Pick a work mode.**
 
@@ -86,17 +86,19 @@ Implementation reference: [Tasks page and live updates](https://github.com/paper
 
    Click the agent name to choose who should handle the task. Click the model label beside it to choose a model and its supported effort level, or leave them on the agent's defaults. **Reset to agent default** clears your run-setting overrides. Model access is checked when the run starts, including for an exact ID you paste into the picker.
 
+   You often won't need to change anything here: a new task starts with the last assignee you used, if they're still available (otherwise the CEO agent), and the effort level you last chose in this company.
+
 5. **Add files or images if they help.**
 
    Use **Files and images** in the **+** menu, paste, or drop files into the composer. Resolve an upload error before submitting so the agent receives the material you intended.
 
 6. **Click Create task**, or press **⌘+Enter** (**Ctrl+Enter** on Windows and Linux).
 
-   The task opens after creation. Its **Properties** panel lets you adjust priority, status, parent, project, and the other task fields. A paused assignee can receive the task, but won't start until you resume it.
+   The task opens after creation. Its **Properties** panel lets you adjust priority, status, parent, project, and the other task fields. Status, reviewers, approvers, and a [task watchdog](#task-watchdogs) aren't set in the new-task dialog — add them from **Properties** once the task exists. A paused assignee can receive the task, but won't start until you resume it.
 
 When you create a subtask from an existing task, the dialog shows **Sub-task of** and uses **Create sub-task**. If the project supports isolated workspaces, the creation bar can also offer **Worktrees**: choose a new worktree or reuse an existing one. An unavailable selection produces an inline error so you can retry or choose another. See [Execution workspaces](../projects-workflow/workspaces.md).
 
-Implementation reference: [new-task dialog](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/NewIssueDialog.tsx) and [run settings picker](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/task-chat/ComposerRunSettingsPicker.tsx).
+Implementation reference: [new-task dialog](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/NewIssueDialog.tsx) and [run settings picker](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/task-chat/ComposerRunSettingsPicker.tsx).
 
 ---
 
@@ -297,7 +299,6 @@ The sidebar exposes the following fields, in order:
 - **Reviewers** — agents or users that must review before the issue can complete. When a review stage is the next runnable execution stage, a **Run review** button appears next to the picker.
 - **Approvers** — agents or users that must approve before the issue can complete. Same runnable-stage behaviour as Reviewers but for the approval stage.
 - **Execution** — the current execution stage label, for example `Review pending with <participant>` or `Approval requested changes by <participant>`. Read-only; it is driven by the execution policy.
-- **Pull requests** — the pull requests saved on this task, with the ones waiting on your review first and marked **Review requested**. Each links straight to the PR and, when Paperclip can read it, shows its live GitHub status. A saved PR stays listed even when Paperclip can't look it up — for example, a private repository without a token — so you never lose the link. See [Waiting on your pull request review](#waiting-on-your-pull-request-review).
 - **Depth** — the depth of this issue in its parent hierarchy.
 - **Workspace** — when isolated execution workspaces are enabled, the workspace this issue's runs happen in.
 - **Branch** — the git branch associated with the current execution workspace, if any.
@@ -327,7 +328,7 @@ Drag the panel's left edge to resize it, or use **Maximize panel** and **Restore
 
 [Agent Chat](../../experimental/agent-chat.md) uses this panel too, with **Tasks** and **Artifacts** scoped to the agent's work across the company.
 
-Implementation reference: [side-panel tabs and launcher](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/task-side-panel/TaskSidePanel.tsx).
+Implementation reference: [side-panel tabs and launcher](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/task-side-panel/TaskSidePanel.tsx).
 
 #### The Plan tab
 
@@ -439,16 +440,6 @@ Each pill also carries a **liveness** signal so you can trust what you're readin
 
 > **Note:** To resolve live status for private repositories — or to avoid GitHub's unauthenticated rate limits — Paperclip reads a GitHub token from your company secrets, looking for `GITHUB_TOKEN`, `GH_TOKEN`, or `PAPERCLIP_GITHUB_TOKEN`. Without a token, public objects still resolve but you're more likely to see an **Unreachable** liveness when limits are hit.
 
-### Waiting on your pull request review
-
-Sometimes an agent opens a pull request, asks you to review it, and then waits on GitHub — checking on a schedule until the PR is merged or closed. While that's happening, the task makes the wait obvious instead of showing a generic countdown:
-
-- The banner under the task title and the strip above the composer read **Pull request review requested**, list the PR (or PRs) waiting on you, and show when the next check runs.
-- The hint underneath reads *Review on GitHub, then check status to have the agent verify the result.* Do your review on GitHub, then click **Check status** to run the check right away instead of waiting for the next one. If the check fails, the error appears right there.
-- The same PRs show in the **Pull requests** row of the properties panel, tagged **Review requested**.
-
-Once the PR is merged, closed, or archived, the review prompt goes away on its own, even if the agent never cleared its review request.
-
 ### Filtering and badges
 
 Once references are flowing, you can use them to triage. The issue and inbox **filters popover** includes an **External object status** group, so you can narrow the list to issues whose external references need attention:
@@ -480,7 +471,7 @@ The task conversation combines four data sources into a single timeline:
 
 ### Composer
 
-At the bottom of the conversation sits the composer. [Chat-Style Tasks](../../experimental/task-chat.md#the-composer) covers its mode, model, effort, project, and pending-card controls. It also supports:
+At the bottom of the conversation sits the composer. [Chat-Style Tasks](../../experimental/task-chat.md#the-composer) covers its mode, model, effort, and pending-card controls. It also supports:
 
 - **@mentions** — type `@` to open the mentions picker. Mentioning an agent causes Paperclip to resolve it to a structured `[@Agent Name](agent://<agent-id>)` mention. A mention is context only: it doesn't wake the agent, start a run, hand it the task, or forward your comment to another task. To bring another agent in, assign the task or request a review.
 - **Reassignment on comment** — if your comment is directed at a different participant, the composer offers to reassign the issue along with the comment in one action (using the current vs suggested assignee values).

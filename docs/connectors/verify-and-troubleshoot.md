@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Verify and Fix a Connector
 seo_description: Confirm a new connector works using a read-only test call, read the status words in the connector list, and fix the common failure modes.
 ---
@@ -16,7 +16,7 @@ The read-test procedure below is for **app tool** connections. The other shapes 
 | --- | --- |
 | **App tools** — Notion, Jira, Stripe, and most of the catalog | The read test below |
 | **Messaging channels** — Slack chat, Discord, Telegram, Teams, iMessage Photon, GitHub Code Review Bot, AgentMail | Send a real message from the provider and wait for the agent's reply. There is no action list to test against, and setup is not complete until a reply is delivered. The connector's own page has the sequence |
-| **Model providers** — Anthropic, OpenAI, OpenRouter, Grok, custom endpoints, Bedrock | Select a compatible harness, Connection, and model, then run a short task in the agent's execution environment. A connected badge does not prove model access. See [Custom model providers](custom-model-providers.md) |
+| **Model providers** — Anthropic, OpenAI, OpenRouter, Grok | Run a short task on an agent whose runtime matches, and watch the run. A connected badge says nothing about runtime compatibility. See [Anthropic](anthropic.md) |
 | **Assistant Connection (MCP)** | Call `paperclip_connection` from the external assistant and verify the consenting person and organization. List agents or tasks before creating work. See [Assistant connections](../experimental/assistant-connections.md) |
 
 [How connector access works](access-model.md) explains why the controls differ.
@@ -80,8 +80,6 @@ A personal connection must run on a credential owned by that person. Some person
 
 The sign-in or key does not cover what the action needs. Reconnect and approve the requested access, or for an API key, create a key with read and write permissions and paste it in. Paperclip cannot widen a key or token that already exists.
 
-Checking the grant's recorded scopes can help, but read them with care: some providers never say which scopes they granted, and then the list only shows what Paperclip asked for. [Scopes recorded on a sign-in grant](access-model.md#scopes-recorded-on-a-sign-in-grant) explains how to tell the two apart.
-
 ### Authorization never completes
 
 *"Authorization did not complete. Finish setup in the sign-in window or try again."* usually means the popup was closed early or the provider is waiting on an administrator. For providers whose authorization needs tenant approval, the warning on the provider page says so.
@@ -97,13 +95,15 @@ Checking the grant's recorded scopes can help, but read them with care: some pro
 
 *"The app returned an error result."* with a code such as `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `INVALID_ARGUMENT`, `RATE_LIMIT`, or `RESOURCE_EXHAUSTED`. These come from the service. `RATE_LIMIT` and `RESOURCE_EXHAUSTED` are the provider throttling you; the rest point at the account's own permissions or at the arguments.
 
+### Tool discovery is busy
+
+*"Tool discovery is busy. Retry shortly."* with the code `tool_discovery_busy` means the server is already listing tools for as many callers as it allows at once. Nothing is wrong with the connection or its credential. Wait a moment and list the tools again. See the [Tool Gateway reference](../reference/api/tool-gateway.md) for the API shape.
+
 ### A task needs an AI credential
 
 Open the task's authentication card and select **Fix connection** or the displayed provider connection action. Connect your account or reconnect the existing one; successful setup resumes the task. If another person owns the credential, that person must repair it. Selecting a shared account does not bypass the responsible user's access check.
 
 For a quota error, use **Check usage** on the saved AI account where supported. Missing usage fields mean **Not reported**, not zero. See [AI usage and recovery](ai-usage.md).
-
-For a custom endpoint, check the API format against the harness, the model ID, and whether the service is reachable from the execution environment. A loopback URL points to the agent's host or sandbox. See [Custom model providers](custom-model-providers.md).
 
 ### The managed sign-in option is missing
 

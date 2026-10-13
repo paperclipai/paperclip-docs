@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: MCP Device Login and Proxy Commands
 seo_description: Authorize an assistant through browser device consent, then expose Paperclip tools over local stdio with the CLI's private credential store.
 ---
@@ -30,7 +31,7 @@ Keep the command running. It prints an approval URL and a human verification cod
 
 The approval URL opens your instance's `/mcp-device` page with the code already filled in. If you open `/mcp-device` yourself, type the code under **Enter the code shown by your assistant**. When you approve, the command prints `Connected to` with the MCP URL and `Organization:` with the approved organization's ID.
 
-The CLI requests read, write, configuration, and refresh access. Consent and your organization role determine which scopes you actually receive. Login verifies the approved organization with `paperclip_connection` before saving credentials.
+The CLI requests read, write, and refresh access. Consent and your organization role determine which scopes you actually receive. Login verifies the approved organization with `paperclip_connection` before saving credentials.
 
 Use an HTTPS URL ending in `/mcp/paperclip`, without credentials, query parameters, or a fragment. HTTP is accepted only for localhost or loopback. The setup-page URL `/mcp/setup` is not the MCP resource URL.
 

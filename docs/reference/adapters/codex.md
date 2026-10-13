@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Codex Adapter
 seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding agent, with persistent session state and a managed CODEX_HOME per agent.
 ---
@@ -61,6 +61,8 @@ You stay in control when you say otherwise. Paperclip skips the bypass — keepi
 - Your `extraArgs` pick a sandbox mode or profile yourself — for example `--sandbox`, `--profile`, `--full-auto`, or a `sandbox_mode=` config override.
 - Your `extraArgs` set an `approval_policy=` override, or switch network access off with `sandbox_workspace_write.network_access=false`.
 - The execution target denies network access.
+
+This bypass applies to the classic Codex CLI lane (`engine: "cli"`). The ACP engine keeps Codex in its writable workspace sandbox, with network access switched on for each turn.
 
 > **Heads-up:** Earlier versions kept Codex in the workspace sandbox unless you opted in to the bypass. If you relied on that, set `dangerouslyBypassApprovalsAndSandbox` to `false` explicitly.
 
@@ -168,6 +170,15 @@ The session codec also preserves these location hints when present:
 - `repoRef`
 
 If the working directory changes, the adapter starts a fresh session instead of reusing the old response chain.
+
+### Native Codex on Paperclip Runner
+
+Codex can also run natively through [Paperclip Runner](paperclip-runner.md) (`paperclip_runner` with `provider: "codex"`) rather than through `codex_local`. A few behaviors are specific to that native path:
+
+- **Restarts don't cost you the conversation.** If a server restart kills a native Codex turn mid-flight, Paperclip first makes sure the old process is really gone. Then it resumes the request once, in the same conversation and workspace, and asks the agent to check any unfinished commands or outside actions before carrying on. It doesn't resend the task. The run log records the interrupted turn with `provider_turn_lost_on_restore`. Anything that can't be reconciled still stops for a person.
+- **Codex keeps its own base prompt.** Paperclip sends its task context as additive `developerInstructions` when a thread starts or resumes, so Codex's stock base instructions stay in place. Conversations created before this change keep their saved prompt when resumed; reset those sessions if you want the stock base instructions back.
+- **A model your ChatGPT account can't use says so.** When Codex rejects the selected model for a ChatGPT sign-in, the task shows **Model unavailable.** with *"The selected model is not supported by the current ChatGPT connection. Choose a supported model or a compatible AI connection."* Paperclip doesn't retry that request automatically. Choose a supported model or clear the task's model override, then retry.
+- **A busy model retries on its own.** When the selected model is at capacity, Paperclip shows **Model at capacity** and retries after one minute, then after two. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention).
 
 ---
 

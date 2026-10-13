@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.1012.0
 seo_title: Update Paperclip to the Latest Version
 seo_description: Move an existing install to a new release without losing data — what to check first, how to run the update, and how to confirm it actually took.
 ---
@@ -50,6 +50,36 @@ paperclipai update --check || paperclipai update --yes
 ```bash
 paperclipai update --dry-run
 ```
+
+---
+
+## Upgrading to v2026.1012.0 or later: stop everything first
+
+> **Warning:** This one release needs a full stop, not a hot restart. Workspace restore and agent-file collection used to lock each target directory with a `<hash>.lock/` folder. They now use OS-backed SQLite file locks under `<instance root>/locks/directory-merge/`, which the operating system releases if a process crashes. Old processes don't take part in the new locks, so an old and a new version writing to the same instance root at the same time can corrupt each other's work.
+
+Your instance root is `~/.paperclip/instances/default` unless you've set `PAPERCLIP_HOME` or `PAPERCLIP_INSTANCE_ID`. If you're coming from an earlier version, do this instead of a plain `paperclipai update`:
+
+1. **Take a backup while the server is still up.** `paperclipai update` needs a reachable database to take its own snapshot, and you're about to stop it, so take one now:
+
+   ```bash
+   paperclipai db:backup
+   ```
+
+2. **Drain and stop every old process that can write to the instance root.** Let active agent runs finish, then stop the server (`paperclipai service stop`, or Ctrl+C on `paperclipai run`). Don't forget workers on other hosts or in other containers that share the same instance root.
+3. **Move leftover legacy lock folders aside.** With everything stopped, move any `<hash>.lock/` directories out of `<instance root>/locks/directory-merge/` into a scratch directory of your own. Keep them if you might need evidence from an unfinished run. Never delete or move the `.lock.sqlite` files — they're permanent, and the locking depends on them staying put.
+4. **Update and start the new version.**
+
+   ```bash
+   paperclipai update --no-backup    # you took the backup in step 1
+   paperclipai service start         # or: paperclipai run
+   ```
+
+   Start every other worker on the new version too.
+5. **Confirm a run saves its files.** Let one agent run finish and check that its file changes landed in the workspace, not just that the model replied. A successful reply on its own doesn't prove the files were collected.
+
+Rolling back across this release needs the same full stop: drain and stop every new process before starting an old one. The `.lock.sqlite` files can stay on disk — older versions simply ignore them.
+
+> **Tip:** This upgrade also runs a batch of database migrations. They're all additive, and only one, `0298`, touches existing rows: it adds default usage instructions to any Honcho, Mem0, Zep, Supermemory, and Cognee connections you already have. You can edit or turn those off afterwards — see [Saved connection instructions](../connectors/connection-instructions.md).
 
 ---
 
@@ -141,6 +171,8 @@ It restarts an active service as part of the rollback, so you're back on the old
 > **Warning:** Rollback reverses the *code*, not your *data*. Database migrations that ran during the update are not undone. If the new version migrated your database and you need to go all the way back, restore the pre-update backup — that's exactly why `update` takes one by default.
 
 `--rollback` is only available for managed installs. Other install types have no retained payload to flip back to.
+
+> **Warning:** Rolling back from v2026.1012.0 or later to an earlier version? Don't let `--rollback` hot-restart over running work. Drain and stop every server and worker that writes to the instance root first, then roll back and start the old version — see [Upgrading to v2026.1012.0 or later](#upgrading-to-v202610120-or-later-stop-everything-first). Leave the `.lock.sqlite` files where they are.
 
 ---
 

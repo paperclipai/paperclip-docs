@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Settings: Profile and Instance
 seo_description: Two settings surfaces and why the difference matters. Covers your profile plus instance general, access, adapters, and experimental flags.
 ---
@@ -283,4 +283,3 @@ The two controls are orthogonal: pair them when you want a default *and* want th
 
 - [Heartbeats & Routines](../guides/projects-workflow/routines.md) — the full picture of timer vs. event-driven wakes, and how to configure individual agents.
 - [Environment Variables](../reference/deploy/environment-variables.md) — the deployment-level settings that the General page reports on (auth mode, bootstrap state, exposure).
-- [Agent complaints and suggestions](agent-commentary.md) — agent-submitted feedback stored in the instance database, separate from the AI feedback-sharing preference.

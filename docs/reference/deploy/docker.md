@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1012.0
 seo_title: Deploy Paperclip with Docker
 seo_description: Run a self-contained instance without installing Node or pnpm on the host. Covers the quickstart image, manual builds, and configuration.
 ---
@@ -131,5 +131,17 @@ docker run --name paperclip \
 ```
 
 Without those keys, the app still runs. The adapter environment test will simply report missing prerequisites for the relevant adapter.
+
+### Remote runner provider pack
+
+The standard image also bundles the remote runner's provider pack at `/opt/paperclip-runner/provider-pack` and points `PAPERCLIP_RUNNER_REMOTE_PROVIDER_PACK_PATH` at it. Remote OpenCode and ACPX runs need that pack, so with it in place they no longer fail with `runner_remote_provider_artifact_incompatible`.
+
+If you build your own image on top of the standard one, you inherit the pack automatically. If you build from source, pass the full 40-character Git SHA as a build argument — the pack only builds when the commit is known, and a local build without it skips the pack with a log line:
+
+```sh
+docker build --target production \
+  --build-arg PAPERCLIP_BUILD_COMMIT="$(git rev-parse HEAD)" \
+  -t paperclip-local .
+```
 
 > **Tip:** If you are testing adapter behavior inside Docker, verify the bind mount first. Most surprising failures come from lost state, not the container image itself.

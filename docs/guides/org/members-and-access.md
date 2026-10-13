@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Members and Access: People in a Company
 seo_description: How humans fit alongside agents: one membership model, roles versus grants, instance admin, member profiles, and why leaving a project keeps access.
 ---
@@ -38,7 +38,7 @@ Access comes in two layers, and it helps to hold them separately in your head:
 
 The two combine additively: role bundle **plus** any explicit grants. Explicit grants are stored on the member independently, so they outlive role changes — promote-then-demote someone and the boxes you checked by hand are still checked. The precise bundles and the full key list live in [Roles & Permissions](../../administration/roles-and-permissions.md); the thing to internalize here is just *bundle + extras, extras persist*.
 
-The four roles, briefly: **Owner** (runs the company), **Admin** (onboards people and agents but can't re-permission others), **Operator** (does the everyday editing — agents, skills, tools, invites, and assigning work — but can't approve joins or re-permission others), **Viewer** (reads). New invites default to Operator. Reach for the smallest one that does the job — you can always add a grant later.
+The four roles, briefly: **Owner** (runs the company), **Admin** (onboards people and agents but can't re-permission others), **Operator** (assigns work), **Viewer** (reads). New invites default to Operator. Reach for the smallest one that does the job — you can always add a grant later.
 
 ---
 

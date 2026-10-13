@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Connections v3 Foundation
 seo_description: The rebuilt connection storage and authorization layer under Paperclip Connectors: stable identities, subject-aware grants, and the mcp_remote rename.
 ---
@@ -21,7 +21,7 @@ seo_description: The rebuilt connection storage and authorization layer under Pa
 
 Two experimental flags in this area are still real and still off by default. The first is **Chat connectors**, described as *"Show experimental chat connector setup and Board surfaces. Existing connections keep running when hidden; AgentMail, GitHub tools, and other tool connectors are unaffected."* That flag governs the [chat channels](../connectors.md#chat-channels) — Slack, Discord, Microsoft Teams, Telegram, iMessage, and the GitHub Code Review Bot. It does not govern app integrations, so the Slack and GitHub agent tools are unaffected even when their chat halves are hidden. AgentMail used to sit behind this flag too; it is now a default connection, available on every instance.
 
-The second is **Memory connectors**: *"Connect Mem0, Zep, Supermemory, Cognee, and Honcho for long-term memory and context."* It hides or shows setup for those [memory providers](../connectors.md#memory-experimental). Turning it off hides setup only; existing connections keep running.
+The second is **Memory connectors**: *"Show experimental Mem0, Zep, Supermemory, Cognee, and Honcho setup. Existing connections keep running when hidden."* It hides or shows setup for those [memory providers](../connectors.md#memory-experimental). Turning it off hides setup only; existing connections keep running.
 
 The MCP aggregators (Zapier, Arcade, Composio, and Executor) briefly had a toggle of their own. They are now always available, and `enableMcpAggregators` is a deprecated compatibility key: *"MCP aggregators are always enabled; stored and managed values are ignored."* See [Connect apps through an MCP aggregator](../connectors/mcp-aggregators.md).
 

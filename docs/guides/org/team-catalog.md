@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1012.0
 seo_title: Team Catalog: Ready-Made Starter Teams
 seo_description: Skip the blank page. Install a working team — agents, reporting lines, projects, routines, and skills — from the app or the terminal in one step.
 ---
