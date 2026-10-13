@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Paperclip Connectors
 seo_description: Every service Paperclip can connect, grouped by what it is for, with the access model, action permissions, and a setup guide behind each one.
 ---
@@ -129,6 +129,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | [ClickHouse](connectors/clickhouse.md) | Columnar database built for analytical queries over very large datasets. Agents query the ClickHouse Cloud service you name. | Sign in with ClickHouse |
 | [Enterpret](connectors/enterpret.md) | Customer feedback analysis. Agents ask about feedback themes and pull verbatim quotes with citations, through Enterpret's read-only server. Graph queries start on **Ask first**. | API key (auth token) · Sign in with Enterpret |
 | [Mixpanel](connectors/mixpanel.md) | Product analytics for user and event behaviour. Agents work with the events and reports your Mixpanel account can reach. | Sign in with Mixpanel |
+| [Neon](connectors/neon.md) | Serverless Postgres with branching. Agents manage projects and branches, run SQL, and inspect schemas, optionally pinned to one project. Use a development project. | Sign in with Neon · API key |
 | [PostHog](connectors/posthog.md) | Product analytics with session replay, feature flags, and experiments. Agents analyse product usage, errors, flags, and experiments. | Sign in with PostHog · API key |
 | [Supabase](connectors/supabase.md) | Hosted Postgres with authentication, storage, and edge functions. Agents work with the Supabase project you scope the connection to. Use a development project. | Sign in with Supabase · API key |
 
@@ -187,6 +188,8 @@ These hold the credential Paperclip uses to run models. They publish no actions 
 | [OpenRouter](connectors/openrouter.md) | Run models from many vendors through one credential and one bill. | API key |
 | [Grok](connectors/xai.md) | Run xAI's Grok models. | Grok subscription · API key |
 | [Custom model providers](connectors/custom-model-providers.md) | Use a compatible custom or local endpoint through a supported agent harness. Compatibility depends on the API route. | API key · Endpoint URL |
+
+[Check AI usage](connectors/ai-usage.md) explains provider-supported usage snapshots and reconnect messages. These credentials are separate from [assistant connections (MCP)](experimental/assistant-connections.md), which let an external assistant sign in as a person and work with Paperclip.
 
 [Check AI usage](connectors/ai-usage.md) explains provider-supported usage snapshots and reconnect messages. These credentials are separate from [assistant connections (MCP)](experimental/assistant-connections.md), which let an external assistant sign in as a person and work with Paperclip.
 

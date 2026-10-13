@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Process Adapter
 seo_description: Run an arbitrary command on the Paperclip host. The right choice when your agent is really a script, a shell command, or a custom runtime.
 ---
@@ -49,6 +50,34 @@ The `process` adapter runs an arbitrary command on the same machine as Paperclip
 5. Stdout and stderr are returned in the run result so the UI can render them.
 
 If the process exits non-zero, the run returns an error message and the raw output payload.
+
+---
+
+## Connection instructions
+
+A connection can carry usage instructions for agents — for example, how to use a memory provider like Honcho or Mem0. When any of the agent's authorized connections have instructions turned on, Paperclip hands them to your process so the model actually sees them.
+
+Your process gets them through the `PAPERCLIP_CONNECTION_INSTRUCTIONS_FILE` environment variable:
+
+- When instructions apply, it holds the path to a private JSON file (readable only by the process owner) containing `{ "text": "...", "digest": "..." }`.
+- When none apply, it's set to an empty string — not a path. Paperclip always overwrites this variable, so a value inherited from the host or your `env` config never leaks through.
+
+`text` is ready-to-use Markdown. Read the file and append `text` to the prompt you send your model — don't pass the whole object through. `digest` is a SHA-256 hex hash of `text`, useful for spotting when the instructions change between runs.
+
+```python
+import json, os
+
+path = os.environ.get("PAPERCLIP_CONNECTION_INSTRUCTIONS_FILE", "")
+extra = ""
+if path:
+    with open(path) as f:
+        extra = json.load(f)["text"]
+prompt = base_prompt + ("\n\n" + extra if extra else "")
+```
+
+Read the file while your process is running. Paperclip creates it just before launch and removes it as soon as the process exits.
+
+See [Saved connection instructions](../../connectors/connection-instructions.md) for how people write and edit them.
 
 ---
 

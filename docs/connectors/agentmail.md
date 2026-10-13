@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: AgentMail Connector
 seo_description: Give a Paperclip agent its own email inbox with AgentMail. Each conversation becomes a task. Setup, routing, sender limits, and troubleshooting.
 ---

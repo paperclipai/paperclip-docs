@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Verify and Fix a Connector
 seo_description: Confirm a new connector works using a read-only test call, read the status words in the connector list, and fix the common failure modes.
 ---
@@ -96,6 +96,10 @@ Checking the grant's recorded scopes can help, but read them with care: some pro
 ### The provider returns an error
 
 *"The app returned an error result."* with a code such as `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `INVALID_ARGUMENT`, `RATE_LIMIT`, or `RESOURCE_EXHAUSTED`. These come from the service. `RATE_LIMIT` and `RESOURCE_EXHAUSTED` are the provider throttling you; the rest point at the account's own permissions or at the arguments.
+
+### Tool discovery is busy
+
+*"Tool discovery is busy. Retry shortly."* with the code `tool_discovery_busy` means the server is already listing tools for as many callers as it allows at once. Nothing is wrong with the connection or its credential. Wait a moment and list the tools again. See the [Tool Gateway reference](../reference/api/tool-gateway.md) for the API shape.
 
 ### A task needs an AI credential
 

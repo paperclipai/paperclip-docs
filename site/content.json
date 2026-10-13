@@ -388,6 +388,10 @@
               "file": "../docs/connectors/mixpanel.md"
             },
             {
+              "title": "Neon",
+              "file": "../docs/connectors/neon.md"
+            },
+            {
               "title": "Netlify",
               "file": "../docs/connectors/netlify.md"
             },

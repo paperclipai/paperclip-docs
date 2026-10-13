@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Settings: Profile and Instance
 seo_description: Two settings surfaces and why the difference matters. Covers your profile plus instance general, access, adapters, and experimental flags.
 ---

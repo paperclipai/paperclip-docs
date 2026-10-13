@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Delegation: How Work Reaches Agents
 seo_description: Set a goal, approve a plan, and the CEO breaks it into tasks and assigns them. What you own, what the CEO handles, and the agent-to-agent guardrails.
 ---

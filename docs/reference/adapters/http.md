@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1012.0
 seo_title: HTTP Webhook Adapter
 seo_description: Send a JSON webhook to a service you control. Use it when the runtime is remote, long-lived, or already exposed as an API rather than a local CLI.
 ---
@@ -47,6 +47,7 @@ Paperclip sends a JSON payload that always includes:
 - `runId`
 - `agentId`
 - `context`
+- `connectionInstructions` (an object or `null` — see [Connection instructions](#connection-instructions))
 
 Any `payloadTemplate` fields are merged in first, then Paperclip adds the standard fields above. If a key collides, the standard Paperclip field wins.
 
@@ -66,6 +67,33 @@ Example body shape:
 ```
 
 Your service can use `PAPERCLIP_API_URL` and a Paperclip API key to call back into the control plane after it finishes.
+
+---
+
+## Connection instructions
+
+A connection can carry usage instructions for agents — for example, how to use a memory provider like Honcho or Mem0. When any of the agent's authorized connections have instructions turned on, Paperclip delivers them to your service so the model actually sees them.
+
+They arrive as a top-level `connectionInstructions` field in the request body:
+
+- an object `{ "text": "...", "digest": "..." }` when instructions apply, or
+- `null` when none do.
+
+```json
+{
+  "runId": "run-123",
+  "agentId": "agent-123",
+  "context": { "taskId": "issue-123" },
+  "connectionInstructions": {
+    "text": "## Connection instructions\n\n...",
+    "digest": "3f2a..."
+  }
+}
+```
+
+`text` is ready-to-use Markdown. Append it to the prompt you send your model — don't pass the whole object through. `digest` is a SHA-256 hex hash of `text`, handy if you want to cache or detect when the instructions change between turns.
+
+Like the other standard fields, `connectionInstructions` overrides any key of the same name in `payloadTemplate`. See [Saved connection instructions](../../connectors/connection-instructions.md) for how people write and edit them.
 
 ---
 

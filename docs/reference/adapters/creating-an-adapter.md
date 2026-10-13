@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Creating a Custom Adapter
 seo_description: Build your own adapter when the built-in ones do not fit your runtime. Covers the code shape and the runtime contracts an adapter must satisfy.
 ---
@@ -121,6 +122,12 @@ Key helpers you are likely to use:
 | `asString()`, `asNumber()`, `asBoolean()` | Read config values safely. |
 
 > **Note:** Treat adapter output as untrusted. Parse defensively and never execute its stdout blindly.
+
+### Connection instructions
+
+Connections can carry usage instructions that every authorized agent turn should see. The server resolves them for each run and puts them on the execution context as `context.connectionInstructions` — a `{ text, digest }` object, or `null` when none apply. Append `text` to the model prompt; don't pass the object through.
+
+If you build your wake prompt by passing `context.paperclipWake` to `renderPaperclipWakePrompt()` from `@paperclipai/adapter-utils/server-utils`, the text is already appended for you. The built-in [HTTP](./http.md#connection-instructions) and [Process](./process.md#connection-instructions) adapters forward the same object to your service or script.
 
 ---
 
