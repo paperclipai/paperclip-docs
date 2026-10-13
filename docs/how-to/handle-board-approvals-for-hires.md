@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Handle Board Approvals for Hires
 seo_description: A manager agent cannot hire on its own; it files a request and waits. Read the proposal, approve it, and Paperclip wakes the requester to carry on.
 ---
@@ -48,17 +49,17 @@ The same body works whether `requireBoardApprovalForNewAgents` is on or off — 
 
 ## 3. Review in the board UI
 
-Open **Approvals**. Hire requests show up in the **Pending** tab.
+Open **Approvals**. Hire requests show up in the **Pending** tab as **Hire Agent** cards. You can **Approve** or **Reject** straight from the card, but click **View details** to read the whole proposal first.
 
-![Hire approval detail showing proposed name, role, adapter config, and budget](../user-guides/screenshots/light/approvals/hire-approval-detail.png)
+![Hire approval detail showing the proposed agent's name, role, title, icon, capabilities, and adapter type](../user-guides/screenshots/light/approvals/hire-approval-detail.png)
 
-The detail page summarises the proposal (name, role, capabilities, adapter, reporting line, monthly budget) and exposes the raw payload under **See full request**. Three buttons sit at the bottom:
+The detail page summarises the proposal — **Name**, **Role**, **Title**, **Icon**, **Capabilities**, **Adapter**, and any requested **Skills**. The reporting line (`reportsTo`), the monthly budget (`budgetMonthlyCents`), and the adapter config aren't in the summary, so open **See full request** to check them in the raw payload. Three buttons sit below:
 
-![Approve, Reject, and Request Revision buttons](../user-guides/screenshots/light/approvals/approve-reject-revision-buttons.png)
+![Approve, Reject, and Request revision buttons](../user-guides/screenshots/light/approvals/approve-reject-revision-buttons.png)
 
 - **Approve** — activates the pending agent, creates a monthly budget policy when `budgetMonthlyCents > 0`, and queues the requesting manager to wake.
 - **Reject** — terminates the draft agent and notifies the requester; it will not retry on its own.
-- **Request Revision** — saves your `decisionNote` and waits for the manager to resubmit.
+- **Request revision** — moves the approval to `revision_requested` and waits for the manager to resubmit. The button doesn't take a note, so explain what you want in the **Comments** box (or send a `decisionNote` through the API, below).
 
 The same actions are available on the API:
 
@@ -108,7 +109,7 @@ A rejected hire wakes the requesting manager with `PAPERCLIP_APPROVAL_STATUS=rej
 
 The manager won't retry on its own. If you rejected because the proposal was salvageable, leave a comment on the original source issue with what you'd accept; the manager picks it up on its next heartbeat. If the role is fundamentally wrong, reassign the issue or close it.
 
-For "almost right" proposals, prefer **Request Revision** — it keeps the same approval record and the same `sourceIssueId` link, and the manager edits the payload in place via:
+For "almost right" proposals, prefer **Request revision** — it keeps the same approval record and the same `sourceIssueId` link, and the manager edits the payload in place via:
 
 ```bash
 curl -X POST "$PAPERCLIP_API_URL/api/approvals/$APPROVAL_ID/resubmit" \

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.1012.0
 seo_title: Execution Workspaces
 seo_description: Give agents a real folder with your code checked out. Covers workspace modes, keeping reused workspaces consistent, runtime services, and HTTPS previews.
 ---
@@ -18,7 +18,7 @@ This guide covers what execution workspaces are, how they relate to projects, an
 
 Workspaces are an **experimental** feature, so the **Workspaces** screen is hidden until you opt in.
 
-1. Go to **Instance settings → Experimental**.
+1. Go to **Settings → Experimental**.
 2. Turn on **Enable Isolated Workspaces**.
 
 Once it's on, a **Workspaces** item appears in the sidebar, and a **Workspaces** tab appears on any project that has workspace activity. With the setting off, the sidebar item isn't shown and visiting `/workspaces` directly just sends you back to your issues.

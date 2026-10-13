@@ -144,6 +144,11 @@ export function instanceEnv(home) {
     // to the scratch instance's config path so onboard reads/writes the
     // isolated config instead.
     PAPERCLIP_CONFIG: instanceConfigPath(home),
+    // The board polls a remote announcement feed (pages.paperclip.ing) and
+    // floats an "Introducing …" promo card over the sidebar ~3 s after load —
+    // it landed in every captured page in v2026.1012.0. Turn the feed off
+    // (server/src/config.ts: PAPERCLIP_ANNOUNCEMENTS_ENABLED !== "false").
+    PAPERCLIP_ANNOUNCEMENTS_ENABLED: "false",
   };
 }
 

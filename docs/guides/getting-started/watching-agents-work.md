@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Watching Your Agents Work
 seo_description: Turn on the CEO's heartbeat and follow its first execution cycle: read the run transcript, review the strategy, and watch tasks reach the board.
 ---
@@ -27,39 +27,39 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
 1. **Enable the CEO's heartbeat**
 
-   Go to the **Agents** page and open the CEO agent's detail page. Find the heartbeat toggle — it shows as disabled (grey) when the agent is first created.
+   Go to the **Agents** page and open the CEO. In the agent's side menu, click **Harness / Runtime** and scroll down to the **Run Policy** card. The **Heartbeat on interval** switch is off when the agent is first created.
 
-   ![The agent detail page with the heartbeat toggle in its disabled state](../../user-guides/screenshots/light/agents/heartbeat-toggle-disabled.png)
+   ![The Run Policy card on the Harness / Runtime page with Heartbeat on interval switched off](../../user-guides/screenshots/light/agents/heartbeat-toggle-disabled.png)
 
-   Click the toggle to enable it.
+   Switch it on, set **Run heartbeat every … sec** (3600 is once an hour), and click **Save changes** at the bottom of the page.
 
-   ![The agent detail page with the heartbeat toggle in its enabled state](../../user-guides/screenshots/light/agents/heartbeat-toggle-enabled.png)
+   ![The Run Policy card with Heartbeat on interval switched on and the interval field showing](../../user-guides/screenshots/light/agents/heartbeat-toggle-enabled.png)
 
-   The CEO is now active. It won't do anything visible until its first scheduled heartbeat fires — which, depending on your configured interval, could be immediate or up to an hour away.
+   The CEO now wakes on a timer. It won't do anything visible until its first scheduled heartbeat fires — which, depending on your interval, could be soon or up to an hour away.
 
-   > **Tip:** If you want the CEO to run right now without waiting for the schedule, click **Run Heartbeat** on the agent detail page. This manually triggers a heartbeat immediately.
+   > **Tip:** If you want the CEO to run right now without waiting for the schedule, click **Run now** in the header of the agent's page. This starts a heartbeat immediately and takes you to the live run.
 
 2. **Wait for the first heartbeat to run**
 
    Once a heartbeat fires, the agent status changes from **idle** to **running**.
 
-   ![The agent detail page showing the CEO in "running" status with a live progress indicator](../../user-guides/screenshots/light/agents/agent-status-running.png)
+   ![The CEO's Overview page showing a Live Run card while a heartbeat is in progress](../../user-guides/screenshots/light/agents/agent-status-running.png)
 
-   You can watch this happen in real time. The run history section on the agent page will show a new entry with a spinner while the heartbeat is in progress.
+   You can watch this happen in real time. On the agent's **Overview**, the top card switches to **Live Run** while the heartbeat is in progress. For the full history, click **Runs** under **Audit** in the agent's side menu — the **Audit** page opens on its **Runs** tab, filtered to the CEO, with the new run at the top.
 
-   ![The run history section showing a heartbeat in progress](../../user-guides/screenshots/light/agents/run-history-in-progress.png)
+   ![The Audit page's Runs tab filtered to the CEO, with a run in progress at the top](../../user-guides/screenshots/light/agents/run-history-in-progress.png)
 
    The first heartbeat typically takes a few minutes to complete — the CEO is reading your goal, reasoning about strategy, and composing a proposal. Subsequent heartbeats on routine tasks are usually faster.
 
-   When the heartbeat finishes, the agent status returns to **idle** and the run history entry shows as complete.
+   When the heartbeat finishes, the agent status returns to **idle** and the run shows as **succeeded** (or **failed**, if something went wrong).
 
 3. **Review the CEO's strategy**
 
    After its first heartbeat, the CEO almost always creates a strategy approval. Open the **Approvals** page from the dashboard, a direct link, or any approval-related prompt in the app.
 
-   You'll see a pending approval with the type **Strategy**.
+   You'll see a pending approval labelled **CEO Strategy**.
 
-   ![The approvals queue showing a pending strategy approval from the CEO](../../user-guides/screenshots/light/approvals/approvals-queue-strategy.png)
+   ![The Approvals page's Pending tab with a pending CEO Strategy approval in the queue](../../user-guides/screenshots/light/approvals/approvals-queue-strategy.png)
 
    Click the approval to open it.
 
@@ -89,7 +89,7 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
 5. **Watch tasks appear**
 
-   Once the strategy is approved, the CEO starts creating work on the board. Navigate to **Issues** in the sidebar.
+   Once the strategy is approved, the CEO starts creating work on the board. Click **Tasks** in the sidebar.
 
    ![The task inbox showing newly created tasks from the CEO's first planning heartbeat](../../user-guides/screenshots/light/tasks/inbox-newly-created-tasks.png)
 
@@ -98,25 +98,24 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
    Each task will have:
    - A title describing the work
    - A description with more detail
-   - A priority level
    - A status
-   - A comment thread (which starts empty, but fills up as the agent works)
+   - A conversation (which starts empty, but fills up as the agent works)
 
-6. **Read a task's comment thread**
+6. **Follow a task's conversation**
 
-   Open any task that the CEO has moved to `in_progress`. Scroll down to the **Comments** section.
+   Open any task that the CEO has moved to `in_progress`. The task page is a conversation: the agent's updates and your messages run down the middle, with the task's properties (status, assignee, project, and so on) in a panel on the right.
 
-   ![A task detail page showing the comment thread with the CEO's working notes](../../user-guides/screenshots/light/tasks/task-detail-with-comments.png)
+   ![A task page showing the conversation between you and the agent, with the Properties panel on the right](../../user-guides/screenshots/light/tasks/task-detail-with-comments.png)
 
-   Agents post comments as they work — explaining what they're doing, what decisions they made, and what they found. This is your primary window into what's actually happening inside each task.
+   Agents post updates as they work — explaining what they're doing, what decisions they made, and what they found. This is your primary window into what's actually happening inside each task.
 
-   You can post your own comments here too. Your comment reaches the agent the task is assigned to, so this is how you give direct feedback or ask questions without waiting for the next scheduled heartbeat. @-mentioning a different agent (e.g. `@CEO`) only adds context — it doesn't start a run. To bring another agent in, assign the task to them or request their review.
+   You can reply too, using the message box at the bottom ("Message CEO — describe what you want done…"). Your message reaches the agent the task is assigned to, so this is how you give direct feedback or ask questions without waiting for the next scheduled heartbeat. @-mentioning a different agent (e.g. `@CEO`) only adds context — it doesn't start a run. To bring another agent in, assign the task to them or request their review.
 
 ---
 
 ## Reading the run transcript
 
-For a deeper look at what happened during any heartbeat, go to the **Agents** page, open the CEO, and click **Runs**. Click any completed run to open the transcript.
+For a deeper look at what happened during any heartbeat, go to the **Agents** page, open the CEO, and click **Runs** under **Audit** in its side menu. Click any completed run to open the transcript.
 
 ![The run transcript view showing the full log of what the CEO did during a single heartbeat](../../user-guides/screenshots/light/agents/run-transcript-view.png)
 
@@ -130,7 +129,7 @@ The following situations come up frequently in a company's first few hours. Here
 
 **No strategy approval appeared after the first heartbeat**
 
-First, check the **Approvals** page — it may be there but not visible from where you're looking. If it's genuinely not there, go to **Agents → CEO → Runs** and open the most recent run. The transcript will show whether the heartbeat completed successfully or encountered an error.
+First, check the **Approvals** page — it may be there but not visible from where you're looking. If it's genuinely not there, open the CEO and click **Runs** under **Audit** in its side menu, then open the most recent run. The transcript will show whether the heartbeat completed successfully or encountered an error.
 
 **The CEO assigned all tasks to itself**
 
@@ -138,13 +137,13 @@ This is correct behaviour when the CEO has no reports yet. It can't delegate to 
 
 **The agent is stuck in "running" for more than 30 minutes**
 
-A heartbeat that takes longer than expected is usually caused by one of three things: the task is complex, the agent has hit a loop, or the API is slow. Check the **Runs** tab to see if there's a live transcript updating. If the transcript has stopped updating, the run may have stalled. In that case, you can manually stop it from the agent detail page.
+A heartbeat that takes longer than expected is usually caused by one of three things: the task is complex, the agent has hit a loop, or the API is slow. Open the run (click the **Live Run** card on the agent's **Overview**) to see if the transcript is still updating. If it has stopped updating, the run may have stalled. In that case, click **Cancel** in the run's header to stop it.
 
 **Agent status shows "error"**
 
-Open **Runs** and click the failed run. The transcript will show the error message. Common causes are an expired API key, an invalid model name, or a file permission issue in the working directory.
+Open the agent's **Runs** (under **Audit** in its side menu) and click the failed run. The transcript will show the error message. Common causes are an expired API key, an invalid model name, or a file permission issue in the working directory.
 
-> **Warning:** An agent in "error" status won't fire new heartbeats until the underlying issue is resolved. Check and fix the error, then click **Resume** on the agent detail page to restart it.
+> **Warning:** An agent in "error" status won't fire new heartbeats until the underlying issue is resolved. Check and fix the error, then click **Clear error** in the header of the agent's page to return it to idle.
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 paperclip_version: v2026.1012.0
 seo_title: Agents: Your AI Employees
-seo_description: Hire agents, browse the agent list, and work the detail page — dashboard, instructions, and references — for the AI employees doing your company's work.
+seo_description: Hire agents, browse the agent list, and work the agent page — overview, instructions, harness and runtime — for the AI employees doing your company's work.
 ---
 
 # Agents
@@ -10,7 +10,7 @@ Agents are the AI employees that make up your Paperclip company. They're where t
 
 Agents in Paperclip are AI employees that wake up, do work, and go back to sleep. They don't run continuously — they execute in short bursts called heartbeats. Between heartbeats the agent is dormant: it consumes no budget, holds no context in memory, and takes no action. A heartbeat is triggered by something concrete (a schedule, an assignment, a review request, a manual invoke), the adapter brings the agent runtime online just long enough to make progress, and then the agent exits and the adapter records what happened.
 
-This guide walks through the entire agent surface in Paperclip: the list page you land on when you click **Agents**, the flow for hiring a new one, and every tab on the agent detail page. If you're new to Paperclip, read this top to bottom. If you're here to change one specific thing — a budget limit, a model, an instruction file — jump to the matching tab section.
+This guide walks through the entire agent surface in Paperclip: the list page you land on when you click **Agents**, the flow for hiring a new one, and every section of the agent's own page. If you're new to Paperclip, read this top to bottom. If you're here to change one specific thing — a model, an instruction file, a budget limit — jump to the matching section.
 
 ---
 
@@ -22,38 +22,39 @@ The agent list is the front door. Open **Agents** in the sidebar and you land on
 
 ### Filter tabs
 
-Four tabs across the top scope what you see:
+Tabs across the top scope what you see:
 
-- **All** — every agent in the company (minus terminated ones, unless you opt in)
+- **All** — every agent in the company
 - **Active** — agents currently able to run; includes `active`, `running`, and `idle`
 - **Paused** — agents that are manually paused or paused by the budget system
 - **Error** — agents whose last heartbeat failed
+- **Built-in** — Paperclip's managed built-in agents (only shown when built-in agents are turned on for your instance)
 
 The tab you're on is part of the URL (`/agents/active`, `/agents/paused`, etc.), so you can bookmark a filter or share a link that lands on one.
 
-### Terminated agents
+### Terminated and pending agents
 
-Terminated agents are hidden by default. Click the **Filters** control on the right of the tab bar and check **Show terminated** to include them. The count badge next to the button tells you at a glance when this filter is active.
+Terminated agents don't appear in the list at all, and neither do agents still waiting for hire approval. A pending hire lives in its approval thread until you decide on it — see [Approvals](../day-to-day/approvals.md).
 
 ### List view vs org chart view
 
-On desktop you can toggle between two visual layouts:
+Two small icon buttons next to **New Agent** switch between layouts:
 
 - **List view** — a flat sorted list, one row per agent
-- **Org chart view** — a hierarchical tree that mirrors the reporting chain (the CEO at the top, their direct reports indented under them, and so on)
+- **Org chart view** — a hierarchical tree that mirrors the reporting chain (the CEO at the top, their direct reports under them, and so on)
 
-On mobile, the list is forced — there's no room for the tree. The view preference is kept across page reloads.
+The org chart lives here now — there's no separate Org page. See [Org structure](./org-structure.md) for how to read it.
 
 ### What each row shows
 
 Every agent row shows the same pieces of information, just arranged differently in the two views:
 
-- **Status dot** on the far left, colour-coded by status (green for active, blue for running, amber for paused, red for error, grey for terminated)
-- **Name and role** (e.g. "Ada — Backend Engineer")
+- **Character** on the far left — the agent's illustrated figure (an amber warning icon replaces it if the agent's reporting chain is broken)
+- **Name, role, and title** (e.g. "Ada" with "Engineer - Backend Engineer" underneath)
 - **Live run pill** — a pulsing blue "Live" badge when the agent has a run currently in flight; click it to jump straight into the live transcript
-- **Adapter label** — which AI runtime powers this agent (Claude, Codex, Cursor, Gemini, OpenCode, OpenClaw)
+- **Model and adapter** — the model the agent runs and which AI runtime powers it (shown on wider screens)
 - **Last heartbeat** — a relative time like "4m ago"
-- **Status badge** — a readable version of the status dot
+- **Status badge** — the agent's current status, such as `idle`, `running`, or `paused`
 
 Clicking anywhere on the row opens the agent's detail page. Clicking the live pill opens the run directly.
 
@@ -72,51 +73,50 @@ Paperclip has two paths for adding an agent to the company:
 1. You (a board user) create one directly from **New Agent** on the agent list.
 2. An existing agent (typically the CEO or a manager) proposes a hire, which lands in your approval queue. See [Approvals](../day-to-day/approvals.md) for how that side works.
 
-This section is about the direct path — the `New Agent` form.
+This section is about the direct path — clicking **New Agent** yourself.
 
-![Hire a new agent](../../user-guides/screenshots/light/agents/new.png)
+![The "Meet your next agent" dialog, step 1 of 2, asking for the agent's name](../../user-guides/screenshots/light/agents/new.png)
 
-### Name and title
+### Step 1: Name
 
-The first two fields at the top of the form:
+Clicking **New Agent** opens a short dialog titled **Meet your next agent**. A progress line at the top shows the two steps: **1. Name** and **2. Adapter**.
 
-- **Agent name** (required) — the display name, e.g. "Ada" or "CTO"
-- **Title** (optional) — a role label that appears in the subtitle, e.g. "VP of Engineering"
+Type the new agent's name in **Agent name** (for example "Ada") and click **Choose adapter**. That's the only thing this step asks for.
 
-If this is the first agent in the company, Paperclip pre-fills both fields with "CEO" to make the CEO-first flow frictionless.
+### Step 2: Adapter
 
-### Role and reporting chain
+The dialog switches to **Choose an adapter** and asks how your agent should work. Pick one of the adapter cards — this decides which AI runtime powers the agent (Claude Code, Codex, OpenCode, a remote gateway, and so on). If you pick Paperclip Runner, a **Runner** dropdown appears so you can choose which runtime it drives.
 
-Two chips beneath the name row let you set governance context:
-
-- **Role** — one of Paperclip's built-in roles (CEO, CTO, manager, general, worker, etc.). When you're hiring the first agent, this field is locked to `CEO` and you cannot change it — the very first hire in a company is always the CEO. Subsequent hires default to `general` and you can pick a different role from the popover.
-- **Reports to** — picks the manager this agent will report to. Disabled on the first hire (the CEO reports to you). Used by the org chart on the agent list and by the escalation chain agents follow when they're blocked.
-
-### Adapter and configuration
-
-Below the chips, the shared agent configuration form takes over. This is the same form you'll see on the **Configuration** tab later, which means everything you set here can be edited after the agent exists.
-
-The adapter picker is the most important decision at hire time. Your choice controls:
-
-- Which AI runtime powers the agent (Claude Code, Codex local, Cursor, Gemini, OpenCode, OpenClaw gateway)
-- Which models you can pick from
-- Which adapter-specific options show up (sandbox bypass flags, model-provider formats, session handling)
-
-When you change the adapter type, Paperclip resets the form to that adapter's defaults — for example, switching to `codex_local` pre-selects the default Codex model and sets the sandbox/approvals bypass to its recommended default. For OpenCode, you must pick an explicit model in `provider/model` format; Paperclip fetches the available list from your OpenCode installation and validates the choice before letting you submit.
+Click **Configure agent** to move on, or **Back** to change the name.
 
 See [Agent adapters](./agent-adapters.md) for a full tour of each adapter and when to use it.
 
-### Company skills
+### Connect, configure, and finish
 
-The form's skills section lists every skill in your company library that isn't a built-in Paperclip runtime skill (those are attached automatically). Tick the ones the new agent should have. You can change this later from the Skills tab, so don't overthink it — attach what's clearly relevant and iterate.
+After the dialog, you land on a setup page with your agent's character and name at the top and the remaining steps down the left:
 
-See [Skills](./skills.md) for how the library works and how to add skills to it.
+1. **Connect** — only for adapters that sign in to a model provider (Claude, Codex, Grok). Pick an **Environment** and connect your account.
+2. **Configure** — choose the **Runtime** options (the model, plus any adapter-specific fields like an API key) and the **Environment** the agent runs in. The **Test your agent** card at the bottom runs a quick check that your runtime and model can respond; click **Run test** before you finish.
+3. **Confirmation** — click **Finish setup**. Paperclip creates the agent and shows **Your agent is ready**, with buttons to **Edit configuration** or assign the new agent its first task.
+
+### What Paperclip fills in for you
+
+The setup flow keeps things short, so a few settings are chosen for you. You can change all of them afterwards on the agent's [Harness / Runtime](#harness-runtime) page:
+
+- **Role** — the very first agent in a company is always the CEO. Everyone after that starts with the `general` role.
+- **Reports to** — new agents report to your CEO. The CEO reports to you.
+- **Title** — left blank.
+- **Heartbeat on interval** — off. The agent wakes when it's given work or when you click **Run now**, not on a timer.
+
+There's no budget field in the setup flow. Budgets are managed from **Audit → Budgets** — see [Budgets](#budgets) below.
+
+Skills aren't picked during setup either. Paperclip's own runtime skills are attached automatically; attach company skills from the agent's [Skills](#skills) page once it exists. See [Skills](./skills.md) for how the library works.
 
 ### Approvals when agents hire agents
 
-When *you* create an agent from this form, it's created immediately. When an *agent* creates one — by calling Paperclip's hire API — the request goes into the approval queue instead, and the new agent sits in `pending_approval` status until you decide. The proposal tells you the proposed agent's name and role, its capabilities, the adapter, the monthly budget it's asking for, and who it would report to. Review it like any other approval: Approve, Reject, or Request Revision. See [Approvals — Reviewing a Hire Request](../day-to-day/approvals.md#reviewing-a-hire-request) for details.
+When *you* create an agent through **New Agent**, it's usually ready straight away. (If your organization requires approval for new agents, the confirmation step says **Agent submitted for approval** instead.) When an *agent* creates one — by calling Paperclip's hire API — the request goes into the approval queue instead, and the new agent sits in `pending_approval` status until you decide. The proposal summary shows the proposed agent's **Name**, **Role**, **Title**, **Icon**, **Capabilities**, **Adapter**, and any requested **Skills**. The monthly budget it's asking for and who it would report to aren't in the summary — open **See full request** to check them in the raw payload. Review it like any other approval: **Approve**, **Reject**, or **Request revision**. See [Approvals — Reviewing a Hire Request](../day-to-day/approvals.md#reviewing-a-hire-request) for details.
 
-Agents that draft hires with the bundled `paperclip-create-agent` skill now write a short role description for the new agent — who it is and what it owns — instead of a long operating manual. Reporting line, capabilities, and skills go in their own fields of the request. Any company-specific instructions you asked for are kept. If you want more in the new agent's `AGENTS.md`, ask for it, or add it on the [Instructions tab](#instructions-tab) after the hire.
+Agents that draft hires with the bundled `paperclip-create-agent` skill now write a short role description for the new agent — who it is and what it owns — instead of a long operating manual. Reporting line, capabilities, and skills go in their own fields of the request. Any company-specific instructions you asked for are kept. If you want more in the new agent's `AGENTS.md`, ask for it, or add it on the agent's [Instructions](#instructions) page after the hire.
 
 ### What a new agent can do out of the box
 
@@ -137,26 +137,36 @@ A few things keep this in check:
 
 See [Roles & Permissions](../../administration/roles-and-permissions.md#the-permission-keys) for what each key allows.
 
-### Create
-
-Click **Create agent**. On success Paperclip navigates you to the new agent's detail page, where you can refine everything that follows.
-
 ---
 
 ## The Agent Detail Page
 
 Every agent page is built from the same shell:
 
-- A **header** with the agent's character, name, role/title, status badge, and the action cluster (Assign Task, Run Heartbeat, Pause/Resume, overflow menu)
-- A **tab bar** with six tabs: Dashboard, Instructions, Skills, Configuration, Runs, Budget
-- The **selected tab's content** below
+- A **header** with the agent's character, name, adapter, and title, plus a row of actions
+- A **side menu** that lists the agent's pages, grouped into four sections
+- The **selected page's content** to the right
 
-The action cluster in the header works on any tab:
+The side menu groups the pages like this:
 
+| Section | Pages |
+|---|---|
+| **Agent** | [Overview](#overview), [Instructions](#instructions), [Skills](#skills) |
+| **Runtime** | [Harness / Runtime](#harness-runtime), [Secrets & variables](#secrets-tools-and-channels), [Tools](#secrets-tools-and-channels), [Channels](#secrets-tools-and-channels) |
+| **Governance** | [Permissions / Trust](#permissions-trust), [API Keys](#api-keys), [Revisions](#revisions) |
+| **Audit** | Activity, [Runs](#runs), Costs, [Budgets](#budgets) |
+
+The four **Audit** links don't open pages inside the agent. They take you to the company-wide **Audit** page, already filtered to this agent. That's where run history, spending, and budgets live now.
+
+The actions in the header work on every page:
+
+- **Star** — stars the agent so it's easy to find again
 - **Assign Task** — opens the new-task dialog with this agent pre-selected as assignee
-- **Run Heartbeat** — manually triggers a heartbeat right now (useful for testing instructions changes)
+- **Run now** — wakes the agent for a heartbeat right away and takes you to the new run (useful for testing instruction changes)
+- **Run with provider trace** — the same, but also records the exact traffic to the model provider for that run. Only instance administrators (or a local single-user setup) see this button, and the trace expires after 24 hours.
 - **Pause / Resume** — toggles the agent between `paused` and `active`
-- **Overflow menu** — Copy Agent ID, Reset Sessions, Terminate
+- **Clear error** — appears when the agent is in `error`, and returns it to idle
+- **More actions (`⋯`)** — Duplicate Agent, Copy Agent ID, Reset Sessions, Terminate
 
 > **Danger:** Terminate permanently shuts the agent down. Use Pause if you might want it back. See [Approvals — Board Override Powers](../day-to-day/approvals.md#board-override-powers) for the broader discussion of Pause vs Terminate vs Delete.
 
@@ -183,11 +193,11 @@ The character animates and turns to follow your cursor. If your system is set to
 
 > **Note:** There's no palette picker in the app yet. If you want to change an agent's character, send a new `appearance` value through the API — see [Agents API — Update Agent](../../reference/api/agents.md#update-agent).
 
-When the agent is in `pending_approval` status the Run Heartbeat button is disabled and a banner at the top of the page reminds you the agent cannot be invoked until the board approves the hire.
-
 ### Banners at the top of the page
 
-Two amber banners can appear above the tab bar, and they mean different things:
+When the agent is in `pending_approval` status, a banner at the top of the page says **This agent is pending board approval and cannot be invoked yet.**, with an **Approve agent** button beside it.
+
+Two amber banners can also appear near the top of the page, and they mean different things:
 
 - **Invalid org chain** — the agent's reporting chain is broken (a terminated manager, a manager that no longer exists, or a loop). This one blocks work: you can't assign to the agent until you repair the chain, and the banner tells you how.
 - **Escalation path is paused** — the agent can run perfectly well, but somewhere up its `reports_to` chain sits a **paused** agent. This one is a warning only. Nothing is blocked; the agent just has nowhere useful to escalate to, and any escalation an agent tries to route there is refused rather than accepted. The banner text names the paused manager and gives you the two fixes: unpause that manager, or change who this agent reports to.
@@ -198,50 +208,44 @@ This is worth checking after an instance import, which pauses every agent by def
 
 ---
 
-## Dashboard Tab
+## Overview
 
-The Dashboard is the summary view — the one you open when you want to know "what has this agent been doing?"
+<a id="dashboard-tab"></a>
 
-![Dashboard tab](../../user-guides/screenshots/light/agents/dashboard.png)
+**Overview** is the agent's home page — the one you open when you want to know "who is this agent, and what has it been doing?"
 
-### Latest run card
+![An agent's Overview page with the Latest Run card, the Identity, Harness / Runtime, Capabilities, and Skills cards, and Recent Tasks](../../user-guides/screenshots/light/agents/dashboard.png)
 
-At the top, Paperclip shows either the currently running heartbeat (with a pulsing live indicator and a soft glow) or the most recent finished one. The card includes:
+### Latest Run
 
-- The run status icon (check, cross, spinner, clock, timer, slash)
-- A short run ID
-- An invocation-source pill: Timer, Assignment, On-demand, or Automation — so you can see at a glance why the agent ran
-- A relative timestamp
-- A two-to-three-line excerpt from the run's result summary, rendered as markdown
+At the top, Paperclip shows either the run in progress (labelled **Live Run**) or the most recent finished one (**Latest Run**), with its short run ID, status, the task it worked on, and how long ago it happened. Click it to open that run's detail.
 
-Clicking the card jumps to the run detail, same as picking the run from the Runs tab.
+### The four summary cards
 
-### Activity charts
+Below that, four cards sum up the agent at a glance:
 
-A row of four compact charts covering the last 14 days:
+- **Identity** — the agent's status, **Role**, **Title**, who it **Reports to**, and how many **Direct reports** it has
+- **Harness / Runtime** — the **Adapter**, **Model**, current **Session**, and **Last run**. The **Configure** link jumps to the [Harness / Runtime](#harness-runtime) page.
+- **Capabilities** — the agent's capability summary, or "No capability summary has been added." if it's empty
+- **Skills** — the skills enabled for this agent. The **Manage** link jumps to the [Skills](#skills) page.
 
-- **Run Activity** — runs per day
-- **Issues by Priority** — the priority mix of issues this agent has touched
-- **Issues by Status** — the status mix of the same set of issues
-- **Success Rate** — proportion of successful heartbeats
+### Recent Tasks
 
-The charts share a common 14-day window; they're designed to answer "is this agent productive?" without needing to scroll through run logs.
+A list of up to six tasks this agent has worked on, most recent first. **See All** opens the full task list filtered to this agent. Use it to pick up context before you run the agent or reassign work.
 
-### Recent issues
+### Audit
 
-A list of up to 10 issues this agent has participated in, sorted by recency, with status badges. A **See All** link opens the full filtered issues page. Use this to pick up context before running a manual heartbeat or reassigning work.
-
-### Costs
-
-At the bottom, a summary of the agent's total input tokens, output tokens, cached tokens, and total cost, followed by a per-run cost table for the most recent 10 runs. For a deeper view of spending — and the rules for how the numbers are computed — see [Costs & budgets](../day-to-day/costs.md).
+At the bottom, four shortcuts — **Activity**, **Runs**, **Costs**, and **Budgets** — open the company-wide Audit page filtered to this agent. Spending charts and per-run costs live there now; see [Costs & budgets](../day-to-day/costs.md).
 
 ---
 
-## Instructions Tab
+## Instructions
 
-The Instructions tab is where you edit what the agent *is* — its role description and any other files it should keep. For most agents it is also the agent's own folder: a place it can keep notes and working material from one task to the next.
+<a id="instructions-tab"></a>
 
-![Instructions tab](../../user-guides/screenshots/light/agents/instructions.png)
+The **Instructions** page is where you edit what the agent *is* — its role description and any other files it should keep. For most agents it is also the agent's own folder: a place it can keep notes and working material from one task to the next.
+
+![An agent's Instructions page with the file list and the AGENTS.md editor](../../user-guides/screenshots/light/agents/instructions.png)
 
 ### Managed vs external bundles
 
@@ -250,7 +254,7 @@ Local adapters (Claude Code, Codex, Cursor, Gemini, OpenCode) support an **instr
 - **Managed** — Paperclip keeps one folder per agent in its own storage. You edit it here, and the agent can add its own files to it. This is the mode that keeps agent files across tasks (see below).
 - **External** — you give Paperclip a `rootPath` on disk and it reads/writes the files there; useful when the instructions already live in a repo you want to keep canonical. External folders keep their existing behaviour and aren't treated as the agent's persistent personal folder.
 
-The mode toggle and root path field sit at the top of the tab. Changing them is a normal edit — the floating Save/Cancel bar appears as soon as the form is dirty.
+The mode toggle and root path field sit at the top of the page. Changing them is a normal edit — the **Save changes** and **Discard** buttons at the bottom of the page light up as soon as something changes.
 
 ### The entry file
 
@@ -258,7 +262,7 @@ Every bundle has an **entry file**, usually `AGENTS.md`. That's the file the ada
 
 ### Agent files persist across tasks
 
-With a managed bundle, the folder on this tab is the agent's single, current home directory. When a run starts, Paperclip gives the agent a private copy of that folder and points the `AGENT_HOME` environment variable at it. The agent reads its instructions there, and it can also create its own files and subfolders — notes, memory, reference material, even images or other binary files. Paperclip saves validated changes at turn boundaries: a warm native Codex session keeps the same writable copy between turns, while other sessions are collected after the provider stops. Only files the agent changed or deleted are synchronized back, so the next task starts from the saved folder.
+With a managed bundle, the folder on this page is the agent's single, current home directory. When a run starts, Paperclip gives the agent a private copy of that folder and points the `AGENT_HOME` environment variable at it. The agent reads its instructions there, and it can also create its own files and subfolders — notes, memory, reference material, even images or other binary files. Paperclip saves validated changes at turn boundaries: a warm native Codex session keeps the same writable copy between turns, while other sessions are collected after the provider stops. Only files the agent changed or deleted are synchronized back, so the next task starts from the saved folder.
 
 A few things are worth knowing:
 
@@ -356,7 +360,7 @@ Existing agents keep whatever files they already have — Paperclip doesn't rewr
 
 The left pane shows the agent's files and folders. Click a file to open it in the markdown editor on the right. Add a file with the **+** button (**Add agent file**) at the top of the file list — type a name such as `TOOLS.md`, or a path with folders. Delete a file with the **Delete** button above the editor (it isn't offered for the entry file). Rename is via delete + create for now.
 
-The editor handles text files up to 1 MiB. For a binary file, or one too large to edit, the tab shows a download link instead.
+The editor handles text files up to 1 MiB. For a binary file, or one too large to edit, the page shows a download link instead.
 
 The markdown editor supports inline image uploads (drag-and-drop or paste) — images are uploaded to the company asset store and inserted as markdown image links.
 
@@ -366,110 +370,150 @@ For adapters that don't support a filesystem bundle (OpenClaw gateway and some r
 
 ### When changes take effect
 
-Edits are saved on **Save** (via the floating Save/Cancel bar that appears on any dirty state). The agent uses the new instructions on its next run — runs already in flight are not interrupted. Changes the agent makes to its own folder during a run are saved when the run stops; check the run's detail view for any storage or sync warning. If you want to see your change immediately, click **Run Heartbeat** in the header after saving.
+Edits are saved when you click **Save changes** in the bar at the bottom of the page (or **Discard** to throw them away). The agent uses the new instructions on its next run — runs already in flight are not interrupted. Changes the agent makes to its own folder during a run are saved when the run stops; check the run's detail view for any storage or sync warning. If you want to see your change immediately, click **Run now** in the header after saving.
 
 ---
 
-## Skills Tab
+## Skills
 
-The Skills tab controls which company skills are attached to this specific agent. It is a per-agent view over the shared [company skill library](./skills.md) — the library is where skills are authored and imported, this tab is where you decide which agents get which skills.
+<a id="skills-tab"></a>
 
-![Skills tab](../../user-guides/screenshots/light/agents/skills.png)
+The **Skills** page controls which company skills are attached to this specific agent. It is a per-agent view over the shared [company skill library](./skills.md) — the library is where skills are authored and imported, this page is where you decide which agents get which skills.
 
-### Sections on the tab
+![An agent's Skills page with toggle switches, grouped into "Enabled on this agent" and "Available from the library"](../../user-guides/screenshots/light/agents/skills.png)
 
-The tab splits skills into three sections:
+### The header
 
-1. **Optional company skills** — every skill in the company library that this agent *could* use. Tick or untick the checkbox on each row to enable or disable it for the agent.
-2. **Required by Paperclip** — skills the runtime itself insists on (for example, the built-in Paperclip API skill that teaches the agent how to check out tasks and post comments). These show with a locked checkbox and a tooltip explaining why they can't be turned off.
-3. **User-installed skills, not managed by Paperclip** — skills that already exist on disk in the agent's workspace but weren't installed through Paperclip. They're displayed for visibility but can't be toggled from here. Edit them at their source (or import them into the library). This section is collapsed by default.
+The top of the page shows how many library skills are on (for example, "3 of 12 enabled"), a pill saying how skills reach the agent — **Kept in workspace**, **Applied on next run**, or **Tracked only** (the adapter doesn't support skill management from Paperclip) — and a save indicator. On the right you'll find a **Search skills** box and a **Browse skills store** button that takes you to the company library.
+
+### Sections on the page
+
+Skills are grouped into sections, each with a count:
+
+1. **Enabled on this agent** — library skills this agent currently uses. Flip a row's toggle off to remove it.
+2. **Available from the library** — every other skill in the company library. Flip a row's toggle on to give it to this agent.
+3. **Automatic and detected skills (read-only)** — skills Paperclip applies automatically, plus skills that already exist on disk in the agent's workspace but weren't installed through Paperclip. Each row shows a lock icon instead of a toggle, with an origin and location hint so you can find the file. This section only appears when there's something to show, and you can collapse it.
 
 ### Each skill row
 
-Every row shows the skill's name, its description (the routing logic the agent uses to decide whether to load it), and, for non-managed skills, an origin and location hint so you can find the file on disk. A **View** link jumps to the skill's detail page in the company library where you can edit the source.
+Every row shows the skill's icon, name, a category chip, a one-line summary, and where the skill came from. Click a library skill's row to open its detail page in the company library, where you can edit the source.
 
 ### Autosave
 
-Changes save automatically about 250 ms after you stop clicking — you'll see "Saving soon…" and then the indicator clears. No Save button to press.
+Changes save automatically shortly after you stop toggling — you'll see **Saving soon…**, then **Saving…**, then **Saved**. No Save button to press. If a save fails, the indicator says **Couldn’t save**.
 
-### Where skills run
+### When the adapter can't manage skills
 
-The footer shows a small status block:
-
-- **Adapter** — which runtime this agent uses
-- **Skills applied** — "Kept in the workspace" (persistent), "Applied when the agent runs" (ephemeral), or "Tracked only" (the adapter doesn't support skill management from Paperclip)
-- **Selected skills** — the count
-
-If the skill mode is `unsupported` (e.g. `openclaw_gateway`), the checkboxes are disabled with a tooltip directing you to manage skills in the adapter directly.
+Some adapters (for example `openclaw_gateway`) don't let Paperclip manage skills. The page shows a banner explaining why, and the toggles are disabled. Manage skills in the adapter directly. The adapter in use is listed at the bottom of the page.
 
 ### Warnings
 
-If you toggled a skill key that no longer exists in the company library, Paperclip shows an amber "Requested skills missing from the company library" warning. Either re-import the skill, or untick the missing key.
+If the agent has a skill enabled that no longer exists in the company library, Paperclip shows an amber row saying it "is enabled but missing from the organization library", with a **Remove** button. Either re-import the skill, or click **Remove**.
 
 For a deeper discussion of what skills are, how to write good ones, and how they keep the agent's context small, see [Skills](./skills.md).
 
 ---
 
-## Configuration Tab
+## Harness / Runtime
 
-The Configuration tab is where you change the agent's **runtime settings** — which adapter it uses, which model it runs, what heartbeat interval it has, what environment variables it needs, and a few adapter-specific knobs. It is *not* where you change what the agent *does* (that's Instructions) or what it knows (that's Skills). It's where you change how it's wired.
+<a id="configuration-tab"></a>
 
-![Configuration tab](../../user-guides/screenshots/light/agents/configuration.png)
+The **Harness / Runtime** page is where you change how the agent is *wired* — its name and reporting line, which adapter and model it uses, where it runs, its environment variables, and when it wakes up. It is *not* where you change what the agent *does* (that's [Instructions](#instructions)) or what it knows (that's [Skills](#skills)).
 
-### The shared configuration form
+![An agent's Harness / Runtime page showing the Agent identity and Adapter cards](../../user-guides/screenshots/light/agents/configuration.png)
 
-The same `AgentConfigForm` you met in the hiring flow drives this tab, with two differences: the Instructions and prompt-template fields are hidden here (they live on their own tab) and the adapter-specific options are fully editable.
+### The cards on the page
 
-Common fields:
+The page is a stack of cards, top to bottom:
 
-- **Adapter** — dropdown of every adapter enabled for your instance. Switching adapters is a structural change and typically resets model/options to safe defaults for the new adapter. Pick deliberately.
-- **Model** — the list Paperclip fetched from the adapter. Some adapters (OpenCode, Gemini local) require a specific format; the form will block submission with an inline error if the model can't be validated.
-- **Working directory (cwd)** — the filesystem path the adapter runs in. Relative instruction paths resolve from here.
-- **Heartbeat interval** — the minimum number of seconds between automatic heartbeats. This is a floor, not a guarantee; a busy agent with many assignments may run more often if events (approvals, assignments, comments on its tasks) trigger wakes. @-mentions don't wake an agent; they're context only.
-- **Heartbeat enabled** — toggle on/off. A disabled agent only runs on explicit event triggers or when you click **Run Heartbeat** manually.
+- **Agent identity** — **Name**, **Title**, and **Reports to**. Change the reporting line here to move the agent in the org chart.
+- **Adapter** — **Adapter type** (every adapter enabled for your instance), **Model**, and adapter-specific fields such as **Thinking effort**. Switching adapters is a structural change and usually resets the model and options to safe defaults for the new adapter, so pick deliberately. Some adapters (OpenCode, for example) need the model in a specific format; the form shows an inline error if the model can't be validated.
+- **Configuration** — adapter-specific settings, with less common options such as **Command** and **Extra args** tucked under **Advanced**.
+- **Environment** — where the agent runs. Leave it on the company default or pick a specific environment.
+- **Environment variables** — values passed to the agent's runtime on every run.
+- **Run Policy** — when the agent wakes up on its own (see below).
+- **Debugging** — the **Capture raw provider traces** switch. Only instance administrators see this card.
 
-Adapter-specific fields (Claude login, Codex sandbox bypass, Cursor options, etc.) appear as extra rows underneath. Adapter-specific fields only modify this agent — changing them has no effect on any other agent.
+Adapter-specific fields only affect this agent — changing them has no effect on any other agent.
 
-### API Keys section
+### Run Policy
 
-Below the form, still on the Configuration tab, is a dedicated **API Keys** block. This is the same UI described under the Keys tab below — it's embedded here because issuing a key is a configuration-time action. See [Keys](#keys) for the details.
+The **Run Policy** card controls the agent's heartbeat:
 
-### Configuration revisions
+- **Heartbeat on interval** — turn this on to have the agent wake on a timer, then set how often under **Run heartbeat every … sec**. The interval is a floor, not a guarantee: a busy agent may run more often when events (assignments, approvals, comments on its tasks) wake it. @-mentions don't wake an agent; they're context only. With the switch off, the agent only runs when something wakes it or when you click **Run now**.
+- **Advanced Run Policy** — expand this for **Timeout (sec)**, **Interrupt grace period (sec)**, **Wake on demand**, **Cooldown (sec)**, **Max concurrent runs**, and **Continue after max-turn stop**.
 
-At the bottom of the tab is a collapsible **Configuration Revisions** section. Every time you save a change to this agent's configuration, Paperclip records a revision with a timestamp, the keys that changed, and a diff. Up to the most recent 10 are shown when expanded.
+New agents start with **Heartbeat on interval** switched off.
 
-Each revision row includes a **Rollback** action: clicking it restores the agent to that exact configuration, atomically. Rollback is itself saved as a new revision, so you can always undo an undo.
+### Test your agent
 
-> **Tip:** Use rollback when a change breaks an agent and you don't have time to debug. Pause the agent, roll back to the last known-good revision, resume, and investigate the bad change later.
+At the bottom of the page, the **Test your agent** card checks that the runtime and model can respond. Click **Run test**; the card changes to **Connection successful** when everything checks out, or shows what needs attention if it doesn't. Run it again after you change the adapter, model, or environment.
 
-### Save flow
+### Saving changes
 
-Edits are dirty-tracked. A floating Save/Cancel bar (desktop) or a fixed bottom bar (mobile) appears as soon as any field differs from the persisted state. Save is blocking — you'll see "Saving…" on the button. Cancel reverts every dirty field back to its saved value in one shot.
+Edits are tracked as you make them. The bar at the bottom of the page shows "You have unsaved changes." with **Discard** and **Save changes** buttons. **Discard** puts every changed field back the way it was. Saving creates a new entry on the [Revisions](#revisions) page.
 
 ---
 
-## Runs Tab
+## Secrets, Tools, and Channels
 
-The Runs tab is your audit trail. Every heartbeat the agent has ever done is listed here, newest first, with filters, a detail view, and live streaming for runs in progress.
+The rest of the **Runtime** section in the side menu covers what the agent can reach:
 
-![Runs tab](../../user-guides/screenshots/light/agents/runs.png)
+- **Secrets & variables** — under **Secret access**, choose which of your organization's secrets this agent may use. Environment variables themselves are set on [Harness / Runtime](#harness-runtime).
+- **Tools** — the connected apps and tools this agent can use, and its effective access.
+- **Channels** — the chat channels this agent takes part in.
+
+---
+
+## Permissions / Trust
+
+The **Permissions / Trust** page sets how much the agent is trusted and what it's allowed to do:
+
+- **Trust** — the **Trust preset** decides how broadly the agent can read and act on Paperclip work. See [Trust and low-trust review](../../administration/trust-and-low-trust-review.md).
+- **Permissions** — switches for **Can create new agents**, **Can create/import skills**, and **Can assign tasks**. Task assignment is switched on automatically for the CEO and for any agent that can create agents.
+
+These switches save as soon as you flip them.
+
+---
+
+## Revisions
+
+<a id="configuration-revisions"></a>
+
+Every time you save a change to this agent's configuration, Paperclip records a revision. The **Revisions** page lists them under **Configuration Revisions**, newest first. Each entry shows a short ID, when it was made, where the change came from, and which settings changed.
+
+Click **Restore** on any entry to put the agent back to that exact configuration. Restoring is itself saved as a new revision, so you can always undo an undo.
+
+> **Tip:** Use restore when a change breaks an agent and you don't have time to debug. Pause the agent, restore the last known-good revision, resume, and investigate the bad change later.
+
+---
+
+## Runs
+
+<a id="runs-tab"></a>
+
+Run history doesn't live on the agent's page any more. Click **Runs** under **Audit** in the agent's side menu (or the **Runs** shortcut at the bottom of [Overview](#overview)) and you land on the company-wide **Audit** page, on its **Runs** tab, already filtered to this agent.
+
+![The Audit page's Runs tab filtered to one agent, listing recent runs with status, trigger, and timing](../../user-guides/screenshots/light/agents/runs.png)
 
 ### The run list
 
-Each entry in the list shows:
+Two filters sit above the list:
 
-- A status icon (succeeded, failed, running, queued, timed out, cancelled)
-- A short run ID
-- The run's invocation source pill (Timer / Assignment / On-demand / Automation)
-- Input + output tokens and cost (when cost is non-zero)
-- A relative timestamp
-- A short excerpt from the result summary
+- **Agent** — pick one agent, or **All agents**
+- **Status** — pick a run status, or **All statuses**
 
-On desktop, the list sits in a narrow left column and clicking a run opens the detail to the right — you can step through runs quickly without navigating away. On mobile the list takes the whole screen and tapping a run pushes into a detail view with a Back button.
+**Clear filters** resets both. Each entry shows:
 
-Paperclip auto-selects the latest run on desktop so you always have something in the detail pane when you land on the tab.
+- The agent's name, a short run ID, and a status badge
+- A one-line summary of the run
+- Why it ran (Timer, Assignment, On-demand, Automation), how long it took, and how long ago it started
+
+The list shows the most recent runs, newest first.
 
 ### The run detail
+
+Click a run to open it. The run detail opens on the agent's page, with the agent's other runs in a narrow column on the left so you can step through them without navigating away. On mobile, a **Back to runs** link takes you back to the list.
 
 The detail view has several stacked blocks:
 
@@ -480,12 +524,12 @@ The detail view has several stacked blocks:
 - **Invocation card** — the exact command, working directory, prompt, context, and environment the adapter used, with secrets redacted (`***REDACTED***`) and JWT values masked
 - **Transcript** — the full conversation between the agent and the model, rendered with tool calls inline
 - **Log viewer** — raw stdout/stderr/system chunks with timestamps, useful when the transcript isn't enough
-- **Touched issues** — the set of issues the agent interacted with during this run, with links and a **Clear sessions for touched issues** action (handy after a bad run corrupted session state)
-- **Claude login** (Claude adapters) — a one-click "Login with Claude" action that bootstraps the adapter against a fresh Claude auth
+- **Touched issues** — the set of issues the agent interacted with during this run, with links and a **clear session for these tasks** link (handy after a bad run corrupted session state)
+- **Claude login** (Claude Code agents) — when a run fails because Claude Code needs authentication, a **Login to Claude Code** button runs `claude login` for you
 
 ### Live runs
 
-When a run is in-flight, the transcript and log viewer stream in real time. The header shows an animated status, an elapsed-time counter, and a cancel button. The Scroll-to-bottom helper sticks you to the latest output until you scroll up to read history, at which point it lets go so you don't get yanked around.
+When a run is in flight, the transcript and log viewer stream in real time. The header shows an animated status, an elapsed-time counter, and a cancel button. The scroll-to-bottom helper sticks you to the latest output until you scroll up to read history, at which point it lets go so you don't get yanked around.
 
 ### Cancelling, retrying, resuming
 
@@ -493,74 +537,63 @@ When a run is in-flight, the transcript and log viewer stream in real time. The 
 - **Retry** — creates a new run with the same task context. Use when a run failed for a recoverable reason (transient network error, adapter glitch).
 - **Resume** — only appears when a run failed because the adapter process was lost. Paperclip re-wakes the agent and passes a `resumeFromRunId` so the next run can pick up instead of restarting.
 
-### Filters and sorting
-
-The list is sorted by creation time descending. There are no additional filters on the Runs tab itself — use the Dashboard's charts for aggregate views, or jump to individual issues to see per-task run history.
-
 ---
 
-## Budget Tab
+## Budgets
 
-Every agent can have its own budget. The Budget tab is where you set it, watch the current spend, and configure how Paperclip should react when limits are approached or breached.
+<a id="budget-tab"></a>
 
-![Budget tab](../../user-guides/screenshots/light/agents/budget.png)
+Every agent can have its own monthly budget. Agent budgets live on the company-wide **Audit** page, on its **Budgets** tab — click **Budgets** under **Audit** in the agent's side menu to get there.
 
-### Anatomy of an agent budget
+![The Audit page's Budgets tab with the Budget control plane summary and active budget incidents](../../user-guides/screenshots/light/agents/budget.png)
 
-A budget has four pieces:
+### What's on the Budgets tab
 
-- **Window kind** — either **Monthly UTC** (spending resets on the first of each month, UTC) or **Lifetime** (never resets; the agent gets this much total, ever)
-- **Amount** — the spending cap in cents (displayed as dollars)
-- **Warn percent** — the soft-alert threshold, e.g. 80%. When spend crosses this, the agent moves to `warning` status and the header shows an amber indicator.
-- **Hard stop** — the enforcement behaviour when spend reaches 100%. By default, Paperclip pauses the agent (`pauseOnExceed = true`) so it consumes no further budget until a board user resumes it or raises the limit.
+- **Budget control plane** — counts of **Active incidents**, **Pending approvals**, **Paused agents**, and **Paused projects**
+- **Active incidents** — any budget that has crossed its warning or hard-stop threshold. Resolve a hard stop here with **Raise budget & resume**, or click **Keep paused**.
+- **Agent budgets** — one card per agent that has a budget, showing the cap, the spend against it, and what's **Remaining**. Change the amount and click **Update budget** (or **Set budget** if no cap is configured yet).
 
-### The policy card
+The Budgets tab shows every budget in the company; it isn't filtered to one agent, so look for your agent's card under **Agent budgets**.
 
-The card on this tab shows:
-
-- An icon and colour corresponding to the current state (Healthy wallet, Warning triangle, Hard-stop shield)
-- The window label (Monthly UTC budget / Lifetime budget)
-- Current spend vs. cap, as a number and as a progress bar
-- The soft-alert threshold
-- Pause status and pause reason, if paused
-
-### Editing the budget
-
-Use the edit control on the card to change the amount. Depending on your permissions and the agent's reporting chain, some fields may be read-only — in particular, subordinate agents can propose budget increases but not approve them. When a policy's hard stop is hit, a **Budget Override** approval may be created for you to approve a one-time increase or a permanent raise.
+> **Note:** An agent only gets a card once it has a budget. Agents hired through the API with a monthly budget get one automatically, but the setup flow in the app doesn't set one. To give any other agent a cap, use the CLI's `budget agent:update` command (see [Cost & budget commands](../../reference/cli/cost.md)) or the [Set agent budget](../../reference/api/costs.md#set-agent-budget) API.
 
 ### What happens at each threshold
 
 - **Below the warn threshold** — normal. The agent runs as scheduled.
-- **Between warn and hard stop** — `warning` status. The agent keeps running. Consider triaging: is the agent doing what you want, or is it burning budget on low-value work?
-- **At or above the hard stop** — `paused` status with `pauseReason = "budget"`. The agent stops taking heartbeats until you resume, raise the cap, or the window resets (monthly only).
+- **Between warn and hard stop** — the budget is in `warning`. The agent keeps running. Consider triaging: is the agent doing what you want, or is it burning budget on low-value work?
+- **At or above the hard stop** — the agent is paused with `pauseReason = "budget"`. It stops taking heartbeats until you raise the cap and resume it, or the monthly window resets.
+
+When a hard stop is hit, a **Budget Override** approval may be created for you to approve a one-time increase or a permanent raise.
 
 ### Agent-level vs company-level
 
-This tab configures **this agent's** budget. Paperclip also tracks a company-level budget that sums across agents. See [Costs & budgets](../day-to-day/costs.md) for how the two interact, how API costs are computed, and how to tune budgets as a portfolio rather than one agent at a time.
+Agent budgets cap a single agent. Paperclip also tracks an organization-wide budget that sums across agents. See [Costs & budgets](../day-to-day/costs.md) for how the two interact, how API costs are computed, and how to tune budgets as a portfolio rather than one agent at a time.
 
 ---
 
-## Keys
+## API Keys
+
+<a id="keys"></a>
 
 An agent authenticates to the Paperclip API with a short-lived JWT for in-process runs. When the agent runs *outside* a managed heartbeat — for example a local CLI operator checking assignments, a CI job triggering a webhook, a remote adapter that needs a standing token — it uses a long-lived **API key** instead.
 
-The Keys panel sits on the Configuration tab (under the configuration form, above the revisions collapsible).
+API keys have their own page: open **API Keys** under **Governance** in the agent's side menu.
 
 ### Issuing a key
 
-1. Type a name for the key (e.g. `production`, `ci`, `local-cli`). A clear name makes audits easier later.
+1. Under **Create API Key**, type a name for the key (e.g. `production`, `ci`, `local-cli`). A clear name makes audits easier later.
 2. Click **Create**.
-3. Paperclip shows the full token in a yellow banner. **Copy it now** — the plaintext token is only shown this once. After you dismiss the banner, Paperclip only stores a hash and can never show it again.
+3. Paperclip shows the full token in a banner: "API key created — copy it now, it will not be shown again." **Copy it now** — after you dismiss the banner, Paperclip only stores a hash and can never show it again.
 
-The banner has a show/hide eye toggle so you can reveal the token to paste it, and a copy-to-clipboard button. When you're done, click **Dismiss**.
+The banner has a show/hide toggle so you can reveal the token to paste it, and a copy-to-clipboard button. When you're done, click **Dismiss**.
 
 ### Active keys
 
-Every un-revoked key is listed below the create form, showing its name and creation timestamp. You can see how many keys exist and when each was made — useful for rotation reviews.
+Every un-revoked key is listed under **Active Keys**, showing its name and creation date — useful for rotation reviews.
 
 ### Revoking a key
 
-Click **Revoke** next to any active key. The key moves to the **Revoked Keys** section at the bottom of the panel (displayed with a strikethrough and dimmed), and is immediately rejected by the Paperclip API. Revocation is permanent — revoked keys are never reused. To rotate a key, create a new one, swap it in wherever the old one is used, then revoke the old one.
+Click **Revoke** next to any active key. The key moves to the **Revoked Keys** section at the bottom of the page and is immediately rejected by the Paperclip API. Revocation is permanent — revoked keys are never reused. To rotate a key, create a new one, swap it in wherever the old one is used, then revoke the old one.
 
 ### Where keys flow
 
@@ -585,7 +618,7 @@ Every heartbeat follows the same six-step arc:
 5. **Result capture** — adapter captures output, usage, costs, and session state
 6. **Run record** — Paperclip stores the run result for audit and debugging
 
-Each of those steps corresponds to something visible in the Runs tab: the trigger shows up as the invocation source pill, the adapter invocation is the Invocation card, the agent process is the transcript and logs, the API calls appear in the touched-issues list, the result capture populates the metrics block, and the run record is the run itself.
+Each of those steps corresponds to something visible in a run's detail view: the trigger shows up as the invocation source pill, the adapter invocation is the Invocation card, the agent process is the transcript and logs, the API calls appear in the touched-issues list, the result capture populates the metrics block, and the run record is the run itself.
 
 ### Agent identity
 
@@ -615,7 +648,7 @@ These are exactly what you'll see in the Invocation card on any run — Papercli
 
 Agents maintain conversation context across heartbeats through session persistence. The adapter serializes session state (e.g. Claude Code session ID) after each run and restores it on the next wake. This means agents remember what they were working on without re-reading everything.
 
-On the Runs tab, each run shows a **session ID before** and **session ID after**. A differing pair means the session rotated during the run; an equal pair means the agent continued the same conversation. The overflow menu's **Reset Sessions** action wipes this state when you want the agent to start fresh on its next heartbeat.
+In a run's detail view, you see a **session ID before** and **session ID after**. A differing pair means the session rotated during the run; an equal pair means the agent continued the same conversation. The **Reset Sessions** action in the header's more-actions menu wipes this state when you want the agent to start fresh on its next heartbeat.
 
 ### Agent status
 
@@ -638,7 +671,7 @@ The heartbeat model has a few practical consequences worth keeping in mind:
 
 - **An agent that isn't doing work isn't costing you anything** (past whatever the last run spent). Between heartbeats there's no idle burn.
 - **Changing configuration takes effect on the next heartbeat, not the current one.** If you edit Instructions while a heartbeat is running, that run uses the old instructions. The next run uses the new ones.
-- **Manual Run Heartbeat is your friend when testing changes.** Save your edit, click Run Heartbeat, watch the live run stream in the Runs tab. Much faster than waiting for the timer.
+- **Run now is your friend when testing changes.** Save your edit, click **Run now**, and watch the live run stream in. Much faster than waiting for the timer.
 - **Paused agents are cheap.** If you're not sure whether to keep an agent, pause it. It will stop accumulating spend and its history is preserved for when you come back.
 
 ---
@@ -649,22 +682,21 @@ A few end-to-end recipes for things you'll do often.
 
 ### Try a new instruction quickly
 
-1. Open the agent and go to the **Instructions** tab.
-2. Edit the entry file (usually `AGENTS.md`). Save.
-3. Click **Run Heartbeat** in the header.
-4. Switch to the **Runs** tab. The new run is selected automatically on desktop; on mobile tap it from the list.
-5. Watch the transcript stream. If the agent behaves as you want, you're done. If not, repeat.
+1. Open the agent and go to its **Instructions** page.
+2. Edit the entry file (usually `AGENTS.md`). Click **Save changes**.
+3. Click **Run now** in the header. Paperclip takes you straight to the new run.
+4. Watch the transcript stream. If the agent behaves as you want, you're done. If not, repeat.
 
 This loop is tight on purpose — changes apply on the next heartbeat, and manual invoke gives you that heartbeat on demand.
 
 ### Diagnose a misbehaving agent
 
-1. Open the **Runs** tab, find the most recent failed run.
+1. Click **Runs** under **Audit** in the agent's side menu, set **Status** to failed, and open the most recent failed run.
 2. Read the transcript for where the agent got confused.
 3. Open the **Invocation** card to confirm it received the right environment, working directory, and instruction path.
 4. Check **Touched issues** — did it actually work on what it was supposed to?
-5. If the session is bad, use **Clear sessions for touched issues** or the overflow menu's **Reset Sessions**.
-6. If the configuration is at fault, roll back on the **Configuration** tab.
+5. If the session is bad, use the run's **clear session for these tasks** link or the overflow menu's **Reset Sessions**.
+6. If the configuration is at fault, restore a known-good version on the **Revisions** page.
 
 ### Temporarily mute an agent
 
@@ -676,18 +708,18 @@ Use pause liberally — it's reversible, cheap, and the right default when somet
 
 ### Rotate an API key
 
-1. Open the **Configuration** tab, scroll to **API Keys**.
+1. Open the agent's **API Keys** page (under **Governance** in the side menu).
 2. Click **Create**, name the new key (e.g. `production-2026-04`), copy the token shown in the yellow banner.
 3. Swap the new token into whatever system was using the old one.
-4. Back on the Keys panel, click **Revoke** next to the old key.
+4. Back on the **API Keys** page, click **Revoke** next to the old key.
 5. Confirm the revoked key moves to the bottom **Revoked Keys** section.
 
 ### Raise a capped agent's budget
 
-1. Open the **Budget** tab. The policy card shows current status, spend, and pause reason.
-2. Edit the amount on the policy card.
-3. If the change is within your authority, it saves immediately. If the agent is subordinate and an override is required, a Budget Override approval is created — see [Approvals](../day-to-day/approvals.md).
-4. Once the cap is raised and the agent is off hard-stop, click **Resume** in the header if it was paused by budget.
+1. Click **Budgets** under **Audit** in the agent's side menu.
+2. If the agent hit its hard stop, find its card under **Active incidents** and click **Raise budget & resume** — that raises the cap and resumes the agent in one step.
+3. Otherwise, find the agent's card under **Agent budgets**, change the amount, and click **Update budget**.
+4. If the agent is still paused, click **Resume** in the header of its page. If a Budget Override approval was created instead, see [Approvals](../day-to-day/approvals.md).
 
 ---
 

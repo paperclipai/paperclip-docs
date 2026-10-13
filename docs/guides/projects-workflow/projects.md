@@ -1,7 +1,7 @@
 ---
-paperclip_version: v2026.529.0
+paperclip_version: v2026.1012.0
 seo_title: Projects: Grouping Related Work
-seo_description: Projects bind work to a repository, a working directory, and a budget envelope. Tour the overview, issues, workspaces, configuration, and budget tabs.
+seo_description: Projects bind work to a repository, a working directory, and a budget envelope. Tour the tasks, workspaces, configuration, and budget tabs.
 ---
 
 # Projects
@@ -10,31 +10,35 @@ A project is the container Paperclip uses to group related work. If goals answer
 
 Every issue in Paperclip lives under a project. Every execution workspace is scoped to a project. Budgets can be pinned to a project. When you tell an agent "work on the marketing site", you are really telling it "work on issues in the Marketing Site project, using the code and configuration the project points at". Projects are how the abstract strategy the CEO writes becomes something concrete an agent can check out and run.
 
-This guide walks through the project list, then the five tabs you see when you open a project: **Overview**, **Issues**, **Workspaces**, **Configuration**, and **Budget**.
+This guide walks through the project list, then the tabs you see when you open a project: **Tasks**, **Workspaces**, **Configuration**, and **Budget** (plus any tabs your plugins add, such as **Files**).
 
 ---
 
 ## Project List
 
-The Projects page lists every active (non-archived) project in the currently selected company, sorted by creation order, with an **Add Project** button in the top right.
+The Projects page lists every active (non-archived) project in the currently selected company. A **Sort: Name** control sits at the top left and an **Add Project** button at the top right.
 
-![Project list](../../user-guides/screenshots/light/projects/list.png)
+![The Projects page with the Sort: Name control, a My Projects section listing two projects, and the Add Project button](../../user-guides/screenshots/light/projects/list.png)
+
+Projects are grouped into **My Projects** and, if you've left any, **Other Projects** (shown dimmed). Each section header shows how many projects it holds.
 
 ### Row anatomy
 
 Each row is a single project entry. Reading left to right you see:
 
-- **Color swatch** — a small square in the project's color. The color is chosen when the project is created and can be changed on the project detail page. Use it to visually scan related projects; it has no functional meaning.
-- **Project name** — the main title. Clicking anywhere on the row opens the project detail page and defaults to the Issues tab (unless you previously visited the project, in which case Paperclip restores the tab you last used).
-- **Description** (subtitle) — the first line of the project description if one has been set. If the project has no description, this area is empty.
-- **Target date** — the project's target completion date if set. Shown on the right in muted text. Projects without a target date omit this field.
-- **Status badge** — the current project status: `backlog`, `planned`, `in_progress`, `completed`, or `cancelled`. The badge color is consistent with issue status badges used elsewhere in the app.
+- **Project tile** — a small square with the project's icon (a folder unless you've picked another). If the project has a color, the tile is tinted with it; otherwise it stays neutral gray.
+- **Project name** — the main title. Clicking the row opens the project detail page and defaults to the Tasks tab (unless you previously visited the project, in which case Paperclip restores the tab you last used).
+- **Description** (subtitle) — the project description if one has been set. If the project has no description, this area is empty.
+- **Task count** — how many tasks the project holds, for example "9 tasks".
+- **Budget** and **Target date** — shown in muted text only when the project has a budget or a target date set.
+- **Status badge** — the current project status, such as `planned` or `in progress`. The badge color is consistent with issue status badges used elsewhere in the app.
+- **Join / Leave** and a **star** — personal controls for your sidebar (see [Keeping projects (and agents) in your sidebar](#keeping-projects-and-agents-in-your-sidebar)).
 
 Archived projects are filtered out of this list. You can still reach them by following a direct link, and you can unarchive them from the project's Configuration tab.
 
-### Filters and actions
+### Sorting and actions
 
-The list itself does not expose filter controls; it simply shows every active project in the company. If you need to narrow things down, the navigation crumbs at the top of the page and the company switcher in the sidebar are the main tools.
+The list doesn't have filters, but you can change the order. Click **Sort: Name** and choose **Name**, **Updated**, **Created**, or **Target date**. Click the active option again to flip between ascending and descending.
 
 The top-right **Add Project** button opens the New Project dialog, where you can set the name, description, target date, initial status, and color. The Configuration tab is where you come back later to change repository bindings, environment variables, and execution workspace behaviour — the create dialog only covers the minimum a project needs to exist.
 
@@ -52,143 +56,140 @@ Each join or leave is recorded in the company activity log, so the change is aud
 
 ---
 
-## Overview Tab
+## The project header
 
-The Overview tab is the light-weight, human-readable summary of a project. It is the right place to land when someone asks "what is this project about?" without diving into issues or configuration.
+Open a project and the top of the page gives you its identity at a glance:
 
-![Overview tab](../../user-guides/screenshots/light/projects/overview.png)
+- **Icon and color** — click the tile next to the name to pick a different icon or color.
+- **Name** — click it to rename the project inline.
+- **Star** — the star button in the top right pins the project for quick access.
+- **Project summary** — a card where Paperclip's built-in Summarizer agent keeps the latest project status, next step, and operator-needed items. Until the Summarizer is configured, the card shows a **Set up Summarizer** button instead.
 
-### What you see
+Below the header sit the tabs. There's no separate Overview tab any more: the project's description lives on the Configuration tab, and its day-to-day progress lives on the Tasks tab.
 
-- **Description** — an inline-editable markdown block. Click anywhere in the description area to start editing; the value saves when you blur the editor. If there is no description yet, you see a placeholder prompting you to add one. Images can be pasted or dropped and will be uploaded to the project's asset area.
-- **Status** — the current project status rendered as a status badge. To change the status you open the Configuration tab; the Overview tab is read-only for this field.
-- **Target date** — shown when one has been configured. Like status, the Overview tab only displays this; editing lives in Configuration.
+Paperclip doesn't keep a single "percent complete" field for a project. Progress is the shape of the Tasks tab — how many tasks are `todo`, `in_progress`, `in_review`, `done`, or `cancelled`.
 
-### Linked goals and progress
+### Tabs added by plugins
 
-Goals linked to the project are surfaced in the properties panel on the right of the project page (not in the Overview body itself). Linking a project to one or more goals is how the CEO's strategy connects to executable work: a goal describes an outcome, and any project linked to it inherits that outcome as its reason for existing. See the [Goals guide](./goals.md) for how goals are defined and how to link or unlink them.
-
-Progress on a project is implicit: Paperclip does not maintain a single "percent complete" field. Instead, progress is the shape of the Issues tab — how many issues are `todo`, `in_progress`, `in_review`, `done`, or `cancelled`. If you want a rolled-up view, read the Issues tab with the status grouping turned on.
-
-### When to use the Overview tab
-
-Use Overview as:
-
-- A landing page for collaborators who are new to the project.
-- A place to keep a short, living summary of scope and non-goals.
-- The first tab you open when an approval references a project you did not set up.
-
-For everything else — triage, configuration, workspaces, budget — use the other tabs.
+Plugins can add their own tabs after **Budget**. For example, the example File Browser plugin adds a **Files** tab with a file browser and editor for the project's workspace. If you see a tab not covered in this guide, it comes from a plugin installed on your instance.
 
 ---
 
-## Issues Tab
+## Tasks Tab
 
-The Issues tab is the project's task board. It is the same issue list you see on the global Issues page, pre-filtered to this project. For most day-to-day work this is the tab you will spend the most time on.
+The Tasks tab is the project's task board. It's the same task list you see on the global Tasks page, pre-filtered to this project. For most day-to-day work this is the tab you'll spend the most time on, and it's where a project opens by default.
 
-![Issues tab](../../user-guides/screenshots/light/projects/issues.png)
+![Tasks tab](../../user-guides/screenshots/light/projects/issues.png)
 
 ### What is shown
 
-The tab renders the shared issues list component, so the columns, grouping, and sorting controls are identical to the global view:
+The tab uses the shared task list, so the view, grouping, filter, and sort controls are identical to the global view:
 
-- Issues are grouped by status (`todo`, `in_progress`, `in_review`, `done`, `blocked`, `cancelled`, `backlog`) by default.
-- Each row shows the issue identifier, title, assignee, priority, and any live-run indicator when an agent is currently executing against the issue.
+- Each row shows the task identifier, title, status icon, and when it was last updated, plus a live-run indicator when an agent is currently working on it.
+- Sub-tasks nest under their parent, and you can collapse a parent to hide them.
 - Live run indicators refresh every few seconds while the tab is open, so you can watch a run pick up, advance, and finish without refreshing the page.
 
 ### Filtering and view state
 
-Your view settings on this tab — grouping, sort order, which statuses are collapsed — are persisted separately from the global issues view under a per-project key. Switching to another project and back restores the same layout. Switching to the global issues list does not disturb the project-scoped view.
+Your view settings on this tab — grouping, sort order, which groups are collapsed — are saved separately from the global task view, per project. Switching to another project and back restores the same layout. Switching to the global task list doesn't disturb the project-scoped view.
 
-There is no separate "filter by project" control here because the list is already scoped to the project. You can still filter by assignee, priority, label, or free-text search within the project.
+There's no "filter by project" control here because the list is already scoped to the project. You can still filter by status, responsible agent or person, creator, label, and more from the **Filter** button, or use the **Search tasks...** box.
 
-### Creating issues in the project
+### Creating tasks in the project
 
-Issues created from this tab default to the current project, so you do not have to set the project field by hand. If you need to create an issue in a different project, either switch to that project first or use the global issue creation dialog and pick the project explicitly.
+Tasks created with the **New Task** button on this tab default to the current project, so you don't have to set the project field by hand. To create a task in a different project, switch to that project first or use the global **New Task** dialog and pick the project explicitly.
 
 ### Relationship to execution workspaces
 
-Each issue may be tied to an execution workspace — a specific working copy of the project's code — when the issue is picked up by an agent. The Workspaces tab (next section) groups issues by the workspace they are running in, which is often a more useful lens once work is in flight. See [Execution Workspaces](./workspaces.md) for the underlying model.
+Each task may be tied to an execution workspace — a specific working copy of the project's code — when an agent picks it up. The Workspaces tab (next section) groups tasks by the workspace they're running in, which is often a more useful lens once work is in flight. See [Execution Workspaces](./workspaces.md) for the underlying model.
 
 ---
 
 ## Workspaces Tab
 
-The Workspaces tab shows the execution workspaces currently attached to the project. It only appears when the company has the **isolated workspaces** experimental setting enabled and the project has at least one non-default workspace with activity. On projects without isolated workspaces, Paperclip redirects you to the Issues tab instead.
+The Workspaces tab shows the workspaces attached to the project: the project's own checkout plus any execution workspaces agents have created. It only appears when the **isolated workspaces** experimental setting is enabled for your instance. Without it, Paperclip sends you to the Tasks tab instead.
 
 ![Workspaces tab](../../user-guides/screenshots/light/projects/workspaces.png)
 
-### What a workspace row represents
+### What a workspace card shows
 
-Each row on the Workspaces tab is a summary card combining:
+Each workspace is a card. A tag at the top tells you which kind it is — **Execution workspace** or **Project workspace** — next to when it was last updated and, if it has runtime services, how many are running. Inside the card you'll find:
 
-- A workspace identity — its name, underlying working directory or git worktree path, and status.
-- The issues currently running in that workspace, so you can see what work is tied to it.
-- Runtime service controls — Start, Stop, and Restart buttons for any runtime services the workspace exposes (dev servers, watchers, databases). Runtime services are not auto-started; you control them from this card.
-- A **Close workspace** action that opens the workspace close dialog. Closing a workspace stops its runtime services and archives it.
+- The workspace name, plus its branch, path, and any running service URL. Copy buttons sit next to the branch and path.
+- **Linked tasks** — the tasks currently tied to that workspace, so you can see what work is running there.
+- **Start services** / **Stop services** — controls for any runtime services the workspace defines (dev servers, watchers, databases). Runtime services aren't auto-started; you control them from this card.
+- **Close workspace** — on execution workspaces only. It opens the close dialog; closing stops the workspace's runtime services and archives it.
 
-Workspaces whose status is `cleanup_failed` are grouped into a separate section labelled **Cleanup attention needed**, rendered in amber. These are workspaces that could not be fully torn down and need a human decision — either retry the close action, or investigate the underlying path manually.
+Execution workspaces whose status is `cleanup_failed` are grouped into a separate section labelled **Cleanup attention needed**, rendered in amber. These couldn't be fully torn down and need a human decision: use **Retry close** on the card, or investigate the underlying path yourself.
 
-### Project primary vs. isolated workspaces
+### Project workspace vs. execution workspaces
 
-The project's primary working directory is not shown as a separate row here — it is the implicit default every issue runs in when no isolated workspace is provisioned. This tab lists the non-default workspaces only. For the full mental model of primary, isolated, and reused workspaces, see [Execution Workspaces](./workspaces.md).
+The project's primary checkout always shows up here as a **Project workspace** card (in the screenshot above, the one called `main`). It's the default every task runs in when no isolated workspace is provisioned, so it has no close control. Execution workspaces are the isolated checkouts Paperclip creates for individual tasks. For the full mental model of primary, isolated, and reused workspaces, see [Execution Workspaces](./workspaces.md).
 
 ### When agents create workspaces
 
-Agents create isolated workspaces implicitly when they pick up an issue that is configured to run in isolation, or when you explicitly request one. The Workspaces tab is the place to monitor, manage, and close those workspaces over time. If the list grows long, closing the oldest completed ones is safe — once the underlying branch has been merged or discarded, the workspace no longer serves a purpose.
+Agents create isolated workspaces when they pick up a task that's configured to run in isolation, or when you explicitly request one. The Workspaces tab is where you monitor, manage, and close them over time. If the list grows long, closing the oldest completed ones is safe — once the underlying branch has been merged or discarded, the workspace no longer serves a purpose.
 
 ---
 
 ## Configuration Tab
 
-The Configuration tab is where the project's editable properties live. Most of these fields auto-save as you edit: you will see a small **Saving / Saved / Failed** indicator next to the field, and there is no explicit save button.
+The Configuration tab is where the project's editable properties live. Most fields save as you edit: you'll see a small **Saving** / **Saved** indicator next to the field label. The one exception is the source repositories section, which has its own **Save changes** button (described below).
 
 ![Configuration tab](../../user-guides/screenshots/light/projects/configuration.png)
 
 ### Basic properties
 
 - **Name** — the project name shown in the list and in every breadcrumb. Changing it is safe; links that use the project's slug continue to resolve.
-- **Description** — the full description, rendered as markdown. Matches the description on the Overview tab; edit either location and the value stays in sync.
-- **Status** — one of `backlog`, `planned`, `in_progress`, `completed`, or `cancelled`. Use this to communicate the overall state of the project to the team and to the CEO; it does not affect whether agents can pick up issues in the project.
-- **Goals** — the list of goals the project is linked to. Add or remove goal links here; linked goals appear on the Overview area and in the properties panel. See the [Goals guide](./goals.md) for the goal model.
+- **Description** — the full description, rendered as markdown. Click it to edit; it saves when you leave the editor.
+- **Env** — environment variables for the project (see below).
+- **Updated**, **Target Date**, and **Created** — read-only dates. Target Date only appears when the project has one.
 
-### Repository binding and working directory
+### Source repos
 
-Projects can be bound to either a local folder (`cwd`), a remote repository (`repoUrl`), or both:
+The **Source repos** section (marked optional) is where you connect the project to GitHub:
 
-- **Local folder only** — for projects where the code lives on the machine Paperclip is running on. Agents work directly in this folder (or in isolated worktrees derived from it).
-- **Remote repository only** — for projects where Paperclip clones or references a remote repository. Useful when no local checkout exists yet.
-- **Both** — the most common setup: a local checkout that also tracks a remote URL. Both references are kept so tooling that needs one or the other has it available.
+- **Add GitHub repo** picks a repository from your connected GitHub accounts. If you haven't connected GitHub yet, you can connect it from here. Once a repo is added, the button becomes **Add another repo**.
+- **Existing repo URL** shows a repository URL bound the older way, as a plain link. Click **Edit** to change it.
 
-The **Choose path** action helps you pick a local folder via the native OS file picker.
+Repository changes don't auto-save. When you've made your picks, click **Save changes** (or **Discard changes** to undo). You'll see **Changes saved** once they're stored.
+
+### Codebase and local folder
+
+Below the first divider, the **Codebase** section shows where the project's code lives on the machine running Paperclip. Use **Set local folder** (or **Change local folder**) to point the project at a directory. Agents work directly in this folder, or in isolated worktrees derived from it. If the project's primary workspace defines runtime services, they're listed here too.
 
 ### Environment variables
 
-Each project can define environment variables that are injected into agent runs and execution workspace commands. These are managed through the environment variable editor on this tab:
+Each project can define environment variables that are injected into agent runs and execution workspace commands. You manage them in the **Env** row:
 
-- Add, rename, and delete variables inline.
+- Use **Add variable** to add one, and rename or delete variables inline.
 - Secret-valued variables are stored via the secrets store and rendered masked.
-- Variables set at the project level override nothing at the company level; they simply extend the environment an agent sees when it runs inside this project.
+- Project variables extend the environment an agent sees when it runs inside this project; they don't change anything at the company level.
 
 ### Execution workspace configuration
 
-When isolated workspaces are enabled for the company, the Configuration tab exposes the per-project knobs:
+When isolated workspaces are enabled, the Configuration tab shows an **Execution Workspaces** section with the per-project knobs:
 
-- **Execution workspace enabled** — whether this project participates in isolated workspaces at all. If off, every issue runs in the project primary workspace.
-- **Default mode** — the default workspace mode for new issues: isolated (new workspace), reuse existing, or project primary. Individual issues can override.
+- **Enable isolated task checkouts** — whether this project uses isolated workspaces at all. If off, every task runs in the project's primary checkout.
+- **New tasks default to isolated checkout** — when on, new tasks get their own isolated workspace by default. When off, new tasks stay on the primary checkout unless someone opts in. Individual tasks can override.
+- **Shared workspace concurrency** — how runs share the primary checkout: **Auto**, **Serialize**, or **Allow**.
+
+Click **Show advanced checkout settings** for the rest:
+
+- **Environment** — which environment isolated runs use (only shown when environments are enabled and more than one is available).
 - **Base ref** — the git ref (branch, tag, or commit) new isolated workspaces branch from.
-- **Branch template** — the naming convention Paperclip uses when it creates new branches for isolated workspaces (e.g. a template that includes the issue identifier).
-- **Worktree parent directory** — where Paperclip places new git worktrees on disk.
-- **Provision command** — an optional command run after a new workspace is created (for example, to install dependencies).
+- **Branch template** — the naming convention Paperclip uses for new branches (for example, a template that includes the task identifier).
+- **Worktree parent dir** — where Paperclip places new git worktrees on disk.
+- **Provision command** and **Runtime provision command** — optional commands run when a new workspace is set up (for example, to install dependencies).
 - **Teardown command** — an optional command run before a workspace is closed.
 
-These settings map to the behaviours described in [Execution Workspaces](./workspaces.md). You will usually set them once per project and rarely touch them again.
+These settings map to the behaviours described in [Execution Workspaces](./workspaces.md). You'll usually set them once per project and rarely touch them again.
 
 ### Archive and unarchive
 
-At the bottom of the Configuration tab is the **Archive** action. Archiving hides the project from the project list and from most pickers, but it does not delete anything: issues, workspaces, and history remain intact. Archived projects can be unarchived from the same control.
+At the bottom of the Configuration tab, in the **Danger Zone**, is the **Archive project** button. Paperclip asks you to **Confirm** before it archives. Archiving hides the project from the sidebar and project selectors, but it doesn't delete anything: tasks, workspaces, and history stay intact. On an archived project the same control reads **Unarchive project**.
 
-When you archive, the page navigates back to the dashboard and shows a confirmation toast. If the archive fails (for example because of a server error), a failure toast appears and the project remains active.
+When you archive, the page navigates back to the dashboard and shows a confirmation toast. If the archive fails (for example because of a server error), a failure toast appears and the project stays active.
 
 ### Pause by budget hard stop
 

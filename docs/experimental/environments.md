@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.707.0
+paperclip_version: v2026.1012.0
 seo_title: Environments: Remote Execution Targets
 seo_description: Run agents somewhere other than the Paperclip host. Define named targets over SSH or a provider sandbox, and assign them per instance, project, or agent.
 ---
@@ -16,15 +16,15 @@ One machine doesn't fit every agent. Some work needs isolation from the host, so
 
 ## Turn it on
 
-1. Go to **Settings → Instance settings → Experimental**.
+1. Go to **Settings → Experimental**.
 2. Turn on **Enable Environments** — *"Show environment management in company settings and allow project and agent environment assignment controls."*
 
-The **Environments** entry under Instance settings is always visible, but until you flip the flag the page only tells you to enable it. The flag also reveals the environment pickers on agent and project configuration.
+The **Environments** tab in **Settings** is always visible, but until you flip the flag it only asks you to enable Environments in the experimental settings. The flag also reveals the environment pickers on agent and project configuration.
 
 ## Set up your first environment
 
-1. Open **Settings → Instance settings → Environments**.
-2. Click **Add environment** and pick a driver:
+1. Open **Settings → Environments**.
+2. Click the **+** button (its tooltip reads **Add environment**) and pick a driver:
    - **Local** — runs on the Paperclip host (the default behavior, as an explicit choice).
    - **SSH** — a remote machine: host, user, key, and remote path.
    - **Sandbox** — a sandbox provider installed as a plugin (see [Sandbox Providers](../reference/adapters/sandbox-providers.md)); each provider brings its own config fields.

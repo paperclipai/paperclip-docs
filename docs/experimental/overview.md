@@ -26,8 +26,10 @@ Check the feature's own page before changing its flag: hiding a surface and disa
 
 All experimental flags live in one place, and they're instance-wide (they apply to every company on your Paperclip instance):
 
-1. Open **Settings → Instance settings → Experimental**.
+1. Open **Settings → Experimental**.
 2. Find the feature's card and flip its toggle.
+
+**Experimental** sits near the bottom of the settings sidebar.
 
 Changes take effect immediately — no restart, no migration. Each feature page in this section repeats the exact toggle name to look for.
 
@@ -49,26 +51,65 @@ Only some features are managed this way. Anything without the badge is still you
 
 ## The features
 
+The tables follow the page's own sections and order. Where a feature has a page in these docs, its name links there.
+
+### Experimental features
+
 | Feature | What it adds |
 | --- | --- |
-| [Environments](environments.md) | Environment management in settings, plus project and agent environment assignment — including custom sandbox images. |
-| [Isolated Workspaces](isolated-workspaces.md) | Execution-workspace controls: per-run isolated copies of a project so agents don't step on each other. |
+| [Agent Chat](agent-chat.md) | One ongoing conversation per agent. **Chat** leads the **Work** group; agents clarify your goal, hand real work off to tasks, and report back when those tasks are done. |
+| [Assistant connections (MCP)](assistant-connections.md) | Connect an external assistant as your user through OAuth, with separate read, write, and configuration scopes. |
+| Beta skills | Lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill without removing saved pins. |
+| [Built-in Agents](../reference/api/built-in-agents.md) | Paperclip-managed built-in agent surfaces: roster badges, the **Built-in agents** tab, and setup controls. |
+| [Cases](../reference/api/cases.md) | Durable work products that tasks create and iterate on. Adds the **Cases** tab and the agent case API. |
+| [Chat connectors](../connectors.md#chat-channels-experimental) | Connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations. Existing chat connections keep running when it's off. |
+| [Combined Inbox + Task List](task-chat.md#an-optional-combined-task-list) | Reach inbox and task views from one **Tasks** navigation entry. |
+| [Decisions](../guides/day-to-day/decisions.md) | Shows the **Decisions** item in the main sidebar, where the tasks awaiting your input collect. |
+| [Enable Environments](environments.md) | Environment management in settings, plus project and agent environment assignment — including custom sandbox images. |
+| [Enable External Objects](external-objects.md) | Detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects. |
+| [Enable Isolated Workspaces](isolated-workspaces.md) | Execution-workspace controls: per-run isolated copies of a project so agents don't step on each other. Turning it on reveals a **Use Isolated Workspaces By Default** card. |
 | [Experimental File Viewer](file-viewer.md) | Task-detail controls for browsing and previewing workspace files relative to a task. |
-| [External Objects](external-objects.md) | Detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects. |
-| [Task Plan Decomposition Panel](plan-decomposition-panel.md) | Shows accepted-plan decomposition history on task detail pages. |
-| [Chat-Style Tasks](task-chat.md) | **Now the default.** The task detail page as a live conversation: chat bubbles, streaming activity that folds into a one-line summary, a three-mode composer, and a resizable Properties · Plan · Artifacts pane. The old page is behind the **Classic Task Interface** toggle under **Legacy**. |
-| [Agent Chat](agent-chat.md) | One ongoing conversation per agent, reached from a **Chat** entry in the sidebar. Agents clarify your goal, hand real work off to tasks, and report back in the chat when those tasks are done. |
-| [Assistant connections (MCP)](assistant-connections.md) | **Experimental; off by default.** Connect an external assistant as your user through OAuth, with separate read, write, and configuration scopes. |
-| [Task-pinned AI routing](task-pinned-ai-routing.md) | **Experimental; off by default.** Rotate new tasks across a pool of saved AI accounts while each task keeps its account. Needs a router plugin, and the `enableAiConnectionRouters` flag has no toggle on the Experimental page. |
-| [Memory connectors](../connectors/memory-connectors.md) | **Experimental; off by default.** Set up Mem0, Zep, Supermemory, Cognee, or Honcho for agents. Existing connections keep running when setup is hidden. |
-| [Paperclip Runner](../reference/adapters/paperclip-runner.md) | **Experimental.** Native agent execution, enabled by default for self-hosted instances and disabled by default on Cloud. Agents must be explicitly configured to use it. |
-| [Combined Inbox + Task List](task-chat.md#an-optional-combined-task-list) | **Experimental; off by default.** Reach inbox and task views from one **Tasks** navigation entry. |
-| [Task Watchdogs](task-watchdogs.md) | Watchdog agents that verify stopped task subtrees and restore live paths when work should continue. |
-| [Status Cards](status-cards.md) | A shared board of living summaries: one message per card, compiled into a watch query and kept current by the Summarizer. |
-| [Cloud Sync](cloud-sync.md) | **Retired.** Host-to-host Cloud Sync has been removed upstream, toggle included — you won't find it on the Experimental page any more. Use [company Import/Export](../how-to/back-up-and-restore-a-company.md) to move a company between instances. |
+| First task: propose with a plan document | For a single-task first request, the chief of staff writes a short plan document and a checkbox card. Applies to organizations created after you flip it. |
+| [Memory connectors](../connectors/memory-connectors.md) | Set up Mem0, Zep, Supermemory, Cognee, or Honcho for agents. Existing connections keep running when setup is hidden. |
+| [Paperclip Runner](../reference/adapters/paperclip-runner.md) | Native agent execution, on by default for self-hosted instances and off by default on Cloud. Agents must be explicitly configured to use it. |
+| [Simplified English Interactions](../reference/skills/optional/content/simplified-english.md) | Agents write confirmations, questions, and suggested tasks in ASD-STE100 Simplified Technical English. |
+| [Status Cards](status-cards.md) | A shared board of living summaries, kept current by the Summarizer. Enabling it also enables Summaries. |
+| Streamlined UI | **On by default.** The simplified sidebar, focused task detail layout, and contextual navigation. Turning it off restores the legacy shell and navigation. |
+| [Summaries](../reference/api/summary-slots.md) | Summarizer-generated status slots on project and workspace pages. Status Cards needs it. |
+
+### Paperclip Developer Mode
+
+Internal tools for developing, testing, and debugging Paperclip itself.
+
+| Feature | What it adds |
+| --- | --- |
+| [Auto-Restart Dev Server When Idle](auto-restart-dev-server.md) | Restarts a stale `pnpm dev:once` boot once all local runs finish. |
+| Managed Environment Only | Hides the local environment and runs all agents in the platform-managed environment. |
+| Paperclip Developer Mode | Internal maintainer tools and observability links, such as Honeycomb trace queries on run pages. |
+| Run tasks in this worktree | Only shown when the server runs inside a git worktree. |
 | [Server Info Debug View](server-info-debug-view.md) | A "Server" section in the account drawer with the server restart time and running commit. |
-| [Auto-Restart Dev Server When Idle](auto-restart-dev-server.md) | For Paperclip developers: restarts a stale `pnpm dev:once` boot once all local runs finish. |
-| [Auto-Create Recovery Tasks](auto-create-recovery-tasks.md) | Lets the scheduler create recovery tasks for stalled task dependency chains. |
+| Smoke Lab | A **Smoke Lab** tab under **Apps → Developer** and an **Integration smoke** dashboard card. Private deployments only. |
+| [Task Plan Decomposition](plan-decomposition-panel.md) | Shows accepted-plan decomposition history on task detail pages. |
+
+### Legacy
+
+*"These features are going to be removed."*
+
+| Feature | What it adds |
+| --- | --- |
+| [Classic Task Interface](task-chat.md) | Restores the previous task detail page. The chat-style task page is now the default. |
+| [Goals Sidebar Link](../guides/projects-workflow/goals.md) | Restores the **Goals** item in the main sidebar. |
+
+### Not on the page
+
+These have pages in this section but no toggle in this release:
+
+| Feature | Status |
+| --- | --- |
+| [Task-pinned AI routing](task-pinned-ai-routing.md) | Experimental and off by default, but the `enableAiConnectionRouters` flag has no card on the Experimental page. Needs a router plugin. |
+| [Task Watchdogs](task-watchdogs.md) | **No flag any more.** Watchdog controls are always available on tasks. |
+| [Auto-Create Recovery Tasks](auto-create-recovery-tasks.md) | **Retired**, along with its toggle and its preview and run actions. |
+| [Cloud Sync](cloud-sync.md) | **Retired**, toggle included. Use [company Import/Export](../how-to/back-up-and-restore-a-company.md) to move a company between instances. |
 
 ## Where to go next
 

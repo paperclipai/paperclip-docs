@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: The Adapter Manager
 seo_description: Enable, disable, configure, reload, and remove adapters. Covers the built-in set plus installing external adapters to extend which runtimes you can use.
 ---
@@ -125,11 +126,11 @@ Built-in rows never show the trash icon. They cannot be removed.
 
 The Adapter Manager itself does **not** hold configuration for a specific adapter. Adapter config lives on each _agent_ that uses the adapter: working directory, model selection, timeouts, environment variables, and whatever extra fields the adapter declares through its UI schema.
 
-To configure a built-in adapter, open the agent you want to change and edit its adapter config on the agent form.
+To configure a built-in adapter, open the agent you want to change, click **Harness / Runtime** in its side menu, and edit the **Adapter** and **Configuration** cards. Click **Save changes** when you're done.
 
-To configure an external adapter, the same pattern applies — the Agent Manager renders the form fields the external adapter's `createServerAdapter()` reports through its UI schema, including any custom widgets the adapter ships.
+To configure an external adapter, the same pattern applies — the agent's **Harness / Runtime** page renders the form fields the external adapter's `createServerAdapter()` reports through its UI schema, including any custom widgets the adapter ships.
 
-![Adapter configuration](../../user-guides/screenshots/light/adapters/detail.png)
+![The Adapter and Configuration cards on an agent's Harness / Runtime page, where per-agent adapter settings live](../../user-guides/screenshots/light/adapters/detail.png)
 
 For field-by-field walkthroughs of the common built-ins, see [Agent Adapters](./agent-adapters.md). For the technical contract that adapters implement (including the UI parser schema), see [Adapter UI Parser](../../reference/adapters/adapter-ui-parser.md).
 
@@ -139,9 +140,9 @@ For field-by-field walkthroughs of the common built-ins, see [Agent Adapters](./
 
 Adapters are simpler than plugins — there's no background worker, no scheduled jobs, and no long-running state to go wrong. "Health" for an adapter mostly comes down to: _did the module load, and does it report any models?_
 
-![Health status](../../user-guides/screenshots/light/adapters/health.png)
+![The Built-in Adapters list, with each row's meta line showing the adapter type and model count](../../user-guides/screenshots/light/adapters/health.png)
 
-The row meta line (`type · package · N models`) is your first signal:
+The meta line under each row's name is your first signal. It shows the adapter `type` and how many models it reports — for example `claude_local · 13 models`. External adapters whose npm package name differs from their type also show the package in between (`type · package · N models`).
 
 - **`0 models`** on a model-listing adapter usually means the adapter loaded but couldn't reach its provider (missing API key, offline, auth failure). Check the agent's environment variables and the provider's status page.
 - **Row missing after install** — the install failed. Reopen the install dialog; the error toast will have explained why (invalid package, manifest missing, `createServerAdapter()` not exported).

@@ -1,7 +1,7 @@
 ---
 seo_title: Create Your First Company
 seo_description: A company holds your goal, your agents, your task board, and your budget. Set one up before hiring, and learn when running more than one makes sense.
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1012.0
 ---
 
 # Create Your First Company
@@ -22,9 +22,9 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
 1. **Open the setup wizard**
 
-   When you first open Paperclip, it drops you straight into the setup wizard. If you're adding another one later, open the organization switcher at the top of the sidebar and choose **Create new organization…**.
+   When you first open Paperclip, it drops you straight into the setup wizard. If you're adding another one later, open the organization switcher at the top of the sidebar and choose **Create organization**.
 
-   ![The sidebar organization switcher with the Create new organization option highlighted](../../user-guides/screenshots/light/onboarding/sidebar-new-company-button.png)
+   ![The sidebar organization switcher open, listing your organizations with the Create organization option below them](../../user-guides/screenshots/light/onboarding/sidebar-new-company-button.png)
 
    > **Heads up:** In the app, a company is now labelled an **organization** — same container, newer name. This guide says "company" to match the rest of the docs; the buttons you click say "organization".
 

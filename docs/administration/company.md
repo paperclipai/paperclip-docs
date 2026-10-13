@@ -1,7 +1,7 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Company Administration
-seo_description: Set your company name and logo, manage members and invites, review join requests, and export or import the whole company from one cluster of screens.
+seo_description: Set your organization name and logo, manage members and invites, review join requests, and export or import the whole organization in one place.
 ---
 
 # Company Administration
@@ -14,18 +14,18 @@ This guide walks through each of those surfaces in the order you typically meet 
 
 ## General Settings
 
-The **General** page groups the settings that apply to the whole organization rather than to any one agent or project. Open it from the sidebar under the organization name.
+The **General** page groups the settings that apply to the whole organization rather than to any one agent or project. Open **Settings**, and **General** is the first item in the settings sidebar — it's where you land.
 
-Company and instance settings now share one navigation, so this is also where the instance-wide general controls appear. If you are an instance admin, the deployment and auth readiness summary, backup retention, log censoring, and AI feedback-sharing controls all render on this same **General** page — see [Settings](./settings.md#instance-general) for what each one does. Keyboard shortcuts are no longer a setting at all — they're [always on](./settings.md#keyboard-shortcuts) for every signed-in user. The sections below cover the organization-specific settings.
+Company and instance settings now share one navigation, so this is also where the instance-wide general controls appear. Below the organization sections you'll find the deployment and auth readiness summary, log censoring, backup retention, AI feedback sharing, and a **Sign out** button (unless an operator has hidden it) — see [Settings](./settings.md#instance-general) for what each one does. Keyboard shortcuts are no longer a setting at all — they're [always on](./settings.md#keyboard-shortcuts) for every signed-in user. The sections below cover the organization-specific settings.
 
-![Company general settings](../user-guides/screenshots/light/company/settings.png)
+![The General settings page, showing the organization name, description, and logo fields](../user-guides/screenshots/light/company/settings.png)
 
 ### Name and description
 
 The **General** section has two fields:
 
-- **Company name** — the display name shown in the company switcher and across the UI.
-- **Description** — an optional one-line description shown on the company profile. Leave it empty if you do not want one.
+- **Organization name** — the display name shown in the organization switcher and across the UI.
+- **Description** — an optional one-line description shown on the organization profile. Leave it empty if you do not want one.
 
 Changes are not persisted until you click **Save changes**. The save button only appears when one of the fields is dirty, and it is disabled if the name is empty.
 
@@ -45,22 +45,19 @@ The **Hiring** section contains one switch:
 
 The toggle saves immediately; there is no separate save button for this setting.
 
-### Feedback Sharing
+### Interaction governance
 
-The **Feedback Sharing** section controls whether AI outputs you explicitly vote on in Paperclip may also be shared with Paperclip Labs. The toggle is labelled **Allow sharing voted AI outputs with Paperclip Labs**.
+The **Interaction governance** section sets, for each kind of interaction card (suggested tasks, questions, confirmations, and so on), who may respond by default and the strictest audience allowed. Each kind has a **Default policy** and a **Cap**. See [Setting company-wide interaction governance](../guides/day-to-day/issues.md#setting-company-wide-interaction-governance) for how the two work together.
 
-Two things to know:
+### Feedback sharing, Export, and Import
 
-- Votes are always stored locally, regardless of this setting. The toggle only controls whether the voted outputs become eligible for sharing.
-- The section displays the current terms version, and, once sharing is enabled, the timestamp of when it was turned on and who enabled it. A **Read our terms of service** link is shown when the terms URL is configured.
+There's no organization-level feedback toggle on this page anymore. Whether thumbs-up / thumbs-down votes can send AI output to Paperclip Labs is now the instance-wide **AI feedback sharing** setting, further down the same page — see [Settings](./settings.md#ai-feedback-sharing).
 
-### Company Packages shortcuts
-
-Below the feedback section, a **Company Packages** panel links out to the dedicated **Export** and **Import** pages. These are the same pages covered in the last two sections of this guide; the Settings page itself does not perform the export or import.
+The old **Company Packages** shortcuts are gone too. **Export** and **Import** are now their own items in the settings sidebar, and they open the pages covered in the last two sections of this guide.
 
 ### Danger Zone
 
-At the bottom of the page is a **Danger Zone** with an **Archive company** button. Archiving hides the company from the sidebar and persists the change in the database. A confirmation dialog appears before the archive takes effect, and the UI automatically switches you to the next non-archived company if one is available.
+At the bottom of the page is a **Danger Zone** with an **Archive organization** button. Archiving hides the organization from the sidebar and persists the change in the database. A confirmation dialog appears before the archive takes effect, and the UI automatically switches you to the next non-archived organization if one is available.
 
 Archiving also quiets the company so it stops doing work in the background: every active agent is paused (with the pause reason `company_archived`), and any queued or in-flight wake-up requests are cancelled. Archiving is not destructive — unlike deletion, your agents, projects, and issues are all preserved — but the company will not wake its agents again until you bring it back.
 
@@ -113,7 +110,7 @@ Click **Save access** to persist the changes, or **Cancel** to close the dialog 
 
 ### Adding and removing members
 
-The Members page does not have an "Add member" button. New humans enter the organization through the invite flow described in the next section, which either produces a direct membership or a pending join request depending on how the invite is consumed. To remove a human, set their **Status** to `suspended` through the Edit dialog; the row stays visible so the audit trail is preserved.
+The Members page does not have an "Add member" button. New humans enter the organization through the invite flow described in the next section, which makes them a member as soon as they accept. To remove a human, set their **Status** to `suspended` through the Edit dialog; the row stays visible so the audit trail is preserved.
 
 ### Pending human joins
 
@@ -123,13 +120,13 @@ If you hold the `joins:approve` grant and there are pending human join requests,
 
 ## Invites
 
-The **Invites** tab of the Members page creates invite links for new humans. Each link is single-use — the first successful use consumes the link and creates or reuses a join request before approval.
+The **Invites** tab of the Members page creates invite links for new humans. Each link is single-use — the first successful use consumes the link. A person who accepts gets the selected role as soon as they sign in; only agent invites still create a join request that someone has to approve.
 
-![Invite link creator](../user-guides/screenshots/light/company/invites.png)
+![The Invites tab, with the Invite a person card and its role choices above the invite history](../user-guides/screenshots/light/company/invites.png)
 
 ### Creating an invite
 
-The **Create invite** card has one required choice: which role the invite should request by default. The options are the four roles described above — **Viewer**, **Operator** (the default), **Admin**, and **Owner** — each rendered with a short description and a one-line summary of what the role gets.
+The **Invite a person** card has one required choice, under **Choose a role**: which role the invite should grant. The options are the four roles described above — **Viewer**, **Operator** (the default), **Admin**, and **Owner** — each rendered with a short description and a one-line summary of what the role gets.
 
 Clicking **Create invite** does three things:
 
@@ -137,7 +134,7 @@ Clicking **Create invite** does three things:
 2. Copies the URL to your clipboard if the browser allows it.
 3. Shows the invite in a **Latest invite link** panel below the form.
 
-If the clipboard is unavailable, Paperclip shows a warning toast and you can copy the URL manually from the field. The invite URL is clickable as an **Open invite** button for quick testing in another tab.
+If the clipboard is unavailable, Paperclip shows a warning toast. Use the **Copy link** button next to the URL, or copy it manually from the field.
 
 ### Invite expiry and state
 
@@ -148,25 +145,25 @@ Invite links have four possible states, shown as a badge in the history table: *
 Below the creator is a paginated **Invite history** table with one row per invite:
 
 - **State** — the badge above.
-- **Role** — the default role the invite requests.
+- **For** — who the invite is for: the role it grants for a human invite, or **Agent** for an agent invite.
 - **Invited by** — the name and email of the human who created the invite.
 - **Created** — the creation timestamp.
-- **Join request** — a link to the join request queue if the invite has produced one.
+- **Join request** — a **Review request** link to the join request queue if the invite has produced one.
 - **Action** — a **Revoke** button for invites still in the `Active` state.
 
 The table shows five invites at a time and includes a **View more** button when there are more pages. An **Open join request queue** link in the header jumps to the full queue.
 
 ### What the invited person sees
 
-When a human opens the invite URL, they land on a Paperclip join page that creates a join request tied to the invite. If the invite carries a default role (for example **Operator**), that role is attached to the request so approvers can see it in context. The member does not become active until someone with `joins:approve` approves the request.
+When a human opens the invite URL, they land on a Paperclip join page. Once they sign in and accept, they join the organization right away with the role the invite carries (for example **Operator**) — no separate approval step. Agent invites work differently: they create a join request, and the agent doesn't join until someone with `joins:approve` approves it.
 
 ---
 
 ## Join Requests
 
-The **Join Request Queue** consolidates every join request — human and agent — that has come in against the company. Open it from `/inbox/requests`, or from the **Open join request queue** link in Invites.
+The **Join Request Queue** consolidates every join request — human and agent — that has come in against the organization. Open it from `/inbox/requests`, or from the **Open join request queue** link in the **Invite history** on the Invites tab. Because human invites now grant access as soon as they're accepted, most of what lands here is agent requests.
 
-![Join request queue](../user-guides/screenshots/light/company/join-requests.png)
+![The Join Request Queue with its Status and Request type filters; the list is empty when nothing is waiting](../user-guides/screenshots/light/company/join-requests.png)
 
 ### Filters
 
@@ -190,24 +187,27 @@ For requests in `pending approval`, the card also shows **Approve** and **Reject
 
 ### Permissions
 
-The queue requires the `joins:approve` grant. Accounts without it see a "You do not have permission to review join requests for this company." message instead of the list.
+The queue requires the `joins:approve` grant. Accounts without it see a "You do not have permission to review join requests for this organization." message instead of the list.
 
 ---
 
 ## Export
 
-The **Company Export** page turns the current company — its agents, projects, tasks, skills, and settings — into a portable markdown package you can download as a zip. Open it from the **Org Chart** header or from the **Export** shortcut on the Settings page.
+The **Export** page turns the current organization — its agents, projects, tasks, skills, and settings — into a portable markdown package you can download as a zip. It's a full page, not a dialog: open it from **Export** in the settings sidebar, or from the **Export organization** button above the Org Chart.
 
-![Export dialog](../user-guides/screenshots/light/company/export.png)
+![The Export page, with the Package files tree on the left and a file preview on the right](../user-guides/screenshots/light/company/export.png)
 
 ### What gets included
 
-When the page loads, Paperclip builds a preview of everything that would be exported. By default the preview includes the company metadata, every non-terminated agent, every non-archived project, and every issue. The preview is rendered as a left-hand **Package files** tree, with a selected-file preview on the right.
+When the page loads, Paperclip builds a preview of everything that would be exported. The preview is rendered as a left-hand **Package files** tree, with a selected-file preview on the right.
 
-The sticky bar at the top of the page shows:
+At the top of the tree, **What to include** has a checkbox per category: **Agents**, **Projects**, **Skills**, **Routines**, **Tasks**, and **Attachments**. Agents, projects, and skills start checked. Tasks, routines, and attachments start unchecked — task and routine history is opt-in because it can be large — so tick them if you want that history in the package. **Attachments** travel with tasks and routines, so it stays greyed out until one of those is checked.
 
-- The company name and a running count of **selected / total files**.
-- Any warnings Paperclip produced while building the preview.
+The bar at the top of the page shows:
+
+- The organization name and a running count of the files you're exporting, with the estimated zip size.
+- An amber warnings count (for example, `2 warnings`) when the preview flagged anything you should look at before downloading.
+- A **Not included in this export** notice listing anything that never goes into a package (approvals, cost events, and activity log entries, for example).
 - A single **Export N files** button that downloads the zip.
 
 ### Selecting what to export
@@ -216,7 +216,7 @@ Every entry in the file tree has a checkbox. Unchecking a file or a directory re
 
 - The tree is searchable with the input above it. Search expands matching directories automatically and restores the previous expansion state when you clear the query.
 - `README.md` and `.paperclip.yaml` are regenerated on the fly so they always reflect the current selection.
-- The `tasks/` directory is paginated — ten entries visible by default, with a **Show more issues** button. Checked and search-matched tasks are always pinned above the fold.
+- The `tasks/` directory is paginated — ten entries visible by default, with a **Show more tasks** button. Checked and search-matched tasks are always pinned above the fold.
 - Clicking a file opens its content in the preview pane. The URL updates as you navigate so you can deep-link to a specific file in the export.
 
 ### Downloading
@@ -229,9 +229,9 @@ For a deeper description of what lives in each file, see [Export & Import](../gu
 
 ## Import
 
-The **Company Import** page is the reverse direction: it takes an exported package and loads it into Paperclip, either as a new company or on top of an existing one.
+The **Import** page is the reverse direction: it takes an exported package and loads it into Paperclip, either as a new organization or on top of an existing one. Open it from **Import** in the settings sidebar, or from the **Import organization** button above the Org Chart.
 
-![Import dialog](../user-guides/screenshots/light/company/import.png)
+![The Import page, with the Import source, Target, and Collision strategy controls](../user-guides/screenshots/light/company/import.png)
 
 ### Choosing a source
 
@@ -244,8 +244,8 @@ The **Import source** section supports two source types:
 
 The **Target** drop-down has two options:
 
-- **Create new company** — the default. An optional **New company name** field lets you override the name from the package.
-- **Existing company** — apply the package on top of the currently selected company.
+- **Create new organization** — the default. An optional **New organization name** field lets you override the name from the package.
+- **Existing company: *name*** — apply the package on top of the currently selected organization.
 
 ### Collision strategy
 

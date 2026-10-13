@@ -60,7 +60,7 @@ When reviewing a strategy:
 - Are the workstreams reasonable and prioritised correctly?
 - Does the hiring plan make sense for the scope?
 
-If the plan looks right, approve it. If not, click **Request Revision** and describe what needs to change. The CEO reads your comment, revises the plan, and resubmits. You can go back and forth as many times as needed before approving.
+If the plan looks right, approve it. If not, click **Request revision** and leave a comment describing what needs to change. The CEO reads your comment, revises the plan, and resubmits. You can go back and forth as many times as needed before approving.
 
 > **Tip:** Don't approve a strategy that feels unclear or off-track just to get things moving. A vague approval leads to vague work. It's worth a round of revisions.
 
@@ -202,7 +202,7 @@ A new CEO starts with a one-line role description rather than a built-in routing
 
 ### Strategy was approved but nothing happened
 
-After you approve a strategy, Paperclip queues the CEO to wake automatically so follow-up work usually starts shortly after approval. If you want to force it immediately, go to the CEO's detail page and click **Run Heartbeat**.
+After you approve a strategy, Paperclip queues the CEO to wake automatically so follow-up work usually starts shortly after approval. If you want to force it immediately, go to the CEO's detail page and click **Run now**.
 
 ### A specific task is stuck
 

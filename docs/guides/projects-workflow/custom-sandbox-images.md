@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.707.0
+paperclip_version: v2026.1012.0
 seo_title: Custom Sandbox Images
 seo_description: Stop re-installing the same CLIs and dependencies on every run. Build and capture a sandbox image, then manage which one future runs start from.
 ---
@@ -20,7 +20,7 @@ This guide covers how to turn the feature on, where it lives, how to build and c
 
 Custom images are part of sandbox environments, and environments are an **experimental** feature — the whole environments UI is hidden until you opt in.
 
-1. Go to **Settings → Instance settings → Experimental**.
+1. Go to **Settings → Experimental**.
 2. Turn on **Enable Environments**.
 
 That switch is described in the UI as *"Show environment management in company settings and allow project and agent environment assignment controls."* With it on, an **Environments** screen appears under **Settings → Instance settings**, where you create and edit the environments your agents run in.

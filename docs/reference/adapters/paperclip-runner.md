@@ -12,7 +12,7 @@ Paperclip Runner is experimental. Its `enableNativeRunner` setting is **on by de
 
 ## Before you start
 
-- An instance with **Paperclip Runner** enabled under **Settings → Instance settings → Experimental**.
+- An instance with **Paperclip Runner** enabled under **Settings → Experimental**.
 - An active agent and a task in standard, planning, or ask work mode.
 - A prepared execution environment and compatible model credential.
 - The pinned runtime required by the selected provider.
