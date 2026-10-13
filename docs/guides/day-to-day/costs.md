@@ -252,7 +252,7 @@ $0 ─────────────────────── 80% ─
                           Warning        Auto-paused
 ```
 
-**At 80%:** Paperclip records a warning so you can intervene before the hard stop. The agent continues running. The incident card for this warning is still headed **… hard stop** and says the scope is paused; that wording is fixed in the card for every incident. Trust the policy card's **Warning** badge: the agent hasn't been paused.
+**At 80%:** Paperclip records a warning so you can intervene before the hard stop. The agent continues running. Its incident card is an amber **… budget warning** with **Raise budget** and **Dismiss warning**. In v2026.1012.0 itself, this card still shows the hard-stop design and says the scope is paused. The screenshots show the corrected card from [the fix](https://github.com/paperclipai/paperclip/pull/16201), which ships in a later release. Until then, trust the policy card's **Warning** badge: the agent hasn't been paused.
 
 **At 100%:** The agent is automatically paused. No further heartbeats are triggered. The agent stops all activity until either you increase its budget or the calendar month resets.
 

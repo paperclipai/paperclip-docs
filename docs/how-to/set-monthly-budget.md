@@ -80,7 +80,9 @@ At 80% (or whatever `warnPercent` you set) Paperclip records a **soft incident**
 
 ![Audit page on the Budgets tab, showing the Budget control plane card, active incidents, and budget policy cards](../user-guides/screenshots/light/costs/budgets.png)
 
-> **Heads-up:** in this release, every incident card is headed **… hard stop** and says *"This scope is paused"*, including the soft incident opened at the warning threshold. Check the policy card instead: a soft crossing shows a **Warning** badge and the agent keeps running. Only **Hard stop** or **Paused** means work has actually stopped.
+A warning shows as an amber **… budget warning** card with **Raise budget** and **Dismiss warning**. A hard stop shows as a red **… hard stop** card with **Raise budget & resume** and **Keep paused**.
+
+> **Heads-up:** in v2026.1012.0 itself, the warning card still uses the hard-stop design. It is headed **… hard stop** and says *"This scope is paused"*, but the agent keeps running. The screenshots show the corrected card from [the fix](https://github.com/paperclipai/paperclip/pull/16201), which ships in a later release. Until then, check the policy card: **Warning** means work continues, and only **Hard stop** or **Paused** means work has stopped.
 
 Paperclip does not push outbound webhooks today. If you want Slack or Discord pings on incidents, run a routine that diffs `GET /api/companies/{COMPANY_ID}/budgets/overview` against a cursor and posts to a webhook — the same shape as the approval notifier. See [Wire Slack/Discord notifications](./wire-slack-discord-notifications.md).
 
