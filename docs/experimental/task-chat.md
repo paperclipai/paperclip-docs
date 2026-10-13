@@ -18,7 +18,7 @@ If you'd rather have the old page back, go to **Settings → Instance settings �
 
 ## An optional combined task list
 
-The task conversation described here is standard behavior. **Combined Inbox + Task List** is a separate experimental option, off by default, under **Settings → Instance settings → Experimental**.
+The task conversation described here is standard behavior. **Combined Inbox + Task List** (setting key `enableCombinedInboxTasks`) is a separate experimental option, off by default, under **Settings → Instance settings → Experimental**. It only takes effect while **Streamlined UI** is on; if your instance has switched **Streamlined UI** off, turning this on changes nothing and the separate **Inbox** row stays.
 
 With that option on in the streamlined interface, **Tasks** carries the unread and failed-run badge, and the separate **Inbox** sidebar row disappears. Open **Views** on Tasks to switch between **Mine**, **Unread**, **Blocked**, **Recent**, and **Everything**, or the organization views **All tasks**, **Active**, **Backlog**, and **Done**. Your inbox actions and task filters still belong to their respective views. Existing inbox links take you to the corresponding task view.
 
@@ -146,6 +146,8 @@ Resume releases the hold. You can optionally wake eligible agents, but a task wi
 ### When a run needs attention
 
 **Recovery needed.** points you to **Inspect run** and offers **Continue** or **Retry** only when that action is available. Saved follow-up messages remain attached to the task while recovery is pending. A model rejected by the provider reads **Model unavailable.**: choose a supported model or clear the task's model override, then retry. Pasting an exact model ID into the picker doesn't guarantee provider access.
+
+**Model at capacity** is different: the model exists and you can use it, it's just too busy right now. When a native Codex turn fails because the selected model is at capacity, the task doesn't drop into recovery. Instead a **Retry scheduled** card shows the reason **Model at capacity** and *"Last attempt failed: Selected model is at capacity. Please try a different model. Paperclip will retry automatically."* Paperclip retries after one minute, and if that fails too, after two more minutes, keeping the same model and the task's history. Click **Retry now** if you don't want to wait. If both automatic retries hit the same wall, the task is blocked with *"Automatic retries exhausted; retry later or choose a different model."* — retry later, or pick another model.
 
 If the run needs provider sign-in, complete the connection or authentication request shown in the thread before retrying. A missing secret or configuration binding is a setup problem to fix, not a reason to keep sending the same request. See [Recovery actions](../guides/day-to-day/issues.md#recovery-actions) for the wider task recovery flow.
 

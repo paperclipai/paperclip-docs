@@ -20,7 +20,7 @@ Your instance needs authenticated user accounts and a canonical URL reachable by
 ## Invite your assistant
 
 1. Select the organization you want to connect.
-2. Open **Connectors → Assistant Connection (MCP) → Set up**.
+2. Open **Connectors → Assistant Connection (MCP) → Set up** (it reads **Manage** once an assistant is connected).
 3. Select **Copy invitation** and paste the message into your assistant.
 4. Follow the approval link the assistant gives you. Sign in to Paperclip, check the client and organization, and select **Connect organization**.
 5. Ask the assistant to call `paperclip_connection` and confirm your account, organization, and permissions.

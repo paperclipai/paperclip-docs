@@ -86,13 +86,15 @@ Implementation reference: [Tasks page and live updates](https://github.com/paper
 
    Click the agent name to choose who should handle the task. Click the model label beside it to choose a model and its supported effort level, or leave them on the agent's defaults. **Reset to agent default** clears your run-setting overrides. Model access is checked when the run starts, including for an exact ID you paste into the picker.
 
+   You often won't need to change anything here: a new task starts with the last assignee you used, if they're still available (otherwise the CEO agent), and the effort level you last chose in this company.
+
 5. **Add files or images if they help.**
 
    Use **Files and images** in the **+** menu, paste, or drop files into the composer. Resolve an upload error before submitting so the agent receives the material you intended.
 
 6. **Click Create task**, or press **⌘+Enter** (**Ctrl+Enter** on Windows and Linux).
 
-   The task opens after creation. Its **Properties** panel lets you adjust priority, status, parent, project, and the other task fields. A paused assignee can receive the task, but won't start until you resume it.
+   The task opens after creation. Its **Properties** panel lets you adjust priority, status, parent, project, and the other task fields. Status, reviewers, approvers, and a [task watchdog](#task-watchdogs) aren't set in the new-task dialog — add them from **Properties** once the task exists. A paused assignee can receive the task, but won't start until you resume it.
 
 When you create a subtask from an existing task, the dialog shows **Sub-task of** and uses **Create sub-task**. If the project supports isolated workspaces, the creation bar can also offer **Worktrees**: choose a new worktree or reuse an existing one. An unavailable selection produces an inline error so you can retry or choose another. See [Execution workspaces](../projects-workflow/workspaces.md).
 

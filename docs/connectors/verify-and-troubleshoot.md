@@ -105,7 +105,7 @@ Checking the grant's recorded scopes can help, but read them with care: some pro
 
 Open the task's authentication card and select **Fix connection** or the displayed provider connection action. Connect your account or reconnect the existing one; successful setup resumes the task. If another person owns the credential, that person must repair it. Selecting a shared account does not bypass the responsible user's access check.
 
-For a quota error, use **Check usage** on the saved AI account where supported. Missing usage fields mean **Not reported**, not zero. See [AI usage and recovery](ai-usage.md).
+For a quota error, use **Check usage** on the saved AI account where supported. Missing usage fields mean **Not reported**, not zero. See [Check AI account usage](ai-usage.md).
 
 For a custom endpoint, check the API format against the harness, the model ID, and whether the service is reachable from the execution environment. A loopback URL points to the agent's host or sandbox. See [Custom model providers](custom-model-providers.md).
 
