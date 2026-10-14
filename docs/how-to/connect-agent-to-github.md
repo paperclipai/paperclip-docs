@@ -137,9 +137,58 @@ A GitHub App installed on the org issues short-lived installation tokens, isn't 
 1. **Org Settings → Developer settings → GitHub Apps → New GitHub App.**
 2. Permissions: **Contents: Read and write**, **Pull requests: Read and write**. No webhook needed.
 3. Generate a private key, download the `.pem`. Note the App ID and the installation ID for the target repo.
-4. Mint installation tokens with `gh auth token --hostname github.com` (App-aware) or a small script using `actions/create-github-app-token`'s logic.
+4. Mint installation tokens using a script or helper modeled on `actions/create-github-app-token`'s logic (generating a signed JWT to call GitHub's installation access token API). Note that `gh auth token` only prints an already configured token—`gh` does not mint GitHub App installation tokens on its own.
 
-Store the App ID, installation ID, and private key as Paperclip secrets, and have the agent's heartbeat exchange them for an installation token at the start of each run. The token expires in an hour, which is exactly long enough for one heartbeat.
+Because each Paperclip secret holds a single value, store the App ID, installation ID, and private key as three separate secrets:
+
+```bash
+# 1. Store the App ID
+curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/secrets" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "GITHUB_APP_ID",
+    "value": "123456"
+  }'
+
+# 2. Store the Installation ID
+curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/secrets" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "GITHUB_APP_INSTALLATION_ID",
+    "value": "654321"
+  }'
+
+# 3. Store the PEM private key
+# Requires jq. Read the .pem file so newlines are escaped into valid JSON (\n)
+# without pasting sensitive credentials into your shell history:
+jq -n --rawfile key path/to/your-app.private-key.pem \
+  '{
+    "name": "GITHUB_APP_PRIVATE_KEY",
+    "value": $key
+  }' | \
+curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/secrets" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @-
+```
+
+> **Note:** PEM private keys contain multi-line text with literal newlines, which are invalid in raw JSON strings. If constructing the JSON payload manually, escape newlines as `\n` (for example, `"-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n-----END RSA PRIVATE KEY-----\n"`) rather than unescaped line breaks.
+
+Then reference the three secrets on the coder agent's adapter config — the same `env` block used in [Claude Code → Example](../reference/adapters/claude-code.md#example):
+
+```json
+"env": {
+  "GITHUB_APP_ID":              { "type": "secret_ref", "secretId": "<app-id-secret-id>", "version": "latest" },
+  "GITHUB_APP_INSTALLATION_ID": { "type": "secret_ref", "secretId": "<installation-id-secret-id>", "version": "latest" },
+  "GITHUB_APP_PRIVATE_KEY":     { "type": "secret_ref", "secretId": "<private-key-secret-id>", "version": "latest" }
+}
+```
+
+Have a heartbeat script exchange these credentials for an installation token and export `GH_TOKEN` and `GITHUB_TOKEN` before calling GitHub. Paperclip does not automatically mint GitHub App tokens from these secrets. Installation tokens expire after one hour.
+
+> **PR-task preflight:** Paperclip checks for a project- or agent-bound `GH_TOKEN` or `GITHUB_TOKEN` before starting a task that requires a push or PR. The three `GITHUB_APP_*` bindings above do not satisfy that check, even if a heartbeat script would mint a token later. For that workflow, use Option A or the managed connection in Option C until Paperclip supports a GitHub App token binding at preflight.
 
 **Tradeoff:** more moving parts, a one-time setup that takes 15 extra minutes. Worth it the moment you have more than one coding agent or you care about audit trails.
 
