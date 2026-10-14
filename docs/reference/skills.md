@@ -225,8 +225,8 @@ Implementation reference: [update tool contract](https://github.com/paperclipai/
 
 ```json
 { "source": "https://github.com/paperclipai/paperclip" }
-{ "source": "https://github.com/paperclipai/paperclip/tree/main/skills/paperclip" }
-{ "source": "https://github.com/paperclipai/paperclip/blob/main/skills/paperclip/SKILL.md" }
+{ "source": "https://github.com/paperclipai/paperclip/tree/master/skills/paperclip" }
+{ "source": "https://github.com/paperclipai/paperclip/blob/master/skills/paperclip/SKILL.md" }
 { "source": "paperclipai/paperclip" }
 { "source": "paperclipai/paperclip/paperclip-create-agent" }
 { "source": "https://skills.sh/paperclipai/paperclip/paperclip-create-agent" }
