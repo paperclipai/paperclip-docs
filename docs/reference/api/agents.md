@@ -31,14 +31,18 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `name` | Human-friendly name. The server also derives a company-unique URL key from it. |
 | `role` | Role label such as `ceo`, `engineer`, or `general`. |
 | `title` | Optional display title. |
-| `appearance` | The agent's character (avatar) identity: `{ "schemaVersion": 1, "characterVersion": "cap-v1", "paletteId": "<palette>" }`. See [Agent Avatars](#agent-avatars) for the palette ids. |
-| `avatarUrl` | Read-only. A ready-made URL for the agent's character image, derived from `appearance`. |
+| `appearance` | The agent's character (avatar) identity: `{ "schemaVersion": 1, "characterVersion": "cap-v1", "paletteId": "<palette>" }`. See [Agent Avatars](#agent-avatars) for the palette ids. When a custom picture has been uploaded, it also carries `customAvatarAssetId` — see [Upload a Custom Avatar](#upload-a-custom-avatar). |
+| `avatarUrl` | Read-only. A ready-made URL for the agent's image, derived from `appearance` — the custom picture's `/api/assets/{assetId}/content` URL when one is set, otherwise the character image. |
 | `reportsTo` | Parent agent in the org tree. Must be in the same company and cannot create a cycle. |
 | `adapterType` | Runtime type such as `process`, `http`, `paperclip_runner`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `hermes_local`, `cursor`, or `openclaw_gateway`. External adapters can also be registered. |
 | `adapterConfig` | Adapter-specific config. Secret references are allowed inside `env`. |
 | `runtimeConfig` | Runtime settings. `heartbeat.enabled` defaults to `false` when you create an agent. |
 | `budgetMonthlyCents` | Monthly budget in cents. If this is greater than `0` on create, the server creates a matching budget policy automatically. |
-| `status` | Lifecycle state. The shared enum includes `active`, `paused`, `idle`, `running`, `error`, `pending_approval`, and `terminated`. |
+| `status` | Lifecycle state. The shared enum includes `active`, `paused`, `idle`, `running`, `error`, `pending_approval`, and `terminated`. While setup, pause, or resume is in progress the agent reports `paused`; while termination or cleanup is in progress it reports `terminated`. Read `lifecycleState` for the precise step. |
+| `lifecycleState` | Read-only. Where the agent is in its hire-to-termination lifecycle: `pending_approval`, `preparing`, `verifying`, `ready`, `pausing`, `paused`, `resuming`, `terminating`, `cleaning_up`, `terminated`, or `rejected`. Only `ready` admits work; work assigned earlier stays queued. See [Lifecycle Steps and Retry](#lifecycle-steps-and-retry). |
+| `lifecycleError` | Read-only. A fixed, credential-free message naming the step that failed and what to fix, or `null`. |
+| `lifecycleVersion` | Read-only. A counter that increases with each lifecycle operation. |
+| `createdByUserId` | Read-only. The human user who created the agent, or `null` when an agent or the system created it. The server sets this from the authenticated user; a value in the request body is ignored. |
 | `permissions` | Agent-level permissions: `canCreateAgents` and `canCreateSkills` (defaults to `true`). |
 
 ---
@@ -323,7 +327,7 @@ Use this when you are hiring or provisioning a new agent. In the current impleme
 Important behavior:
 
 - The server validates the target company.
-- The new agent is created with `status: "idle"`.
+- The new agent starts its [setup steps](#lifecycle-steps-and-retry) straight away: `lifecycleState` begins at `preparing` (and `status` reads `paused`) until preparation and verification finish and the agent reaches `ready`. Work you assign in the meantime is queued.
 - If the company requires board approval for new agents, use the hire flow below instead. That route creates `pending_approval` and records the approval payload.
 - Duplicate names are deduplicated on create. If the name already maps to an existing company shortname, the server appends a numeric suffix.
 - `runtimeConfig.heartbeat.enabled` defaults to `false` if you omit it.
@@ -332,6 +336,9 @@ Important behavior:
 - If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
 - For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds a short default `AGENTS.md`: a one-line role description for `role: "ceo"`, or a one-line generic placeholder for every other role. Keep it short — Paperclip's runtime and installed skills already supply the operating procedures. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
+- The optional `runner` field picks how a Codex agent runs: `auto` (the default), `paperclip`, or `legacy`. With `adapterType: "codex_local"`, `auto` stores the agent as `paperclip_runner` with `provider: "codex"` when the target environment qualifies for Paperclip Runner (macOS on Apple Silicon or Intel, or Linux x64/ARM64 with GNU libc 2.39 or newer), and keeps `codex_local` otherwise. `legacy` always keeps `codex_local`.
+- Asking for `paperclip` on a target that doesn't qualify fails with `422` and code `agent_runner_unavailable`. Legacy-only settings that Paperclip Runner can't honour (for example a `codexPermissionMode` other than `never`) fail with `422` and code `agent_runner_config_incompatible`, listing the offending `fields` — remove them or choose `legacy`.
+- Only an operator can set `adapterConfig.homeMode`. An agent caller that includes it gets `403` with `Only an operator can configure Runner homeMode.`
 
 ### Example
 
@@ -462,7 +469,7 @@ Use this when the company may require board approval for new agents, or when you
 
 Important behavior:
 
-- The request body accepts the same core agent fields as create.
+- The request body accepts the same core agent fields as create, including `runner`.
 - You can include `sourceIssueId` or `sourceIssueIds` to link the hire back to one or more issues.
 - An agent on the `paperclip_runner` adapter can send `"inheritRuntimeFrom": "caller"` to give the new hire the calling agent's runner settings and default environment. The new agent must also use `adapterType: "paperclip_runner"`, and you can't combine this with `adapterConfig`, `runtimeConfig`, or `defaultEnvironmentId` — the server copies the adapter config and default environment from the calling agent. Board users can't use this option; it's rejected with `403 Forbidden`.
 - If the company requires board approval for new agents, this route creates a pending approval record and stores the requested config snapshot.
@@ -698,7 +705,36 @@ Important edge cases:
 - Resuming a terminated agent fails.
 - Resuming a pending approval agent fails.
 - Terminating an agent revokes all of its API keys.
+- Terminating an agent that is still `pending_approval` rejects its hire instead (its `lifecycleState` becomes `rejected`).
+- Pause, resume, and terminate record the request and return straight away. The external steps finish in the background — poll `GET /api/agents/{agentId}` and watch `lifecycleState`.
 - Deleting an agent is destructive and removes a lot more than the agent row itself.
+- You can only delete an agent once termination has fully finished (or its hire was rejected). Otherwise the call returns `409 Conflict` with `Complete termination before deleting the agent`.
+- A lifecycle request that doesn't fit the agent's current step (for example resuming an agent that is still terminating) returns `409 Conflict` with a message like `Cannot resume an agent in state terminating`.
+
+### Lifecycle Steps and Retry
+
+Every hire, pause, resume, and termination runs through a short sequence of steps, shown in `lifecycleState`:
+
+| Command | Steps |
+|---|---|
+| Hire (direct, or after approval) | `preparing` → `verifying` → `ready` |
+| Pause | `pausing` → `paused` |
+| Resume | `resuming` → back to the step saved before the pause (usually `ready`) |
+| Terminate | `terminating` → `cleaning_up` → `terminated` |
+
+`preparing` gives any required [plugins](../plugins/sdk.md#required-agent-lifecycle-work) a chance to set up resources; `verifying` tests the agent's saved runtime configuration. Messages and tasks accepted before the agent reaches `ready` stay queued and dispatch once it does.
+
+If a step fails, `lifecycleError` names it and suggests a fix — for example `Execution configuration check failed. The selected model is unavailable. Choose a model supported by the agent's AI connection in Configuration, then retry.` Paperclip retries failed steps automatically. To try again immediately (for example after you've fixed the configuration):
+
+`POST /api/agents/{agentId}/lifecycle/retry`
+
+This is board-only and needs permission to update the agent. It returns the updated agent and records an `agent.lifecycle_retried` activity entry.
+
+```bash
+curl -s -X POST \
+  "http://localhost:3100/api/agents/{agentId}/lifecycle/retry" \
+  -H "Authorization: Bearer <token>"
+```
 
 ---
 
@@ -907,6 +943,76 @@ Notes:
 
 ---
 
+## Primary Agent
+
+Each person can choose one **primary agent** per company — their personal default for new tasks and Chat. The preference is private to the signed-in user. See [Your primary agent](../../guides/org/agents.md#your-primary-agent) for how the app uses it.
+
+`GET /api/companies/{companyId}/primary-agent/me`
+`PUT /api/companies/{companyId}/primary-agent/me`
+
+Both routes need a signed-in board user with active access to the company (viewers included, since it's a personal preference). Agent credentials can't call them.
+
+`GET` returns:
+
+```json
+{
+  "companyId": "...",
+  "userId": "...",
+  "primaryAgentId": "...",
+  "initialized": true
+}
+```
+
+- `primaryAgentId` is `null` when you have no primary, or when your primary is an agent you can no longer read.
+- `initialized` becomes `true` once a primary has been set — automatically when you create your first agent in the company, or explicitly with `PUT`. It stays `true` even if the primary is later cleared, so Paperclip doesn't silently pick a new one for you.
+
+`PUT` takes exactly one field:
+
+```json
+{ "primaryAgentId": "<agent-uuid>" }
+```
+
+It returns the updated preference. Setting a primary also joins you to that agent. The agent must be in this company (`404 Agent not found` otherwise), readable by you (`403`), and neither `terminated` nor `pending_approval` (`422 Choose an active, approved agent as your primary.`). There's no delete route — set a different agent to change it.
+
+```bash
+curl -s -X PUT \
+  "http://localhost:3100/api/companies/{companyId}/primary-agent/me" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{ "primaryAgentId": "{agentId}" }'
+```
+
+Changes are recorded in the activity log as `primary_agent.updated` without revealing which agent you picked.
+
+---
+
+## Upload a Custom Avatar
+
+Replace an agent's illustrated character with your own picture, or go back to the character.
+
+`PUT /api/companies/{companyId}/agents/{agentId}/avatar`
+
+```json
+{ "imageBase64": "<raw image bytes, base64-encoded>" }
+```
+
+- `imageBase64` is the image file itself, base64-encoded — not a URL and not a `data:` URL. Send `null` to remove the custom picture and restore the Paperclip character.
+- Use a static PNG, JPEG, or WebP image of at most 512 KiB and 16 megapixels. SVGs and animated images are refused. Paperclip re-encodes the picture as a PNG no larger than 512×512, dropping any metadata.
+- **Who can call it:** a board user with permission to update the agent's configuration (viewers can't), or the agent itself with its own key. An agent can only change its own avatar, and task-scoped credentials can't change it at all.
+- Terminated agents and agents awaiting approval can't be changed (`409`).
+
+The response is `{ agentId, appearance, avatarUrl }`. The change is recorded as an `agent.avatar_updated` activity entry and as a configuration revision.
+
+```bash
+curl -s -X PUT \
+  "http://localhost:3100/api/companies/{companyId}/agents/{agentId}/avatar" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d "{ \"imageBase64\": \"$(base64 < avatar.png | tr -d '\n')\" }"
+```
+
+---
+
 ## Agent Avatars
 
 Renders the character image for an agent's `appearance`.
@@ -924,6 +1030,7 @@ The route only serves preset artwork. It doesn't look up any agent or company, s
 | `pose` | One of `rest`, `idle`, `listening`, `thinking`, `working`, `success`, `confused`, `sleepy`, `loading`. |
 | `size` (query) | Pixel size: `16`, `20`, `24`, `32`, `40`, `48`, `64`, `96`, `128`, `256`, or `512`. Defaults to `512`. |
 | `scale` (query) | `1` or `2` (for high-density screens). Defaults to `1`. |
+| `background` (query) | `transparent` or `paperclip-dark`. Defaults to `transparent`. |
 
 ```bash
 curl -s -o ada.png \

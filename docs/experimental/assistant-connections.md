@@ -79,7 +79,7 @@ You can configure a direct client without a store listing. Hosted broker deploym
 
 Return to **Assistant Connection (MCP)** to review and revoke your connections for the selected organization. `/assistant-connections` also provides account-wide management.
 
-Each connection appears under your profile picture with a name built from your first name and the assistant client, such as *Alex’s Codex connection*, followed by its access (for example *Connected as you · Read and write*). Only your own active connections are listed. When you select **Revoke**, the connection disappears from the list right away; Paperclip keeps the audit record.
+Each connection appears under your profile picture with a name built from your first name and the assistant client, such as *Alex’s Codex connection*, followed by its access (for example *Connected as you · Read and write*, with *Configure agents, projects and skills* added when you approved configuration access). Agent connections, such as a paired [Dot or Grok Bot](external-agents.md), are managed from the agent instead and don't appear here. Only your own active connections are listed. When you select **Revoke**, the connection disappears from the list right away; Paperclip keeps the audit record.
 
 Revocation blocks future calls. Work you already delegated continues, and an in-flight change may already have completed. Manage that task or run in Paperclip if you need to stop it.
 

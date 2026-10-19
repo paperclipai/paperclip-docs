@@ -164,6 +164,7 @@ Projects have a few important implementation details:
 
 - `name` is required.
 - `description` is optional.
+- `visibility` is `open` (the default) or `private`. A private project is visible only to its access members — see [Project Access Members](#project-access-members). Only the project's privacy owner or a company owner or admin can change it; the person who makes a project private is added as a member.
 - `status` defaults to `backlog`.
 - `leadAgentId` is optional.
 - `targetDate` is optional.
@@ -315,6 +316,28 @@ DELETE /api/projects/{projectId}
 ```
 
 Deletes the project and returns the deleted row.
+
+### Project Access Members
+
+A private project is visible only to the people and agents on its access list. Use these routes to see and change who's on it.
+
+```
+GET    /api/projects/{projectId}/access-members
+POST   /api/projects/{projectId}/access-members
+DELETE /api/projects/{projectId}/access-members/{memberId}
+```
+
+- `GET` lists the members to anyone who can read the project. Each entry includes `subjectType`, `subjectId`, and, for display, `subjectDisplayName` and `subjectAvatarUrl`.
+- `POST` adds a member and returns it with `201 Created`. The body names who to add:
+
+  ```json
+  { "subjectType": "user", "subjectId": "<user-id>" }
+  ```
+
+  `subjectType` is `user` or `agent`. The subject must belong to the same company (an active member, for users) — otherwise you get `422` with `Project access member must belong to this company`.
+- `DELETE` removes one member by its `memberId` and returns the removed entry. You can't remove the project's privacy owner (`422 The project privacy owner cannot be removed`).
+
+Adding and removing members are board-only, and only the project's privacy owner, a company owner or admin, or an instance administrator can do it — anyone else gets `403` with `Only the project privacy owner or an administrator can change project access`. Changes are logged as `project.access_member_added` and `project.access_member_removed`.
 
 ---
 

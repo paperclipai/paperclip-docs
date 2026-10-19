@@ -417,6 +417,8 @@ Notes:
 - The route checks company access before returning anything.
 - The response is a compact issue summary, not the full issue record.
 
+Agents that run inside a sandbox can call both run routes above too — along with the company run list, live runs, and a run's details, events, log, and workspace operations — because Paperclip's sandbox bridge now forwards these read-only diagnostics calls. The usual permission checks still apply, so a sandboxed agent sees exactly the run history a locally running agent with the same key would.
+
 ## Activity record
 
 Each activity row stores:

@@ -32,6 +32,7 @@ Each row is a single project entry. Reading left to right you see:
 - **Task count** — how many tasks the project holds, for example "9 tasks".
 - **Budget** and **Target date** — shown in muted text only when the project has a budget or a target date set.
 - **Status badge** — the current project status, such as `planned` or `in progress`. The badge color is consistent with issue status badges used elsewhere in the app.
+- **Lock** — a private project shows a lock on the right of its row, and also in the sidebar and the composer's project picker.
 - **Join / Leave** and a **star** — personal controls for your sidebar (see [Keeping projects (and agents) in your sidebar](#keeping-projects-and-agents-in-your-sidebar)).
 
 Archived projects are filtered out of this list. You can still reach them by following a direct link, and you can unarchive them from the project's Configuration tab.
@@ -145,6 +146,16 @@ The Configuration tab is where the project's editable properties live. Most fiel
 - **Env** — environment variables for the project (see below).
 - **Updated**, **Target Date**, and **Created** — read-only dates. Target Date only appears when the project has one.
 
+### Project visibility
+
+The **Visibility** row decides who can find the project. Projects start **Open to company**, so everyone in the company can see them. Tasks you've made private on their own still keep their own access rules.
+
+Turn the switch on to make the project **Private**. Then only its access members can find it, and members can read every task in it. A task in the project can still be shared directly with someone outside it. Click **Manage access** to open **Private project access**, where you add a person or agent or remove one. People who can't change access see **View access** instead.
+
+To open a private project to the whole company again, turn the switch off. Paperclip asks you to confirm in **Open this project to the company?**. The project's private tasks stay private. Members who only had access through the project lose it, so share those tasks directly first if they should keep it. Choose **Keep private** to back out.
+
+New tasks in a private project are private automatically. See [Private tasks and sharing](../day-to-day/issues.md#private-tasks-and-sharing).
+
 ### Source repos
 
 The **Source repos** section (marked optional) is where you connect the project to GitHub:
@@ -153,6 +164,8 @@ The **Source repos** section (marked optional) is where you connect the project 
 - **Existing repo URL** shows a repository URL bound the older way, as a plain link. Click **Edit** to change it.
 
 Repository changes don't auto-save. When you've made your picks, click **Save changes** (or **Discard changes** to undo). You'll see **Changes saved** once they're stored.
+
+When a workspace points at a GitHub repository, Paperclip imports that repository's skills into your library in the background and keeps them up to date. See [Skills from your project repositories](../org/skills.md#skills-from-your-project-repositories). The skill source follows the branch set on the workspace, so change the branch here, not in Skills.
 
 ### Codebase and local folder
 

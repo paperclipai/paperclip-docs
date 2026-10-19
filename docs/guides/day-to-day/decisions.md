@@ -127,3 +127,4 @@ These choices are personal to your board user. They tidy your queue without chan
 - [Attention API](../../reference/api/attention.md) — build a board-facing integration around the same queue.
 - [Decisions API](../../reference/api/decisions.md) — propose and resolve decisions, and manage queues and triage.
 - [Decision Training](../../reference/api/decision-training.md) — keep a decision as a labelled training example, and export what you have collected.
+- [Costs and Budgets: Decisions](./costs.md#decisions) — not to be confused with this queue: the **Decisions** view under **Audit → Costs** lists small-model requests made by a company's decision model, and what they cost.

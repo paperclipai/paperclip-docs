@@ -98,6 +98,14 @@ When the engine resolves to ACP (`auto` or `acp`), these extra fields apply:
 | `nonInteractivePermissions` | `deny` | What to do if the ACP agent asks for input outside an interactive session — `deny` the request or `fail` the run. |
 | `stateDir` | Paperclip-managed | Optional ACP session-state directory. Defaults to Paperclip's company- and agent-scoped storage. |
 | `warmHandleIdleMs` | `0` | How long to keep the ACP process warm between runs, in milliseconds. `0` closes it after each run while still retaining persistent session state. |
+| `stalledToolTimeoutSec` | `1800` | Ends the turn as failed with `acpx_tool_stalled` when a pending tool call gets no ACP update for this many seconds. `0` turns the watchdog off. |
+
+### Tool calls that stop responding
+
+On ACP, a tool call that goes quiet can't hold a run open forever:
+
+- **Stalled tool calls end the turn.** If a pending tool call gets no updates for 30 minutes, Paperclip ends the turn as failed with `acpx_tool_stalled`. The default always stays at least 15 minutes longer than any `MCP_TOOL_TIMEOUT` or `BASH_MAX_TIMEOUT_MS` you set in `env`, so Claude's own limits fire first. Set `stalledToolTimeoutSec` to change the bound, or `0` to turn it off. The run result also notes whether the stalled call had asked for permission.
+- **MCP tool calls get a deadline.** When a run attaches runtime MCP servers, Paperclip sets `MCP_TOOL_TIMEOUT` to 15 minutes (`900000` ms) for Claude, so one hung MCP tool can't stall the turn. A value you set yourself in `env` wins.
 
 > **Heads-up:** ACP is where the old standalone `acpx_local` adapter's capabilities now live. That adapter has been retired — pick `claude_local` (or `codex_local` / `gemini_local`) and leave `engine` on `auto` to get ACP by default.
 

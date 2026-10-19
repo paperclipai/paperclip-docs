@@ -40,12 +40,16 @@ Open **Tasks** to see the work across your company. The API calls these records 
 
 2. **Use the filters to narrow down**
 
-   The **Filter** button in the toolbar lets you filter by **Status**, **Responsible**, **Creator**, **Project**, **Labels**, and (when isolated workspaces are enabled) **Workspace**. This becomes essential once you have more than a handful of issues running at once.
+   The **Filter** button in the toolbar lets you filter by **Status**, **Priority**, **Responsible**, **Creator**, **Project**, and **Labels**. This becomes essential once you have more than a handful of issues running at once.
+
+   The filter menu no longer has a Workspace section. To narrow the list to one workspace, click a workspace name in the list or group by **Workspace**. Saved links that include a workspace still open the same filtered list.
 
    Common filter combinations:
    - Status = **blocked** — see everything that's waiting for intervention
    - Assignee = **[specific agent]** — see one agent's full workload
    - Status = **in_review** — see work that's done and waiting for sign-off
+
+   **Tasks created by agents are hidden by default.** Agent delegation and automatic routine runs can easily outnumber the requests people make, so the list starts with human-created work. To see everything, open **Filter** and tick **show agent-created tasks** under **Visibility**. Your choice is remembered for that list, and **Clear** in the filter menu hides them again. A hidden task still appears as a parent or as an expandable subtask of a task you can see, so trees stay intact. Tasks from chat channels count as agent-created, even when a person started the conversation. The same checkbox is on project task lists and in the Inbox.
 
    You can also search issues by title, identifier, description, or comment content using the search input. The URL `?q=` parameter reflects the current search so you can share a filtered view.
 
@@ -93,6 +97,14 @@ Implementation reference: [Tasks page and live updates](https://github.com/paper
 6. **Click Create task**, or press **⌘+Enter** (**Ctrl+Enter** on Windows and Linux).
 
    The task opens after creation. Its **Properties** panel lets you adjust status, parent, project, and the other task fields. Status, reviewers, approvers, and a [task watchdog](#task-watchdogs) aren't set in the new-task dialog — add them from **Properties** once the task exists. A paused assignee can receive the task, but won't start until you resume it.
+
+### Creating a private task
+
+Some work shouldn't be visible to the whole company, such as a salary review or a draft announcement. You can make a task private before you save anything sensitive. Open the composer's **+** menu and choose **Private task**. A **Private** lock chip appears next to the **+**; click it to make the task public again. If you have a personal private project and haven't picked a project, Paperclip files the task there.
+
+Some tasks start out private and stay that way. A subtask of a private task, or a task in a private project, inherits that privacy. The chip is locked, and hovering or tapping it explains why, for example *Subtask of private task …* or *In private project …*. If Paperclip can't check the parent's access yet, it waits before letting you create the task. If that check fails, you can retry it.
+
+See [Private tasks and sharing](#private-tasks-and-sharing) for who can see a private task and how to share it.
 
 When you create a subtask from an existing task, the dialog shows **Sub-task of** and uses **Create sub-task**. If the project supports isolated workspaces, the creation bar can also offer **Worktrees**: choose a new worktree or reuse an existing one. An unavailable selection produces an inline error so you can retry or choose another. See [Execution workspaces](../projects-workflow/workspaces.md).
 
@@ -221,7 +233,7 @@ When the current tab contains unread items, a **Mark all as read** button appear
 The Inbox toolbar mirrors the Issues page:
 
 - A search input with URL-bound `q` parameter.
-- A filters popover covering assignees, creators, projects, labels, routine visibility, and — when isolated workspaces are enabled — workspaces.
+- A filters popover covering assignees, creators, projects, labels, and **Visibility**, which includes **show agent-created tasks**. Agent-created tasks stay hidden unless you tick it, but a task you've taken part in still shows, for example one you commented on or that's assigned to you. Workspace is no longer a filter here; group by **Workspace** instead.
 - A group-by control (**None**, **Type**, **Responsible**, **Project**, or — when isolated workspaces are enabled — **Workspace**).
 - A column picker for the trailing columns (the default set is stored in `DEFAULT_INBOX_INBOX_ISSUE_COLUMNS` and can be reset).
 - A nesting toggle to collapse parent/child issue groups.
@@ -288,7 +300,7 @@ The fields are grouped into sections, in this order. Some rows only appear when 
 - **Approvers** — agents or users who must approve before the task can complete. Same runnable-stage behaviour as Reviewers, but for the approval stage, with a **Run approval now** button.
 - **Execution** — the current execution stage label, for example `Review pending with <participant>`. Read-only; it's driven by the execution policy.
 - **Pull requests** — the pull requests saved on this task, with the ones waiting on your review first and marked **Review requested**. Each links straight to the PR and, when Paperclip can read it, shows its live GitHub status. A saved PR stays listed even when Paperclip can't look it up — for example, a private repository without a token — so you never lose the link. See [Waiting on your pull request review](#waiting-on-your-pull-request-review).
-- **Monitor** — an optional date and time for a scheduled check-in on the task. When one is set, the row shows the next check time.
+- **Monitor** — an optional date and time for a scheduled check-in on the task. When one is set, the row shows the next check time. You can also cancel a monitor from its card on the task page. Click the **X** (**Cancel monitor**) in the card's top-right corner, then confirm with **Cancel monitor**. Choose **Keep monitor** to leave it as it is. Once you cancel it, the agent no longer resumes from that monitor. Send a message when you want the task to continue. Agents on the Paperclip runner can set a monitor themselves with the `set_task_monitor` tool and then end their turn waiting on it. The task stays active, and Paperclip wakes the assignee at or after the scheduled check time instead of the agent polling.
 - **Watchdog** — the agent that watches this task's subtree for stalls. See [Task watchdogs](#task-watchdogs).
 
 **Workspace** (when the task has a workspace)
@@ -298,6 +310,8 @@ The fields are grouped into sections, in this order. Some rows only appear when 
 **About**
 
 - **Originating** — the user or agent that created the task.
+
+When an agent creates a task while it's working on another one, the new task shows **Created from *&lt;task&gt;* by *&lt;agent&gt;*** under the breadcrumb (on the default page, in the **Tasks** tab). It tells you where the task came from without digging through run logs. It's only a record of where the task came from. It isn't a parent link or a blocker, and it only appears when you're allowed to see the source task.
 - **Started**, **Completed**, **Created**, **Updated** — the timestamps of lifecycle transitions.
 - **Depth** — how deep this task sits in its parent hierarchy (only shown for subtasks).
 
@@ -350,7 +364,7 @@ If either action fails, the bar tells you plainly — *"Couldn't confirm — try
 
 **Artifacts** gathers what this task produced, grouped by the run that produced it, newest run first. Each output gets a full-width card shaped to what it is — a pull request shows its state, checks, and changed lines; a commit its SHA and branch; a document expands with **Read document**; images and videos open in the gallery viewer; a CSV loads a table when you click **Preview data**. Markdown and text files open in a tab of their own with **Open in tab**. See [Artifacts](./artifacts.md#reaching-artifacts-from-a-task) for every card type.
 
-It's there to answer "what did this task produce?" without scrolling the thread. The tab is read-only, so there's no uploading or deleting from it, and the company-wide view of every output still lives on the [Artifacts page](./artifacts.md).
+It's there to answer "what did this task produce?" without scrolling the thread. You can also add files here: use the upload icon, or drop files anywhere on the panel. They're saved straight to the task without sending a message, so a paused task stays paused. See [Uploading files to a task](./artifacts.md#uploading-files-to-a-task). The company-wide view of every output still lives on the [Artifacts page](./artifacts.md).
 
 On the chat-style page, the centre column's **Attachments**, **Output**, keyed-documents, and **Plan decomposition** sections all step aside — the plan and the task's files live in this panel instead, leaving the middle of the page to the conversation.
 
@@ -479,6 +493,7 @@ The task conversation combines four data sources into a single timeline:
 At the bottom of the conversation sits the composer. [Chat-Style Tasks](../../experimental/task-chat.md#the-composer) covers its mode, model, effort, project, and pending-card controls. It also supports:
 
 - **@mentions** — type `@` to open the mentions picker. Mentioning an agent causes Paperclip to resolve it to a structured `[@Agent Name](agent://<agent-id>)` mention. A mention is context only: it doesn't wake the agent, start a run, hand it the task, or forward your comment to another task. To bring another agent in, assign the task or request a review.
+- **Default recipient** — when an agent hands a task to you and you open it, the composer picks the agent that most recently assigned it to you. Your reply goes back to that agent without any extra clicks. If no agent assigned it to you, it falls back to the most recent other commenter. If there isn't one, no recipient is chosen. A recipient you pick yourself stays put when the page refreshes.
 - **Reassignment on comment** — if your comment is directed at a different participant, the composer offers to reassign the issue along with the comment in one action (using the current vs suggested assignee values).
 - **Image attachments** — paste, drop, or attach image files; they upload inline and render as thumbnails inside the comment bubble. Clicking a thumbnail opens the shared gallery modal.
 - **File attachments** — non-image attachments upload to the issue and render beneath the comment as file rows.
@@ -525,6 +540,55 @@ The tab assembles three streams:
 - **Linked approvals** — any approval that was requested against this issue is rendered as an approval card at the top of the tab. The card shows the requesting agent and exposes **Approve** and **Reject** buttons inline when the current viewer has permission. Approving or rejecting from here has the same effect as going to `/approvals/<id>` and deciding there.
 
 The Activity tab does not accept input — it is read-only. Use Chat for anything you want the agent to see.
+
+---
+
+## Private tasks and sharing
+
+A private task is visible only to the people and agents who have access to it. Everyone else in the company can't open it, search for it, or read its comments, documents, or run history. Where a private task shows up as a parent or blocker of something you can see, it appears as a locked reference without its title.
+
+### Who can see a private task
+
+Open the task's **More task actions** menu (**…** next to the title) and choose **Share…**. The **Who can access this task** dialog lists everyone with access. A badge next to each one shows why they have it:
+
+- **task owner** — the person responsible for the task, or the person who created it.
+- **via assignment** — the current assignee. The row reads *Assignee — access remains while this role applies*.
+- **via project** — members of a private project the task belongs to. These rows are marked *project-managed*, and you change them on the project, not here.
+- **shared directly** — people and agents someone shared the task with.
+
+Access that comes from a private parent task reads *Inherited access — managed at its source*. You change it on that parent.
+
+If no one else has access, the dialog reads *Only you can see this task.*
+
+### Sharing a task
+
+In the share dialog, choose a person or agent and click **Add**. Sharing gives them this task and all its subtasks, including comments, documents, and run history. It doesn't open the parent or sibling tasks. Those need their own access.
+
+When you share with a shared agent, the dialog warns you. Content from this task may stay in that agent's memory and workspace and come up in later runs for other people. Share it only if that's acceptable.
+
+To take access away, click **Revoke** (or **Remove saved grant** for someone who is also the assignee) and confirm. This removes that grant. Owning the task, being assigned to it, project membership, or inherited access can still give them access. Revoking can't erase anything they've already seen or anything an agent has already remembered.
+
+### Making a task private or public
+
+From the same **More task actions** menu, choose **Make private** on a public task, or **Make public** on a private one. Making a task public asks you to confirm. Everyone in the company can then read it, but its private subtasks stay private, and *content already seen by others cannot be taken back*. If the task lives in your personal project, making it public also moves it out of that project.
+
+**Make public** is disabled while the task inherits its privacy. Move it out of its private parent or private project first. The menu tells you which applies.
+
+Only the task's owner (the person responsible for it, its creator, or its assigned person), a company owner or admin, or an instance admin can change who sees a task. For everyone else these items are greyed out, with a tooltip explaining why.
+
+### Private projects
+
+A project can be private too. In the project's properties, turn on **Visibility**. **Private** means only access members can find the project. Members can see the project and read every task in it. Use **Manage access** to add or remove people and agents. To make a private project visible to the whole company again, turn **Visibility** off and confirm. Its private tasks stay private. Members who could only see them through the project lose access, so share those tasks directly first if they should keep it. See [Projects](../projects-workflow/projects.md).
+
+Implementation reference: [privacy actions](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/ui/src/components/IssuePrivacyActions.tsx) and [share dialog](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/ui/src/components/IssueShareSheet.tsx).
+
+---
+
+## Live task notifications
+
+When something changes on a task while you're looking at another page, a notification can pop up in the corner. In a company with several people, you only get these for tasks you're part of: tasks you created, commented on, are assigned to, or were @-mentioned in. Just viewing a task, or being its responsible user, doesn't count. Activity on other people's work still updates your lists, but quietly.
+
+Each notification shows who made the change, with their name and avatar, whether it was a person or an agent. You don't get notifications for your own actions.
 
 ---
 
@@ -746,6 +810,8 @@ POST /api/companies/{companyId}/issues
 ```
 
 Always set `parentId` to maintain the issue hierarchy. Set `goalId` when applicable.
+
+If an agent run working on a task leaves out `parentId`, the new task becomes a child of that task by default. To create a top-level task on purpose, send `"parentId": null`. With the CLI, use `issue create --standalone`.
 
 ### Release pattern
 

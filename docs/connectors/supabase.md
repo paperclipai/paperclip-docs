@@ -21,7 +21,7 @@ Write tools start enabled on this connector. They are governed by Paperclip's ac
 
 ### Which credential the key method wants
 
-The **Supabase API key** field takes a **personal access token**, the credential Supabase describes as authenticating "the Management API and the tools built on it, like the Supabase CLI and the MCP server." The placeholder is `sbp_...`.
+The **Your Supabase key** field takes a **personal access token**, the credential Supabase describes as authenticating "the Management API and the tools built on it, like the Supabase CLI and the MCP server." The placeholder is `sbp_...`.
 
 A project's **anon** key and **service-role** key are *not* interchangeable with it. Those authenticate against project data; a personal access token authenticates management operations. Pasting a service-role key here will not work, and it is a far more dangerous credential to have copied around.
 

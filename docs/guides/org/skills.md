@@ -70,7 +70,7 @@ The sections below walk through each one, depending on where your skill is comin
 
 ### 1. Import from a GitHub repository
 
-If your skills live in a GitHub repository, the best home for them is **Skills → Sources**. Choose **New → Import from GitHub**, pick a repository, tick the skills you want, and Paperclip keeps them linked to that repository so you can refresh them later. [Sync skills from a GitHub repository](#sync-skills-from-a-github-repository) below walks through it.
+If your skills live in a GitHub repository, the best home for them is **Skills → Sources**. Choose **New → Import from GitHub**, pick a repository, tick the skills you want, and Paperclip keeps them linked to that repository and up to date as it changes. [Sync skills from a GitHub repository](#sync-skills-from-a-github-repository) below walks through it. If the repository is already attached to one of your projects, its skills are imported for you — see [Skills from your project repositories](#skills-from-your-project-repositories).
 
 You can also choose **New → Import from path or URL**. That opens an **Import a skill** dialog with one field — paste a GitHub URL (or a `skills.sh` install command) and click **Import**. The dialog also links out to **Browse skills.sh** and **Search GitHub** if you're still looking for something. A plain GitHub repository, folder, or `SKILL.md` URL is filed under **Sources** too, so it gets the same refresh controls. GitHub-sourced skills are pinned to a specific commit — you can check for updates and upgrade the pin from the skill detail pane.
 
@@ -142,7 +142,7 @@ Because these skills come from Paperclip, the app knows exactly which version yo
 
 ## Sync skills from a GitHub repository
 
-Plenty of teams already keep their skills in a GitHub repository, reviewed through pull requests like everything else. **Sources** lets you point Paperclip at that repository, choose which skills to bring in, and refresh them whenever the repository moves on — without retyping URLs or losing track of where each skill came from.
+Plenty of teams already keep their skills in a GitHub repository, reviewed through pull requests like everything else. **Sources** lets you point Paperclip at that repository, choose which skills to bring in, and keep them current as the repository moves on — without retyping URLs or losing track of where each skill came from. The page's tagline sums up the default: *"Skills from your repositories stay up to date automatically."*
 
 You'll find it under **Sources** in the Skills sidebar, or through **Import from GitHub** and **Manage sources** in the Skills page's add menu.
 
@@ -153,28 +153,70 @@ You'll find it under **Sources** in the Skills sidebar, or through **Import from
    - Haven't connected GitHub yet? Click **Connect GitHub to see your repos**. **Add repos** does the same when you need a repository that isn't listed. Either one takes you through the normal setup in Apps and then brings you straight back to the importer with your draft intact.
    - Want a public repository you haven't connected? Click **... or add public repo by URL** and paste it into **Repository URL**. A plain repository URL follows the default branch; paste a branch URL such as `https://github.com/owner/repository/tree/my-branch` to follow a different branch.
 3. Click **Find skills**. Paperclip scans the whole repository — hidden and nested folders included — and shows its progress as it goes. You can **Cancel scan** at any point; nothing is imported until you say so.
-4. Review what it found. Every skill package starts out checked. You select whole packages, not individual files: a package brings along every file in its folder, and a skill nested inside another skill's folder is selected separately. **Search skills or files…** narrows a long list.
-5. Click the **Import** button — it counts the skills you've checked, as in **Import 3 skills** — to bring them in. Any skill with validation errors is skipped, and you're told how many.
+4. Review what it found. Every skill starts out checked, with the folders that hold them already expanded. Untick any skill you don't want in your library. **Search skills or files…** narrows a long list.
+5. Click **Import repository** to bring them in.
 
-Before you import, it's worth opening a skill to look inside. Click it (or one of its files) for a read-only preview of the exact files at the scanned commit. The preview lists any **Runtime requirements** the author declared — Paperclip only shows these; importing never installs dependencies or runs scripts. **Check references** flags links and relative file paths that point outside the package, so you can spot a skill that relies on files it won't bring with it.
+**The repository's files travel together.** Skills often lean on shared material outside their own folder — a script in a top-level `scripts/` folder, a policy file, a helper skill next door. So a new import saves the repository's supported files at the scanned commit alongside the skills you picked, and agents get those files with the skill. Unticking a skill only keeps it out of your library; its files still come along as supporting material for the others. Click **View files** — the button shows the count, as in **View 234 files** — to see exactly what's included, licence and credit files too.
+
+Before you import, it's worth opening a skill to look inside. Click it (or one of its files) for a read-only preview of the exact files at the scanned commit. The preview lists any **Runtime requirements** the author declared — Paperclip only shows these; importing never installs dependencies or runs scripts — and a **Files not included** list for anything the skill points at that isn't coming with it.
+
+**Warnings don't block the import.** Anything worth knowing is collected in one expandable list under the tree, labelled with a count such as **3 import warnings**: references to files that don't exist, files that were left out (too large, a symlink, or flagged by Paperclip's safety checks), and skills that need attention. A skill whose `SKILL.md` has a problem stays selected and is marked **Needs setup**; everything that's usable still imports. The same warnings stay on the source afterwards, so you can come back to them.
 
 Imported skills go straight into your company library, ready to assign to agents like any other skill.
 
 ### Keep sources up to date
 
-Back on **Skill sources**, each repository lists the skills you installed from it. Its menu has three actions:
+Back on **Skill sources**, each repository row shows the branch it follows (**Default branch**, or the branch name), when it last updated, and the skills you installed from it. Two things keep it current:
 
-- **Refresh** fetches the branch's latest commit and updates the skills you're syncing. Paperclip never refreshes on its own, so you decide when new instructions reach your agents.
-- **Select skills** reopens the picker. New skills that appeared in the repository wait here — the row reads *"1 new skill available"* (or however many) — until you tick them and click **Save selection**. Unticking an installed skill stops syncing it, but *"Unchecked skills stay installed."*: the skill keeps its content and its agent assignments.
-- **Disconnect source** stops syncing the whole repository. The installed skills stay in your library; remove them separately if you want them gone.
+- **Automatic updates** are on for every source unless you turn them off. While Paperclip is running, it checks each source about every five minutes and brings in whatever changed on the tracked branch. If you'd rather review every change before your agents see it, untick **Automatic updates** in the row's **⋯** menu — the row then reads **Automatic updates paused**.
+- **Refresh**, the button on the row, fetches the branch's latest commit right now, whether automatic updates are on or not.
 
-A refresh keeps each skill's identity, folder, assignments, and history, and creates a new version only when the files actually changed. Agents already mid-run, and agents pinned to a specific version, keep what they had. If a refresh fails, your agents keep the last good version and the source shows the error with a **Review source** link. A skill that was deleted upstream stays installed and is marked **Removed from source · installed copy retained**.
+The row's **⋯** menu has the rest:
+
+- **Select skills** reopens the picker. New skills that appeared in a repository you added yourself wait here — the row reads *"1 new skill available"* (or however many) — until you tick them and click **Save selection**. Unticking an installed skill stops syncing it, but *"Unchecked skills stay installed."*: the skill keeps its content and its agent assignments.
+- **Choose connection** and **Choose a new branch** — see [Change the branch or connection](#change-the-branch-or-connection) below.
+- **Disconnect source** removes the repository from Sources — see [Remove a source](#remove-a-source).
+
+The **⋯** button at the top of the page, next to **Import from GitHub**, holds **Manage GitHub connection**, which takes you to your GitHub connection in Apps.
+
+An update keeps each skill's identity, folder, assignments, and history, and creates a new version only when the files actually changed. Agents already mid-run, and agents pinned to a specific version, keep what they had; the next run picks up the new version. If an update fails, your agents keep the last good version, and the row shows the error with when it last tried and a **Review source** link. When the fix is a different connection or branch, a **Choose connection** or **Choose a new branch** button appears right under the error. A skill that was deleted upstream stays installed and is marked **Removed from source · installed copy kept**.
+
+Automatic updates have a work allowance per source, so a very large repository can't keep Paperclip busy downloading. If a source hits it you'll see *"Automatic refresh is temporarily limited. Use Refresh now, or wait for automatic updates to resume."* — **Refresh** still works straight away.
 
 Because Paperclip stores a complete copy of every synced skill, agents can use them without reaching GitHub during a run.
 
+### Change the branch or connection
+
+**Choose a new branch** opens a dialog that names the repository and what it currently tracks. Pick a branch from the list — the repository's default is marked **Default** — or type any name into **Search or enter a branch name…** and choose **Use "*name*"**. Paperclip lists up to 100 branches, so typing is the way to reach one that isn't shown. Click **Change branch**; Paperclip checks the branch exists before saving and tells you *"GitHub could not find that branch or revision. Check the name or choose another branch."* if it doesn't. Your installed skills stay as they are until the next successful update brings in the new branch's content.
+
+This is also how you fix a source whose branch has gone away — say the repository renamed `main` to `master`. For a source that belongs to a project, the branch comes from the project's repository settings instead, so the error links straight there (**Update *project name* repository**).
+
+**Choose connection** opens **Choose GitHub connection**: *"Automatic updates will use your access to this connection. Installed skills and selections stay in place."* Pick one and click **Save connection**. Automatic updates run with the access of whoever set up the source, or whoever last chose its connection — so if that person leaves the company, the source shows *"The person who connected this source no longer has company access. Choose another GitHub connection."* until someone picks a new one.
+
+### Remove a source
+
+Choose **Disconnect source** from the row's **⋯** menu. Paperclip asks what should happen to the skills you imported from it, and you have to pick one:
+
+- **Keep editable copies** — *"Move them to My Skills. Assigned agents keep using them."* Each skill keeps its ID, key, versions, and agent assignments, and becomes an ordinary editable skill. It no longer receives updates from the repository.
+- **Delete skills** — *"Remove them from the library. Detach skills used by agents first."* If any of them are still assigned to an agent, the removal is refused until you detach them.
+
+Then confirm, and the repository leaves Sources. You can add it again later; that starts a fresh source and leaves any copies you kept alone. Sources that were disconnected under the old behaviour show **Remove source** instead and go through the same choice. If someone changed the source while the dialog was open, you'll be asked to **Reload source** and choose again.
+
+### Skills from your project repositories
+
+If a project already points at a GitHub repository, you don't have to import its skills at all. When you attach a GitHub repository to a project workspace, Paperclip queues an import in the background, and the skills it finds land in your library on their own. The source follows the branch the workspace uses, picks up new skills added to the repository later without asking, and updates like any other source.
+
+Repositories that projects already pointed at before this existed — or whose import couldn't start on its own — appear at the top of **Skill sources** with the project's name, the branch, and an **Import skills** button. While an import runs, the row tells you where it's at: *"Import queued. Skills will appear here when ready."*, then *"Checking repository for skills… This can take a few minutes for large repositories."* If it fails, the button becomes **Retry import**. When several projects use the same repository and branch they share one source; importing for the remaining projects lives in that source's **⋯** menu as **Import project skills**.
+
+A few things are worth knowing:
+
+- **Private projects keep their privacy.** A source that came from a project is marked **Project access**, and its skills are only visible to people and agents who can read one of its projects. Testing one in Skill Studio needs an agent with that access too — otherwise you'll see *"Choose an agent with access to this skill's project."* Keeping editable copies when you remove the source keeps the same restriction.
+- **Change the branch in the project.** Because the project decides which branch is tracked, **Choose a new branch** isn't offered for these sources. Update the repository branch in the project's settings instead.
+- **Big batches wait their turn.** Paperclip runs up to 20 queued imports per project and 100 per company at a time; the rest show *"Waiting for earlier repository imports to finish."* and start on their own as earlier ones finish. Automatic first imports also share a work allowance per company, so a burst of large repositories may pause with *"Automatic repository import is temporarily limited. It will resume when work credits refill."*
+
 ### Synced skills are read-only
 
-A skill synced from GitHub belongs to its repository, so you change it there and refresh. In Skill Studio it carries a **Read-only** badge and the note *"This skill is synced from GitHub and is read-only."* The skill's detail pane shows where it came from — **Synced from GitHub**, its path in the repository, and the commit — with a **Manage source** link back to Sources.
+A skill synced from GitHub belongs to its repository, so you change it there and let the next update bring it in (or click **Refresh**). In Skill Studio it carries a **Read-only** badge and the note *"This skill is synced from GitHub and is read-only."* The skill's detail pane shows where it came from — **Synced from GitHub**, its path in the repository, and the commit — with a **Manage source** link back to Sources.
 
 If you want to tweak one for your company without touching the repository, click **Make a copy** to create an editable copy (see [Editing a skill that isn't yours to edit](#editing-a-skill-that-isnt-yours-to-edit)).
 
@@ -438,7 +480,7 @@ Skills are loaded into agent runs as additional instructions, so where they come
 
 - **Paperclip-managed** — authored inside Paperclip. You have full control of the contents; these are the safest skills to give an agent.
 - **Local folder** — pulled from a project workspace on the same machine. Trust level matches whatever you trust the folder itself with.
-- **GitHub / skills.sh** — pinned to a specific commit or release. The pin means the skill body cannot change underneath you without an explicit **Install update** from the detail pane, so you get a second chance to review diffs before they hit your agents.
+- **GitHub / skills.sh** — pinned to a specific commit or release. A skill synced through **Skills → Sources** follows its repository automatically, so anyone who can push to that repository is effectively writing instructions for your agents. If you want a second look at every change before it reaches them, turn off **Automatic updates** for that source and use **Refresh** when you're ready. Other GitHub and skills.sh skills only move when you click **Install update** on the detail pane.
 - **Gist / URL** — point-in-time imports of external content. Treat these like any third-party code: review the body before you attach the skill to an agent.
 
 Before attaching a skill to a high-trust role (your CEO, a finance agent, an operator with access to secrets), open the skill and read its `SKILL.md` end-to-end. The **Used by** list on the detail pane makes it easy to audit which agents are already exposed to a given skill.

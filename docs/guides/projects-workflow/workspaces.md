@@ -39,7 +39,9 @@ So if the screen looks bare, the fix is usually "run a task," not "find the hidd
 
 ## How execution workspaces relate to projects
 
-Every execution workspace is linked to a project. The project defines the base configuration — where the code lives, how to run it, what the default setup looks like.
+Most execution workspaces are linked to a project. The project defines the base configuration — where the code lives, how to run it, what the default setup looks like.
+
+A task doesn't need a project to have a workspace, though. Each task keeps one lasting workspace choice of its own, separate from which project it's filed under. When nothing else is configured, Paperclip gives the task its own folder, which stays with the task when it's reassigned or resumed. On the **Workspaces** screen, workspaces that don't belong to a project are grouped under **Task workspaces**. A change to a task's workspace choice takes effect the next time an agent picks the task up, never in the middle of a run. To read or change a task's workspace through the API, see [Issues API → Task workspace](../../reference/api/issues.md#task-workspace).
 
 When a task runs, Paperclip resolves which execution workspace to use for that run:
 
@@ -429,6 +431,16 @@ Some practical tips:
 
 The **Cleanup** row on the Concrete location card tells you whether Paperclip has already scheduled the workspace for automatic cleanup — for example, because it's been idle past a retention window — and what the reason is. If you see a scheduled cleanup you didn't expect, look at the project's workspace lifecycle settings to understand why.
 
+### Automatic cleanup of finished work
+
+Isolated worktrees add up fast. Each one carries its own installed dependencies and build output, and a recurring task makes a new one every run. So Paperclip tidies up finished work on its own, in stages. Nothing here touches a workspace while any task in its tree is still open, a run is queued or running, or a runtime service is up.
+
+1. **Compaction, about an hour after the task tree finishes.** Once every task in the tree is done or cancelled, the reaper removes regenerable folders from the worktree: `node_modules`, `dist`, `build`, `coverage`, `storybook-static`, `target`, `.cache`, `.next`, `.nuxt`, `.parcel-cache`, `.svelte-kit`, `.turbo`, and `.vite`. It only removes a folder that your repository's own `.gitignore` ignores and that holds no tracked files. The worktree, its branch and commits, your tracked and untracked files, and other ignored files such as `.env` all stay, and the workspace stays active. If the task resumes, the workspace's provision command runs again and rebuilds what it needs, just like it does for a new worktree.
+2. **Archiving after the cooldown.** The reaper archives a finished workspace and removes its worktree after a one-day cooldown, as long as the work was delivered and the files are clean. You can reopen the task inside that window.
+3. **Git expiration (opt-in).** Operators can also let Paperclip remove Paperclip-owned worktrees 24 hours after the whole task tree finishes, even if the work was never merged. Before it deletes anything, Paperclip proves the exact commit can still be fetched from upstream and saves a recipe for rebuilding it, including nested project repositories and a local `.claude/settings.local.json`. Anything it can't reproduce, such as uncommitted changes, unknown ignored files, or a live run, keeps the workspace on disk. When someone reopens the task later, Paperclip rebuilds the worktree at the saved commit, even if upstream has moved on since. If the repository can't be reached at that point, the request fails with a retryable error and your draft comment is kept, so you can try again once access is back.
+
+Operators tune all of this with environment variables: `PAPERCLIP_WORKSPACE_COMPACTION_DELAY_HOURS` and `PAPERCLIP_WORKSPACE_COMPACTION_ENABLED` for compaction, `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` for the cooldown, and `PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED`, `PAPERCLIP_GIT_CACHE_EXPIRATION_DRY_RUN`, and `PAPERCLIP_GIT_BASE_EXPIRATION_ENABLED` for Git expiration. Git expiration is off by default and starts in dry-run mode when you turn it on. See [Environment Variables](../../reference/deploy/environment-variables.md#server-configuration).
+
 ---
 
 ## Troubleshooting checklist
@@ -443,6 +455,13 @@ When something doesn't behave, run through this checklist before filing a bug:
 - **Is the agent looking at the right workspace?** When follow-up tasks are created, make sure either `parentId` or `inheritExecutionWorkspaceFromIssueId` is set on the child issue so Paperclip can resolve it back to this workspace.
 
 Most workspace-level issues come down to one of these six questions.
+
+### When a task stops before the agent starts
+
+Two workspace problems show up as a notice in the task thread instead of a failed run:
+
+- **The starting branch doesn't exist.** If a task asks for a branch the repository doesn't have (say `main` in a repository that only has `master`), the notice says the branch wasn't found. When Paperclip can read the repository's default branch, it offers a **Use `<branch>` & retry** button. Otherwise, choose **Choose another branch**, type one under **Starting branch**, and click **Save branch & retry**. This changes only that task's starting branch, and Paperclip never switches branches silently.
+- **Workspace source restricted.** An older task can keep its workspace inside a shared project checkout that also holds another task's workspace. If this run can't read that other task, Paperclip stops before the agent starts rather than copy restricted files. To continue, push any unpublished work from the task's workspace and select a new workspace for the task, or have an owner grant access to the restricted task. Then retry. A fresh task that uses the project's default workspace doesn't hit this: in the same situation it gets its own clone of the project's remote repository instead.
 
 ---
 

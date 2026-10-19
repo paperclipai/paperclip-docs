@@ -14,17 +14,26 @@ If you want an agent to *use* a model, that is a model provider connection — s
 
 ## Before you connect
 
-- A Hugging Face account.
+For public Hub content you need nothing at all — no account, no key, no sign-in. Pick **Use public Hugging Face Hub** and you are done.
 
-That is genuinely all for public content. Connect with an account that belongs to your organization if agents should also see private repositories; reach follows the account.
+For private or gated repositories, you need a Hugging Face account that already has access to them. Connect with an account that belongs to your organization; reach follows the account.
 
 ## Connect Hugging Face
 
-1. Open **Connectors** and select **Hugging Face**.
-2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
-3. Select **Sign in with Hugging Face** and complete browser sign-in.
+There are two ways in. Choose the one that matches what agents need to see.
 
-Paperclip registers its client automatically, so there is nothing to configure in a developer console.
+| Method | What you get | What you need |
+| --- | --- | --- |
+| **Use public Hugging Face Hub** | Read-only lookup of public models, datasets, repository details, and documentation | Nothing — it is anonymous |
+| **Sign in with Hugging Face** | The authorizing account's reach, including private repositories it can open, plus repository and job tools | A Hugging Face account |
+
+1. Open **Connectors** and select **Hugging Face**.
+2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. To pick a different identity, narrow the agents, or use another method, select **Change**.
+3. Choose your method:
+   - **Use public Hugging Face Hub** connects straight away. There is nothing to sign in to.
+   - **Sign in with Hugging Face** opens browser sign-in. Paperclip registers its client automatically, so there is nothing to configure in a developer console.
+
+The public method is the shortest connector setup in the catalog, which makes it a good one to try first.
 
 ## Choose access
 
@@ -35,11 +44,16 @@ Two tiers of content, and the difference is worth stating:
 | Public models, datasets, and papers | Anyone. Connecting adds no privileged access to these |
 | Private or gated repositories | Only if the authorizing account already has access |
 
-Because most of the value here is public content, this is one of the lower-risk connectors to give an agent once its writes are switched off. The exception is an account with access to private organization repositories — that account's reach becomes the agent's.
+**The public method** only offers read tools for the public Hub, so it is about as low-risk as a connector gets. Two things to keep in mind:
 
-Paperclip asks Hugging Face for the `read-mcp`, `read-repos`, `contribute-repos`, and `jobs` scopes. That covers reading, but also contributing to repositories and running jobs, so this is not a read-only connection by default. Read the action list on the **Permissions** tab and set anything that is not a read to **Ask first** or **Off** until you need it. See [Set action permissions](action-permissions.md).
+- Hugging Face rate-limits anonymous requests. A busy agent may hit the limit; if that becomes a problem, switch to a signed-in connection.
+- Queries go to Hugging Face as typed. Keep them to public information — no secrets, personal data, private repository names, or proprietary details.
 
-> **Note:** The connection targets the Hub's own tools, and Paperclip requests the endpoint with Gradio tooling switched off — so the interactive applications hosted on Spaces are not part of this connection's surface.
+**The signed-in method** is where care is needed. Because most of the value here is public content, it is one of the lower-risk connectors to give an agent once its writes are switched off. The exception is an account with access to private organization repositories — that account's reach becomes the agent's.
+
+For a signed-in connection, Paperclip asks Hugging Face for the `read-mcp`, `read-repos`, `contribute-repos`, and `jobs` scopes. That covers reading, but also contributing to repositories and running jobs, so this is not a read-only connection by default. Read the action list on the **Permissions** tab and set anything that is not a read to **Ask first** or **Off** until you need it. See [Set action permissions](action-permissions.md).
+
+> **Note:** A signed-in connection targets the Hub's own tools, and Paperclip requests the endpoint with Gradio tooling switched off — so the interactive applications hosted on Spaces are not part of this connection's surface.
 
 ## Try it
 
@@ -58,10 +72,12 @@ Expect results you can check on the Hub. Licence is a useful thing to ask for, b
 | A private repository is not found | The authorizing account does not have access | Grant access on the Hub, or connect with an account that has it |
 | A gated model's details are unavailable | Gated repositories require accepting terms on the Hub | Accept the terms with the authorizing account |
 | An agent claims it can run a model it found | It cannot — this connector is discovery only | Use a model provider connection |
+| A public connection starts failing during heavy use | Hugging Face rate-limits anonymous requests | Wait and retry, or connect with **Sign in with Hugging Face** |
+| A private repository is not found on a public connection | The public method only sees public content | Use **Sign in with Hugging Face** with an account that has access |
 | Results seem stale | The Hub changes constantly; the agent read what was returned at the time | Re-run the search |
 | **Needs attention** | The grant was revoked | Select **Reconnect** |
 
-Limitations: discovery and metadata only. No inference, no hosting, no Spaces applications. Private content requires the account to already have access.
+Limitations: discovery and metadata only. No inference, no hosting, no Spaces applications. Private content needs a signed-in connection whose account already has access; the public method is anonymous, read-only, and rate-limited.
 
 ## Related guides
 

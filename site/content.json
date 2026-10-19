@@ -243,12 +243,20 @@
               "file": "../docs/connectors/asana.md"
             },
             {
+              "title": "Bitly",
+              "file": "../docs/connectors/bitly.md"
+            },
+            {
               "title": "Box",
               "file": "../docs/connectors/box.md"
             },
             {
               "title": "Browser Use Cloud",
               "file": "../docs/connectors/browser-use-cloud.md"
+            },
+            {
+              "title": "Calendly",
+              "file": "../docs/connectors/calendly.md"
             },
             {
               "title": "ClickHouse",
@@ -271,6 +279,14 @@
               "file": "../docs/connectors/composio.md"
             },
             {
+              "title": "Context7",
+              "file": "../docs/connectors/context7.md"
+            },
+            {
+              "title": "Daytona",
+              "file": "../docs/connectors/daytona.md"
+            },
+            {
               "title": "Discord",
               "file": "../docs/connectors/discord.md"
             },
@@ -279,12 +295,24 @@
               "file": "../docs/connectors/enterpret.md"
             },
             {
+              "title": "Exa",
+              "file": "../docs/connectors/exa.md"
+            },
+            {
               "title": "Executor",
               "file": "../docs/connectors/executor.md"
             },
             {
+              "title": "Firecrawl",
+              "file": "../docs/connectors/firecrawl.md"
+            },
+            {
               "title": "Fireflies",
               "file": "../docs/connectors/fireflies.md"
+            },
+            {
+              "title": "Gauge",
+              "file": "../docs/connectors/gauge.md"
             },
             {
               "title": "GitHub",
@@ -352,6 +380,10 @@
               "file": "../docs/connectors/xai.md"
             },
             {
+              "title": "GSC Wizard",
+              "file": "../docs/connectors/gsc-wizard.md"
+            },
+            {
               "title": "Honcho",
               "file": "../docs/connectors/honcho.md"
             },
@@ -370,6 +402,10 @@
             {
               "title": "Linear",
               "file": "../docs/connectors/linear.md"
+            },
+            {
+              "title": "Make",
+              "file": "../docs/connectors/make.md"
             },
             {
               "title": "Mem0",
@@ -412,6 +448,10 @@
               "file": "../docs/connectors/pagerduty.md"
             },
             {
+              "title": "Parallel Search",
+              "file": "../docs/connectors/parallel-search.md"
+            },
+            {
               "title": "PostHog",
               "file": "../docs/connectors/posthog.md"
             },
@@ -440,6 +480,10 @@
               "file": "../docs/connectors/slack.md"
             },
             {
+              "title": "Speko",
+              "file": "../docs/connectors/speko.md"
+            },
+            {
               "title": "Stripe",
               "file": "../docs/connectors/stripe.md"
             },
@@ -456,6 +500,10 @@
               "file": "../docs/connectors/supermemory.md"
             },
             {
+              "title": "Tavily",
+              "file": "../docs/connectors/tavily.md"
+            },
+            {
               "title": "Telegram",
               "file": "../docs/connectors/telegram.md"
             },
@@ -470,6 +518,10 @@
             {
               "title": "Webflow",
               "file": "../docs/connectors/webflow.md"
+            },
+            {
+              "title": "Windsor.ai",
+              "file": "../docs/connectors/windsor-ai.md"
             },
             {
               "title": "Wix",
@@ -584,6 +636,10 @@
         {
           "title": "Assistant Connections (MCP)",
           "file": "../docs/experimental/assistant-connections.md"
+        },
+        {
+          "title": "External Agents (Dot, Grok Bot, Muse)",
+          "file": "../docs/experimental/external-agents.md"
         },
         {
           "title": "Task-Pinned AI Routing",
@@ -862,6 +918,10 @@
         {
           "title": "Costs",
           "file": "../docs/reference/api/costs.md"
+        },
+        {
+          "title": "Decision Models",
+          "file": "../docs/reference/api/decision-models.md"
         },
         {
           "title": "Secrets",

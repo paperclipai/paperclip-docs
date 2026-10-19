@@ -140,6 +140,8 @@ If you supply an `instructionsFilePath`, Paperclip prefers staging it into the w
 
 ## Grok Build On Paperclip Runner
 
+> **Note:** Grok Build is a coding runtime. It isn't the same as **Grok Bot**, the experimental external provider that connects an existing Grok Bot as an agent. See [Experimental external providers](paperclip-runner.md#experimental-external-providers).
+
 `grok_local` isn't the only way to run Grok. Grok Build is also available on **Paperclip Runner** (`paperclip_runner`), Paperclip's experimental native runner, which talks to Grok over the Agent Client Protocol (ACP) instead of wrapping the CLI. Pick it when you want the runner's durable sessions — a run that survives a server restart and picks up the same Grok conversation — and its built-in Paperclip tools.
 
 Your existing `grok_local` agents keep running on `grok_local`. Nothing migrates them; switching is a choice you make per agent.

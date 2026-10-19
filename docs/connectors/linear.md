@@ -12,15 +12,28 @@ Agents can read Linear issues, create new ones, and update existing ones — use
 
 - A Linear account with access to the workspace and teams you want agents to use.
 
-That is all. Paperclip registers its own OAuth client with Linear's MCP server when you connect, so there is no app to create in Linear's developer settings.
+That is all for browser sign-in. Paperclip registers its own OAuth client with Linear's MCP server when you connect, so there is no app to create in Linear's developer settings.
 
 ## Connect Linear
 
 1. Open **Connectors** and select **Linear**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity or narrow the agents, select **Change**.
-3. Select **Continue to Linear**, sign in as the account whose access the connection should have, and approve access.
+3. Select **Continue to sign in**, sign in as the account whose access the connection should have, and approve access.
 
 Paperclip asks Linear for the `read` and `write` scopes, so agents can read issues and also create and update them. Which of those actions an agent may actually run is still your call on the **Permissions** tab.
+
+Sign-in needs your Paperclip address to be HTTPS, or a local `localhost` address.
+
+### Use an API key instead
+
+If browser sign-in is not suitable, select **Change** and choose **Use an API key**.
+
+1. Create a personal API key in Linear's settings. Choose the permissions and teams the actions you plan to allow actually need.
+2. Paste it into the **Your Linear key** field and select **Connect**.
+
+A key restricted to **Read** permission works, and it is the simplest way to get a connection that genuinely cannot change anything in Linear. Workspace and role access still apply on top of the key.
+
+> **Note:** Linear's server exposes both read and write tools, whichever way you connect. A read-only key makes Linear refuse the writes; set them to **Off** on the **Permissions** tab too, so the action list matches what the key can actually do.
 
 > **Note:** Earlier versions of this guide had you register your own Linear OAuth application first. That is no longer needed. A connection you already made with your own application keeps working.
 
@@ -52,7 +65,9 @@ Compare against the issue in Linear. A read of a known issue confirms the creden
 | An issue cannot be found | The authorizing account cannot see that team or project | Grant access in Linear; no reconnect needed |
 | The agent reaches more teams than expected | Reach follows the authorizing account, not a Paperclip filter | Authorize with a more limited account |
 | Agent-created issues look like they came from a person | The connection uses a personal identity | Use a dedicated agent account |
-| **Needs attention** | The grant was revoked in Linear | Select **Reconnect** |
+| Sign-in will not start on a self-hosted instance | Paperclip is served over plain HTTP on a non-local address | Serve Paperclip over HTTPS, or use **Use an API key** |
+| A write fails with a permission error on a key connection | The API key has **Read** permission only | Expected for a read-only key; set the write actions to **Off** |
+| **Needs attention** | The grant was revoked in Linear, or the API key was deleted | Select **Reconnect** |
 
 Limitations: one workspace per connection. No team or project restriction inside Paperclip. Linear's own rate limits apply.
 

@@ -19,7 +19,7 @@ A separate key matters here. Superagent keys are not scoped: one key reaches eve
 
 1. Open **Connectors** and select **Superagent**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to narrow the agents.
-3. Paste the key into the **Superagent API key** field and connect.
+3. Paste the key into the **Your Superagent key** field and select **Connect**.
 4. Open **Permissions** and review the action list before any agent runs unattended.
 
 API key is the only method. Paperclip stores the key as a secret and sends it to Superagent on each call; agents never see it.

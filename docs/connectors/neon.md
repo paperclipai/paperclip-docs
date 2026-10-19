@@ -30,7 +30,7 @@ Paperclip never falls back from one method to the other on its own. The method y
 
 ### Which key the API-key method wants
 
-The **Neon API key** field accepts keys starting `napi_...` or `neon_project_key_...`. Neon offers a few kinds, and their reach differs:
+The **Your Neon key** field accepts keys starting `napi_...` or `neon_project_key_...`. Neon offers a few kinds, and their reach differs:
 
 | Kind | What it reaches |
 | --- | --- |

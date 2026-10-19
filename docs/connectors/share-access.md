@@ -44,6 +44,8 @@ For an app-tool connection, open the **Permissions** tab and find **Which agents
 
 If the control is disabled with *"Unavailable while this connection is installed for every agent,"* the connection has a company-wide install that supersedes the per-agent list. Change the install first.
 
+You can also save **Just agents I pick** with no agents chosen, if you want to connect first and grant access later. For a provider-hosted connector, that choice holds through the provider's sign-in: when you come back from authorizing, the connection still has no agents rather than defaulting to everyone.
+
 Check the stated audience during setup and change it if needed. Access to a connection does not decide what an agent may do; the action list still controls each call. See [Set action permissions](action-permissions.md).
 
 ## Why these are two lists

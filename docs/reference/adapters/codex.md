@@ -8,6 +8,8 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 
 `codex_local` runs OpenAI's Codex CLI on the same machine as Paperclip. Use it when you want a local coding agent with persistent session state, managed `CODEX_HOME`, and Paperclip skills injected into the Codex skills directory.
 
+> **Heads-up:** New Codex agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer. Those agents are saved as `paperclip_runner` with `provider: "codex"`. To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
+
 ---
 
 ## When To Use
@@ -244,9 +246,10 @@ The `Test Environment` button checks:
 - Codex CLI is installed and executable.
 - The working directory is absolute and usable.
 - Authentication is ready through `OPENAI_API_KEY` or Codex's own login state.
+- The installed Codex CLI is new enough for the selected model. With ChatGPT sign-in, `gpt-6.1-sol` needs Codex `0.159.0` or newer, and `gpt-6-sol` and `gpt-6-luna` need `0.157.0` or newer. The test runs `codex --version` where the agent runs (locally, over SSH, or in the sandbox) and reports `codex_cli_version_compatible` or `codex_cli_version_incompatible`. When the CLI is too old, the hello probe is skipped.
 - The hello probe can run `codex exec --json -` with the prompt `Respond with hello.`
 
-If the probe fails, fix the command or auth path before saving the adapter.
+If the probe fails, fix the command or auth path before saving the adapter. If the Codex backend rejects the model for your ChatGPT account, the test reports `codex_hello_probe_model_rejected` and explains the likely cause: a Codex CLI that's too old, a plan that doesn't include the model, or a rollout that hasn't reached your account yet. In a sandbox, the fix for an old CLI is to promote an image that ships the Codex version Paperclip pins. Adding a model to the catalog doesn't update the CLI baked into existing images.
 
 ---
 

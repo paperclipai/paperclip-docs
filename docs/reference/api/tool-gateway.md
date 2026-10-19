@@ -233,9 +233,11 @@ The call body takes:
 |---|---|---|
 | `tool` | yes | The tool name. A missing or non-string value returns `400` with `"tool" is required and must be a string`. |
 | `parameters` | no | The tool's arguments. Defaults to `{}`. |
-| `timeoutMs` | no | How long to wait on the upstream tool. |
+| `timeoutMs` | no | How long to wait on the upstream tool, capped at 60 seconds. Without it, most tools get 10 seconds; GitHub review bot tools get the full 60, so a slow review publication can finish and return its receipt. |
 | `approvedActionRequestId` | no | The approval you are cashing in, when a previous attempt returned `require_approval`. |
 | `idempotencyKey` | no | Makes a retry safe — the same key won't run the tool twice. |
+
+If the provider rejects a saved OAuth token mid-call, Paperclip refreshes the token but does not replay your call. You get `409 Conflict` with the code `oauth_refreshed_retry_required` and *"The provider rejected the saved OAuth token, which has now been refreshed. Retry the action explicitly; the original call was not replayed."* Send the call again when you are sure repeating it is safe.
 
 ### An agent authorizing its own connection
 

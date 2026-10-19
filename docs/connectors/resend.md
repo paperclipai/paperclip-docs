@@ -14,20 +14,24 @@ Resend is for programmatic email from your own domains. If you want an agent to 
 
 ## Before you connect
 
-- A Resend account with access to the domains you want agents to work with.
+- A Resend team account with access to the domains you want agents to work with. When Resend asks, sign in to the team the connection is meant for.
 - Verified sending domains, if sending is in scope. Resend requires domain verification through DNS before it will send from an address, and this connector does not change that.
 
 ## Connect Resend
 
 1. Open **Connectors** and select **Resend**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
-3. Select **Sign in with Resend** and complete browser sign-in.
+3. Select **Continue to Resend** and complete browser sign-in.
 
 Paperclip registers its client automatically, so there is nothing to configure in a developer console.
 
 ## Choose access
 
-Reach is the authorizing Resend account's: its domains, audiences, and delivery history.
+Reach is the authorizing Resend team's: its domains, audiences, and delivery history.
+
+Paperclip asks Resend for the `full_access` scope. That one grant covers reading and managing everything on the team, including sending email and deleting resources. Resend does not offer a narrower grant for this sign-in.
+
+> **Important:** Setting actions to **Off** in Paperclip stops agents from calling them, but it does not shrink the token Resend issued. The token itself can still do everything `full_access` allows. Paperclip's action settings are the boundary, so set them deliberately.
 
 Separate the operations clearly, because they differ enormously in consequence:
 

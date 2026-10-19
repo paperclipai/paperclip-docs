@@ -186,6 +186,8 @@ paperclipai auth login --no-browser
 
 If you cancel in the browser, the CLI exits with `CLI auth challenge was cancelled.`; if you wait too long, `CLI auth challenge expired before approval.` Either way, just re-run the command.
 
+If the server rate-limits the polling (`429`), the CLI waits as long as the server's `Retry-After` header asks and keeps polling. It never waits past the challenge's original expiry and never extends it.
+
 ### `auth whoami`
 
 Show the current board-user identity for this API base. Calls `/api/cli-auth/me`.

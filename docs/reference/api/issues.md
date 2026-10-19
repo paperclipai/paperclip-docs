@@ -127,6 +127,8 @@ Return all issues visible to a company, ordered by priority unless a search quer
 | `originKind` | Filter by origin kind, such as `manual` or `routine_execution` |
 | `originId` | Filter by origin identifier |
 | `includeRoutineExecutions` | Include routine execution issues. Default is `false` |
+| `includeAgentCreatedTasks` | `true` or `false`. Send `false` to keep only tasks a person created through the normal task or onboarding flow; tasks created by an agent, with no creating user, or from another origin (including every chat-channel task) are left out. Omit it to keep the previous behaviour |
+| `includeParticipatedTasks` | `true` or `false`. Board users only. With `includeAgentCreatedTasks=false`, also keeps agent-created tasks the signed-in user has taken part in |
 | `q` | Full-text search across title, identifier, description, and comments |
 | `limit` | Positive integer result cap |
 
@@ -136,6 +138,7 @@ Notes:
 - `limit` must be a positive integer.
 - Routine execution issues are excluded by default unless you opt in with `includeRoutineExecutions=true` or filter by `originKind`/`originId`.
 - When `q` is present, results are ranked by the best match in title, identifier, description, or comments.
+- `includeAgentCreatedTasks` and `includeParticipatedTasks` return `400` for any value other than `true` or `false`. `includeParticipatedTasks=true` from a non-board caller returns `403`. The agent-created filter is applied before `limit` and pagination. The board's **show agent-created tasks** checkbox drives it.
 
 ### Example
 
@@ -168,6 +171,7 @@ The response includes the issue itself and these related fields:
 - `mentionedProjects`
 - `currentExecutionWorkspace`
 - `workProducts`
+- `createdFrom`
 
 ### Relationship Notes
 
@@ -176,6 +180,7 @@ The response includes the issue itself and these related fields:
 - `blockedBy` and `blocks` come from issue relations of type `blocks`.
 - `planDocument` is the keyed issue document with key `plan`, if it exists.
 - `legacyPlanDocument` is a read-only fallback extracted from an old `<plan>...</plan>` block in the issue description.
+- `createdFrom` names the task an agent run was working on when it created this one: `{ issue: { id, identifier, title, status }, run: { id, agentId }, agent: { id, name } | null }`. It records where the task came from. It isn't the parent and it isn't a blocker. It's `null` when the task has no recorded source, when the run belongs to another company, or when you can't read the source task or the run, so a private source looks the same as no source.
 
 ### Heartbeat Context
 
@@ -211,6 +216,8 @@ Notable inputs:
 - `status` defaults to `backlog`.
 - `priority` defaults to `medium`.
 - `projectId`, `goalId`, and `parentId` establish the issue's placement.
+- When an agent run bound to a task omits `parentId`, the server makes the new task a child of the run's task and records `parentDefaultedFromRunIssue: true` on the `issue.created` activity. Send `"parentId": null` for a standalone task (CLI: `issue create --standalone`). The default is skipped for conversation runs, board and user creates, watchdog follow-ups, and when it would create a cycle or the agent couldn't create a child there. Those tasks stay top-level, so no request that worked before now fails.
+- `visibility` is `open` (default) or `private`. A private task is readable only by its owners, its assignee, private-project members, and people or agents it's shared with. A child of a private task, or a task in a private project, is private regardless. See [Privacy and access grants](#privacy-and-access-grants).
 - `blockedByIssueIds` links blockers.
 - `labelIds` attaches labels.
 - `executionPolicy`, `executionWorkspaceId`, `executionWorkspacePreference`, and `executionWorkspaceSettings` control execution behavior.
@@ -313,6 +320,8 @@ Behavior to know:
 - Only board users can interrupt an active run from issue comments.
 - Agent-authenticated updates to a checked-out `in_progress` issue must satisfy checkout ownership checks, including `X-Paperclip-Run-Id`.
 - `hiddenAt` hides or unhides the issue from list responses.
+- `visibility` switches the issue between `open` and `private`. An agent that can update the task may make it `private`; any other change needs someone who can manage the task's privacy (see [Privacy and access grants](#privacy-and-access-grants)). Making a task public fails with `422` while it inherits privacy from a parent or a private project (`A task cannot be made public while it inherits private access`, `Move this task out of its private project before making it public`). Existing private children stay private.
+- `expectedExecutionPolicy` is an optional snapshot of the `executionPolicy` you last read. When you send it, the update must change only `executionPolicy` (otherwise `422`, `expectedExecutionPolicy requires a policy-only update`), and the server rejects it with `409` and code `execution_policy_changed` if the stored policy changed since. The board uses this when you cancel a monitor from its card.
 
 ### Blocking Links
 
@@ -531,6 +540,44 @@ Release semantics:
 - Agent-authenticated releases must come from the assignee's current checkout run.
 
 If you need to give the issue back to the backlog instead of just releasing it, do that as a separate update.
+
+---
+
+## Privacy and access grants
+
+These routes manage who can see a private task. You can call them if you can read the task and manage its privacy: the task's responsible user, creator, or assigned user, a company owner or admin, an instance admin, or the local board. Other callers, including agents, get `403` with `Only a responsible user, issue owner, or administrator can manage issue privacy`.
+
+```
+GET  /api/issues/{issueId}/privacy-constraints
+GET  /api/issues/{issueId}/access-grants
+POST /api/issues/{issueId}/access-grants
+POST /api/issues/{issueId}/access-grants/{grantId}/revoke
+```
+
+- **Privacy constraints** returns `{ "publicBlockedBy": "parent" | "project" | null, "leavesPersonalProject": boolean }`. Use it to tell whether the task can be made public and whether that would move it out of a personal project. It never reveals the protecting parent or project.
+- **List access grants** returns everyone with effective access. Each entry has `subjectType` (`user` or `agent`), `subjectId`, `source` (`explicit`, `assignment`, `project`, or `owner`), `inherited` (`true` when it comes from a private ancestor or private project), `revokedAt`, and display fields: `subjectDisplayName`, `subjectAvatarUrl`, `subjectInitials`, and `agentVisibility` (`private` or `discoverable` for agents).
+- **Create access grant** takes `{ "subjectType": "user" | "agent", "subjectId": "..." }` and shares the task and its descendants. It returns `201` for a new grant, or `200` if that grant already exists. An open task returns `409` (`Open issues do not require access grants`). Logged as `issue_access_grant.created`.
+- **Revoke access grant** takes an empty body and revokes one grant on this exact task. It returns `404` if the grant isn't active on this task. Revoking doesn't remove access the subject has for other reasons. Logged as `issue_access_grant.revoked`.
+
+To make a task private or public, `PATCH` its `visibility` (see [Update Issue](#update-issue)).
+
+---
+
+## Task workspace
+
+Every task has one durable workspace binding, even without a project. These routes let you, or the agent working on the task, inspect it and request a change. Changes apply at the task's next normal admission, not mid-run.
+
+```
+GET  /api/issues/{issueId}/workspace
+PUT  /api/issues/{issueId}/workspace
+POST /api/issues/{issueId}/workspace/repositories
+```
+
+- **GET** returns the current workspace view plus `repositories` (each with `repoUrl`, `relativePath`, `requestedRef`, `state`, `pinnedCommit`, and `branchName`), `capabilities`, and `fileLocations`.
+- **PUT** requests a different workspace. The body is `{ "selection": ..., "expectedBindingRevision": <int>, "requestKey": "..." }`. `selection.kind` is one of `task_directory` (the task's own directory), `existing` (with `workspaceId`), or `configured_source` (with `projectWorkspaceId` and `mode` of `shared` or `managed_isolated`). If the binding changed since you read it, the request fails with `409` (`Task workspace binding changed; inspect it before selecting again`). Reusing a `requestKey` for a different selection also returns `409`. The response reports whether the change was `applied` or `scheduled`. Logged as `issue.workspace.selection_requested`.
+- **POST /repositories** asks for a repository to be prepared in the task workspace. The body is `{ "repository": { "kind": "catalog", "id": "..." } | { "kind": "url", "url": "..." }, "ref"?: "...", "requestKey": "..." }`.
+
+Writes need permission to change the task. An agent can only change the workspace of the task its run is working on (`Workspace selection is scoped to the current task`). See [Execution workspaces](../../guides/projects-workflow/workspaces.md) for how workspaces behave.
 
 ---
 
