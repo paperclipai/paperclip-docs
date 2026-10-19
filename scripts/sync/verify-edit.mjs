@@ -18,6 +18,9 @@
 //
 // Testing hook: PAPERCLIP_SYNC_FIXTURE_DIR redirects gh api calls to JSON
 // fixtures (same shape as check-drift.mjs).
+//
+// PAPERCLIP_SYNC_LOCAL_SRC=<dir> reads parent files from a local checkout at
+// the --against ref instead of the GitHub API (no rate limit).
 
 import { spawnSync } from "node:child_process";
 import {
@@ -35,6 +38,9 @@ const SELF_DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(SELF_DIR, "../..");
 const CACHE_ROOT = "/tmp/paperclip-sync";
 const FIXTURE_DIR = process.env.PAPERCLIP_SYNC_FIXTURE_DIR || null;
+// Optional local checkout of the parent repo at the --against ref. Reading
+// from disk avoids the GitHub API entirely (no rate limit, much faster).
+const LOCAL_SRC = process.env.PAPERCLIP_SYNC_LOCAL_SRC || null;
 
 // --- gh wrapper (mirrors check-drift.mjs) ---------------------------------
 
@@ -42,7 +48,25 @@ function pathSlug(p) {
   return p.replace(/[/]/g, "__");
 }
 
+function localContents(path) {
+  const full = join(LOCAL_SRC, path);
+  if (!existsSync(full)) return { status: 404 };
+  const st = statSync(full);
+  if (st.isDirectory()) {
+    const list = readdirSync(full, { withFileTypes: true })
+      .filter((d) => d.name !== ".git")
+      .map((d) => ({
+        name: d.name,
+        path: path ? `${path.replace(/\/$/, "")}/${d.name}` : d.name,
+        type: d.isDirectory() ? "dir" : "file",
+      }));
+    return { status: 200, list };
+  }
+  return { status: 200, content: readFileSync(full, "utf8") };
+}
+
 function ghContents(repo, path, ref) {
+  if (LOCAL_SRC) return localContents(path);
   if (FIXTURE_DIR) {
     const file = join(FIXTURE_DIR, `contents-${pathSlug(path)}-${ref}.json`);
     if (!existsSync(file)) return { status: 404 };
@@ -145,6 +169,14 @@ function ghDefaultBranch(repo) {
 }
 
 function ghTreeFiles(repo, ref) {
+  if (LOCAL_SRC) {
+    const r = spawnSync("git", ["-C", LOCAL_SRC, "ls-files"], {
+      encoding: "utf8",
+      maxBuffer: 128 * 1024 * 1024,
+    });
+    if (r.status !== 0) return null;
+    return r.stdout.split("\n").filter(Boolean);
+  }
   if (FIXTURE_DIR) {
     const file = join(FIXTURE_DIR, `tree-${ref}.json`);
     if (!existsSync(file)) return null;
@@ -174,6 +206,14 @@ function ghTreeFiles(repo, ref) {
 }
 
 function ghResolveSha(repo, ref) {
+  if (LOCAL_SRC) {
+    const r = spawnSync("git", ["-C", LOCAL_SRC, "rev-parse", "HEAD"], { encoding: "utf8" });
+    const head = (r.stdout || "").trim();
+    if (head && !head.startsWith(ref) && !ref.startsWith(head.slice(0, 7))) {
+      process.stderr.write(`warning: PAPERCLIP_SYNC_LOCAL_SRC is at ${head.slice(0, 7)}, not ${ref}\n`);
+    }
+    return head.slice(0, 7) || null;
+  }
   if (FIXTURE_DIR) return null;
   const r = spawnSync(
     "gh",
@@ -187,7 +227,7 @@ function ghResolveSha(repo, ref) {
 // --- caching ---------------------------------------------------------------
 
 function cacheGet(refSlug, key) {
-  if (FIXTURE_DIR) return null;
+  if (FIXTURE_DIR || LOCAL_SRC) return null;
   const dir = join(CACHE_ROOT, `verify-${refSlug}`);
   const file = join(dir, `${pathSlug(key)}.json`);
   if (!existsSync(file)) return null;
@@ -202,7 +242,7 @@ function cacheGet(refSlug, key) {
 }
 
 function cacheSet(refSlug, key, value) {
-  if (FIXTURE_DIR) return;
+  if (FIXTURE_DIR || LOCAL_SRC) return;
   const dir = join(CACHE_ROOT, `verify-${refSlug}`);
   try {
     mkdirSync(dir, { recursive: true });
