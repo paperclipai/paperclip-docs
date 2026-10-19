@@ -36,7 +36,9 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { writeFileSync } from "node:fs";
+import { writeFileSync, mkdirSync } from "node:fs";
+import { resolve as resolvePath, dirname as dirnamePath } from "node:path";
+import os from "node:os";
 import { BASE_URL, COMPANY_NAME, SEED_IDS_PATH, mintAgentJwt, openInstanceDb } from "./config.mjs";
 import { seedExecutionWorkspace } from "./seed-execution-workspace.mjs";
 import { seedNewSurfaces } from "./seed-new-surfaces.mjs";
@@ -95,7 +97,17 @@ const ISSUE_SPECS = [
     { title: "Write onboarding docs", status: "todo", priority: "low", assignee: "Eve", project: "Website" },
     { title: "Fix flaky integration test", status: "in_review", priority: "high", assignee: "Dax", project: "Website" },
     { title: "Add dark mode to the portal", status: "todo", priority: "medium", assignee: "Bob", project: "Website" },
-    { title: "Investigate battery telemetry spike", status: "blocked", priority: "critical", assignee: "Eve", project: "Mobile App" },
+    // Entering `blocked` now requires a reason the server can see: an unresolved
+    // blocker, a pending interaction/approval, or an `unblockDescriptor` (PATCH
+    // /issues/:id returns 422 otherwise). The descriptor is cleared whenever the
+    // issue leaves `blocked`, so reassertIssueStatuses() re-sends it too.
+    {
+      title: "Investigate battery telemetry spike", status: "blocked", priority: "critical", assignee: "Eve", project: "Mobile App",
+      unblockDescriptor: {
+        owner: "board",
+        action: "Get a hardware trace from the fleet team so Eve can confirm the battery telemetry spike.",
+      },
+    },
     { title: "Mobile: implement push notifications", status: "backlog", priority: "medium", assignee: "Bob", project: "Mobile App" },
     { title: "Accessibility audit of checkout flow", status: "todo", priority: "high", assignee: "Cleo", project: "Website" },
 ];
@@ -111,6 +123,30 @@ async function step(label, fn, fallback = null) {
     console.warn(`[seed] ${label} failed (non-fatal): ${err.message}`);
     return fallback;
   }
+}
+
+/**
+ * Toggle an agent's wake-on-demand, preserving the rest of its heartbeat config.
+ *
+ * The hero task (ACM-1) is in_progress and assigned to a `process` agent whose
+ * demo command exits without recording an issue disposition. Any run on that
+ * issue — the assignment wake, or the `issue_commented` wakes from the seeded
+ * thread — therefore leaves it as a "deliberate wait without target", and the
+ * recovery service retries, then escalates: Blocked + "Agent needs attention…
+ * automatic attempts failed" + a "Recovery needed" badge, and a loop of
+ * "System issue disposition repair" rows in every activity feed. Keeping the
+ * assignee's on-demand wakes off while the hero issue and its thread are
+ * written means no run ever binds to it, so it stays a plain in-progress task.
+ */
+async function setWakeOnDemand(agentId, enabled, baseUrl) {
+  if (!agentId) return;
+  const agent = await get(`/api/agents/${agentId}`, baseUrl);
+  const runtimeConfig = agent?.runtimeConfig ?? {};
+  await patch(
+    `/api/agents/${agentId}`,
+    { runtimeConfig: { ...runtimeConfig, heartbeat: { ...(runtimeConfig.heartbeat ?? {}), wakeOnDemand: enabled } } },
+    baseUrl,
+  );
 }
 
 // ── Seed ──────────────────────────────────────────────────────────────────────
@@ -404,12 +440,16 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
   const issueSpecs = ISSUE_SPECS;
   const existingIssues = asList(await step("list issues", () => get(C("/issues"), baseUrl), []));
   const issues = {};
+  const heroAssigneeId = agents[ISSUE_SPECS[0].assignee]?.id ?? null;
   for (const spec of issueSpecs) {
     const found = existingIssues.find((x) => x.title === spec.title);
     if (found) {
       issues[spec.title] = found;
       continue;
     }
+    // See setWakeOnDemand(): the hero issue must never get an assignee run.
+    const quietHero = spec === ISSUE_SPECS[0] && heroAssigneeId;
+    if (quietHero) await step("quiet hero assignee", () => setWakeOnDemand(heroAssigneeId, false, baseUrl));
     const created = await step(`create issue "${spec.title}"`, () =>
       post(
         C("/issues"),
@@ -421,6 +461,7 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
           ...(agents[spec.assignee]?.id ? { assigneeAgentId: agents[spec.assignee].id } : {}),
           ...(projects[spec.project]?.id ? { projectId: projects[spec.project].id } : {}),
           ...(spec.goal && goalId ? { goalId } : {}),
+          ...(spec.unblockDescriptor ? { unblockDescriptor: spec.unblockDescriptor } : {}),
         },
         baseUrl,
       ),
@@ -429,6 +470,9 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
       issues[spec.title] = created;
       console.log(`[seed] created issue "${spec.title}" (${created.id})`);
     }
+    // Back on before the next issue, so the assignee's other (todo) issue still
+    // gets a run — the seeded thread's agent replies need an issue-scoped run.
+    if (quietHero) await step("wake hero assignee", () => setWakeOnDemand(heroAssigneeId, true, baseUrl));
   }
 
   // The primary issue we point screenshots at (homepage hero — in progress, assigned).
@@ -520,6 +564,9 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
       });
     }
 
+    // Board comments wake the assignee (`issue_commented`); keep it asleep for
+    // the thread so no run binds to the hero issue (see setWakeOnDemand()).
+    await step("quiet hero assignee for thread", () => setWakeOnDemand(assigneeAgentId, false, baseUrl));
     for (const entry of thread) {
       if (entry.as === "agent" && agentAuth) {
         await step("add agent reply", async () => {
@@ -541,6 +588,7 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
         );
       }
     }
+    await step("wake hero assignee after thread", () => setWakeOnDemand(assigneeAgentId, true, baseUrl));
     console.log(`[seed] added a ${thread.length}-message thread to the primary issue`);
   }
 
@@ -578,6 +626,16 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
       post(`/api/routines/${routineId}/run`, { assigneeAgentId: managerAgentId, source: "manual" }, baseUrl),
     );
     console.log("[seed] triggered one routine run (history row)");
+    // A real schedule trigger, so the routine reads "Every weekday at 09:00"
+    // on its overview and routines/cron-picker can open the schedule editor.
+    // (08:30 London, so it does not fire in the middle of a daytime capture.)
+    await step("add routine schedule trigger", () =>
+      post(
+        `/api/routines/${routineId}/triggers`,
+        { kind: "schedule", label: "Weekday mornings", cronExpression: "30 8 * * 1-5", timezone: "Europe/London" },
+        baseUrl,
+      ),
+    );
   }
 
   // ── 11. Invites (fresh runs only) ───────────────────────────────────────────
@@ -599,7 +657,12 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
   // shipped issues/detail-chat.png and tasks/* screenshots, so the guides were
   // illustrating plugin debug output instead of the task page. Every other
   // example still installs, which is all the plugin-list shots need.
-  const EXCLUDED_PLUGIN_MATCH = /kitchen-sink/i;
+  //
+  // The hello-world and authoring-smoke examples are excluded for the same
+  // reason since v2026.1012.0: both mount dashboard widgets ("Hello world",
+  // "Plugin Authoring Smoke Example") that print the raw company UUID and a
+  // health timestamp onto every dashboard screenshot.
+  const EXCLUDED_PLUGIN_MATCH = /kitchen-sink|hello-world|authoring-smoke/i;
   await step("install bundled plugins", async () => {
     const examples = asList(await get("/api/plugins/examples", baseUrl));
     const installed = asList(await get("/api/plugins", baseUrl));
@@ -720,7 +783,9 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
       if (!agent) {
         agent = await post(
           C("/agents"),
-          { name: spec.name, role: "general", adapterType: "process", adapterConfig: DEMO_AGENT_CONFIG, budgetMonthlyCents: 100_000, reportsTo: managerAgentId ?? undefined },
+          // Under Eve rather than Ada: eight direct reports made the org chart
+          // too wide to read at any zoom that fits the viewport.
+          { name: spec.name, role: "general", adapterType: "process", adapterConfig: DEMO_AGENT_CONFIG, budgetMonthlyCents: 100_000, reportsTo: agents.Eve?.id ?? managerAgentId ?? undefined },
           baseUrl,
         );
       }
@@ -740,6 +805,12 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     });
   }
 
+  // 14b-bis. An organization budget policy. The company is created with
+  // budgetMonthlyCents, but the Audit → Budgets "organization budgets" card
+  // only exists once a company-scope policy does (costs/company-budget-field).
+  await step("organization budget policy", () =>
+    api("PATCH", `/api/companies/${companyId}/budgets`, { budgetMonthlyCents: 750_000 }, baseUrl));
+
   // 14c. An HTTP-adapter agent so the http config form is reachable.
   let httpAgentId = null;
   await step("create http-adapter agent", async () => {
@@ -748,13 +819,116 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     if (!agent) {
       agent = await post(
         C("/agents"),
-        { name: "Webhook Worker", role: "general", adapterType: "http", adapterConfig: {}, reportsTo: managerAgentId ?? undefined },
+        // Reports to Bob (with Finn and Gia) so the org chart has a second tier.
+        { name: "Webhook Worker", role: "general", adapterType: "http", adapterConfig: { url: "https://hooks.acme.example/paperclip" }, reportsTo: agents.Bob?.id ?? managerAgentId ?? undefined },
         baseUrl,
       );
     }
     httpAgentId = agent.id;
     console.log(`[seed] http-adapter agent → ${agent.id}`);
   });
+
+  // 14c-bis. A Claude Code and a Codex agent so the claude_local / codex_local
+  // configuration forms are reachable. Since v2026.1012.0 the new-agent flow
+  // (Name → Adapter → Connect) only reaches its Configure step after a live
+  // provider connection succeeds, which the isolated instance cannot do — so the
+  // adapter-specific forms are shot on these agents' Harness / Runtime pages
+  // instead. Timer heartbeats are off and they hold no work, so they never try
+  // to launch a real CLI (which would render them as errored).
+  const adapterDemoIds = {};
+  // User-scoped secret definitions (each member supplies their own value). They
+  // drive secrets/user-secret-definition + per-user-value-entry, and Finn's env
+  // requires GITHUB_TOKEN, so assigning him a task surfaces the "Set your user
+  // secrets" check (secrets/dispatch-check). Created before Finn so his env
+  // binding resolves.
+  for (const def of [
+    {
+      key: "GITHUB_TOKEN",
+      name: "GitHub personal token",
+      description: "Each member's own GitHub token, used when agents push branches on their behalf.",
+      usageGuidance: "Create a fine-grained token with contents read/write on acme-robotics/website.",
+    },
+    {
+      key: "LINEAR_API_KEY",
+      name: "Linear API key",
+      description: "Personal Linear key so agents can update issues as you.",
+    },
+  ]) {
+    await step(`user secret definition ${def.key}`, async () => {
+      const existing = asList(await get(C("/user-secret-definitions"), baseUrl)).find((d) => d.key === def.key);
+      if (!existing) await post(C("/user-secret-definitions"), def, baseUrl);
+    });
+  }
+  const ADAPTER_DEMO_AGENTS = [
+    {
+      key: "claudeAgentId",
+      name: "Finn",
+      title: "Backend Engineer",
+      icon: "terminal",
+      adapterType: "claude_local",
+      adapterConfig: {
+        model: "claude-sonnet-5-5",
+        maxTurnsPerRun: 80,
+        timeoutSec: 1800,
+        dangerouslySkipPermissions: true,
+        env: { GITHUB_TOKEN: { type: "user_secret_ref", key: "GITHUB_TOKEN" } },
+      },
+      // claude_local supports instruction bundles and skills (process does not),
+      // so agents/instructions, agents/skills and skills/assign-to-agent use Finn.
+      desiredSkills: ["code-review", "release-notes"],
+      instructionsBundle: {
+        entryFile: "AGENTS.md",
+        files: {
+          "AGENTS.md":
+            "# Finn — Backend Engineer\n\n"
+            + "You own the Acme Robotics website backend: the API routes, the jobs queue, and the Postgres schema.\n\n"
+            + "## How you work\n\n"
+            + "- Pick up tasks assigned to you; ask Bob when scope is unclear.\n"
+            + "- Keep pull requests small and run the test suite before asking for review.\n"
+            + "- Use the **code-review** skill on every PR you open, and **release-notes** when a change ships.\n\n"
+            + "## Escalate\n\n"
+            + "Schema migrations and anything touching billing need Bob's sign-off before merge.\n",
+        },
+      },
+    },
+    {
+      key: "codexAgentId",
+      name: "Gia",
+      title: "Platform Engineer",
+      icon: "cpu",
+      adapterType: "codex_local",
+      adapterConfig: { model: "gpt-6.1-sol", modelReasoningEffort: "high", dangerouslyBypassApprovalsAndSandbox: true },
+      // Skills-capable too, so the skill "Add to agent" picker lists more than
+      // one agent that can actually take a skill.
+      desiredSkills: ["code-review"],
+    },
+  ];
+  for (const spec of ADAPTER_DEMO_AGENTS) {
+    await step(`create ${spec.adapterType} agent ${spec.name}`, async () => {
+      let agent = asList(await get(C("/agents"), baseUrl)).find((a) => a.name === spec.name);
+      if (!agent) {
+        agent = await post(
+          C("/agents"),
+          {
+            name: spec.name,
+            role: "engineer",
+            title: spec.title,
+            icon: spec.icon,
+            adapterType: spec.adapterType,
+            adapterConfig: spec.adapterConfig,
+            runtimeConfig: { heartbeat: { enabled: false, wakeOnDemand: true } },
+            ...(spec.desiredSkills ? { desiredSkills: spec.desiredSkills } : {}),
+            ...(spec.instructionsBundle ? { instructionsBundle: spec.instructionsBundle } : {}),
+            // Engineers report to Bob, giving the org chart a second tier.
+            ...((agents.Bob?.id ?? managerAgentId) ? { reportsTo: agents.Bob?.id ?? managerAgentId } : {}),
+          },
+          baseUrl,
+        );
+      }
+      adapterDemoIds[spec.key] = agent.id;
+      console.log(`[seed] ${spec.adapterType} agent → ${agent.id}`);
+    });
+  }
 
   // 14d. A company skill id (for the skill-detail / assign-to-agent shots).
   let skillId = null;
@@ -832,23 +1006,52 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
   const approvalIds = { hireApprovalId: null, strategyApprovalId: null, boardApprovalId: null, approvedApprovalId: null };
   if (!companyExisted) {
     await step("seed approvals", async () => {
-      const hire = await post(C("/approvals"), {
-        type: "hire_agent",
-        payload: { name: "Aria Chen", role: "engineer", title: "Senior Engineer", icon: "code", adapterType: "claude_local", adapterConfig: {}, budgetMonthlyCents: 150_000, desiredSkills: [], capabilities: "Backend development, API design", agentId: null },
-      }, baseUrl);
-      approvalIds.hireApprovalId = hire?.id ?? null;
-
-      const strat = await post(C("/approvals"), {
-        type: "approve_ceo_strategy",
-        payload: { title: "Q3 Product Roadmap", plan: "Expand into the enterprise segment by shipping SSO and audit logs in Q3.", description: "Strategic pivot toward mid-market and enterprise accounts." },
-      }, baseUrl);
-      approvalIds.strategyApprovalId = strat?.id ?? null;
-
+      // Created oldest-first in the order they should list *bottom-up*: the
+      // Pending tab is newest first, so this puts the hire request and the
+      // strategy proposal above the fold with the board request under them.
       const board = await post(C("/approvals"), {
         type: "request_board_approval",
         payload: { title: "Vendor contract: cloud reserved instances", summary: "Commit to a 1-year reservation to cut infra cost ~35%.", recommendedAction: "Approve the $12,000 annual commitment" },
       }, baseUrl);
       approvalIds.boardApprovalId = board?.id ?? null;
+
+      const strat = await post(C("/approvals"), {
+        type: "approve_ceo_strategy",
+        requestedByAgentId: managerAgentId ?? undefined,
+        // Linked work shows under the approval, and the plan renders as the
+        // multi-paragraph body the strategy guides describe.
+        issueIds: [issues["Write onboarding docs"]?.id, issues["Mobile: implement push notifications"]?.id].filter(Boolean),
+        payload: {
+          title: "Q3 Product Roadmap",
+          description: "Strategic pivot toward mid-market and enterprise accounts.",
+          plan: [
+            "Goal: win our first five enterprise accounts by the end of Q3.",
+            "",
+            "1. Ship SSO (SAML + SCIM) and exportable audit logs — the two blockers in every enterprise security review this year.",
+            "2. Finish the homepage relaunch so the new positioning is live before the September conference.",
+            "3. Push notifications for the mobile app, scoped to fleet alerts only.",
+            "",
+            "Staffing: hire one senior backend engineer (approval pending) and keep the rest of the team on current work.",
+            "Budget: hold total agent spend under $7,500/month; revisit if SSO slips.",
+            "",
+            "Risks: SSO depends on a vendor contract that is not signed yet. If it slips past July we drop SCIM from Q3.",
+          ].join("\n"),
+        },
+      }, baseUrl);
+      approvalIds.strategyApprovalId = strat?.id ?? null;
+
+      const hire = await post(C("/approvals"), {
+        type: "hire_agent",
+        requestedByAgentId: managerAgentId ?? undefined,
+        payload: {
+          name: "Aria Chen", role: "engineer", title: "Senior Engineer", icon: "code",
+          adapterType: "claude_local", adapterConfig: {}, budgetMonthlyCents: 150_000,
+          desiredSkills: ["code-review", "incident-response"],
+          capabilities: "Backend development and API design for the Website project; owns the checkout service and its on-call rotation.",
+          agentId: null,
+        },
+      }, baseUrl);
+      approvalIds.hireApprovalId = hire?.id ?? null;
 
       // One more, then approve it, for the "approved" state.
       const toApprove = await post(C("/approvals"), {
@@ -863,84 +1066,48 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     });
   }
 
-  // 14g. Process-adapter "runner" agents — execute a real shell command (no LLM)
-  // so we get genuine run rows, a transcript, a running status, and a passing
-  // environment test. The process adapter runs `command` + `args` directly.
-  let runnerAgentId = null;
+  // 14g. The CEO's own runs — a finished heartbeat (transcript) and one left
+  // running for the whole capture (Live Run card, in-progress run row). The
+  // guides describe both as "what the CEO did", so they are Ada's runs rather
+  // than separate demo agents. Ada's adapter is swapped to a scripted command
+  // just long enough to start each run, then restored to DEMO_AGENT_CONFIG so
+  // her Harness / Runtime page shows the ordinary config. The wakes carry no
+  // issue, so neither run can trip the disposition recovery on a task.
+  let runnerAgentId = managerAgentId;
   let runnerRunId = null;
-  let longRunnerAgentId = null;
-
-  await step("create + run a process agent (completed run → transcript)", async () => {
-    const existing = asList(await get(C("/agents"), baseUrl)).find((a) => a.name === "Task Runner");
-    let agent = existing;
-    if (!agent) {
-      agent = await post(
-        C("/agents"),
-        {
-          name: "Task Runner",
-          role: "engineer",
-          title: "Automation",
-          icon: "terminal",
-          adapterType: "process",
-          adapterConfig: {
-            command: "sh",
-            args: ["-c", "echo 'Analyzing repository...'; echo 'Applying changes to src/app.ts'; echo 'Running tests — 42 passed'; echo 'Done.'"],
-            timeoutSec: 30,
-          },
-          reportsTo: managerAgentId ?? undefined,
-        },
-        baseUrl,
-      );
+  let longRunnerAgentId = managerAgentId;
+  const CEO_HEARTBEAT_SCRIPT = [
+    "echo 'Heartbeat: reviewing open work for Acme Robotics'",
+    "echo 'Website: homepage hero in progress with Cleo; dark mode waiting on a decision'",
+    "echo 'Mobile App: ACM-6 battery telemetry spike blocked on a fleet hardware trace'",
+    "echo 'Checking budgets: org spend 31% of the monthly limit'",
+    "echo 'Delegating: asked Dax to re-run the flaky integration test before review'",
+    "echo 'No new hires needed this cycle.'",
+    "echo 'Done.'",
+  ].join("; ");
+  const startCeoRun = async (script, timeoutSec) => {
+    await patch(`/api/agents/${managerAgentId}`, { adapterConfig: { command: "sh", args: ["-c", script], timeoutSec } }, baseUrl);
+    try {
+      const run = await post(`/api/agents/${managerAgentId}/wakeup`, { source: "on_demand", triggerDetail: "manual" }, baseUrl);
+      return run?.id ?? run?.heartbeatRun?.id ?? run?.run?.id ?? null;
+    } finally {
+      // The process has its argv by the time it is running; restore promptly.
+      await new Promise((r) => setTimeout(r, 2500));
+      await patch(`/api/agents/${managerAgentId}`, { adapterConfig: DEMO_AGENT_CONFIG }, baseUrl);
     }
-    runnerAgentId = agent.id;
-    if (!companyExisted) {
-      const run = await post(`/api/agents/${agent.id}/wakeup`, { source: "on_demand", triggerDetail: "manual" }, baseUrl);
-      runnerRunId = run?.id ?? run?.heartbeatRun?.id ?? run?.run?.id ?? null;
-      console.log(`[seed] Task Runner run → ${runnerRunId}`);
-    } else {
-      // Reuse the most recent completed run if present.
-      const runs = asList(await step("list runner runs", () => get(`/api/agents/${agent.id}/runs`, baseUrl), []));
-      runnerRunId = runs[0]?.id ?? null;
-    }
-  });
+  };
 
-  // Give the short run a moment to execute and complete before we capture it.
-  if (runnerRunId && !companyExisted) {
+  if (managerAgentId && !companyExisted) {
+    await step("CEO heartbeat run (transcript)", async () => {
+      runnerRunId = await startCeoRun(CEO_HEARTBEAT_SCRIPT, 30);
+      console.log(`[seed] CEO heartbeat run → ${runnerRunId}`);
+    });
+    // Let it finish before anything else wakes Ada.
     await new Promise((r) => setTimeout(r, 4000));
+  } else if (managerAgentId) {
+    const runs = asList(await step("list CEO runs", () => get(`/api/agents/${managerAgentId}/runs`, baseUrl), []));
+    runnerRunId = runs.find((r) => r.status === "succeeded")?.id ?? null;
   }
-
-  await step("create a long-running process agent (running status)", async () => {
-    const existing = asList(await get(C("/agents"), baseUrl)).find((a) => a.name === "Live Task");
-    let agent = existing;
-    if (!agent) {
-      agent = await post(
-        C("/agents"),
-        {
-          name: "Live Task",
-          role: "engineer",
-          title: "Long Job",
-          icon: "cpu",
-          adapterType: "process",
-          adapterConfig: {
-            // Long enough to outlast the full capture phase so the run is still
-            // in-flight (status "running", an in-progress run row) when capture
-            // reaches the run/status targets near the end of the list.
-            command: "sh",
-            args: ["-c", "echo 'Starting long task...'; sleep 3600; echo done"],
-            timeoutSec: 4200,
-          },
-          reportsTo: managerAgentId ?? undefined,
-        },
-        baseUrl,
-      );
-    }
-    longRunnerAgentId = agent.id;
-    // Kick it off LAST so it is still running throughout the capture phase.
-    if (!companyExisted) {
-      await post(`/api/agents/${agent.id}/wakeup`, { source: "on_demand", triggerDetail: "manual" }, baseUrl);
-      console.log("[seed] Live Task wakeup triggered (stays running during capture)");
-    }
-  });
 
   // ── 14f. Execution workspace (direct DB insert) ─────────────────────────────
   // Execution workspaces have no public create endpoint — they're provisioned by
@@ -982,10 +1149,285 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     });
   });
 
+  // ── 14h-checkbox. A pending checkbox confirmation (interactions/*) ─────────
+  // On "Fix flaky integration test" (in review with Dax) rather than the hero
+  // task, so the card does not sit in every hero-task shot. Board-created with
+  // continuationPolicy "none", so nothing wakes when the card renders.
+  let checkboxIssueId = issues["Fix flaky integration test"]?.id ?? null;
+  if (checkboxIssueId && !companyExisted) {
+    await step("checkbox confirmation interaction", () =>
+      post(`/api/issues/${checkboxIssueId}/interactions`, {
+        "kind": "request_checkbox_confirmation",
+        "idempotencyKey": "docs-checkbox-quarantine",
+        "title": "Confirm tests to quarantine",
+        "summary": "Pick the flaky specs to quarantine while I fix the root cause.",
+        "continuationPolicy": "none",
+        "payload": {
+          "version": 1,
+          "prompt": "Which flaky specs should I quarantine on main?",
+          "detailsMarkdown": "These five specs failed intermittently in the last **20 CI runs**. Quarantined specs still run nightly, but they stop blocking merges until the fix lands.",
+          "options": [
+            {
+              "id": "checkout-retry",
+              "label": "checkout/retry-payment.spec.ts",
+              "description": "7 of 20 runs failed — timeout waiting for the payment iframe."
+            },
+            {
+              "id": "hero-snapshot",
+              "label": "homepage/hero-snapshot.spec.ts",
+              "description": "5 of 20 — font loading race in the visual snapshot."
+            },
+            {
+              "id": "auth-refresh",
+              "label": "auth/token-refresh.spec.ts",
+              "description": "3 of 20 — clock skew in the CI container."
+            },
+            {
+              "id": "search-index",
+              "label": "search/reindex.spec.ts",
+              "description": "2 of 20 — depends on a shared fixture."
+            },
+            {
+              "id": "mobile-push",
+              "label": "mobile/push-permission.spec.ts",
+              "description": "1 of 20 — likely real; keep it blocking."
+            }
+          ],
+          "defaultSelectedOptionIds": [
+            "checkout-retry",
+            "hero-snapshot",
+            "auth-refresh"
+          ],
+          "minSelected": 1,
+          "maxSelected": null,
+          "acceptLabel": "Quarantine selected",
+          "rejectLabel": "Keep all blocking",
+          "rejectRequiresReason": false
+        }
+      }, baseUrl),
+    );
+  }
+
+  // ── 14h-bis. Close the per-run scratch workspaces ───────────────────────────
+  // With isolated workspaces enabled every agent run on an issue realizes a
+  // `shared_workspace` execution workspace named after the issue. A seed run
+  // leaves ~20 of them, and /workspaces lists them all above the two the guides
+  // are about (the project's "main" workspace and the seeded "Hero section
+  // worktree"). Archive the run-created ones; the isolated worktree stays.
+  await step("archive run-created execution workspaces", async () => {
+    const sql = openInstanceDb();
+    try {
+      const rows = await sql`
+        update execution_workspaces set status = 'archived', closed_at = now()
+        where company_id = ${companyId} and mode = 'shared_workspace' and closed_at is null
+        returning id`;
+      console.log(`[seed] archived ${rows.length} run-created execution workspace(s)`);
+    } finally {
+      await sql.end().catch(() => {});
+    }
+  });
+
+  // ── 14h-quater. Give the Work Timeline real work periods ────────────────────
+  // Every seeded run is a ~1 s process run started within the same minute, so
+  // the Audit → Timeline lanes were a stack of slivers at "now". Lay a handful
+  // of issue-scoped runs out over the last few hours as real, overlapping work
+  // periods (the timeline draws heartbeat_runs start/finish), and move each
+  // run's issue creation to just before it so the assignment edge counts as the
+  // run's kickoff — that is what draws a bar blue ("Delegated") with the
+  // kicker's chip. The remaining near-instant runs from seeding are moved three
+  // days back so the "Today" range is not a column of slivers.
+  if (!companyExisted) {
+    await step("re-time runs for the work timeline", async () => {
+      const sql = openInstanceDb();
+      try {
+        // [agent, start min, end min, who kicked it off]. An agent kicker makes
+        // the issue agent-created, so the timeline draws a handoff connector
+        // from the kicker's lane on hover (Board kickoffs have no lane).
+        const slots = [
+          ["Ada", 0, 40, null],
+          ["Bob", 30, 120, "Ada"],
+          ["Eve", 45, 170, "Ada"],
+          ["Cleo", 110, 200, "Bob"],
+          ["Dax", 190, 250, "Cleo"],
+          ["Bob", 205, 265, "Ada"],
+        ];
+        const base = Date.now() - 5 * 60 * 60 * 1000;
+        const usedRuns = new Set();
+        const usedIssues = new Set();
+        const keep = [runnerRunId].filter(Boolean);
+        for (const [name, startMin, endMin, kicker] of slots) {
+          const agentId = agents[name]?.id;
+          if (!agentId) continue;
+          const candidates = await sql`
+            select id, context_snapshot->>'issueId' as issue_id from heartbeat_runs
+            where agent_id = ${agentId} and status = 'succeeded'
+              and context_snapshot->>'issueId' is not null
+            order by created_at asc`;
+          const run = candidates.find((r) => !usedRuns.has(r.id) && !usedIssues.has(r.issue_id) && !keep.includes(r.id));
+          if (!run) continue;
+          usedRuns.add(run.id);
+          usedIssues.add(run.issue_id);
+          const startedAt = new Date(base + startMin * 60_000);
+          const finishedAt = new Date(base + endMin * 60_000);
+          await sql`
+            update heartbeat_runs set created_at = ${startedAt}, started_at = ${startedAt}, finished_at = ${finishedAt}
+            where id = ${run.id}`;
+          await sql`
+            update issues set created_at = ${new Date(startedAt.getTime() - 2 * 60_000)}
+            where id = ${run.issue_id} and created_at > ${startedAt}`;
+          const kickerId = kicker ? agents[kicker]?.id : null;
+          if (kickerId) {
+            await sql`
+              update issues set created_by_agent_id = ${kickerId}, created_by_user_id = null
+              where id = ${run.issue_id}`;
+          }
+          // Other runs on the same issue would sit closer to the moved kickoff
+          // edge than this one; push them out of the window with the rest.
+        }
+        const placed = [...usedRuns, ...keep];
+        await sql`
+          update heartbeat_runs set
+            created_at = created_at - interval '3 days',
+            started_at = started_at - interval '3 days',
+            finished_at = finished_at - interval '3 days'
+          where company_id = ${companyId}
+            and status in ('succeeded', 'cancelled', 'failed')
+            and created_at > now() - interval '1 hour'
+            and (finished_at - started_at) < interval '2 minutes'
+            and id <> all(${placed.length ? placed : ["00000000-0000-0000-0000-000000000000"]}::uuid[])`;
+      } finally {
+        await sql.end().catch(() => {});
+      }
+    });
+  }
+
+  // ── 14h-ter. The CEO's live run — started last so it is in flight for the
+  // whole capture (see 14g). Long enough to outlast a full --all capture.
+  if (managerAgentId && !companyExisted) {
+    await step("CEO live run", async () => {
+      await startCeoRun(
+        "echo 'Heartbeat: reviewing open work for Acme Robotics'; echo 'Drafting the Q4 roadmap update for the board…'; sleep 5400; echo 'Done.'",
+        6000,
+      );
+      console.log("[seed] CEO live run started (stays running during capture)");
+    });
+  }
+
   // ── 14i. Re-assert the intended issue statuses ─────────────────────────────
   // See reassertIssueStatuses() for why this is needed. Run once here so the
   // board is correct the moment capture starts; run.mjs keeps it correct.
   await step("re-assert issue statuses", () => reassertIssueStatuses({ companyId, baseUrl }));
+
+  // ── 14j. A plugin id for the plugin detail / Configuration / Status shots ──
+  // LLM Wiki is bundled with the release and has a settings form and jobs.
+  let pluginId = null;
+  await step("resolve plugin id", async () => {
+    const plugins = asList(await get("/api/plugins", baseUrl));
+    const pick = plugins.find((pl) => (pl.pluginKey ?? pl.key) === "paperclipai.plugin-llm-wiki")
+      ?? plugins.find((pl) => /wiki/i.test(pl.displayName ?? pl.name ?? ""))
+      ?? plugins[0];
+    pluginId = pick?.id ?? null;
+  });
+
+  // ── 14k. Round-3 surface fill-ins ──────────────────────────────────────────
+  if (!companyExisted) {
+    // A healthy LLM Wiki: point its wiki-root folder at a scaffolded directory
+    // (the plugin validates required files/dirs; unconfigured it renders
+    // "Validation problems: No local folder path is configured").
+    await step("LLM Wiki local folder", async () => {
+      if (!pluginId) return;
+      const folders = await get(`/api/plugins/${pluginId}/companies/${companyId}/local-folders`, baseUrl);
+      const decl = (folders?.declarations ?? []).find((d) => d.folderKey === "wiki-root");
+      if (!decl) return;
+      const dir = resolvePath(os.tmpdir(), "paperclip-docs-shots-wiki");
+      for (const d of decl.requiredDirectories ?? []) mkdirSync(resolvePath(dir, d), { recursive: true });
+      const contents = {
+        "AGENTS.md": "# Acme Robotics wiki\n\nAgents maintain this wiki from task outcomes and sources in raw/.\n",
+        "IDEA.md": "# Idea\n\nOne shared memory for the Acme Robotics team.\n",
+        "wiki/index.md": "# Index\n\n- [Website launch](projects/website.md)\n",
+        "wiki/log.md": "# Log\n\n- Wiki initialised.\n",
+      };
+      for (const f of decl.requiredFiles ?? []) {
+        mkdirSync(dirnamePath(resolvePath(dir, f)), { recursive: true });
+        writeFileSync(resolvePath(dir, f), contents[f] ?? `# ${f}\n`);
+      }
+      await api("PUT", `/api/plugins/${pluginId}/companies/${companyId}/local-folders/wiki-root`, { path: dir, access: "readWrite" }, baseUrl);
+    });
+
+    // A second human teammate on the Members page. There is no way to accept
+    // an invite without signing in, so the user + membership rows are written
+    // directly (same shape the invite-accept path produces).
+    await step("second human member", async () => {
+      const sql = openInstanceDb();
+      try {
+        await sql`
+          insert into "user" (id, name, email, email_verified, created_at, updated_at)
+          values ('demo-priya', 'Priya Shah', 'priya@acme-robotics.example', true, now(), now())
+          on conflict (id) do nothing`;
+        await sql`
+          insert into company_memberships (company_id, principal_type, principal_id, status, membership_role)
+          select ${companyId}, 'user', 'demo-priya', 'active', 'operator'
+          where not exists (
+            select 1 from company_memberships
+            where company_id = ${companyId} and principal_type = 'user' and principal_id = 'demo-priya')`;
+      } finally {
+        await sql.end().catch(() => {});
+      }
+    });
+
+    // An SSH environment next to the default Local one.
+    await step("SSH environment", () =>
+      post(C("/environments"), {
+        name: "Build box (SSH)",
+        description: "Shared Linux build host in the office rack.",
+        driver: "ssh",
+        config: { host: "build-01.acme.internal", port: 22, username: "paperclip", remoteWorkspacePath: "/home/paperclip/workspaces" },
+      }, baseUrl));
+
+    // A project budget with some spend against it (projects/budget).
+    await step("project budget", async () => {
+      if (!projectId) return;
+      await post(C("/budgets/policies"), {
+        scopeType: "project", scopeId: projectId, amount: 50_000, windowKind: "lifetime",
+      }, baseUrl);
+      await post(C("/cost-events"), {
+        agentId: agents.Cleo?.id ?? workerAgentId, projectId, provider: "anthropic", model: "claude-sonnet-5-5",
+        costCents: 18_400, occurredAt: new Date().toISOString(), biller: "Anthropic", billingType: "metered_api",
+        inputTokens: 412_000, outputTokens: 96_000,
+      }, baseUrl);
+    });
+
+    // A sub-goal under "Launch v1" so the goals list shows a tree.
+    await step("sub-goal", async () => {
+      if (!goalId) return;
+      await post(C("/goals"), {
+        title: "Relaunch the website",
+        description: "New homepage and positioning live before the September conference.",
+        level: "team", status: "active", parentId: goalId, ownerAgentId: agents.Cleo?.id ?? undefined,
+      }, baseUrl);
+    });
+  }
+
+  // ── 14l. Age the setup noise out of the activity feeds ───────────────────────
+  // Seeding is dozens of board-actor configuration writes (cost events, budget
+  // policies, plugin folders, environments, status re-asserts…). Logged at
+  // "now", they bury the story the feeds should tell — tasks created, agents
+  // commenting, decisions and approvals. Move those setup rows a day back; the
+  // task / agent / approval events keep their real times.
+  if (!companyExisted) {
+    await step("age setup activity", async () => {
+      const sql = openInstanceDb();
+      try {
+        await sql`
+          update activity_log set created_at = created_at - interval '1 day'
+          where company_id = ${companyId}
+            and actor_type = 'user'
+            and action not in ('issue.created', 'issue.comment_added', 'approval.created', 'approval.approved')`;
+      } finally {
+        await sql.end().catch(() => {});
+      }
+    });
+  }
 
   // ── 15. Persist ids ─────────────────────────────────────────────────────────
   const ids = {
@@ -1001,6 +1443,10 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     executionWorkspaceId,
     emptyPrefix,
     httpAgentId,
+    claudeAgentId: adapterDemoIds.claudeAgentId ?? null,
+    checkboxIssueId,
+    pluginId,
+    codexAgentId: adapterDemoIds.codexAgentId ?? null,
     skillId,
     externalObjectIssueId,
     runnerAgentId,
@@ -1039,14 +1485,17 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
  * @returns {Promise<number>} how many issues were corrected
  */
 export async function reassertIssueStatuses({ companyId, baseUrl = BASE_URL }) {
-  const wanted = new Map(ISSUE_SPECS.map((spec) => [spec.title, spec.status]));
+  const wanted = new Map(ISSUE_SPECS.map((spec) => [spec.title, spec]));
   let restored = 0;
   const all = asList(await get(`/api/companies/${companyId}/issues`, baseUrl));
   for (const issue of all) {
-    const target = wanted.get(issue.title);
+    const spec = wanted.get(issue.title);
+    const target = spec?.status;
     if (!target || issue.status === target) continue;
     try {
-      await patch(`/api/issues/${issue.id}`, { status: target }, baseUrl);
+      const body = { status: target };
+      if (target === "blocked" && spec.unblockDescriptor) body.unblockDescriptor = spec.unblockDescriptor;
+      await patch(`/api/issues/${issue.id}`, body, baseUrl);
       restored++;
     } catch (err) {
       console.warn(`[seed] could not restore "${issue.title}" to ${target}: ${err.message}`);

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Heartbeats and Routines: Scheduling Work
 seo_description: Why timer heartbeats are opt-in, and how routines schedule recurring work without paused agents, surprise token bills, or a dashboard you fight with.
 ---
@@ -92,32 +92,36 @@ For most cases the defaults (coalesce if active, skip missed) are what you want:
 
 ![Routines list](../../user-guides/screenshots/light/routines/list.png)
 
-The Routines page is reached from the sidebar and opens on a **Routines** tab plus a **Recent Runs** tab. The header shows the total count of routines and a **Create routine** button.
+The Routines page is reached from **Routines** in the sidebar. There are no tabs: the header carries a **View all runs** button and a **Create routine** button, and the routine list sits right below, with a count of how many routines are in view.
 
-### List columns and badges
+### List rows and badges
 
-Each routine row surfaces:
+Each routine row shows:
 
 - **Title** — the routine name. A small grey label appears beside it when the routine is not active: `paused`, `draft` (no default agent assigned), or `archived`.
-- **Project** — a coloured square and the project name, or "No project" when the routine has none set.
+- **Project** — a coloured dot and the project name, or "No project" when the routine has none set.
 - **Default agent** — the agent's icon and name, or "No default agent" for drafts.
-- **Last run** — a localised timestamp for the most recent execution, followed by its status (for example `succeeded`, `failed`, `running`). Rows that have never fired show "Never".
-- **Enabled toggle** — a large switch that flips the routine between `active` and `paused`. The label to the right reads `On`, `Off`, `Draft`, or `Archived`. The toggle is disabled for archived routines.
-- **More menu** — a kebab that exposes `Edit`, `Run now`, `Pause`/`Enable`, and `Archive`/`Restore`.
+- **Last run** — a localised timestamp for the most recent execution, followed by its status. Rows that have never fired show "Never".
+- **Run now** — a button that fires the routine straight away (see below).
+- **Enabled toggle** — a switch that flips the routine between `active` and `paused`. The label beside it reads `On`, `Off`, `Draft`, or `Archived`. The toggle is disabled for archived routines.
+- **More menu** — the `⋯` button exposes **Edit**, **Run now**, **Pause**/**Enable**, and **Archive**/**Restore**.
 
-Clicking the row opens the detail page. Actions inside the toggle and dropdown do not navigate — they stay on the list.
+Clicking the row opens the detail page. The buttons, toggle, and menu don't navigate — they keep you on the list.
 
-### Grouping and filtering
+### Folders, sorting, and grouping
 
-Above the list you'll find a **Group** popover with three options:
+Routines can live in folders. By default the list is grouped by folder, and routines you haven't filed yet sit in an **Unfiled** group. Until you've made a folder, a banner suggests grouping your routines, with a **Create your first folder** button (you can dismiss it), and the toolbar shows a **New folder** button.
 
-- **Project** — groups routines by their default project, with "No project" as its own section.
-- **Agent** — groups by default assignee, with "Unassigned" for draft routines.
-- **None** — the flat default.
+Once you have folders, a folder rail lets you jump between **All routines**, each folder, and **Unfiled**. Use a folder's menu to **Rename** it, **Edit color**, or **Delete** it — deleting a folder moves its routines to Unfiled rather than deleting them. To file several routines at once, click **Select**, tick the routines, and use **Move to...**; click **Done** when you're finished.
 
-Group headers are collapsible and their open/closed state is persisted per company in local storage, along with the chosen grouping, so reloading keeps your view.
+Two controls sit above the list:
 
-The list does not have a separate text search — the count in the header and the collapsible groups are the main way to navigate larger libraries.
+- **Sort** — order routines by **Updated**, **Created**, **Last run**, or **Title**. Click the active option again to flip between ascending and descending.
+- **Group** — group by **Folder** (the default), **Project**, **Agent**, or **None**. Project grouping puts routines without one under "No project"; Agent grouping puts drafts under "Unassigned".
+
+Group headers are collapsible, and your sort, grouping, and collapsed groups are remembered per company, so reloading keeps your view.
+
+The list doesn't have a separate text search — folders, grouping, and the collapsible groups are the main way to navigate larger libraries.
 
 ### Creating a routine from the list
 
@@ -136,11 +140,11 @@ Draft routines without a default agent are valid — they save and stay paused u
 - **Pause** flips the routine's status to `paused`. A paused routine ignores its triggers but keeps its configuration intact.
 - **Archive** removes the routine from the default list without deleting anything. Archived routines can be restored later.
 
-### Recent Runs tab
+### Seeing every run
 
-The second tab on the Routines page is a read-only issue list filtered to `originKind = routine_execution`. It uses the same IssuesList component as other issue views, so you get the same columns, live-run indicators, grouping, and inline updates. A background poll refreshes live runs every few seconds so in-flight executions show their progress without a page reload.
+To check on executions, click **View all runs** in the page header. It takes you to the **Runs** section of the Audit area (`/activity/runs`), where every heartbeat run is listed with its status and links to the work it produced. It's the fastest way to answer "did all my morning routines run?"
 
-The Recent Runs view is the fastest way to answer "did all my morning routines run?" — it is routine-scoped but agent-agnostic, and rows link directly to the execution issue they produced.
+If **Streamlined UI** is turned off in Experimental settings, the Routines page instead shows **Routines** and **Recent Runs** tabs. Recent Runs is a task list filtered to the execution tasks your routines created, with live-run indicators that refresh every few seconds.
 
 ---
 
@@ -165,7 +169,7 @@ The left sub-sidebar lists the routine's sections in two groups, and each sectio
 
 The first group holds the editable parts of the template:
 
-- **Overview** — the assignment row ("For [assignee] in [project]"), priority, and the Markdown instructions editor. It also shows a quick summary of the routine's **Triggers** and **Next run** (for a webhook-only routine that reads **On webhook delivery**), plus the five most recent runs with **View all runs** and **View routine activity** links.
+- **Overview** — the assignment row ("For [assignee] in [project]") and the Markdown instructions editor. It also shows a quick summary of the routine's **Triggers** and **Next run** (for a webhook-only routine that reads **On webhook delivery**), plus the five most recent runs with **View all runs** and **View routine activity** links.
 - **Triggers** — every trigger attached to the routine, each as its own card, plus a composer to add new ones.
 - **Variables** — the `{{name}}` placeholders detected in the title and instructions.
 - **Delivery** — the concurrency and catch-up policies.
@@ -200,19 +204,25 @@ Editing the description is a routine save like any other, and Paperclip surfaces
 
 ### Trigger cards and human-readable schedules
 
-On the **Triggers** section, each trigger is a card headed by its kind icon and label. For a schedule trigger, Paperclip shows the cron in **plain English** right under the label — "Every weekday at 09:00", "Every day at 10:00", "Every 15 minutes", "Day 1 of every month at 09:00" — translated from the raw expression as you edit it. (Shapes the translator doesn't recognise simply omit the plain-English line and keep the raw cron.) The card's top-right corner shows a `Next:` line with the resolved local timestamp of the next fire for schedule triggers, a `Webhook` label for webhook triggers, or `API` for manual ones. If a trigger has fired before, its last result also shows there as a badge — red when the last firing failed, neutral otherwise, and simply **Task created** when it produced a task — so you can spot a misfiring webhook without leaving the page.
+On the **Triggers** section, each trigger is a card with its kind icon, a title, and a short status line underneath. For a schedule trigger, the title is the cron in **plain English** — "Every weekday at 09:00", "Every day at 10:00", "Every 15 minutes" — translated from the raw expression. (Shapes the translator doesn't recognise fall back to the title **Schedule**.) The status line shows the schedule's time zone. Other kinds are titled **Webhook**, **GitHub webhook**, or **API trigger**, and their status line tells you how things stand — for example "Ready · Waiting for an event", "Receiving events", or "Authentication failed · Check the key in your app". A paused trigger simply reads **Paused**.
 
-Webhook cards also show the trigger's **Webhook URL** in a read-only field you can click to select and copy, with a reminder to send a POST with `Content-Type: application/json` and to keep the URL private when signing is disabled.
+On the right of each card you'll find an **Edit** button (**Edit schedule**, **Edit webhook**, or **Edit api**) and a trash-can icon that removes the trigger. Removing shows a short "removed" note with an **Undo** button, in case you clicked it by mistake. A trigger whose setup isn't finished shows **Resume setup** instead of Edit.
 
-Each card carries its own **Delete**, **Save trigger**, and — for webhook triggers — **Rotate secret** buttons.
+Click **Edit** to expand the card (the button then reads **Close**):
+
+- **Schedule triggers** show the schedule editor and a **Time zone** field, with **Save schedule** and **Cancel** buttons.
+- **Webhook triggers** show the **Webhook URL** in a read-only field you can copy, a **Replace key** button when the webhook is signed, and a **Check connection** button that waits for an event from your app.
+- **API triggers** just note that the trigger starts the routine through the API.
+
+Every expanded card also has a **Pause trigger** button (or **Enable trigger** if it's paused), so you can stop a trigger from firing without removing it.
 
 ### Run history
 
 ![Run history](../../user-guides/screenshots/light/routines/run-history.png)
 
-The **Runs** section shows every task this routine has created, using the same issue list you know from the rest of Paperclip. That means you get the familiar columns — status, priority, and assignee — along with search and the list's own view controls, all scoped to this one routine. A run that's in progress right now is marked as live.
+The **Runs** section shows every task this routine has created, using the same issue list you know from the rest of Paperclip. That means you get the familiar columns — status and assignee — along with search and the list's own view controls, all scoped to this one routine. A run that's in progress right now is marked as live.
 
-Because it's a real issue list, you can manage runs right here: change a task's status, priority, or assignee inline without opening it, and the routine's run data refreshes as soon as the update lands. Click a row to open the task itself; the breadcrumb brings you back to **Runs** when you're done. Your view choices are remembered per routine.
+Because it's a real issue list, you can manage runs right here: change a task's status or assignee inline without opening it, and the routine's run data refreshes as soon as the update lands. Click a row to open the task itself; the breadcrumb brings you back to **Runs** when you're done. Your view choices are remembered per routine.
 
 When you fire the routine from the **Run** button, Paperclip drops you on **Runs** so you can watch the new task appear.
 
@@ -244,7 +254,7 @@ Below the controls, a one-line human description summarises the current setting 
 
 Every schedule trigger is saved with an explicit **timezone**, derived from the browser's `Intl.DateTimeFormat().resolvedOptions().timeZone` at creation time. The scheduler evaluates cron expressions in that timezone, not in UTC. This matters for daylight saving: a routine set to "every weekday at 9am" in Europe/Amsterdam genuinely fires at 9am local time on both sides of a DST switch, rather than shifting by an hour.
 
-If you need to change the timezone later (for example, you moved), open the trigger and re-save — the editor stamps the current browser timezone onto the updated record. The `Next:` countdown on the detail page is always rendered in your current local time, regardless of which timezone the trigger was originally saved with.
+If you need to change the timezone later (for example, you moved), click **Edit schedule** on the trigger card, update the **Time zone** field, and click **Save schedule**. The card's status line always shows the timezone the trigger is saved with.
 
 ---
 
@@ -343,7 +353,7 @@ Under the hood, each webhook trigger carries a **signing mode** that decides how
 
 ### Rotating the secret
 
-If a secret leaks — or you just want to reissue credentials — use **Rotate secret** on the trigger card (the wizard's **Generate new key** button does the same thing). Rotation mints a fresh secret, invalidates the old one immediately, and **keeps the same webhook URL**, so you only have to update the secret in the sending app, never the endpoint. The new secret is shown once, in the same banner, so copy it right away.
+If a secret leaks — or you just want to reissue credentials — click **Edit webhook** on the trigger card, then **Replace key** and confirm the "Replace the webhook key?" prompt (the wizard's **Generate new key** button does the same thing). Rotation mints a fresh secret, invalidates the old one immediately, and **keeps the same webhook URL**, so you only have to update the secret in the sending app, never the endpoint. The new secret is shown once, in the same banner, so copy it right away.
 
 ### Enabling, disabling, and archiving a trigger
 

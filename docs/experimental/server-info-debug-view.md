@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.707.0
+paperclip_version: v2026.1012.0
 seo_title: Server Info Debug View
 seo_description: Answer which commit a server is actually running from inside the app. Adds a Server section to the account drawer for support and development work.
 ---
@@ -12,12 +12,12 @@ seo_description: Answer which commit a server is actually running from inside th
 
 ## Turn it on
 
-1. Go to **Settings → Instance settings → Experimental**.
-2. Turn on **Server Info Debug View** — *"Show a 'Server' section in the account drawer with the current server restart time and running commit."*
+1. Go to **Settings → Experimental**.
+2. Turn on **Server Info Debug View** — *"Show a "Server" section in the account drawer with the current server restart time and running commit."* You'll find it in the **Paperclip Developer Mode** section further down the page.
 
 ## Using it
 
-Click your avatar at the bottom of the sidebar to open the account drawer. Below **Sign out**, the **Server** section shows three rows:
+Click your avatar at the bottom of the sidebar to open the account drawer. The **Server** section is the last thing in the drawer, below the menu rows (**Settings**, **Invite** when you're allowed to invite people, **Documentation**, the **Switch to dark mode** / **Switch to light mode** toggle, and — on instances that require sign-in — **Sign out**). It shows three rows:
 
 - **Last restarted** — the dev-server restart time when available, otherwise the process start time.
 - **Running commit** — short SHA and commit subject (or *"Commit unavailable"* on deployments without git metadata).

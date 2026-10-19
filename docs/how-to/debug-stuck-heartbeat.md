@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.1012.0
 seo_title: Debug a Stuck Heartbeat
 seo_description: The handful of symptoms behind almost every agent-not-working report, each diagnosed from the Run history on the agent's detail page.
 ---
@@ -116,4 +116,4 @@ If you would rather not pay for these wakes at all, the cure is upstream: have y
 
 - [Watching Agents Work](../guides/getting-started/watching-agents-work.md) — what a healthy first heartbeat looks like.
 - [Heartbeats & Routines](../guides/projects-workflow/routines.md) — timer vs assignment-driven wakes.
-- [Activity Log](../guides/day-to-day/activity-log.md) — structural events when comments don't tell the full story.
+- [Audit: Activity](../guides/day-to-day/activity-log.md) — structural events when comments don't tell the full story.

@@ -12,9 +12,7 @@ Most of the time, your CEO agent creates issues automatically as part of its str
 
 The product language uses **task** and **issue** for the same piece of work. The UI calls the page **Tasks**; the underlying API route is `/api/issues`.
 
-*This screenshot shows the earlier Issues list layout; the current sidebar calls this page Tasks.*
-
-![Earlier Issues list layout](../../user-guides/screenshots/light/issues/list.png)
+![The Tasks page, listing every task in the company with sub-tasks nested under their parent](../../user-guides/screenshots/light/issues/list.png)
 
 ---
 
@@ -34,7 +32,7 @@ For everything else, trust the CEO and review work via the dashboard and approva
 
 ## Opening the Issues page
 
-Open **Tasks** to see the work across your company. The API calls these records issues, and the route remains `/issues`. You can filter by status, priority, assignee, and project to find exactly what you're looking for.
+Open **Tasks** to see the work across your company. The API calls these records issues, and the route remains `/issues`. You can filter by status, responsible agent or person, project, and more to find exactly what you're looking for.
 
 1. **Click "Tasks" in the left sidebar**
 
@@ -42,7 +40,7 @@ Open **Tasks** to see the work across your company. The API calls these records 
 
 2. **Use the filters to narrow down**
 
-   The filter bar at the top lets you filter by status, priority, assignee, project, labels, and (when isolated workspaces are enabled) execution workspace. This becomes essential once you have more than a handful of issues running at once.
+   The **Filter** button in the toolbar lets you filter by **Status**, **Responsible**, **Creator**, **Project**, **Labels**, and (when isolated workspaces are enabled) **Workspace**. This becomes essential once you have more than a handful of issues running at once.
 
    Common filter combinations:
    - Status = **blocked** — see everything that's waiting for intervention
@@ -54,9 +52,9 @@ Open **Tasks** to see the work across your company. The API calls these records 
 3. **Group and arrange the list**
 
    The list supports:
-   - **Group by** — `None`, `Type`, or `Workspace` (when isolated workspaces are enabled).
+   - **Group** — **Status**, **Responsible**, **Project**, **Workspace**, **Parent Task**, or **None** (list view only).
    - **Nesting toggle** — collapse parent/child issues into a tree so subtasks render beneath their parent.
-   - **Column picker** — choose which trailing columns are visible (status, priority, assignee, project, labels, updated time, and others).
+   - **Column picker** — choose which trailing columns are visible: **Responsible**, **Kicked off by**, **Project**, **Workspace**, **Parent task**, **Tags**, and **Last updated**.
 
    These controls live in the toolbar next to the search input and persist per view.
 
@@ -94,7 +92,7 @@ Implementation reference: [Tasks page and live updates](https://github.com/paper
 
 6. **Click Create task**, or press **⌘+Enter** (**Ctrl+Enter** on Windows and Linux).
 
-   The task opens after creation. Its **Properties** panel lets you adjust priority, status, parent, project, and the other task fields. Status, reviewers, approvers, and a [task watchdog](#task-watchdogs) aren't set in the new-task dialog — add them from **Properties** once the task exists. A paused assignee can receive the task, but won't start until you resume it.
+   The task opens after creation. Its **Properties** panel lets you adjust status, parent, project, and the other task fields. Status, reviewers, approvers, and a [task watchdog](#task-watchdogs) aren't set in the new-task dialog — add them from **Properties** once the task exists. A paused assignee can receive the task, but won't start until you resume it.
 
 When you create a subtask from an existing task, the dialog shows **Sub-task of** and uses **Create sub-task**. If the project supports isolated workspaces, the creation bar can also offer **Worktrees**: choose a new worktree or reuse an existing one. An unavailable selection produces an inline error so you can retry or choose another. See [Execution workspaces](../projects-workflow/workspaces.md).
 
@@ -185,7 +183,7 @@ The issue is no longer needed and won't be completed. This is also a terminal st
 
 The separate Inbox is the default navigation. The experimental **Combined Inbox + Task List** option is off by default. When you enable it in the streamlined interface, its views move into **Tasks → Views**, and the unread badge moves to Tasks. See [An optional combined task list](../../experimental/task-chat.md#an-optional-combined-task-list).
 
-The **Inbox** is the human-facing triage view. Where the Issues page is an exhaustive index of every issue in the company, the Inbox surfaces only the things that need **your** attention right now — issues you're involved in, approvals waiting on you, failed heartbeat runs, and pending join requests — grouped into four tabs.
+The **Inbox** is the human-facing triage view. Where the Issues page is an exhaustive index of every issue in the company, the Inbox surfaces only the things that need **your** attention right now — issues you're involved in, approvals waiting on you, failed heartbeat runs, and pending join requests — grouped into five tabs: **Mine**, **Recent**, **Unread**, **Blocked**, and **All**.
 
 ![Inbox](../../user-guides/screenshots/light/issues/inbox.png)
 
@@ -224,7 +222,7 @@ The Inbox toolbar mirrors the Issues page:
 
 - A search input with URL-bound `q` parameter.
 - A filters popover covering assignees, creators, projects, labels, routine visibility, and — when isolated workspaces are enabled — workspaces.
-- A group-by control (`None`, `Type`, or `Workspace`).
+- A group-by control (**None**, **Type**, **Responsible**, **Project**, or — when isolated workspaces are enabled — **Workspace**).
 - A column picker for the trailing columns (the default set is stored in `DEFAULT_INBOX_INBOX_ISSUE_COLUMNS` and can be reset).
 - A nesting toggle to collapse parent/child issue groups.
 
@@ -251,61 +249,59 @@ On Mine, the same slot hosts the archive button when the row is archivable.
 
 ---
 
-## My Issues
+## Your personal queue: Inbox → Mine
 
-The **My Issues** page is a lighter, personal queue sibling to the Inbox. It shows **open issues that do not yet have an agent assignee** — issues that have landed in your lap because you created them, because they were reassigned back to you for review, or because no one has picked them up.
+Earlier versions of Paperclip had a separate **My Issues** page. It's gone now — your personal queue is the **Mine** tab of the Inbox (`/inbox/mine`), which also pulls in the approvals and failed runs that are waiting on you.
 
-![My Issues](../../user-guides/screenshots/light/issues/my-issues.png)
+![Inbox → Mine, showing your tasks alongside approvals waiting on you](../../user-guides/screenshots/light/issues/my-issues.png)
 
-Under the hood, My Issues fetches the same company issues list the Issues page uses, and filters to:
-
-- `assigneeAgentId` is empty, and
-- `status` is not `done` and not `cancelled`.
-
-This is a very different lens from Inbox:
-
-| | Inbox | My Issues |
-|---|---|---|
-| Purpose | Triage everything waiting on you | Personal open queue |
-| Surfaces approvals and failed runs | Yes | No |
-| Shows unread markers | Yes | No |
-| Includes recent/participant issues | Yes | No |
-| Archive per-row | Yes (on Mine) | No |
-| Tabs | Mine / Recent / Unread / All | Single list |
-
-In practice: use **Inbox → Mine** for day-to-day triage, and **My Issues** when you want the plain list of things that are still sitting on you as a human because no agent has been assigned yet.
+Approval rows on Mine carry inline **Approve** and **Reject** buttons, so you can decide straight from the queue. Use **Recent**, **Unread**, **Blocked**, and **All** when you need a wider lens.
 
 ---
 
 ## The Issue Detail Sidebar
 
-Opening any issue lands you on the detail view. Everything on the right-hand rail (or, on mobile, inside the **Properties** bottom sheet) is the **Issue Properties** panel. Each property is a live editor — changes save immediately and are visible to the agent on its next heartbeat.
+Opening any task lands you on the detail view. On the default chat-style page, the conversation fills the center and the **Properties** tab of the side panel on the right holds the task's fields (on mobile, they sit inside the **Properties** bottom sheet). Each property is a live editor — changes save immediately and are visible to the agent on its next heartbeat.
 
-*The screenshot below shows the property fields in the older Classic Task Interface; the default task page places them in a tabbed side panel.*
+![A task's Properties tab in the side panel, beside the conversation](../../user-guides/screenshots/light/issues/detail-sidebar.png)
 
-![Property fields in the Classic Task Interface](../../user-guides/screenshots/light/issues/detail-sidebar.png)
+The fields are grouped into sections, in this order. Some rows only appear when they have something to show.
 
-The sidebar exposes the following fields, in order:
+**Work**
 
-- **Status** — the lifecycle status (see reference above). Clicking the status icon opens a picker.
-- **Priority** — `critical`, `high`, `medium`, or `low`.
-- **Labels** — free-form company-scoped labels with a colour. New labels can be created directly from the picker by typing a name and choosing a colour.
+- **Status** — the lifecycle status (see reference above). Click it to open a picker.
 - **Assignee** — an agent or a user. The arrow button next to a resolved agent opens that agent's profile. Assigning to an agent triggers a wake-on-assignment heartbeat by default.
-- **Project** — the project this issue belongs to. The arrow button deep-links to the project page.
-- **Parent** — the parent issue this one is a subtask of. Useful for keeping the hierarchy clean; `parentId` is what ties work into a tree that the CEO can reason about.
-- **Blocked by** — a list of other issues that are blocking this one. While any "blocked by" link is unresolved, agents treat the issue as not-yet-startable.
-- **Blocking** — the inverse view: issues that depend on this one. Read-only from this issue; you edit it from the other side.
-- **Sub-issues** — direct children. Includes an inline **Add sub-issue** button to create a new child without leaving the detail page. Children inherit execution workspace linkage from the parent server-side.
-- **Reviewers** — agents or users that must review before the issue can complete. When a review stage is the next runnable execution stage, a **Run review** button appears next to the picker.
-- **Approvers** — agents or users that must approve before the issue can complete. Same runnable-stage behaviour as Reviewers but for the approval stage.
-- **Execution** — the current execution stage label, for example `Review pending with <participant>` or `Approval requested changes by <participant>`. Read-only; it is driven by the execution policy.
+- **Model** — appears when the assigned agent's adapter offers model options, so you can pick one for this task.
+- **Project** — the project this task belongs to. The arrow button deep-links to the project page.
+- **Labels** — free-form company-scoped labels with a colour. You can create a new label straight from the picker by typing a name and choosing a colour.
+
+**Relationships**
+
+- **Parent** — the parent task this one is a subtask of. `parentId` is what ties work into a tree the CEO can reason about.
+- **Blocked by** — other tasks blocking this one. While any "blocked by" link is unresolved, agents treat the task as not-yet-startable.
+- **Blocking** — the inverse view: tasks that depend on this one. Read-only here; you edit it from the other side.
+- **Subtasks** — direct children, shown as pills. Open the picker to see the full list and use **Add subtask** to create a new child without leaving the page. Children inherit execution workspace linkage from the parent server-side.
+
+**Execution**
+
+- **Reviewers** — agents or users who must review before the task can complete. When a review stage is the next runnable execution stage, a **Run review now** button appears next to the picker.
+- **Approvers** — agents or users who must approve before the task can complete. Same runnable-stage behaviour as Reviewers, but for the approval stage, with a **Run approval now** button.
+- **Execution** — the current execution stage label, for example `Review pending with <participant>`. Read-only; it's driven by the execution policy.
 - **Pull requests** — the pull requests saved on this task, with the ones waiting on your review first and marked **Review requested**. Each links straight to the PR and, when Paperclip can read it, shows its live GitHub status. A saved PR stays listed even when Paperclip can't look it up — for example, a private repository without a token — so you never lose the link. See [Waiting on your pull request review](#waiting-on-your-pull-request-review).
-- **Depth** — the depth of this issue in its parent hierarchy.
-- **Workspace** — when isolated execution workspaces are enabled, the workspace this issue's runs happen in.
-- **Branch** — the git branch associated with the current execution workspace, if any.
-- **Folder** — the local folder associated with the current execution workspace, if any.
-- **Created by** — the user or agent that created the issue.
+- **Monitor** — an optional date and time for a scheduled check-in on the task. When one is set, the row shows the next check time.
+- **Watchdog** — the agent that watches this task's subtree for stalls. See [Task watchdogs](#task-watchdogs).
+
+**Workspace** (when the task has a workspace)
+
+- **Execution**, **Workspace**, **Service**, **Branch**, **Folder** — which execution workspace the task's runs use, plus its running service, git branch, and local folder.
+
+**About**
+
+- **Originating** — the user or agent that created the task.
 - **Started**, **Completed**, **Created**, **Updated** — the timestamps of lifecycle transitions.
+- **Depth** — how deep this task sits in its parent hierarchy (only shown for subtasks).
+
+The older **Classic Task Interface** shows the same fields in a stacked sidebar, with a **Sub-tasks** row and an inline **Add sub-task** button.
 
 In **Classic Task Interface**, the detail view also renders these sections outside Properties:
 
@@ -335,7 +331,7 @@ Implementation reference: [side-panel tabs and launcher](https://github.com/pape
 
 Open **Plan** and you get the plan itself, rendered, rather than a link to go find it. Above the text a small line tells you which version you're reading — for example *"Revision 3 · updated Aug 3, 2:15 PM"* — so you can tell at a glance whether the agent has revised the plan since you last looked.
 
-Below the plan sits the accepted-plan history: each accepted revision and the child tasks it created. That's the same **Plan decomposition** view described in [Task Plan Decomposition Panel](../../experimental/plan-decomposition-panel.md), moved here so the plan and what it produced read together.
+Below the plan sits the accepted-plan history: each accepted revision and the child tasks it created. That's the same **Plan decomposition** view described in [Task Plan Decomposition](../../experimental/plan-decomposition-panel.md), moved here so the plan and what it produced read together.
 
 #### Approving a plan from the panel
 
@@ -469,9 +465,7 @@ References also roll up into **badges** on issue rows and in the sidebar and inb
 
 On the default page, the conversation fills the center column: comments and live agent activity appear together, and completed turns fold down to a summary. **Classic Task Interface** has a separate **Chat** tab for the same task history.
 
-*This screenshot shows the Chat tab in Classic Task Interface.*
-
-![Classic Task Interface Chat tab](../../user-guides/screenshots/light/issues/detail-chat.png)
+![The default task page, with the conversation in the center and the composer at the bottom](../../user-guides/screenshots/light/issues/detail-chat.png)
 
 The task conversation combines four data sources into a single timeline:
 
@@ -520,9 +514,9 @@ This binding is what makes the Chat tab auditable: you can always trace a statem
 
 In **Classic Task Interface**, the **Activity** tab is the chronological system log for the issue. The default task page keeps the conversation in the center; you can inspect individual runs from its folded turns and open the company audit trail for system activity.
 
-*This screenshot shows the Activity tab in Classic Task Interface.*
+*This screenshot shows the Activity tab in Classic Task Interface, which you can turn on under **Legacy** in Experimental settings. The default task page has no Activity tab.*
 
-![Classic Task Interface Activity tab](../../user-guides/screenshots/light/issues/detail-activity.png)
+![The Activity tab in Classic Task Interface](../../user-guides/screenshots/light/issues/detail-activity.png)
 
 The tab assembles three streams:
 
@@ -659,7 +653,7 @@ Issue detail footers now expose a **previous / next** navigator so you can walk 
 
 The navigator (`IssueSiblingNavigation`) walks two relationships in order:
 
-1. **Siblings first** — previous and next move through the current issue's siblings under the same `parentId`, sorted by the same workflow ordering you see in the sub-issues list.
+1. **Siblings first** — previous and next move through the current issue's siblings under the same `parentId`, sorted by the same workflow ordering you see in the **Subtasks** list.
 2. **Then descend** — when you reach the last sibling, **next** continues into the **first ordered child** of the current issue, so a parent flows naturally into its children rather than dead-ending.
 
 Two caveats are baked into the ordering:
@@ -674,11 +668,10 @@ The footer also fixes a long-standing race in **issue link quicklooks**: hoverin
 ## A quick mental model
 
 - **Issues page** — every piece of work in the company, with filtering and grouping. Indexed.
-- **Inbox** — human triage. Mine / Recent / Unread / All, with archive and mark-all-read.
-- **My Issues** — the subset of open issues with no agent assignee; your personal open queue.
-- **Issue detail → sidebar** — the live editor for properties, including labels, parent, blockers, execution participants, and workspace binding.
-- **Issue detail → Chat** — conversation, runs, and the composer.
-- **Issue detail → Activity** — read-only system log and cost summary.
+- **Inbox** — human triage. Mine / Recent / Unread / Blocked / All, with archive and mark-all-read. **Mine** is your personal queue.
+- **Task detail → Properties** — the live editor for properties, including labels, parent, blockers, subtasks, execution participants, and workspace binding.
+- **Task detail → conversation** — comments, runs, and the composer.
+- **Classic Task Interface → Activity** — read-only system log and cost summary.
 
 You now know how to create, assign, track, triage, and close issues. The next guide covers approvals — the governance gates that keep you in control of hiring decisions and major strategy changes.
 

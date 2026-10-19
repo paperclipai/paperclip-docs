@@ -11,7 +11,7 @@ Not every conversation with an agent starts as a well-formed task. Sometimes you
 
 ## Turn it on
 
-1. Go to **Settings → Instance settings → Experimental**.
+1. Go to **Settings → Experimental**.
 2. Turn on **Agent Chat**. It is experimental and off by default; enabling it adds persistent conversations with your agents.
 
 Like every flag on that page, it's instance-wide. On Paperclip Cloud this one may be managed for you, in which case it shows the **Managed by Paperclip Cloud** lock — see [If a toggle is locked](overview.md#if-a-toggle-is-locked).

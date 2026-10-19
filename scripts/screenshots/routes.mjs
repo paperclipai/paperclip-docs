@@ -38,6 +38,10 @@ const ID_TOKENS = [
   // Extended coverage tokens (written by seed.mjs; see scripts/screenshots/seed.mjs)
   "emptyPrefix", // a second, empty company's prefix — for empty-state shots
   "httpAgentId", // an agent created with the http adapter
+  "claudeAgentId", // a claude_local agent (Finn) — for the Claude Code config form
+  "codexAgentId", // a codex_local agent (Gia) — for the Codex config form
+  "checkboxIssueId", // issue carrying the pending checkbox confirmation card
+  "pluginId", // an installed plugin (LLM Wiki) for the plugin detail shots
   "budgetHalfAgentId", // agent seeded to ~50% budget utilisation
   "budgetWarnAgentId", // agent seeded to ~80% (warning)
   "budgetMaxAgentId", // agent seeded to 100% and paused
@@ -111,13 +115,17 @@ export const CAPTURE_TARGETS = [
       { click: { role: "button", name: "Verify my account" } },
     ] },
     { name: "prompts", stage: "behavior", heading: "Review instructions", steps: [
-      { scrollTo: { label: "Review instructions" } },
+      { scrollToTop: { text: "Automatic review events", exact: true } },
+      { scrollBy: -90 },
     ] },
   ].map(({ name, stage, heading, steps }) => ({
     name: `github-review/${name}`,
     route: "/{prefix}/apps/chat/connect?provider=github&resume=github-review-docs-demo",
     githubReviewStage: stage,
     requiredText: heading,
+    // The sidebar's gated entries (Decisions, Status) paint after the
+    // experimental-settings fetch; wait for them.
+    readyText: "Decisions",
     steps,
     dependsOn: [
       "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
@@ -135,7 +143,9 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "company/access",
-    route: "/{prefix}/company/settings/access",
+    // The docs embed this as the Members list; /company/settings/access is now
+    // the "Advanced permissions unavailable" placeholder.
+    route: "/{prefix}/company/settings/members",
     dependsOn: ["ui/src/pages/CompanyAccess.tsx"],
     themes: ["light", "dark"],
   },
@@ -173,20 +183,18 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "settings/instance-general",
-    route: "/{prefix}/company/settings/instance/general",
-    dependsOn: ["ui/src/pages/InstanceGeneralSettings.tsx"],
+    // /company/settings/instance/general redirects to the organization's
+    // General page: organization fields at the top, the instance-wide sections
+    // further down (the caption describes the top of the page).
+    route: "/{prefix}/company/settings",
+    dependsOn: ["ui/src/pages/InstanceGeneralSettings.tsx", "ui/src/pages/CompanySettings.tsx"],
     themes: ["light", "dark"],
+    wait: 2000,
   },
   {
     name: "settings/instance-access",
     route: "/{prefix}/company/settings/instance/access",
     dependsOn: ["ui/src/pages/InstanceAccess.tsx"],
-    themes: ["light", "dark"],
-  },
-  {
-    name: "settings/scheduler-heartbeats",
-    route: "/{prefix}/company/settings/instance/heartbeats",
-    dependsOn: ["ui/src/pages/InstanceSettings.tsx"],
     themes: ["light", "dark"],
   },
   {
@@ -212,23 +220,33 @@ export const CAPTURE_TARGETS = [
     themes: ["light", "dark"],
     wait: 1500, // extra settle to allow plugin list to render
   },
+  // Plugin detail lives at /company/settings/instance/plugins/:pluginId with
+  // Configuration (default) and Status tabs. {pluginId} is LLM Wiki (seed.mjs).
   {
     name: "plugins/detail",
-    route: "/{prefix}/company/settings/instance/plugins",
-    dependsOn: ["ui/src/pages/PluginPage.tsx"],
+    route: "/{prefix}/company/settings/instance/plugins/{pluginId}",
+    dependsOn: ["ui/src/pages/PluginSettings.tsx"],
     themes: ["light", "dark"],
+    wait: 2000,
+    // The page header — name, status + version badges, Configuration / Status
+    // tabs — so it reads differently from plugins/settings (the full tab).
+    clip: { css: 'xpath=(//main//*[@role="tab"][normalize-space()="Status"]/ancestor::div[.//h1][1])' },
   },
   {
     name: "plugins/settings",
-    route: "/{prefix}/company/settings/instance/plugins",
+    route: "/{prefix}/company/settings/instance/plugins/{pluginId}",
     dependsOn: ["ui/src/pages/PluginSettings.tsx"],
     themes: ["light", "dark"],
+    wait: 2000,
+    steps: [{ click: { role: "tab", name: "Configuration" } }, { waitMs: 800 }],
   },
   {
     name: "plugins/jobs-log",
-    route: "/{prefix}/company/settings/instance/plugins",
+    route: "/{prefix}/company/settings/instance/plugins/{pluginId}",
     dependsOn: ["ui/src/pages/PluginSettings.tsx"],
     themes: ["light", "dark"],
+    wait: 2000,
+    steps: [{ click: { role: "tab", name: "Status" } }, { waitMs: 1200 }],
   },
 
   // ── Agents ─────────────────────────────────────────────────────────────────
@@ -252,13 +270,15 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "agents/instructions",
-    route: "/{prefix}/agents/{agentId}/instructions",
+    // Finn (claude_local): the process adapter has no instruction bundle, so
+    // Bob's page only says "not available for this adapter".
+    route: "/{prefix}/agents/{claudeAgentId}/instructions",
     dependsOn: ["ui/src/pages/AgentDetail.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "agents/skills",
-    route: "/{prefix}/agents/{agentId}/skills",
+    route: "/{prefix}/agents/{claudeAgentId}/skills",
     dependsOn: ["ui/src/pages/AgentDetail.tsx"],
     themes: ["light", "dark"],
   },
@@ -270,13 +290,15 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "agents/runs",
-    route: "/{prefix}/agents/{agentId}/runs",
+    // /agents/:id/runs redirects to Audit → Runs filtered to the agent.
+    route: "/{prefix}/activity/runs?agentId={agentId}",
     dependsOn: ["ui/src/pages/AgentDetail.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "agents/budget",
-    route: "/{prefix}/agents/{agentId}/budget",
+    // The per-agent budget tab is gone; budgets live on Audit → Budgets.
+    route: "/{prefix}/activity/budgets",
     dependsOn: ["ui/src/pages/AgentDetail.tsx"],
     themes: ["light", "dark"],
   },
@@ -287,34 +309,31 @@ export const CAPTURE_TARGETS = [
   // will only get the default Overview tab; remaining tabs need manual interaction.
   {
     name: "costs/overview",
-    route: "/{prefix}/costs",
+    route: "/{prefix}/activity/costs",
     dependsOn: ["ui/src/pages/Costs.tsx"],
     themes: ["light", "dark"],
+    wait: 2000,
+    // Past the budget-incident cards to the ledgers and the By agent breakdown.
+    steps: [{ scrollToTop: { text: "Inference ledger", exact: true } }, { scrollBy: -40 }],
   },
+  // Costs moved under Audit: /costs redirects to /activity/costs, whose
+  // Overview / Providers / Billers / Finance sub-views are buttons; Budgets is
+  // its own Audit tab at /activity/budgets.
   {
     name: "costs/budgets",
-    route: "/{prefix}/costs",
+    route: "/{prefix}/activity/budgets",
     dependsOn: ["ui/src/pages/Costs.tsx"],
     themes: ["light", "dark"],
+    wait: 2000,
   },
-  {
-    name: "costs/providers",
-    route: "/{prefix}/costs",
+  ...["Providers", "Billers", "Finance"].map((view) => ({
+    name: `costs/${view.toLowerCase()}`,
+    route: "/{prefix}/activity/costs",
     dependsOn: ["ui/src/pages/Costs.tsx"],
     themes: ["light", "dark"],
-  },
-  {
-    name: "costs/billers",
-    route: "/{prefix}/costs",
-    dependsOn: ["ui/src/pages/Costs.tsx"],
-    themes: ["light", "dark"],
-  },
-  {
-    name: "costs/finance",
-    route: "/{prefix}/costs",
-    dependsOn: ["ui/src/pages/Costs.tsx"],
-    themes: ["light", "dark"],
-  },
+    wait: 2000,
+    steps: [{ click: { css: `xpath=//main//button[normalize-space()="${view}"]` } }, { waitMs: 1200 }],
+  })),
 
   // ── Issues & inbox ─────────────────────────────────────────────────────────
   {
@@ -326,18 +345,6 @@ export const CAPTURE_TARGETS = [
   {
     name: "issues/inbox",
     route: "/{prefix}/inbox/mine",
-    dependsOn: ["ui/src/pages/Inbox.tsx"],
-    themes: ["light", "dark"],
-  },
-  {
-    name: "issues/inbox-unread",
-    route: "/{prefix}/inbox/unread",
-    dependsOn: ["ui/src/pages/Inbox.tsx"],
-    themes: ["light", "dark"],
-  },
-  {
-    name: "issues/inbox-requests",
-    route: "/{prefix}/inbox/requests",
     dependsOn: ["ui/src/pages/Inbox.tsx"],
     themes: ["light", "dark"],
   },
@@ -358,63 +365,34 @@ export const CAPTURE_TARGETS = [
   },
   // Activity tab — same route, manual tab click needed; captured as a separate target.
   {
+    // The Activity tab only exists in the Classic Task Interface (Experimental →
+    // Legacy); the flag is flipped for this capture only (capture.mjs).
     name: "issues/detail-activity",
     route: "/{prefix}/issues/{issueId}",
     dependsOn: ["ui/src/pages/IssueDetail.tsx"],
     themes: ["light", "dark"],
+    experimental: { enableClassicTaskInterface: true },
+    wait: 2500,
+    steps: [{ click: { role: "tab", name: "Activity" } }, { waitMs: 1200 }],
   },
   // Checkbox confirmation cards render in the issue thread. Track the owning
   // issue route so the capture pipeline can refresh the documented card.
   {
     name: "interactions/checkbox-confirmation-card",
-    route: "/{prefix}/issues/{issueId}",
+    // The pending card lives on "Fix flaky integration test" (seed.mjs), not
+    // the hero task, so it does not show up in every hero-task shot.
+    route: "/{prefix}/issues/{checkboxIssueId}",
+    wait: 2500,
+    // Open the card's collapsed "Details" (the markdown context).
+    steps: [
+      { click: { css: "main details summary" } },
+      { waitMs: 500 },
+      { scrollTo: { text: "Which flaky specs should I quarantine on main?" } },
+      { waitMs: 500 },
+    ],
     dependsOn: [
       "ui/src/pages/IssueDetail.tsx",
       "ui/src/components/IssueThreadInteractionCard.tsx",
-    ],
-    themes: ["light", "dark"],
-  },
-  {
-    name: "work-modes/standard-mode-run",
-    route: "/{prefix}/issues/{issueId}",
-    dependsOn: [
-      "ui/src/pages/IssueDetail.tsx",
-      "ui/src/components/IssueChatThread.tsx",
-    ],
-    themes: ["light", "dark"],
-  },
-  {
-    name: "work-modes/ask-mode-answer",
-    route: "/{prefix}/issues/{issueId}",
-    dependsOn: [
-      "ui/src/pages/IssueDetail.tsx",
-      "ui/src/components/IssueChatThread.tsx",
-    ],
-    themes: ["light", "dark"],
-  },
-  {
-    name: "work-modes/plan-mode-plan",
-    route: "/{prefix}/issues/{issueId}",
-    dependsOn: [
-      "ui/src/pages/IssueDetail.tsx",
-      "ui/src/components/IssueDocumentsSection.tsx",
-    ],
-    themes: ["light", "dark"],
-  },
-  {
-    name: "work-modes/work-mode-picker",
-    route: "/{prefix}/inbox/mine",
-    dependsOn: [
-      "ui/src/components/NewIssueDialog.tsx",
-      "ui/src/lib/work-mode-meta.ts",
-    ],
-    // The "c" keyboard shortcut no longer opens the composer; the sidebar
-    // "New Task" button does. The mode chip inside the dialog is unchanged.
-    steps: [
-      { click: { role: "button", name: "New Task" } },
-      { waitMs: 1200 },
-      { click: { css: "[data-issue-work-mode-chip]" } },
-      { waitMs: 700 },
     ],
     themes: ["light", "dark"],
   },
@@ -424,12 +402,6 @@ export const CAPTURE_TARGETS = [
     name: "projects/list",
     route: "/{prefix}/projects",
     dependsOn: ["ui/src/pages/Projects.tsx"],
-    themes: ["light", "dark"],
-  },
-  {
-    name: "projects/overview",
-    route: "/{prefix}/projects/{projectId}/overview",
-    dependsOn: ["ui/src/pages/ProjectDetail.tsx"],
     themes: ["light", "dark"],
   },
   {
@@ -522,33 +494,29 @@ export const CAPTURE_TARGETS = [
     themes: ["light", "dark"],
   },
   {
-    name: "adapters/install",
-    route: "/{prefix}/company/settings/instance/adapters",
-    dependsOn: ["ui/src/pages/AdapterManager.tsx"],
-    themes: ["light", "dark"],
-  },
-  {
+    // Per-agent adapter settings: the Adapter + Configuration cards on a
+    // claude_local agent's Harness / Runtime page.
     name: "adapters/detail",
-    route: "/{prefix}/company/settings/instance/adapters",
-    dependsOn: ["ui/src/pages/AdapterManager.tsx"],
+    route: "/{prefix}/agents/{claudeAgentId}/runtime",
+    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
     themes: ["light", "dark"],
+    wait: 2000,
+    steps: [{ scrollTo: { text: "Thinking effort" } }, { waitMs: 500 }],
   },
 
   // ── Org chart ──────────────────────────────────────────────────────────────
   {
+    // /org lands on the Agents list; the tree is the "Org chart view" toggle.
     name: "org/chart",
     route: "/{prefix}/org",
     dependsOn: ["ui/src/pages/OrgChart.tsx"],
     themes: ["light", "dark"],
+    // Fit-to-screen view of the whole tree. Zooming in a step clips the outer
+    // branches, and cropping to the tree does not take effect on the pan/zoom canvas.
+    steps: [{ click: { role: "button", name: "Org chart view" } }, { waitMs: 1500 }, { click: { role: "button", name: "Fit chart to screen" } }, { waitMs: 1000 }],
   },
 
   // ── Skills ─────────────────────────────────────────────────────────────────
-  {
-    name: "skills/list",
-    route: "/{prefix}/skills",
-    dependsOn: ["ui/src/pages/CompanySkills.tsx"],
-    themes: ["light", "dark"],
-  },
   {
     name: "skills/add-skill-dialog",
     route: "/{prefix}/skills",
@@ -556,16 +524,12 @@ export const CAPTURE_TARGETS = [
     themes: ["light", "dark"],
   },
   {
-    name: "skills/add-skill-dialog-confirm",
-    route: "/{prefix}/skills",
-    dependsOn: ["ui/src/pages/CompanySkills.tsx"],
-    themes: ["light", "dark"],
-  },
-  {
+    // A skill's detail page opens on its Files tab (SKILL.md selected).
     name: "skills/file-inventory",
-    route: "/{prefix}/skills",
+    route: "/{prefix}/skills/{skillId}",
     dependsOn: ["ui/src/pages/CompanySkills.tsx"],
     themes: ["light", "dark"],
+    wait: 2000,
   },
 
   // ════════════════════════════════════════════════════════════════════════
@@ -599,13 +563,22 @@ export const CAPTURE_TARGETS = [
 
   // ── Tasks / inbox ─────────────────────────────────────────────────────────
   { name: "tasks/inbox-view", route: "/{prefix}/inbox/mine", dependsOn: ["ui/src/pages/Inbox.tsx"] },
-  { name: "tasks/inbox-newly-created-tasks", route: "/{prefix}/inbox/recent", dependsOn: ["ui/src/pages/Inbox.tsx"] },
-  { name: "tasks/task-detail-with-comments", route: "/{prefix}/issues/{issueId}", dependsOn: ["ui/src/pages/IssueDetail.tsx"] },
+  // The guide says "click Tasks in the sidebar": the Tasks list.
+  { name: "tasks/inbox-newly-created-tasks", route: "/{prefix}/issues", dependsOn: ["ui/src/pages/Issues.tsx"] },
+  {
+    name: "issues/inbox-blocked",
+    route: "/{prefix}/inbox/blocked",
+    dependsOn: ["ui/src/pages/Inbox.tsx", "ui/src/components/BlockedInboxView.tsx"],
+    themes: ["light", "dark"],
+    wait: 2000,
+    readyText: "Investigate battery telemetry spike",
+  },
+  { name: "tasks/task-detail-with-comments", readyText: "Kicking this off", route: "/{prefix}/issues/{issueId}", dependsOn: ["ui/src/pages/IssueDetail.tsx"] },
 
   // ── Issues ──────────────────────────────────────────────────────────────────
   { name: "issues/my-issues", route: "/{prefix}/inbox/mine", dependsOn: ["ui/src/pages/Inbox.tsx"] },
   {
-    name: "issues/detail-sidebar",
+    name: "issues/detail-sidebar", readyText: "Kicking this off",
     route: "/{prefix}/issues/{issueId}",
     dependsOn: ["ui/src/pages/IssueDetail.tsx"],
     // The properties pane is open by default now, so the old "Show properties"
@@ -631,12 +604,18 @@ export const CAPTURE_TARGETS = [
     name: "activity/activity-filtered-by-agent",
     route: "/{prefix}/activity",
     dependsOn: ["ui/src/pages/audit/CompanyActivity.tsx", "ui/src/pages/audit/AuditFeed.tsx"],
-    steps: [{ click: { role: "combobox" } }, { waitMs: 400 }, { click: { role: "option", name: "Agent" } }, { waitMs: 600 }],
+    // The agent filter is a select whose trigger reads "All agents".
+    steps: [
+      { click: { css: 'xpath=//main//button[@role="combobox"][normalize-space()="All agents"]' } },
+      { waitMs: 400 },
+      { click: { role: "option", name: "Bob" } },
+      { waitMs: 1200 },
+    ],
   },
 
   // ── Org ─────────────────────────────────────────────────────────────────────
-  { name: "org/org-chart-view", route: "/{prefix}/org", dependsOn: ["ui/src/pages/OrgChart.tsx"] },
-  { name: "org/org-chart-small-team", route: "/{prefix}/org", dependsOn: ["ui/src/pages/OrgChart.tsx"] },
+  { name: "org/org-chart-view", route: "/{prefix}/org", dependsOn: ["ui/src/pages/OrgChart.tsx"], steps: [{ click: { role: "button", name: "Org chart view" } }, { waitMs: 1500 }, { click: { role: "button", name: "Fit chart to screen" } }, { waitMs: 1000 }] },
+  { name: "org/org-chart-small-team", route: "/{prefix}/org", dependsOn: ["ui/src/pages/OrgChart.tsx"], steps: [{ click: { role: "button", name: "Org chart view" } }, { waitMs: 1500 }, { click: { role: "button", name: "Fit chart to screen" } }, { waitMs: 1000 }] },
   { name: "org/skills-list", route: "/{prefix}/skills", dependsOn: ["ui/src/pages/CompanySkills.tsx"] },
   // Note: the workspaces list lives under workspaces/list (same /{prefix}/workspaces
   // route). The former org/execution-workspaces-list duplicate was removed.
@@ -650,9 +629,10 @@ export const CAPTURE_TARGETS = [
   // ── Routines ──────────────────────────────────────────────────────────────
   {
     name: "routines/run-history",
-    route: "/{prefix}/routines/{routineId}",
+    // RoutineDetail sections are routes now (sidebar nav, no tabs); Runs has
+    // its own URL like Triggers does.
+    route: "/{prefix}/routines/{routineId}/runs",
     dependsOn: ["ui/src/pages/RoutineDetail.tsx"],
-    steps: [{ click: { role: "tab", name: "Runs" } }, { waitMs: 700 }],
   },
   {
     name: "routines/cron-picker",
@@ -663,6 +643,8 @@ export const CAPTURE_TARGETS = [
     dependsOn: ["ui/src/pages/RoutineDetail.tsx"],
     themes: ["light", "dark"],
     wait: 2000,
+    // seed.mjs adds a weekday schedule trigger; open its editor.
+    steps: [{ click: { role: "button", name: "Edit schedule" } }, { waitMs: 900 }],
   },
 
   // ── Skills ──────────────────────────────────────────────────────────────────
@@ -681,84 +663,162 @@ export const CAPTURE_TARGETS = [
   { name: "settings/instance-adapters", route: "/{prefix}/company/settings/instance/adapters", dependsOn: ["ui/src/pages/AdapterManager.tsx"] },
 
   // ── Costs ─────────────────────────────────────────────────────────────────
-  { name: "costs/costs-dashboard-overview", route: "/{prefix}/costs", dependsOn: ["ui/src/pages/Costs.tsx"] },
+  {
+    // The whole Overview: presets, metric tiles, incidents, ledgers, By agent.
+    name: "costs/costs-dashboard-overview",
+    route: "/{prefix}/activity/costs",
+    dependsOn: ["ui/src/pages/Costs.tsx"],
+    wait: 2000,
+    viewport: { width: 1440, height: 2000 },
+  },
+  // Budget policy cards live on Audit → Budgets. Each shot clips one card by
+  // its title; incident cards share the title, so take the last match (the
+  // policy cards render after the incidents).
   {
     name: "costs/agent-budget-field",
-    route: "/{prefix}/agents/{agentId}/budget",
-    dependsOn: ["ui/src/pages/AgentDetail.tsx", "ui/src/components/BudgetPolicyCard.tsx"],
+    route: "/{prefix}/activity/budgets",
+    dependsOn: ["ui/src/pages/Costs.tsx", "ui/src/components/BudgetPolicyCard.tsx"],
+    wait: 2000,
+    clip: { css: 'xpath=(//*[@data-slot="card"][.//*[@data-slot="card-title" and normalize-space()="Budget Demo (50%)"]][.//*[@data-slot="card-description"]])[last()]' },
   },
   {
     name: "costs/company-budget-field",
-    route: "/{prefix}/costs",
+    route: "/{prefix}/activity/budgets",
     dependsOn: ["ui/src/pages/Costs.tsx", "ui/src/components/BudgetPolicyCard.tsx"],
-    steps: [{ click: { role: "tab", name: "Budgets" } }, { waitMs: 600 }],
+    wait: 2000,
+    clip: { css: 'xpath=(//*[@data-slot="card"][.//*[@data-slot="card-title" and normalize-space()="Acme Robotics"]][.//*[@data-slot="card-description"]])[last()]' },
   },
   {
+    // "By agent" card on Audit → Costs with Bob's row expanded into per-model lines.
     name: "costs/per-run-cost-detail",
-    route: "/{prefix}/costs",
+    route: "/{prefix}/activity/costs",
     dependsOn: ["ui/src/pages/Costs.tsx"],
-    steps: [{ click: { text: "Bob" } }, { waitMs: 600 }],
+    wait: 2000,
+    steps: [
+      { click: { css: 'xpath=//*[@data-slot="card"][.//*[@data-slot="card-title" and normalize-space()="By agent"]]//div[contains(@class,"cursor-pointer")][.//*[normalize-space()="Bob"]]' } },
+      { waitMs: 800 },
+    ],
+    clip: { css: 'xpath=//*[@data-slot="card"][.//*[@data-slot="card-title" and normalize-space()="By agent"]]' },
   },
-  // Budget-utilisation bar states — dedicated agents seeded to set % (see seed.mjs).
-  { name: "costs/agent-budget-bar", route: "/{prefix}/agents/{budgetHalfAgentId}/budget", dependsOn: ["ui/src/components/BudgetPolicyCard.tsx"] },
-  { name: "costs/agent-budget-50pct", route: "/{prefix}/agents/{budgetHalfAgentId}/budget", dependsOn: ["ui/src/components/BudgetPolicyCard.tsx"] },
-  { name: "costs/agent-budget-80pct-warning", route: "/{prefix}/agents/{budgetWarnAgentId}/budget", dependsOn: ["ui/src/components/BudgetPolicyCard.tsx"] },
-  { name: "costs/agent-budget-100pct-paused", route: "/{prefix}/agents/{budgetMaxAgentId}/budget", dependsOn: ["ui/src/components/BudgetPolicyCard.tsx"] },
+  // Budget-utilisation states — dedicated agents seeded to 50/80/100% (seed.mjs).
+  // costs/agent-budget-bar's caption is the Budgets tab overview itself.
+  { name: "costs/agent-budget-bar", route: "/{prefix}/activity/budgets", dependsOn: ["ui/src/pages/Costs.tsx"], wait: 2000 },
+  { name: "costs/agent-budget-50pct", route: "/{prefix}/activity/budgets", dependsOn: ["ui/src/components/BudgetPolicyCard.tsx"], wait: 2000, clip: { css: 'xpath=(//*[@data-slot="card"][.//*[@data-slot="card-title" and normalize-space()="Budget Demo (50%)"]][.//*[@data-slot="card-description"]])[last()]' } },
+  { name: "costs/agent-budget-80pct-warning", route: "/{prefix}/activity/budgets", dependsOn: ["ui/src/components/BudgetPolicyCard.tsx"], wait: 2000, clip: { css: 'xpath=(//*[@data-slot="card"][.//*[@data-slot="card-title" and normalize-space()="Budget Demo (80%)"]][.//*[@data-slot="card-description"]])[last()]' } },
+  { name: "costs/agent-budget-100pct-paused", route: "/{prefix}/activity/budgets", dependsOn: ["ui/src/components/BudgetPolicyCard.tsx"], wait: 2000, clip: { css: 'xpath=(//*[@data-slot="card"][.//*[@data-slot="card-title" and normalize-space()="Budget Demo (100%)"]][.//*[@data-slot="card-description"]])[last()]' } },
 
   // ── Agents — new-agent form + config interactions ───────────────────────────
-  { name: "agents/new-agent-name-role", route: "/{prefix}/agents/new", dependsOn: ["ui/src/pages/NewAgent.tsx"] },
+  {
+    name: "agents/new-agent-name-role",
+    route: "/{prefix}/agents/new",
+    dependsOn: ["ui/src/components/new-agent/AgentBasicsDialog.tsx"],
+    steps: [{ fill: { placeholder: "e.g. Darnold" }, value: "Riley" }, { waitMs: 400 }],
+  },
   {
     name: "agents/new-agent-reports-to-field",
-    route: "/{prefix}/agents/new",
-    dependsOn: ["ui/src/pages/NewAgent.tsx", "ui/src/components/ReportsToPicker.tsx"],
-    steps: [{ click: { role: "button", name: /Reports to/i } }, { waitMs: 500 }],
+    // The new-agent dialog has no Reports to field (new agents report to the
+    // CEO). The docs now show the picker in Agent identity on Harness / Runtime.
+    route: "/{prefix}/agents/{agentId}/runtime",
+    dependsOn: ["ui/src/components/AgentConfigForm.tsx", "ui/src/components/ReportsToPicker.tsx"],
+    steps: [{ click: { role: "button", name: /Reports to/i } }, { waitMs: 600 }],
   },
-  { name: "agents/budget-and-heartbeat-fields", route: "/{prefix}/agents/new", dependsOn: ["ui/src/components/AgentConfigForm.tsx"] },
+  {
+    // The new-agent dialog has no budget/heartbeat fields; the docs now show the
+    // Run Policy card on Harness / Runtime.
+    name: "agents/budget-and-heartbeat-fields",
+    route: "/{prefix}/agents/{agentId}/runtime",
+    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
+    wait: 2000,
+    steps: [{ scrollTo: { text: "Run Policy" } }, { waitMs: 500 }],
+  },
   {
     name: "agents/adapter-type-dropdown",
     route: "/{prefix}/agents/new",
-    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
-    steps: [{ click: { role: "button", name: /Claude/i } }, { waitMs: 500 }],
+    dependsOn: ["ui/src/components/new-agent/AgentBasicsDialog.tsx"],
+    // v2026.1012.0: /agents/new opens a two-step dialog (1. Name → 2. Adapter);
+    // the adapter "dropdown" is now a grid of adapter tiles on step 2.
+    steps: [
+      { fill: { placeholder: "e.g. Darnold" }, value: "Riley" },
+      { click: { role: "button", name: "Choose adapter" } },
+      { waitFor: { text: "Choose an adapter" } },
+      { waitMs: 600 },
+    ],
   },
   {
+    // The new-agent flow only reaches its Configure step after a live provider
+    // connection succeeds (impossible in the isolated instance), so the filled
+    // Claude Code form is shot on a seeded claude_local agent's Harness /
+    // Runtime page, scrolled so the Adapter section (type, model, effort) and
+    // the Configuration block are both in frame.
     name: "agents/claude-local-config-filled",
-    route: "/{prefix}/agents/new",
-    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
-    steps: [{ fill: { placeholder: "claude" }, value: "claude" }, { waitMs: 400 }],
+    route: "/{prefix}/agents/{claudeAgentId}/runtime",
+    dependsOn: ["ui/src/components/AgentConfigForm.tsx", "ui/src/adapters/claude-local/config-fields.tsx"],
+    wait: 2000,
+    steps: [{ scrollTo: { text: "Thinking effort" } }, { waitMs: 500 }],
   },
   {
     name: "agents/codex-local-config",
-    route: "/{prefix}/agents/new",
-    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
-    steps: [{ click: { role: "button", name: /Claude/i } }, { waitMs: 400 }, { click: { text: "Codex" } }, { waitMs: 600 }],
+    route: "/{prefix}/agents/{codexAgentId}/runtime",
+    dependsOn: ["ui/src/components/AgentConfigForm.tsx", "ui/src/adapters/codex-local/config-fields.tsx"],
+    wait: 2000,
+    steps: [{ scrollTo: { text: "Thinking effort" } }, { waitMs: 500 }],
   },
-  { name: "agents/http-adapter-config", route: "/{prefix}/agents/{httpAgentId}/configuration", dependsOn: ["ui/src/components/AgentConfigForm.tsx"] },
+  {
+    name: "agents/http-adapter-config",
+    route: "/{prefix}/agents/{httpAgentId}/configuration",
+    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
+    wait: 2000,
+    steps: [{ scrollToTop: { text: "Adapter", exact: true } }, { waitMs: 500 }],
+  },
   {
     name: "agents/heartbeat-toggle-enabled",
     route: "/{prefix}/agents/{agentId}/configuration",
     dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
-    steps: [{ click: { role: "switch" } }, { waitMs: 500 }],
+    wait: 2000,
+    steps: [
+      { scrollTo: { text: "Run Policy" } },
+      { click: { css: 'xpath=//*[normalize-space()="Heartbeat on interval"]/following::button[@role="switch"][1]' } },
+      { waitMs: 600 },
+      { scrollTo: { text: "Run Policy" } },
+    ],
+    // Toggling raises the sticky "unsaved changes" bar, which overlaps the
+    // card in a full-page shot; crop to the Run Policy card alone.
+    clip: { css: 'xpath=(//*[normalize-space(text())="Run Policy"])[1]/ancestor::div[1]' },
   },
-  { name: "agents/heartbeat-toggle-disabled", route: "/{prefix}/agents/{agentId}/configuration", dependsOn: ["ui/src/components/AgentConfigForm.tsx"] },
-  { name: "agents/agent-detail-run-history", route: "/{prefix}/agents/{agentId}/runs", dependsOn: ["ui/src/pages/AgentDetail.tsx"] },
+  {
+    name: "agents/heartbeat-toggle-disabled",
+    route: "/{prefix}/agents/{agentId}/configuration",
+    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
+    wait: 2000,
+    steps: [{ scrollTo: { text: "Run Policy" } }, { waitMs: 500 }],
+  },
+  { name: "agents/agent-detail-run-history", route: "/{prefix}/activity/runs?agentId={agentId}", dependsOn: ["ui/src/pages/AgentDetail.tsx"], wait: 2000 },
   { name: "agents/agent-detail-idle", route: "/{prefix}/agents/{agentId}", dependsOn: ["ui/src/pages/AgentDetail.tsx"] },
   {
     name: "agents/test-environment-fail",
-    route: "/{prefix}/agents/new",
-    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
-    steps: [{ click: { role: "button", name: "Test Agent" } }, { waitFor: { text: /Failed|Passed/i } }, { waitMs: 600 }],
-    wait: 1500,
+    // The "Test your agent" card on Harness / Runtime. Finn's env requires the
+    // user-scoped GITHUB_TOKEN nobody has set, so the real check fails with
+    // "User secret value is not configured" — no provider call involved.
+    route: "/{prefix}/agents/{claudeAgentId}/runtime",
+    dependsOn: ["ui/src/components/RuntimeTestCard.tsx", "ui/src/components/AgentConfigForm.tsx"],
+    wait: 2000,
+    steps: [
+      { click: { role: "button", name: "Run test" } },
+      { waitFor: { text: "Couldn't connect" } },
+      { scrollTo: { css: '[aria-label="Runtime test"]' } },
+      { waitMs: 600 },
+    ],
   },
   { name: "agents/agents-list-empty", route: "/{emptyPrefix}/agents/all", dependsOn: ["ui/src/pages/Agents.tsx"] },
 
   // ── Onboarding ──────────────────────────────────────────────────────────────
-  { name: "onboarding/empty-dashboard", route: "/{emptyPrefix}/dashboard", dependsOn: ["ui/src/pages/Dashboard.tsx"] },
   {
     name: "onboarding/sidebar-new-company-button",
     route: "/{prefix}/dashboard",
     dependsOn: ["ui/src/components/SidebarCompanyMenu.tsx"],
-    // The switcher is labelled "Open <Company> company switcher".
-    steps: [{ click: { role: "button", name: /company switcher/i } }, { waitMs: 700 }],
+    // The switcher is labelled "Open <Company> organization switcher" (was
+    // "company switcher" before the company → organization rename).
+    steps: [{ click: { role: "button", name: /(organization|company) switcher/i } }, { waitMs: 700 }],
   },
   {
     // Captured pre-seed: the company-less instance redirects to /onboarding,
@@ -773,22 +833,38 @@ export const CAPTURE_TARGETS = [
   { name: "approvals/approvals-list", route: "/{prefix}/approvals/pending", dependsOn: ["ui/src/pages/Approvals.tsx", "ui/src/components/ApprovalCard.tsx"] },
   { name: "approvals/queue-filters", route: "/{prefix}/approvals/pending", dependsOn: ["ui/src/pages/Approvals.tsx"] },
   { name: "approvals/approvals-queue-strategy", route: "/{prefix}/approvals/pending", dependsOn: ["ui/src/pages/Approvals.tsx", "ui/src/components/ApprovalPayload.tsx"] },
-  { name: "approvals/approve-reject-buttons", route: "/{prefix}/approvals/{hireApprovalId}", dependsOn: ["ui/src/pages/ApprovalDetail.tsx"] },
+  { name: "approvals/approve-reject-buttons", route: "/{prefix}/approvals/{strategyApprovalId}", dependsOn: ["ui/src/pages/ApprovalDetail.tsx"] },
   { name: "approvals/approve-reject-revision-buttons", route: "/{prefix}/approvals/{hireApprovalId}", dependsOn: ["ui/src/pages/ApprovalDetail.tsx"] },
   { name: "approvals/hire-approval-detail", route: "/{prefix}/approvals/{hireApprovalId}", dependsOn: ["ui/src/components/ApprovalPayload.tsx", "ui/src/pages/ApprovalDetail.tsx"] },
   { name: "approvals/strategy-approval-detail", route: "/{prefix}/approvals/{strategyApprovalId}", dependsOn: ["ui/src/components/ApprovalPayload.tsx", "ui/src/pages/ApprovalDetail.tsx"] },
   { name: "approvals/approved-approval", route: "/{prefix}/approvals/{approvedApprovalId}?resolved=approved", dependsOn: ["ui/src/pages/ApprovalDetail.tsx"] },
 
   // ── Real process-adapter runs (no LLM — the process adapter runs a shell cmd) ─
-  { name: "agents/run-transcript-view", route: "/{prefix}/agents/{runnerAgentId}/runs/{runnerRunId}", dependsOn: ["ui/src/components/transcript/RunTranscriptView.tsx", "ui/src/pages/AgentDetail.tsx"], wait: 1500 },
-  { name: "agents/run-history-in-progress", route: "/{prefix}/agents/{longRunnerAgentId}/runs", dependsOn: ["ui/src/pages/AgentDetail.tsx"], wait: 1500 },
+  {
+    name: "agents/run-transcript-view",
+    route: "/{prefix}/agents/{runnerAgentId}/runs/{runnerRunId}",
+    dependsOn: ["ui/src/components/transcript/RunTranscriptView.tsx", "ui/src/pages/AgentDetail.tsx"],
+    wait: 2000,
+    // The transcript sits below the run summary and workspace cards.
+    steps: [{ scrollToTop: { text: /^Transcript \(/ } }, { waitMs: 600 }],
+  },
+  // {runnerAgentId} / {longRunnerAgentId} are the CEO (Ada): a finished heartbeat
+  // and one left running for the whole capture (seed.mjs 14g).
+  { name: "agents/run-history-in-progress", route: "/{prefix}/activity/runs?agentId={longRunnerAgentId}", dependsOn: ["ui/src/pages/AgentDetail.tsx"], wait: 2000 },
   { name: "agents/agent-status-running", route: "/{prefix}/agents/{longRunnerAgentId}", dependsOn: ["ui/src/pages/AgentDetail.tsx"], wait: 1500 },
   {
     name: "agents/test-environment-success",
-    route: "/{prefix}/agents/{runnerAgentId}/configuration",
-    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
-    steps: [{ click: { role: "button", name: "Test" } }, { waitFor: { text: /Passed|pass|healthy|ok/i } }, { waitMs: 800 }],
-    wait: 1500,
+    // "Run test" on Bob's Harness / Runtime page — the process adapter's check
+    // passes, so the card reads "Connection successful".
+    route: "/{prefix}/agents/{agentId}/runtime",
+    dependsOn: ["ui/src/components/RuntimeTestCard.tsx", "ui/src/components/AgentConfigForm.tsx"],
+    steps: [
+      { click: { role: "button", name: "Run test" } },
+      { waitFor: { text: "Connection successful" } },
+      { scrollTo: { css: '[aria-label="Runtime test"]' } },
+      { waitMs: 600 },
+    ],
+    wait: 2000,
   },
 
   // ── Approval revision (the detail page's note/comment box) ──────────────────
@@ -796,26 +872,20 @@ export const CAPTURE_TARGETS = [
     name: "approvals/revision-request-input",
     route: "/{prefix}/approvals/{strategyApprovalId}",
     dependsOn: ["ui/src/pages/ApprovalDetail.tsx"],
-    steps: [{ click: { css: "textarea" } }, { waitMs: 400 }],
+    steps: [
+      { fill: { css: "textarea" }, value: "Before I approve: split SSO and SCIM into separate milestones, and add a fallback if the vendor contract slips past July." },
+      { waitMs: 400 },
+    ],
   },
 
   // ── Adapter "health" — the adapter rows (type · package · N models) ─────────
-  { name: "adapters/health", route: "/{prefix}/company/settings/instance/adapters", dependsOn: ["ui/src/pages/AdapterManager.tsx"] },
-
-  // ── Onboarding goal field (wizard step 1) ───────────────────────────────────
   {
-    // Captured pre-seed on the /onboarding wizard. Filling the company name
-    // reveals the Mission ("What is your team trying to achieve?") field.
-    name: "onboarding/goal-field",
-    phase: "pre-seed",
-    route: "/onboarding",
-    dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
-    steps: [
-      { fill: { placeholder: "Acme Corp" }, value: "Acme Robotics" },
-      { waitMs: 400 },
-      { click: { role: "button", name: /^Next$/ } },
-      { waitMs: 900 },
-    ],
+    name: "adapters/health",
+    route: "/{prefix}/company/settings/instance/adapters",
+    dependsOn: ["ui/src/pages/AdapterManager.tsx"],
+    wait: 1500,
+    // Just the Built-in Adapters list (adapters/list is the whole page).
+    clip: { css: 'xpath=(//*[normalize-space()="Built-in Adapters"]/ancestor::section[1])' },
   },
 
   // ── CLI auth & board claim ─────────────────────────────────────────────────
@@ -827,18 +897,46 @@ export const CAPTURE_TARGETS = [
   //     re-pointed to the freshly captured dashboard/dashboard-overview instead.
 
   // ── v2026.707.0: Work Timeline ──────────────────────────────────────────────
-  // Company-scoped Gantt-style timeline (route path "timeline"; page Timeline.tsx).
-  // Both shots share the route; "overview" is the default view, "handoff" frames a
-  // cross-agent handoff. Automated capture lands the default timeline; the handoff
-  // framing may need seeded multi-agent state (see maintenance/follow-ups.md).
+  // Audit → Timeline. "overview" frames the seeded work periods; "handoff"
+  // hovers an agent-kicked bar so the handoff connector draws.
   {
     name: "work-timeline/work-timeline-overview",
-    route: "/{prefix}/timeline",
+    // /timeline redirects to Audit → Timeline. "Today" frames the work periods
+    // seed.mjs lays out over the last few hours (14h-quater).
+    route: "/{prefix}/activity/timeline",
+    wait: 2000,
+    steps: [
+      { click: { css: 'xpath=//button[@aria-pressed and normalize-space()="Today"]' } },
+      { waitMs: 1200 },
+      // Zoom in so the last few hours (where the seeded work sits) fill the lanes.
+      { click: { css: 'button[aria-label="Zoom in"]' } },
+      { click: { css: 'button[aria-label="Zoom in"]' } },
+      { click: { css: 'button[aria-label="Zoom in"]' } },
+      { waitMs: 600 },
+      { scrollToEnd: { testid: "work-timeline-scroll" } },
+      { waitMs: 800 },
+    ],
     dependsOn: ["ui/src/pages/Timeline.tsx", "ui/src/api/workTimeline.ts", "server/src/services/work-timeline.ts"],
   },
   {
     name: "work-timeline/work-timeline-handoff",
-    route: "/{prefix}/timeline",
+    route: "/{prefix}/activity/timeline",
+    wait: 2000,
+    // Hovering an agent-kicked bar draws the handoff connector from the
+    // kicker's lane (seed.mjs 14h-quater makes Bob → Cleo → Dax handoffs).
+    steps: [
+      { click: { css: 'xpath=//button[@aria-pressed and normalize-space()="Today"]' } },
+      { waitMs: 1200 },
+      // Zoom in so the last few hours (where the seeded work sits) fill the lanes.
+      { click: { css: 'button[aria-label="Zoom in"]' } },
+      { click: { css: 'button[aria-label="Zoom in"]' } },
+      { click: { css: 'button[aria-label="Zoom in"]' } },
+      { waitMs: 600 },
+      { scrollToEnd: { testid: "work-timeline-scroll" } },
+      { waitMs: 800 },
+      { hover: { css: '[data-testid="work-timeline-scroll"] svg rect[fill="#5b9bf6"] >> nth=3' } },
+      { waitMs: 900 },
+    ],
     dependsOn: ["ui/src/pages/Timeline.tsx", "server/src/services/work-timeline.ts"],
   },
 
@@ -847,170 +945,34 @@ export const CAPTURE_TARGETS = [
   // under ui/src/pages/secrets/. The definition/value/dispatch-check shots need a
   // tab click and seeded user-secret state; captured route-only here — tab steps
   // and seed are a follow-up capture pass (see maintenance/follow-ups.md).
+  // seed.mjs defines two user-scoped secrets (GITHUB_TOKEN, LINEAR_API_KEY);
+  // they list with an "Each user" badge next to the organization secrets.
   {
     name: "secrets/user-secret-definition",
     route: "/{prefix}/company/settings/secrets",
     dependsOn: ["ui/src/pages/Secrets.tsx", "ui/src/pages/secrets/UserSecretDefinitionsTab.tsx"],
+    wait: 2000,
   },
   {
     name: "secrets/per-user-value-entry",
     route: "/{prefix}/company/settings/secrets",
     dependsOn: ["ui/src/pages/Secrets.tsx", "ui/src/pages/secrets/SetMyUserSecretDialog.tsx", "ui/src/pages/secrets/MyUserSecretsTab.tsx"],
-  },
-  {
-    name: "secrets/dispatch-check",
-    route: "/{prefix}/company/settings/secrets",
-    dependsOn: ["ui/src/pages/secrets/MissingUserSecretsBanner.tsx", "server/src/services/secrets.ts"],
-  },
-
-  // ── v2026.707.0: Task watchdog thread outcome ───────────────────────────────
-  // Watchdog outcome rendered inside an issue thread (route issues/{issueId}).
-  // Needs a seeded watchdog outcome to render meaningfully — route + deps tracked
-  // here so the shot is flagged stale when the surface moves (seed: follow-ups).
-  {
-    name: "watchdogs/watchdog-thread-outcome",
-    route: "/{prefix}/issues/{issueId}",
-    dependsOn: ["ui/src/pages/IssueDetail.tsx", "server/src/services/task-watchdogs.ts"],
-  },
-
-  // ── Backfill: previously unrouted registry entries ──────────────────────────
-  // These 20 registry entries predate route wiring (route: null since April).
-  // None are currently referenced by a doc page — wired so they participate in
-  // staleness tracking and future capture passes. Routes verified against the
-  // v2026.720.0 route table (ui/src/App.tsx). dashboard/dashboard-overview-annotated
-  // stays out on purpose: it is hand-annotated (see "Left manual on purpose" above).
-
-  // Company creation modal — same harness limitation as onboarding/*: the seeded
-  // instance already has a company, so the sidebar "New company" dialog is the
-  // only reachable path; the goal/budget/saved states need the dialog steps to
-  // succeed (see maintenance/follow-ups.md: company-less capture pass).
-  {
-    name: "company/new-company-form",
-    phase: "pre-seed",
-    route: "/onboarding",
-    dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
-  },
-  {
-    name: "company/company-goal-field",
-    phase: "pre-seed",
-    route: "/onboarding",
-    dependsOn: ["ui/src/components/OnboardingWizard.tsx"],
+    wait: 2000,
     steps: [
-      { fill: { placeholder: "Acme Corp" }, value: "Acme Robotics" },
-      { waitMs: 400 },
-      { click: { role: "button", name: /^Next$/ } },
+      { click: { role: "tab", name: "My secrets" } },
+      { waitMs: 800 },
+      { click: { role: "button", name: "Set value" } },
       { waitMs: 900 },
     ],
   },
   {
-    // Budget fields live on the agent configuration form, not the onboarding
-    // wizard (verified against v2026.720.0 — OnboardingWizard has no budget UI).
-    name: "company/company-budget-setting",
-    route: "/{prefix}/agents/{agentId}/configuration",
-    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
-  },
-  {
-    name: "company/company-saved",
-    route: "/{prefix}/company/settings",
-    dependsOn: ["ui/src/pages/CompanySettings.tsx"],
-  },
-  {
-    name: "onboarding/budget-field",
-    route: "/{prefix}/agents/{agentId}/configuration",
-    dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
-  },
-
-  // Dashboard panel clips (same pattern as dashboard/agent-status-panel).
-  {
-    name: "dashboard/cost-summary-panel",
-    route: "/{prefix}/dashboard",
-    dependsOn: ["ui/src/pages/Dashboard.tsx"],
-    clip: { css: 'xpath=(//*[contains(text(),"Cost") or contains(text(),"Spend")]/ancestor::div[contains(@class,"rounded")])[1]' },
-  },
-
-  // Export / import — full pages double as the dialog surfaces.
-  {
-    name: "export-import/export-dialog",
-    route: "/{prefix}/company/export",
-    dependsOn: ["ui/src/pages/CompanyExport.tsx"],
-  },
-  {
-    name: "export-import/import-dialog",
-    route: "/{prefix}/company/import",
-    dependsOn: ["ui/src/pages/CompanyImport.tsx"],
-  },
-
-  // Org chart states.
-  {
-    name: "org/org-chart-add-agent",
-    route: "/{prefix}/org",
-    dependsOn: ["ui/src/pages/OrgChart.tsx"],
-    // The org chart's create button is labelled "New agent".
-    steps: [{ click: { role: "button", name: /New agent/i } }, { waitMs: 800 }],
-  },
-  {
-    // Seed assigns Bob → Ada (manager), so the plain chart shows the assignment.
-    name: "org/org-chart-manager-assigned",
-    route: "/{prefix}/org",
-    dependsOn: ["ui/src/pages/OrgChart.tsx"],
-  },
-  {
-    name: "org/workspace-modes",
-    route: "/{prefix}/workspaces",
-    dependsOn: ["ui/src/pages/Workspaces.tsx"],
-  },
-
-  // Skills.
-  {
-    name: "skills/skills-list",
-    route: "/{prefix}/skills",
-    dependsOn: ["ui/src/pages/CompanySkills.tsx"],
-  },
-  {
-    name: "skills/skill-detail",
-    route: "/{prefix}/skills/{skillId}",
-    dependsOn: ["ui/src/pages/CompanySkills.tsx"],
-  },
-
-  // Tasks / inbox. There is no /issues/new route — creation is a dialog.
-  {
-    name: "tasks/inbox-view-with-filters",
-    route: "/{prefix}/inbox/all",
-    dependsOn: ["ui/src/pages/Inbox.tsx"],
-    steps: [{ click: { role: "button", name: /Filter/i } }, { waitMs: 500 }],
-  },
-  {
-    name: "tasks/new-task-form-empty",
-    route: "/{prefix}/inbox/mine",
-    dependsOn: ["ui/src/pages/Inbox.tsx"],
-    steps: [{ click: { role: "button", name: /New task|New issue/i } }, { waitMs: 800 }],
-  },
-  {
-    name: "tasks/new-task-form-filled",
-    route: "/{prefix}/inbox/mine",
-    dependsOn: ["ui/src/pages/Inbox.tsx"],
-    steps: [
-      { click: { role: "button", name: /New task|New issue/i } },
-      { waitMs: 600 },
-      { fill: { role: "textbox", nth: 0, value: "Draft the Q3 launch checklist" } },
-      { waitMs: 400 },
-    ],
-  },
-  {
-    name: "tasks/task-detail-in-progress",
-    route: "/{prefix}/issues/{issueId}",
-    dependsOn: ["ui/src/pages/IssueDetail.tsx"],
-  },
-  {
-    name: "tasks/task-done-status",
-    route: "/{prefix}/issues/done",
-    dependsOn: ["ui/src/pages/Inbox.tsx"],
-  },
-  {
-    name: "tasks/comment-input-box",
-    route: "/{prefix}/issues/{issueId}",
-    dependsOn: ["ui/src/pages/IssueDetail.tsx", "ui/src/components/CommentThread.tsx"],
-    clip: { css: 'xpath=//textarea/ancestor::div[contains(@class,"rounded")][1]' },
+    // Finn's env requires the user-scoped GITHUB_TOKEN, so assigning him a task
+    // shows the "Set your user secrets" check in the new-task composer.
+    name: "secrets/dispatch-check",
+    route: "/{prefix}/agents/{claudeAgentId}",
+    dependsOn: ["ui/src/pages/secrets/MissingUserSecretsBanner.tsx", "ui/src/components/NewIssueDialog.tsx"],
+    wait: 2000,
+    steps: [{ click: { role: "button", name: "Assign Task" } }, { waitFor: { text: "Set your user secrets" } }, { waitMs: 600 }],
   },
 
   // ── Experimental feature surfaces (docs/experimental/*) ─────────────────────
@@ -1034,9 +996,19 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "experimental/file-viewer-browse",
-    route: "/{prefix}/issues/{issueId}?browse=1",
+    // Landing on ?browse=1 directly leaves the thread as skeletons; open the
+    // Files panel the way a user does, with the "G F" shortcut, once the thread
+    // has rendered.
+    route: "/{prefix}/issues/{issueId}",
     dependsOn: ["ui/src/components/FileViewerSheet.tsx", "ui/src/components/WorkspaceFileBrowser.tsx"],
-    wait: 2000,
+    wait: 3000,
+    steps: [
+      { waitFor: { text: "Kicking this off" } },
+      { press: "g" },
+      { press: "f" },
+      { waitFor: { text: "README.md", exact: true } },
+      { waitMs: 800 },
+    ],
   },
   {
     name: "experimental/external-objects",
@@ -1049,12 +1021,6 @@ export const CAPTURE_TARGETS = [
     route: "/{prefix}/dashboard",
     dependsOn: ["ui/src/components/SidebarServerInfo.tsx", "ui/src/components/SidebarAccountMenu.tsx"],
     steps: [{ click: { role: "button", name: "Open account menu" } }, { waitMs: 800 }],
-  },
-  {
-    name: "experimental/recovery-preview",
-    route: "/{prefix}/company/settings/instance/experimental",
-    dependsOn: ["ui/src/pages/InstanceExperimentalSettings.tsx"],
-    steps: [{ click: { role: "button", name: "Preview" } }, { waitMs: 1500 }],
   },
 
   // ── Decisions (docs/guides/day-to-day/decisions.md) ─────────────────────────
@@ -1070,6 +1036,8 @@ export const CAPTURE_TARGETS = [
     route: "/{prefix}/decisions",
     dependsOn: ["ui/src/pages/WhatNeedsMe.tsx", "ui/src/components/AttentionQueueRow.tsx"],
     wait: 4000,
+    // The feed auto-expands its first row; collapse it so the queue reads as a list.
+    steps: [{ click: { role: "button", name: "Collapse decision" } }, { waitMs: 800 }],
   },
   {
     name: "decisions/decision-card",
@@ -1116,7 +1084,12 @@ export const CAPTURE_TARGETS = [
     // "Decided" and "Expired" are collapsed by default; open Decided so the
     // curtain shows the decision seed-new-surfaces.mjs resolved.
     wait: 4000,
-    steps: [{ click: { text: "Decided" } }, { waitMs: 1200 }],
+    steps: [
+      { click: { role: "button", name: /^Decided/ } },
+      { waitMs: 1200 },
+      { scrollToTop: { role: "button", name: /^Decided/ } },
+      { waitMs: 600 },
+    ],
   },
   {
     name: "decisions/empty-state",
@@ -1155,7 +1128,16 @@ export const CAPTURE_TARGETS = [
     route: "/{prefix}/status/{statusCardId}",
     dependsOn: ["ui/src/pages/StatusCards/StatusCardSettingsForm.tsx"],
     wait: 4000,
-    steps: [{ click: { role: "tab", name: "Settings" } }, { waitMs: 1200 }],
+    // Pick an automatic mode so the Advanced change-trigger section exists,
+    // then open it (manual mode hides it entirely).
+    steps: [
+      { click: { role: "tab", name: "Settings" } },
+      { waitMs: 1000 },
+      { click: { text: "On a schedule, only if something changed" } },
+      { waitMs: 500 },
+      { click: { role: "button", name: "Advanced" } },
+      { waitMs: 800 },
+    ],
   },
   {
     name: "status-cards/detail-watched-issues",
@@ -1183,41 +1165,6 @@ export const CAPTURE_TARGETS = [
     steps: [{ click: { role: "tab", name: "Proposals" } }, { waitMs: 1500 }],
   },
 
-  // ── Chat-style tasks (docs/experimental/task-chat.md) ───────────────────────
-  // `phase: "task-chat"` — captured in a separate pass. `enableTaskChatRedesign`
-  // is instance-wide and replaces the ordinary task detail page, so if it were
-  // on during the main pass every classic issue/task/work-mode shot would come
-  // back as the redesigned chat. run.mjs turns the flag on for this phase only
-  // and turns it back off afterwards.
-  {
-    name: "task-chat/thread",
-    route: "/{prefix}/issues/{issueId}",
-    dependsOn: [
-      "ui/src/components/TaskChatThread.tsx",
-      "ui/src/components/task-chat/TaskChatBubble.tsx",
-      "ui/src/components/task-chat/TaskChatTurn.tsx",
-    ],
-    phase: "task-chat",
-    wait: 4000,
-  },
-  {
-    name: "task-chat/composer-modes",
-    route: "/{prefix}/issues/{issueId}",
-    dependsOn: ["ui/src/components/task-chat/TaskChatComposer.tsx"],
-    phase: "task-chat",
-    wait: 4000,
-    steps: [{ click: { role: "button", name: "Agent mode" } }, { waitMs: 1000 }],
-  },
-  {
-    name: "task-chat/side-pane",
-    route: "/{prefix}/issues/{issueId}",
-    dependsOn: [
-      "ui/src/components/issue-properties/IssuePropertiesPlansTab.tsx",
-      "ui/src/components/issue-properties/IssuePropertiesArtifactsTab.tsx",
-    ],
-    phase: "task-chat",
-    wait: 4000,
-  },
 ];
 
 // Hand-authored diagrams that live under the screenshots tree so they deploy with

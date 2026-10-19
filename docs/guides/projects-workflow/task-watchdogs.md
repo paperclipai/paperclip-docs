@@ -44,8 +44,6 @@ It will not take "I couldn't" or "waiting for approval" at face value — that's
 
 The review's outcome lands back in the watched issue's thread, so the record of who checked what — and what they found — lives with the work itself. The activity feed labels changes made through a watchdog review, so when you skim a thread later you can tell which actions came from the watchdog and which from the assignees.
 
-![A watchdog review outcome posted back to the task thread, with its disposition and verified evidence.](../../user-guides/screenshots/light/watchdogs/watchdog-thread-outcome.png)
-
 One refinement makes the loop livable: Paperclip fingerprints the stopped state it has already reviewed. If nothing has changed since the last review, no new review task is created. A stalled tree gets looked at once per distinct state, not once per scan, so the watchdog never fills the thread with duplicate reviews of the same silence.
 
 ---

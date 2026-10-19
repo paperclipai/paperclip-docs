@@ -107,7 +107,7 @@ The tab is read-only — a quick answer to "what came out of this task?", not a 
 
 Implementation reference: [artifact cards](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/artifacts/IssueArtifactCard.tsx), [CSV preview limits](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/lib/artifact-card-data.ts), and [media gallery](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/ImageGalleryModal.tsx).
 
-> **Note:** if your instance has switched back to the old layout with **Classic Task Interface** (under **Legacy** in **Settings → Instance settings → Experimental**), there's no Artifacts tab — a task's attachments stay in the **Attachments** section on the task page. See [Experimental features](../../experimental/overview.md).
+> **Note:** if your instance has switched back to the old layout with **Classic Task Interface** (under **Legacy** in **Settings → Experimental**), there's no Artifacts tab — a task's attachments stay in the **Attachments** section on the task page. See [Experimental features](../../experimental/overview.md).
 
 Either way, the Artifacts page remains the place to see everything at once, across every task and project. See [Issues](./issues.md#tabs-in-the-properties-panel) for the rest of what those tabs hold.
 

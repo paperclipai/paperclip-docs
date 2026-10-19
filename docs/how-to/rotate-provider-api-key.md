@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.525.0
+paperclip_version: v2026.1012.0
 seo_title: Update or Rotate a Provider API Key
 seo_description: Swap the credential a running agent uses — after a provider rotation, an expiry, or a move from subscription login to a console-issued key.
 ---
@@ -29,15 +29,15 @@ Paperclip lets you bind a provider key into an agent's `adapterConfig.env` in on
 
 Use this when the key was pasted directly into the adapter form.
 
-1. Open **Agents → {agent}** and click **Edit**.
-2. Scroll to the **Environment variables** section.
+1. Open **Agents → {agent}** and choose **Harness / Runtime** in the agent's sidebar.
+2. Scroll to the **Environment variables** card.
 3. Find the provider's key name (for example `ANTHROPIC_API_KEY`) and replace the value with the new key.
-4. Click **Test environment**. The adapter spins up a check against the provider; a green result confirms the new key authenticates.
-5. Save the agent.
+4. Click **Save changes**.
+5. In the **Test your agent** card at the bottom, click **Run test**. The adapter spins up a check against the provider; **Connection successful** confirms the new key authenticates.
 
 The next heartbeat picks up the new value. No restart needed.
 
-![Adapter form with environment variables section](../user-guides/screenshots/light/agents/claude-local-config-filled.png)
+![The Environment variables card on an agent's Harness / Runtime page, with a GITHUB_TOKEN row bound to a secret and an Add variable link](../user-guides/screenshots/light/agents/test-environment-fail.png)
 
 > **Warning:** Plain values are stored on the agent record. If you're running with `PAPERCLIP_SECRETS_STRICT_MODE=true`, the server rejects new inline values for any env key whose name matches a sensitive-keyword regex (`api_key`, `token`, `auth`, `authorization`, `bearer`, `secret`, `password`, `credential`, `jwt`, `private_key`, `cookie`, `connectionstring`). Either turn strict mode off temporarily, or use Path B.
 

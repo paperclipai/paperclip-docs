@@ -40,6 +40,15 @@ This release lets outside assistants join your team. Claude Code, Codex, OpenCod
 - [Trust & Low-Trust Review](../administration/trust-and-low-trust-review.md) — low-trust agents can take self-assigned work inside their scope, accept work from a person who messages them or assigns them a task directly, and update their own `AGENTS.md` when you ask from their chat.
 - Smaller updates: [Settings](../administration/settings.md), [Experimental overview](../experimental/overview.md), [Task watchdogs](../guides/projects-workflow/task-watchdogs.md) (the new 5- and 15-minute silence thresholds), [Docker](deploy/docker.md), [Sandbox Providers](adapters/sandbox-providers.md) (exe.dev **Source VM**), [Plugin SDK](plugins/sdk.md) (AI connection routers), [Artifacts](../guides/day-to-day/artifacts.md), [Work Modes](../guides/day-to-day/work-modes.md), the memory connector guides, and [Verify and troubleshoot](../connectors/verify-and-troubleshoot.md).
 
+**Screenshots and interface refresh**
+
+Every screenshot was recaptured from Paperclip v2026.1012.0, in light and dark. Some screens moved in this release, so the guides that show them were updated to match:
+
+- [Costs and Budgets](../guides/day-to-day/costs.md), [Activity Log](../guides/day-to-day/activity-log.md), [Work Timeline](../guides/day-to-day/work-timeline.md) and [Set a monthly budget](../how-to/set-monthly-budget.md): costs, budgets, runs and the timeline now live under **Audit**. Set agent budgets from the CLI or API, and project budgets from the project's **Budget** tab.
+- [Agents](../guides/org/agents.md), [Your first agent](../guides/getting-started/your-first-agent.md), [Watching agents work](../guides/getting-started/watching-agents-work.md) and [Org Structure](../guides/org/org-structure.md): the agent page's side menu, including **Overview** and **Harness / Runtime**. Also the two-step **New agent** dialog, **Run now**, and the org chart as a view on the Agents page.
+- [Projects](../guides/projects-workflow/projects.md), [Routines](../guides/projects-workflow/routines.md), [Issues](../guides/day-to-day/issues.md), [Approvals](../guides/day-to-day/approvals.md), [Skills](../guides/org/skills.md), [Company settings](../administration/company.md), [Settings](../administration/settings.md) and [Plugins](../administration/plugins.md): current tab names, buttons and flows. That covers instant-join invites, the Experimental settings list, and **Settings → Experimental** paths across the docs.
+- Screenshots that showed screens no longer in this release were retired, including Auto-Create Recovery Tasks. [Cloud Sync](../experimental/cloud-sync.md) and [Auto-Create Recovery Tasks](../experimental/auto-create-recovery-tasks.md) are now marked as removed.
+
 </div>
 </details>
 

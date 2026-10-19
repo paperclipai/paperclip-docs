@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: The Dashboard
 seo_description: Your control centre: agent status, overview cards, and the recent activity feed — plus how to read all three at a glance and catch trouble early.
 ---
@@ -15,9 +16,11 @@ Think of it like the cockpit instruments on a plane. You don't need to read ever
 
 ## Agents Section
 
-At the top of the dashboard, Paperclip shows your live agent activity and a set of overview cards. This is the quickest way to tell whether work is moving.
+At the top of the dashboard, Paperclip shows your live agent activity in the **Agents** panel, followed by a row of overview cards. This is the quickest way to tell whether work is moving.
 
-![Agent Status panel showing counts by state: active, running, error, and paused](../../user-guides/screenshots/light/dashboard/agent-status-panel.png)
+The first overview card, **Agents Enabled**, rolls your agent states into one number: the total count of enabled agents, with a line underneath that breaks out how many are running, paused, or in error. Click the card to jump to your agents list.
+
+![Agents Enabled overview card showing the total enabled agents, with a "1 running, 1 paused, 0 errors" breakdown underneath](../../user-guides/screenshots/light/dashboard/agent-status-panel.png)
 
 Here's what each state means:
 
@@ -28,7 +31,7 @@ Here's what each state means:
 | **Error** | The agent's last heartbeat failed. It is not working and hasn't stopped gracefully. |
 | **Paused** | The agent has been deliberately stopped — either by you, or automatically because it hit its budget limit. |
 
-> **Warning:** Any agent showing "error" needs attention. The error won't fix itself. Click through to the agent's detail page and open its **Runs** tab to see the transcript of what went wrong — then fix the underlying issue (usually an API key problem, a budget running out, or a misconfigured adapter).
+> **Warning:** Any agent showing "error" needs attention. The error won't fix itself. Open the agent, then use the **Runs** link in the **Audit** section of its overview to see the transcript of what went wrong — then fix the underlying issue (usually an API key problem, a budget running out, or a misconfigured adapter).
 
 The most common healthy pattern early on: one agent **running** while the others stay **active**. If you see multiple agents in error or paused unexpectedly, that's worth investigating before leaving things to run.
 
@@ -38,22 +41,38 @@ The most common healthy pattern early on: one agent **running** while the others
 
 The four cards across the top summarize the company at a glance:
 
-![Task Breakdown panel showing task counts by status: backlog, todo, in_progress, in_review, done, blocked](../../user-guides/screenshots/light/dashboard/task-breakdown-panel.png)
-
 - **Agents Enabled** — how many agents are available to work, plus how many are currently running, paused, or in error.
 - **Tasks In Progress** — how many issues are actively being worked, plus how many remain open or blocked.
 - **Month Spend** — how much the company has spent this month against the current company budget.
 - **Pending Approvals** — how many approvals are waiting on you, including budget-related approvals when they exist.
 
+If any budget has been breached, a red banner appears above the cards with the number of active budget incidents, how many agents and projects are paused, and an **Open budgets** link.
+
+---
+
+## Charts, Recent Activity, and Recent Tasks
+
+Below the cards sit three charts covering the last 14 days: **Run Activity**, **Tasks by Status**, and **Success Rate**. They're good for spotting trends — a dip in success rate or a pile-up of blocked tasks shows up here before it shows up anywhere else.
+
+Further down, two lists sit side by side: **Recent Activity** on the left and **Recent Tasks** on the right (on narrower screens, Recent Activity comes first and Recent Tasks stacks below it).
+
 ---
 
 ## Recent Activity Feed
 
-The Activity feed at the bottom (or side, depending on your screen size) of the dashboard shows the most recent events across your whole company — task status changes, comments, approvals, agent state changes, and budget events.
+The **Recent Activity** list shows the 10 most recent events across your whole company — task status changes, comments, approvals, agent state changes, and budget events.
 
-![Recent Activity feed showing the latest events with timestamps, actors, and descriptions](../../user-guides/screenshots/light/dashboard/activity-feed.png)
+![Recent Activity list on the dashboard showing the latest events, each with the actor, what they did, the task it touched, and a relative timestamp](../../user-guides/screenshots/light/dashboard/activity-feed.png)
 
-This feed isn't meant for deep investigation — it's a pulse check. Scan it after a few hours away and you'll quickly understand what's been happening. For detailed investigation, the full Activity page is a dedicated screen (covered in the [Activity Log guide](./activity-log.md)).
+This feed isn't meant for deep investigation — it's a pulse check. Scan it after a few hours away and you'll quickly understand what's been happening. For detailed investigation, open **Audit** in the sidebar (covered in the [Audit: Activity guide](./activity-log.md)).
+
+---
+
+## Recent Tasks
+
+Next to the activity feed, the **Recent Tasks** list shows the tasks that changed most recently, each with its status icon, assignee, task identifier, and how long ago it was updated. Click any row to open the task.
+
+![Recent Tasks list on the dashboard showing recently updated tasks with status icons, assignees, identifiers, and relative timestamps](../../user-guides/screenshots/light/dashboard/task-breakdown-panel.png)
 
 ---
 

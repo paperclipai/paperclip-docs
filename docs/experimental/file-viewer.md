@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.707.0
+paperclip_version: v2026.1012.0
 seo_title: Experimental File Viewer
 seo_description: Read the reports, code changes, and screenshots an agent produced without leaving the task — the files, not just the comment thread that describes them.
 ---
@@ -14,7 +14,7 @@ The Experimental File Viewer fixes that. It adds controls to every task detail p
 
 ## Turn it on
 
-1. Go to **Settings → Instance settings → Experimental**.
+1. Go to **Settings → Experimental**.
 2. Turn on **Experimental File Viewer** — *"Show task detail controls for browsing and previewing workspace files relative to a task."*
 
 The setting is instance-wide and takes effect immediately.

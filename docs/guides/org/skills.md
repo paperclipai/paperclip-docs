@@ -55,35 +55,44 @@ Skills keep the base context small. An agent with 10 skills doesn't load all 10 
 
 ## Adding a skill
 
-Skills are managed from the company-level **Skills** page. The page has a left-hand list of every installed skill and a right-hand pane that shows the selected skill's files, description, and usage. Two controls live above the skill list: a filter box to search by name, key, slug, or source, and an input where you can paste a source string to import a skill from elsewhere.
+Skills are managed from the company-level **Skills** page. A side menu switches between **Installed**, **Discover**, **Sources**, and (under **Author**) **My Skills**. The **Installed skills** view shows every skill in your library as a card, with how many agents use it and where it came from. Click a card to open that skill's detail page.
 
-You can add a skill in one of several ways, depending on where it is coming from.
+Above the cards you'll find a **Search installed skills…** box, a **Sort** menu, a scan button (the circular arrow), and two buttons: **New folder**, for organizing your library, and **+ New ▾**. Every way of adding a skill starts from the **New** menu:
+
+- **Create new skill** — write one from scratch in Skill Studio.
+- **Discover skills** — browse skills from every available source.
+- **Import from GitHub** — link a repository under **Sources**.
+- **Manage sources** — open the **Sources** list.
+- **Import from path or URL** — paste a local path, GitHub URL, or `skills.sh` command.
+- **Import skills from project** — scan a project's workspaces for skills.
+
+The sections below walk through each one, depending on where your skill is coming from.
 
 ### 1. Import from a GitHub repository
 
-If your skills live in a GitHub repository, the best home for them is **Skills → Sources**. Choose **Import from GitHub**, pick a repository, tick the skills you want, and Paperclip keeps them linked to that repository so you can refresh them later. [Sync skills from a GitHub repository](#sync-skills-from-a-github-repository) below walks through it.
+If your skills live in a GitHub repository, the best home for them is **Skills → Sources**. Choose **New → Import from GitHub**, pick a repository, tick the skills you want, and Paperclip keeps them linked to that repository so you can refresh them later. [Sync skills from a GitHub repository](#sync-skills-from-a-github-repository) below walks through it.
 
-You can still paste a GitHub URL (or a `skills.sh` install command) into the source field at the top of the Skills page and press **Add**. A plain GitHub repository, folder, or `SKILL.md` URL is filed under **Sources** too, so it gets the same refresh controls. GitHub-sourced skills are pinned to a specific commit — you can check for updates and upgrade the pin from the skill detail pane.
+You can also choose **New → Import from path or URL**. That opens an **Import a skill** dialog with one field — paste a GitHub URL (or a `skills.sh` install command) and click **Import**. The dialog also links out to **Browse skills.sh** and **Search GitHub** if you're still looking for something. A plain GitHub repository, folder, or `SKILL.md` URL is filed under **Sources** too, so it gets the same refresh controls. GitHub-sourced skills are pinned to a specific commit — you can check for updates and upgrade the pin from the skill detail pane.
 
-![Add skill dialog with the source input, search button, and link to skills.sh](../../user-guides/screenshots/light/skills/add-skill-dialog.png)
+![The Installed skills view, with the search box, Sort menu, scan button, and the New and New folder buttons above the skill cards](../../user-guides/screenshots/light/skills/add-skill-dialog.png)
 
 ### 2. Import from a gist
 
-Gists work through the same source field. Paste the gist URL and Paperclip treats it like a remote file source — useful when you want to share a one-off procedure without setting up a full repository.
+Gists work through the same **Import from path or URL** dialog. Paste the gist URL and Paperclip treats it like a remote file source — useful when you want to share a one-off procedure without setting up a full repository.
 
 ### 3. Import from a local file or folder
 
-You can also paste a local path (Linux, WSL, or Windows) into the source field. Paperclip walks the folder, finds any `SKILL.md` files, and imports them. This is the right choice when you already keep skills in a project workspace on disk — the scan button (circular arrow next to the plus icon) re-runs the local import across every project workspace in the company so newly added `SKILL.md` folders show up automatically.
+You can also paste a local path (Linux, WSL, or Windows) into the **Import from path or URL** dialog. Paperclip walks the folder, finds any `SKILL.md` files, and imports them. This is the right choice when you already keep skills in a project workspace on disk — the scan button (the circular arrow next to **New**, labelled *Scan project workspaces for skills*) re-runs the local import across every project workspace in the company so newly added `SKILL.md` folders show up automatically.
 
 For safety, a local path has to sit inside a folder Paperclip already knows about: your company's managed skills folder, one of your project workspaces, or the folder Paperclip cloned a project into for you (a managed checkout). That last one means a project Paperclip checks out on your behalf can import its own skills in place, even if it has no workspace registered. A path anywhere else is refused with *"Local skill source is outside approved company workspace roots"* — add the folder as a project workspace first, or copy the skill somewhere Paperclip manages.
 
 ### 4. Import from the skills.sh marketplace
 
-[skills.sh](https://skills.sh) is a community catalog of ready-made skills. Each listing provides a copy-ready install command; paste it into the source field and Paperclip imports the skill along with its source metadata (you will see a small skills.sh badge on the skill row).
+[skills.sh](https://skills.sh) is a community catalog of ready-made skills. Each listing provides a copy-ready install command; paste it into **New → Import from path or URL** and Paperclip imports the skill along with its source metadata (you will see a small skills.sh badge on the skill row).
 
 ### 5. Import skills straight from a project
 
-If your skills already live in a repository that one of your projects points at, you don't need to hunt for the path yourself. The **Import skills from project** dialog does the looking for you: *"Pick a project, scan its workspaces for skills, and import them as references."*
+If your skills already live in a repository that one of your projects points at, you don't need to hunt for the path yourself. Choose **New → Import skills from project** and the dialog does the looking for you: *"Pick a project, scan its workspaces for skills, and import them as references."*
 
 It walks you through three steps.
 
@@ -91,7 +100,7 @@ It walks you through three steps.
 
 **Choose what to import.** Paperclip scans that project's workspaces for `SKILL.md` files and shows everything it found, grouped by workspace and then by the folder it was found in. Tick the ones you want. A **Search discovered skills…** box narrows a long list. If a skill's slug collides with something already in your library, the row is flagged as a conflict and an **Import as** field appears so you can give the incoming copy a different, lowercase URL-safe slug instead of overwriting anything.
 
-If the scan comes up empty you'll see **No skills found**, along with a note about which well-known agent-harness folders were searched. Skills kept somewhere non-standard can still come in through **Import from path or URL** — the same source field described above.
+If the scan comes up empty you'll see **No skills found**, along with a note about which well-known agent-harness folders were searched. Skills kept somewhere non-standard can still come in through **Import from path or URL**, described above.
 
 **Review the result.** The last step summarises how many skills were imported, updated, and skipped, and each imported skill gets an **Open** link straight into Skill Studio.
 
@@ -99,11 +108,12 @@ One thing worth understanding before you use this: *"No files were copied. These
 
 ### Creating a skill from scratch
 
-If none of those sources apply, click the **+** button next to the scan icon. A small form appears inline with three fields:
+If none of those sources apply, choose **New → Create new skill**. Skill Studio opens a **Create a new skill** page that walks you through four steps — **Basics**, **Design**, **Content**, and **Review** — and you can jump between them at any time:
 
-- **Skill name** — the human-readable name shown in the list.
-- **Optional shortname / slug** — the `kebab-case` key the agent uses to reference this skill. If you leave this blank, Paperclip derives it from the name.
-- **Short description** — the routing logic ("Use when… Don't use when…") the agent reads before loading the skill body.
+- **Basics** — the skill name (the human-readable name shown on its card), an optional shortname (the `kebab-case` key the agent uses to reference this skill — leave it blank and Paperclip derives it from the name), and a one-line description. Write the description as routing logic ("Use when… Don't use when…"), because that's what the agent reads before loading the skill body.
+- **Design** — a **Color** for the skill's tile and optional **Categories**.
+- **Content** — the instructions body itself.
+- **Review** — check everything and pick the **Sharing** scope (**Organization** or **Private**).
 
 Click **Create skill** and the skill is added to the library as a Paperclip-managed, editable entry.
 
@@ -330,7 +340,7 @@ For the policy document shape, the eight skill actions, and how a decision is re
 
 ## File inventory
 
-Every skill is a folder, not a single file. Expanding a skill in the sidebar reveals its **file inventory** — the full tree of files underneath the skill's root. The inventory pinpoints each file with a few pieces of metadata that matter in practice:
+Every skill is a folder, not a single file. Open a skill's detail page and switch to its **Files** tab (next to **Overview**, **Versions**, and **Agents**) to see its **file inventory** — the full tree of files underneath the skill's root. The inventory pinpoints each file with a few pieces of metadata that matter in practice:
 
 - **Entry file** — the top-level `SKILL.md` that agents read first. It is always sorted to the top of the tree and contains the skill's frontmatter (name, description) plus the instructions body.
 - **Other files** — subfolders such as `references/` or `scripts/` hold supporting material (examples, style guides, helper scripts). The file kind icon tells you at a glance whether each leaf is markdown, a reference document, or a script.
@@ -338,24 +348,27 @@ Every skill is a folder, not a single file. Expanding a skill in the sidebar rev
 - **Deprecated** — when a skill is retired, it is marked deprecated in the library and hidden from agent skill menus. Existing agents keep working until you detach the skill from them.
 - **Virtual** — some entries in the inventory are virtual: they represent content the adapter synthesises at runtime (for example, materialised runtime skills for adapters that do not support skills natively). Virtual entries are tagged in the row and cannot be edited directly.
 
-![Skill detail pane showing the file tree with SKILL.md plus a references folder, and metadata badges for source, pin, key, and editable state](../../user-guides/screenshots/light/skills/file-inventory.png)
+![A skill's detail page on the Files tab, with SKILL.md in the file list, View, Code, and Edit controls above the rendered file, and the Location, Tags, Agents, and Source column on the right](../../user-guides/screenshots/light/skills/file-inventory.png)
 
-The header above the file viewer shows:
+Above the file viewer you'll see the file's name, a **View** / **Code** toggle, and **Edit** when the skill is editable. The skill's metadata sits in a column on the right of the page, whichever tab you're on:
 
-- The **Source** badge (skills.sh, GitHub, local folder, or Paperclip) with the source label — clicking the label copies the path to the workspace when applicable.
-- The **Pin** for GitHub-sourced skills — the short commit SHA Paperclip is locked to, plus a **Check for updates** button and, when an update exists, an **Install update** action.
-- The skill **Key** (the stable identifier adapters use).
-- The **Mode** — Editable or Read only.
-- **Used by** — the list of agents currently attached to this skill.
+- **Location** — the folder the skill is filed in, with **Copy path** and **Move** buttons.
+- **Tags** — the skill's tags, with an **Add a tag…** field.
+- **Agents** — the agents currently attached to this skill, with an **Add to agent** button.
+- **Source** — where the skill came from (for example a Paperclip workspace, a local folder, or GitHub), with its path or locator underneath.
+- **Updates** — GitHub-sourced skills only. Shows the pinned commit Paperclip is locked to, a **Check for updates** button and, when an update exists, an **Install update** action.
+- **Settings** — the skill's configuration, at the bottom of the column.
+
+The skill **Key** (the stable identifier adapters use) and its **Mode** (Editable or Read only) live on the **Overview** tab, in the details under **About**.
 
 ---
 
 ## Adapter sync preferences
 
-Different adapters handle skills differently. The Agent → Skills tab surfaces this as a **skill application mode** just above the skill list:
+Different adapters handle skills differently. The Agent → Skills tab surfaces this as a small **skill application mode** badge next to the "*N* of *M* enabled" count, above the skill list — hover it for details:
 
-- **Kept in the workspace** (`persistent`) — the adapter writes skill files into the agent's workspace directory and leaves them there between runs. Most long-running local adapters use this mode.
-- **Applied when the agent runs** (`ephemeral`) — the adapter materialises skill files for each run, then cleans up afterwards. This is the default for sandboxed adapters that treat the workspace as disposable.
+- **Kept in workspace** (`persistent`) — the adapter writes skill files into the agent's workspace directory and leaves them there between runs. Most long-running local adapters use this mode.
+- **Applied on next run** (`ephemeral`) — the adapter materialises skill files for each run, then cleans up afterwards. This is the default for sandboxed adapters that treat the workspace as disposable.
 - **Tracked only** (`unsupported`) — Paperclip cannot push skills into the adapter, so it only records which skills you have assigned. Adapters like `openclaw_gateway` fall into this category; you will see a banner directing you to manage skills inside the remote runtime (for example, OpenClaw) rather than from Paperclip.
 
 Assignments still save regardless of mode — the mode only controls whether Paperclip physically syncs the skill files. Warnings surface in an amber banner when, for example, a desired skill is missing from the company library or the adapter rejected a sync.
@@ -364,21 +377,25 @@ Assignments still save regardless of mode — the mode only controls whether Pap
 
 ## Assigning a skill to an agent
 
-Skills live at the company level, but each agent decides which of those skills to use. To assign or remove skills for an agent:
+Skills live at the company level, but each agent decides which of those skills to use. You can attach skills from either side: from the skill, or from the agent.
+
+**From the skill.** Open the skill's detail page from the **Installed** view. In the right-hand column, under **Agents**, click **Add to agent**. A picker opens with a **Filter agents** box, a **Version** menu, and a checkbox per agent — tick the agents that should get the skill and click **Save**.
+
+![A skill's detail page with the Add to agent picker open, showing the agent checklist and the Version menu](../../user-guides/screenshots/light/skills/assign-to-agent.png)
+
+**From the agent.** To see and change everything one agent uses:
 
 1. **Open the agent's detail page** from the Agents list or the org chart.
-2. **Switch to the Skills tab.**
-3. You will see three groups:
-   - **Required skills** — entries the adapter marks as mandatory. You cannot disable these.
-   - **Optional skills** — every skill in the company library that the agent *could* use. Each row has a checkbox; tick it to assign the skill, untick to detach.
-   - **Unmanaged skills** — read-only rows for skills the adapter picked up from somewhere Paperclip does not control (for example, a global skill bundle on the host). These are shown for visibility only.
-4. Changes autosave about 250 ms after you stop clicking — the small "Saving soon..." / "Saving changes..." indicator in the top-right confirms when Paperclip has persisted the update. The agent will pick up the new skill list on its next run.
+2. **Switch to the Skills tab.** The top line reads "*N* of *M* enabled", next to the skill application mode badge and a **Search skills** box.
+3. You will see these groups:
+   - **Enabled on this agent** — the skills this agent uses now. Flip a row's switch off to detach it.
+   - **Available from the library** — every other skill in the company library that the agent *could* use. Flip a row's switch on to assign it.
+   - **Automatic and detected skills (read-only)** — a collapsible group for skills the adapter supplies or picked up from somewhere Paperclip does not control (for example, a global skill bundle on the host). These are shown for visibility only.
+4. Changes autosave shortly after you stop clicking — a small status chip shows "Saving soon…", then "Saving…", then "Saved". The agent will pick up the new skill list on its next run.
 
-![Agent Skills tab with required, optional, and unmanaged sections, plus a link to the company skill library](../../user-guides/screenshots/light/skills/assign-to-agent.png)
+A **Browse skills store** button at the top of the tab jumps to the company-wide Skills page, so you can open the underlying skill to tweak its instructions without losing your place.
 
-A **View company skills library** link at the top of the tab jumps back to the company-wide Skills page, so you can open the underlying skill to tweak its instructions without leaving context.
-
-> **Tip:** If a skill you expect is not in the optional list, it is not in the company library yet. Add it from the Skills page first, then come back.
+> **Tip:** If a skill you expect is not under **Available from the library**, it is not in the company library yet. Add it from the Skills page first, then come back.
 
 You may notice a `first-task` skill in your library and on the first agent you created during onboarding. That's Paperclip's own guide for your very first task — how the agent reads your answer to the opening question, proposes a plan or a single task, and waits for your go-ahead before hiring or doing the work. It only applies to that onboarding task, not to the agent's other work, and other agents don't get it automatically.
 
@@ -392,7 +409,7 @@ The bundled `paperclip` skill — the base procedure every agent follows on each
 
 ### Turn it on first
 
-The picker stays hidden until someone enables it. Open **Settings → Instance settings → Experimental** and flip the **Beta skills** card: *"Allow agents to pin beta releases of the Paperclip core skill. Disabling this returns every agent to the default live skill without removing saved pins."*
+The picker stays hidden until someone enables it. Open **Settings → Experimental** and flip the **Beta skills** card: *"Allow agents to pin beta releases of the Paperclip core skill. Disabling this returns every agent to the default live skill without removing saved pins."*
 
 It is off by default everywhere — cloud and self-hosted alike — and it is not one of the cloud-managed flags, so it stays yours to turn on and off on any instance. See [Experimental features](../../experimental/overview.md) for how that page behaves.
 

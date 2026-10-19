@@ -1,12 +1,12 @@
 ---
-paperclip_version: v2026.1001.0
-seo_title: Task Plan Decomposition Panel
+paperclip_version: v2026.1012.0
+seo_title: Task Plan Decomposition
 seo_description: See the machinery that turns an accepted plan into child tasks, and the guarantee it runs exactly once even across retries and interrupted runs.
 ---
 
-# Task Plan Decomposition Panel
+# Task Plan Decomposition
 
-When an agent's plan is accepted, Paperclip decomposes it into child tasks — and it guarantees that decomposition happens **exactly once**, even if the agent retries or a run is interrupted mid-creation. Normally that machinery is invisible: you just see sub-tasks appear. The Task Plan Decomposition Panel makes it visible.
+When an agent's plan is accepted, Paperclip decomposes it into child tasks — and it guarantees that decomposition happens **exactly once**, even if the agent retries or a run is interrupted mid-creation. Normally that machinery is invisible: you just see sub-tasks appear. The **Task Plan Decomposition** flag makes it visible.
 
 It adds a read-only **Plan decomposition** section to task detail pages showing, per accepted plan revision, how many child tasks were requested, how many were actually created, and which ones — so you can validate that sub-task creation behaved correctly.
 
@@ -16,8 +16,8 @@ This panel is a debugging and validation surface. The app's own description is c
 
 ## Turn it on
 
-1. Go to **Settings → Instance settings → Experimental**.
-2. Turn on **Task Plan Decomposition Panel** — *"Show accepted-plan decomposition history on task detail pages."*
+1. Go to **Settings → Experimental**.
+2. Under **Paperclip Developer Mode**, turn on **Task Plan Decomposition** — *"Show accepted-plan decomposition history on task detail pages."*
 
 The setting is instance-wide and takes effect immediately.
 
@@ -42,7 +42,7 @@ This page describes the classic task page (the **Classic Task Interface** toggle
 Two things worth knowing about that arrangement:
 
 - The centre-column **Plan decomposition** section described above is hidden on the chat-style page. It hasn't gone anywhere; it's in the Plan tab.
-- The Plan tab shows the history on its own, without this **Task Plan Decomposition Panel** flag. Turning this flag off hides the section from the classic task page, but the Plan tab keeps showing accepted plans as long as you're on the chat-style page.
+- The Plan tab shows the history on its own, without this **Task Plan Decomposition** flag. Turning this flag off hides the section from the classic task page, but the Plan tab keeps showing accepted plans as long as you're on the chat-style page.
 
 See [Issues](../guides/day-to-day/issues.md#tabs-in-the-properties-panel-experimental) for the rest of what the Plan tab holds, including approving a plan from the panel.
 

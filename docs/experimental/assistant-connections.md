@@ -11,7 +11,7 @@ This feature is experimental. **Assistant connections (MCP)** (`enablePublicMcp`
 
 ## Turn it on
 
-1. Open **Settings → Instance settings → Experimental** as an instance administrator.
+1. Open **Settings → Experimental** as an instance administrator.
 2. Turn on **Assistant connections (MCP)**.
 3. Return to **Connectors → Assistant Connection (MCP)**.
 

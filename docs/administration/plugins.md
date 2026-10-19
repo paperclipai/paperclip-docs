@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1001.0
+paperclip_version: v2026.1012.0
 seo_title: Plugins: Extending Paperclip
 seo_description: Add dashboard widgets, file browsers, and custom tooling. Covers the Plugin Manager, installing, self-installing plugins, enabling, and handling upgrades.
 ---
@@ -56,7 +56,7 @@ An errored plugin stays installed — you don't need to uninstall and reinstall 
 
 ## Installing a plugin
 
-![Install a plugin](../user-guides/screenshots/light/plugins/install.png)
+![The Plugin Manager, with the Install Plugin button in the top right and the Available Plugins list below](../user-guides/screenshots/light/plugins/install.png)
 
 There are two ways to install a plugin yourself. (A small set of sandbox provider plugins also arrives on its own at startup — see *Plugins that install themselves* below.)
 
@@ -101,7 +101,7 @@ This used to be a Kubernetes-only shortcut. It's now a general path with a fixed
 
 The table is the whole built-in allowlist. The only other way a plugin can arrive through auto-provisioning is if the release image itself ships it in a distribution catalog (see [Plugins shipped inside a custom image](#plugins-shipped-inside-a-custom-image) below). Everything else — reference examples, first-party plugins, third-party packages — still gets installed by you, the ordinary way.
 
-Once provisioned, these behave like any other installed plugin: same status badges, same detail page, same Configuration tab. You still choose whether and how to use one, by configuring a sandbox environment under **Settings → Instance settings → Environments**. See [Sandbox Providers](../reference/adapters/sandbox-providers.md) for each provider's fields.
+Once provisioned, these behave like any other installed plugin: same status badges, same detail page, same Configuration tab. You still choose whether and how to use one, by configuring a sandbox environment under **Settings → Environments**. See [Sandbox Providers](../reference/adapters/sandbox-providers.md) for each provider's fields.
 
 ### When it runs, and what you might not see
 
@@ -182,14 +182,14 @@ This gate exists so plugins can't quietly grow permissions on you between versio
 
 ## The plugin detail page
 
-Clicking a plugin's name — or the **Configure** button — opens the plugin detail page. This is where a plugin gets to show you its own surface inside Paperclip.
+Clicking a plugin's name — or the **Configure** button on its row under **Installed Plugins** — opens the plugin detail page. Bundled plugins you've already installed also get an **Open Settings** button in the **Available Plugins** list (it reads **Review** while the plugin isn't `ready`), which goes to the same page. This is where a plugin gets to show you its own surface inside Paperclip.
 
-![Plugin detail page](../user-guides/screenshots/light/plugins/detail.png)
+![A plugin's detail page, with its status and version badges next to the name and the Configuration and Status tabs below](../user-guides/screenshots/light/plugins/detail.png)
 
 The detail page has two tabs:
 
 - **Configuration** — the plugin's description, author, categories, and settings form (or a custom settings UI the plugin ships).
-- **Status** — runtime diagnostics: worker process state, recent scheduled jobs, recent webhook deliveries, live health checks, and a rolling log of recent entries.
+- **Status** — runtime diagnostics: worker process state, recent scheduled jobs, recent webhook deliveries, live health checks, and a rolling log of recent entries. A right-hand column adds **Details** and the plugin's **Permissions**.
 
 A plugin can also declare a **page slot**. When it does, the plugin gets its own route at `/<company-prefix>/plugins/<plugin-id>` and renders whatever it wants there — a full page, a dashboard, a multi-step flow. This is how something like the file-browser example adds a Files tab to project pages, or how a hypothetical CRM plugin might add a Contacts view to the sidebar.
 
@@ -205,7 +205,7 @@ If two plugins happen to contribute a page on the same route, Paperclip refuses 
 
 Most plugins have some configuration: an API key, a base URL, a default folder, a list of watched repositories. Paperclip gives plugins two ways to expose that to you.
 
-![Plugin settings](../user-guides/screenshots/light/plugins/settings.png)
+![A plugin's Configuration tab, with the About card above the Settings form](../user-guides/screenshots/light/plugins/settings.png)
 
 **Auto-generated forms.** If the plugin ships a JSON Schema describing its configuration, Paperclip renders a form automatically on the Configuration tab. You fill in the fields, click **Save Configuration**, and Paperclip stores the values securely. For plugins that support it, a **Test Configuration** button appears alongside save — it sends the current form values to the plugin's worker and reports back whether the config works, without persisting anything.
 
@@ -215,9 +215,9 @@ Most plugins have some configuration: an API key, a base URL, a default folder, 
 
 Fields the plugin marks as secret (API keys, tokens, passwords) are stored encrypted and never redisplayed in plain text. The form shows a masked placeholder once a secret has been saved; to change it, type a new value and save again. Leaving the masked placeholder as-is keeps the existing secret.
 
-### Permissions sidebar
+### Permissions card
 
-To the right of the settings form, the **Permissions** card lists the capabilities the plugin's manifest declares — a short, readable list of what this plugin is allowed to touch (for example, "read issues in this company", "write to project workspaces", "send outbound webhooks"). These are the same capabilities the `upgrade_pending` gate checks against on upgrade. If a plugin's permissions list doesn't match what you think it should be doing, that's a signal to investigate before enabling it.
+The **Permissions** card lives on the plugin's **Status** tab, in the right-hand column under **Details**. It lists the capabilities the plugin's manifest declares, one per line, by their capability names (for example `issues.read` or `projects.read`). If the plugin doesn't ask for any, the card says *No special permissions requested.* These are the same capabilities the `upgrade_pending` gate checks against on upgrade. If a plugin's permissions list doesn't match what you think it should be doing, that's a signal to investigate before enabling it.
 
 ---
 
@@ -225,15 +225,15 @@ To the right of the settings form, the **Permissions** card lists the capabiliti
 
 Plugins don't just sit there. Many of them run scheduled jobs — a sync every 15 minutes, a nightly reconciliation, a cleanup pass every Sunday — or receive webhooks from external services. The **Status** tab on the plugin detail page is where you see that activity.
 
-![Plugin jobs log](../user-guides/screenshots/light/plugins/jobs-log.png)
+![A plugin's Status tab, with the Runtime Dashboard showing the worker process, recent job runs, and recent webhook deliveries](../user-guides/screenshots/light/plugins/jobs-log.png)
 
-The tab shows:
+The tab shows the following. The first three sit together in a **Runtime Dashboard** card; health and logs get cards of their own.
 
-- **Worker process** — whether the worker is running, its process ID, uptime, and how many crashes it has recovered from. If the worker crashes repeatedly, the crash count and last-crash timestamp surface here before anything looks broken in the rest of the UI.
-- **Recent job runs** — the last handful of scheduled jobs the plugin fired, each with a status dot (green success, red failed, blue running, grey cancelled, amber queued), the trigger that caused it, and a relative time. A green dot and a short duration is the thing you want to see repeating.
-- **Recent webhook deliveries** — incoming webhooks, each with a status and duration. Useful when you're debugging an integration that isn't firing.
-- **Health status** — aggregate check results, polled every 30 seconds while the plugin is `ready`. If a specific check is failing (for example, "can reach external API"), you'll see it called out here long before it becomes a crash.
-- **Recent logs** — the last 50 log entries the worker emitted, colour-coded by level. This is your first stop when something looks off.
+- **Worker Process** — whether the worker is running, its process ID, uptime, and how many crashes it has recovered from. If the worker crashes repeatedly, the crash count and last-crash timestamp surface here before anything looks broken in the rest of the UI.
+- **Recent Job Runs** — the last handful of scheduled jobs the plugin fired, each with a status dot (green success, red failed, blue running, grey cancelled, amber queued), the trigger that caused it, and a relative time. A green dot and a short duration is the thing you want to see repeating.
+- **Recent Webhook Deliveries** — incoming webhooks, each with a status and duration. Useful when you're debugging an integration that isn't firing.
+- **Health Status** — aggregate check results, polled every 30 seconds while the plugin is `ready`. If a specific check is failing (for example, "can reach external API"), you'll see it called out here long before it becomes a crash.
+- **Recent Logs** — the last 50 log entries the worker emitted, colour-coded by level. This is your first stop when something looks off.
 
 The whole tab refreshes on a 30-second cycle, so you can leave it open while you tweak config or trigger a manual run elsewhere in Paperclip.
 
@@ -289,7 +289,7 @@ A cheat sheet for operating the Plugin Manager day-to-day:
 | Temporarily stop a plugin's jobs | Click the power button on the plugin row (green to grey) |
 | Bring a plugin back online | Click the power button again, or **Enable** from the detail page |
 | Fix a plugin stuck in `error` | Detail page → Status tab → read the log, then re-enable |
-| Approve an upgrade that asks for new permissions | Detail page → review Permissions → **Enable** |
+| Approve an upgrade that asks for new permissions | Detail page → Status tab → review Permissions → **Enable** |
 | Change configuration | Detail page → Configuration tab → edit form → **Save Configuration** |
 | Verify a config before committing | Detail page → Configuration tab → **Test Configuration** (when available) |
 | Permanently remove a plugin | Trash icon on the plugin row → confirm |

@@ -46,7 +46,13 @@ export async function installGitHubReviewFixture(page, ids, stage) {
   await page.route("**/api/**", async route => {
     const path = new URL(route.request().url()).pathname;
     if (path === "/api/announcements/current") return send(route, null);
-    if (path === "/api/instance/settings/experimental") return send(route, { enableChatConnectors: true, enableIsolatedWorkspaces: true });
+    if (path === "/api/instance/settings/experimental") {
+      // Merge onto the instance's real flags: replacing them dropped every other
+      // gated surface (Decisions, Status) from the sidebar in these shots.
+      const response = await route.fetch();
+      const flags = response.ok() ? await response.json() : {};
+      return send(route, { ...flags, enableChatConnectors: true, enableIsolatedWorkspaces: true });
+    }
     if (path === `/api/companies/${ids.companyId}/agents`) {
       const response = await route.fetch();
       const agents = await response.json();
@@ -60,6 +66,7 @@ export async function installGitHubReviewFixture(page, ids, stage) {
     if (path === `/api/chat-endpoints/${endpointId}/github/identity`) return send(route, { githubUserId: "42", login: "octocat", connectionId: "demo-personal", avatarUrl: null });
     if (path === `/api/chat-endpoints/${endpointId}/github/repositories/refresh`) return send(route, resources);
     if (path.startsWith(`/api/chat-endpoints/${endpointId}/`)) return send(route, []);
-    return route.continue();
+    // fallback (not continue) so capture.mjs context-level handlers still run.
+    return route.fallback();
   });
 }

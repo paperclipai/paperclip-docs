@@ -10,7 +10,7 @@ Paperclip has two settings surfaces, and it matters which one you're looking at.
 
 **Profile** is *your* account — your display name and the avatar that shows up next to your comments. Changing it only affects how *you* appear. Other board users on the same instance have their own profiles and see their own.
 
-**Instance Settings** is the admin surface. Anything you change there applies to the whole Paperclip instance — every company, every user, every agent that runs against this install. If you're running Paperclip on a VPS that hosts five companies, a toggle on the Instance page flips for all five.
+**Instance settings** are the admin controls. They don't live on a separate instance page — you reach them from the same **Settings** navigation as your organization (tabs like **Access**, **Experimental**, **Plugins**, and **Adapters**, plus the instance sections on **General**). Anything you change there applies to the whole Paperclip instance — every company, every user, every agent that runs against this install. If you're running Paperclip on a VPS that hosts five companies, an instance toggle flips for all five.
 
 Company and instance settings now share one navigation. The instance-wide **General** controls described below live on the organization's own **General** page (see [Company Administration](./company.md#general-settings)), so instance admins reach them from the same place as the organization settings rather than a separate area.
 
@@ -48,13 +48,15 @@ Shortcuts stay out of your way while you type: they ignore key presses inside te
 
 ## Instance: General
 
-![Instance general settings](../user-guides/screenshots/light/settings/instance-general.png)
+![The General settings page, with the organization fields at the top; the instance-wide sections sit further down the same page](../user-guides/screenshots/light/settings/instance-general.png)
 
-This is the top of Instance Settings. It's where you see how the instance was deployed and flip a few cross-cutting toggles.
+There's no separate instance General page anymore. Open **Settings** and you land on **General** — the first item in the settings sidebar. The top of that page holds your organization's own settings (**Organization name**, **Description**, **Logo**, hiring, and interaction governance). Scroll past **Interaction governance** and you reach the instance-wide sections described below, sitting just above the **Danger Zone**. This is where you see how the instance was deployed and flip a few cross-cutting toggles.
+
+> **Upgrading from an older release?** Old links to the instance General or Heartbeats pages still work — they redirect to this **General** page.
 
 ### Deployment and auth
 
-At the top of the page, a small mode badge tells you which deployment profile this instance is running under. The text underneath explains what that means in practice:
+Next to the **Deployment and auth** heading, a small mode badge tells you which deployment profile this instance is running under. The text underneath explains what that means in practice:
 
 - **Local trusted** — the instance is treating browser requests as a local board operator. No sign-in is required. This is the default when you run Paperclip on your own machine.
 - **Authenticated public** — sign-in is required and the instance is intended to sit on a public URL.
@@ -74,9 +76,9 @@ Hides the username segment inside home-directory paths and similar operator-visi
 
 ### Backup retention
 
-Controls how long automatic database backups are kept at each tier. Paperclip takes daily backups and then thins them out over time:
+Controls how long automatic database backups are kept at each tier. Paperclip backs up roughly every hour and then thins the backups out over time:
 
-- **Daily** — full daily backups kept for the selected number of days.
+- **Daily** — every backup is kept for the selected number of days.
 - **Weekly** — one backup per week kept for the selected number of weeks.
 - **Monthly** — one backup per month kept for the selected number of months.
 
@@ -84,17 +86,17 @@ Each tier is a preset picker, so you can only choose from vetted retention windo
 
 ### AI feedback sharing
 
-Controls whether thumbs-up / thumbs-down votes on AI output can send the voted output to Paperclip Labs. Three states exist:
+Controls whether thumbs-up / thumbs-down votes on AI output can send the voted output to Paperclip Labs. There are two buttons, plus a starting state:
 
-- **Prompt (default)** — no choice has been made yet. The next time you vote, Paperclip will ask once and save your answer.
+- **No default saved yet** — the starting state. There's no button for it; the card just tells you the next thumbs up or thumbs down will ask once and then save your answer here.
 - **Always allow** — voted AI outputs are shared automatically.
 - **Don't allow** — voted AI outputs stay local.
 
-The local vote is always saved regardless — this setting only controls whether the *content* leaves your instance. There's a link to the terms of service on the same card.
+The local vote is always saved regardless — this setting only controls whether the *content* leaves your instance. A **Read our terms of service** link sits on the same card.
 
 ### Sign out
 
-A plain **Sign out** button at the bottom. It ends your session and sends you back to the login page. On a local-trusted instance there's usually nothing to sign out of, but the button is always present.
+A plain **Sign out** button, the last of the instance sections (just above the **Danger Zone**). It ends your session and sends you back to the login page. On a local-trusted instance there's usually nothing to sign out of, but the button is still shown unless your operator has hidden it.
 
 ---
 
@@ -143,7 +145,7 @@ Beneath the checkbox grid, **Current memberships** lists what's actually on reco
 
 ![Instance adapters](../user-guides/screenshots/light/settings/instance-adapters.png)
 
-The Adapters sub-page (Instance Settings → **Adapters**) is the operator view of every adapter currently registered against this Paperclip install. Adapters are how Paperclip talks to an AI runtime — Claude's local CLI, Codex, OpenAI, OpenClaw, and so on — so this is the surface you use when you need to add a new runtime, hide one from agent hiring menus, or upgrade a runtime's package to a newer release.
+The Adapters page (**Settings → Adapters**) is the operator view of every adapter currently registered against this Paperclip install. Adapters are how Paperclip talks to an AI runtime — Claude's local CLI, Codex, OpenAI, OpenClaw, and so on — so this is the surface you use when you need to add a new runtime, hide one from agent hiring menus, or upgrade a runtime's package to a newer release.
 
 > **Alpha:** The external adapter system is still under active development. APIs and storage format may change between releases — reach for this page when you need it, but expect the details to keep evolving.
 
@@ -198,7 +200,7 @@ For the full catalog of adapters Paperclip supports out of the box, along with t
 
 ## Instance: Experimental
 
-![Experimental flags](../user-guides/screenshots/light/settings/experimental.png)
+![The Experimental settings page, with the warning banner above the Experimental features cards](../user-guides/screenshots/light/settings/experimental.png)
 
 Experimental flags opt the instance into features that aren't yet defaults. They're gated here because they may change behaviour, performance, or migrations before they graduate.
 
@@ -210,29 +212,57 @@ An experimental flag in Paperclip is a feature that:
 - Is being evaluated against real usage before it becomes the default, and
 - May be renamed, reworked, or promoted to a core setting in a future release.
 
-Turning one on is not dangerous in the "this will break your data" sense — but experimental features come **without compatibility guarantees**. They may break, change, or be removed at any time, and Paperclip doesn't promise migration or long-term support for them. The app shows a warning to this effect when you enable one. Flip flags when you have a reason to, not for curiosity; don't lean on an experimental feature for a workflow that has to stay stable, and expect to re-read the release notes if you upgrade.
+Turning one on is not dangerous in the "this will break your data" sense — but experimental features come **without compatibility guarantees**. They may break, change, or be removed at any time, and Paperclip doesn't promise migration or long-term support for them. The page carries a warning to this effect at the top. Flip flags when you have a reason to, not for curiosity; don't lean on an experimental feature for a workflow that has to stay stable, and expect to re-read the release notes if you upgrade.
 
 ### The available flags
 
-Each flag has its own page in the [Experimental](../experimental/overview.md) section with motivation, setup, and usage instructions. In brief:
+Open **Settings → Experimental**. The page groups its toggles into up to three sections and lists the cards alphabetically within each one. Where a flag has its own page in the [Experimental](../experimental/overview.md) section (or elsewhere in these docs), the name links to it.
 
-- **[Enable Environments](../experimental/environments.md)** — environment management in instance settings, plus project and agent environment assignment (including custom sandbox images).
-- **[Enable Isolated Workspaces](../experimental/isolated-workspaces.md)** — execution-workspace controls in project configuration and isolated (git-worktree) checkouts for task runs. If you're not using isolated workspaces, leave this off; turning it on exposes extra UI you don't need.
+**Experimental features** — *"Optional product features that are still being evaluated."*
+
+- **[Agent Chat](../experimental/agent-chat.md)** — one ongoing conversation per agent. **Chat** leads the **Work** group and opens an agent rail beside the nav; agents clarify your goal and hand real work off to tasks.
+- **[Assistant connections (MCP)](../experimental/assistant-connections.md)** — connect Codex, Claude, and other assistants to your Paperclip organization so people can review work, delegate tasks, and add feedback. Needs an authenticated instance with a configured public URL.
+- **Beta skills** — lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill, without removing the pins you saved.
+- **[Built-in Agents](../reference/api/built-in-agents.md)** — shows Paperclip-managed built-in agent surfaces (built-in roster badges, the **Built-in agents** tab, and the built-in agent setup controls) and makes the built-in-agent API available. Turn it on before you provision `briefs`, `learning`, or `reflection-coach`; with it off, the built-in-agent routes return `404 Not Found`.
+- **[Cases](../reference/api/cases.md)** — durable work products (blog posts, tweet storms…) that tasks create and iterate on. Adds the **Cases** tab and the agent case API. Turning it off hides the tab and blocks the API; existing case data is kept.
+- **[Chat connectors](../connectors.md#chat-channels-experimental)** — connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations. Turning it off hides chat setup, but existing chat connections keep running.
+- **[Combined Inbox + Task List](../experimental/task-chat.md#an-optional-combined-task-list)** — folds Inbox into **Tasks**: one Tasks row carries the unread badge, and a **Views** menu reaches every inbox and task view.
+- **[Decisions](../guides/day-to-day/decisions.md)** — shows the **Decisions** item in the main sidebar, the attention home that surfaces the tasks awaiting your input.
+- **[Enable Environments](../experimental/environments.md)** — environment management in company settings, plus project and agent environment assignment (including custom sandbox images).
+- **[Enable External Objects](../experimental/external-objects.md)** — detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects.
+- **[Enable Isolated Workspaces](../experimental/isolated-workspaces.md)** — execution-workspace controls in project configuration and isolated (git-worktree) checkouts for task runs. If you're not using isolated workspaces, leave this off. Once it's on, a **Use Isolated Workspaces By Default** card appears at the bottom of this section.
 - **[Experimental File Viewer](../experimental/file-viewer.md)** — task-detail controls for browsing and previewing workspace files.
-- **[Enable External Objects](../experimental/external-objects.md)** — detects external URLs in issues and shows live status for referenced pull requests and tickets.
-- **[Task Plan Decomposition Panel](../experimental/plan-decomposition-panel.md)** — accepted-plan decomposition history on task detail pages, for debugging sub-task creation.
-- **[Agent Chat](../experimental/agent-chat.md)** — one persistent conversation per agent, behind a **Chat** sidebar entry; agents hand work off to tasks and report back when they're done.
-- **[Assistant connections (MCP)](../experimental/assistant-connections.md)** — lets external assistants sign in as a person to review work and delegate tasks. Experimental and off by default.
-- **[Memory connectors](../connectors/memory-connectors.md)** — exposes Mem0, Zep, Supermemory, Cognee, and Honcho setup. Experimental and off by default; hiding setup does not stop saved connections.
-- **[Paperclip Runner](../reference/adapters/paperclip-runner.md)** — enables explicitly configured native runs. Experimental; on by default on self-hosted instances and off by default on Cloud unless managed configuration changes it. Enabling the flag does not migrate existing agents.
-- **[Combined Inbox + Task List](../experimental/task-chat.md#an-optional-combined-task-list)** — combines inbox and task views under **Tasks**. Experimental and off by default.
-- **[Task Watchdogs](../experimental/task-watchdogs.md)** — per-task watchdog agents that verify stopped task subtrees and restore live paths.
-- **[Cloud Sync](../experimental/cloud-sync.md)** — **retired.** Removed upstream together with its experimental toggle, so it no longer appears in this list on a current build. To move a company between instances, use [company Import/Export](../how-to/back-up-and-restore-a-company.md).
-- **[Server Info Debug View](../experimental/server-info-debug-view.md)** — a "Server" section in the account drawer with restart time, running commit, and checkout state.
-- **[Auto-Restart Dev Server When Idle](../experimental/auto-restart-dev-server.md)** — only relevant under `pnpm dev:once`; restarts a stale dev boot once all local agent runs finish. For development on Paperclip itself, not production.
-- **[Auto-Create Recovery Tasks](../experimental/auto-create-recovery-tasks.md)** — lets the heartbeat scheduler create recovery tasks for stalled task dependency chains, with a lookback window and preview.
-- **Enable Built-in Agents** — makes the built-in-agent controls and API available. Turn it on before you provision `briefs`, `learning`, or `reflection-coach`; with it off, the built-in-agent routes return `404 Not Found`.
-- **Streamlined Left Navigation Bar** — **on by default now**, so you don't need to flip anything to get it. It trims the sidebar: Projects move under the **Work** section as a single **Projects** link with its own page, and the agents list shows only your active agents (the five most recently active). Turning this flag **off** is the opt-out — it restores the classic sidebar, where each project gets its own collapsible entry and there's no top-level Projects link.
+- **First task: propose with a plan document** — when someone's first request is a single task, the chief of staff writes a short plan document and a checkbox card instead of a one-card confirmation. Applies to organizations created after you flip it.
+- **[Memory connectors](../connectors/memory-connectors.md)** — exposes Mem0, Zep, Supermemory, Cognee, and Honcho setup. Hiding setup does not stop saved connections.
+- **[Paperclip Runner](../reference/adapters/paperclip-runner.md)** — lets new Codex agents select the experimental Rust Paperclip Runner. On by default on self-hosted instances and off by default on Cloud unless managed configuration changes it. Turning it off hides the choice without affecting existing native runs.
+- **[Simplified English Interactions](../reference/skills/optional/content/simplified-english.md)** — tells agents to write confirmations, questions, suggested tasks, and checkbox prompts in ASD-STE100 Simplified Technical English, with brief context on what each decision needs.
+- **[Status Cards](../experimental/status-cards.md)** — the shared status-card board and its gated API. Enabling Status Cards also enables Summaries.
+- **Streamlined UI** — **on by default**. The simplified main sidebar, shared Tasks and Inbox presentation, focused task detail layout, and contextual navigation across Agents, Routines, Skills, and Settings. Turning it off restores the legacy shell and navigation; task and page data are unchanged.
+- **[Summaries](../reference/api/summary-slots.md)** — Summarizer-generated status slots on project and workspace pages, with on-demand refresh and revision history. Status Cards requires Summaries, so disabling Summaries also disables Status Cards.
+
+**Paperclip Developer Mode** — *"Internal tools for developing, testing, and debugging Paperclip."* You won't need these for day-to-day use.
+
+- **[Auto-Restart Dev Server When Idle](../experimental/auto-restart-dev-server.md)** — only relevant under `pnpm dev:once`; restarts a stale dev boot once all local agent runs finish.
+- **Managed Environment Only** — hides the local environment and runs all agents in the platform-managed environment.
+- **Paperclip Developer Mode** — shows internal maintainer tools and observability links, including Honeycomb trace queries on run pages.
+- **Run tasks in this worktree** — only appears when the server is running inside a git worktree.
+- **[Server Info Debug View](../experimental/server-info-debug-view.md)** — a "Server" section in the account drawer with the server restart time and running commit.
+- **Smoke Lab** — adds a **Smoke Lab** tab under **Apps → Developer** and an **Integration smoke** card on the dashboard for exercising integration paths against local fixtures. Private (non-public) deployments only.
+- **[Task Plan Decomposition](../experimental/plan-decomposition-panel.md)** — accepted-plan decomposition history on task detail pages, for debugging sub-task creation.
+
+**Legacy** — *"These features are going to be removed."*
+
+- **[Classic Task Interface](../experimental/task-chat.md)** — restores the previous task detail page: the page-level header, the plain comment thread, and the fixed Properties sidebar.
+- **[Goals Sidebar Link](../guides/projects-workflow/goals.md)** — restores the **Goals** item in the main sidebar while the goals surface is being evaluated.
+
+#### No longer on this page
+
+If you're coming from an older release, a few toggles you may remember are gone:
+
+- **[Task Watchdogs](../experimental/task-watchdogs.md)** — no flag any more. Watchdog controls are always available on tasks.
+- **[Auto-Create Recovery Tasks](../experimental/auto-create-recovery-tasks.md)** — retired, along with its preview and run actions.
+- **[Cloud Sync](../experimental/cloud-sync.md)** — retired, toggle included. To move a company between instances, use [company Import/Export](../how-to/back-up-and-restore-a-company.md).
+- **Streamlined Left Navigation Bar** — replaced by **Streamlined UI**.
 
 Toggles take effect immediately on save. If one misbehaves, flip it back off — no migration is required.
 

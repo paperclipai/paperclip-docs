@@ -14,7 +14,7 @@ seo_description: The rebuilt connection storage and authorization layer under Pa
 
 | Then | Now |
 | --- | --- |
-| **Apps** had to be turned on in **Settings → Instance settings → Experimental**. | Always enabled. `enableApps` is a deprecated compatibility key: *"Apps is always enabled; stored and managed values are ignored."* The Experimental settings page no longer renders the toggle. |
+| **Apps** had to be turned on in **Settings → Experimental**. | Always enabled. `enableApps` is a deprecated compatibility key: *"Apps is always enabled; stored and managed values are ignored."* The Experimental settings page no longer renders the toggle. |
 | The navigation item was **Apps**. | The sidebar item is **Connectors**. The route is still `/apps`. |
 | A Wave 1 catalog, described as plumbing rather than a store. | A full catalog with setup flows, per-action permissions, and a review queue. See [Connectors](../connectors.md). |
 | "Setup flows are partial." | Setup flows are the product surface. Each provider page documents the exact paths Paperclip supports for it. |

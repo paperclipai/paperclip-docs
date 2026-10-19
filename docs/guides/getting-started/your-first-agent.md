@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Hire Your First Agent
 seo_description: An agent is a role, an AI system, a budget, and a set of wake-up rules. Choose each when hiring, plus fixes for the snags that trip people up.
 ---
@@ -17,8 +18,8 @@ The CEO is always the first agent you create. It has a special role: reading the
 
 You'll need:
 - A company already created (see [Create Your First Company](./your-first-company.md))
-- An API key from Anthropic (for the `claude_local` adapter) or OpenAI (for `codex_local`) — see the [Installation guide](./installation.md) for how to get one
-- **For `claude_local`:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed on your Mac
+- A way to pay for the AI: a Claude or ChatGPT subscription you can sign in with, or an API key from Anthropic (for Claude Code) or OpenAI (for Codex) — see the [Installation guide](./installation.md) for how to get one
+- **For Claude Code:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed on your Mac
 
 ---
 
@@ -28,99 +29,93 @@ You'll need:
 
    ![The empty agents list with a New Agent button](../../user-guides/screenshots/light/agents/agents-list-empty.png)
 
-2. **Set the agent's name**
+2. **Name your agent**
 
-   Give the agent a name (e.g. "CEO"). If this is your first agent, Paperclip automatically makes it the **CEO**.
+   A dialog titled **Meet your next agent** opens. It has two short steps — **1. Name** and **2. Adapter** — shown at the top.
 
-   ![The new agent form showing the Name and Role fields filled in for a CEO agent](../../user-guides/screenshots/light/agents/new-agent-name-role.png)
+   Type a name in **Agent name** (e.g. "CEO") and click **Choose adapter**.
 
-   The **CEO role** is special: it has no "Reports To" field, because the CEO reports directly to the board — to you. Every other agent you hire later will have a "Reports To" field where you (or the CEO) assigns a manager.
+   ![The "Meet your next agent" dialog with the Agent name field](../../user-guides/screenshots/light/agents/new-agent-name-role.png)
+
+   There's no role to pick. The first agent in a company is always the **CEO**, and Paperclip sets that for you. The CEO reports directly to the board — to you. Agents you hire later start with a general role and report to the CEO; you can change both afterwards on each agent's **Harness / Runtime** page.
 
 3. **Choose an adapter**
 
-   An adapter tells Paperclip how to run your agent. Click the **Adapter Type** dropdown to see your options.
+   An adapter tells Paperclip how to run your agent. The dialog now asks **Choose an adapter**, with one card per adapter. Pick one and click **Configure agent**.
 
-   ![The adapter type dropdown showing available adapter options](../../user-guides/screenshots/light/agents/adapter-type-dropdown.png)
+   ![Step 2 of the new agent dialog, "Choose an adapter", with a card for each available adapter](../../user-guides/screenshots/light/agents/adapter-type-dropdown.png)
 
    <!-- tabs: Claude Code (Recommended), Codex -->
 
    <!-- tab: Claude Code (Recommended) -->
 
-   **Claude Code** runs a Claude Code agent directly on your Mac. The agent has full access to your filesystem in its working directory, can run terminal commands, write and edit files, and call the Claude API on your behalf.
+   **Claude Code** runs a Claude Code agent directly on your Mac. The agent can work with files in its workspace, run terminal commands, write and edit code, and call Claude on your behalf.
 
    This is the most capable and most commonly used adapter for Paperclip agents.
 
    **Prerequisites:** Claude Code must be installed on your Mac. If you haven't installed it, follow the [Claude Code installation guide](https://docs.anthropic.com/en/docs/claude-code) — it's a separate Anthropic product. Come back here once it's installed.
 
-   **Configuration fields:**
-
-   ![The Claude Code adapter configuration form with all fields filled in](../../user-guides/screenshots/light/agents/claude-local-config-filled.png)
-
-   - **Working directory** — The folder on your Mac where the agent will do its work. This is where files get created, edited, and read. If you're not sure what to use, create a folder called `paperclip-workspace` on your Desktop and paste that path here (e.g. `/Users/yourname/Desktop/paperclip-workspace`).
-
-   - **Model** — Which Claude model powers this agent. `claude-opus-4-6` is the most capable and best for strategic roles like the CEO. `claude-sonnet-4-6` is faster and cheaper, and works well for more routine tasks.
-
-   - **Environment variables** — Add `ANTHROPIC_API_KEY` and either paste the key as a plain value or store it as a Paperclip secret. This is how the adapter gets access to Claude.
-
-   - **Test environment** — Use this button to confirm Paperclip can see Claude Code and that your `ANTHROPIC_API_KEY` binding works before you create the agent.
-
-   > **Tip:** If you're unsure about the working directory, create a new folder called `paperclip-workspace` on your Desktop. Use that path until you decide on a better home for your agents' work.
-
    <!-- tab: Codex -->
 
-   **Codex** runs an OpenAI Codex agent directly on your Mac. Like `claude_local`, it has access to your filesystem and can run commands within its working directory — but it's powered by OpenAI's models rather than Anthropic's.
+   **Codex** runs an OpenAI Codex agent directly on your Mac. Like Claude Code, it can work with files and run commands in its workspace — but it's powered by OpenAI's models rather than Anthropic's.
 
    **Prerequisites:** You'll need the OpenAI Codex CLI installed. Check the [OpenAI documentation](https://platform.openai.com) for installation instructions.
 
-   **Configuration fields:**
-
-   - **Working directory** — The folder on your Mac where the agent will do its work. Create a folder called `paperclip-workspace` on your Desktop if you don't have a preferred location.
-
-   - **Model** — Which OpenAI model to use. `gpt-5.3-codex` is the default and a sensible starting point for a CEO agent.
-
-   - **Environment variables** — Add `OPENAI_API_KEY` and either paste the key as a plain value or store it as a Paperclip secret.
-
-   - **Test environment** — Use this button to verify the adapter can see your OpenAI key binding before you create the agent.
-
    <!-- /tabs -->
 
-4. **Configure the heartbeat interval**
+4. **Connect your model provider**
 
-   The create form's run policy is deliberately simple: you can decide whether this agent runs on an interval, and how often.
+   After the dialog closes, you land on a setup page with your agent's (still sleepy) character at the top and the steps down the left: **Connect**, **Configure**, and **Confirmation**.
 
-   ![The budget and heartbeat configuration fields for the new agent](../../user-guides/screenshots/light/agents/budget-and-heartbeat-fields.png)
+   On **Connect**, pick the **Environment** the agent runs in (the default is fine to start with), then connect Claude or OpenAI — either sign in with your subscription or provide an API key. Paperclip stores a key you enter as a secret, so it never sits in plain text in the agent's settings.
 
-   For a CEO, once per hour is a reasonable starting cadence. You can make it faster later once the company is active and you have a feel for the cost.
+5. **Configure and test**
 
-   > **Tip:** Don't set the interval too short early on. Every heartbeat costs money. For a CEO, once per hour is a good starting point. You can increase frequency later once you understand your company's rhythm.
+   On **Configure**, choose the **Model** that powers this agent. For Claude Code, `claude-opus-4-6` is the most capable and best for strategic roles like the CEO; `claude-sonnet-4-6` is faster and cheaper for routine work. For Codex, the default model is a sensible starting point. Some adapters also offer a **Thinking effort** setting — leave it on **Auto** if you're not sure.
 
-5. **Create the agent**
+   ![A Claude Code agent's Harness / Runtime page showing the Adapter card with Model and Thinking effort](../../user-guides/screenshots/light/agents/claude-local-config-filled.png)
 
-   Click **Create agent**. Paperclip creates the agent and takes you to the agent detail page. You should see the agent with a status of **idle** — meaning it's configured and ready, but hasn't fired a heartbeat yet.
+   *The screenshot shows the same Model and Thinking effort settings on an existing agent's **Harness / Runtime** page — that's where you change them after setup.*
 
-   ![The agent detail page showing the CEO agent in idle status](../../user-guides/screenshots/light/agents/agent-detail-idle.png)
+   At the bottom, the **Test your agent** card checks that your runtime and model can respond. Click **Run test**. When it says **Connection successful**, you're good to go.
 
-   The heartbeat is disabled by default when you first create an agent. You'll enable it in the next guide, once you're ready to let the CEO start working.
+6. **Finish setup**
 
-6. **Set the budget after creation**
+   Click **Finish setup**. Paperclip creates the agent and shows **Your agent is ready**, with the adapter, model, and environment it'll use.
 
-   Budgets are configured after the agent exists. Open the agent's **Budget** tab and set a monthly cap that fits the role.
+   From here, click **Edit configuration** to open the agent's settings, or **Assign CEO a Task** (the button uses your agent's name) to give it its first job. You can also open the agent from the **Agents** list. You should see it with a status of **idle** — configured and ready, but it hasn't run a heartbeat yet.
+
+   ![An agent's Overview page in idle status](../../user-guides/screenshots/light/agents/agent-detail-idle.png)
+
+7. **Decide on a heartbeat schedule**
+
+   New agents start with their timed heartbeat switched off. They still wake when you give them work or click **Run now** — they just don't wake on a timer. You'll turn the timer on in the next guide, once you're ready to let the CEO start working.
+
+   The setting lives in the **Run Policy** card on the agent's **Harness / Runtime** page: switch on **Heartbeat on interval** and set **Run heartbeat every … sec**.
+
+   ![The Run Policy card on the Harness / Runtime page with the Heartbeat on interval switch](../../user-guides/screenshots/light/agents/budget-and-heartbeat-fields.png)
+
+   > **Tip:** Don't set the interval too short early on. Every heartbeat costs money. For a CEO, once per hour (3600 seconds) is a good starting point. You can make it faster later once you understand your company's rhythm.
+
+8. **Think about a budget**
+
+   The setup flow doesn't set a spending cap. Once the agent has a budget policy, you manage it from **Audit → Budgets**; to create one, use the CLI or API (see [Agents: Budgets](../org/agents.md#budgets)). [Costs & budgets](../day-to-day/costs.md) explains how agent and company budgets work together.
 
    > **Warning:** The CEO is typically the most active agent — it runs on every heartbeat and does more complex reasoning than worker agents. Budget it slightly higher than you would a worker. $30–50 per month is a reasonable starting point for a CEO. You can always adjust this later.
 
-   Remember: this agent budget is separate from the company budget. Both apply — if either limit is reached, the agent pauses.
+   Remember: an agent budget is separate from the company budget. Both apply — if either limit is reached, the agent pauses.
 
-7. **Test the environment again if needed**
+9. **Test again if needed**
 
-   Before enabling the CEO's heartbeat, you can verify that the adapter is configured correctly. On the agent detail page, click **Test environment**.
+   You can re-run the check any time. Open the agent, go to **Harness / Runtime**, and scroll to the **Test your agent** card at the bottom. Click **Run test** (or **Test again** if you've tested before).
 
-   Paperclip will attempt to connect to the adapter — in the case of `claude_local`, it will check that Claude Code is installed and accessible, and that the environment variable binding is valid.
+   Paperclip checks the runtime — for Claude Code, that Claude Code is installed and reachable and that your connection works — and waits for the model to respond.
 
-   ![The test environment result showing a success state](../../user-guides/screenshots/light/agents/test-environment-success.png)
+   ![The Test your agent card showing Connection successful](../../user-guides/screenshots/light/agents/test-environment-success.png)
 
-   If the test succeeds, you're ready. If it fails:
+   If the test succeeds, you're ready. If it fails, the card says **Couldn't connect** or **Connection needs attention**, with details underneath:
 
-   ![The test environment result showing a failure with an error message](../../user-guides/screenshots/light/agents/test-environment-fail.png)
+   ![The Test your agent card showing a failed connection with an error message](../../user-guides/screenshots/light/agents/test-environment-fail.png)
 
    See the troubleshooting section below.
 
@@ -128,15 +123,15 @@ You'll need:
 
 ## Troubleshooting
 
-**"Test Environment" fails**
+**"Test your agent" fails**
 
 The two most common causes:
-- The environment variable binding is wrong — double-check that you've set `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`, and that the value itself is correct with no extra spaces.
+- The provider connection is wrong — double-check the API key you entered (no extra spaces) or sign in to your subscription again. On an existing agent, the key is set as `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` under **Environment variables** on **Harness / Runtime**.
 - Claude Code isn't installed, or isn't at the path Paperclip expects — confirm you can open Claude Code from your Mac independently of Paperclip.
 
 **Agent shows "error" status after its first heartbeat**
 
-Open the **Runs** tab on the agent detail page, then click the most recent run. You'll see a full transcript of what happened. Error messages in the transcript will point to what went wrong.
+On the agent's page, click **Runs** under **Audit** in the side menu. That opens the **Audit** page's **Runs** list filtered to this agent; click the most recent run. You'll see a full transcript of what happened. Error messages in the transcript will point to what went wrong.
 
 **Budget immediately shows near 100%**
 

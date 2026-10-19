@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.707.0
+paperclip_version: v2026.1012.0
 seo_title: Auto-Restart Dev Server When Idle
 seo_description: For people developing Paperclip itself: let the dev runner watch backend sources and pending migrations, and restart the server when a boot goes stale.
 ---
@@ -11,7 +11,7 @@ This flag is for people developing **Paperclip itself**. When you run the app wi
 ## Turn it on
 
 1. Run the app under `pnpm dev:once`.
-2. Go to **Settings → Instance settings → Experimental**.
+2. Go to **Settings → Experimental**.
 3. Turn on **Auto-Restart Dev Server When Idle** — *"In `pnpm dev:once`, wait for all queued and running local agent runs to finish, then restart the server automatically when backend changes or migrations make the current boot stale."*
 
 ## How it behaves

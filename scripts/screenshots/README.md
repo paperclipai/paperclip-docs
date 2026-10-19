@@ -44,7 +44,7 @@ This passes `--all` to `capture.mjs`, which ignores staleness and re-shoots ever
 | Script | Command | What it does |
 |---|---|---|
 | `seed.mjs` | `npm run screenshots:seed` | Seeds demo data against a running instance at `BASE_URL`. Writes `.seed-ids.json`. |
-| `capture.mjs` | `npm run screenshots:capture` | Captures screenshots against a running instance. Flags: `--all`, `--only <substr>`, `--theme <light\|dark\|both>`, `--stale <file,...>`, `--base-url <url>`, `--keep`. |
+| `capture.mjs` | `npm run screenshots:capture` | Captures screenshots against a running instance. Flags: `--all`, `--only <substr[,substr…]>` (comma-separated substrings are OR-ed), `--theme <light\|dark\|both>`, `--stale <file,...>`, `--base-url <url>`, `--keep`. |
 | `sync-registry.mjs` | `npm run screenshots:sync-registry` | Syncs route + `depends_on` from `routes.mjs` CAPTURE_TARGETS into `registry.json`. Safe to run standalone. |
 | `run.mjs` | `npm run screenshots:refresh` | Full orchestrator: starts isolated instance → seeds → syncs registry → captures → tears down. Forwards `--all`, `--only`, `--theme` to `capture.mjs`. |
 

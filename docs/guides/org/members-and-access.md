@@ -20,12 +20,12 @@ That's why the same surfaces keep showing up for both:
 
 - an **invite link** can onboard a human *or* an agent (you choose when you create it);
 - a **join request** can be a person asking to join or an agent asking to enroll;
-- the **members list** shows humans and agents side by side;
+- **memberships** are stored the same way for humans and agents (though the **Members** page in settings lists only the people — agents live on the **Agents** page);
 - **permission grants** attach to a person or an agent identically.
 
 You mostly deal with the human side, but knowing it's one system explains why the invite and approval flows feel symmetrical.
 
-![The Members page lists human and agent principals together](../../user-guides/screenshots/light/company/access.png)
+![The Organization Members page listing the company's human members with their email, role, and status](../../user-guides/screenshots/light/company/access.png)
 
 ---
 

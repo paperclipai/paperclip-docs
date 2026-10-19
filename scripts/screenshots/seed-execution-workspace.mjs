@@ -24,6 +24,20 @@ import { readFileSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import os from "node:os";
+import http from "node:http";
+
+let demoResponder = null;
+function startDemoServiceResponder(port) {
+  if (demoResponder) return;
+  demoResponder = http.createServer((req, res) => {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ status: "ok" }));
+  });
+  demoResponder.on("error", (err) => {
+    console.warn(`[seed-ws] demo service responder on :${port} unavailable (${err.code}) — service may show Unhealthy`);
+  });
+  demoResponder.listen(port, "127.0.0.1", () => demoResponder.unref());
+}
 import {
   INSTANCE_ID,
   PARENT_REPO,
@@ -219,6 +233,12 @@ export async function seedExecutionWorkspace(input) {
       await sql`delete from workspace_operations where execution_workspace_id = ${executionWorkspaceId}`;
       await sql`delete from workspace_runtime_services where execution_workspace_id = ${executionWorkspaceId}`;
     }
+
+    // The server health-probes a running local_process service's URL, and
+    // nothing listens on :5173 in the screenshot instance, so the seeded "web"
+    // service flipped to "Unhealthy" within seconds. Answer that probe from
+    // this process for as long as the run lasts (unref'd: never holds it open).
+    startDemoServiceResponder(5173);
 
     // A running web service so the Services tab + list show live status.
     await sql`

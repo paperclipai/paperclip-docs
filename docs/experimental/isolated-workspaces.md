@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.707.0
+paperclip_version: v2026.1012.0
 seo_title: Isolated Workspaces
 seo_description: Give each task run its own git worktree on its own branch, so several agents can work a project at once without fighting over one shared checkout.
 ---
@@ -16,7 +16,7 @@ A shared checkout is a bottleneck and a hazard: two concurrent runs editing the 
 
 ## Turn it on
 
-1. Go to **Settings → Instance settings → Experimental**.
+1. Go to **Settings → Experimental**.
 2. Turn on **Enable Isolated Workspaces** — *"Show execution workspace controls in project configuration and allow isolated workspace behavior for new and existing task runs."*
 
 This is the single switch for all the workspace UI: the **Workspaces** sidebar item, the per-project **Execution Workspaces** configuration, the workspace-mode picker on new and existing tasks, and the project **Workspaces** tab.

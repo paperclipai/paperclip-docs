@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1012.0
 seo_title: Environment Variables Reference
 seo_description: Every variable Paperclip reads for server configuration, plus the ones it injects into agent processes at runtime — the list to wire deployments from.
 ---
@@ -133,7 +133,7 @@ Only an **absent** variable means self-hosted. Everything else is treated as a h
 
 ### What it can and can't reach
 
-`features` may only target the boolean feature-flag keys of the instance's experimental settings — the ones on **Settings → Instance settings → Experimental**. Server-managed bookkeeping fields (activation cutoffs, lookback hours) aren't booleans and are excluded by construction, so a managed document can't touch them.
+`features` may only target the boolean feature-flag keys of the instance's experimental settings — the ones on **Settings → Experimental**. Server-managed bookkeeping fields (activation cutoffs, lookback hours) aren't booleans and are excluded by construction, so a managed document can't touch them.
 
 On top of that, each flag carries a tier in the build's feature catalog: `preference` (a tenant's own taste setting the harness leaves alone), `managed` (the harness may set it), or `floor` (pinned in code). Only `managed` keys are accepted. A key whose tier differs in the running build is version skew between the document's `catalogVersion` and the app, and the server refuses to start rather than apply a control with mismatched semantics.
 
