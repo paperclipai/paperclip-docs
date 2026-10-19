@@ -9,7 +9,7 @@ seo_description: Step-by-step setup for both GitHub routes — repository tools 
 Two separate procedures, because GitHub does two unrelated jobs. Pick the one you need:
 
 - [Set up GitHub as an agent tool](#set-up-github-as-an-agent-tool) — agents read and act on repositories.
-- [Set up chat from GitHub](#set-up-chat-from-github) — people work with an agent from issue and pull-request comments.
+- [Set up chat from GitHub](#set-up-chat-or-a-pr-review-bot-from-github) — people work with an agent from issue and pull-request comments.
 
 For what each route governs, and the shell Git and `gh` exception, see [GitHub](github.md). Read the exception before granting an agent a dedicated identity.
 
@@ -59,7 +59,7 @@ There is no authorization redirect and no GitHub installation screen on this bra
 4. Set an **Expiration**. A token that expires is a feature here; note the date, because the connection will stop working on it.
 5. Grant repository permissions to match what you want agents to do, and no more. Read-only **Contents**, **Metadata**, **Issues**, and **Pull requests** is a sensible starting point; add write permissions deliberately, one at a time.
 6. Generate the token and copy it. GitHub shows it once. It begins `github_pat_`.
-7. Back in Paperclip, paste it into the **GitHub token** field and finish. The connection is complete at that point — there is nothing further to authorize.
+7. Back in Paperclip, paste it into the **Your GitHub key** field and finish. The connection is complete at that point — there is nothing further to authorize.
 
 > **Note:** Because the permissions are the ones you ticked on the token, this path is the easier of the two to audit. What it does not give you is a durable shell identity: for that, use the managed path.
 

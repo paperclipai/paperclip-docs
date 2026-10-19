@@ -358,7 +358,7 @@ The response is `{ "id": …, "revision": … }`. Each update adds a new price r
 { "targetId": "<subscription uuid>", "expectedRevision": 3, "targetRevision": 1 }
 ```
 
-Marks two accounts from the same provider as the same subscription or seat, so the fee counts once and usage is combined. The account in the path keeps its price. You must be able to edit both. Linking two accounts with different saved prices fails with `409`; pick the price to keep first.
+Marks two accounts from the same provider as the same subscription or seat, so the fee counts once and usage is combined. The account in the path is merged into `targetId`, and the target's price is kept. You must be able to edit both, or you get `403`. You get `409` if both IDs are the same account, the accounts come from different providers, or either revision changed since you read it.
 
 ### Fast moving spend
 

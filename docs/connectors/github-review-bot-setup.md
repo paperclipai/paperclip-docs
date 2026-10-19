@@ -81,8 +81,9 @@ GitHub asks you to confirm the App's owner and name, then to install it.
 During installation, grant access to only the disposable repository for this
 walkthrough. This is GitHub's permission boundary: which repositories may the
 App reach at all? If an organization requires an administrator to approve the
-App, Paperclip shows *"Waiting for installation or administrator approval on
-GitHub."* until that approval arrives.
+App, Paperclip shows *"Waiting for GitHub installation or administrator
+approval…"*, with a **Continue installation on GitHub** link, until that approval
+arrives.
 
 When GitHub sends you back, Paperclip picks up the same draft, stores the App's
 credentials in its vault, and imports the repositories you granted. Those

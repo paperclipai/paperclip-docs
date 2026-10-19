@@ -161,7 +161,7 @@ Nobody calls a route for these. Paperclip moves a pending intent to `expired` it
 | What happened | Stored `reason` |
 |---|---|
 | The person connected the service some other way — from **Connectors**, say — and the requesting agent already has usable access on this task | *"An already authorized connection is available to the requesting agent."* The agent gets a fresh continuation with its tools refreshed, and no human approval is recorded on the person's behalf. |
-| The task was reassigned while the card was still waiting | *"The task was reassigned before the connection request was answered, so the &lt;service&gt; connection is still not connected. Reconnect it or choose an available connection."* The connection is still missing; reassignment only retired the card. |
+| The task was reassigned while the card was still waiting | *"The task was reassigned before the connection request was answered, so the &lt;service&gt; connection is still not connected. Reconnect it or choose an available connection."* For AI-account requests the reason says *the AI account* instead. The connection is still missing; reassignment only retired the card. |
 
 Before retiring a request as already satisfied, Paperclip rechecks the person's company membership, the connection's health, the grant and the agent's install, and the task's tool policy. Requests for AI accounts, channels, extra permissions, and upstream providers keep their own paths and are not expired this way.
 

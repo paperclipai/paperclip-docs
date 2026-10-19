@@ -49,7 +49,7 @@ Open **Tasks** to see the work across your company. The API calls these records 
    - Assignee = **[specific agent]** — see one agent's full workload
    - Status = **in_review** — see work that's done and waiting for sign-off
 
-   **Tasks created by agents are hidden by default.** Agent delegation and automatic routine runs can easily outnumber the requests people make, so the list starts with human-created work. To see everything, open **Filter** and tick **show agent-created tasks** under **Visibility**. Your choice is remembered for that list, and **Clear filters** hides them again. A hidden task still appears as a parent or as an expandable subtask of a task you can see, so trees stay intact. Tasks from chat channels count as agent-created, even when a person started the conversation. The same checkbox is on project task lists and in the Inbox.
+   **Tasks created by agents are hidden by default.** Agent delegation and automatic routine runs can easily outnumber the requests people make, so the list starts with human-created work. To see everything, open **Filter** and tick **show agent-created tasks** under **Visibility**. Your choice is remembered for that list, and **Clear** in the filter menu hides them again. A hidden task still appears as a parent or as an expandable subtask of a task you can see, so trees stay intact. Tasks from chat channels count as agent-created, even when a person started the conversation. The same checkbox is on project task lists and in the Inbox.
 
    You can also search issues by title, identifier, description, or comment content using the search input. The URL `?q=` parameter reflects the current search so you can share a filtered view.
 

@@ -73,7 +73,7 @@ Daytona counts a *stopped* sandbox against your org's storage quota — only an 
 
 These defaults only apply when you leave a field unset — an explicit value (including `0` or `-1`) is forwarded to Daytona unchanged. Auto-archive is reversible: resuming an archived reusable sandbox restores it, so warm reuse still works under these defaults. If you genuinely need long-lived warm sandboxes, raise or disable the intervals.
 
-When Paperclip keeps a sandbox for later inspection or repair instead of deleting it, it first turns off Daytona's auto-delete and rereads the sandbox to confirm the change took. A sandbox that's already archived stays archived; it has no running process and keeps its files. If that fresh read shows the sandbox has started again, Paperclip stops it.
+When Paperclip keeps a sandbox for later inspection or repair instead of deleting it, it first turns off Daytona's auto-delete and rereads the sandbox to confirm the change took. A sandbox that's already archived stays archived; it has no running process and keeps its files. Once the change is confirmed, Paperclip stops the sandbox unless it's already stopped or archived.
 
 ### Resource overrides need an image
 

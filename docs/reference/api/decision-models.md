@@ -148,7 +148,8 @@ Each entry has:
 
 - `id`, `feature`, `startedAt`, `finishedAt`, `durationMs`
 - `actorType`, `responsibleUserId`, `userName`
-- `issueId`, `issueIdentifier`, `agentId`, `runId` — task and run links are only included when you're allowed to see the task
+- `agentId` — always included
+- `issueId`, `issueIdentifier`, `runId` — task and run links are only included when you're allowed to see the task
 - `connectionId`, `provider`, `model`
 - `status` and `errorCode`
 - `inputTokens`, `outputTokens`, `costCents`, `costStatus`

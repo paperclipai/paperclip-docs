@@ -17,7 +17,7 @@ Nothing. This connection uses Exa's public search server, so there is no sign-in
 
 1. Open **Connectors** and select **Exa**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to narrow the agents.
-3. Select **Use public Exa search** and connect.
+3. Select **Connect**.
 
 ## Choose access
 

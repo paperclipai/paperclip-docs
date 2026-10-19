@@ -18,7 +18,7 @@ That is all for browser sign-in. Paperclip registers its own OAuth client with L
 
 1. Open **Connectors** and select **Linear**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity or narrow the agents, select **Change**.
-3. Select **Sign in with Linear**, sign in as the account whose access the connection should have, and approve access.
+3. Select **Continue to sign in**, sign in as the account whose access the connection should have, and approve access.
 
 Paperclip asks Linear for the `read` and `write` scopes, so agents can read issues and also create and update them. Which of those actions an agent may actually run is still your call on the **Permissions** tab.
 
@@ -29,7 +29,7 @@ Sign-in needs your Paperclip address to be HTTPS, or a local `localhost` address
 If browser sign-in is not suitable, select **Change** and choose **Use an API key**.
 
 1. Create a personal API key in Linear's settings. Choose the permissions and teams the actions you plan to allow actually need.
-2. Paste it into the **Linear API key** field and connect.
+2. Paste it into the **Your Linear key** field and select **Connect**.
 
 A key restricted to **Read** permission works, and it is the simplest way to get a connection that genuinely cannot change anything in Linear. Workspace and role access still apply on top of the key.
 

@@ -276,7 +276,7 @@ Editable, Paperclip-managed skills are written to `<paperclipInstanceRoot>/skill
 
 Bundled skills (those shipped in the server's `skills/` directory) are re-imported on every list call (`ensureBundledSkills`). They cannot be edited or deleted — installing the same Paperclip release will recreate them.
 
-GitHub-synced skills (see the next section) are the exception to the "body in the database" rule: each refresh stores a complete snapshot of the files at the scanned commit, so agents run them without fetching from GitHub. For repository packages (the default for new sources) that snapshot covers the repository's supported files and is stored once per company, however many skills it serves.
+GitHub-synced skills (see the next section) are the exception to the "body in the database" rule: each refresh stores a complete snapshot of the files at the scanned commit, so agents run them without fetching from GitHub. For repository packages (what the UI uses for new imports and what project repositories always use; the API defaults to `skills` when `packageMode` is omitted) that snapshot covers the repository's supported files and is stored once per company, however many skills it serves.
 
 ### GitHub skill sources
 
@@ -307,7 +307,7 @@ A skill source links a company to one GitHub repository and branch. It remembers
 - `repository` keeps the repository's files together. Paperclip saves the supported files at the scanned commit as one immutable, company-scoped snapshot, and every selected skill gets those files as supporting content. Unselected skills stay out of the library but their files still travel with the selected ones. This is what the UI uses for new imports, and what project repositories always use.
 - `skills` imports each selected skill's own folder only, stopping at nested `SKILL.md` boundaries.
 
-Existing sources keep the mode they were saved with. A repository package holds up to 9,990 regular files and 61 MiB of content; files over those limits, symlinks, and files rejected by the safety checks are left out with a path-specific warning instead of failing the import. A candidate whose entrypoint fails validation is reported as needing setup, while the rest still import. Missing references are advisory. Importing never runs setup commands, hooks, or installers.
+Existing sources keep the mode they were saved with. A repository package holds up to 9,990 regular files and 61 MB of content. Single files over 1 MB, symlinks, submodules, and files rejected by the safety checks are left out with a path-specific warning. If the repository is over the package limits, Paperclip includes only the skill folders and the files they reference, or only the skill folders if that's still too large, and adds a warning instead of failing the import. A candidate whose entrypoint fails validation is reported as needing setup, while the rest still import. Missing references are advisory. Importing never runs setup commands, hooks, or installers.
 
 At runtime, each skill from a repository package is delivered as a generated `SKILL.md` that points at the untouched original under `.paperclip-repository/`, so relative links resolve from the original folder and file bytes and executable flags are preserved. Each enabled skill currently carries its own copy of the repository files in the runtime.
 

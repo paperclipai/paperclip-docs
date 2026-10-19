@@ -67,7 +67,7 @@ These adapters ship with Paperclip and are always available in the host:
 | [Pi](./pi.md) | `pi_local` | Selectable | Pi CLI runs with its built-in tool set and provider/model routing. |
 | [Hermes](./hermes.md) | `hermes_local` | Selectable | Hermes Agent runs with persistent memory, 30+ tools, 80+ skills, and multi-provider routing. |
 | [Grok Local](./grok-local.md) | `grok_local` | Selectable | Grok Build CLI runs with `--resume` session continuity, streaming reasoning output, and skills staged into `.claude/skills`. |
-| [Paperclip Runner](./paperclip-runner.md) | `paperclip_runner` | Experimental; instance setting applies | Native run lifecycle, durable session recovery, and qualified Codex, OpenCode, Claude, Grok, and Cursor providers. |
+| [Paperclip Runner](./paperclip-runner.md) | `paperclip_runner` | Experimental; instance setting applies | Native run lifecycle, durable session recovery, and qualified Codex, OpenCode, Claude, Grok, Cursor, and Pi providers. |
 | [Kimi Code](./kimi-local.md) | `kimi_local` | Selectable | Kimi Code CLI runs on the shared ACP engine with headless-CLI fallback, session resume, and per-run skills injection. |
 | [OpenClaw Gateway](./openclaw-gateway.md) | `openclaw_gateway` | **Coming soon** (use OpenClaw invite flow) | Remote OpenClaw instances reached over the WebSocket gateway protocol. |
 | [Process](./process.md) | `process` | **Coming soon** (API / import only) | Shell commands, scripts, and custom local runtimes. |

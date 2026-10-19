@@ -17,7 +17,7 @@ Nothing. This connection uses Parallel's public search server, so there is no si
 
 1. Open **Connectors** and select **Parallel Search**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to narrow the agents.
-3. Select **Use public Parallel Search** and connect.
+3. Select **Connect**.
 
 ## Choose access
 
@@ -42,7 +42,7 @@ Open the link and compare. A result you can check confirms both the connection a
 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
-| Searches start failing after heavy use | The public server's free allowance or rate limit | Slow down, or use another search connector |
+| Searches start failing after heavy use | Parallel may limit heavy use of the public server | Slow down, or use another search connector |
 | An agent looks for Parallel's task or research tools | Those belong to Parallel Task, a separate product | Use the search and fetch actions only |
 | A page cannot be read | The site blocks automated reading, or needs a login | Try another source |
 | An agent reports a claim without a link | It did not keep the source | Ask it to include the URL with each fact |

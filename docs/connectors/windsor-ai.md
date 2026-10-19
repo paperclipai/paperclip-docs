@@ -22,7 +22,7 @@ Agents can query the data you connected in Windsor.ai — advertising, analytics
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. To pick a different identity, narrow the agents, or switch method, select **Change**.
 3. Choose a method:
    - **Sign in with Windsor.ai** — complete browser sign-in. Paperclip registers its client automatically.
-   - **Use a Windsor.ai API key** — create a key for the intended Windsor.ai organization and paste it into the **Use a Windsor.ai API key** field.
+   - **Use a Windsor.ai API key** — create a key for the intended Windsor.ai organization and paste it into the **Your Windsor.ai key** field.
 
 ## Choose access
 

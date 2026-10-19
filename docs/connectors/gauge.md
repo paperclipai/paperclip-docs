@@ -22,7 +22,7 @@ Agents can work with your Gauge organization — checking how AI answer engines 
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. To pick a different identity, narrow the agents, or switch method, select **Change**.
 3. Choose a method:
    - **Sign in with Gauge** — complete browser sign-in and choose the organization on Gauge's consent screen. Paperclip registers its client automatically, so there is nothing to set up in a developer console.
-   - **Use an API key** — in Gauge, open **Settings → Integrations → API Keys**, generate a key for Paperclip, and paste it into the **Gauge API key** field.
+   - **Use an API key** — in Gauge, open **Settings → Integrations → API Keys**, generate a key for Paperclip, and paste it into the **Your Gauge key** field.
 
 Both methods give the same **Read and write** capability: read AI visibility, SEO and traffic data, and run content workflows.
 

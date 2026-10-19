@@ -21,7 +21,7 @@ Agents can work with your Bitly account — looking up short links and QR codes,
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. To pick a different identity, narrow the agents, or switch method, select **Change**.
 3. Choose a method:
    - **Sign in with Bitly** — complete browser sign-in and choose only the workspace you intend. Paperclip registers its client automatically.
-   - **Use an API key** — generate a token in Bitly under **Settings → API** and paste it into the **Bitly API key** field.
+   - **Use an API key** — generate a token in Bitly under **Settings → API** and paste it into the **Your Bitly key** field.
 
 ## Choose access
 

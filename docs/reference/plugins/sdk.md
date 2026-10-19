@@ -317,7 +317,7 @@ A plugin that keeps an external "computer" in step with an agent — copying its
 const runtime = await ctx.agents.getRuntime(agentId, companyId);
 ```
 
-It needs the `agents.lifecycle.manage` capability, must be called from a company-scoped invocation (such as an `onResourceLifecycle` or `onAgentLifecycle` call), and only works for the enabled, ready plugin that's in that agent's required lifecycle set. A missing agent, or one in another company, returns `null`.
+It needs the `agents.lifecycle.manage` capability, must be called from a company-scoped invocation (such as an `onResourceLifecycle` or `onAgentLifecycle` call), and only works for the enabled, ready plugin that's in that agent's required lifecycle set and whose manifest's `resourceLifecycle` includes `"agent_runtime"` (otherwise `403`). A missing agent, or one in another company, returns `null`.
 
 The `PluginAgentRuntimeState` it returns holds:
 

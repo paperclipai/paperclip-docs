@@ -20,9 +20,8 @@ Agents can query a ClickHouse Cloud ClickStack service — useful for letting an
 
 1. Open **Connectors** and select **ClickHouse**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
-3. Select **Sign in with ClickHouse** and complete browser sign-in.
-4. Enter the **ClickHouse Cloud service ID**.
-5. Finish setup.
+3. Enter the **ClickHouse Cloud service ID**.
+4. Select **Continue to sign in** and complete browser sign-in.
 
 ## Choose access
 

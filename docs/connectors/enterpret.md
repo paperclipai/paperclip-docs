@@ -25,7 +25,7 @@ Customer feedback often contains names, accounts, and other personal details. De
 1. Open **Connectors** and select **Enterpret**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. Select **Change** to narrow the agents or to switch the method.
 3. Pick how to connect:
-   - **Use an auth token** — paste the token into the **Enterpret auth token** field. This is the default method.
+   - **Use an auth token** — paste the token into the **Your Enterpret key** field. This is the default method.
    - **Sign in with Enterpret** — complete browser sign-in. Paperclip registers its client automatically, so there is nothing to set up in a developer console. This method connects your own account only.
 4. Finish setup and open **Permissions** to check the action list.
 

@@ -22,7 +22,7 @@ There is no API key option. Calendly's hosted server only accepts browser sign-i
 
 1. Open **Connectors** and select **Calendly**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. To pick a different identity or narrow the agents, select **Change**.
-3. Select **Sign in with Calendly** and approve access in Calendly's own consent screen.
+3. Select **Continue to Calendly** and approve access in Calendly's own consent screen.
 
 Paperclip registers its client with Calendly automatically, so there is nothing to set up in a developer console.
 

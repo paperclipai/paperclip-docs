@@ -20,7 +20,7 @@ Agents can read search performance for your sites through GSC Wizard — Google 
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. To pick a different identity, narrow the agents, or switch method, select **Change**.
 3. Choose a method:
    - **Sign in with GSC Wizard** — complete browser sign-in. Paperclip registers its client automatically.
-   - **Use a GSC Wizard MCP key** — create a key in GSC Wizard for the intended account, choosing read-only or read/write, and paste it into the **Use a GSC Wizard MCP key** field.
+   - **Use a GSC Wizard MCP key** — create a key in GSC Wizard for the intended account, choosing read-only or read/write, and paste it into the **Your GSC Wizard key** field.
 
 ## Choose access
 

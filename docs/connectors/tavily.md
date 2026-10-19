@@ -18,7 +18,7 @@ Agents can search the public web and extract the content of pages through Tavily
 
 1. Open **Connectors** and select **Tavily**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. To pick a different identity or narrow the agents, select **Change**.
-3. Select **Sign in with Tavily** and approve access in Tavily's consent screen.
+3. Select **Continue to Tavily** and approve access in Tavily's consent screen.
 
 Paperclip registers its client with Tavily automatically and asks for the `openid` and `offline_access` scopes. There is nothing to configure in a developer console.
 
@@ -48,7 +48,7 @@ Open the links. Results you can check confirm the sign-in and the agent's permis
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
 | Sign-in is refused before it starts | Paperclip is reached over local HTTP | Use a public HTTPS address for Paperclip, then connect again |
-| A search fails with a session or request error | The call reached Tavily before its session was ready | Ask the agent to retry; Paperclip does not replay a failed call on its own |
+| A search fails with a session or request error | Tavily's session expired | Ask the agent to retry; Paperclip starts a new session but does not replay the failed call on its own |
 | Usage comes from an unexpected key | Tavily chose a default key at sign-in | Create an `mcp_auth_default` key in Tavily and reconnect |
 | Searches stop working | The key's credits ran out | Top up in Tavily |
 | **Needs attention** | The grant was revoked or expired | Select **Reconnect** |

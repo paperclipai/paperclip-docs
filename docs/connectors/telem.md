@@ -19,7 +19,7 @@ There is no browser sign-in and no free profile; the key is the only way in. Usa
 
 1. Open **Connectors** and select **Telem.AI**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to narrow the agents or to reach the optional settings below.
-3. Paste the key into the **Telem.AI API key** field and connect.
+3. Paste the key into the **Your Telem.AI key** field and select **Connect**.
 
 Paperclip stores the key as a secret and sends it to Telem.AI on each call; agents never see it.
 

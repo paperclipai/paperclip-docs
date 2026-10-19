@@ -89,9 +89,9 @@ They're post-tag (master only), so release review must keep them off `main` unti
 
 None. There are no reverts in `abbd8800..8de28c12`, and no earlier entry left the cumulative window.
 
-## ⚠ Drift (checked against master `2f6ad222`)
+## ⚠ Drift (re-checked against `8de28c12`)
 
-All 27 candidates are **false positives**; no rows or sections should be removed. Each was confirmed present at `8de28c12`.
+All 33 candidates are **false positives**; no rows or sections should be removed. Each was confirmed present at `8de28c12`. Since the master check, the pinned run also flags `PAPERCLIP_RUNNER_API_TOOLS_*`, `PAPERCLIP_NATIVE_MCP_*` (listed in the Runner's Rust env allowlist), `PAPERCLIP_MCP_AUTHORIZATION_ORIGIN` (`env.X`), and `paperclipai payload` (text inside a quoted CLI message in `service.md`).
 
 High-confidence (env vars, 18):
 - `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (4): read through `envInteger(env, "NAME", …)` in `workspace-git-operation-scheduler.ts`.
@@ -117,7 +117,7 @@ All 13 unverified claims on lines added this run were found at `8de28c12`:
 - Not an env var: `ENVIRONMENT_ACQUISITION_PROVIDER_STATES` is an SDK export.
 - Other: `local_tools` is a Runner README example value, and `paperclipai payload and` is text inside a quoted CLI message.
 
-Connector and guide pages give `verify-edit` no claims to extract. Their identifiers and UI labels were checked by hand against the pinned source, and all 12 new connector slugs exist in `packages/shared/src/app-definitions/`.
+Connector and guide pages give `verify-edit` no claims to extract. Their identifiers and UI labels were checked by hand against the pinned source (see the recheck below for what that missed), and all 12 new connector slugs exist in `packages/shared/src/app-definitions/`.
 
 Claims taken from parent dev docs or inferred rather than read from code, for review:
 - Daytona's read/write/destructive grouping (`DAYTONA.md`).
@@ -125,6 +125,29 @@ Claims taken from parent dev docs or inferred rather than read from code, for re
 - `/api/dot-mcp` is mounted under `/api`.
 - Muse's 30-day inactivity limit and Dot's 15-minute pairing expiry (dev docs).
 - The Codex model-fallback warning example in `paperclip-runner.md`, built from the message template.
+
+## Adversarial recheck
+
+Five reviewers re-read every doc changed in this run, plus the `costs.md` and `issues.md` merge resolution, against the `8de28c12` checkout. They checked about 1,200 claims. Fixed on this branch:
+- **Connector setup buttons:** the setup screen never shows the method name as its main button.
+  - One sign-in method with nothing to configure shows **Continue to *App***: Calendly, Tavily, Jira, Resend, Netlify, Miro, Todoist, Cloudinary, Wix, Webflow, Mixpanel.
+  - Several methods, or a method with fields, shows **Continue to sign in**: Linear, Airtable, ClickHouse.
+  - Keyless methods show **Connect**: Exa, Parallel Search.
+- **Credential fields:** a single credential field is always labelled **Your *App* key**. Updated Linear, Make, GSC Wizard, Windsor.ai, Bitly, Airtable, Firecrawl, Gauge, Enterpret, Neon, Telem.AI, Supabase, Superagent and GitHub.
+- **Subscription linking:** the selected (`targetId`) account's price is kept, not the open one's. A manual link never hits the different-prices `409`. Fixed in `guides/day-to-day/costs.md` and `reference/api/costs.md`.
+- **Smaller corrections:**
+  - GitHub review-bot install wait text, and a broken `github-setup.md` anchor that predates this run.
+  - AgentMail sat behind **Chat connectors**.
+  - Task filter **Clear** label.
+  - Muse budget wording.
+  - Runner's Linux qualification (GNU libc 2.39+).
+  - Daytona stop-on-retain.
+  - Pi in the Runner provider list.
+  - AI-account reassignment reason.
+  - `agentId` is always returned by decision models.
+  - Skill-source package default and oversize fallback.
+  - Plugin SDK `agent_runtime` lifecycle requirement.
+  - `service install` shim repair (any non-`--json` run; git installs keep their revision).
 
 ## Follow-ups for a human
 

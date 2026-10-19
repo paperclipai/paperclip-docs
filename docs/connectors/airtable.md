@@ -17,7 +17,7 @@ Agents can work with your Airtable bases — finding records, reading fields, an
 
 1. Open **Connectors** and select **Airtable**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
-3. Select **Sign in with Airtable** and complete browser sign-in, choosing what to share when Airtable asks.
+3. Select **Continue to sign in** and complete browser sign-in, choosing what to share when Airtable asks.
 
 Paperclip registers its client with Airtable automatically, so there is nothing to set up in a developer console. Sign-in needs your Paperclip address to be HTTPS, or a local `localhost` address.
 
@@ -26,7 +26,7 @@ Paperclip registers its client with Airtable automatically, so there is nothing 
 If browser sign-in does not suit you — for example, you want the connection's reach fixed by a token rather than by a person's sign-in — select **Change** and choose **Use a personal access token**.
 
 1. Create a token at [airtable.com/create/tokens](https://airtable.com/create/tokens). Give it only the scopes and bases the actions you plan to allow actually need.
-2. Paste it into the **Airtable personal access token** field and connect. Tokens start with `pat`.
+2. Paste it into the **Your Airtable key** field and select **Connect**. Tokens start with `pat`.
 
 Paperclip stores the token as a secret and sends it to Airtable on each call; agents never see it. Both the token and the Airtable user's own role on each base limit what the connection can do, so a narrow token is a real boundary. An enterprise administrator may still need to allowlist MCP access.
 

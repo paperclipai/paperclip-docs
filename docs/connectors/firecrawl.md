@@ -28,7 +28,7 @@ For browser sign-in, Paperclip must be reached over HTTPS, or over a local `http
 3. Finish the method you chose:
    - **Try keyless access** — connect. There is nothing else to enter.
    - **Sign in with Firecrawl** — sign in and choose the Firecrawl team whose usage should apply. Paperclip registers its client automatically and asks for the `firecrawl:global` and `offline_access` scopes.
-   - **Use a Firecrawl API key** — create a key for the intended team in Firecrawl, then paste it into the **Use a Firecrawl API key** field.
+   - **Use a Firecrawl API key** — create a key for the intended team in Firecrawl, then paste it into the **Your Firecrawl key** field.
 
 Paperclip stores the key as a secret and sends it to Firecrawl as a Bearer header; agents never see it. Paperclip cannot give a key more permissions than Firecrawl did.
 
