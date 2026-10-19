@@ -49,6 +49,10 @@ The toggle saves immediately; there is no separate save button for this setting.
 
 The **Interaction governance** section sets, for each kind of interaction card (suggested tasks, questions, confirmations, and so on), who may respond by default and the strictest audience allowed. Each kind has a **Default policy** and a **Cap**. See [Setting company-wide interaction governance](../guides/day-to-day/issues.md#setting-company-wide-interaction-governance) for how the two work together.
 
+### Decision model
+
+The **Decision model** section is where you choose the shared OpenAI or OpenRouter API connection Paperclip uses for optional small-model decisions. API usage is charged to that connection. It sits on **General**, or moves to the **Connections** page when the instance's **Experimental fast responses** setting is on. See [Costs and Budgets → Decisions](../guides/day-to-day/costs.md#decisions) for setup, testing, and where the usage shows up.
+
 ### Feedback sharing, Export, and Import
 
 There's no organization-level feedback toggle on this page anymore. Whether thumbs-up / thumbs-down votes can send AI output to Paperclip Labs is now the instance-wide **AI feedback sharing** setting, further down the same page — see [Settings](./settings.md#ai-feedback-sharing).

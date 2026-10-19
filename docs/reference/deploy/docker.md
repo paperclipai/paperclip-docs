@@ -40,6 +40,17 @@ PAPERCLIP_PORT=3200 PAPERCLIP_DATA_DIR=../data/pc \
 
 > **Note:** `PAPERCLIP_DATA_DIR` is resolved relative to the compose file in `docker/`, so `../data/pc` maps to `data/pc` in the repository root.
 
+### Set your secrets once
+
+Before the first start, put two secrets in `docker/.env`, each its own value from `openssl rand -hex 32`:
+
+- `BETTER_AUTH_SECRET` signs sessions. Compose refuses to start without it.
+- `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` signs approvals for approval-gated tools. It's separate from the session secret. Both Compose files (`docker-compose.quickstart.yml` and `docker-compose.yml`) pass it into the container. If you leave it empty, the instance still starts, but it can't issue signed tool-action approvals.
+
+Keep the same values across restarts. Don't generate new ones for an existing deployment.
+
+Both Compose files give the container a `stop_grace_period` of `90s`. That leaves time for running agents to settle and for final cleanup when you stop the stack.
+
 ---
 
 ## Manual Image Build
@@ -102,6 +113,12 @@ All persistent data lives under the bind mount:
 - agent workspace data
 
 If the bind mount is removed, the instance starts fresh on the next run.
+
+### File ownership on startup
+
+The entrypoint makes sure the container's `node` user owns everything under `PAPERCLIP_HOME` before the app starts. To keep boots fast on volumes with lots of agent worktrees and `node_modules` trees, it walks the whole tree only once for each volume and node UID/GID. After that it records the result in `.paperclip-ownership-verified` at the top of the data directory, and later boots run only a quick shallow check. Delete that file if you want the next boot to run the full check again.
+
+If you set `USER_UID` or `USER_GID` to something other than the image default (`1000`), the container now remaps the `node` user without walking the data volume, so even large volumes start in seconds. Any files that really do have the wrong owner are still fixed by the ownership check above.
 
 ---
 

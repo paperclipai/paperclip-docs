@@ -17,7 +17,7 @@ Think of it as your company's shelf of finished and in-progress work product. If
 An artifact is something an agent produced in the course of doing work. Paperclip pulls three kinds of output into the Artifacts page and presents them as one unified list:
 
 - **Documents** — keyed documents an agent wrote or revised on an issue (for example a plan, a brief, or a report). System-managed documents are filtered out, so you only see the real deliverables.
-- **Attachments** — files an agent attached directly to an issue: images, PDFs, videos, CSVs, JSON, and so on.
+- **Attachments** — files attached directly to an issue, whether by an agent or by a person: images, PDFs, videos, CSVs, JSON, and so on.
 - **Work products** — results an agent handed back as the formal output of a task, including ones that point at an attached file.
 
 Each artifact carries the context you need to make sense of it: the issue it came from, the project (when there is one), the agent that created it, and when it was last updated. Every card links straight back to the exact spot on the originating issue, so one click takes you from the shelf to the source.
@@ -99,17 +99,49 @@ A few details worth knowing:
 
 - **Images and videos share a gallery.** Open an image or video card to review it in the task's media viewer. Use **Previous** and **Next**, or the left and right arrow keys, when more than one item is available. Videos have playback controls; the header offers download, and **Esc** closes the viewer.
 - **CSV previews are on request.** Click **Preview data** to load a table for files up to 1 MiB. The preview shows at most 200 data rows and accepts up to 50 columns. Larger or unsupported previews explain why they cannot load and leave download available; a failed fetch offers a retry.
-- **Text files open in a tab.** Markdown and plain-text attachments get an **Open in tab** button. It opens the file in a tab in the same side pane, so the conversation stays in view. Markdown files have **Rendered** and **Raw** buttons to switch between the formatted page and the source, and a download button gives you the original file. Clicking a text attachment in the conversation opens the same tab, and the tab is reused as you open the next file.
+- **Text files open in a tab.** Markdown and plain-text attachments get an **Open in tab** button. It opens the file in a tab in the same side pane, so the conversation stays in view. Clicking a text attachment in the conversation opens the same tab, and the tab is reused as you open the next file. A download button always gives you the original file.
+- **Markdown, CSV, and HTML open rendered.** Next to the download button, the eye icon (**Rendered**) and the code icon (**Raw**) switch between the formatted view and the source. A CSV opens as a table, as described in [CSV files as tables](#csv-files-as-tables), and an HTML report opens as a working page, as described in [HTML reports](#html-reports).
 - **Branches without a link say so.** When an agent records a branch but no remote URL, the card reads **Branch · no remote link** rather than implying there's somewhere to click through to. Use **Show details** to see its provider, its status, and when it was last updated. If the agent saved a description, it's tucked under **Saved description**.
 - **Unhealthy outputs are flagged** with an **Unhealthy** badge, so a broken preview link doesn't pass for a working one.
 
-The tab is read-only — a quick answer to "what came out of this task?", not a place to upload or delete.
+The tab is a quick answer to "what came out of this task?" It's also where you add files of your own. See [Uploading files to a task](#uploading-files-to-a-task). You can't delete outputs from it.
 
 Implementation reference: [artifact cards](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/artifacts/IssueArtifactCard.tsx), [CSV preview limits](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/lib/artifact-card-data.ts), and [media gallery](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/ImageGalleryModal.tsx).
 
 > **Note:** if your instance has switched back to the old layout with **Classic Task Interface** (under **Legacy** in **Settings → Experimental**), there's no Artifacts tab — a task's attachments stay in the **Attachments** section on the task page. See [Experimental features](../../experimental/overview.md).
 
 Either way, the Artifacts page remains the place to see everything at once, across every task and project. See [Issues](./issues.md#tabs-in-the-properties-panel) for the rest of what those tabs hold.
+
+---
+
+### Uploading files to a task
+
+Sometimes you want to hand an agent material before it starts, such as a brief, a spreadsheet, or a screenshot, without sending a message that wakes it up. You can add files straight to the task from the **Artifacts** tab.
+
+- Click the upload icon (**Upload files**) in the tab's header and pick one or more files.
+- Or drop files anywhere on the open panel, including its header and the cards already there.
+
+An empty tab invites you to *Add files to this task*. Each file shows *Uploading…* while it saves. A file that fails shows the error with **Retry** and a dismiss button, and the files that did save stay saved.
+
+Uploads go straight onto the task. They don't post a message, assign an agent, or release a pause. You can prepare a paused or unassigned task and start the work when you're ready. Markdown files (`.md`, `.markdown`) become task documents, and other files become attachments with the usual file-type and size limits. Uploading a Markdown file with the same name as an existing document creates a separate document instead of overwriting it.
+
+Files from people and from agents appear together in the tab. An attachment that was also handed back as a work product appears only once.
+
+### CSV files as tables
+
+When you open a CSV file in a tab, or in the workspace file viewer, it shows as a table instead of raw text. The first row becomes the column headers, rows are numbered, and the header row stays in place as you scroll. A strip above the table shows how many rows and columns the file has.
+
+The table shows up to 500 rows and 100 columns. A bigger file says so and shows the first part. Download the file to get everything. Switch to **Raw** to see the original text, which is also the place to look when a file has a broken quoted field.
+
+This is separate from the **Preview data** button on a CSV card in the Artifacts tab, which loads a smaller preview right inside the card.
+
+### HTML reports
+
+Agents often deliver reports as a single HTML file with charts, tables, or filters. HTML attachments and workspace `.html` / `.htm` files open rendered, so you can use the report right inside Paperclip. Switch to **Raw** to read the source, and download to get the original file.
+
+The report runs in a locked-down sandbox. Its scripts can drive the page itself, but they can't read your Paperclip session, cookies, or storage, and they can't touch the rest of the app. Network requests, remote scripts, styles, images, and fonts, forms, pop-ups, and navigating away are all blocked. So a report has to be self-contained: inline its scripts and styles, and embed images and fonts as `data:` URLs. A report that loads a charting library from a CDN won't work until that library is embedded.
+
+Implementation reference: [upload controls](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/ui/src/components/artifacts/ArtifactUploadControls.tsx), [CSV table](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/ui/src/components/CsvPreview.tsx), and [HTML sandbox policy](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/ui/src/lib/html-preview.ts).
 
 ---
 
@@ -120,7 +152,7 @@ When an artifact is a real file from an issue's workspace, you can read it witho
 What you see depends on the file type:
 
 - **Text and code files** (`.ts`, `.py`, `.json`, `.md`, `.csv`, `.yaml`, `.sql`, and similar) open as source with line numbers. If a link points at a specific line, the viewer scrolls to it and highlights it.
-- **Markdown files** open rendered by default, with a toggle in the top-right corner to switch between the **rendered** view and the **raw** source.
+- **Markdown files** open rendered by default, with a toggle in the top-right corner to switch between the **rendered** view and the **raw** source. **CSV files** get the same toggle and open as a table, and **HTML files** open as a sandboxed, working page. See [CSV files as tables](#csv-files-as-tables) and [HTML reports](#html-reports).
 - **Images** (`.png`, `.jpg`, `.gif`, `.webp`) and **videos** (`.mp4`, `.mov`, `.webm`, `.m4v`) preview inline — pictures display directly and videos get a player with controls.
 
 The viewer also gives you a couple of conveniences: a **copy contents** button to grab the file's text (or its raw data), and a **copy link** button so you can share a direct link straight back to that file in the viewer.
@@ -195,7 +227,7 @@ Every comment is addressable. Open a thread and use **Copy link** to grab a deep
 - **Stacks** — artifacts grouped by their task (or rolled up by parent task), so related outputs stay together.
 - **Cards** — previews you can read or watch in place, each linking back to the issue it came from.
 - **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from a file artifact or from an inline file chip an agent left in its writing.
-- **Artifacts tab on a task** — one task's outputs in its properties panel, each on a card shaped to what it is: pull request, commit, document, image, video, link preview, CSV data, or file.
+- **Artifacts tab on a task** — one task's outputs in its properties panel, each on a card shaped to what it is: pull request, commit, document, image, video, link preview, CSV data, or file. You can upload or drop your own files here too.
 - **Document comments** — inline, Google-Docs-style threads anchored to a passage in a Plan or Artifact document; open or resolved, authored by people or agents, and shareable by deep link.
 
 You now know how to find, filter, and review everything your agents have made. When you want to dig into the work behind a given artifact, follow its link back to the issue and pick up the thread there.

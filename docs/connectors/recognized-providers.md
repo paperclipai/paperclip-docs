@@ -20,20 +20,22 @@ What we can confirm at this commit: the definitions below are present, Paperclip
 
 None of these have connector pages, and none can be added from the catalog.
 
+In this nightly snapshot, Bitly, Context7, and Make have left this list and are back in the catalog — see [Bitly](bitly.md), [Context7](context7.md), and [Make](make.md). ClickUp, Klaviyo, and monday.com have joined it: their definitions exist, but sign-in has not yet been proven end to end, so they stay out of the list you browse.
+
 | Provider | Slug |
 | --- | --- |
 | beehiiv | `beehiiv` |
-| Bitly | `bitly` |
 | Brex | `brex` |
 | Candid | `candid` |
+| ClickUp | `clickup` |
 | Coda | `coda` |
-| Context7 | `context7` |
 | Egnyte | `egnyte` |
 | Embat | `embat` |
 | Kernel | `kernel` |
+| Klaviyo | `klaviyo` |
 | Local Falcon | `local-falcon` |
-| Make | `make` |
 | Manufact | `manufact` |
+| monday.com | `monday` |
 | O'Reilly | `oreilly` |
 | PlanetScale | `planetscale` |
 | Razorpay | `razorpay` |
@@ -55,12 +57,13 @@ In practice: connect Composio again from **Connectors**, set up access and actio
 
 ## Gated by the provider
 
-These three are recorded as blocked because of a requirement on the provider's side. The requirement is theirs, not Paperclip's, and it has to be lifted or granted by them — there is no setting in Paperclip that works around it.
+These are recorded as blocked because of a requirement on the provider's side. The requirement is theirs, not Paperclip's, and it has to be lifted or granted by them — there is no setting in Paperclip that works around it.
 
 | Provider | What the provider requires |
 | --- | --- |
 | G2 (`g2`) | G2 has to enable cross-application token introspection before an independently registered client can connect at all. There is no customer-side application process for this. |
 | Vercel (`vercel`) | Vercel reviews and approves MCP clients. Approval is between Vercel and the client's publisher, so an operator cannot request it for their own instance. |
+| monday.com (`monday`) | monday.com rejects Paperclip's callback address during automatic client registration. monday.com has to allowlist the callback before sign-in can work; an account administrator may also need to approve. It is also withheld from the list above. |
 | Zomato (`zomato`) | Zomato limits third-party clients and requires each redirect URI to be allowlisted. Both steps happen on Zomato's side. |
 
 If you need one of these now, the routes that do not depend on the provider's client approval are in [Can't find your app?](../connectors.md#cant-find-your-app) — a custom server where the provider permits one, automation you already own, or a workspace and a CLI.

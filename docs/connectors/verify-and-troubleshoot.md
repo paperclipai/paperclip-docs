@@ -54,6 +54,8 @@ Do not verify a connector with a write. A write that half-succeeds against a rea
 | **Needs attention** | Something requires a person: an expired credential, or a pending review request. |
 | **Paused** | *"Paused — agents can't use it right now."* |
 
+When one connector card holds two or more connections, they sit behind a row that shows the count, such as **3 connections**. Select it to show or hide the list. The list opens on its own when any connection needs attention or setup, and the row says how many, for example *· 1 needs attention*. A search also opens it, so a busy card can't hide an account that needs you.
+
 Neither **Connected** nor **Healthy** is proof that a particular agent's call will succeed. **Connected** says a record exists; **Healthy** says the credential works. Whether *this* agent may run *that* action is a separate layer, resolved at call time. Run the read test as the agent you actually intend to use.
 
 ## Common failures

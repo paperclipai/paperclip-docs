@@ -50,7 +50,7 @@ The org chart lives here now — there's no separate Org page. See [Org structur
 Every agent row shows the same pieces of information, just arranged differently in the two views:
 
 - **Character** on the far left — the agent's illustrated figure (an amber warning icon replaces it if the agent's reporting chain is broken)
-- **Name, role, and title** (e.g. "Ada" with "Engineer - Backend Engineer" underneath)
+- **Name, role, and title** (e.g. "Ada" with "Engineer - Backend Engineer" underneath). A small crown next to the name marks [your primary agent](#your-primary-agent).
 - **Live run pill** — a pulsing blue "Live" badge when the agent has a run currently in flight; click it to jump straight into the live transcript
 - **Model and adapter** — the model the agent runs and which AI runtime powers it (shown on wider screens)
 - **Last heartbeat** — a relative time like "4m ago"
@@ -112,6 +112,16 @@ There's no budget field in the setup flow. Budgets are managed from **Audit → 
 
 Skills aren't picked during setup either. Paperclip's own runtime skills are attached automatically; attach company skills from the agent's [Skills](#skills) page once it exists. See [Skills](./skills.md) for how the library works.
 
+### Setup checks before a new agent starts work
+
+A new agent doesn't take work the instant it's created. Paperclip first runs a short setup — it prepares anything the agent needs (including resources a [plugin](../../administration/plugins.md) looks after) and then tests the agent's saved runtime configuration. Tasks you assign during setup aren't lost: they wait in the queue and start as soon as the agent is ready.
+
+While setup runs, a status line under the agent's name in its page header tells you where it's up to — **Preparing agent** or **Verifying agent** — with a short note that work stays queued. The same line appears later when you pause, resume, or terminate the agent: **Pausing agent**, **Resuming agent**, **Terminating agent**, or **Cleaning up agent**.
+
+If a step fails, the badge turns red (for example **Agent verification failed**) and Paperclip tells you which step broke and what to do about it — for example, *"The selected model is unavailable. Choose a model supported by the agent's AI connection in Configuration, then retry."* Other messages point you at a failed sign-in, a missing execution command, an unavailable working directory, a test that timed out, or a required plugin that isn't available. Fix the cause, then either wait — Paperclip retries automatically — or click **Retry now** to check again straight away.
+
+> **Tip:** The error message never includes raw provider output or credentials. If the message alone doesn't explain the failure, open the agent's [Harness / Runtime](#harness-runtime) page and click **Run test** to see the individual checks.
+
 ### Approvals when agents hire agents
 
 When *you* create an agent through **New Agent**, it's usually ready straight away. (If your organization requires approval for new agents, the confirmation step says **Agent submitted for approval** instead.) When an *agent* creates one — by calling Paperclip's hire API — the request goes into the approval queue instead, and the new agent sits in `pending_approval` status until you decide. The proposal summary shows the proposed agent's **Name**, **Role**, **Title**, **Icon**, **Capabilities**, **Adapter**, and any requested **Skills**. The monthly budget it's asking for and who it would report to aren't in the summary — open **See full request** to check them in the raw payload. Review it like any other approval: **Approve**, **Reject**, or **Request revision**. See [Approvals — Reviewing a Hire Request](../day-to-day/approvals.md#reviewing-a-hire-request) for details.
@@ -161,6 +171,7 @@ The four **Audit** links don't open pages inside the agent. They take you to the
 The actions in the header work on every page:
 
 - **Star** — stars the agent so it's easy to find again
+- **Set as my primary** — a small link under the agent's name that makes this agent your personal default. See [Your primary agent](#your-primary-agent).
 - **Assign Task** — opens the new-task dialog with this agent pre-selected as assignee
 - **Run now** — wakes the agent for a heartbeat right away and takes you to the new run (useful for testing instruction changes)
 - **Run with provider trace** — the same, but also records the exact traffic to the model provider for that run. Only instance administrators (or a local single-user setup) see this button, and the trace expires after 24 hours.
@@ -193,6 +204,20 @@ The character animates and turns to follow your cursor. If your system is set to
 
 > **Note:** There's no palette picker in the app yet. If you want to change an agent's character, send a new `appearance` value through the API — see [Agents API — Update Agent](../../reference/api/agents.md#update-agent).
 
+### Your primary agent
+
+When you work with several agents in the same company, you can pick one as **your primary agent** — your personal go-to. It's a per-person choice: your teammates each pick their own, and your choice follows you across devices.
+
+You don't have to set it up. The first agent you create in a company becomes your primary automatically. To change it, open another agent's page and click **Set as my primary** under its name. If you already have a primary, Paperclip asks **Change your primary agent?** and shows both characters side by side before you confirm. Agents that are terminated or still awaiting approval can't be your primary.
+
+Your primary agent gets a few small perks:
+
+- A **crown** next to its name on its page header and in the agent list (hover it to see **My primary agent**).
+- It's listed **first** among the agents in your sidebar.
+- It's the **fallback** when there's no recent choice to go on. The new-task dialog pre-selects your most recently used assignee if you have one, and otherwise your primary agent. Opening **Chat** without a recent conversation takes you straight to a chat with your primary agent.
+
+Choosing a primary also makes sure you're a member of that agent, the same as joining it yourself. If your primary agent is later terminated or you leave it, the crown simply goes away — Paperclip doesn't pick a replacement for you, so set a new one whenever you like.
+
 ### Banners at the top of the page
 
 When the agent is in `pending_approval` status, a banner at the top of the page says **This agent is pending board approval and cannot be invoked yet.**, with an **Approve agent** button beside it.
@@ -224,7 +249,7 @@ At the top, Paperclip shows either the run in progress (labelled **Live Run**) o
 
 Below that, four cards sum up the agent at a glance:
 
-- **Identity** — the agent's status, **Role**, **Title**, who it **Reports to**, and how many **Direct reports** it has
+- **Identity** — the agent's status, **Role**, **Title**, who it **Reports to**, and how many **Direct reports** it has. In a company with two or more people, it also shows **Created by** — the person who added the agent — so you know who to ask about it. If that person has since left the company, it reads **Former member**. Agents created by other agents, or before Paperclip started recording creators, may not show this row.
 - **Harness / Runtime** — the **Adapter**, **Model**, current **Session**, and **Last run**. The **Configure** link jumps to the [Harness / Runtime](#harness-runtime) page.
 - **Capabilities** — the agent's capability summary, or "No capability summary has been added." if it's empty
 - **Skills** — the skills enabled for this agent. The **Manage** link jumps to the [Skills](#skills) page.
@@ -666,6 +691,8 @@ In a run's detail view, you see a **session ID before** and **session ID after**
 | `error` | Last heartbeat failed |
 | `paused` | Manually paused or budget-exceeded |
 | `terminated` | Permanently deactivated |
+
+While an agent is going through setup, or is mid-pause or mid-resume, its status reads `paused`; while termination and cleanup are still finishing, it reads `terminated`. The status line under the agent's name tells you which step is actually in progress — see [Setup checks before a new agent starts work](#setup-checks-before-a-new-agent-starts-work).
 
 The status dot on every row and badge on the agent header reflect one of these values directly. The **Active** filter on the agent list expands to include `active`, `running`, and `idle`, because all three mean "this agent is healthy and doing (or ready to do) work". **Paused** and **Error** are their own filters for triage.
 

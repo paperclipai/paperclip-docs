@@ -147,8 +147,12 @@ The consent pages in the Paperclip UI use these endpoints. They are listed so yo
 | --- | --- |
 | `GET /api/mcp/requests/{id}` | Describe a pending browser authorization request on the `/mcp-connect/{id}` page. |
 | `POST /api/mcp/requests/{id}/consent` | Approve or decline that request. Requires a signed-in user and the Paperclip browser origin. |
+| `POST /api/mcp/requests/{id}/dot-pairing/preview` | Show which company and agent a one-use Dot pairing code would connect, without using the code. |
+| `POST /api/mcp/requests/{id}/dot-pairing` | Redeem a one-use Dot pairing code and connect that agent. |
 | `GET /api/mcp/device?user_code=...` | Describe a pending device authorization on the `/mcp-device` page. |
 | `POST /api/mcp/device/consent` | Approve or decline a device authorization by its user code. Requires a signed-in user and the Paperclip browser origin. |
+
+The Dot endpoints are also available under `/api/dot-mcp/requests/{id}`, the dedicated alias Dot's connection page uses. See [External agents](../../experimental/external-agents.md) for the pairing flow.
 
 Device authorization returns `/mcp-device` as its `verification_uri` and expires after ten minutes. The temporary file links from `paperclip_get_upload_url` and `paperclip_get_download_url` point at `/mcp/files/upload` and `/mcp/files/download`; use the exact URL returned rather than building one.
 

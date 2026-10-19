@@ -45,6 +45,29 @@ Task drain is an instance-wide pause on picking up new work: while it is on, age
 
 Reading the status needs only authenticated org access; starting and stopping a drain require instance-admin. Overlapping start/stop calls are serialised, so the audit log and the live drain state always agree.
 
+### Idle holds
+
+A host that wants to stop an idle instance (to save compute) can take a short, owned *idle hold* instead of a normal drain:
+
+- **Start one** with `POST /api/instance/task-drain` and a body of `{ "purpose": "idle", "ttlMs": <5000–300000> }`. Idle holds must expire on their own within five minutes. The response includes an `ownerId`. If any other drain is already active, the request fails with `409 Conflict`.
+- **Ask whether it's safe to sleep** with `GET /api/instance/task-drain?idleSleepSafety=1&ownerId=<ownerId>`. Alongside the usual drain status you get an `idleSleepSafety` object whose `backgroundWork` is `none`, `present`, or `unknown`. Only `none` means accepted requests, scheduled work, cleanup, plugin workers, and saved work have all settled while the same hold stayed in place. This read needs instance-admin.
+- **Release it** with `DELETE /api/instance/task-drain?ownerId=<ownerId>`. A release with the wrong owner fails with `409 Conflict`.
+
+If you set `PAPERCLIP_DB_BACKUP_IDLE_CHECKPOINT_ENABLED=1` (see [Environment Variables](../deploy/environment-variables.md)), the safety check also takes and verifies a fresh database backup before it reports `none`. On cloud-managed instances, only the Paperclip Cloud control plane can run that backup-checkpoint check.
+
+---
+
+## Liveness probe
+
+```
+GET  /api/liveness
+HEAD /api/liveness
+```
+
+A lightweight, anonymous check that the server process is up. It doesn't resolve a session or touch the database, so frequent monitoring won't keep an idle database awake, and it still answers during an idle hold. It returns `200` with `{ "status": "ok", "commit": "<sha or null>" }` once startup recovery has finished, and `503` with `"status": "starting"` until then. Responses are never cached.
+
+Use `/api/liveness` for routine "is it running?" probes. Keep `/api/health` for real readiness checks: it's the one that tests the database and reports bootstrap state.
+
 ---
 
 ## Cloud lifecycle

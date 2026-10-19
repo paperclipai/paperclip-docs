@@ -289,7 +289,7 @@ Behaviour depends on where the skill came from.
 |---|---|---|
 | **Local path** (`/Users/.../release-note-writer`) | No — live | Edit the file on disk. The next read picks it up. Re-import only if you change the source location. |
 | **Paperclip-managed** (created from the UI's **+** button) | No — live | Edit in the Markdown editor on the Skills page. |
-| **GitHub** | Yes — pinned to a commit SHA | `GET /skills/{id}/update-status` shows the latest commit on the tracked ref. `POST /skills/{id}/install-update` refreshes its source. You can also use **Refresh** on **Skills → Sources**. |
+| **GitHub** | Yes — pinned to a commit SHA | Sources update automatically about every five minutes while **Automatic updates** is on. To update now, use **Refresh** on **Skills → Sources**, or `GET /skills/{id}/update-status` to see the latest commit on the tracked ref and `POST /skills/{id}/install-update` to refresh its source. |
 | **skills.sh** | Yes — resolves to GitHub under the hood | Same as GitHub. |
 | **URL / raw file** | No | Re-import the URL to refresh. |
 | **Bundled with Paperclip** | Pinned to the Paperclip release | Upgrade Paperclip itself; bundled skills can't be edited. |

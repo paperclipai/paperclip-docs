@@ -22,6 +22,8 @@ GET /api/adapters
 
 Returns the registry of server-side adapters Paperclip currently knows about: built-in adapter types plus any external adapters installed on the instance.
 
+Each entry also carries `supportedRunners` and `defaultRunner`, which tell you which runners (`paperclip`, `legacy`) a new agent of that type can use and which one `runner: "auto"` would pick. Pass `companyId`, and optionally `environmentId`, as query parameters to check against a specific execution environment instead of the Paperclip server itself. `environmentId` requires `companyId`. Today only `codex_local` can resolve to `paperclip`.
+
 ## Install an external adapter
 
 ```

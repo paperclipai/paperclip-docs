@@ -104,9 +104,9 @@ Move runners to **separate** machines once heartbeats start contending with the 
 
 ## Observability
 
-- **Logs.** Fly: `flyctl logs`. VPS: `docker logs -f paperclip`. Health: `GET /api/health`.
+- **Logs.** Fly: `flyctl logs`. VPS: `docker logs -f paperclip`. Health: `GET /api/health` (checks the database too) or `GET /api/liveness` (process only, no database work).
 - **Metrics.** The dashboard exposes per-agent run history, costs, and budget at `/<prefix>/agents/<key>/runs`.
-- **Alerts.** Hook on a non-200 from `/api/health` for liveness, and on `paperclipai doctor` exit code (run it from a Fly machine SSH or a cron) for config drift.
+- **Alerts.** Hook on a non-200 from `/api/liveness` for frequent process checks, and from `/api/health` for database readiness, and on `paperclipai doctor` exit code (run it from a Fly machine SSH or a cron) for config drift.
 
 ---
 

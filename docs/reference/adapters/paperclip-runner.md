@@ -7,16 +7,43 @@ seo_description: Configure Paperclip Runner for native agent sessions. Choose a 
 
 Use `paperclip_runner` when you want Paperclip's native run lifecycle, durable session recovery, and built-in task tools. You select the provider separately from the adapter, then configure model access and the execution environment.
 
-Paperclip Runner is experimental. Its `enableNativeRunner` setting is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. An enabled flag does not convert your existing agents: onboarding and direct adapters keep their own execution paths.
+Paperclip Runner is experimental. Native Codex is the exception to the rollout switch: new Codex agents use the Runner by default on supported machines (see [New Codex agents use the Runner](#new-codex-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
 
 ## Before you start
 
-- An instance with **Paperclip Runner** enabled under **Settings → Experimental**.
+- For providers other than Codex, an instance with **Paperclip Runner** enabled under **Settings → Experimental**.
 - An active agent and a task in standard, planning, or ask work mode.
 - A prepared execution environment and compatible model credential.
 - The pinned runtime required by the selected provider.
 
 For source development, an enabled Runner requires a Rust toolchain or `PAPERCLIP_RUNNER_BINARY`; the development launcher builds the daemon when needed. Published distributions and execution images provide their own runtime assets.
+
+## New Codex agents use the Runner
+
+When you create a Codex agent, Paperclip picks the runner for you. On a supported machine the agent is saved as `paperclip_runner` with `provider: "codex"`. Everywhere else it stays on the classic [`codex_local`](codex.md) adapter. This applies to new agents created through onboarding, **New agent**, hires, built-in agents, plugins, imports, and the API or CLI. Other harnesses keep their current defaults.
+
+Paperclip Runner is chosen automatically when the agent's execution environment is one of these:
+
+- macOS on Apple Silicon or Intel.
+- Linux x64 or ARM64 with GNU libc `2.39` or newer.
+
+Windows, 32-bit ARM, Alpine and other musl-based Linux, and Linux with an older or unknown libc keep the Legacy runner. Paperclip checks the machine the agent will actually run on, not the machine running the Paperclip server. For a sandbox environment, use an immutable image digest and run the environment's connection probe, so Paperclip can confirm the operating system, architecture, and libc.
+
+### Pick a runner yourself
+
+To choose, open **Advanced** in the agent form, onboarding, or the built-in agent setup and set **Runner**:
+
+| Option | Value | What happens |
+| --- | --- | --- |
+| **Paperclip Runner (default)** or **Legacy runner (default)** | `auto` | Paperclip picks the runner for this environment. The label shows which one you'll get. |
+| **Paperclip Runner** | `paperclip` | Always use the Runner. Saving fails if the environment doesn't qualify. |
+| **Legacy runner** | `legacy` | Keep classic `codex_local` execution and all its settings. |
+
+From the API, send `runner` (`auto`, `paperclip`, or `legacy`) alongside `adapterType: "codex_local"` when you create or hire an agent. In the CLI, `paperclipai agent create` and `paperclipai agent hire` take `--runner <runner>`.
+
+Some `codex_local` settings have no Runner equivalent, such as a custom `command`, `extraArgs`, `search`, `fastMode`, filesystem or network scopes, or `maxTurns`. If you set one and the Runner gets picked, saving fails with `agent_runner_config_incompatible`. The message names the fields and asks you to remove them or choose **Legacy runner** in **Advanced**. Paperclip never switches runners on its own: if authentication, the model, a dependency, or the runtime fails, the error tells you what to fix and the agent keeps the runner it has.
+
+Existing agents, and hires that are already waiting for review, keep their saved runner when you upgrade or edit them. Company exports record the runner that was resolved, so an import recreates the same choice.
 
 ## Choose a provider
 
@@ -27,10 +54,11 @@ For source development, an enabled Runner requires a Rust toolchain or `PAPERCLI
 | **ACP agents → Claude** (`acpx`, `claude`) | Qualified Claude ACP runtime — Claude Agent SDK `0.3.286`, which runs Claude Code `2.1.286`. Configure a Claude-compatible AI connection. |
 | **ACP agents → Grok Build** (`acpx`, `grok`) | Qualified Grok Build runtime. See [Grok setup](grok-local.md#grok-build-on-paperclip-runner). |
 | **ACP agents → Cursor** (`acpx`, `cursor`) | Pinned Cursor runtime with an explicit model and Agent, Plan, or Ask mode. See [Cursor setup](cursor-local.md#cursor-on-paperclip-runner). |
+| **ACP agents → Pi** (`acpx`, `pi`) | Qualified Pi 1.0 runtime. Enter an explicit `provider/model` ID; Pi uses the company credentials bound to the agent's environment, such as `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY`. See [Pi on Paperclip Runner](#pi-on-paperclip-runner). |
 | **Claude Managed** (`claude_managed`) | A company-qualified managed-agent profile, retention acknowledgement, and session spend ceiling. |
 | **AWS AgentCore** (`aws_agentcore`) | A company-qualified remote-agent profile, retention acknowledgement, and estimated session spend ceiling. |
 
-GitHub Copilot and Pi appear as qualification-pending ACP choices and are disabled for production runs. Selecting an arbitrary executable does not create a qualified profile. Historical ACP Codex settings normalize to the native Codex provider when saved.
+GitHub Copilot appears as a qualification-pending ACP choice (**GitHub Copilot — qualification pending**) and is disabled for production runs. Selecting an arbitrary executable does not create a qualified profile. Historical ACP Codex settings normalize to the native Codex provider when saved.
 
 Managed providers need operator-prepared profiles; they are not configured by pasting a general model API key into the provider selector. See [Managed and remote agent profiles](../api/agents.md#managed-and-remote-agent-profiles).
 
@@ -74,6 +102,24 @@ The Runner records native session identity and recovers through the provider's s
 
 Standard, planning, and ask tasks are supported. Cursor additionally has `acpxSessionMode`: `agent` (default), `plan`, or `ask`. Selecting Plan or Ask changes native Cursor session behavior, while Paperclip permissions and environment boundaries remain in force.
 
+### Pi on Paperclip Runner
+
+Choose **ACP agents**, then **Pi**. Pi accepts any `provider/model` ID, so type the exact model you want. A **Pi thinking level** field appears with `off`, `low` (the default), `high`, and `max`; it's saved as `piThinkingLevel`. The Runner checks that exact level before each session can prompt, and changing it starts a new session. To install the pinned Pi runtime on a host, use [`paperclipai runtime setup pi`](../cli/runtime.md#set-up-pi). For custom Pi providers, set `PAPERCLIP_PI_PROVIDERS` as described on the [Pi adapter page](pi.md#custom-providers--gateway-routing).
+
+### Keep working in your own provider home
+
+By default the Runner gives each session a private, isolated provider home and sets up login, skills, and MCP servers there for you. If the execution machine already has a working setup, an operator can set `homeMode: "preconfigured"` in the agent's adapter config to use that account's existing home instead. The default is `"isolated"`.
+
+- **Supported providers:** native Codex and **ACP agents → Claude**. Other providers reject the option. ACP Codex in this mode fails before launch; use native Codex or isolated mode instead.
+- **Prepare the machine first.** In this mode the Runner doesn't sign in, install skills, add external MCP servers, or copy or remove credentials. It still supplies the model, task instructions, and its own task and completion tools. Your local permission rules and hooks keep applying.
+- **Permissions:** native Codex stays on `never`. ACP Claude needs the default `acpxPermissionMode: "approve-all"` and rejects approval requests; other ACP modes fail before launch. Planning and other read-only ACP Claude tasks also fail before launch in this mode, so use isolated mode or native Codex for planning.
+- **Operators only.** Agents can't set, change, or remove `homeMode`, and a task can't override it. Hires don't inherit it.
+- **Sessions stay separate.** Several sessions can share one home. Switching the mode or the home starts a new session, and a recovered run keeps the mode it started with. Backups never include the external home. On a remote machine, the Runner finds that account's own home there rather than copying the server's.
+
+### Environment variables in later turns
+
+Environment variables you configure for a task's agent, project, environment, or routine reach the native provider process and its tool commands, including custom `PAPERCLIP_*` names. When you add, change, or remove one, the Runner replaces its retained provider process at the next run boundary, so the next turn sees the new value. Unchanged variables let the warm process be reused. Only names are passed through the Runner's launch path; the secret values stay in the child environment. Ambient secrets on the host are never forwarded. A native launch carries up to 128 configured variable names.
+
 Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, and `opencode_local` agents remain direct adapters until you explicitly choose Runner. A saved obsolete native-runner toggle on a direct adapter does not switch fresh runs to this path.
 
 ## Current limits
@@ -84,9 +130,18 @@ Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, and `opencode_lo
 - Native session capabilities differ by provider. Session load does not imply native fork or resume methods are available.
 - Environment readiness and model access are separate. A successful installation check does not prove that the provider accepts a paid run.
 
+## OpenCode on the Runner
+
+- **Replies stream as they're written.** Native OpenCode forwards text and reasoning as they arrive. Queued chat messages are dispatched as soon as the session is ready.
+- **No install step to run first.** The server ships `opencode-ai@1.18.34` as a dependency, and the Runner finds the right platform package even if your package manager skipped postinstall scripts.
+- **Remote runs use the bundled Linux assets.** In a remote sandbox the Runner selects its bundled Linux daemon and OpenCode pack, so the image and Paperclip package need to come from the same release.
+- **Managed GitHub access carries over.** OpenCode's shell commands get the same managed GitHub credentials as other native providers.
+
 ## Sandbox images and runtime versions
 
 When native Codex runs in a remote sandbox, the Runner checks the Codex version installed there before it starts. Any stable release from `0.149.0` up to but excluding `0.161.0` is accepted, so an image doesn't have to match the `0.160.0` install pin exactly; a compatible version that differs from the pin is noted in the run log. A version outside that window, or a prerelease, stops the run with `runner_remote_provider_artifact_incompatible`. The message tells you to install a supported stable Codex release or set `PAPERCLIP_RUNNER_REMOTE_CODEX_NPM_SPEC` to the pinned package.
+
+Some Codex models need a newer CLI when you sign in with ChatGPT: `gpt-6.1-sol` needs `0.159.0` or newer, and `gpt-6-sol` and `gpt-6-luna` need `0.157.0` or newer. If a fresh run's sandbox has a Codex release that's too old for the selected model, the Runner switches to the closest older model in the same family before launch, or to the Runner's default model. The task shows a warning such as *"Using gpt-5.6-sol because the sandbox's Codex 0.156.1 does not support gpt-6-sol."*, and the run log records a `runner.model_fallback` event. The agent and task settings keep the model you asked for. Update the sandbox's Codex CLI to use it.
 
 If you build your own sandbox images, keep two things in mind when you upgrade:
 
@@ -96,6 +151,39 @@ If you build your own sandbox images, keep two things in mind when you upgrade:
 ## Running several Runners on one machine
 
 When a sandbox provider starts the Runner daemon (`paperclip-runnerd`) in listener mode, it listens on port `43127` by default. If you run more than one listening Runner on the same machine, give each its own port with `--listen-port` — any value from `1` to `65535`. The Runner still binds to `0.0.0.0`, accepts connections only on its run-specific path, and keeps the same authentication. A warm Runner that's reattached keeps the port it started with; asking it to switch ports is rejected.
+
+## Local MCP tools on the execution host
+
+An execution host can hand a native session its own local stdio MCP servers, alongside the HTTP gateway. Set `PAPERCLIP_NATIVE_MCP_STDIO` on the execution host to a JSON array of bindings, and `PAPERCLIP_NATIVE_MCP_PROXY` to the assigned Runner executable:
+
+```json
+[{"name":"local_tools","command":"/opt/local-tools/bin/mcp-server","args":[],"env":{"HOME":"/home/agent"},"sha256":"sha256:<64 lowercase hex digits>","serialResource":"/home/agent/.local/state/local-tools/runtime/service.sock"}]
+```
+
+- Each `command` is checked against its `sha256` digest before it runs, and the server only gets the `env` you assign.
+- `serialResource` names an existing private Unix socket for the shared resource. Calls that share it run one at a time, even across sessions.
+- The bindings apply to native Codex and to ACP agents that support stdio MCP. They exist only for the current session, so user and project MCP files are never rewritten. Read-only sessions don't get them.
+- Native Codex can use these assigned tools without a prompt for every call. Your own deny or prompt rules still apply, and requested tool confirmations go through Paperclip's normal approval path. ACP agents follow their ACP permission policy.
+
+These variables belong to the execution host. They can't be set through task environment configuration, and provider shells don't inherit them.
+
+## Experimental external providers
+
+Three more Runner providers connect an assistant that runs outside Paperclip, rather than a coding runtime on your machine. The Runner still owns the assignment lifecycle, durable waits, Paperclip tools, and completion review, but the provider manages its own model and billing. Each has its own switch under **Settings → Experimental**, and all three are off by default:
+
+| Provider | Setting | Also needs | Notes |
+| --- | --- | --- | --- |
+| **Grok Bot** (`grok_bot`) | `enableGrokBot` | **Assistant connections (MCP)** and **Paperclip Runner** | An existing Grok Bot joins as an agent. It isn't the [Grok Build](grok-local.md#grok-build-on-paperclip-runner) coding runtime. Usage isn't reported. |
+| **OpenAI Dot** (`openai_dot`) | `enableOpenAiDot` | **Assistant connections (MCP)** | A standalone agent choice that wakes your existing Dot. It doesn't need the general **Paperclip Runner** setting and doesn't turn on other Runner providers. |
+| **Muse — Personal agent** (`muse`) | `enableMuse` | **Paperclip Runner** | Your personal Meta Muse. Muse runs report no usage or cost, so budgets can't cap them: the Costs page says *"Paperclip cannot enforce a Muse spend ceiling."* |
+
+All three need an authenticated instance with a public HTTPS URL. Trying to save one while its switch is off fails with `paperclip_runner_grok_disabled`, `paperclip_runner_dot_disabled`, or `paperclip_runner_muse_disabled`. Their permission policy belongs to the provider, so there's no Runner permission mode to pick. Live steering, provider transcripts, and stopping remote work are unavailable or best effort. Stopping the Paperclip work revokes the session's Paperclip access, but the assistant may keep going on its own side.
+
+For setup and pairing, see [External agents](../../experimental/external-agents.md).
+
+## Credential update events
+
+If you build on the Runner protocol (PRP), you can ask to hear when a provider refreshes its stored sign-in during a run. Set `observeCredentials: true` before the session opens. The bundled transport does this for fresh sessions. The Runner then emits `auth.credentials.updated` whenever a supported credential store changes, for native Codex and for Codex and Grok ACP sessions. The event carries only the provider, an opaque binding ID, a revision, and how the change was detected. It never includes tokens, account identity, or file paths, so read the new credential through your own private channel. Pending events survive a Runner restart until the host acknowledges them.
 
 ## Next steps
 

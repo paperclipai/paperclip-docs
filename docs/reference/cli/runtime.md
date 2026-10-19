@@ -1,14 +1,15 @@
 ---
-seo_title: Install the Cursor Runner Runtime
-seo_description: Install and verify Paperclip's pinned Cursor runtime on a supported host, then configure a Runner agent with a model and separate authentication.
+seo_title: Install Paperclip Runner Runtimes
+seo_description: Install and verify Paperclip's pinned Cursor and Pi runtimes on a supported host, import a Linux Pi companion, then configure a Runner agent.
 ---
 
 # Runtime Commands
 
-Prepare a host to run Cursor through the experimental [Paperclip Runner](../adapters/paperclip-runner.md). Runtime setup downloads and verifies the pinned runtime; it makes no model calls.
+Prepare a host to run Cursor or Pi through the experimental [Paperclip Runner](../adapters/paperclip-runner.md). Runtime setup downloads and verifies the pinned runtime; it makes no model calls.
 
 ```sh
 paperclipai runtime setup cursor
+paperclipai runtime setup pi
 ```
 
 ## Set up Cursor
@@ -19,9 +20,30 @@ Run the command as the same OS user that runs Paperclip, on the machine where th
 | --- | --- |
 | `paperclipai runtime setup cursor` | Download, materialize, and verify the pinned Cursor distribution for this host, or verify an existing installation. |
 
-`cursor` is the only supported provider argument. There are no provider-specific flags for this command.
+The supported provider arguments are `cursor` and `pi`. There are no provider-specific flags for this command.
 
 The installation uses the OS account's cache under `~/.paperclip/runtimes/cursor`. Runtime identity includes the platform, architecture, and verified content hash. An existing invalid installation is rejected rather than replaced automatically. A packaged runtime supplied by the execution image remains authoritative.
+
+## Set up Pi
+
+`paperclipai runtime setup pi` downloads, materializes, and verifies the pinned Pi distribution for this host, or verifies an existing one. Run it as the OS user that runs Paperclip, from an installed Paperclip distribution. The supported targets are macOS ARM64, macOS x64, and Linux x64. Any other platform fails with `Pi is not qualified for platform <target>`.
+
+The Pi files are stored inside the installed server package rather than in your home directory. Setup passes your proxy and certificate settings (`HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY`, `SSL_CERT_FILE`, `SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS`) through to the download, but never provider keys, npm configuration, or your `HOME`. If it doesn't finish, review the reported error; an existing invalid installation is never replaced automatically.
+
+### Import a Linux Pi companion
+
+For remote Linux execution, you can import a Pi companion you've already downloaded, with no downloads at all:
+
+```sh
+paperclipai runtime import-remote <directory> --sha256 <digest>
+```
+
+| Argument or flag | Use |
+| --- | --- |
+| `<directory>` | Directory holding the unpacked companion, including its `companion.json`. |
+| `--sha256 <digest>` | Required. The SHA-256 of `companion.json`, taken from the trusted release. |
+
+The command checks every file against the manifest before it imports the companion into the installed server, and prints the result as JSON. Press Ctrl+C to cancel.
 
 ## Configure the agent
 
@@ -43,4 +65,5 @@ Setup does not sign you in to Cursor, change an agent's adapter, or migrate a le
 
 - [Paperclip Runner](../adapters/paperclip-runner.md)
 - [Cursor Local](../adapters/cursor-local.md)
+- [Pi](../adapters/pi.md)
 - [Environments](../../experimental/environments.md)

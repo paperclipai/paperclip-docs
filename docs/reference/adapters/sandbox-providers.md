@@ -73,6 +73,8 @@ Daytona counts a *stopped* sandbox against your org's storage quota — only an 
 
 These defaults only apply when you leave a field unset — an explicit value (including `0` or `-1`) is forwarded to Daytona unchanged. Auto-archive is reversible: resuming an archived reusable sandbox restores it, so warm reuse still works under these defaults. If you genuinely need long-lived warm sandboxes, raise or disable the intervals.
 
+When Paperclip keeps a sandbox for later inspection or repair instead of deleting it, it first turns off Daytona's auto-delete and rereads the sandbox to confirm the change took. A sandbox that's already archived stays archived; it has no running process and keeps its files. If that fresh read shows the sandbox has started again, Paperclip stops it.
+
 ### Resource overrides need an image
 
 Optional `cpu` (cores, default `4`), `memory` (GiB; one of `1`, `2`, `4`, `8`, default `4`), `disk` (GiB, default `10`), and `gpu` (units) let you request a larger sandbox — but Daytona only honours resource overrides on image-backed creation. Snapshot/default creation rejects them. The driver enforces this up front: if you set any of these fields without an `image`, validation and lease acquisition fail with a clear Paperclip error ("Daytona resource settings require image-backed sandbox creation; snapshot/default sandbox creation cannot override CPU, memory, disk, or GPU") instead of letting Daytona return an opaque one. To run a sized sandbox, configure an `image`; otherwise leave the resource fields unset and Daytona uses its defaults. The default image reference is `daytonaio/sandbox:0.8.0`.
@@ -98,6 +100,7 @@ Daytona streams a command's output to Paperclip over a log socket, and occasiona
 
 - **It waits for a real exit.** A command only counts as complete once Daytona records its exit. After a clean close, the driver reconnects the stream once, then checks the command's status and log snapshot at most once a second until the exit shows up.
 - **Quiet sockets switch to polling sooner.** If the socket delivers no output for 15 seconds — even if it never finished connecting — the driver stops waiting on it and moves straight to polling.
+- **Finished commands return right away.** The driver checks the command's status first, allowing up to 500 ms for Daytona to answer. If the command has already exited, it returns the exit code and output without waiting on the log stream.
 - **Nothing runs twice.** The command is never sent again, output you've already seen isn't repeated in the run log, and a final snapshot fills in anything written after the socket closed.
 - **A timeout stays honest.** If reading the logs times out, you keep the partial output, and the log says whether the command's exit is still unconfirmed. It isn't reported as a success.
 

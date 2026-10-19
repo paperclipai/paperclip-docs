@@ -89,15 +89,15 @@ Do not verify with a push, a pull request, or a merge.
 
 ## Set up chat or a PR review bot from GitHub
 
-> **Experimental:** Enable **Chat connectors** in the instance's experimental settings before starting this path.
+> **Experimental:** Enable **GitHub review bots** in the instance's experimental settings before starting this path. It is separate from **Chat connectors**.
 
 The review bot has its own entry on the **Connectors** page, **GitHub Code Review Bot**, separate from the **GitHub** entry for repository tools. Selecting it goes straight to choosing the agent.
 
 Follow [Set up a GitHub review bot](github-review-bot-setup.md) for the complete
-chat setup, including an optional Storybook reviewer. It covers manifest
-registration, separate App installation and repository enablement, effective
-agent tools, personal account linking, and a real PR test. Choose authorized
-mentions only if you want a chat bot without automatic reviews.
+setup, including an optional Storybook reviewer. It covers choosing the agent,
+creating and installing the App from GitHub, repository access, personal account
+linking, and a real PR test. A new bot starts in mentions-only mode; leave
+**Run automatically** off if you want a bot that only answers mentions.
 
 Read [Understanding GitHub PR review bots](understanding-github-review-bots.md)
 first if you are deciding whether reviews should run automatically or block
@@ -111,7 +111,7 @@ merges. Installing the App does neither by itself.
 | A fine-grained token is rejected, or reaches nothing | It targets an organization that has not approved it, or its repository selection is empty | Check for a pending approval under the organization's personal-access-token settings, and confirm the token's selected repositories |
 | A token connection stops working on a particular date | The token expired | Issue a new token with the same scope and reconnect |
 | No webhook URL is shown on the chat setup | The instance has no public base URL configured | Ask an administrator to configure it |
-| **GitHub Code Review Bot** is missing from **Connectors** | **Chat connectors** is off for the instance | Ask an administrator to enable it |
+| **GitHub Code Review Bot** is missing from **Connectors** | **GitHub review bots** is off for the instance | Ask an administrator to enable it |
 | Fewer repositories than expected | The installation does not include them | Fix it on GitHub, then **Refresh access** |
 | *"You don't have permission to reconnect this identity."* | The identity belongs to someone else, or to another agent | Ask its owner, or use your own |
 | Tool calls work but `git push` is rejected | Account permissions or branch protection on GitHub | Check both on GitHub |

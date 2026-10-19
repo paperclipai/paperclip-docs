@@ -38,6 +38,7 @@ seo_description: Run the Pi coding agent CLI on the Paperclip host, with its bui
 | `env` | no | Environment variables. Secret refs supported. |
 | `timeoutSec` | no | Run timeout in seconds. `0` means no timeout. |
 | `graceSec` | no | SIGTERM grace period before a forced stop. |
+| `stdoutLogMode` | no | How Pi's JSON output is stored in the run log. `compact` (the default) or `raw`. See [Run log size](#run-log-size). |
 
 > **Note:** Paperclip requires an explicit `model` value for `pi_local` agents. Use `pi --list-models` to list valid options on your machine.
 
@@ -54,6 +55,13 @@ Pi sessions are stored under `~/.pi/paperclips/` and resumed with `--session` on
 - Agent instructions are appended to Pi's system prompt via `--append-system-prompt`.
 - The user task prompt is sent via `-p`.
 - All tools (`read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`) are enabled by default.
+- If the model you configured isn't available, the error names the model and how many models Pi found, and suggests `pi --list-models`, instead of pasting Pi's whole model list.
+
+### Run log size
+
+Pi repeats the full message so far in every streaming update, so a long run's log can grow very quickly. By default (`stdoutLogMode: "compact"`), Paperclip drops those repeated copies before writing to the run log and turns tool progress updates into small progress events. Streaming text still arrives as it's written, so the live transcript looks the same.
+
+Set `stdoutLogMode` to `"raw"` when you need Pi's untouched output, for example to investigate a problem. In compact mode, if a run stops before a tool finishes, that tool's partial output isn't kept. An unrecognized value falls back to `raw`.
 
 ---
 

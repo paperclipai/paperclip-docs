@@ -165,6 +165,16 @@ Worth being explicit about, because it's the difference between "I'm pausing thi
 
 This matters for plugins that integrate with billed services. Disabling stops the polling and the scheduled work — so you stop paying the API bill — without forcing you to re-enter credentials the next time you turn it back on.
 
+### Plugins your agents depend on
+
+Some plugins are a required part of an agent's setup — they prepare something the agent can't work without (a sandbox, say) and clean it up when the agent is terminated. Paperclip remembers which of these plugins each agent needs from the moment the agent is first set up.
+
+If you disable or uninstall one of those plugins, the agents that rely on it can't finish setting up, pausing, resuming, or being cleaned up. Their page shows a failed step with the message *"A required plugin is unavailable. Check the plugin's status in Settings. Paperclip will retry automatically."* Re-enable the plugin and the step completes on its own (or click **Retry now** on the agent's page). See [Setup checks before a new agent starts work](../guides/org/agents.md#setup-checks-before-a-new-agent-starts-work).
+
+### When the server can't be reached
+
+Plugin items in the sidebar stay quiet if the Paperclip server is briefly unreachable: they keep showing what last loaded instead of an error. Elsewhere in the app, a plugin area that fails to load shows **Plugin extensions unavailable** or **Plugin launchers unavailable** with the reason, so you know why it's empty.
+
 ---
 
 ## Upgrades

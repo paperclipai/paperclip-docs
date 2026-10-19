@@ -53,6 +53,7 @@ paperclipai issue delete <issue-id> --yes
 | `--project-id <id>` | Attach to a project. |
 | `--goal-id <id>` | Attach to a goal. |
 | `--parent-id <id>` | Make this a child of another issue. |
+| `--standalone` | Create a top-level issue. When an agent creates an issue during a run without `--parent-id`, the run's issue normally becomes the parent; `--standalone` stops that. It can't be combined with `--parent-id`. |
 | `--request-depth <n>` | Integer request depth. |
 | `--billing-code <code>` | Billing code. |
 

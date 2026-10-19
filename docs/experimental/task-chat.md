@@ -39,7 +39,9 @@ Everything is still there. It just moved.
 
 ### Bubbles
 
-Your messages sit on the right in a solid accent bubble. Agent replies sit on the left with an author header — the agent's icon, its name, and a small chip naming the mode that request ran in. System notices are centered and quiet. Hover a bubble to reveal its timestamp.
+Your own messages sit on the right in a solid accent bubble. Everyone else sits on the left with an author header. For an agent that's its icon, its name, and a small chip naming the mode the request ran in. For another person it's their name and profile picture, or their initials. So when a teammate comments on the same task, their message looks like theirs, not yours. System notices are centered and quiet. Hover a bubble to reveal its timestamp.
+
+If your company has turned on fast responses, a short acknowledgement can appear from the agent right after you send, while the agent gets started. It carries an info button (**Message details**) that explains *Platform-generated acknowledgement. The agent’s substantive response follows separately.* It doesn't count as the agent's answer. See [Fast responses](../guides/day-to-day/costs.md#fast-responses).
 
 A message you just sent shows as **Sending…** (or **Queued**) until the server confirms it.
 
@@ -110,13 +112,13 @@ The placeholder text follows your choice, so you can tell at a glance what will 
 
 **Attach files** with **Files and images** in the same **Add** menu, by pasting them, or by dropping them onto the composer. Each file becomes a chip that reads *Uploading…* and then *Attached*, with a thumbnail for images, and a link to it is added to your message. When the agent's runner supports it, the menu also offers **Goal** (*"Keep pursuing"*) to give the agent a goal to keep working toward.
 
-**Choose who answers, and how hard they think.** The selection control on the right has separate targets: click the agent name to choose the assignee, or the model label to choose the model and effort. These settings apply when you send this message:
+**Choose who answers, and how hard they think.** The selection control on the right has separate targets: click the agent name to choose the assignee, or the model label to choose the model and effort. These settings apply when you send this message. When an agent has handed the task to you, the assignee starts on the agent that most recently assigned it to you, so your reply goes back to it.
 
 - **The assignee.** Click the name to search your agents by name, role, or harness (Claude Code, Codex, and so on), or choose **No assignee**. Picking someone else hands the task to them along with your message. Sending to an agent on a task that's `done`, `cancelled`, or `blocked` reopens it.
 - **Model.** Choose the exact model for this message from the list, or type in **Search or paste a model ID** to use one that isn't listed. Leave it on the harness default if you don't mind which.
 - **Effort.** A slider sets how much effort the model puts in — from **Off** or **Minimal** up to **Extra High**, **Max**, or **Ultra**, depending on the model. It only offers the levels that model and its engine actually support, so you won't see a control the agent would quietly ignore. Supported Codex configurations also offer a **Fast mode** toggle.
 
-The effort slider includes **Default** as well as the supported levels. **Reset to agent default** puts the model, effort, and Fast mode back to how the agent is configured. Agents that don't let Paperclip pick a model — ones that run a command, call an HTTP endpoint, or route through a gateway — say so in the picker instead of showing a model list. On a phone, the picker opens full-screen.
+While the picker is open, its button reads **Select model** so it doesn't jump around as you drag the slider. It shows your choice again once you close it. The effort slider includes **Default** as well as the supported levels. **Reset to agent default** puts the model, effort, and Fast mode back to how the agent is configured. Agents that don't let Paperclip pick a model — ones that run a command, call an HTTP endpoint, or route through a gateway — say so in the picker instead of showing a model list. On a phone, the picker opens full-screen.
 
 **Questions wait above the composer.** When an agent asks a question, wants a confirmation, or has something for you to review, its card appears above the text box. If several need a response, the **pending** control lets you move between them. The composer stays usable underneath.
 
@@ -127,7 +129,7 @@ Questions and other cards behave a little differently when you'd rather not deal
 
 Moving on from a question also tells the agent you've moved on. Once you've sent a newer message, the old question counts as history: the agent won't keep reminding you to answer it, and it can finish the work you asked for without waiting on that answer. You can still answer the old question afterwards — it won't reopen the task or wake the agent. Approvals, permission and credential requests, review stages, and newer questions still hold the task until you deal with them.
 
-**Queued messages.** A message you send while the agent is mid-run waits in the queue above the composer. **Steer** pushes it into the run that's going now, and **Interrupt** stops that run and starts a fresh one with your message. Either way your message shows up in the conversation straight away. If it can't be delivered, it goes back into the queue with an error explaining why, so nothing you typed is lost. And if a run was stopped before it really got going, the conversation offers **Retry**, or you can just send a new message to start a fresh turn.
+**Queued messages.** A message you send while the agent is mid-run waits in the queue above the composer. **Steer** pushes it into the run that's going now, and **Interrupt** stops that run and starts a fresh one with your message. Either way your message shows up in the conversation straight away. If it can't be delivered, it goes back into the queue with an error explaining why, so nothing you typed is lost. And if a run was stopped before it really got going, the conversation offers **Retry**, or you can just send a new message to start a fresh turn. If the agent you're messaging is paused, your message is kept and delivered once you resume the agent. It isn't dropped.
 
 **Choose a project when you create the task.** **New Task** uses the same composer, with a **Project** picker above the text box. Search by project name, choose a recent project, or select **No project**. Model and effort are part of the task's initial run settings; the project is a property of the task, not a per-message override.
 
@@ -149,6 +151,8 @@ Resume releases the hold. You can optionally wake eligible agents, but a task wi
 
 **Model at capacity** is different: the model exists and you can use it, it's just too busy right now. When a native Codex turn fails because the selected model is at capacity, the task doesn't drop into recovery. Instead a **Retry scheduled** card shows the reason **Model at capacity** and *"Last attempt failed: Selected model is at capacity. Please try a different model. Paperclip will retry automatically."* Paperclip retries after one minute, and if that fails too, after two more minutes, keeping the same model and the task's history. Click **Retry now** if you don't want to wait. If both automatic retries hit the same wall, the task is blocked with *"Automatic retries exhausted; retry later or choose a different model."* — retry later, or pick another model.
 
+**No access to the agent's AI connection.** A run fails when the agent uses an AI connection that the person it's working for hasn't been given. The thread then shows an error that stays open instead of folding away, for example *Codie is configured to use Dotta’s API Key, but you don’t have access to that credential.* It asks you to choose a connection you can use, or to ask an administrator to update the agent's connection. **Change AI connection** opens the agent's AI settings and **View run** opens the failed run. Other people reading the task see a generic credential name instead of the connection's name. The error goes away once a later attempt succeeds.
+
 If the run needs provider sign-in, complete the connection or authentication request shown in the thread before retrying. A missing secret or configuration binding is a setup problem to fix, not a reason to keep sending the same request. See [Recovery actions](../guides/day-to-day/issues.md#recovery-actions) for the wider task recovery flow.
 
 Implementation reference: [composer](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/task-chat/TaskChatComposer.tsx), [new-task project picker](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/NewIssueDialog.tsx), [model and effort picker](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/task-chat/ComposerRunSettingsPicker.tsx), [pause release](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/routes/issue-tree-control.ts), [recovery notice](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/ExecutionBlockerNotice.tsx), and [authentication repair classification](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/ai-auth-failure.ts).
@@ -163,7 +167,7 @@ The panel has a **+** menu for opening task surfaces and documents in tabs. The 
 
 - **Properties** — the same task properties as always: assignee, project, blockers, and the rest.
 - **Plan** — appears once the task has a plan document. It shows the revision number and last-updated time above the accepted-plan history.
-- **Artifacts** — a read-only view of the task's work products, documents, and attachments, grouped by run. Each one gets a card shaped to what it is — pull request, commit, document, image, video, link preview, CSV data, or file — with the right action to open it. Markdown and text files open in a tab of their own in this pane. Empty, it reads *"No artifacts yet. Work products, documents, and agent-produced files will appear here."* See [Artifacts](../guides/day-to-day/artifacts.md#reaching-artifacts-from-a-task).
+- **Artifacts** — the task's work products, documents, and attachments, grouped by run. Use the upload icon or drop files on the panel to add your own. Each one gets a card shaped to what it is — pull request, commit, document, image, video, link preview, CSV data, or file — with the right action to open it. Markdown and text files open in a tab of their own in this pane. Empty, it reads *"No artifacts yet. Work products, documents, and agent-produced files will appear here."* See [Artifacts](../guides/day-to-day/artifacts.md#reaching-artifacts-from-a-task).
 
 You can also open **Tasks** to follow the ancestors, subtasks, and tasks created from this work, and a skill card can open its own named tab. Panels remember the tabs you opened. [Agent Chat](agent-chat.md) uses the same panel with agent-wide Tasks and Artifacts instead.
 
@@ -177,7 +181,7 @@ Purely presentational. Turning on **Classic Task Interface** restores the old ta
 
 - This is a redesign of a page you probably use all day, and it's under active iteration. Expect details — labels, spacing, which things fold — to move between releases.
 - **Classic Task Interface** is instance-wide, so switching back changes the task page for every person on the instance. There's no per-user opt-out.
-- The Artifacts tab is read-only for now. Uploading and deleting attachments still happen on the existing attachment surfaces.
+- You can upload files from the Artifacts tab, but not delete them there. Deleting attachments still happens on the existing attachment surfaces.
 - Live structured plan checklists (an agent ticking off plan steps as it goes) depend on adapter support and aren't wired into the live thread yet — the Plan tab shows the plan document and accepted-plan history.
 
 ## Where to go next

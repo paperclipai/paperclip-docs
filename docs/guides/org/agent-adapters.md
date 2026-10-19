@@ -38,9 +38,11 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 ### Choose Paperclip Runner explicitly
 
-For the native lifecycle, choose **Paperclip Runner** and then select the provider. Codex and OpenCode have native routes; **ACP agents** offers Claude, Grok Build, and Cursor. Existing direct-adapter agents keep their current runtime until you change the adapter.
+For the native lifecycle, choose **Paperclip Runner** and then select the provider. Codex and OpenCode have native routes; **ACP agents** offers Claude, Grok Build, Cursor, and Pi. Existing direct-adapter agents keep their current runtime until you change the adapter.
 
-This feature is experimental: `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. Cursor needs a prepared pinned runtime (`paperclipai runtime setup cursor`), an explicit model, and an Agent, Plan, or Ask session mode. Its token totals and per-run dollar cost are unavailable. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md) and [native Cursor setup](../../reference/adapters/cursor-local.md#cursor-on-paperclip-runner).
+You don't have to do anything for Codex: a new Codex agent runs on Paperclip Runner automatically when it runs on macOS or on Linux x64/ARM64 with GNU libc `2.39` or newer. To keep the classic `codex_local` adapter, open **Advanced** and set **Runner** to **Legacy runner**. See [New Codex agents use the Runner](../../reference/adapters/paperclip-runner.md#new-codex-agents-use-the-runner).
+
+The Runner is experimental: for providers other than Codex, `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. Cursor needs a prepared pinned runtime (`paperclipai runtime setup cursor`), an explicit model, and an Agent, Plan, or Ask session mode. Its token totals and per-run dollar cost are unavailable. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md) and [native Cursor setup](../../reference/adapters/cursor-local.md#cursor-on-paperclip-runner).
 
 ### Agents run in full auto by default
 
@@ -100,6 +102,8 @@ How long a single heartbeat run is allowed to take before Paperclip cuts it off.
 ## Codex (`codex_local`)
 
 The `codex_local` adapter runs your agent using OpenAI's Codex CLI on your Mac. It works the same way as `claude_local` but uses OpenAI models instead of Anthropic.
+
+> **Note:** On macOS and supported Linux machines, new Codex agents run on [Paperclip Runner](../../reference/adapters/paperclip-runner.md#new-codex-agents-use-the-runner) by default. Pick **Legacy runner** under **Advanced → Runner** to use `codex_local` instead.
 
 ### Prerequisites
 

@@ -208,6 +208,7 @@ Response fields:
 - `estimatedEventCount` — how many of those were priced from a rate card rather than reported by the provider
 - `unpricedEventCount` — usage with no reliable price (subscription-included usage isn't counted here)
 - `pendingRunCount` — finished runs whose cost hasn't been recorded yet
+- `unknownBillingEventCount` — usage whose API-or-subscription billing category wasn't established. These charges are still counted in `spendCents`.
 - `pricingComplete` — `true` only when there's no unpriced usage and no pending run, so `spendCents` is the whole story
 
 <!-- tabs: cURL, JavaScript, Python -->
@@ -259,6 +260,8 @@ What each one is for:
 - `by-biller` helps when the provider name and the billable entity are not the same.
 - `by-project` helps you connect cost back to project work rather than just an agent.
 
+In `by-agent`, charges that don't belong to an agent — such as background [decision model](./decision-models.md) requests — come back as a row with `agentId: null`. The UI labels it **Paperclip services**.
+
 Rows from `by-agent` and `by-agent-model` include `eventCount` (ledger events in the group, not distinct runs) and `estimatedEventCount`, so you can tell when a total is partly or fully an estimate.
 
 ### Spend by user
@@ -279,6 +282,83 @@ Each row carries:
 - `inputTokens` (excluding cached input), `cachedInputTokens`, `outputTokens`
 
 Because unattributed spend has its own row, the rows always add up to the company total.
+
+### Cost gaps
+
+`GET /api/companies/{companyId}/costs/data-quality`
+
+When the summary shows unpriced, pending, or unknown-billing usage, this endpoint tells you which runs and events are behind it. It powers the expandable cost-gap line on the Costs page. It takes the same date filters as the summary.
+
+The response has:
+
+- `events` and `runs` — up to 25 of the most recent entries each. Every entry has `id`, `runId`, `agentId`, `agentName`, `occurredAt`, `provider`, `model`, and a `reason`.
+- `hasMoreEvents` and `hasMoreRuns` — `true` when a list was cut off; narrow the date range to see the rest.
+- `canRetry` — whether you're allowed to call the retry endpoint below.
+
+`reason` is one of:
+
+- `missing_price` — no reliable price for this usage
+- `missing_model` — tokens were recorded without a model
+- `unknown_billing` — the run didn't establish API or subscription billing
+- `waiting_for_receipt` — the run stopped and its final usage hasn't arrived yet
+- `receipt_unavailable` — the run stopped a while ago without final usage data; a late receipt is still accepted
+- `retryable` — saved usage is ready to be recorded
+
+The details contain no provider errors or credentials.
+
+`POST /api/companies/{companyId}/costs/retry-accounting`
+
+```json
+{ "runId": "<run uuid>" }
+```
+
+Records a run's saved usage now instead of waiting for the automatic retry. It never reruns the agent, and recording the same run twice is safe. The response is `{ "accounted": … }`. Board members with view-only access get `403` with `Viewers cannot retry cost recording`.
+
+### Subscriptions
+
+`GET /api/companies/{companyId}/costs/subscriptions`
+
+Reports monthly subscription fees beside API spend. It takes the same date filters as the summary, but only the token totals follow them — the fees are the **current** monthly commitment (`asOf`).
+
+Top-level fields:
+
+- `accounts` — one entry per subscription account you're allowed to see (your own personal accounts, shared accounts you manage, and shared accounts you're in the audience for)
+- `monthlyTotals` — one entry per currency, each with `currency`, `amountCents`, and `estimatedCount`. Currencies are never combined.
+- `activeCount`, `unknownPriceCount`, `unidentifiedAccountCount`
+- `api`, `subscription`, `unknown`, `unattributedSubscription` — company-wide usage for the range, split by billing type. Each has `inputTokens`, `cachedInputTokens`, `outputTokens`, `costCents`, `eventCount`, `estimatedEventCount`, and `unpricedEventCount`. `unknown` covers credits, fixed-price, and unidentified billing.
+- `canRefresh` — whether you can trigger account discovery
+
+Each account carries `id`, `provider`, `name`, `ownerUserId`, `ownerName`, `shared`, `identityVerified`, `detectedPlan`, `observedAt`, `lastCheckedAt`, `refreshStatus` (`ok` or `unavailable`), `canEdit`, its `usage` for the range, the `agents` that used it, and a `price`:
+
+- `revision`, `plan`, `amountCents`, `monthlyCents`, `currency`, `effectiveAt`
+- `cadence` — `month` or `year` (annual amounts are divided by 12 for `monthlyCents`)
+- `status` — `active`, `ended`, or `excluded`
+- `source` — `catalog` (a published list price, so an estimate), `user`, or `unknown`
+
+`POST /api/companies/{companyId}/costs/subscriptions/refresh`
+
+Starts a background check of the connected subscription accounts visible to you, to pick up account identity and plan. It answers `202` with `{ "status": "accepted" }` right away. It only uses credentials you're already allowed to use. When too many checks are running it answers `429` with `Subscription account checks are busy. Try again shortly.` Viewers get `403`.
+
+`PATCH /api/companies/{companyId}/costs/subscriptions/{subscriptionId}`
+
+Records the price you actually pay. Body:
+
+- `expectedRevision` — the `price.revision` you read. If someone changed it since, you get `409` with `This subscription changed. Reload it before saving.`
+- `plan` — 1–100 characters
+- `amountCents` — a number or decimal string, or `null` for unknown
+- `currency` — `USD`, `EUR`, `GBP`, `CAD`, `AUD`, or `CHF`
+- `cadence` — `month` or `year`
+- `status` — `active`, `ended`, or `excluded`
+
+The response is `{ "id": …, "revision": … }`. Each update adds a new price revision from now on; earlier revisions are kept. Owners can edit their personal accounts; shared accounts need permission to manage AI connections. Anyone else gets `403` with `Only subscription owners or managers of shared accounts can edit prices`. Setting `status` here doesn't cancel anything with the provider.
+
+`POST /api/companies/{companyId}/costs/subscriptions/{subscriptionId}/link`
+
+```json
+{ "targetId": "<subscription uuid>", "expectedRevision": 3, "targetRevision": 1 }
+```
+
+Marks two accounts from the same provider as the same subscription or seat, so the fee counts once and usage is combined. The account in the path keeps its price. You must be able to edit both. Linking two accounts with different saved prices fails with `409`; pick the price to keep first.
 
 ### Fast moving spend
 
@@ -402,6 +482,8 @@ Allowed actions:
 - `keep_paused`
 - `raise_budget_and_resume`
 
+For a soft (warning) incident, `keep_paused` dismisses the warning; the scope was never paused. `raise_budget_and_resume` raises the cap either way.
+
 If you raise the budget, you must supply a new `amount` that exceeds the current observed spend. Raising the budget is also refused, with `422`, while:
 
 - finished runs in the scope are still waiting for their cost to be recorded (`Completed runs must finish accounting before resuming`), or
@@ -411,7 +493,7 @@ If you raise the budget, you must supply a new `amount` that exceeds the current
 
 ### What happens at the thresholds
 
-- At the warn threshold, the service creates a soft incident when notifications are enabled.
+- At the warn threshold, the service creates a soft incident when notifications are enabled. A soft incident is a warning only — it doesn't pause anything.
 - At 100 percent, the service creates a hard incident when hard-stop is enabled.
 - A hard-stop policy also blocks new work before 100 percent when its spend figure can't be trusted yet: when a finished run in its window is still waiting for its cost to be recorded, or when its window has unpriced usage and `unpricedUsagePolicy` is `block`. Set the policy to `allow` if you'd rather keep working and treat unpriced usage as unknown.
 - Hard-stop policies pause the affected company, agent, or project and cancel work for that scope.
@@ -593,9 +675,10 @@ It returns one entry for each Anthropic or OpenAI subscription account connected
 If you are trying to understand a company’s spending, start here:
 
 1. `GET /costs/summary`
-2. `GET /costs/by-agent`
-3. `GET /costs/by-project`
-4. `GET /budgets/overview`
-5. `GET /costs/window-spend`
+2. `GET /costs/subscriptions` if any agents run on subscriptions
+3. `GET /costs/by-agent`
+4. `GET /costs/by-project`
+5. `GET /budgets/overview`
+6. `GET /costs/window-spend`
 
-That sequence usually tells you whether the problem is a single agent, a single project, a provider mix issue, or a real budget policy problem. If the summary says `pricingComplete: false`, or a scope is blocked while under its cap, follow up with `GET /accounting/health`.
+That sequence usually tells you whether the problem is a single agent, a single project, a provider mix issue, or a real budget policy problem. If the summary says `pricingComplete: false`, start with `GET /costs/data-quality` to see which runs are affected. If a scope is blocked while under its cap, follow up with `GET /accounting/health`.

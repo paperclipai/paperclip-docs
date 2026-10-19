@@ -1,7 +1,7 @@
 ---
 paperclip_version: v2026.1005.0
 seo_title: Gmail Connector
-seo_description: Let agents search and read Gmail, and optionally draft replies. Sending is not reachable. Setup choices, access scope, a read test, and fixes.
+seo_description: Let agents search and read Gmail, and optionally draft replies or archive threads. Sending is not reachable. Setup choices, scope, a test, and fixes.
 ---
 
 # Gmail
@@ -10,7 +10,7 @@ seo_description: Let agents search and read Gmail, and optionally draft replies.
 
 > **Note:** While verification is pending, the Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. This hides them from the list only. Existing Google connections keep running with their access and permissions unchanged, and an agent that needs a Google service can still ask you for it with a connection card on its task.
 
-Agents can search and read your Gmail, and on a draft connection leave drafts in your drafts folder for you to review. Sending is not reachable through this connector.
+Agents can search and read your Gmail. On a draft connection they leave drafts in your drafts folder for you to review, and on an archive connection they can archive threads you are done with. Sending is not reachable through this connector.
 
 > **Warning:** Gmail needs Google Workspace Developer Preview registration before it will authorize. Google must register the Workspace email that signs in, and — if you bring your own OAuth client — the Cloud project that owns it. Apply first: [Google Workspace Developer Preview](https://developers.google.com/workspace/preview).
 
@@ -24,16 +24,26 @@ One decision matters more than the rest, and it is fixed for the life of the con
 | --- | --- | --- |
 | **Read only** | Search and read messages, threads, drafts, and labels | `gmail.readonly` |
 | **Read & create drafts** | The above, plus create a draft for a person to review and send | `gmail.readonly`, `gmail.compose` |
+| **Read & archive** | Read as above, plus archive a thread by removing only its Inbox label | `gmail.readonly`, `gmail.modify` |
 
-Setup starts on **Read & create drafts**; switch to **Read only** under **Change** when you connect unless you have a concrete reason for drafts. To change groups later, create a second connection with the group you want and remove the first; the group is not a switch on an existing connection.
+Setup starts on **Read & create drafts**; switch to **Read only** under **Change** when you connect unless you have a concrete reason for drafts. **Read & archive** is opt-in: you only get it by choosing it under **Change**, and both **Connect with Paperclip** and **Use your own Google OAuth app** offer it. To change groups later, create a second connection with the group you want and remove the first; the group is not a switch on an existing connection.
 
 ## Why sending is not reachable
 
 This is worth stating precisely, because the credential and the enforcement are different things.
 
-Google's `gmail.compose` scope, which the draft group requests, does permit sending at Google's end. Paperclip does not rely on the scope to prevent it. A Google Workspace connection is limited to a reviewed list of operations, and anything outside that list is switched off rather than merely unpermitted. For Gmail the reviewed write list is exactly one operation, `create-draft`.
+Google's `gmail.compose` scope, which the draft group requests, does permit sending at Google's end. Paperclip does not rely on the scope to prevent it. A Google Workspace connection is limited to a reviewed list of operations, and anything outside that list is switched off rather than merely unpermitted. For Gmail the reviewed write list is one operation per group: `create-draft` on a draft connection, and `unlabel-thread` on an archive connection.
 
 The practical effect: no action setting, capability group, or approved review request produces a sent message, and a send-like operation that Google adds to the server later is off by default rather than newly available. If mail must go out, a person sends the draft from Gmail.
+
+### How archiving stays narrow
+
+Google's `gmail.modify` scope, which the archive group requests, allows far more than archiving — relabelling, trashing, and marking spam among them. Paperclip narrows it in two places:
+
+- **The action itself.** On an archive connection, `unlabel-thread` accepts exactly two things: a `threadId` and `labelIds: ["INBOX"]`. Any other label, or any extra argument, is refused with *"Gmail archive accepts only threadId and labelIds: ["INBOX"]."* Paperclip checks this again just before the call goes to Google, so an approved or retried call cannot slip in a different label.
+- **The connection type.** On a read or draft connection, `unlabel-thread` is refused outright with *"Gmail archiving requires an explicit Read & archive connection."*
+
+Archiving does not delete anything. The thread stays in **All Mail** and you can move it back to the inbox in Gmail at any time.
 
 ## What agents can actually do
 
@@ -43,6 +53,7 @@ The practical effect: no action setting, capability group, or approved review re
 | `search-messages`, `get-message` | Both |
 | `list-drafts`, `get-draft`, `list-labels` | Both |
 | `create-draft` | **Read & create drafts** only |
+| `unlabel-thread` (Inbox label only) | **Read & archive** only |
 
 Operation names are normalized before matching, so a provider variant such as `google.gmail/get_message` resolves to the same entry. The live list for your connection is on its **Permissions** tab, and **Refresh actions** re-reads it. Anything Google adds that is not on the reviewed list comes back **disabled** — that block is what the reviewed list enforces, and it holds however the connection was created.
 
@@ -57,7 +68,7 @@ Gmail is a mailbox, so the identity question is unusually consequential.
 
 Under **Which agents can use this connection**, prefer **Just agents I pick**. A mailbox is not a good default for every agent in the company.
 
-On the **Permissions** tab, leave the reads **Allowed**. On a draft connection, set `create-draft` to **Ask first** — a draft lands in a real mailbox, and the connector's own guidance is that draft creation should be approved. [How connector access works](access-model.md) covers the model; [Set action permissions](action-permissions.md) is the how-to.
+On the **Permissions** tab, leave the reads **Allowed**. On an archive connection, `unlabel-thread` already starts on **Ask first**, so a person approves each archive; keep it that way until you trust the agent's judgement about what is finished. On a draft connection, set `create-draft` to **Ask first** — a draft lands in a real mailbox, and the connector's own guidance is that draft creation should be approved. [How connector access works](access-model.md) covers the model; [Set action permissions](action-permissions.md) is the how-to.
 
 Google-side controls still apply on top: a Workspace administrator can restrict which third-party apps may hold Gmail scopes, and revoking the grant in your Google account stops the connection regardless of Paperclip's settings.
 
@@ -83,12 +94,14 @@ Do not verify with a draft. A draft is a write and it puts something in a real m
 | --- | --- | --- |
 | Google refuses before the consent screen | The signing-in Workspace account, or the Cloud project on a self-managed client, is not registered for Developer Preview | Complete registration, including every additional tester email, then retry |
 | **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Gmail profile | Use **Use your own Google OAuth app**, or ask an administrator about enrollment |
-| `create-draft` is absent | The connection was made with **Read only** | Create a connection with the draft group |
+| `create-draft` is absent | The connection was made with **Read only** or **Read & archive** | Create a connection with the draft group |
+| Archiving is refused with *"requires an explicit Read & archive connection"* | The connection is a read or draft connection | Create a separate **Read & archive** connection |
+| Archiving is refused with *"accepts only threadId and labelIds"* | The agent tried to remove a label other than Inbox, or passed extra arguments | Expected — only Inbox removal is allowed. Other label changes are not available |
 | A send or trash operation is absent | Expected — it is outside the reviewed list | Nothing to fix. There is no supported send path |
 | Consent succeeds but the connection shows **Setup incomplete** | The last step was not finished | Select **Finish setup** |
 | **Needs attention** with a reconnect prompt | The Google token expired or the grant was revoked | Select **Reconnect** |
 
-Limitations: one connection reaches one mailbox. Deleting, trashing, marking spam, and changing labels are not available in either group. Google's Workspace MCP servers remain in Developer Preview, so treat the surface as subject to change.
+Limitations: one connection reaches one mailbox. Deleting, trashing, and marking spam are not available in any group, and the only label change is removing Inbox on a **Read & archive** connection. Google's Workspace MCP servers remain in Developer Preview, so treat the surface as subject to change.
 
 ## Related guides
 

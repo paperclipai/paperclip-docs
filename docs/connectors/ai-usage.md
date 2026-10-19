@@ -41,6 +41,10 @@ The **Providers** tab on the [Costs page](../guides/day-to-day/costs.md#quota-wi
 
 If a refresh fails briefly, the last good reading stays on screen. If the account needs to be connected or reconnected, the reading is cleared and the section asks you to reconnect it here in AI connections.
 
+## See what a subscription costs per month
+
+Usage checks tell you how much allowance is left; they don't tell you what the plan costs. For that, use the **Subscriptions** tile at the top of the [Costs page](../guides/day-to-day/costs.md#subscriptions). It lists the monthly fee for each subscription account your agents use, counts a shared seat once, and lets you enter the real price when Paperclip can only estimate it — or can't tell at all.
+
 ## Repair sign-in from a task
 
 When a task cannot start because its AI credential is missing or expired, it shows an authentication connection card. Open that card and connect your account or reconnect the existing one. After the card finishes successfully, the task resumes automatically through normal admission.

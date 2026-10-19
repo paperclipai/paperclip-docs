@@ -5,7 +5,7 @@ seo_description: Learn why installing a review bot, choosing when it runs, and r
 
 # Understanding GitHub PR review bots
 
-> **Experimental chat feature:** GitHub review bots are part of Paperclip's experimental **Chat connectors** feature. An instance administrator must enable it under experimental settings. The setup and behavior may change. Existing GitHub tool connections do not enable it automatically.
+> **Experimental feature:** GitHub review bots have their own experimental setting, **GitHub review bots**, which an instance administrator must turn on. It is off by default and independent of **Chat connectors**. Turning it off hides setup and management; existing bots keep running. The setup and behavior may change. Existing GitHub tool connections do not enable it automatically.
 
 A bot can review your PR, leave comments, and give it a 3/5 without preventing
 anyone from merging it. That can feel surprising: if the review failed, why
@@ -53,8 +53,13 @@ Here are the notifications involved:
 | --- | --- |
 | Someone comments on an issue or in a PR's main conversation | `issue_comment` |
 | Someone comments in an inline PR review thread | `pull_request_review_comment` |
+| Someone writes or edits an issue description | `issues` |
+| Someone writes or edits a PR description | `pull_request` |
+| Someone submits a PR review with a summary | `pull_request_review` |
 | Someone opens a PR | `pull_request`, with action `opened` |
 | Someone pushes new commits to an existing PR | `pull_request`, with action `synchronize` |
+
+Paperclip's setup subscribes the App to all five event types, so a mention works in a comment, an inline review comment, an issue or PR description, or a review summary.
 
 For example, you write `@your-bot please review this PR`. GitHub sends the comment
 to the App's webhook, and Paperclip recognizes an authorized request in its
@@ -142,6 +147,13 @@ check on the PR. The comment explains the result to a person. The check gives
 GitHub a result its rules can use. The check is attached to the exact commit
 the agent reviewed.
 
+The summary comment is headed with the bot's own name — for example
+*Storybook Bot — 3/5*, or *Storybook Bot — Incomplete*. If the App has no display
+name, Paperclip uses its login, then the assigned agent's name. The check keeps
+the name **Paperclip Review** so existing branch rules continue to match. When
+several bots review the same PR, each App publishes and updates only its own
+check, so the headings tell you which bot said what.
+
 | Review situation | What the check reports |
 | --- | --- |
 | Waiting for the agent | Queued |
@@ -150,6 +162,7 @@ the agent reviewed.
 | Complete assessment falls below the threshold | Failure |
 | Incomplete assessment or execution that cannot finish | A non-passing result requiring attention |
 | Complete assessment in report-only mode | Neutral; a low score does not fail the check |
+| Incomplete or failed run in report-only mode | Neutral, with text explaining what could not be completed |
 
 The threshold defaults to 5/5 and can be set from 1–5. An incomplete assessment
 cannot pass. Report-only mode is useful for feedback without enforcing a score;
@@ -255,6 +268,13 @@ A repeat review mention can also request a fresh assessment of the same commit.
 The conversation continues in the same Paperclip task, with review history
 retained and one current summary updated. Old executions cannot overwrite the
 latest head's assessment.
+
+On GitHub, each accepted request gets one comment owned by the bot's App, which
+it edits from a working note to the final result. That stays true if you
+reconnect the same App while a review is running. If GitHub is slow or briefly
+unavailable while the result is being published, Paperclip retries it from the
+saved assessment instead of asking the agent to review again, and it does not
+post a duplicate comment or check.
 
 See [GitHub status checks](https://docs.github.com/en/pull-requests/reference/status-checks).
 
