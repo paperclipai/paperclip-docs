@@ -183,7 +183,8 @@ function pickMedianSha(repo, a, b, compareResp) {
 
   // Prefer the SHAs already embedded in the compare response (up to 250).
   if (total <= commits.length && commits.length >= 2) {
-    const median = commits[Math.floor(commits.length / 2)];
+    // Oldest-first list ending at b; clamp so a 2-commit window never picks b.
+    const median = commits[Math.min(Math.floor(commits.length / 2), commits.length - 2)];
     return median.sha;
   }
   if (commits.length >= 250) {
@@ -218,6 +219,35 @@ function pickMedianSha(repo, a, b, compareResp) {
   return window[Math.floor(window.length / 2)];
 }
 
+// --- single-commit fallback -------------------------------------------------
+
+function fetchSingleCommitFiles(repo, sha) {
+  const cp = join(CACHE_DIR, `commit-${shortSha(sha)}-files.json`);
+  if (existsSync(cp)) {
+    try {
+      return JSON.parse(readFileSync(cp, "utf8"));
+    } catch {
+      // fall through and refetch
+    }
+  }
+  const files = [];
+  for (let page = 1; page <= 30; page++) {
+    const r = ghJson(`repos/${repo}/commits/${sha}?per_page=100&page=${page}`);
+    const batch = r.files || [];
+    files.push(...batch);
+    if (batch.length < 100) break;
+  }
+  // The commit endpoint stops at 3000 files; past that we'd still be lossy.
+  if (files.length >= 3000) return null;
+  try {
+    mkdirSync(CACHE_DIR, { recursive: true });
+    writeFileSync(cp, JSON.stringify(files));
+  } catch {
+    // non-fatal
+  }
+  return files;
+}
+
 // --- recursion --------------------------------------------------------------
 
 function bisect(repo, a, b, leaves, stats) {
@@ -226,17 +256,28 @@ function bisect(repo, a, b, leaves, stats) {
     leaves.push({ a, b, resp });
     return;
   }
+  // A single commit touching >=300 files can't be bisected. The commit
+  // endpoint paginates its file list (up to 3000), so read it from there.
+  if (!FIXTURE_DIR && resp.total_commits === 1) {
+    const full = fetchSingleCommitFiles(repo, b);
+    if (full) {
+      leaves.push({ a, b, resp: { ...resp, files: full } });
+      return;
+    }
+  }
   let median;
   try {
     median = pickMedianSha(repo, a, b, resp);
   } catch (e) {
     // Can't bisect further — record as a truncated leaf so caller knows.
     stats.truncated_leaves = (stats.truncated_leaves || 0) + 1;
+    process.stderr.write(`truncated leaf ${shortSha(a)}..${shortSha(b)} total=${resp.total_commits} files=${(resp.files||[]).length}: ${e.message}\n`);
     leaves.push({ a, b, resp, truncated: true, bisect_error: e.message });
     return;
   }
   if (median === a || median === b) {
     stats.truncated_leaves = (stats.truncated_leaves || 0) + 1;
+    process.stderr.write(`truncated leaf ${shortSha(a)}..${shortSha(b)} total=${resp.total_commits}: median == endpoint\n`);
     leaves.push({ a, b, resp, truncated: true, bisect_error: "median == endpoint" });
     return;
   }
