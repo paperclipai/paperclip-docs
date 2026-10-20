@@ -2,13 +2,20 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1012.0` (`bba6a45f`). The tag sits off master (2 commits behind), so the diff runs from the merge-base `22a3ea34` → parent master `8de28c12` (@ 2026-10-18T08:00Z). 539 commits, 24h quarantine applied (cutoff 2026-10-18T10:02Z). 4,226 files in window, 2,023 after dropping tests, stories, plans and CI.
-- **Compare truncation:** 0 truncated leaves. `compare-window.mjs` now pages a single 300+-file commit from the commit endpoint, and no longer gives up on 2-commit windows.
-- **Merge main → nightly:** absorbed the v2026.1012.0 screenshot recapture (#150). `costs.md` and `issues.md` conflicted. The fix kept main's release-UI structure (Costs and Budgets as tabs under **Audit**) and re-applied nightly's master drafts on top, after checking them against master's `BudgetPolicyCard.tsx` and `Costs.tsx`.
-- **Already on nightly:** drafts for `22a3ea34..abbd8800` (39 commits) from the previous run. This run covers the 500 newer commits, `abbd8800..8de28c12`.
-- **Verification:** every changed page was checked against `8de28c12`. Partway through, GitHub's 5000/h API limit ran out, so `verify-edit` gained a local-checkout mode (`PAPERCLIP_SYNC_LOCAL_SRC`) and every page was re-verified that way. All 13 unverified claims on added lines were confirmed present at the ref (see *Verification notes*).
+- **Window (cumulative):** base release tag `v2026.1012.0` (`bba6a45f`). The tag sits off master, so the diff runs from the merge-base `22a3ea34` → parent master `2f6ad222` (@ 2026-10-19T05:20Z). 551 commits, 24h quarantine applied (cutoff 2026-10-19T10:00Z). 4,235 files in window.
+- **Compare truncation:** 0 truncated leaves.
+- **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
+- **Already on nightly:** drafts for `22a3ea34..8de28c12` (539 commits) from earlier runs. This run covers the 12 newer commits, `8de28c12..2f6ad222`.
+- **Verification:** the one page changed this run was checked against `2f6ad222` with `verify-edit`: 0 unverified, 0 suspicious.
 
-## Applied this run (PR-tier drafts, `nightly-draft/8de28c1-oct-catchup`)
+## Applied this run (`8de28c12..2f6ad222`)
+
+- **Task recovery notice** (#16686)
+  - `experimental/task-chat.md`: the stopped-run banner now reads **Work paused.** (was **Recovery needed.**). It stays hidden while automatic recovery is still in progress. The run error and operator steps moved under **Recovery details**. A lost workspace shows *The workspace needs operator attention before work can continue.*, and a queued continuation reads **Continuation queued.** (was **Reconstruction queued.**). The inline "record workspace repair" form (`WorkspaceFileRecovery`) is gone.
+  - The recovery-notice implementation link is re-pinned to `2f6ad222`.
+- **No doc impact in the other 11 commits:** runtime and recovery fixes (#16791, #16802, #16687, #16760, #16764, #16769), perf (#16761, #16765), tests (#16800), and parent-internal docs (#16722 Grok production notes, #16798 Honeycomb trace-design skill). No new env vars, CLI commands, routes, or adapter config fields.
+
+## Applied in the previous run (PR-tier drafts, `nightly-draft/8de28c1-oct-catchup`, merged as #151)
 
 - **Costs, budgets, decisions** (#15634, #15459, #15948, #16201, #15473, #15748, #10633)
   - The Costs tab now has five tiles (**API spend**, **Subscriptions**) and six views, adding **Decisions** and **Fast responses**.
@@ -87,11 +94,15 @@ They're post-tag (master only), so release review must keep them off `main` unti
 
 ## ↻ Reconcile
 
-None. There are no reverts in `abbd8800..8de28c12`, and no earlier entry left the cumulative window.
+None. There are no reverts in `8de28c12..2f6ad222`, and no earlier entry left the cumulative window.
 
-## ⚠ Drift (re-checked against `8de28c12`)
+## ⚠ Drift (checked against master HEAD `cde944e4`)
 
-All 33 candidates are **false positives**; no rows or sections should be removed. Each was confirmed present at `8de28c12`. Since the master check, the pinned run also flags `PAPERCLIP_RUNNER_API_TOOLS_*`, `PAPERCLIP_NATIVE_MCP_*` (listed in the Runner's Rust env allowlist), `PAPERCLIP_MCP_AUTHORIZATION_ORIGIN` (`env.X`), and `paperclipai payload` (text inside a quoted CLI message in `service.md`).
+39 candidates. The 33 env-var, CLI and REST candidates are the same false positives as the last run (details below).
+
+**New: permission catalog (6, high confidence). Real, but inside quarantine, so not applied yet:**
+- `pipelines:write` is documented in `administration/roles-and-permissions.md` but absent from master. Removed by #16834 *Remove the Pipelines experiment and preserve its data* (2026-10-19T13:09Z), which drops the whole Pipelines experiment. Expect it to reach the window on the next run. It will touch every page that mentions Pipelines, so check it against the parent before removing any section.
+- `commentary:view` is in master's `PERMISSION_KEYS` but undocumented. It is a default grant for `owner`, `admin`, `operator` and `viewer`. Added by #16903 *give commentary its own default read permission* (2026-10-19T21:58Z). It belongs with #16884 *add Commentary to Audit* (also quarantined).
 
 High-confidence (env vars, 18):
 - `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (4): read through `envInteger(env, "NAME", …)` in `workspace-git-operation-scheduler.ts`.
@@ -158,11 +169,12 @@ Five reviewers re-read every doc changed in this run, plus the `costs.md` and `i
   - `env.` / `environment.` receivers and `envInteger("NAME")` helpers
   - `.requiredOption`
   - `packages/adapter-utils` and runner package env reads
-- **Not covered this run:**
+- **Not covered in the previous run:**
   - #15906: hidden GitHub repos now show as needing authorization instead of "Not found". Belongs in `experimental/external-objects.md`.
   - Agent delete returns `409 Complete termination before deleting the agent` until termination finishes, and terminating a pending hire rejects it. Belongs in `how-to/handle-board-approvals-for-hires.md`.
   - The bundled `slack` skill now asks agents to post results back to the originating conversation. The `first-task` onboarding skill now hands file deliverables to the child task's run.
   - OAuth `redirectConstraints: "https-or-loopback-http"` for PostHog and Gmail sign-in.
   - "Linked private tasks are filtered by task-read access" for sandbox run diagnostics: not confirmed in code, so left out.
 - **Deliberately not documented:** the customer-success inspection APIs (`/api/customer-success/v1`, Paperclip Cloud staff tooling) and the Docker image's precompiled runtime bundle (#16672, internal unless you override `CMD`).
+- **Arriving next run (in quarantine now, landed after 2026-10-19T10:00Z):** #16834 removes the Pipelines experiment. #16884 and #16903 add Commentary to Audit and the `commentary:view` permission. #15993 and #15997 make Paperclip Runner the default for new Claude agents on Apple Silicon and on qualified macOS and Linux targets. #15545 adds a unified Google Workspace connector. #16874 adds company agent observability settings. #16875 is a draft agent-ready design proposal system. Also #16909 one-click retry for restricted workspace setup, #16907 Cloud stack admins and experimental settings, and #14949 task side-panel tabs.
 - **Still open from the last run:** remote Runner env vars (`PAPERCLIP_RUNNER_PUBLIC_URL` and others), "On the **Access** step" wording in the Discord, Telegram, Teams and iMessage pages, and `distinctTasks` on live-runs.
