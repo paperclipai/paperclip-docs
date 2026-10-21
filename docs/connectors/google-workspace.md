@@ -62,7 +62,7 @@ Then open the **Permissions** tab and set the actions. Leave reads **Allowed**, 
 
 ## What agents can do
 
-Each service has a fixed, reviewed list of actions. Read actions need the service on; write actions need it on **Read & write**.
+Each service has a fixed, reviewed list of actions. Read actions need the service on; write actions need it on **Read & write**. Because one connection holds several services, each action's full name starts with its service, such as `gmail__create_draft` or `calendar__delete_event`; look for that prefix when you set actions on the **Permissions** tab. The table drops the prefix.
 
 | Service | Read actions | Write actions |
 | --- | --- | --- |

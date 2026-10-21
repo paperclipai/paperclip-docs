@@ -73,8 +73,8 @@ A few things to know:
 - **New runs only.** Changes apply to runs that start after you save. Work that's already running keeps the settings it started with.
 - **Agents can see the credential.** Paperclip stores your key or header values in an encrypted, Paperclip-managed company secret and never shows them again. The agent's runtime still needs them to send records, so use a key that can only ingest telemetry, never a broad admin key.
 - **Records carry content.** With capture on, exported records can include prompts, responses, and tool output. Each record is tagged with `paperclip.company.id` and `paperclip.agent.id` so you can filter by agent.
-- **Export never blocks work.** If the settings are missing or a credential can't be read, the run goes ahead without export and the run log notes an `agent_observability.unavailable` warning. A slow or failing destination doesn't fail the task either.
-- **Changing the endpoint.** If you move a Custom OTLP URL to a different host, port, or scheme, you have to re-enter every header value. On the same host, leaving a value blank keeps the saved one.
+- **Export never blocks work.** If the saved settings are invalid or a credential can't be read, the run goes ahead without export and the run log notes an `agent_observability.unavailable` warning. A slow or failing destination doesn't fail the task either.
+- **Changing the endpoint.** If you move a Custom OTLP URL to a different host, port, or scheme, you have to re-enter every header value. Otherwise, leaving a value blank keeps the saved one.
 
 Use **Disable export** to pause sending while keeping your settings, or **Remove configuration** to clear everything. The REST routes are listed under [Companies → Agent observability](../reference/api/companies.md#agent-observability). This feature is separate from Paperclip's own telemetry and doesn't change it.
 

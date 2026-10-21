@@ -30,7 +30,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **GitHub review bot** (#16856, #16901)
   - `github-review-bot-setup.md`: App ID + `.pem` guidance, new *Reconnect a bot that stopped working* walkthrough, and a troubleshooting row for the repair/disconnected notices.
   - One main PR comment per PR (**Review queued…**), mention-gating, and the stopped-work comment, also in `understanding-github-review-bots.md`.
-- **Workspace retry** (#16909): `guides/projects-workflow/workspaces.md` describes **Task couldn’t start** with **Retry**. `reference/api/issues.md` adds `todo` to `sourceIssueStatus` (already accepted, so the page was stale), plus the board-only `recovery` retry note.
+- **Workspace retry** (#16909): `guides/projects-workflow/workspaces.md` describes the **Retry** button that replaces the usual notice when a restricted workspace blocks the start. `reference/api/issues.md` adds `todo` to `sourceIssueStatus` (already accepted, so the page was stale), plus the board-only `recovery` retry note.
 - **Sandbox task context routes** (#16892): `reference/skills.md` notes the newly admitted routes.
 - **Cloud experimental settings** (#16907, #16876): `experimental/overview.md` has a *Who can change toggles on Cloud* note.
 - **List-page toolbar redesign** (#16875)
@@ -138,10 +138,19 @@ Medium (REST routes, 11):
 - Verify: `GET|POST /api/companies/{companyId}/chats/{agentRef}` (`router[method]` loop).
 - Verify: `GET /api/mcp/requests/{id}` and the two Dot pairing routes (array registration).
 
+## Adversarial recheck (PR #153)
+
+Four reviewers re-read every changed line against `cde944ed` (about 350 claims) and fixed 8 errors:
+- `administration/company.md`: the `agent_observability.unavailable` warning only fires for invalid saved settings or an unreadable credential, not when nothing is configured. Saved OTLP header values are kept only for the same origin (scheme, host and port), not just the same host.
+- `deploy/environment-variables.md`: taskless runs get only `run_url`.
+- `connectors/openrouter.md`: the attribution headers also carry app categories.
+- `adapters/claude-code.md`: a Mac reached over SSH stays on Legacy.
+- `projects-workflow/workspaces.md`: when Retry is available, the **Task couldn’t start** notice is hidden and only **Retry** shows.
+- `connectors/google-workspace.md`: notes the service-prefixed action names on the Permissions tab.
+
 ## Open questions from this run
 
-- `connectors/google-workspace.md` lists action names with underscores (`create_draft`) as in `google-workspace-connectors.ts`. The single-service pages use hyphens. Confirm what the Permissions tab shows for Workspace connections.
-- `google-setup.md` step 2 lists the per-service Workspace MCP APIs; that list is inferred from the action endpoints, because the manifest only says "Enable the Google Workspace MCP APIs".
+- Resolved in recheck: Workspace actions are snake_case with a service prefix on the Permissions tab (`gmail__create_draft`). The single-service pages' hyphenated names (`create-draft` in `gmail.md`, `gmail-setup.md`, `access-model.md`) match nothing the UI shows. They predate this run, so they're left for a follow-up.
 - The Developer Preview prerequisite is presented as a warning. No on-screen notice for it was found in the UI.
 - Runner on a Linux SSH host without a preinstalled provider pack: whether it uploads one is unconfirmed; the page says "can use".
 - Observability replaces any `OTEL_*` vars in an agent's env; not documented.
