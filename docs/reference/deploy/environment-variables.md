@@ -295,6 +295,10 @@ To turn it on, set `SENTRY_DSN` and install the optional `@sentry/node` peer dep
 
 > **Note:** Before this variable existed, a DSN on its own also reported failed runs. If you relied on that, set `PAPERCLIP_SENTRY_RUN_FAILURES=unexpected` to keep the same behaviour.
 
+A native run that's waiting to retry inside the same run isn't reported. It's reported once, only if the retry ends in a real failure.
+
+Server events tied to a saved run carry links back to Paperclip, so you can jump from Sentry straight to the work. They get a `run_url` tag pointing at the run page, plus `task_url` and `task_identifier` tags when the run has a task. The links are built from `PAPERCLIP_PUBLIC_URL`, so they're left out when that variable is missing or unsafe. Opening one still needs normal Paperclip access, and only newly captured events get them.
+
 ---
 
 ## Operator Settings Controls

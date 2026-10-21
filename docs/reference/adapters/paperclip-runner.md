@@ -7,20 +7,20 @@ seo_description: Configure Paperclip Runner for native agent sessions. Choose a 
 
 Use `paperclip_runner` when you want Paperclip's native run lifecycle, durable session recovery, and built-in task tools. You select the provider separately from the adapter, then configure model access and the execution environment.
 
-Paperclip Runner is experimental. Native Codex is the exception to the rollout switch: new Codex agents use the Runner by default on supported machines (see [New Codex agents use the Runner](#new-codex-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
+Paperclip Runner is experimental. Native Codex and **ACP agents → Claude** are the exceptions to the rollout switch: new Codex and Claude agents use the Runner by default on supported machines (see [New Codex and Claude agents use the Runner](#new-codex-and-claude-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
 
 ## Before you start
 
-- For providers other than Codex, an instance with **Paperclip Runner** enabled under **Settings → Experimental**.
+- For providers other than Codex and ACP Claude, an instance with **Paperclip Runner** enabled under **Settings → Experimental**.
 - An active agent and a task in standard, planning, or ask work mode.
 - A prepared execution environment and compatible model credential.
 - The pinned runtime required by the selected provider.
 
 For source development, an enabled Runner requires a Rust toolchain or `PAPERCLIP_RUNNER_BINARY`; the development launcher builds the daemon when needed. Published distributions and execution images provide their own runtime assets.
 
-## New Codex agents use the Runner
+## New Codex and Claude agents use the Runner
 
-When you create a Codex agent, Paperclip picks the runner for you. On a supported machine the agent is saved as `paperclip_runner` with `provider: "codex"`. Everywhere else it stays on the classic [`codex_local`](codex.md) adapter. This applies to new agents created through onboarding, **New agent**, hires, built-in agents, plugins, imports, and the API or CLI. Other harnesses keep their current defaults.
+When you create a Codex or Claude Code agent, Paperclip picks the runner for you. On a supported machine the agent is saved as `paperclip_runner`: a Codex agent gets `provider: "codex"`, and a Claude Code agent gets `provider: "acpx"` with `acpxAgent: "claude"`. Everywhere else it stays on the classic [`codex_local`](codex.md) or [`claude_local`](claude-code.md) adapter. This applies to new agents created through onboarding, **New agent**, hires, built-in agents, plugins, imports, and the API or CLI. Other harnesses keep their current defaults.
 
 Paperclip Runner is chosen automatically when the agent's execution environment is one of these:
 
@@ -28,6 +28,12 @@ Paperclip Runner is chosen automatically when the agent's execution environment 
 - Linux x64 or ARM64 with GNU libc `2.39` or newer.
 
 Windows, 32-bit ARM, Alpine and other musl-based Linux, and Linux with an older or unknown libc keep the Legacy runner. Paperclip checks the machine the agent will actually run on, not the machine running the Paperclip server. For a sandbox environment, use an immutable image digest and run the environment's connection probe, so Paperclip can confirm the operating system, architecture, and libc.
+
+A few extra rules apply to Claude:
+
+- **Paperclip has to know the platform.** If it can't tell which operating system and architecture the agent will run on, a new Claude agent keeps the Legacy runner.
+- **A Mac reached over SSH defaults to Legacy.** You can still pick **Paperclip Runner** yourself for that host, as long as it has the matching Runner assets installed.
+- **Linux SSH hosts can use a preinstalled provider pack.** Install the pack from the same Paperclip release at `/opt/paperclip-runner/provider-pack` or `$HOME/.local/share/paperclip-runner/provider-pack`. The Runner looks there, verifies the pack, and picks the Linux x64 or ARM64 build that matches the host.
 
 ### Pick a runner yourself
 
@@ -37,13 +43,23 @@ To choose, open **Advanced** in the agent form, onboarding, or the built-in agen
 | --- | --- | --- |
 | **Paperclip Runner (default)** or **Legacy runner (default)** | `auto` | Paperclip picks the runner for this environment. The label shows which one you'll get. |
 | **Paperclip Runner** | `paperclip` | Always use the Runner. Saving fails if the environment doesn't qualify. |
-| **Legacy runner** | `legacy` | Keep classic `codex_local` execution and all its settings. |
+| **Legacy runner** | `legacy` | Keep classic `codex_local` or `claude_local` execution and all its settings. |
 
-From the API, send `runner` (`auto`, `paperclip`, or `legacy`) alongside `adapterType: "codex_local"` when you create or hire an agent. In the CLI, `paperclipai agent create` and `paperclipai agent hire` take `--runner <runner>`.
+From the API, send `runner` (`auto`, `paperclip`, or `legacy`) alongside `adapterType: "codex_local"` or `adapterType: "claude_local"` when you create or hire an agent. In the CLI, `paperclipai agent create` and `paperclipai agent hire` take `--runner <runner>`.
 
 Some `codex_local` settings have no Runner equivalent, such as a custom `command`, `extraArgs`, `search`, `fastMode`, filesystem or network scopes, or `maxTurns`. If you set one and the Runner gets picked, saving fails with `agent_runner_config_incompatible`. The message names the fields and asks you to remove them or choose **Legacy runner** in **Advanced**. Paperclip never switches runners on its own: if authentication, the model, a dependency, or the runtime fails, the error tells you what to fix and the agent keeps the runner it has.
 
 Existing agents, and hires that are already waiting for review, keep their saved runner when you upgrade or edit them. Company exports record the runner that was resolved, so an import recreates the same choice.
+
+### What carries over for Claude
+
+A Claude agent that lands on the Runner keeps your connection, instructions, skills, timeouts, and session behavior. A few settings are translated on the way:
+
+- **Model.** If you leave the model blank, the agent uses `claude-opus-5-5`. A model you pick, or one set through `ANTHROPIC_MODEL`, wins. If the agent routes through Bedrock or Vertex (`CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, or `ANTHROPIC_BEDROCK_BASE_URL`), choose the model yourself, because those providers use their own model IDs.
+- **Effort.** The thinking effort you chose is saved as `modelReasoningEffort`. The Runner waits for Claude to confirm that effort before it sends the first prompt, and again when it resumes a session. If Claude ignores the setting, or the model isn't available, the run stops with an error instead of carrying on without it.
+- **Permissions.** The Runner uses `acpxPermissionMode`, which defaults to `approve-all`. An older `permissionMode` of `approve-all`, `approve-reads`, or `deny-all` is carried over; any other value fails.
+
+These `claude_local` settings only work on the Legacy runner: `chrome`, a custom `command`, `agentCommand`, `stateDir`, `warmHandleIdleMs`, `extraArgs`, filesystem or network scopes, `maxTurnsPerRun`, a `mode` other than `persistent`, a `nonInteractivePermissions` other than `deny`, and `dangerouslySkipPermissions: false`. Setting one while the Runner is picked fails with `agent_runner_config_incompatible`. The agent form leaves out its default turn limit when the Runner is selected, so you only hit this if you change it.
 
 ## Choose a provider
 
@@ -99,6 +115,8 @@ Company permissions, governed approvals, and budgets still apply. Grok cannot au
 ## Sessions and task modes
 
 The Runner records native session identity and recovers through the provider's supported session-load path. Recovery rechecks the saved provider, environment, credential, and task authority; a durable run is not a guarantee that every interrupted provider operation can resume.
+
+For Claude, the Runner loads three task tools up front — `set_task_title`, `paperclip_finish`, and `paperclip_block` — so Claude doesn't have to search for them before it can name or finish a simple task. Its other Paperclip tools load on demand, with the same access checks.
 
 Standard, planning, and ask tasks are supported. Cursor additionally has `acpxSessionMode`: `agent` (default), `plan`, or `ask`. Selecting Plan or Ask changes native Cursor session behavior, while Paperclip permissions and environment boundaries remain in force.
 

@@ -1351,7 +1351,7 @@ An expired-with-the-issue card looks like this:
 - For `request_item_verdicts`, `complete` is `false` and whatever verdicts were already recorded are preserved on `items`.
 - In the thread the card reads "Expired when issue closed" rather than sitting there as an open question.
 
-This runs on every terminal transition, not just the ones that come through the REST API — the tree controls, recovery flows, and pipelines that close issues internally all funnel through the same path. Each expiry is logged as `issue.thread_interaction_expired` with `source: "issue.status_transition.issue_closed"`.
+This runs on every terminal transition, not just the ones that come through the REST API — the tree controls, recovery flows, and other internal paths that close issues all funnel through the same path. Each expiry is logged as `issue.thread_interaction_expired` with `source: "issue.status_transition.issue_closed"`.
 
 Two related guarantees come with it:
 
@@ -1495,14 +1495,14 @@ Request body:
 |---|---|---|
 | `actionId` | uuid, optional | Optional. When set, must match the currently active recovery action on the issue. |
 | `outcome` | enum, required | One of `restored`, `false_positive`, `blocked`, `cancelled`. See the outcome table below. |
-| `sourceIssueStatus` | enum, required | One of `done`, `in_review`, `blocked`. Must be compatible with `outcome` (see rules). |
+| `sourceIssueStatus` | enum, required | One of `todo`, `done`, `in_review`, `blocked`. Must be compatible with `outcome` (see rules). |
 | `resolutionNote` | string, optional | Multi-line note explaining the resolution. |
 
 Outcome rules (enforced by the validator):
 
 | Outcome | Allowed `sourceIssueStatus` | Permission | Resulting action `status` |
 |---|---|---|---|
-| `restored` | `done` or `in_review` | Agent or board | `resolved` |
+| `restored` | `todo`, `done`, or `in_review` | Agent or board | `resolved` |
 | `false_positive` | `done` or `in_review` | Board only | `resolved` |
 | `blocked` | `blocked` | Agent or board | `resolved` |
 | `cancelled` | `done` or `in_review` | Board only | `cancelled` |
@@ -1511,6 +1511,7 @@ Additional constraints:
 
 - `outcome: "blocked"` requires the source issue to have at least one unresolved first-class blocker via `blockedByIssueIds` — otherwise the server returns `422 Unprocessable Entity`.
 - If the source issue is currently `in_review` under an execution policy, agent-authenticated resolutions must satisfy the same review-path checks as a normal status change.
+- Resolving with `outcome: "restored"` and `sourceIssueStatus: "todo"` retries the task. When the blocked run failed during setup because its shared workspace source was restricted, this retry is board-only: the server moves the task to an isolated workspace from the project's repository (source `recovery`) before it re-queues, unless the task already has a pending workspace choice. If a newer run exists or the task no longer matches the failed run, the server returns `409 Conflict`.
 - The server writes an `issue.recovery_action_resolved` activity log entry (and an `issue.updated` entry when the source status actually changed).
 
 Response:

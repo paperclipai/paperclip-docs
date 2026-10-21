@@ -8,7 +8,7 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 
 `codex_local` runs OpenAI's Codex CLI on the same machine as Paperclip. Use it when you want a local coding agent with persistent session state, managed `CODEX_HOME`, and Paperclip skills injected into the Codex skills directory.
 
-> **Heads-up:** New Codex agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer. Those agents are saved as `paperclip_runner` with `provider: "codex"`. To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
+> **Heads-up:** New Codex agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer. Those agents are saved as `paperclip_runner` with `provider: "codex"`. To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
 
 ---
 

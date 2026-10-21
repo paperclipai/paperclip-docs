@@ -12,7 +12,7 @@ A **connector** is a saved connection to an outside service: a Gmail mailbox, a 
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** While Google verification is pending, the nine Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. Only the list changes: existing Google connections keep running with their access and permissions, and an agent that needs a Google service can still ask you for it with a connection card on its task.
+> **Note:** New Google accounts connect through the single [Google Workspace](connectors/google-workspace.md) connector, where you choose Gmail, Drive, and Calendar access in one setup. The nine single-service Google connectors are no longer listed for new setup. Each one still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running with their access and permissions.
 
 ## Start here
 
@@ -58,8 +58,11 @@ Find an app and open its setup guide.
 
 ### Google Workspace
 
+Start with **Google Workspace** for a new Google account. The single-service connectors below it are listed for connections you already have; they no longer appear on the **Connectors** page for new setup.
+
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
+| [Google Workspace](connectors/google-workspace.md) | One Google account for Gmail, Drive (including Docs, Sheets, and Slides), and Calendar. You choose which services to connect and whether each is read-only or read and write before you sign in, and agents get only the actions you picked and Google granted. This is the Google connector offered for new setup. | Connect with Paperclip · Your own OAuth app |
 | [Gmail](connectors/gmail.md) | Google's email service. Agents search and read mail; on a draft connection they create drafts for you to review, and on an opt-in archive connection they remove the Inbox label from threads. Sending, deleting, and other label changes are never enabled. | Connect with Paperclip · Your own OAuth app |
 | [Google Calendar](connectors/google-calendar.md) | Google's calendar. Agents read calendars, and on a write connection create and change events. | Connect with Paperclip · Your own OAuth app |
 | [Google Chat](connectors/google-chat.md) | Google Workspace's team messaging. Agents search and read conversations, and on a write connection post messages. This is an agent tool, not a way for people to talk to an agent. | Connect with Paperclip · Your own OAuth app |

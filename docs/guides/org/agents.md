@@ -20,9 +20,11 @@ The agent list is the front door. Open **Agents** in the sidebar and you land on
 
 ![Agent list](../../user-guides/screenshots/light/agents/list.png)
 
-### Filter tabs
+### Search and filter tabs
 
-Tabs across the top scope what you see:
+A toolbar at the top of the page holds a **Search agents…** box, the view toggle, and the **New Agent** button. Type in the search box to narrow the list by name, role, or title — it works in both the list and the org chart, and combines with the tab you're on. If nothing matches, you'll see *"No agents match your search and selected status."*
+
+Tabs just below the search box scope what you see:
 
 - **All** — every agent in the company
 - **Active** — agents currently able to run; includes `active`, `running`, and `idle`
@@ -38,7 +40,7 @@ Terminated agents don't appear in the list at all, and neither do agents still w
 
 ### List view vs org chart view
 
-Two small icon buttons next to **New Agent** switch between layouts:
+Two small icon buttons between the search box and **New Agent** switch between layouts:
 
 - **List view** — a flat sorted list, one row per agent
 - **Org chart view** — a hierarchical tree that mirrors the reporting chain (the CEO at the top, their direct reports under them, and so on)
@@ -60,7 +62,7 @@ Clicking anywhere on the row opens the agent's detail page. Clicking the live pi
 
 ### Creating a new agent from the list
 
-The **New Agent** button lives in the top-right of the list page and opens the hiring flow described in the next section.
+The **New Agent** button at the end of the toolbar opens the hiring flow described in the next section.
 
 > **Note:** If you have no agents yet, the list shows an empty state prompting you to create your first. The first agent you create is always the CEO — there's no way around this and no point in trying to avoid it. See the next section for why.
 
@@ -137,7 +139,7 @@ A new agent can help set up its teammates straight away, without you adding gran
 - **Audit and inbox:** `audit:view_agent_actions`, `inbox:manage` (limited to the inbox of the user the agent is responsible for)
 - **Tasks:** `tasks:assign`, `tasks:assign_scope` (limited to the agent's own reporting subtree), `tasks:manage_active_checkouts`
 
-It can also hire other agents, through its `canCreateAgents` setting rather than an `agents:create` grant. It does *not* get `environments:manage`, `tools:admin`, `users:invite`, `users:manage_permissions`, `pipelines:write`, or `joins:approve`.
+It can also hire other agents, through its `canCreateAgents` setting rather than an `agents:create` grant. It does *not* get `environments:manage`, `tools:admin`, `users:invite`, `users:manage_permissions`, `commentary:view`, or `joins:approve`.
 
 A few things keep this in check:
 
@@ -760,7 +762,7 @@ Use pause liberally — it's reversible, cheap, and the right default when somet
 
 - [Skills](./skills.md) — how the company skill library works, how skills are written, and how they keep agent context lean
 - [Agent cryptographic identity](agent-identity.md) — public keys, runtime trust, and identity recovery
-- [Agent complaints and suggestions](../../administration/agent-commentary.md) — default feedback skills and native tools, with records stored in the instance database
+- [Agent complaints and suggestions](../../administration/agent-commentary.md) — default feedback skills and native tools, and where you read their feedback in Audit → Commentary
 - [Agent adapters](./agent-adapters.md) — which adapters are available, what each one is good at, and how to configure them
 - [Approvals](../day-to-day/approvals.md) — the governance layer around hire requests, strategy, and budget overrides
 - [Costs & budgets](../day-to-day/costs.md) — how API spend is computed, how budgets are enforced, and how to tune them across your whole company
