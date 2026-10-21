@@ -64,7 +64,7 @@ paperclipai agent hire --company-id <company-id> \
 
 Both require `-C, --company-id <id>` and `--payload-json <json>`. The JSON is validated before it is sent, so a malformed payload fails locally with a clear error instead of a server round-trip.
 
-Both also accept `--runner <runner>`, which picks how the new agent executes: `auto` (the default), `paperclip`, or `legacy`. With `auto`, the server decides. A new Codex agent, for example, uses Paperclip Runner on supported macOS and Linux hosts. Pass `legacy` to keep the classic adapter. The flag overrides any `runner` field in your payload.
+Both also accept `--runner <runner>`, which picks how the new agent executes: `auto` (the default), `paperclip`, or `legacy`. With `auto`, the server decides. A new Codex or Claude Code agent, for example, uses Paperclip Runner on supported macOS and Linux hosts. Pass `legacy` to keep the classic adapter. The flag overrides any `runner` field in your payload.
 
 ```sh
 paperclipai agent create --company-id <company-id> --runner legacy \

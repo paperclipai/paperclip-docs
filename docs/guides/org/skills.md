@@ -55,7 +55,7 @@ Skills keep the base context small. An agent with 10 skills doesn't load all 10 
 
 ## Adding a skill
 
-Skills are managed from the company-level **Skills** page. A side menu switches between **Installed**, **Discover**, **Sources**, and (under **Author**) **My Skills**. The **Installed skills** view shows every skill in your library as a card, with how many agents use it and where it came from. Click a card to open that skill's detail page.
+Skills are managed from the company-level **Skills** page. Tabs under the toolbar switch between **Installed**, **Discover**, and **My Skills**; **Sources** lives in the **New** menu (see below). If **Streamlined UI** is turned off in Experimental settings, a side menu switches between **Installed**, **Discover**, **Sources**, and (under **Author**) **My Skills** instead. The **Installed skills** view shows every skill in your library as a card, with how many agents use it and where it came from. Click a card to open that skill's detail page.
 
 Above the cards you'll find a **Search installed skills…** box, a **Sort** menu, a scan button (the circular arrow), and two buttons: **New folder**, for organizing your library, and **+ New ▾**. Every way of adding a skill starts from the **New** menu:
 
@@ -144,7 +144,7 @@ Because these skills come from Paperclip, the app knows exactly which version yo
 
 Plenty of teams already keep their skills in a GitHub repository, reviewed through pull requests like everything else. **Sources** lets you point Paperclip at that repository, choose which skills to bring in, and keep them current as the repository moves on — without retyping URLs or losing track of where each skill came from. The page's tagline sums up the default: *"Skills from your repositories stay up to date automatically."*
 
-You'll find it under **Sources** in the Skills sidebar, or through **Import from GitHub** and **Manage sources** in the Skills page's add menu.
+You'll find it through **Import from GitHub** and **Manage sources** in the Skills page's **New** menu (or under **Sources** in the Skills side menu if Streamlined UI is turned off).
 
 ### Add a repository
 
@@ -249,11 +249,15 @@ If you want to script any of this — creating folders, moving skills between th
 
 Writing a skill in one window and testing it in another gets old quickly. **Skill Studio** is a dedicated workspace where you author a skill, hand it a piece of input, run it against a real agent, and read the result — without leaving the page.
 
-Open it from a skill in your library, or go straight to `/skills/studio`. The breadcrumb reads **Skills → Studio → <skill name>** so you always know where you are.
+Open it from a skill in your library, or from the **My Skills** tab on the Skills page. The breadcrumb reads **Skills → Studio → <skill name>** so you always know where you are.
+
+### My Skills
+
+The **My Skills** tab (`/skills/studio`) is headed *"Skills you can open, edit and test in Studio."* It shows the skills in your library as cards, most recently updated first. It has the same toolbar as the other tabs, with a **Search my skills…** box. Click a card and the skill opens straight in Studio rather than on its detail page. If there's nothing there yet, you'll see *"No skills yet. Create a skill to start working in Studio."*
 
 ### The landing page
 
-Landing on `/skills/studio` without a skill selected gives you two lists to get back to work fast:
+If **Streamlined UI** is turned off, landing on `/skills/studio` without a skill selected gives you two lists to get back to work fast instead:
 
 - **Recently visited** — the skills you opened in Studio on this browser.
 - **Recently updated** — the skills the company changed most recently, each row showing when it was updated and a small avatar of whoever last edited it.

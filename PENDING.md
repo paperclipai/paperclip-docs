@@ -2,20 +2,48 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1012.0` (`bba6a45f`). The tag sits off master, so the diff runs from the merge-base `22a3ea34` → parent master `2f6ad222` (@ 2026-10-19T05:20Z). 551 commits, 24h quarantine applied (cutoff 2026-10-19T10:00Z). 4,235 files in window.
-- **Compare truncation:** 0 truncated leaves.
+- **Window (cumulative):** base release tag `v2026.1012.0` (`bba6a45f`). The tag sits off master, so the diff runs from the merge-base `22a3ea34` → parent master `cde944ed` (@ 2026-10-20T03:40Z). 615 commits, 24h quarantine applied (cutoff 2026-10-20T10:00Z). 4,692 files in window.
+- **Compare truncation:** 0 truncated leaves (cumulative and incremental).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
-- **Already on nightly:** drafts for `22a3ea34..8de28c12` (539 commits) from earlier runs. This run covers the 12 newer commits, `8de28c12..2f6ad222`.
-- **Verification:** the one page changed this run was checked against `2f6ad222` with `verify-edit`: 0 unverified, 0 suspicious.
+- **Already on nightly:** drafts for `22a3ea34..2f6ad222` (551 commits) from earlier runs. This run covers the 64 newer commits, `2f6ad222..cde944ed` (958 files).
+- **Verification:** every page changed this run was checked against `cde944ed` with `verify-edit`. Lines added this run: 0 unverified, 0 suspicious. The remaining unverified claims are on older lines and are the known checker false positives listed under Drift.
 
-## Applied this run (`8de28c12..2f6ad222`)
+## Applied this run (`2f6ad222..cde944ed`, PR-tier)
 
-- **Task recovery notice** (#16686)
-  - `experimental/task-chat.md`: the stopped-run banner now reads **Work paused.** (was **Recovery needed.**). It stays hidden while automatic recovery is still in progress. The run error and operator steps moved under **Recovery details**. A lost workspace shows *The workspace needs operator attention before work can continue.*, and a queued continuation reads **Continuation queued.** (was **Reconstruction queued.**). The inline "record workspace repair" form (`WorkspaceFileRecovery`) is gone.
-  - The recovery-notice implementation link is re-pinned to `2f6ad222`.
-- **No doc impact in the other 11 commits:** runtime and recovery fixes (#16791, #16802, #16687, #16760, #16764, #16769), perf (#16761, #16765), tests (#16800), and parent-internal docs (#16722 Grok production notes, #16798 Honeycomb trace-design skill). No new env vars, CLI commands, routes, or adapter config fields.
+- **Pipelines experiment removed** (#16834)
+  - `pipelines:write` dropped from `administration/roles-and-permissions.md` (Operator bundle, key table, prose: Operator now has *three* keys Owner/Admin lack), `administration/company.md`, `guides/org/agents.md`, `reference/api/agents.md`. A "pipelines close issues" aside in `reference/api/issues.md` is generalised.
+  - `company.md` also fixed a pre-existing error: `audit:view_agent_actions` *is* an Operator default.
+- **Commentary in Audit + `commentary:view`** (#16884, #16903)
+  - `administration/agent-commentary.md`: "Inspect stored feedback" replaced by **Read feedback in Audit**: Commentary tab, filters, message dialog, shareable `?entry=` links, read routes and response fields.
+  - `commentary:view` added to all four roles (Viewer's only built-in grant). Granted to existing active members by migration 0359; re-added on restart if removed. Pointers in `settings.md`, `reference/api/overview.md`, `reference/api/agents.md`.
+- **Unified Google Workspace connector** (#15545)
+  - New page `connectors/google-workspace.md`: service picker (Gmail, Drive incl. Docs/Sheets/Slides, Calendar; **Read only** / **Read & write**), Developer Preview prerequisite, two sign-in methods, scopes and actions per service, declined-consent behaviour.
+  - The "nine Google connectors temporarily hidden" note was wrong at `cde944ed`: the hold is lifted, Google Workspace is shown, and the nine single-service connectors are now hidden unless you already have a saved connection. Updated in `connectors.md`, `google-setup.md` (now leads with Workspace) and 10 single-service pages.
+  - Nav: `Google Workspace` added under Connector Catalog.
+- **Paperclip Runner default for Claude** (#15993, #15997, #15994, #16885)
+  - `reference/adapters/paperclip-runner.md`: section renamed to *New Codex and Claude agents use the Runner* (anchor updated everywhere). Covers qualification rules, the SSH exceptions, and a new *What carries over for Claude* subsection (default model `claude-opus-5-5`, effort confirmation, `acpxPermissionMode`, Legacy-only settings).
+  - Heads-ups and wording in `claude-code.md`, `agent-adapters.md` (also fixed `claude-opus-5` → `claude-opus-5-5`), `adapters/overview.md`, `settings.md`, `experimental/overview.md`, `cli/agent.md`, `api/agents.md`.
+- **Company agent observability** (#16874)
+  - `administration/company.md`: new *Agent observability* section (Braintrust / Custom OTLP, **Enable export**, **Content capture**, **Test saved settings**). `reference/api/companies.md`: `/api/companies/{companyId}/observability` GET/PUT/DELETE and `/observability/test`.
+- **Sentry** (#16803, #16865): `environment-variables.md` Sentry section notes `task_url` / `run_url` / `task_identifier` tags (built from `PAPERCLIP_PUBLIC_URL`) and retry-only-on-final-failure reporting.
+- **OpenRouter attribution** (#16850, #16864): `connectors/openrouter.md` gains *How your requests appear in OpenRouter*.
+- **GitHub review bot** (#16856, #16901)
+  - `github-review-bot-setup.md`: App ID + `.pem` guidance, new *Reconnect a bot that stopped working* walkthrough, and a troubleshooting row for the repair/disconnected notices.
+  - One main PR comment per PR (**Review queued…**), mention-gating, and the stopped-work comment, also in `understanding-github-review-bots.md`.
+- **Workspace retry** (#16909): `guides/projects-workflow/workspaces.md` describes **Task couldn’t start** with **Retry**. `reference/api/issues.md` adds `todo` to `sourceIssueStatus` (already accepted, so the page was stale), plus the board-only `recovery` retry note.
+- **Sandbox task context routes** (#16892): `reference/skills.md` notes the newly admitted routes.
+- **Cloud experimental settings** (#16907, #16876): `experimental/overview.md` has a *Who can change toggles on Cloud* note.
+- **List-page toolbar redesign** (#16875)
+  - New search boxes on Agents, Projects, Routines and Decisions, plus the shared toolbar layout. Updated `guides/org/agents.md`, `projects-workflow/projects.md`, `projects-workflow/routines.md`, `day-to-day/decisions.md`.
+  - Skills: with Streamlined UI on, the side menu becomes **Installed / Discover / My Skills** tabs, and Sources moves under **New → Manage sources**. Updated in `guides/org/skills.md`.
+  - The `DesignSandboxTasks` page is dev-only (`VITE_PAPERCLIP_DESIGN_SANDBOX`), so it isn't documented.
+- **No doc impact:** #16883, #14949, #16904, #16847, #16138, #16806, #16849, #16851, plus runtime, recovery, perf, test and internal-doc commits. CLI: `paperclipai pipelines` removed upstream, but we never documented it. No new operator env vars (`ANTHROPIC_CUSTOM_HEADERS` is adapter-injected).
 
-## Applied in the previous run (PR-tier drafts, `nightly-draft/8de28c1-oct-catchup`, merged as #151)
+## Applied in the previous run (`8de28c12..2f6ad222`, #152)
+
+- Task recovery notice now reads **Work paused.** (`experimental/task-chat.md`).
+
+## Applied two runs ago (PR-tier drafts, `nightly-draft/8de28c1-oct-catchup`, merged as #151)
 
 - **Costs, budgets, decisions** (#15634, #15459, #15948, #16201, #15473, #15748, #10633)
   - The Costs tab now has five tiles (**API spend**, **Subscriptions**) and six views, adding **Decisions** and **Fast responses**.
@@ -94,75 +122,44 @@ They're post-tag (master only), so release review must keep them off `main` unti
 
 ## ↻ Reconcile
 
-None. There are no reverts in `8de28c12..2f6ad222`, and no earlier entry left the cumulative window.
+None. No entry left the cumulative window; #16834 removes a feature we documented only through the `pipelines:write` key, handled above.
 
-## ⚠ Drift (checked against master HEAD `cde944e4`)
+## ⚠ Drift (checked against master HEAD)
 
-39 candidates. The 33 env-var, CLI and REST candidates are the same false positives as the last run (details below).
+33 candidates, all the same false positives as the last run (permission-catalog drift from last run is now applied).
 
-**New: permission catalog (6, high confidence). Real, but inside quarantine, so not applied yet:**
-- `pipelines:write` is documented in `administration/roles-and-permissions.md` but absent from master. Removed by #16834 *Remove the Pipelines experiment and preserve its data* (2026-10-19T13:09Z), which drops the whole Pipelines experiment. Expect it to reach the window on the next run. It will touch every page that mentions Pipelines, so check it against the parent before removing any section.
-- `commentary:view` is in master's `PERMISSION_KEYS` but undocumented. It is a default grant for `owner`, `admin`, `operator` and `viewer`. Added by #16903 *give commentary its own default read permission* (2026-10-19T21:58Z). It belongs with #16884 *add Commentary to Audit* (also quarantined).
+High-confidence (env vars 21, CLI 1):
+- `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (4), `PAPERCLIP_WORKSPACE_GIT_SNAPSHOT_TIMEOUT_MS`, `PAPERCLIP_RUNNER_API_*` (3), `PAPERCLIP_NATIVE_MCP_*` (2), `PAPERCLIP_MCP_AUTHORIZATION_ORIGIN`, `PAPERCLIP_CLOUD_CONNECTOR_*` / `PAPERCLIP_ID_CONNECTOR_*` (10): read through `envInteger`, `env.` / `environment.` receivers, or packages the checker doesn't scan.
+- `paperclipai payload` in `cli/service.md:56`: quoted message text.
 
-High-confidence (env vars, 18):
-- `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (4): read through `envInteger(env, "NAME", …)` in `workspace-git-operation-scheduler.ts`.
-- `PAPERCLIP_WORKSPACE_GIT_SNAPSHOT_TIMEOUT_MS`: read in `packages/adapter-utils/src/git-workspace-sync.ts`, which the checker doesn't scan.
-- `PAPERCLIP_RUNNER_API_*` (3): read as `environment.X` in `runner-api-rollout.ts` and `runner-api-response-limits.ts`.
-- `PAPERCLIP_CLOUD_CONNECTOR_*` and `PAPERCLIP_ID_CONNECTOR_*` (10): read as `env.X` in `paperclip-cloud-connector.ts`. The ID set is documented as retired.
+Medium (REST routes, 11):
+- Verify: `GET /api/agent-avatars/{version}/{palette}/{pose}.png` (`:file` param).
+- Verify: `/api/companies/import/transfers*` (5) (constant route path).
+- Verify: `GET|POST /api/companies/{companyId}/chats/{agentRef}` (`router[method]` loop).
+- Verify: `GET /api/mcp/requests/{id}` and the two Dot pairing routes (array registration).
 
-Medium (REST routes, 9):
-- Verify: `GET /api/agent-avatars/{version}/{palette}/{pose}.png`. Registered as `:file` and checked for `.png` in the handler.
-- Verify: `/api/companies/import/transfers*` (5). Registered through the `COMPANY_IMPORT_TRANSFERS_ROUTE_PATH` constant.
-- Verify: `GET|POST /api/companies/{companyId}/chats/{agentRef}`. Registered in a `router[method](…)` loop.
-- Verify: `GET /api/mcp/requests/{id}`. Registered as an array of two paths.
+## Open questions from this run
 
-## Verification notes
+- `connectors/google-workspace.md` lists action names with underscores (`create_draft`) as in `google-workspace-connectors.ts`. The single-service pages use hyphens. Confirm what the Permissions tab shows for Workspace connections.
+- `google-setup.md` step 2 lists the per-service Workspace MCP APIs; that list is inferred from the action endpoints, because the manifest only says "Enable the Google Workspace MCP APIs".
+- The Developer Preview prerequisite is presented as a warning. No on-screen notice for it was found in the UI.
+- Runner on a Linux SSH host without a preinstalled provider pack: whether it uploads one is unconfirmed; the page says "can use".
+- Observability replaces any `OTEL_*` vars in an agent's env; not documented.
+- My Skills is built from the whole installed list, not only authored skills (upstream bug or pending filter?). The page says "the skills in your library".
 
-All 13 unverified claims on lines added this run were found at `8de28c12`:
-- Flags declared with `.requiredOption`: `--sha256`, `--user-id`, `--desired-skills`, `--answers-json`, `--outcome`, `--source-issue-status`.
-- Routes registered as arrays: the Dot pairing routes.
-- Env vars the checker can't trace:
-  - Read through an injected `env` or `environment` object: `PAPERCLIP_MCP_AUTHORIZATION_ORIGIN`, `PAPERCLIP_NATIVE_MCP_*`.
-  - Listed in a CLI key array: `SSL_CERT_FILE`, `SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS`.
-  - Read in a shell script: `PAPERCLIP_HELPER_STATE_DIR`.
-- Not an env var: `ENVIRONMENT_ACQUISITION_PROVIDER_STATES` is an SDK export.
-- Other: `local_tools` is a Runner README example value, and `paperclipai payload and` is text inside a quoted CLI message.
+## Arriving next run (in quarantine, landed after 2026-10-20T10:00Z)
 
-Connector and guide pages give `verify-edit` no claims to extract. Their identifiers and UI labels were checked by hand against the pinned source (see the recheck below for what that missed), and all 12 new connector slugs exist in `packages/shared/src/app-definitions/`.
-
-Claims taken from parent dev docs or inferred rather than read from code, for review:
-- Daytona's read/write/destructive grouping (`DAYTONA.md`).
-- New connector actions start **Allowed** (inferred from `recommendedDefaultsForApp`).
-- `/api/dot-mcp` is mounted under `/api`.
-- Muse's 30-day inactivity limit and Dot's 15-minute pairing expiry (dev docs).
-- The Codex model-fallback warning example in `paperclip-runner.md`, built from the message template.
-
-## Adversarial recheck
-
-Five reviewers re-read every doc changed in this run, plus the `costs.md` and `issues.md` merge resolution, against the `8de28c12` checkout. They checked about 1,200 claims. Fixed on this branch:
-- **Connector setup buttons:** the setup screen never shows the method name as its main button.
-  - One sign-in method with nothing to configure shows **Continue to *App***: Calendly, Tavily, Jira, Resend, Netlify, Miro, Todoist, Cloudinary, Wix, Webflow, Mixpanel.
-  - Several methods, or a method with fields, shows **Continue to sign in**: Linear, Airtable, ClickHouse.
-  - Keyless methods show **Connect**: Exa, Parallel Search.
-- **Credential fields:** a single credential field is always labelled **Your *App* key**. Updated Linear, Make, GSC Wizard, Windsor.ai, Bitly, Airtable, Firecrawl, Gauge, Enterpret, Neon, Telem.AI, Supabase, Superagent and GitHub.
-- **Subscription linking:** the selected (`targetId`) account's price is kept, not the open one's. A manual link never hits the different-prices `409`. Fixed in `guides/day-to-day/costs.md` and `reference/api/costs.md`.
-- **Smaller corrections:**
-  - GitHub review-bot install wait text, and a broken `github-setup.md` anchor that predates this run.
-  - AgentMail sat behind **Chat connectors**.
-  - Task filter **Clear** label.
-  - Muse budget wording.
-  - Runner's Linux qualification (GNU libc 2.39+).
-  - Daytona stop-on-retain.
-  - Pi in the Runner provider list.
-  - AI-account reassignment reason.
-  - `agentId` is always returned by decision models.
-  - Skill-source package default and oversize fallback.
-  - Plugin SDK `agent_runtime` lifecycle requirement.
-  - `service install` shim repair (any non-`--json` run; git installs keep their revision).
+- GitHub Copilot native runtime and Apps connection (#15701, #15703, #15705, #15706).
+- Persistent case workflows with same-task agent handoffs (#16959).
+- Model-backed prompt-injection prevention for connections.
+- Runner task hooks for environment plugins (#15406), plugin Runner preparation (#16993, #16997, #17029), plugin-owned project storage and task workspaces (#17001), native instance secrets for lifecycle plugins (#17034).
+- Reliable task Retry and saved-work recovery (#16965), simplified failure banners (#16982), inbox keeps automatic work out of Mine.
+- Agent records created at onboarding (#17005), Cloud-enabled features enforced (#16953).
 
 ## Follow-ups for a human
 
-- **Screenshots:** 168 of 278 are stale against master (`SCREENSHOTS_PENDING.md`). The Costs shots predate the fifth tile and the new views. Four GitHub review-bot embeds (`github-review/connect.png`, `repositories.png`, `identity.png`, `prompts.png`) were removed from `github-review-bot-setup.md` because the wizard changed. They need recapturing and re-embedding.
+- **Screenshots:** 190 of 278 are stale against master (`SCREENSHOTS_PENDING.md`). Toolbar redesign: `agents/list.png`, `agents/agents-list-empty.png`, `org/org-chart-small-team.png`, `projects/list.png`, `routines/list.png`, `skills/add-skill-dialog.png`, `decisions/toolbar-filters.png`, `decisions/empty-state.png`. The four GitHub review-bot embeds removed last run still need recapture, now also covering the new reconnect flow. Google Workspace and Commentary have no screenshots yet.
+
 - **Upstream label mismatch:** the Paperclip Runner experimental toggle still says onboarding uses legacy adapters. Since #15683, new Codex agents use the Runner regardless. The docs follow server behaviour.
 - **Drift and verify tooling:** teach `check-drift.mjs` and `verify-edit.mjs` about:
   - array and `router[method]` route registration
@@ -176,5 +173,4 @@ Five reviewers re-read every doc changed in this run, plus the `costs.md` and `i
   - OAuth `redirectConstraints: "https-or-loopback-http"` for PostHog and Gmail sign-in.
   - "Linked private tasks are filtered by task-read access" for sandbox run diagnostics: not confirmed in code, so left out.
 - **Deliberately not documented:** the customer-success inspection APIs (`/api/customer-success/v1`, Paperclip Cloud staff tooling) and the Docker image's precompiled runtime bundle (#16672, internal unless you override `CMD`).
-- **Arriving next run (in quarantine now, landed after 2026-10-19T10:00Z):** #16834 removes the Pipelines experiment. #16884 and #16903 add Commentary to Audit and the `commentary:view` permission. #15993 and #15997 make Paperclip Runner the default for new Claude agents on Apple Silicon and on qualified macOS and Linux targets. #15545 adds a unified Google Workspace connector. #16874 adds company agent observability settings. #16875 is a draft agent-ready design proposal system. Also #16909 one-click retry for restricted workspace setup, #16907 Cloud stack admins and experimental settings, and #14949 task side-panel tabs.
 - **Still open from the last run:** remote Runner env vars (`PAPERCLIP_RUNNER_PUBLIC_URL` and others), "On the **Access** step" wording in the Discord, Telegram, Teams and iMessage pages, and `distinctTasks` on live-runs.

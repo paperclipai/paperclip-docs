@@ -397,6 +397,40 @@ Use this when you want to inspect the feedback loop, not normal company activity
 
 ---
 
+## Agent observability
+
+These routes manage the company's [agent observability](../../administration/company.md#agent-observability) destination, which sends Codex and Claude Code logs and traces to Braintrust or a custom OTLP collector.
+
+| Route | Purpose | Who can call it |
+|---|---|---|
+| `GET /api/companies/{companyId}/observability` | Read the saved settings | Board users with company access; `settings` is `null` unless you can manage connections |
+| `PUT /api/companies/{companyId}/observability` | Create or update the settings | Board users with **Manage connections** |
+| `DELETE /api/companies/{companyId}/observability` | Remove the settings and retire the stored credential | Board users with **Manage connections** |
+| `POST /api/companies/{companyId}/observability/test` | Send a synthetic log and trace to the saved destination | Board users with **Manage connections** |
+
+Agents can't call these routes. Every response, except the test, has the shape `{ "canManage": true, "settings": { ... } }`. `settings` includes `revision`, `enabled`, `destination`, `capture`, `credentialsConfigured`, `headerNames`, `updatedAt`, and `lastTest`. Header values and API keys are never returned.
+
+A `PUT` body looks like this:
+
+```json
+{
+  "expectedRevision": null,
+  "enabled": true,
+  "destination": { "provider": "otlp", "endpointBaseUrl": "https://collector.example.com" },
+  "credentials": { "mode": "replace", "headers": [{ "name": "authorization", "value": "Bearer <ingest-key>" }] },
+  "capture": { "userPrompts": true, "assistantResponses": true, "toolDetails": true, "toolContent": true }
+}
+```
+
+- `destination.provider` is `braintrust` (with a `projectId` UUID) or `otlp` (with an `endpointBaseUrl`). The base URL must be HTTP or HTTPS, without credentials, a query, a fragment, or a `/v1/logs` or `/v1/traces` path.
+- `credentials.mode` is `keep` or `replace`. For Braintrust, `replace` takes an `apiKey`. For OTLP it takes up to 16 `headers`; leave out a header's `value` to keep the saved one at the same origin. Choosing a new destination needs `replace`, or the request fails with `observability_credentials_required`.
+- `capture` is optional and defaults to all four switches on.
+- `expectedRevision` is `null` for the first save, then the current `revision`. `DELETE` and the test route take `{ "expectedRevision": "<revision>" }` as their body. A stale revision returns `409` with `observability_revision_conflict`.
+
+The test route returns a receipt with `status` (`accepted`, `partial`, or `failed`) and separate `signals.logs` and `signals.traces` results. Saving never contacts the destination; only the test does.
+
+---
+
 ## Export and import
 
 Paperclip exposes both broad and company-scoped portability routes:

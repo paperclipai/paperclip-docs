@@ -97,8 +97,10 @@ mode, with no automatic events. You turn automatic reviews on in step 6.
 > Credentials, signature checks, and task admission still happen on your own
 > instance either way.
 
-Already have a bot App? Select **I already have an App** and enter its **App ID**,
-**Private key**, and **Webhook secret**, then **Connect existing App**. An
+Already have a bot App? Select **I already have an App** and enter its numeric
+**App ID** (not its Client ID), its **Private key** (upload the downloaded
+**.pem** file or paste its entire contents, including the BEGIN and END lines),
+and its **Webhook secret**, then **Connect existing App**. An
 existing App may need **Contents: read**, **Pull requests: write**, and
 **Checks: write** alongside its other permissions and pull-request event
 subscriptions. Accept any requested installation permission upgrade in GitHub.
@@ -272,11 +274,18 @@ request such as “confirm you can read this issue.” Follow the resulting
 Paperclip task. Check the assigned agent, responsible user, and GitHub response.
 An issue conversation should not produce a PR rating check.
 
-The bot keeps one comment of its own per accepted request on GitHub and edits
-it as the work progresses, from its working note to the final result, rather
-than posting a new comment at each step. Mentions work in issue and PR
-descriptions as well as in comments, inline review comments, and review
+In an issue, or in an inline review thread, the bot keeps one comment of its own
+per accepted request and edits it as the work progresses, from its working note
+to the final result, rather than posting a new comment at each step. In a PR's
+main conversation, the bot keeps a single main comment for the whole PR: new
+pushes, mentions, and repeat reviews all update that same comment, starting
+with **Review queued…**, instead of adding new ones. Mentions work in issue and
+PR descriptions as well as in comments, inline review comments, and review
 summaries.
+
+A message that starts by mentioning someone else, such as `@greptile review`,
+is not meant for your bot, so it doesn't wake it. Mention your bot explicitly in
+the same message if you want both to respond.
 
 Skipping this test leaves execution unverified. For this walkthrough, verify
 the response before moving on.
@@ -357,6 +366,30 @@ For the reason this is a separate step, return to
 | Task exists but the agent cannot build or open Storybook | AI connection, runtime startup, exact-commit checkout, locked dependencies, sandbox/browser support, and the low-trust work boundary. |
 | Comment says 5/5 but the check is not green | A structured assessment must be submitted and validated for the current head. Incomplete results cannot pass. Inspect the task and publication error. |
 | Failed check but merging is still possible | Active GitHub rule, target branch, required check/source, numeric score threshold, and bypass permissions. |
+| The bot's page shows **GitHub connection needs repair** or **GitHub bot is disconnected** | Reconnect the saved App, as described below. |
+
+### Reconnect a bot that stopped working
+
+When a bot's GitHub connection needs attention or has been disconnected, its
+page shows a repair notice above the settings. Open **Connection details** in
+the notice to see the error GitHub reported.
+
+1. Select **Reconnect GitHub**. Paperclip opens **Reconnect GitHub** for the
+   same App.
+2. Select **Reconnect saved App**. Paperclip checks the App and its
+   installation with the credentials it already has, then repairs event
+   delivery. Your agent, repository choices, review settings, and task history
+   stay attached; you don't need to create another GitHub App.
+3. If GitHub rejects the saved key, select **Replace App credentials…**. Use
+   **Open GitHub App settings** to find the same App, then provide its numeric
+   **App ID** (filled in for you when Paperclip has it) and a **Private key**.
+   GitHub can't show an old private key again, but you can reuse a **.pem** file
+   you saved, or create a new key for the same App under **Credentials → Key
+   pairs → New key**. A new key keeps the App's installation. Upload the
+   **.pem** file or paste its entire contents, then select **Verify and
+   reconnect**.
+
+Select **Use saved credentials instead** to go back to step 2.
 
 For the general connector paths, see [GitHub](github.md) and
 [Set up the GitHub connector](github-setup.md). For the model behind every step,

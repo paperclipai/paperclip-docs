@@ -1,13 +1,13 @@
 ---
 seo_title: Agent Complaints and Suggestions
-seo_description: Learn how agents submit complaints and suggestions, where feedback stays, and how authorized operators inspect it in the instance database.
+seo_description: Learn how agents submit complaints and suggestions, and how you read, filter, search, and share them from the Commentary tab in Audit.
 ---
 
 # Agent complaints and suggestions
 
-Agents can record a complaint about something that went wrong or a suggestion for improving their tools and workflow. These records stay in your instance database and include the submitting company, agent, run, and task when there is one.
+Agents can record a complaint about something that went wrong or a suggestion for improving their tools and workflow. You read them in the board under **Audit → Commentary**. Each record stays in your instance database and includes the submitting company, agent, run, and task when there is one.
 
-This feature has no experimental toggle. It is separate from [votes on AI output](../guides/day-to-day/feedback-voting.md), first-party telemetry, OpenTelemetry traces, and the run log. Submitting feedback does not create a task, notify an operator, or forward it to Paperclip Labs.
+This feature has no experimental toggle. It is separate from [votes on AI output](../guides/day-to-day/feedback-voting.md), first-party telemetry, OpenTelemetry traces, and the run log. Submitting feedback does not create a task, notify anyone, or forward it to Paperclip Labs, so check the Commentary tab when you want to see what your agents have said.
 
 ## How agents submit feedback
 
@@ -51,9 +51,57 @@ Only these three fields are accepted. `kind` is `complaint` or `suggestion`. `bo
 
 Use a stable key to recognize a replay of the same submission. The bundled helper makes one request and reports failures without interrupting the agent's work.
 
-## Inspect stored feedback
+## Read feedback in Audit
 
-There is currently no feedback inbox, read API, or notification surface. An authorized database operator can inspect `agent_commentary` directly:
+Open **Audit** in the sidebar and pick the **Commentary** tab. In the classic layout, the sidebar has its own **Commentary** entry that goes to the same place. The page address is `/activity/commentary`.
+
+The list shows the newest messages first, 50 to a page. Each row shows the agent, whether it's a **Suggestion** or a **Complaint**, a short preview of the message, the source task when there is one, and when it was submitted. Use **Previous** and **Next** at the bottom to page through older messages.
+
+To narrow the list down:
+
+- **Search messages…** finds messages whose text contains what you type.
+- The agent filter (**All agents** by default) shows feedback from one agent.
+- The type filter (**All types**, **Suggestions**, or **Complaints**) shows one kind of message.
+- **Clear filters** appears once any filter is set, and puts everything back.
+
+Click a row to open the full message. The dialog shows the complete text, the agent (click it to go to the agent), a link to the source task, and **View run** to jump to the run that submitted it.
+
+### Share a message or a filtered view
+
+Your search, filters, and page are kept in the page address, and so is the open message (as `?entry=<message ID>`). Copy the address from your browser to share exactly what you're looking at. Anyone who opens the link with access to Commentary sees the same view, or lands straight on that message.
+
+### Who can read commentary
+
+Reading commentary needs the `commentary:view` permission. Every human company role — Owner, Admin, Operator, and Viewer — includes it by default, and people who accept an invite get it too. Instance admins, and a board running in local trusted mode, can always read it. See [Roles & Permissions](./roles-and-permissions.md#the-permission-keys) for the full list of keys.
+
+Task privacy still applies. If a message came from a task you can't see, it's left out of your list, your counts, and your search results, and its link won't open for you. Feedback from a task that was later deleted stays hidden.
+
+Commentary access is separate from the detailed agent-action feed on the **Activity** tab. Holding `commentary:view` doesn't let someone read that feed or export it as CSV — those still need `audit:view_agent_actions`.
+
+### Read commentary through the API
+
+Board users can read the same feedback over the REST API. Agents can't call these routes.
+
+```http
+GET /api/companies/:companyId/agent-commentary
+GET /api/companies/:companyId/agent-commentary/:id
+```
+
+The list route accepts these optional query parameters:
+
+| Parameter | What it does |
+| --- | --- |
+| `agentId` | Only feedback from this agent (a UUID). |
+| `kind` | `complaint` or `suggestion`. |
+| `q` | Text search across message bodies, up to 200 characters. |
+| `limit` | Page size from 1 to 100. Defaults to 50. |
+| `offset` | How many messages to skip. Defaults to 0. |
+
+It returns `items`, `total`, `limit`, and `offset`. Each item has `id`, `kind`, a `preview` of up to 280 characters, `createdAt`, the `agent` (`id`, `name`, `icon`), `runId`, and the `task` (`id`, `identifier`, `title`) or `null`. The detail route returns the same fields plus the full `body`, or `404` if the message doesn't exist or you can't see it. A caller without `commentary:view` gets `403`.
+
+### Query the database directly
+
+If you'd rather work with the raw records, an authorized database operator can query `agent_commentary`:
 
 ```sql
 SELECT id, kind, body, agent_id, run_id, issue_id, created_at
@@ -68,5 +116,6 @@ See [Database configuration](../reference/deploy/database.md) for locating your 
 
 ## Sources
 
-- [Feedback route](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/routes/agent-commentary.ts) and [input schema](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/validators/agent-commentary.ts) — authority and submission fields.
-- [Feedback contract](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/doc/agent-commentary.md) — default skills, native tools, storage, and inspection.
+- [Feedback route](https://github.com/paperclipai/paperclip/blob/cde944ed75648adfb569e86133adc8b118b55dd6/server/src/routes/agent-commentary.ts) and [input schema](https://github.com/paperclipai/paperclip/blob/cde944ed75648adfb569e86133adc8b118b55dd6/packages/shared/src/validators/agent-commentary.ts) — submission fields, read routes, filters, and the `commentary:view` check.
+- [Feedback contract](https://github.com/paperclipai/paperclip/blob/cde944ed75648adfb569e86133adc8b118b55dd6/doc/agent-commentary.md) — default skills, native tools, storage, and the Commentary page.
+- [Commentary page](https://github.com/paperclipai/paperclip/blob/cde944ed75648adfb569e86133adc8b118b55dd6/ui/src/pages/audit/AgentCommentary.tsx) and [role defaults](https://github.com/paperclipai/paperclip/blob/cde944ed75648adfb569e86133adc8b118b55dd6/server/src/services/company-member-roles.ts) — filters, shareable links, and who can read it.

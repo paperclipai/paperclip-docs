@@ -47,6 +47,10 @@ That's not a permission problem with your account. Paperclip Cloud sets those va
 
 Only some features are managed this way. Anything without the badge is still yours to turn on and off exactly as described above, and the two kinds sit side by side in the same list — so the badge is what tells you which is which, on any given release.
 
+**Who can change toggles on Cloud.** On a Paperclip Cloud instance, a person with the Admin role on the Cloud stack can change the editable experimental toggles, even without full instance-admin rights. Members, Support users, and agents can't. Toggles the operator has hidden and values with the lock badge stay protected either way.
+
+On a Cloud staging instance (an address ending in `.staging.paperclip.app`), most feature toggles aren't locked: Cloud's values act as the starting point, and any change you save sticks across reloads. Cloud's access and execution policies stay managed there, and production Cloud keeps its locked values as described above.
+
 **Self-hosted instances are unaffected.** If you run Paperclip yourself, there is no managed configuration, no lock badge, and every card on the page stays editable. What makes the difference is a single environment variable, [`PAPERCLIP_MANAGED_CONFIG`](../reference/deploy/environment-variables.md#cloud-managed-instances), which only the Paperclip Cloud harness sets.
 
 ## The features
@@ -76,7 +80,7 @@ The tables follow the page's own sections and order. Where a feature has a page 
 | [Memory connectors](../connectors/memory-connectors.md) | Set up Mem0, Zep, Supermemory, Cognee, or Honcho for agents. Existing connections keep running when setup is hidden. |
 | [Muse — Personal agent](external-agents.md) | Connect your personal Meta Muse and verify a background reply before assigning tasks. Needs Paperclip Runner and an authenticated instance with a public HTTPS URL. |
 | [OpenAI Dot](external-agents.md) | Adds OpenAI Dot as a standalone agent choice. Needs Assistant connections (MCP) and an authenticated instance with a public HTTPS URL. |
-| [Paperclip Runner](../reference/adapters/paperclip-runner.md) | Native agent execution, on by default for self-hosted instances and off by default on Cloud. The switch controls the Runner's other providers (Muse and Grok Bot need it, for example). New Codex agents resolve to the Runner on supported macOS and Linux hosts even when it's off, unless you pick **Legacy runner** as the runner override. See [Experimental external providers](../reference/adapters/paperclip-runner.md#experimental-external-providers). |
+| [Paperclip Runner](../reference/adapters/paperclip-runner.md) | Native agent execution, on by default for self-hosted instances and off by default on Cloud. The switch controls the Runner's other providers (Muse and Grok Bot need it, for example). New Codex and Claude Code agents resolve to the Runner on supported macOS and Linux hosts even when it's off, unless you pick **Legacy runner** as the runner override. See [Experimental external providers](../reference/adapters/paperclip-runner.md#experimental-external-providers). |
 | [Simplified English Interactions](../reference/skills/optional/content/simplified-english.md) | Agents write confirmations, questions, and suggested tasks in ASD-STE100 Simplified Technical English. |
 | [Status Cards](status-cards.md) | A shared board of living summaries, kept current by the Summarizer. Enabling it also enables Summaries. |
 | Streamlined UI | **On by default.** The simplified sidebar, focused task detail layout, and contextual navigation. Turning it off restores the legacy shell and navigation. |

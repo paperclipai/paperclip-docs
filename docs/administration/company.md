@@ -53,6 +53,31 @@ The **Interaction governance** section sets, for each kind of interaction card (
 
 The **Decision model** section is where you choose the shared OpenAI or OpenRouter API connection Paperclip uses for optional small-model decisions. API usage is charged to that connection. It sits on **General**, or moves to the **Connections** page when the instance's **Experimental fast responses** setting is on. See [Costs and Budgets → Decisions](../guides/day-to-day/costs.md#decisions) for setup, testing, and where the usage shows up.
 
+### Agent observability
+
+The **Agent observability** section lets you send logs and traces from your Codex and Claude Code agents to your own observability service, so you can follow what an agent did turn by turn outside Paperclip. It sits on **General**, just below **Decision model**. You need the **Manage connections** permission to see or change it; other board members see a short note instead.
+
+Export is off until you set it up:
+
+1. Pick a **Destination**:
+   - **Braintrust** — enter your Braintrust **Project ID** and an **API key**. Records go to Braintrust's US endpoint.
+   - **Custom OTLP** — enter an **OTLP base URL**, such as `https://collector.example.com`, without `/v1/logs` or `/v1/traces` on the end. Use **Add header** for any authentication headers your collector needs (up to 16). This is also the route for Braintrust EU, a self-hosted Braintrust, or your own collector when you want to fan records out to several services.
+2. Turn on **Enable export**.
+3. Open **Content capture** if you want to trim what's sent. **User prompts**, **Assistant responses**, **Tool output and content**, and **Additional tool details (Claude Code)** are all on by default.
+4. Click **Save changes**, then **Test saved settings**.
+
+The test sends one synthetic trace and log from the Paperclip server, without any task content, and shows **Test payload accepted** when your service takes them. That proves the settings work from the server. It doesn't prove that each agent's machine can reach the destination, so check a real task's records too. The URL has to be reachable from every execution environment your agents use; `localhost` means the machine the agent runs on, which may be a remote sandbox.
+
+A few things to know:
+
+- **New runs only.** Changes apply to runs that start after you save. Work that's already running keeps the settings it started with.
+- **Agents can see the credential.** Paperclip stores your key or header values in an encrypted, Paperclip-managed company secret and never shows them again. The agent's runtime still needs them to send records, so use a key that can only ingest telemetry, never a broad admin key.
+- **Records carry content.** With capture on, exported records can include prompts, responses, and tool output. Each record is tagged with `paperclip.company.id` and `paperclip.agent.id` so you can filter by agent.
+- **Export never blocks work.** If the settings are missing or a credential can't be read, the run goes ahead without export and the run log notes an `agent_observability.unavailable` warning. A slow or failing destination doesn't fail the task either.
+- **Changing the endpoint.** If you move a Custom OTLP URL to a different host, port, or scheme, you have to re-enter every header value. On the same host, leaving a value blank keeps the saved one.
+
+Use **Disable export** to pause sending while keeping your settings, or **Remove configuration** to clear everything. The REST routes are listed under [Companies → Agent observability](../reference/api/companies.md#agent-observability). This feature is separate from Paperclip's own telemetry and doesn't change it.
+
 ### Feedback sharing, Export, and Import
 
 There's no organization-level feedback toggle on this page anymore. Whether thumbs-up / thumbs-down votes can send AI output to Paperclip Labs is now the instance-wide **AI feedback sharing** setting, further down the same page — see [Settings](./settings.md#ai-feedback-sharing).
@@ -80,7 +105,7 @@ Paperclip uses four human membership roles. The role determines a set of implici
 - **Owner** — full company access. Includes creating agents and skills, managing execution environments, inviting humans and agents, managing members and grants, assigning tasks, approving join requests, and managing the tool and MCP setup — connections, runtime slots, gateways, and test calls.
 - **Admin** — an operator with invite and approval powers. Can create agents and skills, manage execution environments, invite users, assign tasks, approve join requests, and manage the tool and MCP setup (connections, runtime, gateways, and test calls) just like an Owner. The one thing an Admin cannot do that an Owner can is manage other members' permissions.
 - **Operator** — a hands-on member who helps run work. Can edit the company's work — create agents and skills, manage execution environments, invite people, assign tasks, and use and manage tool connections — but cannot approve join requests or manage member permissions.
-- **Viewer** — read-only access. No built-in grants.
+- **Viewer** — read-only access. The only built-in grant is `commentary:view`, so Viewers can read agent commentary in Audit.
 
 The role drop-down in the edit dialog also accepts **Unset**, which leaves the member without any implicit grants.
 
@@ -108,7 +133,7 @@ Clicking **Edit** opens a dialog with three controls:
 2. **Membership status** — `Active`, `Pending`, or `Suspended`.
 3. **Grants** — a two-column grid of explicit permission grants. A read-only panel above the grid lists the grants the selected role provides implicitly. Checking a box here stores the grant explicitly on the member, so it persists even if the role later changes.
 
-The keys you will reach for most often are `agents:create`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `tasks:assign_scope`, `tasks:manage_active_checkouts`, `pipelines:write`, `audit:view_agent_actions`, and `joins:approve`. Each box is labelled with a human name and its underlying key for reference. Four of these — `tasks:assign_scope`, `tasks:manage_active_checkouts`, `pipelines:write`, and `audit:view_agent_actions` — are never part of a role's implicit grants, so the only way a member gets them is by checking the box here. For the complete list of keys, what each one gates, and which roles include it by default, see [Roles & Permissions](./roles-and-permissions.md).
+The keys you will reach for most often are `agents:create`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `tasks:assign_scope`, `tasks:manage_active_checkouts`, `audit:view_agent_actions`, and `joins:approve`. Each box is labelled with a human name and its underlying key for reference. Two of these — `tasks:assign_scope` and `tasks:manage_active_checkouts` — are never part of a role's implicit grants, so the only way a member gets them is by checking the box here. `audit:view_agent_actions` comes with the Operator role only, so check it here to give it to anyone else. For the complete list of keys, what each one gates, and which roles include it by default, see [Roles & Permissions](./roles-and-permissions.md).
 
 Click **Save access** to persist the changes, or **Cancel** to close the dialog without saving.
 

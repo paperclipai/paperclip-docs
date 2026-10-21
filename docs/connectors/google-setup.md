@@ -8,11 +8,11 @@ seo_description: One reusable procedure for connecting any Google Workspace conn
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** While verification is pending, the Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. This hides them from the list only. Existing Google connections keep running with their access and permissions unchanged, and an agent that needs a Google service can still ask you for it with a connection card on its task.
+> **Note:** New Google accounts connect through the single [Google Workspace](google-workspace.md) connector. The nine single-service Google connectors are no longer listed for new setup; each still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running unchanged.
 
-Nine connectors in this catalog talk to Google Workspace: Gmail, Calendar, Chat, Docs, Drive, People, Sheets, Slides, and Workspace Search. Connecting any of them with **your own** OAuth client follows the shared steps below, and this page is that procedure.
+Connecting Google with **your own** OAuth client follows the shared steps below, and this page is that procedure. It covers the [Google Workspace](google-workspace.md) connector, which is what you set up for a new Google account, and the nine single-service connectors (Gmail, Calendar, Chat, Docs, Drive, People, Sheets, Slides, and Workspace Search) that existing connections use.
 
-Read it once and reuse it. Choose the APIs and scopes for your connector and capability group. Google Chat also needs a configured Chat app.
+Read it once and reuse it. Choose the APIs and scopes for the services you plan to connect. Google Chat also needs a configured Chat app.
 
 > **Note:** You need this page only if you are bringing your own OAuth client. If **Connect with Paperclip** is offered on the connector and you are happy to use it, that path needs no Cloud console work — skip to [Check you can use the managed path first](#check-you-can-use-the-managed-path-first).
 
@@ -45,6 +45,7 @@ In the [Google Cloud console](https://console.cloud.google.com/apis/library), on
 
 | Connector | Enable these APIs |
 | --- | --- |
+| **Google Workspace** | The APIs for each service you plan to select: Gmail API and Gmail MCP API for Gmail; Drive API, Drive MCP API, Docs API, Docs MCP API, Sheets API, Sheets MCP API, Slides API, and Slides MCP API for Drive; Calendar API and Calendar MCP API for Calendar |
 | **Gmail** | Gmail API, Gmail MCP API |
 | **Google Calendar** | Calendar API, Calendar MCP API |
 | **Google Chat** | Chat API, Chat MCP API — plus a configured Chat app, see [step 4](#4-google-chat-only-configure-a-chat-app) |
@@ -61,7 +62,7 @@ Setting up several connectors on one project is normal — enable the union of w
 
 ## 3. Create the OAuth client and register Paperclip's callback
 
-First configure **Google Auth Platform → Branding** with the app identity and support contact. Under **Audience**, choose the appropriate internal or external audience; for an external app in testing, add each authorized tester. Under **Data Access**, add the scopes listed for the connector and capability group you intend to use, then save. Do not add write scopes for a read-only connection. These settings do not replace Developer Preview registration or Google's verification requirements.
+First configure **Google Auth Platform → Branding** with the app identity and support contact. Under **Audience**, choose the appropriate internal or external audience; for an external app in testing, add each authorized tester. Under **Data Access**, add the scopes listed for the connector and capability group you intend to use (for Google Workspace, the scopes for the services and access you plan to pick, listed on [its page](google-workspace.md#choose-services-and-access)), then save. Do not add write scopes for a read-only connection. These settings do not replace Developer Preview registration or Google's verification requirements.
 
 Then open the [Google Cloud console credentials screen](https://console.cloud.google.com/auth/clients):
 
@@ -83,9 +84,9 @@ In the Cloud console, open the **Chat API** → **Configuration** and complete t
 
 1. Open **Connectors** and select the connector.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it.
-3. Check the **capability group**. Most Google connectors offer a read group and a write group, and setup starts on the write (or draft) group. To connect read-only instead, select **Change** and pick the read group under **What should Paperclip be able to do?**. **The group is fixed for the life of the connection**: to change it you make a new connection, because **Reconnect** re-runs sign-in for the same group.
+3. On **Google Workspace**, skip this step: you choose services and access in a picker after you start the connection, and you can change them later with **Reconnect**. On a single-service connector, check the **capability group**. Most of them offer a read group and a write group, and setup starts on the write (or draft) group. To connect read-only instead, select **Change** and pick the read group under **What should Paperclip be able to do?**. **The group is fixed for the life of the connection**: to change it you make a new connection, because **Reconnect** re-runs sign-in for the same group.
 4. Select **Use your own Google OAuth app** and supply the client ID and secret from step 3.
-5. Complete Google's consent screen **signed in as the registered Workspace account**.
+5. Complete Google's consent screen **signed in as the registered Workspace account**. On Google Workspace, the service picker opens first; choose services and access, then select **Continue**.
 
 Then open the **Permissions** tab and set the actions. Reads **Allowed**; writes and destructive actions **Ask first** or **Off** until you have watched the agent work.
 
@@ -111,6 +112,7 @@ More in [Verify a connector and fix a broken one](verify-and-troubleshoot.md).
 
 ## Related guides
 
+- [Google Workspace](google-workspace.md) — one connection for Gmail, Drive, and Calendar, with access chosen per service.
 - [Gmail](gmail.md) and [Set up the Gmail connector](gmail-setup.md) — Gmail has its own page because its capability groups and sending restriction need more explanation.
 - [Google Calendar](google-calendar.md), [Google Chat](google-chat.md), [Google Docs](google-docs.md), [Google Drive](google-drive.md), [Google People](google-people.md), [Google Sheets](google-sheets.md), [Google Slides](google-slides.md), [Google Workspace Search](google-workspace-search.md)
 - [How connector access works](access-model.md)

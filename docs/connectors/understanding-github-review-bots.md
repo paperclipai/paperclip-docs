@@ -269,9 +269,17 @@ The conversation continues in the same Paperclip task, with review history
 retained and one current summary updated. Old executions cannot overwrite the
 latest head's assessment.
 
-On GitHub, each accepted request gets one comment owned by the bot's App, which
-it edits from a working note to the final result. That stays true if you
-reconnect the same App while a review is running. If GitHub is slow or briefly
+On GitHub, the bot keeps one main comment per PR, owned by its App. A new push
+or repeat request updates that comment to **Review queued…**, and the agent's
+progress and final assessment keep editing the same comment rather than adding
+new ones. That stays true across restarts, and if you reconnect the same App
+while a review is running. Issue conversations and inline review threads still
+get one editable comment per request.
+
+If the work stops before the agent posts a result, Paperclip updates the comment
+so it doesn't keep claiming the bot is still working. When the task is blocked,
+the comment reads *"Work is paused. Your request is saved. See the Paperclip
+task for details."* and the request stays open until work resumes. If GitHub is slow or briefly
 unavailable while the result is being published, Paperclip retries it from the
 saved assessment instead of asking the agent to review again, and it does not
 post a duplicate comment or check.
