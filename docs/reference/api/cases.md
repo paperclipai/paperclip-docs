@@ -8,7 +8,9 @@ seo_description: Cases handle document-heavy work that will not fit one issue �
 
 A **case** is a first-class work object for the messy, document-heavy work that doesn't fit neatly into a single issue — a research write-up, an investigation, a proposal, a piece of legal or compliance review. Where an issue tracks a unit of work through a status pipeline, a case is a container: it has a type you define, a title and summary, arbitrary structured `fields`, attached documents (with full revision history, locking, and inline annotation threads), file attachments, labels, an event timeline, and typed links back to the issues that spawned or serviced it. Cases can also nest, so a parent case can gather a family of related child cases.
 
-Cases are company-scoped, and — like the rest of the control-plane API — company access is enforced on every request. If you are new to the API, read the [API Overview](./overview.md) first for base URL, authentication, and error-code conventions; this page builds on those and won't repeat them.
+A case can also carry a **primary task** that moves between agents phase by phase. Instead of opening a new task for each step, an agent hands the same task to the next agent with a [case handoff](#case-handoffs). For a walkthrough of how this looks in the app, see the [Cases guide](../../experimental/cases.md).
+
+Cases are company-scoped, and — like the rest of the control-plane API — company access is enforced on every request. On top of that, a case stays inside the permissions of the tasks and projects it came from: if a case was started from a private task, callers who can't read that task can't read the case either, and unlinking the task doesn't lift the restriction. If you are new to the API, read the [API Overview](./overview.md) first for base URL, authentication, and error-code conventions; this page builds on those and won't repeat them.
 
 > **Experimental — off by default.** Cases are gated behind an instance experimental setting. Until an operator turns on `enableCases`, **every** endpoint on this page responds `403 Forbidden` with `{ "error": "Cases are disabled" }`. Because the feature is still experimental, treat the request and response shapes below as subject to change between releases.
 
@@ -48,6 +50,9 @@ A case also has these core fields:
 | `projectId` | Optional project the case belongs to. Must belong to the same company. |
 | `parentCaseId` | Optional parent case, so cases can nest. Must belong to the same company, and a case cannot be its own parent. |
 | `completedAt` | Set by the server when the status becomes `done` or `cancelled`, and cleared otherwise. |
+| `workIssueId` | The case's primary task, if it has one. Every handoff reuses this same task. Set by the handoff routes, not by create or update. |
+| `phase` | The current phase name, as set by the last applied handoff (for example `triage` or `verification`). A free-form label — Paperclip doesn't enforce phase order. |
+| `handoffVersion` | A counter that increases with each applied handoff. Send it back as `expectedHandoffVersion` so a handoff fails cleanly if someone else routed the case first. |
 
 ### Status values
 
@@ -82,7 +87,26 @@ Return the company's cases, newest activity first.
 | `parent` | Filter to the direct children of a given parent case (UUID). |
 | `q` | Case-insensitive search across `identifier`, `title`, `summary`, and `key`. |
 | `includeAncestors` | When `true`, also return the parent chain of every matched case. Each returned row carries `matchesListFilters` — `true` for rows that matched your filters, `false` for ancestors pulled in only for context. |
+| `sortField` | `updated` (default), `created`, `title`, `status`, or `type`. |
+| `sortDir` | `asc` or `desc` (default). |
+| `groupBy` | `none` (default), `status`, `type`, or `project`. Rows come back ordered by the group first, then by your sort. |
 | `limit` | Positive integer, 1–200. Defaults to `100`. |
+| `offset` | Skip this many matching cases, for paging. 0–100,000. Defaults to `0`. |
+
+Each row also carries two work summaries:
+
+- `workIssue` — a compact view of the primary task (`id`, `identifier`, `title`, `status`, `statusVersion`, `assigneeAgentId`, `assigneeAgentName`), or `null` if there's no primary task or you can't read it.
+- `pendingHandoff` — the handoff currently in flight for that task (with `fromAgentName` and `toAgentName`), or `null`.
+
+---
+
+## List Case Types
+
+```
+GET /api/companies/{companyId}/cases/types
+```
+
+Return a sorted array of the distinct `caseType` values across the cases you can see — handy for building a type filter. Types used only by cases you can't read are left out.
 
 ---
 
@@ -92,13 +116,22 @@ Return the company's cases, newest activity first.
 GET /api/cases/{id}
 ```
 
-Return the full case detail. On top of the core fields, the response folds in the related objects you need to render a case page:
+Return the full case detail. Query parameters:
+
+- `includeDocumentBodies` — defaults to `true`. Set `false` to return document metadata without the document bodies.
+
+On top of the core fields, the response folds in the related objects you need to render a case page:
 
 - `parent` — a compact summary of the parent case, if any.
 - `labels` — the attached labels.
 - `issueLinks` — the linked issues, each with its `role` and a compact issue summary (`id`, `identifier`, `title`, `status`).
 - `documents` — the case's keyed documents, each as `{ key, document }`.
 - `attachments` — uploaded files, each with its stored asset.
+- `workIssue` and `pendingHandoff` — the same work summaries returned by the list route.
+- `taskDocuments` — references to the documents on the primary task and on linked tasks. Each entry has an `id`, `taskId`, `taskIdentifier`, `key`, `scope` (`primary` or `linked`), the document metadata (no body), and a `readPath` such as `/api/issues/{taskId}/documents/{key}` for fetching the body. The primary task's `workflow` document comes first. Only tasks you can read are included.
+- `taskDocumentsOmitted` — `true` when there were more task documents than the response includes.
+
+Issue links, the parent case, and task documents are filtered to what you're allowed to read.
 
 ---
 
@@ -123,7 +156,7 @@ Request body:
 | `projectId` | no | Must belong to the company, or `null`. |
 | `parentCaseId` | no | Must belong to the company, or `null`. |
 
-Unknown fields are rejected. A `projectId` that doesn't belong to the company, or a `parentCaseId` that doesn't (or that points at the case itself), comes back as `422 Unprocessable Entity` — for example `{ "error": "Project does not belong to company" }` or `{ "error": "A case cannot be its own parent" }`.
+Unknown fields are rejected. This route doesn't start a workflow or set a primary task — use [Start a handoff](#start-a-handoff) for that. A `projectId` that doesn't belong to the company, or a `parentCaseId` that doesn't (or that points at the case itself), comes back as `422 Unprocessable Entity` — for example `{ "error": "Project does not belong to company" }` or `{ "error": "A case cannot be its own parent" }`.
 
 ### Example
 
@@ -159,6 +192,8 @@ Notes:
 - Unknown fields are rejected.
 - Setting `status` to `done` or `cancelled` stamps `completedAt`; any other status clears it.
 - `projectId`, `parentCaseId`, and every label id are validated against the company; a mismatch returns `422 Unprocessable Entity` (e.g. `{ "error": "One or more labels do not belong to company" }`).
+- `phase`, `workIssueId`, and assignment aren't editable here — they change only through [case handoffs](#case-handoffs).
+- When an agent run writes to a case, the run must still own its task. A Paperclip Runner run whose task has moved on (for example, after it handed the task off) gets `403 Forbidden` with `{ "error": "The task is no longer writable by this run" }`. The same applies to document, annotation, and attachment writes.
 - The update records a matching event on the case timeline — `status_changed`, `fields_changed`, `child_linked`, `label_added` / `label_removed`, or a generic `updated`.
 
 ---
@@ -203,6 +238,8 @@ When an agent run acts on a case, the server links the run's issue to the case a
 ---
 
 ## Case Documents
+
+> **New work belongs on tasks.** For cases with a primary task, drafts, briefs, and reports live as ordinary task documents, and case detail surfaces them through `taskDocuments`. The routes below remain for documents saved directly on a case.
 
 Case documents are revisioned artifacts attached to a case under a stable **key** — for example `summary`, `findings`, or `report`. Each write appends a new revision, so history is never overwritten. Documents also support locking and inline annotation threads.
 
@@ -379,11 +416,126 @@ Events are typed by `kind`:
 | `attachment_added` | A file is uploaded. |
 | `label_added` | A label is attached. |
 | `label_removed` | A label is removed. |
+| `handoff_requested` | A handoff is accepted and waiting to be applied. |
+| `handoff_applied` | The primary task is reassigned to the next agent. |
+| `handoff_delivered` | The next agent's wake-up is queued. |
+| `handoff_completed` | A handoff to `done` settles because the primary task was completed. |
+| `handoff_cancelled` | A pending handoff is cancelled. |
+
+---
+
+## Case handoffs
+
+A handoff passes a case's primary task from one agent to the next — or to `done` to close the case. The task stays the same; only its assignee, the case `phase`, and the `handoffVersion` change. Agents on the Paperclip Runner use the native `create_case`, `read_case`, `update_case`, and `handoff_case` tools, which go through the same rules as these routes.
+
+Handoffs are durable. Paperclip records the intent first, waits until the outgoing agent's run has stopped and its workspace has settled, then reassigns the task and queues the next agent's wake-up. A restart in the middle picks the handoff up again rather than losing or duplicating it. Only one handoff can be pending per case at a time.
+
+On the routes below, `{caseId}` must be the case UUID — the human-readable identifier isn't accepted here.
+
+### Start a handoff
+
+```
+POST /api/companies/{companyId}/case-handoffs
+```
+
+There are two shapes. An **agent handoff** sends the primary task to an agent:
+
+| Field | Required | Notes |
+|---|---|---|
+| `idempotencyKey` | yes | 1–240 characters. Retrying with the same key and the same body returns the original receipt; a different body under the same key is a `409`. |
+| `case` | yes | Either `{ "id": "<case-uuid>" }` for an existing case, or `{ "create": { ... } }` to create one. `create` accepts `caseType`, `title`, and optional `summary`, `fields`, and `projectId`. |
+| `toAgentId` | yes | The agent receiving the task. |
+| `phase` | yes | 1–120 characters, such as `triage` or `implementation`. |
+| `instructions` | yes | What the next agent should do, up to 20,000 characters. |
+| `workflow_document_text` | when creating the primary task | The workflow description, saved verbatim as the task's `workflow` document (titled **Workflow**). Required for `case.create`; not accepted on later handoffs. |
+| `expectedHandoffVersion` | for an existing case | The case's current `handoffVersion`. |
+| `expectedIssueStatusVersion` | with `bindIssueId` | The bound task's current status version. |
+| `bindIssueId` | no | Use an existing task as the primary task instead of creating one. Only for a case that has no primary task yet. |
+| `initialDocuments` | no | Up to 20 `{ key, title, body }` documents seeded on a newly created primary task. The key `workflow` is reserved, keys must be unique, and all bodies together (including the workflow text) are capped at 200,000 characters. |
+
+A **done handoff** asks Paperclip to close the case when its primary task completes:
+
+| Field | Required | Notes |
+|---|---|---|
+| `to` | yes | The literal `"done"`. |
+| `idempotencyKey` | yes | As above. |
+| `case` | yes | `{ "id": "<case-uuid>" }`. The case must already have a primary task. |
+| `instructions` | yes | Up to 20,000 characters. |
+| `expectedHandoffVersion` | yes | The case's current `handoffVersion`. |
+| `expectedIssueStatusVersion` | yes | The primary task's current status version. |
+
+A done handoff doesn't move the task or satisfy any completion gate. It waits in `awaiting_completion` until the task is completed normally, including any required review or approval, then closes the case and sets its phase to `done`. Stopping the run, cancelling the task, or reassigning it cancels a waiting done handoff.
+
+A new handoff responds `202 Accepted`; a replay of an earlier one responds `200 OK`. The receipt contains:
+
+| Field | Meaning |
+|---|---|
+| `handoffId`, `caseId`, `taskId`, `taskIdentifier` | What was handed off. |
+| `handoffVersion` | The case's routing version for this handoff. |
+| `destinationKind` | `agent` or `done`. |
+| `state` | See [handoff states](#handoff-states). |
+| `completedAt` | When a done handoff settled, otherwise `null`. |
+| `callerMustYield` | `true` when the calling agent run handed off its own task and must end its turn now. |
+| `replayed` | `true` when this is the receipt of an earlier identical request. |
+
+Common errors: `409` when the case or task changed since you read it (reload and retry), when a handoff is already pending for the case, or when the task is already another case's primary task; `422` when the task isn't an ordinary work task, has unresolved blockers or review, or would break a private task or project boundary; `403` when the recipient can't access the case.
+
+#### Example
+
+```bash
+curl -sS -X POST \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  "https://paperclip.example.com/api/companies/{companyId}/case-handoffs" \
+  -d '{
+    "idempotencyKey": "csv-export-verify-1",
+    "case": { "id": "{caseId}" },
+    "toAgentId": "{verifierAgentId}",
+    "phase": "verification",
+    "instructions": "The export is implemented and the checks pass. Verify it against the brief.",
+    "expectedHandoffVersion": 2
+  }'
+```
+
+### Handoff states
+
+| State | Meaning |
+|---|---|
+| `awaiting_release` | Accepted. Waiting for the outgoing agent's run and workspace to settle. |
+| `pending_dispatch` | The task has been reassigned; the next agent's wake-up is being queued. |
+| `delivered` | The wake-up was queued. This doesn't prove the next agent has run yet. |
+| `awaiting_completion` | A done handoff waiting for the primary task to complete. |
+| `completed` | The done handoff settled and the case closed. |
+| `cancelled` | The handoff was cancelled. An already-applied reassignment is not reversed. |
+
+### List handoffs
+
+```
+GET /api/cases/{caseId}/handoffs
+```
+
+Return the case's handoff history, newest first. Query parameters:
+
+- `limit` — 1–100. Defaults to `25`.
+- `cursor` — the `nextCursor` from a previous page.
+- `before` — an ISO timestamp; return only handoffs created before it.
+
+The response is `{ items, nextCursor, canControl }`. Each item includes the handoff's `phase`, `instructions`, `state`, `destinationKind`, `fromAgentId` / `toAgentId` with `fromAgentName` / `toAgentName`, `version`, timestamps, and any `lastError`. `canControl` is `true` when you're allowed to retry or cancel the pending handoff.
+
+### Retry or cancel a pending handoff
+
+```
+POST /api/cases/{caseId}/handoffs/{handoffId}/retry
+POST /api/cases/{caseId}/handoffs/{handoffId}/cancel
+```
+
+Both require control of the primary task. **Retry** schedules another delivery attempt for a pending agent handoff right away; on a done handoff or a handoff that's no longer pending it simply returns the current record. **Cancel** cancels a pending handoff — it never reverses a reassignment that already happened — and still works while Cases is turned off. Both return the handoff record.
 
 ---
 
 ## Where to go next
 
+- [Cases guide](../../experimental/cases.md) — how case workflows, handoffs, and the read-only Cases pages look in the app.
 - [Issues](./issues.md) — the work objects cases link to, and the source of the issue identifiers used by `POST /api/cases/{id}/links` and `GET /api/issues/{issueId}/cases`.
 - [Goals and Projects](./goals-and-projects.md) — the projects a case can belong to via `projectId`.
 - [API Overview](./overview.md) — base URL, authentication, company scoping, and the shared error-code table.

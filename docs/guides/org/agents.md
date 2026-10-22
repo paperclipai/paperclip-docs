@@ -85,6 +85,8 @@ Clicking **New Agent** opens a short dialog titled **Meet your next agent**. A p
 
 Type the new agent's name in **Agent name** (for example "Ada") and click **Choose adapter**. That's the only thing this step asks for.
 
+Paperclip saves the agent as soon as you submit its name, so your setup has a place to live from the start. Until you finish, the agent sits in your agent list as `paused` and doesn't take any work. If another agent already has that name, Paperclip adds a number (for example "Ada 2") and the next step uses it. Going **Back** to change the name updates the same agent instead of creating a second one.
+
 ### Step 2: Adapter
 
 The dialog switches to **Choose an adapter** and asks how your agent should work. Pick one of the adapter cards — this decides which AI runtime powers the agent (Claude Code, Codex, OpenCode, a remote gateway, and so on). If you pick Paperclip Runner, a **Runner** dropdown appears so you can choose which runtime it drives.
@@ -99,7 +101,9 @@ After the dialog, you land on a setup page with your agent's character and name 
 
 1. **Connect** — only for adapters that sign in to a model provider (Claude, Codex, Grok). Pick an **Environment** and connect your account.
 2. **Configure** — choose the **Runtime** options (the model, plus any adapter-specific fields like an API key) and the **Environment** the agent runs in. The **Test your agent** card at the bottom runs a quick check that your runtime and model can respond; click **Run test** before you finish.
-3. **Confirmation** — click **Finish setup**. Paperclip creates the agent and shows **Your agent is ready**, with buttons to **Edit configuration** or assign the new agent its first task.
+3. **Confirmation** — click **Finish setup**. Paperclip completes the agent you started and shows **Your agent is ready**, with buttons to **Edit configuration** or assign the new agent its first task. If your company requires board approval for new agents, the approval is requested at this point.
+
+**Coming back to an unfinished agent.** If you close setup part-way, the agent stays paused in your list. Its page shows **Finish setup** where **Resume** would normally be. Click it to return to setup with your saved choices. An unfinished agent can't be resumed, and API keys can't be created for it, until setup is done.
 
 ### What Paperclip fills in for you
 
@@ -177,7 +181,7 @@ The actions in the header work on every page:
 - **Assign Task** — opens the new-task dialog with this agent pre-selected as assignee
 - **Run now** — wakes the agent for a heartbeat right away and takes you to the new run (useful for testing instruction changes)
 - **Run with provider trace** — the same, but also records the exact traffic to the model provider for that run. Only instance administrators (or a local single-user setup) see this button, and the trace expires after 24 hours.
-- **Pause / Resume** — toggles the agent between `paused` and `active`
+- **Pause / Resume** — toggles the agent between `paused` and `active`. An agent whose setup isn't finished shows **Finish setup** instead of **Resume**.
 - **Clear error** — appears when the agent is in `error`, and returns it to idle
 - **More actions (`⋯`)** — Duplicate Agent, Copy Agent ID, Reset Sessions, Terminate
 

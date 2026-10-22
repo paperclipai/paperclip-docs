@@ -431,6 +431,38 @@ The test route returns a receipt with `status` (`accepted`, `partial`, or `faile
 
 ---
 
+## Prompt injection prevention
+
+These routes manage the company's optional [model-backed prompt injection check](../../connectors/prompt-injection-prevention.md) on tool results.
+
+| Route | Purpose | Who can call it |
+|---|---|---|
+| `GET /api/companies/{companyId}/prompt-injection-prevention` | Read the settings and the eligible connections | Board users with company access; `settings` is `null` and `choices` is empty unless you can manage connections |
+| `PUT /api/companies/{companyId}/prompt-injection-prevention` | Save the settings | Board users with **Manage connections** |
+| `GET /api/companies/{companyId}/prompt-injection-prevention/models?connectionId=<uuid>` | List OpenRouter model suggestions for one of your eligible connections | Board users with **Manage connections** |
+| `POST /api/companies/{companyId}/prompt-injection-prevention/test` | Classify two fixed samples with the saved settings (billed) | Board users with **Manage connections** |
+
+Agents can't call these routes. The `GET` response has the shape `{ "canManage": true, "settings": { ... }, "choices": [ ... ] }`, where `choices` lists the company's shared OpenRouter API connections. A company that has never saved settings comes back with `enabled: false`, no connection, and the default model.
+
+A `PUT` body looks like this:
+
+```json
+{
+  "enabled": true,
+  "connectionId": "<connection-uuid>",
+  "grantId": "<grant-uuid>",
+  "model": "openai/gpt-oss-safeguard-20b"
+}
+```
+
+- `connectionId` and `grantId` are set together or both `null`. You can't set `enabled: true` without a connection.
+- `model` is an OpenRouter model ID without the `openrouter/` prefix.
+- The response is the saved settings object.
+
+The test route takes an empty `{}` body and returns `{ "passed": true, "samples": [ ... ] }`. Each sample carries its `name`, `expectedViolation`, `actualViolation`, `passed`, `durationMs`, and — when the model couldn't answer — a `reason`. A sample that fell back to built-in detection doesn't count as a pass.
+
+---
+
 ## Export and import
 
 Paperclip exposes both broad and company-scoped portability routes:

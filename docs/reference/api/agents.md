@@ -339,6 +339,7 @@ Important behavior:
 - The optional `runner` field picks how a Codex or Claude Code agent runs: `auto` (the default), `paperclip`, or `legacy`. With `adapterType: "codex_local"`, `auto` stores the agent as `paperclip_runner` with `provider: "codex"` when the target environment qualifies for Paperclip Runner (macOS on Apple Silicon or Intel, or Linux x64/ARM64 with GNU libc 2.39 or newer), and keeps `codex_local` otherwise. With `adapterType: "claude_local"`, `auto` stores `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"` on the same targets, except that a macOS host reached over SSH, or a target whose platform can't be detected, keeps `claude_local`. A blank Claude `model` resolves to `claude-opus-5-5`. `legacy` always keeps the classic adapter.
 - Asking for `paperclip` on a target that doesn't qualify fails with `422` and code `agent_runner_unavailable`. Legacy-only settings that Paperclip Runner can't honour (for example a `codexPermissionMode` other than `never`, or `chrome` or `maxTurnsPerRun` on a Claude agent) fail with `422` and code `agent_runner_config_incompatible`, listing the offending `fields` — remove them or choose `legacy`.
 - Only an operator can set `adapterConfig.homeMode`. An agent caller that includes it gets `403` with `Only an operator can configure Runner homeMode.`
+- To save an agent before setup is finished (the way the **New Agent** dialog does when you submit a name), send a fresh uuid as `setupId`. The server creates the agent with that ID, `status: "paused"`, and `pauseReason: "setup"`, and skips the board-approval check, which happens when the hire is finished. Sending the same `setupId` again returns the same agent. Only a signed-in board user can do this. While setup is unfinished, `POST /api/agents/{agentId}/resume` returns `409` with `Finish agent setup before resuming`, and creating an API key returns `409` with `Finish agent setup before creating keys`.
 
 ### Example
 
@@ -474,6 +475,7 @@ Important behavior:
 - An agent on the `paperclip_runner` adapter can send `"inheritRuntimeFrom": "caller"` to give the new hire the calling agent's runner settings and default environment. The new agent must also use `adapterType: "paperclip_runner"`, and you can't combine this with `adapterConfig`, `runtimeConfig`, or `defaultEnvironmentId` — the server copies the adapter config and default environment from the calling agent. Board users can't use this option; it's rejected with `403 Forbidden`.
 - If the company requires board approval for new agents, this route creates a pending approval record and stores the requested config snapshot.
 - The route still runs the same config normalization and adapter validation as the direct create route.
+- To finish an agent saved with `setupId` on the create route, send its ID as `setupAgentId`. The hire completes that same agent instead of creating a new one, and any board-approval requirement applies here. Repeating the call for an agent whose setup is already finished returns the agent and its approval with `idempotent: true`. An unknown ID returns `404` with `Agent setup not found`.
 
 ---
 

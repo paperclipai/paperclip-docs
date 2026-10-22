@@ -11,6 +11,8 @@ Two separate procedures, because GitHub does two unrelated jobs. Pick the one yo
 - [Set up GitHub as an agent tool](#set-up-github-as-an-agent-tool) — agents read and act on repositories.
 - [Set up chat from GitHub](#set-up-chat-or-a-pr-review-bot-from-github) — people work with an agent from issue and pull-request comments.
 
+Want agents to run on your GitHub Copilot plan instead? That's a separate AI connection under **Connect Copilot** on the same **GitHub** row. See [GitHub Copilot](github-copilot.md).
+
 For what each route governs, and the shell Git and `gh` exception, see [GitHub](github.md). Read the exception before granting an agent a dedicated identity.
 
 ## Set up GitHub as an agent tool
@@ -126,6 +128,7 @@ More in [Verify a connector and fix a broken one](verify-and-troubleshoot.md).
 - [Set up a GitHub review bot](github-review-bot-setup.md)
 
 - [GitHub](github.md)
+- [GitHub Copilot](github-copilot.md)
 - [Connect an agent to a GitHub repo](../how-to/connect-agent-to-github.md)
 - [Use separate accounts for people and agents](separate-accounts.md)
 - [Set action permissions](action-permissions.md)

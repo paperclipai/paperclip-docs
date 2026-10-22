@@ -7,11 +7,11 @@ seo_description: Configure Paperclip Runner for native agent sessions. Choose a 
 
 Use `paperclip_runner` when you want Paperclip's native run lifecycle, durable session recovery, and built-in task tools. You select the provider separately from the adapter, then configure model access and the execution environment.
 
-Paperclip Runner is experimental. Native Codex and **ACP agents → Claude** are the exceptions to the rollout switch: new Codex and Claude agents use the Runner by default on supported machines (see [New Codex and Claude agents use the Runner](#new-codex-and-claude-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
+Paperclip Runner is experimental. Native Codex, **ACP agents → Claude**, and **ACP agents → GitHub Copilot** are the exceptions to the rollout switch. Copilot agents keep running when the switch is off, and first-run setup offers **GitHub Copilot** either way. New Codex and Claude agents also use the Runner by default on supported machines (see [New Codex and Claude agents use the Runner](#new-codex-and-claude-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
 
 ## Before you start
 
-- For providers other than Codex and ACP Claude, an instance with **Paperclip Runner** enabled under **Settings → Experimental**.
+- For providers other than Codex, ACP Claude, and ACP GitHub Copilot, an instance with **Paperclip Runner** enabled under **Settings → Experimental**.
 - An active agent and a task in standard, planning, or ask work mode.
 - A prepared execution environment and compatible model credential.
 - The pinned runtime required by the selected provider.
@@ -70,11 +70,12 @@ These `claude_local` settings only work on the Legacy runner: `chrome`, a custom
 | **ACP agents → Claude** (`acpx`, `claude`) | Qualified Claude ACP runtime — Claude Agent SDK `0.3.286`, which runs Claude Code `2.1.286`. Configure a Claude-compatible AI connection. |
 | **ACP agents → Grok Build** (`acpx`, `grok`) | Qualified Grok Build runtime. See [Grok setup](grok-local.md#grok-build-on-paperclip-runner). |
 | **ACP agents → Cursor** (`acpx`, `cursor`) | Pinned Cursor runtime with an explicit model and Agent, Plan, or Ask mode. See [Cursor setup](cursor-local.md#cursor-on-paperclip-runner). |
+| **ACP agents → GitHub Copilot** (`acpx`, `copilot`) | Qualified Copilot runtime, pinned to Copilot CLI `1.0.88` and installed with Paperclip's packages on macOS and Linux x64. Connect a Copilot token through **Connectors → GitHub → Connect Copilot** and pick an explicit model. See [GitHub Copilot](../../connectors/github-copilot.md). |
 | **ACP agents → Pi** (`acpx`, `pi`) | Qualified Pi 1.0 runtime. Enter an explicit `provider/model` ID; Pi uses the company credentials bound to the agent's environment, such as `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY`. See [Pi on Paperclip Runner](#pi-on-paperclip-runner). |
 | **Claude Managed** (`claude_managed`) | A company-qualified managed-agent profile, retention acknowledgement, and session spend ceiling. |
 | **AWS AgentCore** (`aws_agentcore`) | A company-qualified remote-agent profile, retention acknowledgement, and estimated session spend ceiling. |
 
-GitHub Copilot appears as a qualification-pending ACP choice (**GitHub Copilot — qualification pending**) and is disabled for production runs. Selecting an arbitrary executable does not create a qualified profile. Historical ACP Codex settings normalize to the native Codex provider when saved.
+Copilot needs a specific model from your account's model list. If the model is empty, `auto`, or `default`, saving fails with *"Select an available Copilot model before saving."* Selecting an arbitrary executable does not create a qualified profile. Historical ACP Codex settings normalize to the native Codex provider when saved.
 
 Managed providers need operator-prepared profiles; they are not configured by pasting a general model API key into the provider selector. See [Managed and remote agent profiles](../api/agents.md#managed-and-remote-agent-profiles).
 
@@ -82,7 +83,7 @@ Managed providers need operator-prepared profiles; they are not configured by pa
 
 1. Create or edit the agent and choose **Paperclip Runner**.
 2. Select **Harness**. For **ACP agents**, select the **ACP agent** too.
-3. Select a model. For Codex, OpenCode, Claude, or Grok, choose a compatible **Connection**; Cursor uses its secret-backed credential environment instead.
+3. Select a model. For Codex, OpenCode, Claude, Grok, or GitHub Copilot, choose a compatible **Connection**; Cursor uses its secret-backed credential environment instead.
 4. Choose the execution environment and review permissions.
 5. Save and use **Test Environment** before assigning work.
 
