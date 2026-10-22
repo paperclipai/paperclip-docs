@@ -171,6 +171,19 @@ Some plugins are a required part of an agent's setup — they prepare something 
 
 If you disable or uninstall one of those plugins, the agents that rely on it can't finish setting up, pausing, resuming, or being cleaned up. Their page shows a failed step with the message *"A required plugin is unavailable. Check the plugin's status in Settings. Paperclip will retry automatically."* Re-enable the plugin and the step completes on its own (or click **Retry now** on the agent's page). See [Setup checks before a new agent starts work](../guides/org/agents.md#setup-checks-before-a-new-agent-starts-work).
 
+### Plugins that store your project's code
+
+A plugin can also take over where a project's repository lives. Instead of Paperclip keeping the code on its own disk and making each task's checkout there, the plugin keeps the project's storage — inside remote agent computers, for example — and prepares a checkout there for each task. Nothing changes for a project until its `executionWorkspacePolicy.storageProviderPluginId` is set to that plugin's ID; there's no project-settings control for this yet, so it's set through the [projects API](../reference/api/goals-and-projects.md).
+
+A few things behave differently for those projects:
+
+- **Files stay with the plugin.** Paperclip has no local folder for these workspaces, so file browsing and other host-side file actions aren't available for them.
+- **The owner is locked while work is live.** You can't change the project's repository source or its storage plugin while task workspaces still depend on them. Existing workspaces keep the owner they were created with.
+- **Cleanup is careful.** Paperclip only asks the plugin to remove a task's checkout once it's clean and its work is recoverable or merged.
+- **Agents run through the same plugin.** To run agents against that storage, the project's [environment](../experimental/environments.md) must come from the same plugin.
+
+Plugins like this may also keep private per-project credentials, such as a token for the remote storage. Paperclip stores them in its own encrypted secret store rather than the plugin's settings, and they never appear in your company's secret list. Because they're encrypted with your instance's local secrets master key, back that key up together with your database — see [Secrets](../reference/deploy/secrets.md).
+
 ### When the server can't be reached
 
 Plugin items in the sidebar stay quiet if the Paperclip server is briefly unreachable: they keep showing what last loaded instead of an error. Elsewhere in the app, a plugin area that fails to load shows **Plugin extensions unavailable** or **Plugin launchers unavailable** with the reason, so you know why it's empty.

@@ -23,6 +23,7 @@ Reach for the plugin SDK when you want to:
 - Register scheduled jobs, webhooks, tools, or managed agents and routines.
 - Ship a managed database namespace alongside your plugin code.
 - Bridge a new environment driver (custom sandbox / execution backend) into Paperclip.
+- Run Paperclip's Runner inside your own execution environment, or keep a project's repository storage — and the per-task checkouts made from it — somewhere other than the Paperclip host.
 
 ## When not to use
 
@@ -309,6 +310,32 @@ ctx.jobs.register("sync-lifecycle", async () => {
 });
 ```
 
+##### Private per-project credentials
+
+Some project resources need a credential that has to outlive a restart — an access token for the remote repository storage you created, say. Instead of running your own secret store, you can let Paperclip keep it for you.
+
+Add the `projects.instance-secrets` capability alongside `events.subscribe` and `"project"` in `resourceLifecycle`. Then, when you return an `"acknowledged"` result from `onResourceLifecycle` for a project event, include an `instanceSecrets` patch:
+
+```ts
+async onResourceLifecycle(event) {
+  if (event.resourceType !== "project") return { eventId: event.id, status: "acknowledged" };
+  const token = await provisionStorage(event, event.instanceSecrets?.storage_token); // your provider call
+  return { eventId: event.id, status: "acknowledged", instanceSecrets: { storage_token: token } };
+}
+```
+
+A few rules shape how this works:
+
+- **Saved together with the acknowledgement.** Paperclip stores the patch in its own encrypted secret store and acknowledges the event in one step. `"retry"` and `"deferred"` results never store a patch.
+- **Patch, not replace.** A `null` value removes a key; keys you leave out stay as they are. Each result can change up to 16 keys, each matching `[a-z][a-z0-9_]{0,63}`, with non-empty string values up to 128 KiB.
+- **Owned by your plugin and that project.** Each company, project, and installed plugin combination has its own set. Automatic project callbacks receive the current values in `event.instanceSecrets`.
+- **Stale replies are refused.** If your plugin's configuration, the project's sources, its lifecycle state, or the stored secrets changed while your callback ran, Paperclip rejects the reply and the event comes back. A repeated reply to an event that's already acknowledged can't overwrite credentials.
+- **Deleted projects can only remove.** A `delete` event can clear keys but not write them, and the secrets are deleted along with the project anyway.
+
+Outside a lifecycle callback, trusted worker code can read the values with `ctx.projects.getInstanceSecrets(projectId, companyId)` during a call scoped to that company. Archived or missing projects can't be read this way.
+
+These values never appear in lifecycle inbox listings or the company's secret list. Keep them out of plugin entities, state, data handlers, UI, and logs too. Agent instance secrets keep their own [lifecycle contract](#required-agent-lifecycle-work).
+
 #### Reading an agent's runtime inputs
 
 A plugin that keeps an external "computer" in step with an agent — copying its instructions, skills, and connections into a sandbox, for example — can read everything the agent runs with in one call:
@@ -332,11 +359,56 @@ Treat the result as desired state, not a frozen snapshot of a run in progress. C
 
 > **Note:** `agent_runtime` delivery relies on PostgreSQL `LISTEN`/`NOTIFY`, so your database connection must support session-level `LISTEN`. Transaction-mode connection poolers aren't supported for this opt-in stream.
 
+### Project storage and task workspaces
+
+Normally Paperclip keeps a project's repository on its own disk and makes each task's isolated checkout there. If your repositories live somewhere else — inside remote agent computers, say — a plugin can own both the project's storage and the task workspaces made from it. Running the agent is still a separate job, handled by an [environment driver](#running-runner-tasks-optional).
+
+#### Declaring a storage provider
+
+A storage provider needs four things in its manifest:
+
+- `workspaceProvider` — which workspace `modes` (`"shared_workspace"`, `"isolated_workspace"`, `"operator_branch"`) and `strategies` (`"project_primary"`, `"git_worktree"`) you support. For example, `{ modes: ["isolated_workspace"], strategies: ["git_worktree"] }`.
+- The `workspaces.manage` capability.
+- `"project"` in `resourceLifecycle`, plus `events.subscribe`.
+
+Without the capability and the project lifecycle stream, the manifest is rejected with "Workspace providers require workspaces.manage and project resource lifecycle".
+
+The same plugin implements two hooks. `onResourceLifecycle` creates and retains the project's storage as projects come and go. `onWorkspaceOperation(params: PluginWorkspaceParams): Promise<PluginWorkspaceResult>` manages the per-task checkouts inside that storage.
+
+#### Pointing a project at your plugin
+
+A project uses your storage once its `executionWorkspacePolicy.storageProviderPluginId` is set to your installed plugin's ID. Paperclip then reserves the execution workspace record and binds the task to it *before* calling your hook. Projects without this setting keep working exactly as before, and existing workspaces keep the owner they were created with.
+
+#### What each operation does
+
+Every call carries `pluginId`, `companyId`, `projectId`, `executionWorkspaceId`, a `generation` number, a `deadline`, a stable `operationId`, and the `operation` itself. `runId` and `agentId` are optional context — your hook must work without an environment lease, a live agent, or any folder on the Paperclip host.
+
+| `operation.kind` | Return | What you do |
+|---|---|---|
+| `prepare` | `prepared` | Create or restore the checkout from the project `source` (its `id`, `revision`, `repoUrl`, `repoRef`, `defaultRef`) using the requested `mode`, `strategy`, `branchName`, and `baseRef`. Return a `binding`, the `branchName`, the starting `baseSha`, and whether you `created` it and created the branch (`branchCreatedByRuntime`). |
+| `inspect` | `inspection` | Report the `headSha`, `branchName`, whether there are tracked changes (`hasDirtyTrackedFiles`), untracked files (`hasUntrackedFiles`), or ignored and local-only data (`hasLocalOnlyData`), plus `isMergedIntoBase` and `remotelyRecoverable`. Use `null` when you can't tell. |
+| `remove` | `removed` | Check the `expectedHeadSha` again, remove the checkout, and return only once removal is confirmed. Throw if the checkout is busy, the removal fails, or you aren't sure. |
+
+A few rules keep this safe:
+
+- **Retries are normal.** A `prepare` or `remove` retry keeps its `operationId`, so check what already happened before repeating side effects. Fresh inspections get a new ID. Use the workspace ID and `generation` to fence your own provider operations.
+- **Never lose work.** A retried `prepare` must keep local changes. With `branchMode: "existing"`, reuse the existing branch and never reset its history. You can reject modes or strategies you don't support.
+- **Removal is conservative.** Paperclip only asks you to remove a checkout that's clean and that you've reported as recoverable or merged.
+- **Bindings are addresses, not secrets.** The `binding` you return is a `WorkspaceProviderBinding` — your plugin's ID, the project, execution workspace, and project workspace IDs, the source revision, and an opaque `workspaceRef` of your own. Paperclip stores it durably. Never put credentials or host paths in it; Paperclip checks that the returned IDs match the request.
+
+Because the files don't live on the Paperclip host, Paperclip stores no local folder for these workspaces, and file browsing and other host-side file operations aren't available for them. Archive, reopen, and cleanup rules still apply. While live workspaces depend on it, a project's repository source and storage owner can't be changed, and your plugin should refuse to retire project storage while task workspaces still hold local data.
+
+#### Running agents in your workspaces
+
+To run agents against these checkouts, the project's environment must use a task-capable driver from the *same* plugin — Paperclip rejects a driver from a different one. Paperclip pins the binding on the environment lease and passes it to your driver as `PluginEnvironmentTaskParams.workspace`; your driver turns it into real mounts and a working directory. Native execution also needs the [Runner task hook](#running-runner-tasks-optional), and Paperclip won't fall back to running Runner on the host if that hook is unavailable.
+
 ### Manifest types
 
 Plugin manifests are validated against types re-exported from `@paperclipai/shared`. Importing them from the SDK gives you a single dependency.
 
 Two top-level manifest fields opt into lifecycle features: `agentLifecycle: true` makes your plugin a [required lifecycle participant](#required-agent-lifecycle-work) (needs `agents.lifecycle.manage`), and `resourceLifecycle` — an array of `"agent"`, `"project"`, and/or `"agent_runtime"` — turns on [automatic event delivery](#automatic-delivery-with-onresourcelifecycle) (needs `events.subscribe`).
+
+Two more opt into execution features. The top-level `workspaceProvider` object (`modes` and `strategies`) makes your plugin the owner of a project's [storage and task workspaces](#project-storage-and-task-workspaces) — it needs `workspaces.manage` plus `"project"` in `resourceLifecycle`. And `supportsTasks: true` on an entry in `environmentDrivers` (a `PluginEnvironmentDriverDeclaration`) says that driver can [run Runner tasks](#running-runner-tasks-optional).
 
 | Type | Declares |
 |---|---|
@@ -782,6 +854,43 @@ The typical flow is start → get (poll for status and, once authorized, fetch t
 
 `onEnvironmentRunnerIngressEndpoint(params: PluginEnvironmentRunnerIngressEndpointParams)` lets a driver hand back an authenticated private WebSocket the host's runner can dial into a leased sandbox. The params carry the current `PluginEnvironmentLease` plus the `port` and `path` to reach inside it, and you return a `PluginEnvironmentRunnerIngressEndpoint`: `kind: "authenticated_websocket"`, a `websocketUrl`, an array of `secretHeaders` (`{ name, value }`), and a `generation` string. Only implement it if your provider fronts the sandbox behind an authenticated tunnel; a driver that executes commands directly can ignore it.
 
+#### Running Runner tasks (optional)
+
+Instead of handing Paperclip a shell to run commands in, an environment driver can run Paperclip's Runner itself and hand back a secure connection to it. This suits providers that would rather not expose shell access or file transfer at all.
+
+To opt in, set `supportsTasks: true` on the driver in your manifest's `environmentDrivers` and implement:
+
+```ts
+onEnvironmentTask(params: PluginEnvironmentTaskParams): Promise<PluginEnvironmentTaskResult>
+```
+
+Paperclip calls it only for a ready plugin with the `environment.drivers.register` capability that declares the driver and advertises the `environmentTask` method. Each call carries the `lease`, a provider-issued `taskId` that stays the same across retries, `runId`, `agentId`, the company-validated `projectIds`, an optional `workspace` binding (see [Project storage and task workspaces](#project-storage-and-task-workspaces)), and an `operation`. `environmentId` and `runId` can be `null` during cleanup after those records are deleted. Paperclip works out which plugin and driver to call from the saved lease, so editing the environment can't redirect cleanup to a different provider.
+
+The SDK validates every operation and result for you. Each result must carry the same `taskId` and the result kind that matches the operation:
+
+| `operation.kind` | Return `kind` | What you do |
+|---|---|---|
+| `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. |
+| `prepare` | `prepared` | Build the provider configuration for the exact `requirements` (schema `paperclip.runner.launch-requirements.v1`) without starting a process. Return a `launch` with a `configurationId`, a `requirementsDigest`, and a `provider` descriptor. |
+| `check_project_auth` | `project_auth` | Check that nothing in the prepared configuration for these projects can replace or redirect the selected account. Return `allowed: true` only if the checks pass. |
+| `submit` | `accepted` | Start the task at most once, using the structured launch inputs — the Runner protocol range, Runner identity, `bootstrapTicket`, and optional `preparedLaunchId`, `credential`, and `launch` limits. Paperclip never sends a command line or a guest path. |
+| `connection` | `connection` | Return an `authenticated_websocket` endpoint: a `wss://` `websocketUrl` with no user info, query, or fragment, `secretHeaders` for authentication, and a `generation`. |
+| `status` | `status` | Report the `phase` and, once the Runner and everything it started have stopped, `executionStopped: true`. |
+| `read_state` / `archive_state` | `state` | Read, or archive under an idempotent `archiveKey`, that task's retained Runner state. |
+| `credentials` | `credentials` | Return the selected account's credential after the process has stopped. |
+| `copilot_metadata` | `copilot_metadata` | Check a Copilot account and model on a private setup lease without sending a prompt. |
+| `stop` | `accepted` | Stop the task and everything it started. |
+| `complete` | `accepted` | Release the task's resources once Paperclip has saved what it needs. |
+
+A few rules keep this safe:
+
+- **An uncertain submit isn't a failure.** If a `submit` reply is lost, Paperclip retries with the same `taskId`. Don't start a second task to find out what happened.
+- **Accepting a stop isn't proof.** Set `executionStopped: true` only after you've observed the process and its descendants stop. A terminal `phase` on its own doesn't let Paperclip release the environment.
+- **Credentials are transient.** A `credential` is either `codex-auth-json` or `claude-env` (exactly one of `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`). Don't write it into task metadata or logs. A `null` credential result means cancellation stopped the task before it started — never that an export failed.
+- **Preparation is idempotent.** The same task and requirements must give the same configuration, and a late preparation result must not authorize anything after a cancellation.
+
+This also powers the agent environment test: when an agent uses a task-capable plugin environment, the test prepares a launch on a short-lived private lease, checks authentication routing, and verifies the Runner hello exchange. It passes only once cleanup is confirmed.
+
 #### Login PTY and duplex channel streaming (optional)
 
 Some environment-driver work is a live, bidirectional stream rather than a one-shot command — a Claude `setup-token` login prompt an operator types into, or a long-lived process the host pipes data through. Two matched sets of optional hooks cover those, and each set advertises its methods only when you implement it. A driver that just leases and executes can ignore both entirely.
@@ -791,6 +900,8 @@ Some environment-driver work is a live, bidirectional stream rather than a one-s
 **Persistent duplex channel.** Implement `onDuplexChannelOpen`, `onDuplexChannelWrite`, `onDuplexChannelStop`, and `onDuplexChannelClose` for a persistent bidirectional channel. The worker streams through `ctx.duplexChannel` — `data(hostRouteId, workerSessionId, chunk)` and `exit(hostRouteId, workerSessionId, exitCode, transportClosed?)`. Unlike login PTY chunks, channel chunks are raw `Uint8Array` bytes, so the worker-to-host hop base64-encodes them: the exported helpers `encodeChannelBytes(bytes)` and `decodeChannelBytes(value)` convert to and from that wire form, and `decodeChannelBytes` returns `null` for a malformed frame so a caller on the trust boundary treats it as a protocol error rather than silently substituting empty bytes. HTTP/2 is the preferred transport; `queue_v1` is the soft-deprecated fallback.
 
 The four worker-to-host notification method names are exported as constants: `LOGIN_PTY_OUTPUT_NOTIFICATION`, `LOGIN_PTY_EXIT_NOTIFICATION`, `DUPLEX_CHANNEL_DATA_NOTIFICATION`, and `DUPLEX_CHANNEL_EXIT_NOTIFICATION`. The per-hook parameter shapes (`PluginLoginPtyOpenParams`, `PluginDuplexChannelOpenParams`, and friends) live in the SDK's `protocol.ts` but are reachable through the hook signatures rather than re-exported as names.
+
+Runner task and storage-provider exports: `environmentTaskOperationSchema`, `environmentTaskResultSchema`, `environmentTaskCredentialSchema`, `environmentRunnerLaunchRequirementsSchema`, and `parseEnvironmentTaskResult`, with the types `PluginEnvironmentTaskOperation`, `PluginEnvironmentTaskParams`, `PluginEnvironmentTaskResult`, and `PluginEnvironmentTaskCredential`; plus `workspaceProviderOperationSchema`, `workspaceProviderResultSchema`, `pluginWorkspaceParamsSchema`, and `parseWorkspaceProviderResult`, with the types `PluginWorkspaceOperation`, `PluginWorkspaceResult`, and `PluginWorkspaceParams`. The host-to-worker methods behind them are `environmentTask` and `workspaceOperation`.
 
 Launcher render shapes: `PluginModalBoundsRequest`, `PluginRenderCloseEvent`, `PluginLauncherRenderContextSnapshot`.
 
@@ -805,7 +916,7 @@ For embedding the host side of the bridge in tests or custom integrations:
 
 Types: `HostServices`, `HostClientFactoryOptions`, `HostClientHandlers`.
 
-`HostServices` groups the handlers you must supply by domain. Alongside the existing `issues` group — which now also needs `listInteractions`, `respondInteraction`, `listAttachments`, and `getAttachmentContent` — there are the `approvals` group (`list`, `get`, `decide`) and two more new groups: `access` (`listMembers`, `getMember`, `updateMember`, `listInvites`, `createInvite`, `revokeInvite`) and `authorization` (`listGrants`, `setGrants`, `policySummary`, `getPolicy`, `updatePolicy`, `previewAssignment`, `explainAssignment`, `searchAudit`). `getRequiredCapability` is the place to confirm which capability each call sits behind.
+`HostServices` groups the handlers you must supply by domain. Alongside the existing `issues` group — which now also needs `listInteractions`, `respondInteraction`, `listAttachments`, and `getAttachmentContent` — there are the `approvals` group (`list`, `get`, `decide`) and two more new groups: `access` (`listMembers`, `getMember`, `updateMember`, `listInvites`, `createInvite`, `revokeInvite`) and `authorization` (`listGrants`, `setGrants`, `policySummary`, `getPolicy`, `updatePolicy`, `previewAssignment`, `explainAssignment`, `searchAudit`). The `projects` group also needs `getInstanceSecrets`, gated by `projects.instance-secrets`. `getRequiredCapability` is the place to confirm which capability each call sits behind.
 
 ### Bundling and dev server
 
@@ -824,6 +935,7 @@ The SDK ships a first-class test harness so you do not have to spin up a real ho
 - `createTestHarness` — base harness for unit-testing a plugin against in-memory host stubs.
 - `createEnvironmentTestHarness` — harness for testing environment-driver plugins. Its driver options accept an `onStopLease` hook, and the harness exposes a matching `stopLease(params)` call so you can exercise stop-and-retain without a real provider.
 - `createFakeEnvironmentDriver` — synthesised driver implementation for assertions.
+- `createWorkspaceProviderHarness(handler)` — wraps your `onWorkspaceOperation` handler and runs the same input and result validation as the real worker boundary, so you can test a storage provider without allocating an execution environment. Call its `operation(params)` method.
 - `filterEnvironmentEvents`, `assertEnvironmentEventOrder`, `assertLeaseLifecycle`, `assertWorkspaceRealizationLifecycle`, `assertExecutionLifecycle`, `assertEnvironmentError` — assertion helpers for the environment-driver flow.
 
 Types: `TestHarness`, `TestHarnessOptions`, `TestHarnessLogEntry`, `EnvironmentTestHarness`, `EnvironmentTestHarnessOptions`, `EnvironmentEventRecord`, `FakeEnvironmentDriverOptions`.
@@ -837,6 +949,8 @@ To test the interaction, approval, and attachment paths, seed them through `harn
 | `approvals` | `Approval[]` |
 
 To exercise a lifecycle consumer, seed journal entries with `harness.seed({ lifecycleEvents: [...] })` (a `ResourceLifecycleEvent[]`). The harness's `ctx.events.listLifecycle` and `ctx.events.acknowledgeLifecycle` follow the same rules as the host: the `events.subscribe` capability check, the `1`–`100` limit, creation-first and one-event-per-resource delivery, and the error when you acknowledge out of order.
+
+To test [per-project credentials](#private-per-project-credentials), seed them with `harness.seed({ projectInstanceSecrets: [{ companyId, projectId, values }] })`. The harness's `ctx.projects.getInstanceSecrets` checks for the `projects.instance-secrets` capability and returns a copy of the seeded values (or an empty object).
 
 `ctx.agents.getRuntime` checks for the `agents.lifecycle.manage` capability in the harness but has no built-in data — it throws "Agent runtime state requires a host service fixture" — so stub it when your tests need runtime inputs.
 

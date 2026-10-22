@@ -147,7 +147,7 @@ On the left is the **By agent** card. Each agent that generated inference events
 - Token breakdown: `in <input+cached> (<cached> cached) · out <output>`.
 - Run-type breakdown: `runs: N api · N sub` — how many runs went through API-priced calls versus subscription-backed calls (see [Billers](#billers) below for the distinction).
 
-Charges that don't belong to any agent — for example, a [decision model](#decisions) request made by a background feature — appear in a **Paperclip services** row.
+Charges that don't belong to any agent — for example, a [decision model](#decisions) request made by a background feature, or a [prompt injection check](../../connectors/prompt-injection-prevention.md) that ran outside an agent's work — appear in a **Paperclip services** row.
 
 If an agent has a per-model breakdown available, a caret appears on the left of the row. Clicking the row expands it to show one line per `provider / model / billingType` combination with its share of that agent's spend, the cost, the token count, and which biller handled the call. This is the fastest way to see "why is this particular agent spending so much" — you can immediately tell whether it's one runaway model or a healthy mix.
 
@@ -303,7 +303,7 @@ Some optional Paperclip features ask a small, fast model a quick question — "i
 
 Each company chooses one shared API connection to pay for these requests. New companies start unconfigured. You need permission to manage AI connections to set it up.
 
-1. Open **Company Settings**. The **Decision model** section is on the **General** page — or on **Connections**, if your instance has **Experimental fast responses** turned on.
+1. Open **Company Settings → Connections**. The **Decision model** section is at the top of the page.
 2. Pick an existing shared OpenAI or OpenRouter API connection, or click **Add connection** to create one. Paperclip uses GPT-6 Luna on OpenAI and Jev 1.13 on OpenRouter. Only company-shared API keys work here — not personal accounts, subscriptions, or custom endpoints.
 3. Leave **Enable decisions** on, and decide whether to keep **Allow company-sponsored background decisions** on. It starts on when you first set the model up. With it on, background features can charge the connection without a responsible person; those requests show up as **Paperclip services**. If you turn it off, it stays off when you later change connections.
 4. Click **Save decision model**.

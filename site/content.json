@@ -159,6 +159,10 @@
           "file": "../docs/connectors/access-model.md"
         },
         {
+          "title": "Prompt Injection Prevention",
+          "file": "../docs/connectors/prompt-injection-prevention.md"
+        },
+        {
           "title": "Shared Guides",
           "pages": [
             {
@@ -332,6 +336,10 @@
                 {
                   "title": "Set Up a Review Bot",
                   "file": "../docs/connectors/github-review-bot-setup.md"
+                },
+                {
+                  "title": "GitHub Copilot",
+                  "file": "../docs/connectors/github-copilot.md"
                 }
               ]
             },
@@ -652,6 +660,10 @@
         {
           "title": "Chat-Style Tasks",
           "file": "../docs/experimental/task-chat.md"
+        },
+        {
+          "title": "Cases",
+          "file": "../docs/experimental/cases.md"
         },
         {
           "title": "Task Watchdogs",

@@ -8,7 +8,7 @@ seo_description: Set your organization name and logo, manage members and invites
 
 Every Paperclip company has a small cluster of surfaces that control its identity, its membership, and its portability. These pages are where you, as a board user (or a member with the right grants), set the company's name and logo, decide who else can sign in, hand out invite links, review join requests, and move the whole company in and out of a portable package. The CEO agent never touches most of this — it is deliberately human territory.
 
-This guide walks through each of those surfaces in the order you typically meet them: **General Settings**, **Members** (whose **Invites** tab now lives alongside the member list), **Join Requests**, **Export**, and **Import**. If you are looking for how hiring approvals themselves work, see the [Approvals guide](../guides/day-to-day/approvals.md). If you want to understand the reporting tree that sits underneath the membership model, see [Org Structure](../guides/org/org-structure.md).
+This guide walks through each of those surfaces in the order you typically meet them: **General Settings**, **Connections**, **Members** (whose **Invites** tab now lives alongside the member list), **Join Requests**, **Export**, and **Import**. If you are looking for how hiring approvals themselves work, see the [Approvals guide](../guides/day-to-day/approvals.md). If you want to understand the reporting tree that sits underneath the membership model, see [Org Structure](../guides/org/org-structure.md).
 
 ---
 
@@ -49,13 +49,9 @@ The toggle saves immediately; there is no separate save button for this setting.
 
 The **Interaction governance** section sets, for each kind of interaction card (suggested tasks, questions, confirmations, and so on), who may respond by default and the strictest audience allowed. Each kind has a **Default policy** and a **Cap**. See [Setting company-wide interaction governance](../guides/day-to-day/issues.md#setting-company-wide-interaction-governance) for how the two work together.
 
-### Decision model
-
-The **Decision model** section is where you choose the shared OpenAI or OpenRouter API connection Paperclip uses for optional small-model decisions. API usage is charged to that connection. It sits on **General**, or moves to the **Connections** page when the instance's **Experimental fast responses** setting is on. See [Costs and Budgets → Decisions](../guides/day-to-day/costs.md#decisions) for setup, testing, and where the usage shows up.
-
 ### Agent observability
 
-The **Agent observability** section lets you send logs and traces from your Codex and Claude Code agents to your own observability service, so you can follow what an agent did turn by turn outside Paperclip. It sits on **General**, just below **Decision model**. You need the **Manage connections** permission to see or change it; other board members see a short note instead.
+The **Agent observability** section lets you send logs and traces from your Codex and Claude Code agents to your own observability service, so you can follow what an agent did turn by turn outside Paperclip. It sits on **General**, just below **Interaction governance**. You need the **Manage connections** permission to see or change it; other board members see a short note instead.
 
 Export is off until you set it up:
 
@@ -89,6 +85,26 @@ The old **Company Packages** shortcuts are gone too. **Export** and **Import** a
 At the bottom of the page is a **Danger Zone** with an **Archive organization** button. Archiving hides the organization from the sidebar and persists the change in the database. A confirmation dialog appears before the archive takes effect, and the UI automatically switches you to the next non-archived organization if one is available.
 
 Archiving also quiets the company so it stops doing work in the background: every active agent is paused (with the pause reason `company_archived`), and any queued or in-flight wake-up requests are cancelled. Archiving is not destructive — unlike deletion, your agents, projects, and issues are all preserved — but the company will not wake its agents again until you bring it back.
+
+---
+
+## Connections
+
+The **Connections** page collects the company-wide choices about which shared AI connections Paperclip itself may use — and pay for — on your behalf. Open **Settings** and pick **Connections** from the settings navigation. It's always there now; it used to appear only when **Experimental fast responses** was on.
+
+You need permission to manage AI connections to change anything here: organization owners and admins, instance admins, and members granted **Manage connections** (`tools:manage_connections`). Viewers never can.
+
+### Decision model
+
+The **Decision model** section is where you choose the shared OpenAI or OpenRouter API connection Paperclip uses for optional small-model decisions. API usage is charged to that connection. See [Costs and Budgets → Decisions](../guides/day-to-day/costs.md#decisions) for setup, testing, and where the usage shows up.
+
+### Prompt Injection Prevention
+
+The **Prompt Injection Prevention** section lets you add a model-backed check on the results your agents get back from tools, using a shared OpenRouter API connection. Paperclip's built-in detection protects tool results either way; the model check is opt-in, takes over whenever the model answers, and makes a small API charge per check. See [Prompt injection prevention](../connectors/prompt-injection-prevention.md) for how to set it up and what happens when a result is flagged.
+
+### Fast responses
+
+When an instance admin has turned on **Experimental fast responses**, a fast-response section appears at the bottom of this page so you can pick the connection that posts short acknowledgements. See [Costs and Budgets → Fast responses](../guides/day-to-day/costs.md#fast-responses).
 
 ---
 

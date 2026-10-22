@@ -204,9 +204,19 @@ The **Inbox** is the human-facing triage view. Where the Issues page is an exhau
 The Inbox URL has the shape `/inbox/<tab>`. Switching tabs navigates — it doesn't just hide content — so you can bookmark or link directly to any view.
 
 **Mine**
-Issues and approvals that are currently assigned to you or were created by you, filtered to the active statuses (todo, in_progress, in_review, blocked). This is the tab most users live in. When the Inbox is empty here, it reads "Inbox zero." — a deliberate nudge that Mine is the queue that matters most.
+Your personal work: issues and approvals assigned to you, tasks you created yourself, and tasks you've taken part in, filtered to the active statuses (todo, in_progress, in_review, blocked). This is the tab most users live in. When the Inbox is empty here, it reads "Inbox zero." — a deliberate nudge that Mine is the queue that matters most.
+
+Automatic work stays out of Mine by default. That covers tasks that come in from a connected chat channel such as Slack or GitHub, tasks a routine creates (even when you start the routine by hand with **Run now**), and tasks an agent creates. Having your account linked to the channel, being named as the creator or responsible person, a synced reply from the channel, or simply reading the task doesn't put it in Mine. One of these does:
+
+- the task is assigned to you;
+- you comment on it directly in Paperclip, or change it yourself;
+- an agent has an open question or request addressed to you on it. Once you answer it, the task needs another of these reasons to stay.
+
+The same rules decide your unread counts, the Inbox badge, and task notifications.
 
 Mine also shows failed agent runs — but only the ones you're responsible for, such as a run that started from your request. When an agent run fails for a teammate, it stays out of your Mine and out of the red failure count on the Inbox badge; you can still see it under **All** → **Failed runs** and in the run details. Only an agent's most recent run counts, so an old failure on a shared agent doesn't resurface once a newer run has gone through. On a local single-user board, older failed runs that aren't tied to anyone still show in Mine, since they can only be yours.
+
+A failed run that belongs to a task opens that task when you click it, and its row describes where the task stands now rather than the raw error: **Thinking** while a new attempt runs, *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* When the task is waiting on you, the row says what it needs instead, for example **Approval required**, **Reconnect account**, **Assign an agent**, **Choose a supported model**, **Work is paused**, or **Budget limit reached**. The **Retry** button only appears when retrying can help, and the row drops out once the task has recovered.
 
 **Recent**
 Recently touched issues, including ones you're not directly assigned to but have participated in (commented on, been mentioned in, or previously owned). Useful for keeping an eye on work that is adjacent to yours.
@@ -654,7 +664,7 @@ An empty composer shows **Stop** while the task is running and you can manage ta
 
 While paused, the composer says **Task is paused.** or **Subtree is paused.**, preserves your draft, and offers **Resume task** or **Resume subtree**. Resume releases the hold; waking agents is optional. If an interrupted run has uncertain outcomes, a resume that also tries to wake it is refused and the pause remains. Inspect the stopped run and follow its recovery instructions before continuing. See [Stop, pause, and resume](../../experimental/task-chat.md#stop-pause-and-resume) for the complete flow.
 
-**Model unavailable.** means the provider rejected the selected model: choose a supported model or clear the task override, then retry. A provider sign-in request needs your authentication step before the run can continue. Saved messages remain attached to the task while recovery is pending.
+If a run stops for a reason Paperclip can repair itself, the task shows one short status line instead of a stack of warnings: *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* once it has stopped retrying. **Retry** asks Paperclip to try the task again with your saved messages. If the provider rejected the selected model, choose a supported model or clear the task override, then retry. A provider sign-in request needs your authentication step before the run can continue. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention).
 
 ## Recovery actions
 
@@ -673,6 +683,8 @@ A recovery action carries:
 - A **resolution outcome** when the action is closed.
 
 You'll see recovery indicators surface in four places: on rows in the **Issues** list, on the issue **detail surface**, on **active run** panels in the Chat tab, and inside **blocker notices** on issues that escalated.
+
+When Paperclip itself owns the repair, you see plain status words instead of recovery details. A list row reads **Thinking** while an attempt is running, **Trying again soon** while an automatic retry is lined up, or **Retry available** once retrying has stopped and you can click **Retry** on the task. Automatic repair keeps trying only a limited number of times. After that, a **Retry** click starts a new round of attempts, so you don't have to clear old recovery records first.
 
 ### Resolution outcomes
 

@@ -33,7 +33,7 @@ You'll need:
 
    A dialog titled **Meet your next agent** opens. It has two short steps — **1. Name** and **2. Adapter** — shown at the top.
 
-   Type a name in **Agent name** (e.g. "CEO") and click **Choose adapter**.
+   Type a name in **Agent name** (e.g. "CEO") and click **Choose adapter**. Paperclip saves the agent right away, paused, so you can close setup and pick it up later with **Finish setup** on the agent's page.
 
    ![The "Meet your next agent" dialog with the Agent name field](../../user-guides/screenshots/light/agents/new-agent-name-role.png)
 
@@ -81,7 +81,7 @@ You'll need:
 
 6. **Finish setup**
 
-   Click **Finish setup**. Paperclip creates the agent and shows **Your agent is ready**, with the adapter, model, and environment it'll use.
+   Click **Finish setup**. Paperclip completes the agent and shows **Your agent is ready**, with the adapter, model, and environment it'll use.
 
    From here, click **Edit configuration** to open the agent's settings, or **Assign CEO a Task** (the button uses your agent's name) to give it its first job. You can also open the agent from the **Agents** list. You should see it with a status of **idle** — configured and ready, but it hasn't run a heartbeat yet.
 

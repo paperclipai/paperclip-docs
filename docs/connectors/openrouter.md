@@ -99,4 +99,5 @@ Limitations: one connection is one OpenRouter account, and it grants no tool acc
 - [Custom model providers](custom-model-providers.md)
 - [Check AI account usage](ai-usage.md)
 - [How connector access works](access-model.md)
+- [Prompt injection prevention](prompt-injection-prevention.md) — use a shared OpenRouter connection to check tool results for injected instructions.
 - [OpenRouter documentation](https://openrouter.ai/docs)

@@ -1419,6 +1419,53 @@ Activity is logged as `issue.scheduled_retry_retry_now` with the outcome attache
 
 ---
 
+## Retry a Task
+
+`POST /api/issues/{issueId}/retry`
+
+Use this to ask Paperclip to try a stopped task again. It's what the **Retry** button on the task page and on failed-run rows in the Inbox calls. The route is board-only and needs permission to change the task. Paperclip reuses the task's saved messages and preserved work, so you don't pick a run or a recovery record yourself.
+
+Request body:
+
+| Field | Type | Notes |
+|---|---|---|
+| `idempotencyKey` | uuid, required | Generate one per deliberate click. Sending the same key again returns the original request instead of starting a second attempt, so it's safe to resend after a lost response. |
+| `observedRunId` | uuid or `null`, required | The latest run you saw for the task, usually `interruption.observedRunId`. If it no longer matches the task's latest run, nothing new is started. |
+
+```json
+{ "idempotencyKey": "6f1c7a52-3f0e-4b5a-9d63-0f8a1f2c4e11", "observedRunId": "0b8e2d47-91a6-4c3f-8f0d-5e7a2b9c1d34" }
+```
+
+The response is `202 Accepted` when the retry is recorded and `200 OK` when it isn't:
+
+| Field | Meaning |
+|---|---|
+| `accepted` | `true` when Paperclip recorded the retry. If a run is already queued or running, the request joins that work instead of starting another one. |
+| `stale` | `true` when nothing was started because the task moved on: a newer run exists, `observedRunId` didn't match, the task is `done` or `cancelled`, or it has no assigned agent. |
+| `requestId` | The retry request, or `null` when `stale`. |
+| `observedRunId` | The task's latest run as the server sees it. |
+| `presentation` | The task's refreshed `interruption` (see below). |
+
+A retry is a new, durable request. If automatic repair had used up its attempts, a retry gives it a fresh set. On a task bound to an [Agent Chat conversation](#agent-chat-conversations), only the conversation owner can retry (`403`, *"Only the conversation owner can retry a chat run"*), and the route returns `404` when Agent Chat is disabled. Reusing an `idempotencyKey` for a different task or user returns `409` with *"This retry request belongs to a different task or user."*
+
+### The `interruption` field
+
+`GET /api/issues/{issueId}` and the issue list (including the compact view) include `interruption`, a plain summary of why the task's work stopped. It's `null` when there's nothing to show.
+
+| Field | Values |
+|---|---|
+| `state` | `working`, `retry_scheduled`, `failed`, `waiting_for_user`, or `resolved` |
+| `responsibility` | `system` when Paperclip owns the repair, `user` when a person needs to act |
+| `userAction` | For `waiting_for_user`: `approval`, `reconnect`, `assign_agent`, `choose_model`, `resume`, or `budget`. Otherwise `null`. |
+| `nextRetryAt` | When the next automatic attempt is due, for `retry_scheduled` |
+| `canRetry` | Whether a retry can help right now |
+| `observedRunId` | The latest run; send it back as `observedRunId` when you retry |
+| `sourceRunIds`, `intentId` | The runs and the pending retry request behind the summary |
+
+This field is for display only. Paperclip still checks every permission and gate when the retry actually runs. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention) for how the UI presents it.
+
+---
+
 ## Task pause holds and resume
 
 Use a pause hold to stop a task's work without cancelling the task. A hold applies to the root task and its eligible descendants. The task composer **Stop** and the menu's **Pause work** / **Pause subtree** actions use these routes.

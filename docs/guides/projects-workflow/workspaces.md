@@ -482,6 +482,10 @@ When Paperclip provisions an isolated workspace:
 
 From the agent's perspective, all of this is invisible — it just gets a `cwd` that's ready to read, edit, and run. From your perspective as a board operator, the Concrete location card on the Configuration tab shows exactly which path and branch were picked, so you can always drop into that directory yourself to inspect or debug.
 
+### When a plugin stores the project
+
+Some projects keep their code somewhere other than the Paperclip host — for example inside remote agent computers — through a [storage plugin](../../administration/plugins.md#plugins-that-store-your-projects-code). The idea is the same: each task still gets its own branch and checkout. The difference is that the plugin prepares, checks, and removes those checkouts in its own storage, so there's no host folder for you to drop into, and file browsing isn't available for those workspaces.
+
 ### When isolation is overkill
 
 Isolation has a cost: each worktree needs its own `node_modules` (or equivalent), its own dev server, its own migrations. For large projects this adds up. You probably don't want isolated workspaces for:

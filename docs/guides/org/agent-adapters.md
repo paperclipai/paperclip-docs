@@ -38,11 +38,11 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 ### Choose Paperclip Runner explicitly
 
-For the native lifecycle, choose **Paperclip Runner** and then select the provider. Codex and OpenCode have native routes; **ACP agents** offers Claude, Grok Build, Cursor, and Pi. Existing direct-adapter agents keep their current runtime until you change the adapter.
+For the native lifecycle, choose **Paperclip Runner** and then select the provider. Codex and OpenCode have native routes; **ACP agents** offers Claude, Grok Build, Cursor, GitHub Copilot, and Pi. To run agents on your Copilot plan, see [GitHub Copilot](../../connectors/github-copilot.md). Existing direct-adapter agents keep their current runtime until you change the adapter.
 
 You don't have to do anything for Codex or Claude Code: a new Codex or Claude Code agent runs on Paperclip Runner automatically when it runs on macOS or on Linux x64/ARM64 with GNU libc `2.39` or newer. To keep the classic `codex_local` or `claude_local` adapter, open **Advanced** and set **Runner** to **Legacy runner**. See [New Codex and Claude agents use the Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
 
-The Runner is experimental: for providers other than Codex and ACP Claude, `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. Cursor needs a prepared pinned runtime (`paperclipai runtime setup cursor`), an explicit model, and an Agent, Plan, or Ask session mode. Its token totals and per-run dollar cost are unavailable. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md) and [native Cursor setup](../../reference/adapters/cursor-local.md#cursor-on-paperclip-runner).
+The Runner is experimental: for providers other than Codex, ACP Claude, and ACP GitHub Copilot, `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. Cursor needs a prepared pinned runtime (`paperclipai runtime setup cursor`), an explicit model, and an Agent, Plan, or Ask session mode. Its token totals and per-run dollar cost are unavailable. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md) and [native Cursor setup](../../reference/adapters/cursor-local.md#cursor-on-paperclip-runner).
 
 ### Agents run in full auto by default
 
