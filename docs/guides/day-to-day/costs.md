@@ -374,7 +374,15 @@ $0 ─────────────────────── 80% ─
 
 **At 80%:** Paperclip records a warning so you can intervene before the hard stop. The warning doesn't pause anything — the agent keeps working. Its incident card is amber, titled with the scope and *budget warning* (for example **agent budget warning**), and reads *Spending crossed the warning threshold. This warning does not pause work.* You can raise the budget or dismiss the warning from there.
 
-**At 100%:** The agent is automatically paused. No further heartbeats are triggered. The agent stops all activity until either you increase its budget or the calendar month resets.
+**At 100%:** Paperclip pauses the scope that hit its limit, and only that scope:
+
+- **Agent budget** — that agent is paused. No further heartbeats are triggered, and it stays paused until you increase its budget or the calendar month resets. Other agents keep working.
+- **Project budget** — new work in that project stops. The agents involved keep working on their other projects.
+- **Organization budget** — the whole company pauses.
+
+New work in the scope is refused as soon as the limit is hit. Work that's already running gets a stop request moments later rather than at the exact same instant, so it can add a little more spend before it stops.
+
+Running work counts against the budget while it runs, not only once it finishes — so a long run can hit the hard stop partway through. That depends on the provider reporting usage as it goes, or on Paperclip being able to price it. If a provider only reports usage at the end, the run's spend is counted when it finishes.
 
 An auto-paused agent doesn't lose its work — any tasks it had in progress remain assigned to it and will pick up again once the agent is resumed.
 
@@ -421,13 +429,13 @@ Each policy card shows:
 
 - The scope type and name (who this applies to) and the window — **Monthly UTC budget** for organization and agent policies, **Lifetime budget** for projects.
 - A status badge: **Healthy**, **Warning**, **Hard stop**, or **Paused**.
-- **Observed** spend (with the percentage of the limit used) next to the **Budget** cap and the soft-alert threshold.
+- **Observed** spend (with the percentage of the limit used, including what running work has reported so far) next to the **Budget** cap and the soft-alert threshold.
 - A **Remaining** amount with a utilisation bar — green while healthy, amber once the warning threshold is crossed, red at the hard stop.
 - Any runs awaiting accounting or unpriced usage in the window.
 - A **Budget (USD)** field with a **Set budget** or **Update budget** button. Setting the budget to `0` turns the policy off.
 - An **Advanced settings** section with two controls:
   - **Block new work when usage has no reliable price** — on by default. See [When spend is uncertain](#when-spend-is-uncertain).
-  - **Reserve per run (USD)** — an estimate Paperclip sets aside from the budget before each run starts, saved with **Update reservation**. It stops a burst of runs from all starting at once and together blowing past the cap. Zero (the default) turns it off. If the amounts already set aside would push the scope over its cap, new runs wait until earlier ones finish. A reservation only controls when work can start — a run's real charge can still come in higher.
+  - **Reserve per run (USD)** — an estimate Paperclip sets aside from the budget before each run starts, saved with **Update reservation**. It stops a burst of runs from all starting at once and together blowing past the cap. Zero (the default) turns it off. Each unfinished run holds its reservation or the spend it has reported so far, whichever is higher. If what's held would push the scope over its cap, new runs wait until earlier ones finish. A reservation only controls when work can start — a run's real charge can still come in higher.
 
 If no policies exist yet, a single empty-state card says so: "No budget policies yet. Set agent and project budgets from their detail pages, or use the existing organization monthly budget control." In practice, here's where each kind of policy starts:
 

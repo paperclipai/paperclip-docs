@@ -40,7 +40,7 @@ The human who owns and manages the company in Paperclip. That's you. As board op
 
 ### Budget
 
-A monthly spending cap, enforced automatically. Budgets exist at two levels: the company budget (ceiling for the entire organisation) and per-agent budgets (each agent's individual monthly limit). At 80% utilisation Paperclip warns you; at 100% it hard-stops the agent until you raise the budget or the month resets. Budgets are displayed in dollars in the UI.
+A spending cap, enforced automatically. Budgets can be set for the whole company, for a project, or for a single agent. Company and agent budgets are monthly; project budgets cover the project's lifetime by default. At 80% utilisation Paperclip warns you; at 100% it hard-stops only the scope that hit its limit (the company, the project, or the agent) until you raise the budget or, for a monthly budget, the month resets. Budgets are displayed in dollars in the UI.
 
 ---
 

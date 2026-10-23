@@ -7,11 +7,11 @@ seo_description: Configure Paperclip Runner for native agent sessions. Choose a 
 
 Use `paperclip_runner` when you want Paperclip's native run lifecycle, durable session recovery, and built-in task tools. You select the provider separately from the adapter, then configure model access and the execution environment.
 
-Paperclip Runner is experimental. Native Codex, **ACP agents → Claude**, and **ACP agents → GitHub Copilot** are the exceptions to the rollout switch. Copilot agents keep running when the switch is off, and first-run setup offers **GitHub Copilot** either way. New Codex and Claude agents also use the Runner by default on supported machines (see [New Codex and Claude agents use the Runner](#new-codex-and-claude-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
+Paperclip Runner is experimental. Native Codex, native OpenCode, **ACP agents → Claude**, **ACP agents → Pi**, and **ACP agents → GitHub Copilot** are the exceptions to the rollout switch. Copilot agents keep running when the switch is off, and first-run setup offers **GitHub Copilot** either way. New Codex, Claude, OpenCode, and Pi agents also use the Runner by default on supported machines (see [New Codex and Claude agents use the Runner](#new-codex-and-claude-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
 
 ## Before you start
 
-- For providers other than Codex, ACP Claude, and ACP GitHub Copilot, an instance with **Paperclip Runner** enabled under **Settings → Experimental**.
+- For providers other than Codex, OpenCode, ACP Claude, ACP Pi, and ACP GitHub Copilot, an instance with **Paperclip Runner** enabled under **Settings → Experimental**.
 - An active agent and a task in standard, planning, or ask work mode.
 - A prepared execution environment and compatible model credential.
 - The pinned runtime required by the selected provider.
@@ -20,12 +20,21 @@ For source development, an enabled Runner requires a Rust toolchain or `PAPERCLI
 
 ## New Codex and Claude agents use the Runner
 
-When you create a Codex or Claude Code agent, Paperclip picks the runner for you. On a supported machine the agent is saved as `paperclip_runner`: a Codex agent gets `provider: "codex"`, and a Claude Code agent gets `provider: "acpx"` with `acpxAgent: "claude"`. Everywhere else it stays on the classic [`codex_local`](codex.md) or [`claude_local`](claude-code.md) adapter. This applies to new agents created through onboarding, **New agent**, hires, built-in agents, plugins, imports, and the API or CLI. Other harnesses keep their current defaults.
+When you create a Codex, Claude Code, OpenCode, or Pi agent, Paperclip picks the runner for you. On a supported machine the agent is saved as `paperclip_runner`:
+
+| You create | Saved on the Runner as | Otherwise stays on |
+| --- | --- | --- |
+| Codex | `provider: "codex"` | [`codex_local`](codex.md) |
+| Claude Code | `provider: "acpx"`, `acpxAgent: "claude"` | [`claude_local`](claude-code.md) |
+| OpenCode | `provider: "opencode"` | [`opencode_local`](opencode.md) |
+| Pi | `provider: "acpx"`, `acpxAgent: "pi"` | [`pi_local`](pi.md) |
+
+ This applies to new agents created through onboarding, **New agent**, hires, built-in agents, plugins, imports, and the API or CLI. Other harnesses keep their current defaults.
 
 Paperclip Runner is chosen automatically when the agent's execution environment is one of these:
 
 - macOS on Apple Silicon or Intel.
-- Linux x64 or ARM64 with GNU libc `2.39` or newer.
+- Linux x64 or ARM64 with GNU libc `2.39` or newer. OpenCode and Pi are the exception: on Linux ARM64 they keep the Legacy runner.
 
 Windows, 32-bit ARM, Alpine and other musl-based Linux, and Linux with an older or unknown libc keep the Legacy runner. Paperclip checks the machine the agent will actually run on, not the machine running the Paperclip server. For a sandbox environment, use an immutable image digest and run the environment's connection probe, so Paperclip can confirm the operating system, architecture, and libc.
 
@@ -43,13 +52,25 @@ To choose, open **Advanced** in the agent form, onboarding, or the built-in agen
 | --- | --- | --- |
 | **Paperclip Runner (default)** or **Legacy runner (default)** | `auto` | Paperclip picks the runner for this environment. The label shows which one you'll get. |
 | **Paperclip Runner** | `paperclip` | Always use the Runner. Saving fails if the environment doesn't qualify. |
-| **Legacy runner** | `legacy` | Keep classic `codex_local` or `claude_local` execution and all its settings. |
+| **Legacy runner** | `legacy` | Keep classic `codex_local`, `claude_local`, `opencode_local`, or `pi_local` execution and all its settings. |
 
-From the API, send `runner` (`auto`, `paperclip`, or `legacy`) alongside `adapterType: "codex_local"` or `adapterType: "claude_local"` when you create or hire an agent. In the CLI, `paperclipai agent create` and `paperclipai agent hire` take `--runner <runner>`.
+From the API, send `runner` (`auto`, `paperclip`, or `legacy`) alongside `adapterType: "codex_local"`, `"claude_local"`, `"opencode_local"`, or `"pi_local"` when you create or hire an agent. In the CLI, `paperclipai agent create` and `paperclipai agent hire` take `--runner <runner>`.
 
 Some `codex_local` settings have no Runner equivalent, such as a custom `command`, `extraArgs`, `search`, `fastMode`, filesystem or network scopes, or `maxTurns`. If you set one and the Runner gets picked, saving fails with `agent_runner_config_incompatible`. The message names the fields and asks you to remove them or choose **Legacy runner** in **Advanced**. Paperclip never switches runners on its own: if authentication, the model, a dependency, or the runtime fails, the error tells you what to fix and the agent keeps the runner it has.
 
-Existing agents, and hires that are already waiting for review, keep their saved runner when you upgrade or edit them. Company exports record the runner that was resolved, so an import recreates the same choice.
+Existing agents, and hires that are already waiting for review, keep their saved runner when you upgrade Paperclip or edit them. Company exports record the runner that was resolved, so an import recreates the same choice.
+
+### Upgrade an existing Claude or Codex agent
+
+Already have a Claude Code or Codex agent on the Legacy runner? When Paperclip Runner is the default for that agent's environment, its **Harness / Runtime** page shows an **Upgrade to Paperclip Runner** notice. Click **Upgrade runner** to move it over in one step.
+
+- **What stays the same.** The agent keeps its harness, model, account, instructions, and every setting the Runner can honor. Settings are translated exactly as they are for a new agent (see [What carries over for Claude](#what-carries-over-for-claude)).
+- **Unsaved edits come along.** If you've changed anything on the page, the notice says *"Your unsaved changes will be included."* and the upgrade saves those edits too.
+- **Fresh sessions, same history.** The agent's next runs start new sessions on the Runner. Its past runs stay available.
+- **While it works** the button reads **Upgrading…**, and when it's done you see *"Upgraded to Paperclip Runner."*
+- **If a setting can't carry over**, the error appears in the notice and the agent stays on the Legacy runner. Fix or remove the setting the error names, then click **Upgrade runner** again.
+
+The notice only appears for Claude Code and Codex agents on the Legacy runner whose environment defaults to the Runner. You won't see it for agents already on the Runner, for other harnesses, for environments that keep the Legacy runner, or when Paperclip can't check runner availability. Opening the page or saving unrelated changes never upgrades an agent. From the API, the same switch is a normal agent update that sends `runner: "paperclip"`.
 
 ### What carries over for Claude
 
@@ -60,6 +81,29 @@ A Claude agent that lands on the Runner keeps your connection, instructions, ski
 - **Permissions.** The Runner uses `acpxPermissionMode`, which defaults to `approve-all`. An older `permissionMode` of `approve-all`, `approve-reads`, or `deny-all` is carried over; any other value fails.
 
 These `claude_local` settings only work on the Legacy runner: `chrome`, a custom `command`, `agentCommand`, `stateDir`, `warmHandleIdleMs`, `extraArgs`, filesystem or network scopes, `maxTurnsPerRun`, a `mode` other than `persistent`, a `nonInteractivePermissions` other than `deny`, and `dangerouslySkipPermissions: false`. Setting one while the Runner is picked fails with `agent_runner_config_incompatible`. The agent form leaves out its default turn limit when the Runner is selected, so you only hit this if you change it.
+
+### What carries over for OpenCode
+
+An OpenCode agent that lands on the Runner keeps its model, connection, instructions, and environment. The rest is translated like this:
+
+- **Model.** Use a full `provider/model` ID. You can save a setup draft before you pick one, but testing the environment and finishing the hire both need a complete model.
+- **Permissions.** The Runner uses `opencodePermissionMode`, which defaults to `allow`. If you set `dangerouslySkipPermissions: false` so OpenCode would follow your own local permission rules, the Runner can't honor that, because each session runs in its own isolated home.
+- **Legacy-only settings.** A custom `command` other than `opencode`, `extraArgs` or `args`, a `variant`, and the effort fields `modelReasoningEffort`, `reasoningEffort`, and `effort` only work on the Legacy runner.
+
+Setting a Legacy-only value while the Runner is picked fails with `agent_runner_config_incompatible`, naming the fields so you can remove them or choose **Legacy runner** in **Advanced**. Going the other way, an `opencodePermissionMode` other than `allow` can't move back to the Legacy runner.
+
+### What carries over for Pi
+
+A Pi agent that lands on the Runner keeps its model, connection, instructions, and environment, with these translations:
+
+- **Model.** Enter an explicit `provider/model` ID. A setup draft can stay without a model (Paperclip doesn't fill in a Claude default for Pi), but testing or hiring without one fails with *"Pi requires an explicit provider/model. Select a model before testing or hiring."*
+- **Thinking.** Your `thinking` level is saved as `piThinkingLevel`. The Runner accepts `off`, `low` (the default), `high`, and `max`, so the Legacy levels `minimal`, `medium`, and `xhigh` need changing first.
+- **Permissions.** The Runner uses `acpxPermissionMode`, which defaults to `approve-all`.
+- **Legacy-only settings.** A custom `command` other than `pi`, `extraArgs` or `args`, the effort fields `modelReasoningEffort`, `reasoningEffort`, and `effort`, and a `stdoutLogMode` other than `compact` only work on the Legacy runner.
+
+These fail with `agent_runner_config_incompatible` when the Runner is picked. Switching a Pi agent back to the Legacy runner has its own check: `max` thinking, an `acpxPermissionMode` other than `approve-all`, a `lifecycleMode` other than `per_turn`, and `acpxSessionMode` can't come along, and the error starts with *"Legacy Pi cannot honor these settings"*.
+
+Pi also needs its pinned runtime installed on the execution host before it can run; see [Pi on Paperclip Runner](#pi-on-paperclip-runner).
 
 ## Choose a provider
 
@@ -123,7 +167,7 @@ Standard, planning, and ask tasks are supported. Cursor additionally has `acpxSe
 
 ### Pi on Paperclip Runner
 
-Choose **ACP agents**, then **Pi**. Pi accepts any `provider/model` ID, so type the exact model you want. A **Pi thinking level** field appears with `off`, `low` (the default), `high`, and `max`; it's saved as `piThinkingLevel`. The Runner checks that exact level before each session can prompt, and changing it starts a new session. To install the pinned Pi runtime on a host, use [`paperclipai runtime setup pi`](../cli/runtime.md#set-up-pi). For custom Pi providers, set `PAPERCLIP_PI_PROVIDERS` as described on the [Pi adapter page](pi.md#custom-providers--gateway-routing).
+A new Pi agent lands here automatically on a supported machine. You can also pick it yourself: choose **ACP agents**, then **Pi**. Pi accepts any `provider/model` ID, so type the exact model you want. A **Pi thinking level** field appears with `off`, `low` (the default), `high`, and `max`; it's saved as `piThinkingLevel`. The Runner checks that exact level before each session can prompt, and changing it starts a new session. To install the pinned Pi runtime on a host, use [`paperclipai runtime setup pi`](../cli/runtime.md#set-up-pi). You can connect an OpenRouter, OpenAI, Anthropic, or Google API-key account. The model ID should start with that account's provider, for example `openrouter/…` for an OpenRouter account. For custom Pi providers, set `PAPERCLIP_PI_PROVIDERS` as described on the [Pi adapter page](pi.md#custom-providers--gateway-routing). Don't combine it with a Paperclip-managed account: that fails with *"The configured provider routing is incompatible with this AI connection"*.
 
 ### Keep working in your own provider home
 
@@ -139,7 +183,7 @@ By default the Runner gives each session a private, isolated provider home and s
 
 Environment variables you configure for a task's agent, project, environment, or routine reach the native provider process and its tool commands, including custom `PAPERCLIP_*` names. When you add, change, or remove one, the Runner replaces its retained provider process at the next run boundary, so the next turn sees the new value. Unchanged variables let the warm process be reused. Only names are passed through the Runner's launch path; the secret values stay in the child environment. Ambient secrets on the host are never forwarded. A native launch carries up to 128 configured variable names.
 
-Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, and `opencode_local` agents remain direct adapters until you explicitly choose Runner. A saved obsolete native-runner toggle on a direct adapter does not switch fresh runs to this path.
+Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, `opencode_local`, and `pi_local` agents remain direct adapters until you explicitly choose Runner. For Claude Code and Codex agents, the [upgrade notice](#upgrade-an-existing-claude-or-codex-agent) is the quickest way. A saved obsolete native-runner toggle on a direct adapter does not switch fresh runs to this path.
 
 ## Current limits
 

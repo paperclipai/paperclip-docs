@@ -468,7 +468,7 @@ A reservation is an estimate Paperclip holds against a budget before a run start
 
 - Set it per policy with `reservationCents`. `0` (the default) holds nothing.
 - When a run starts, Paperclip holds the largest `reservationCents` among the active hard-stop policies that cover it.
-- If recorded spend plus the amounts already held would reach the cap, the run isn't started, with the reason `Available budget is reserved by unfinished runs`.
+- Each unfinished run holds its reservation or the spend it has reported so far, whichever is higher. If recorded spend plus what's held would reach the cap, the run isn't started, with the reason `Available budget is reserved by unfinished runs`.
 - The hold is released once the run's cost has been recorded. It survives timeouts and server restarts until then.
 
 A reservation only gates when work can start. It can't cap what the provider actually charges for a run, which may come in higher than the estimate.
@@ -496,7 +496,9 @@ If you raise the budget, you must supply a new `amount` that exceeds the current
 - At the warn threshold, the service creates a soft incident when notifications are enabled. A soft incident is a warning only — it doesn't pause anything.
 - At 100 percent, the service creates a hard incident when hard-stop is enabled.
 - A hard-stop policy also blocks new work before 100 percent when its spend figure can't be trusted yet: when a finished run in its window is still waiting for its cost to be recorded, or when its window has unpriced usage and `unpricedUsagePolicy` is `block`. Set the policy to `allow` if you'd rather keep working and treat unpriced usage as unknown.
-- Hard-stop policies pause the affected company, agent, or project and cancel work for that scope.
+- Hard-stop policies pause the affected company, agent, or project and cancel work for that scope only. An agent hold pauses just that agent; a project hold leaves the same agents' other projects running.
+- Spend counts toward a hard stop while a run is still going, when its provider reports usage as it goes (or the usage can be priced), so a long run can hit the limit partway through. Reservations don't count toward the hard stop itself — only recorded and reported spend do.
+- New work is refused as soon as the hard stop is recorded. Running work is cancelled shortly afterwards, in the background; while that stop is still being delivered, it counts toward `pendingCancellationCount` on [accounting health](#accounting-health).
 - Budget windows reset on the first day of each month in UTC.
 - Project policies default to lifetime windows unless you choose a different window kind explicitly.
 

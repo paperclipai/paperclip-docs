@@ -51,6 +51,14 @@ Most UI slots mount on one page or one entity. Two slot types in `PLUGIN_UI_SLOT
 
 The organization switcher is deliberately cautious. The host reserves the space while plugins load, and falls back to its built-in menu if no plugin contributes the slot, more than one does, discovery fails, or your component throws — so users can always reach their organizations. `currentCompany` describes the company inside this Paperclip instance; if your menu shows an external account or organization, fetch that from the service that owns it. For both slots, treat the props and host context as display information, not proof of who the user is: authenticate anything sensitive at the service that owns it. Replacing the menu changes only how it looks, not who can access which company.
 
+### Adding a view to an agent's page
+
+You can give every agent its own plugin view, such as a report, notes, or a live console, by declaring a `detailTab` slot with `entityTypes: ["agent"]`. The slot needs the `ui.detailTab.register` capability. The view doesn't have to use WebSockets. A component backed by your normal JSON API or UI bridge works the same way.
+
+Each declared slot shows up in an **Apps** section of the agent's sidebar, labelled with the slot's `displayName`. When someone opens it, Paperclip mounts your component with the agent as the host context (`entityType: "agent"`, `entityId`, `companyId`) and adds a breadcrumb trail that ends in your `displayName`. If the agent can't be loaded, or your slot is no longer available, the page shows a short notice instead of a blank screen.
+
+If your view needs data about the agent from your own API routes, use `companyResolution: { from: "agent", param: "agentId" }` on those routes (see [Plugin API routes over WebSocket](#plugin-api-routes-over-websocket)). Paperclip then applies the same `agent:read` check the agent's own page uses before your worker sees the request.
+
 ---
 
 ## Public API
@@ -402,6 +410,20 @@ Because the files don't live on the Paperclip host, Paperclip stores no local fo
 
 To run agents against these checkouts, the project's environment must use a task-capable driver from the *same* plugin — Paperclip rejects a driver from a different one. Paperclip pins the binding on the environment lease and passes it to your driver as `PluginEnvironmentTaskParams.workspace`; your driver turns it into real mounts and a working directory. Native execution also needs the [Runner task hook](#running-runner-tasks-optional), and Paperclip won't fall back to running Runner on the host if that hook is unavailable.
 
+#### Native Runner sessions in a plugin environment
+
+Agents on the `paperclip_runner` adapter can now be assigned a plugin environment. When one of them starts work there, your plugin owns the task's workspace. Paperclip doesn't prepare or reuse a Git worktree on its own disk for that environment. For projects backed by your storage provider, Paperclip uses the pinned workspace binding, and your declared `modes` and `strategies` still apply. When a run finishes, and again after a server restart, Paperclip checks the managed workspace through your storage provider rather than looking for a local folder.
+
+Paperclip refuses a few combinations up front, so the problem shows up as a clear error instead of a half-started run:
+
+- **No environment task support.** If the environment's plugin doesn't provide Runner tasks, the run fails with "Plugin environment does not provide native Runner task execution".
+- **Core workspace services.** If the agent's workspace runtime configures services, you get "The selected plugin environment does not support Core workspace services."
+- **Core Git worktrees.** If the workspace would need a Git worktree that Paperclip makes itself, you get "The selected plugin environment does not support Core Git worktree preparation." or "The selected plugin environment cannot reuse a Core Git worktree."
+- **Another owner's workspace.** A workspace made for one agent, environment, or storage provider can't be reused by another. That fails with "The retained workspace belongs to a different agent, environment, or storage provider."
+- **Fresh attempts.** You can't start a fresh attempt that discards the retained workspace. You'll see "A fresh attempt is unavailable for this workspace storage provider. The existing workspace is retained."
+
+Repository preparation is also unavailable for workspaces your environment owns.
+
 ### Manifest types
 
 Plugin manifests are validated against types re-exported from `@paperclipai/shared`. Importing them from the SDK gives you a single dependency.
@@ -431,6 +453,26 @@ Two more opt into execution features. The top-level `workspaceProvider` object (
 | `PluginCompanySettings`, `PluginRecord`, `PluginDatabaseNamespaceRecord`, `PluginMigrationRecord`, `PluginConfig`, `CompanySkill`, `PluginManagedResourceKind`, `PluginManagedResourceRef` | Persisted records and shared building blocks. |
 
 Constant enum types: `PluginStatus`, `PluginCategory`, `PluginCapability`, `PluginUiSlotType`, `PluginUiSlotEntityType`, `PluginLauncherPlacementZone`, `PluginLauncherAction`, `PluginLauncherBounds`, `PluginLauncherRenderEnvironment`, `PluginStateScopeKind`, `PluginJobStatus`, `PluginJobRunStatus`, `PluginJobRunTrigger`, `PluginWebhookDeliveryStatus`, `PluginDatabaseCoreReadTable`, `PluginDatabaseMigrationStatus`, `PluginDatabaseNamespaceMode`, `PluginDatabaseNamespaceStatus`, `PluginApiRouteAuthMode`, `PluginApiRouteCheckoutPolicy`, `PluginApiRouteMethod`, `PluginEventType`, `PluginBridgeErrorCode`, `JsonSchema`.
+
+### Plugin API routes over WebSocket
+
+Plugin API routes, declared in `apiRoutes` as `PluginApiRouteDeclaration` entries, normally answer ordinary HTTP requests under `/api/plugins/:pluginId/api`. A route can also open a live browser WebSocket. You might use one to stream build output or metrics, or to carry a remote tool protocol, into a plugin view. Paperclip relays the text and binary frames as they are and doesn't read what's inside them.
+
+To declare one, add `transport: "websocket"` to the route. A WebSocket route must:
+
+- use `method: "GET"` and `auth: "board"`, because only signed-in board users can connect;
+- belong to a plugin that also declares the `http.outbound` capability, alongside `api.routes.register`;
+- resolve its company from the query (`{ from: "query", key }`), an issue (`{ from: "issue", param }`), or an agent (`{ from: "agent", param }`). Body-based resolution is rejected because a browser upgrade request can't carry a body. Ordinary HTTP routes can still use it.
+
+For example: `{ routeKey: "channel.connect", method: "GET", path: "/channels/:channelId", transport: "websocket", auth: "board", capability: "api.routes.register", companyResolution: { from: "query", key: "companyId" } }`.
+
+When the browser connects, the upgrade passes through the same sign-in and company checks as any other request. It also needs a trusted browser Origin. Your worker's `onApiRequest` then gets the route key and path parameters, and it picks the upstream by returning a `PluginApiResponse` with `websocket: { url, headers }`. The `url` must use `wss://`. Use `headers` for the upstream's own authorization. Paperclip keeps this target in server memory and never sends it to the browser. Choose the upstream from your plugin's own trusted bindings, never from an address the browser passed in. To refuse the connection, return an error `status` (400–599) without `websocket`.
+
+A few rules keep the connection safe:
+
+- **Browser credentials stay behind.** The browser's cookies and Origin aren't forwarded upstream. Your `headers` can't set cookie, origin, host, connection, upgrade, `sec-websocket-*`, or `x-forwarded-*` headers. If they try, the connection fails.
+- **Only real WebSocket upgrades open it.** A plain HTTP request to a WebSocket route gets `426`, and an upgrade request to an ordinary route is refused.
+- **Connections are short-lived on purpose.** Each connection lasts at most five minutes. It also closes when either side disconnects or your worker stops. Clients should reconnect, and every reconnect repeats authorization and your worker's upstream choice, so revoked access doesn't linger.
 
 ### Managed resources
 

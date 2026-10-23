@@ -51,6 +51,7 @@ A case also has these core fields:
 | `parentCaseId` | Optional parent case, so cases can nest. Must belong to the same company, and a case cannot be its own parent. |
 | `completedAt` | Set by the server when the status becomes `done` or `cancelled`, and cleared otherwise. |
 | `workIssueId` | The case's primary task, if it has one. Every handoff reuses this same task. Set by the handoff routes, not by create or update. |
+| `workflowId` | The [reusable workflow](#workflows) the case currently follows, or `null` when it runs on its own case instructions. Set by the handoff routes. |
 | `phase` | The current phase name, as set by the last applied handoff (for example `triage` or `verification`). A free-form label — Paperclip doesn't enforce phase order. |
 | `handoffVersion` | A counter that increases with each applied handoff. Send it back as `expectedHandoffVersion` so a handoff fails cleanly if someone else routed the case first. |
 
@@ -128,6 +129,7 @@ On top of the core fields, the response folds in the related objects you need to
 - `documents` — the case's keyed documents, each as `{ key, document }`.
 - `attachments` — uploaded files, each with its stored asset.
 - `workIssue` and `pendingHandoff` — the same work summaries returned by the list route.
+- `workflow` — `{ id, name }` of the reusable workflow in `workflowId`, or `null`.
 - `taskDocuments` — references to the documents on the primary task and on linked tasks. Each entry has an `id`, `taskId`, `taskIdentifier`, `key`, `scope` (`primary` or `linked`), the document metadata (no body), and a `readPath` such as `/api/issues/{taskId}/documents/{key}` for fetching the body. The primary task's `workflow` document comes first. Only tasks you can read are included.
 - `taskDocumentsOmitted` — `true` when there were more task documents than the response includes.
 
@@ -426,7 +428,7 @@ Events are typed by `kind`:
 
 ## Case handoffs
 
-A handoff passes a case's primary task from one agent to the next — or to `done` to close the case. The task stays the same; only its assignee, the case `phase`, and the `handoffVersion` change. Agents on the Paperclip Runner use the native `create_case`, `read_case`, `update_case`, and `handoff_case` tools, which go through the same rules as these routes.
+A handoff passes a case's primary task from one agent to the next — or to `done` to close the case. The task stays the same; only its assignee, the case `phase` (and `workflowId`, if the handoff [adopts a workflow](#adopting-a-workflow)), and the `handoffVersion` change. Agents on the Paperclip Runner use the native `create_case`, `read_case`, `update_case`, and `handoff_case` tools, which go through the same rules as these routes. (For reusable workflow definitions, see [Workflows](#workflows).)
 
 Handoffs are durable. Paperclip records the intent first, waits until the outgoing agent's run has stopped and its workspace has settled, then reassigns the task and queues the next agent's wake-up. A restart in the middle picks the handoff up again rather than losing or duplicating it. Only one handoff can be pending per case at a time.
 
@@ -447,11 +449,24 @@ There are two shapes. An **agent handoff** sends the primary task to an agent:
 | `toAgentId` | yes | The agent receiving the task. |
 | `phase` | yes | 1–120 characters, such as `triage` or `implementation`. |
 | `instructions` | yes | What the next agent should do, up to 20,000 characters. |
-| `workflow_document_text` | when creating the primary task | The workflow description, saved verbatim as the task's `workflow` document (titled **Workflow**). Required for `case.create`; not accepted on later handoffs. |
+| `workflow_document_text` | when creating the primary task, unless `workflowId` is set | The workflow description, saved verbatim as the task's `workflow` document (titled **Workflow**). Up to 200,000 characters and not blank. Not accepted on later handoffs, and can't be combined with `workflowId`. |
+| `workflowId` | no | A [reusable workflow](#workflows) to adopt, or `null` to detach. Can stand in for `workflow_document_text` when creating the primary task. See [Adopting a workflow](#adopting-a-workflow). |
 | `expectedHandoffVersion` | for an existing case | The case's current `handoffVersion`. |
 | `expectedIssueStatusVersion` | with `bindIssueId` | The bound task's current status version. |
 | `bindIssueId` | no | Use an existing task as the primary task instead of creating one. Only for a case that has no primary task yet. |
-| `initialDocuments` | no | Up to 20 `{ key, title, body }` documents seeded on a newly created primary task. The key `workflow` is reserved, keys must be unique, and all bodies together (including the workflow text) are capped at 200,000 characters. |
+| `initialDocuments` | no | Up to 20 `{ key, title, body }` documents seeded on a newly created primary task. The key `workflow` is reserved, keys must be unique, and all bodies together (including the workflow text or an adopted workflow's prompt) are capped at 200,000 characters. |
+
+#### Adopting a workflow
+
+`workflowId` tells Paperclip what to do with the case's reusable workflow on this handoff:
+
+| Value | Effect |
+|---|---|
+| omitted | Keep the current workflow and leave the task's `workflow` document alone. |
+| a workflow ID | Adopt that workflow's latest prompt into the task's `workflow` document. Send the case's current `workflowId` to refresh it. |
+| `null` | Detach. The case's `workflowId` becomes `null`; the `workflow` document is kept as it is. |
+
+The prompt is captured when the handoff is accepted, together with the `workflow` document's current revision — later edits to the shared definition don't affect this handoff. The new workflow, the new `phase`, and the document revision are applied together when the handoff is applied, after the outgoing run settles. If the `workflow` document changed after acceptance, Paperclip doesn't overwrite it: the handoff stays pending with `lastError` set to `Document was updated by someone else`. [Cancel it](#retry-or-cancel-a-pending-handoff) and hand off again.
 
 A **done handoff** asks Paperclip to close the case when its primary task completes:
 
@@ -520,7 +535,9 @@ Return the case's handoff history, newest first. Query parameters:
 - `cursor` — the `nextCursor` from a previous page.
 - `before` — an ISO timestamp; return only handoffs created before it.
 
-The response is `{ items, nextCursor, canControl }`. Each item includes the handoff's `phase`, `instructions`, `state`, `destinationKind`, `fromAgentId` / `toAgentId` with `fromAgentName` / `toAgentName`, `version`, timestamps, and any `lastError`. `canControl` is `true` when you're allowed to retry or cancel the pending handoff.
+The response is `{ items, nextCursor, canControl }`. Each item includes the handoff's `phase`, `instructions`, `state`, `destinationKind`, `workflowTransition`, `fromAgentId` / `toAgentId` with `fromAgentName` / `toAgentName`, `version`, timestamps, and any `lastError`. `canControl` is `true` when you're allowed to retry or cancel the pending handoff.
+
+`workflowTransition` records which workflow and phase the handoff moved between: `{ from: { workflowId, name, phase }, to: { workflowId, name, phase }, documentRevisionId }`. A `null` `workflowId` and `name` mean the case's own instructions rather than a reusable workflow. The names are captured at the time, so they stay put if a definition is renamed later. The captured prompt itself is never returned. The same `workflowTransition` also appears in the `handoff_*` [events](#event-timeline) and their Audit entries.
 
 ### Retry or cancel a pending handoff
 
@@ -530,6 +547,69 @@ POST /api/cases/{caseId}/handoffs/{handoffId}/cancel
 ```
 
 Both require control of the primary task. **Retry** schedules another delivery attempt for a pending agent handoff right away; on a done handoff or a handoff that's no longer pending it simply returns the current record. **Cancel** cancels a pending handoff — it never reverses a reassignment that already happened — and still works while Cases is turned off. Both return the handoff record.
+
+---
+
+## Workflows
+
+A **workflow** is a reusable, company-shared set of case instructions: just a `name` and a Markdown `prompt`. Instead of writing `workflow_document_text` for every case, you save a workflow once and pass its ID as `workflowId` on a [handoff](#adopting-a-workflow). Each case keeps its own copy in its primary task's `workflow` document, so editing a definition only reaches a case when a handoff adopts or refreshes it.
+
+Like the rest of this page, these routes return `403` with `{ "error": "Cases are disabled" }` until `enableCases` is on. There's no UI for workflows yet, and no delete route.
+
+Agents on the Paperclip Runner manage workflows with four optional Cases tools: `list_workflows`, `read_workflow`, `create_workflow`, and `update_workflow`. They call the routes below.
+
+### List Workflows
+
+```
+GET /api/companies/{companyId}/workflows
+```
+
+Return the company's workflows, sorted by name, as an array of `{ id, companyId, name, createdAt, updatedAt }` — prompts aren't included. Query parameters:
+
+- `limit` — 1–100. Defaults to `50`.
+- `offset` — 0–100,000. Defaults to `0`.
+
+### Get a Workflow
+
+```
+GET /api/workflows/{id}
+```
+
+Return the full workflow, including its `prompt`, `createdByAgentId`, and `createdByUserId`. The response carries an `ETag` holding a fingerprint of the workflow. Pass that fingerprint (without the quotes) as the `snapshot` query parameter on later reads to make sure you're still reading the same version: if the workflow has changed since, the request fails with `409 Conflict`. A workflow in another company — or one that doesn't exist — returns `404` with `{ "error": "Workflow not found" }`.
+
+### Create a Workflow
+
+```
+POST /api/companies/{companyId}/workflows
+```
+
+| Field | Required | Notes |
+|---|---|---|
+| `name` | yes | 1–200 characters, trimmed. |
+| `prompt` | yes | The workflow Markdown, up to 200,000 characters and not blank. |
+
+Unknown fields are rejected. Creating or editing a workflow needs the same permission as creating a case. Responds `201 Created` with the workflow's metadata (everything except `prompt`).
+
+### Update a Workflow
+
+```
+PATCH /api/workflows/{id}
+```
+
+Send `name`, `prompt`, or both, with the same limits as create. Returns the updated metadata. Cases already using the workflow keep their copy until a handoff refreshes it.
+
+#### Example
+
+```bash
+curl -sS -X POST \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  "https://paperclip.example.com/api/companies/{companyId}/workflows" \
+  -d '{
+    "name": "Bug fix",
+    "prompt": "Triage the report, implement the fix, then hand off for verification with the evidence saved."
+  }'
+```
 
 ---
 

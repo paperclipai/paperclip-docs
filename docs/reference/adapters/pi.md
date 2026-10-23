@@ -8,6 +8,8 @@ seo_description: Run the Pi coding agent CLI on the Paperclip host, with its bui
 
 `pi_local` runs the Pi coding agent CLI on the same machine as Paperclip. Use it when you want Pi's built-in tool set (read, bash, edit, write, grep, find, ls), provider/model routing, and session resume across heartbeats.
 
+> **Heads-up:** New Pi agents now run on [Paperclip Runner](paperclip-runner.md#pi-on-paperclip-runner) by default when the execution environment is macOS or Linux x64 with GNU libc `2.39` or newer (Linux ARM64 stays on the Legacy runner). Those agents are saved as `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "pi"`, and they don't need the experimental Runner setting. On the Runner, `thinking` becomes `piThinkingLevel` (`off`, `low`, `high`, or `max`), and a custom `command`, `extraArgs`, or a `stdoutLogMode` other than `compact` only works on the classic adapter; see [What carries over for Pi](paperclip-runner.md#what-carries-over-for-pi). To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
+
 ---
 
 ## When To Use
