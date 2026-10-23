@@ -295,12 +295,12 @@
               "file": "../docs/connectors/daytona.md"
             },
             {
-              "title": "Ditto",
-              "file": "../docs/connectors/ditto.md"
-            },
-            {
               "title": "Discord",
               "file": "../docs/connectors/discord.md"
+            },
+            {
+              "title": "Ditto",
+              "file": "../docs/connectors/ditto.md"
             },
             {
               "title": "Enterpret",

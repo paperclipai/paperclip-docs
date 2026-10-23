@@ -130,10 +130,10 @@ When the hard incident fires:
 
 1. The affected scope (company, agent, or project) is paused immediately. No new work starts in it.
 2. Any in-progress run for the scope gets a stop request moments later — the issue stays where it was, the agent stops working it. The run can add a little more spend before it stops.
-
-Only the scope that hit its limit is affected. An agent budget pauses just that agent. A project budget stops work in that project, but the same agents keep working on their other projects. Running work also counts against the cap before it finishes, when the provider reports usage as it goes, so a long run can trip the hard stop partway through.
 3. The Budget control plane card increments **Paused agents** / **Paused projects**.
 4. The incident appears as a card on the **Budgets** tab under **Audit**, and at the top of the **Costs** tab's **Overview**.
+
+Only the scope that hit its limit is affected. An agent budget pauses just that agent. A project budget stops work in that project, but the same agents keep working on their other projects. Running work also counts against the cap before it finishes, when the provider reports usage as it goes, so a long run can trip the hard stop partway through.
 
 ![Agent budget policy card on Audit → Budgets at 100% — full red bar, Paused status, and a note that heartbeats are paused until the budget is raised or the incident is dismissed](../user-guides/screenshots/light/costs/agent-budget-100pct-paused.png)
 

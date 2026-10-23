@@ -414,7 +414,7 @@ To run agents against these checkouts, the project's environment must use a task
 
 Agents on the `paperclip_runner` adapter can now be assigned a plugin environment. When one of them starts work there, your plugin owns the task's workspace. Paperclip doesn't prepare or reuse a Git worktree on its own disk for that environment. For projects backed by your storage provider, Paperclip uses the pinned workspace binding, and your declared `modes` and `strategies` still apply. When a run finishes, and again after a server restart, Paperclip checks the managed workspace through your storage provider rather than looking for a local folder.
 
-Paperclip refuses a few combinations up front, so the problem shows up as a clear workspace error instead of a half-started run:
+Paperclip refuses a few combinations up front, so the problem shows up as a clear error instead of a half-started run:
 
 - **No environment task support.** If the environment's plugin doesn't provide Runner tasks, the run fails with "Plugin environment does not provide native Runner task execution".
 - **Core workspace services.** If the agent's workspace runtime configures services, you get "The selected plugin environment does not support Core workspace services."
