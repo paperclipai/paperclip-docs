@@ -255,6 +255,10 @@
               "file": "../docs/connectors/box.md"
             },
             {
+              "title": "Braintrust",
+              "file": "../docs/connectors/braintrust.md"
+            },
+            {
               "title": "Browser Use Cloud",
               "file": "../docs/connectors/browser-use-cloud.md"
             },
@@ -289,6 +293,10 @@
             {
               "title": "Daytona",
               "file": "../docs/connectors/daytona.md"
+            },
+            {
+              "title": "Ditto",
+              "file": "../docs/connectors/ditto.md"
             },
             {
               "title": "Discord",

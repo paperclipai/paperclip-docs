@@ -116,6 +116,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
+| [Braintrust](connectors/braintrust.md) | AI evaluation and observability. Agents query traces, manage datasets and scorers, and run evaluations, in the US or EU region. Dataset row edits and automation activation are destructive, and evaluations can use credits. | Sign in with Braintrust · API key |
 | [Browser Use Cloud](connectors/browser-use-cloud.md) | Run browser tasks in Browser Use Cloud, open a live browser session from the task, and reuse a browser profile. These master changes are not yet in the stable release. | API key |
 | [Cloudflare](connectors/cloudflare.md) | DNS, CDN, and edge compute. Agents work with the account your Cloudflare sign-in can reach. | Sign in with Cloudflare · API key |
 | [Context7](connectors/context7.md) | Up-to-date public library documentation and code examples. Read-only and keyless; anonymous rate limits apply, and private repositories are out of reach. | No credential |
@@ -152,6 +153,7 @@ Google Sheets is the other common home for tabular data; it sits under [Google W
 | --- | --- | --- |
 | [Box](connectors/box.md) | Enterprise file storage and sharing. Agents work with the files and folders your Box integration can reach. | Your own OAuth app |
 | [Cloudinary](connectors/cloudinary.md) | Image and video hosting with on-the-fly transformation. Agents work with the assets your Cloudinary roles allow. | Sign in with Cloudinary |
+| [Ditto](connectors/ditto.md) | Product copy and style guides. Agents search approved text, check wording against your style guide, and create, edit, and translate text. Deletes are permanent, so set them to **Ask first**. | Sign in with Ditto · API key |
 | [Webflow](connectors/webflow.md) | Visual website builder with a CMS behind it. Agents work with the sites and collections your Webflow roles allow. | Sign in with Webflow |
 | [Wix](connectors/wix.md) | Website builder and hosting. Agents work with the sites your Wix account can reach. | Sign in with Wix |
 

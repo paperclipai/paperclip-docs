@@ -40,9 +40,11 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 For the native lifecycle, choose **Paperclip Runner** and then select the provider. Codex and OpenCode have native routes; **ACP agents** offers Claude, Grok Build, Cursor, GitHub Copilot, and Pi. To run agents on your Copilot plan, see [GitHub Copilot](../../connectors/github-copilot.md). Existing direct-adapter agents keep their current runtime until you change the adapter.
 
-You don't have to do anything for Codex or Claude Code: a new Codex or Claude Code agent runs on Paperclip Runner automatically when it runs on macOS or on Linux x64/ARM64 with GNU libc `2.39` or newer. To keep the classic `codex_local` or `claude_local` adapter, open **Advanced** and set **Runner** to **Legacy runner**. See [New Codex and Claude agents use the Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
+You don't have to do anything for Codex, Claude Code, OpenCode, or Pi: a new agent on one of those harnesses runs on Paperclip Runner automatically when it runs on macOS or on Linux x64/ARM64 with GNU libc `2.39` or newer (OpenCode and Pi stay on the Legacy runner on Linux ARM64). To keep the classic `codex_local`, `claude_local`, `opencode_local`, or `pi_local` adapter, open **Advanced** and set **Runner** to **Legacy runner**. See [New Codex and Claude agents use the Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
 
-The Runner is experimental: for providers other than Codex, ACP Claude, and ACP GitHub Copilot, `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. Cursor needs a prepared pinned runtime (`paperclipai runtime setup cursor`), an explicit model, and an Agent, Plan, or Ask session mode. Its token totals and per-run dollar cost are unavailable. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md) and [native Cursor setup](../../reference/adapters/cursor-local.md#cursor-on-paperclip-runner).
+Already have a Claude Code or Codex agent on the Legacy runner? If its environment qualifies, its **Harness / Runtime** page shows an **Upgrade to Paperclip Runner** notice. Click **Upgrade runner** to switch while keeping its model, account, and compatible settings. See [Upgrade an existing Claude or Codex agent](../../reference/adapters/paperclip-runner.md#upgrade-an-existing-claude-or-codex-agent).
+
+The Runner is experimental: for providers other than Codex, OpenCode, ACP Claude, ACP Pi, and ACP GitHub Copilot, `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. Cursor needs a prepared pinned runtime (`paperclipai runtime setup cursor`), an explicit model, and an Agent, Plan, or Ask session mode. Its token totals and per-run dollar cost are unavailable. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md) and [native Cursor setup](../../reference/adapters/cursor-local.md#cursor-on-paperclip-runner).
 
 ### Agents run in full auto by default
 
@@ -133,6 +135,8 @@ See [Codex — Models](../../reference/adapters/codex.md#models) for the full li
 The `opencode_local` adapter runs your agent using OpenCode — a flexible, open-source AI terminal tool that supports multiple providers. It lets you configure exactly which model and provider to use via the `adapterConfig.model` field in `provider/model` format.
 
 **When to use this:** If you want to switch between providers easily, or use a model not available through `claude_local` or `codex_local` directly.
+
+> **Note:** On macOS and supported Linux x64 machines, new OpenCode agents run on [Paperclip Runner](../../reference/adapters/paperclip-runner.md#what-carries-over-for-opencode) by default, with `provider: "opencode"`. Pick **Legacy runner** under **Advanced → Runner** to use `opencode_local` instead.
 
 The configuration is similar to the other local adapters, with an additional **Model** field in `provider/model` format (e.g., `anthropic/claude-opus-4-6` or `openai/gpt-5.3-codex`).
 
