@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Issues: Creating and Tracking Work
 seo_description: Each issue is one unit of work tied to your company goal. Create them yourself or let the CEO do it, then track progress, comment, and close them.
 ---
@@ -324,6 +324,8 @@ The fields are grouped into sections, in this order. Some rows only appear when 
 When an agent creates a task while it's working on another one, the new task shows **Created from *&lt;task&gt;* by *&lt;agent&gt;*** under the breadcrumb (on the default page, in the **Tasks** tab). It tells you where the task came from without digging through run logs. It's only a record of where the task came from. It isn't a parent link or a blocker, and it only appears when you're allowed to see the source task.
 - **Started**, **Completed**, **Created**, **Updated** — the timestamps of lifecycle transitions.
 - **Depth** — how deep this task sits in its parent hierarchy (only shown for subtasks).
+
+When an agent creates a task while it's working on another one, the new task shows **Created from *&lt;task&gt;* by *&lt;agent&gt;*** under the breadcrumb (on the default page, in the **Tasks** tab). It tells you where the task came from without digging through run logs. It's only a record of where the task came from. It isn't a parent link or a blocker, and it only appears when you're allowed to see the source task.
 
 The older **Classic Task Interface** shows the same fields in a stacked sidebar, with a **Sub-tasks** row and an inline **Add sub-task** button.
 

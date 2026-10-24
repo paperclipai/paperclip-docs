@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Company Administration
 seo_description: Set your organization name and logo, manage members and invites, review join requests, and export or import the whole organization in one place.
 ---

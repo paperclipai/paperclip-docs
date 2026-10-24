@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Set a Monthly Budget and Enforce It
 seo_description: A misconfigured loop can run a four-figure tab in a weekend. Set a cap Paperclip enforces automatically, with warnings before the hard stop.
 ---

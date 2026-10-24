@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Projects: Grouping Related Work
 seo_description: Projects bind work to a repository, a working directory, and a budget envelope. Tour the tasks, workspaces, configuration, and budget tabs.
 ---

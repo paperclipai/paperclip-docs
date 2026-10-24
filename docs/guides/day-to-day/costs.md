@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Costs and Budgets: Spend and Limits
 seo_description: Track API spend, subscription fees, and decision-model costs, and set budget limits Paperclip enforces automatically, from Audit's Costs and Budgets tabs.
 ---
@@ -416,6 +416,8 @@ A **hard stop** (red, *hard stop*) means the scope is paused — the card says *
 
 - **Keep paused** — acknowledge the breach and leave the scope paused. Useful when you want the agent to stop for the rest of the month and resume naturally at rollover.
 - **Raise budget & resume** — increase the policy's amount (you enter the new cap in **New budget (USD)**; it must be higher than what's already been spent) and immediately un-pause the scope.
+
+Raising the budget won't work while the scope has runs awaiting accounting, or unpriced usage it's set to block on. In that case you'll see *Could not update the budget. Check any pending runs or unpriced usage shown on this page, then try again.* — sort those out first (see [When spend is uncertain](#when-spend-is-uncertain)).
 
 Raising the budget won't work while the scope has runs awaiting accounting, or unpriced usage it's set to block on. In that case you'll see *Could not update the budget. Check any pending runs or unpriced usage shown on this page, then try again.* — sort those out first (see [When spend is uncertain](#when-spend-is-uncertain)).
 

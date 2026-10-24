@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Settings: Profile and Instance
 seo_description: Two settings surfaces and why the difference matters. Covers your profile plus instance general, access, adapters, and experimental flags.
 ---
@@ -225,7 +225,7 @@ Open **Settings → Experimental**. The page groups its toggles into up to three
 - **Beta skills** — lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill, without removing the pins you saved.
 - **[Built-in Agents](../reference/api/built-in-agents.md)** — shows Paperclip-managed built-in agent surfaces (built-in roster badges, the **Built-in agents** tab, and the built-in agent setup controls) and makes the built-in-agent API available. Turn it on before you provision `briefs`, `learning`, or `reflection-coach`; with it off, the built-in-agent routes return `404 Not Found`.
 - **[Cases](../reference/api/cases.md)** — durable work products (blog posts, tweet storms…) that tasks create and iterate on. Adds the **Cases** tab and the agent case API. Turning it off hides the tab and blocks the API; existing case data is kept.
-- **[Chat connectors](../connectors.md#chat-channels-experimental)** — connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations. Turning it off hides chat setup, but existing chat connections keep running.
+- **[Chat connectors](../connectors.md#chat-channels-experimental)** — connect agents to Slack, Discord, Microsoft Teams, and Telegram conversations. Turning it off hides chat setup, but existing chat connections keep running. GitHub review bots have their own toggle below.
 - **[Combined Inbox + Task List](../experimental/task-chat.md#an-optional-combined-task-list)** — folds Inbox into **Tasks**: one Tasks row carries the unread badge, and a **Views** menu reaches every inbox and task view.
 - **[Decisions](../guides/day-to-day/decisions.md)** — shows the **Decisions** item in the main sidebar, the attention home that surfaces the tasks awaiting your input.
 - **[Enable Environments](../experimental/environments.md)** — environment management in company settings, plus project and agent environment assignment (including custom sandbox images).

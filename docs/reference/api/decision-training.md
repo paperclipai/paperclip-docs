@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.1023.0
 seo_title: Decision Training API
 seo_description: Capture the judgement calls people make — answering agent questions, approving or rejecting risky actions — as signal agents can learn from later.
 ---

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Goals and Projects API
 seo_description: Goals form the higher-level intent tree; projects group the concrete deliverables under them. Endpoints for both, and how the two link together.
 ---

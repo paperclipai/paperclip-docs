@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Anthropic Connector
 seo_description: Give agents Claude model access with a subscription or an Anthropic API key. Runtime requirements, credential assignment, a test run, and fixes.
 ---

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1023.0
 seo_title: Slack Connector
 seo_description: Connect a Slack bot so people can work with an agent from Slack: guided setup, account linking, Slack tools, approvals, scheduled messages, and fixes.
 ---
@@ -109,6 +109,10 @@ On the manual path, use the generated manifest rather than configuring scopes by
 Paperclip acknowledges with a reaction so people can see a message was picked up before the agent has finished thinking. This works in direct messages too.
 
 **Require at-mention** is on for new Slack connections. It keeps ordinary channel chatter from starting agent work: in channels, the agent only responds to messages that @mention it, including replies in a thread it's already in. Direct messages never need an @mention. Turn it off in **Settings** if you want any reply in a followed thread to reach the agent. Connections made before this setting existed keep their previous behavior.
+
+If you stop the agent's run from the Slack thread, the current response ends. Your next message in the thread starts a fresh turn on the same task.
+
+**Require at-mention** is on for new Slack connections. It keeps ordinary chatter from starting agent work: the agent only responds to messages that @mention it, including replies in a thread it's already in. The setting applies to direct messages as well as channels. Turn it off in **Settings** if you want any reply in a followed thread to reach the agent. Connections made before this setting existed keep their previous behavior.
 
 If you stop the agent's run from the Slack thread, the current response ends. Your next message in the thread starts a fresh turn on the same task.
 

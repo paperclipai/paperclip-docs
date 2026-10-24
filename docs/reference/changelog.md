@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Documentation Changelog
 seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
@@ -13,6 +13,41 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.1023.0 <span class="accordion-meta">October 23, 2026</span></summary>
+<div class="accordion-body">
+
+This release is about control over who sees what and what it costs. Tasks and projects can be private and shared with chosen people. Costs separate estimated, unpriced and subscription spend from API spend. A company can choose a small decision model for quick yes/no questions. The connector catalog also grows by fourteen apps, and agents can now report complaints and suggestions about their own tools.
+
+**New pages**
+
+- [Custom model providers](../connectors/custom-model-providers.md) — supply model access from your own gateway, a model server in the agent's environment, or Amazon Bedrock, and select it on any compatible agent.
+- [Decision Models API](api/decision-models.md) — choose the one shared connection your company pays for small, structured model questions, and read what it's been asked.
+- [Cases](../experimental/cases.md) — the experimental durable record for work that outlives a single task, such as a blog post or a docs page, with its fields, documents and linked tasks.
+- [External agents: OpenAI Dot](../experimental/external-agents.md) — invite your Dot from ChatGPT in as an agent with a pairing code. It keeps its own model, apps and memory.
+- [Agent cryptographic identity](../guides/org/agent-identity.md) — every agent gets a persistent Ed25519 keypair, so you can recognize its signatures across runs, renames and restarts.
+- [Agent complaints and suggestions](../administration/agent-commentary.md) — what agents can report about their tools and workflow, and where to read it.
+- [Runtime Commands](cli/runtime.md) — prepare a host to run Cursor or Pi on Paperclip Runner with `paperclipai runtime setup`.
+- New connector guides: [Bitly](../connectors/bitly.md), [Calendly](../connectors/calendly.md), [Context7](../connectors/context7.md), [Enterpret](../connectors/enterpret.md), [Exa](../connectors/exa.md), [Firecrawl](../connectors/firecrawl.md), [Gauge](../connectors/gauge.md), [GSC Wizard](../connectors/gsc-wizard.md), [Make](../connectors/make.md), [Parallel Search](../connectors/parallel-search.md), [Superagent](../connectors/superagent.md), [Tavily](../connectors/tavily.md), [Telem.AI](../connectors/telem.md) and [Windsor.ai](../connectors/windsor-ai.md).
+
+**Updated pages**
+
+- [Issues](../guides/day-to-day/issues.md), [Projects](../guides/projects-workflow/projects.md), [Issues API](api/issues.md) and [Goals and Projects API](api/goals-and-projects.md) — private tasks and projects: who can see them, how to share one, and how privacy is inherited from a parent or project. Also covers waiting on a pull request review, and the **Created from** source on follow-up tasks.
+- [Costs and Budgets](../guides/day-to-day/costs.md) and [Costs API](api/costs.md) — estimated, unpriced and still-being-counted spend, plus subscription fees beside API spend. Also: linking duplicate accounts, the Overview breakdowns by user, provider cost reports and invoices, and the new Decisions view.
+- [Roles and Permissions](../administration/roles-and-permissions.md), [Company settings](../administration/company.md) and [Agents API](api/agents.md) — Operators now get default company editing rights, and decision models and fast responses are set up from company settings.
+- [Agents](../guides/org/agents.md) — the setup checks a new agent passes before it starts work, your personal primary agent, and the agent's cryptographic identity.
+- [Slack](../connectors/slack.md) — automatic bot setup and install, the **Require at-mention** setting, and how people connect their own Slack accounts.
+- [Set up a review bot](../connectors/github-review-bot-setup.md), [Understanding review bots](../connectors/understanding-github-review-bots.md), [GitHub setup](../connectors/github-setup.md) and [GitHub](../connectors/github.md) — the simpler dedicated GitHub App setup.
+- [Paperclip Runner](adapters/paperclip-runner.md), [Cursor](adapters/cursor-local.md), [Codex](adapters/codex.md), [Pi](adapters/pi.md) and [Adapters overview](adapters/overview.md) — Cursor and Pi qualify on the Runner, the experimental OpenAI Dot provider, the Codex CLI version floor, and the **Harness** picker.
+- [Assistant connections](../experimental/assistant-connections.md) and [Assistant MCP API](api/assistant-mcp.md) — more direct tools for work and configuration, plus the `paperclip:configure` scope.
+- [Artifacts](../guides/day-to-day/artifacts.md) — CSV files open as tables, and HTML reports open rendered in a locked-down sandbox.
+- [Plugin SDK](plugins/sdk.md) and [Plugins](../administration/plugins.md) — the agent lifecycle contract for plugin setup and status, idle drain before sleep, workspace acquisition and sync diagnostics, and how plugin items behave when the server can't be reached.
+- [Anthropic](../connectors/anthropic.md), [OpenAI](../connectors/openai.md), [OpenRouter](../connectors/openrouter.md) and [xAI](../connectors/xai.md) — server-host browser sign-in, and recovering a missing personal AI credential from chat. Also new sign-in methods for [Linear](../connectors/linear.md) (API key), [Airtable](../connectors/airtable.md) (token) and [Hugging Face](../connectors/hugging-face.md) (public Hub, no sign-in).
+- Smaller updates: the [connector catalog](../connectors.md), [Workspaces](../guides/projects-workflow/workspaces.md) (repairing an unavailable branch inline), [Environment variables](deploy/environment-variables.md), [Database](deploy/database.md), [Skills Reference](skills.md), [Task chat](../experimental/task-chat.md), [Settings](../administration/settings.md), [Experimental overview](../experimental/overview.md), and setup-button labels across the connector guides.
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.1012.0 <span class="accordion-meta">October 12, 2026</span></summary>
 <div class="accordion-body">
 

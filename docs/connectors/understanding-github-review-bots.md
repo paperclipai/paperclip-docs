@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Understanding GitHub PR Review Bots
 seo_description: Learn why installing a review bot, choosing when it runs, and requiring its check before merging are three independent decisions.
 ---

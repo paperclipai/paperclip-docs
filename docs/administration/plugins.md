@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Plugins: Extending Paperclip
 seo_description: Add dashboard widgets, file browsers, and custom tooling. Covers the Plugin Manager, installing, self-installing plugins, enabling, and handling upgrades.
 ---

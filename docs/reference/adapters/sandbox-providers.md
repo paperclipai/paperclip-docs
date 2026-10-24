@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Sandbox Providers
 seo_description: Provider plugins that let Paperclip provision external compute as the execution environment for agent runs, instead of running them on the host.
 ---

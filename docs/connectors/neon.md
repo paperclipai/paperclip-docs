@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Neon Connector
 seo_description: Let agents manage Neon Postgres projects, branches, and SQL. Sign in or use an API key, pin one project, turn on read-only mode, and test safely.
 ---
