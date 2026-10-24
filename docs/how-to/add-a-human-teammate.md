@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Add a Human Teammate
 seo_description: Bring a co-founder, operator, or read-only viewer into your company as a board member, and pick the access level that matches what they need to do.
 ---

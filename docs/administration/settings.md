@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Settings: Profile and Instance
 seo_description: Two settings surfaces and why the difference matters. Covers your profile plus instance general, access, adapters, and experimental flags.
 ---
@@ -50,7 +50,7 @@ Shortcuts stay out of your way while you type: they ignore key presses inside te
 
 ![The General settings page, with the organization fields at the top; the instance-wide sections sit further down the same page](../user-guides/screenshots/light/settings/instance-general.png)
 
-There's no separate instance General page anymore. Open **Settings** and you land on **General** — the first item in the settings sidebar. The top of that page holds your organization's own settings (**Organization name**, **Description**, **Logo**, hiring, interaction governance, and agent observability). Scroll past **Agent observability** and you reach the instance-wide sections described below, sitting just above the **Danger Zone**. This is where you see how the instance was deployed and flip a few cross-cutting toggles.
+There's no separate instance General page anymore. Open **Settings** and you land on **General** — the first item in the settings sidebar. The top of that page holds your organization's own settings (**Organization name**, **Description**, **Logo**, hiring, and interaction governance). Scroll past **Interaction governance** and you reach the instance-wide sections described below, sitting just above the **Danger Zone**. This is where you see how the instance was deployed and flip a few cross-cutting toggles.
 
 > **Upgrading from an older release?** Old links to the instance General or Heartbeats pages still work — they redirect to this **General** page.
 
@@ -231,15 +231,13 @@ Open **Settings → Experimental**. The page groups its toggles into up to three
 - **[Enable Environments](../experimental/environments.md)** — environment management in company settings, plus project and agent environment assignment (including custom sandbox images).
 - **[Enable External Objects](../experimental/external-objects.md)** — detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects.
 - **[Enable Isolated Workspaces](../experimental/isolated-workspaces.md)** — execution-workspace controls in project configuration and isolated (git-worktree) checkouts for task runs. If you're not using isolated workspaces, leave this off. Once it's on, a **Use Isolated Workspaces By Default** card appears at the bottom of this section.
-- **Experimental fast responses** — allows short acknowledgements while agents begin work. You configure them in **Settings → Connections**; the **Connections** page itself no longer depends on this flag. Fast-response cost history appears under **Audit → Costs → Fast responses** (see [Costs](../guides/day-to-day/costs.md#fast-responses)).
+- **Experimental fast responses** — shows **Connections** in company settings and allows short acknowledgements while agents begin work. See [Costs](../guides/day-to-day/costs.md#fast-responses).
 - **[Experimental File Viewer](../experimental/file-viewer.md)** — task-detail controls for browsing and previewing workspace files.
 - **First task: propose with a plan document** — when someone's first request is a single task, the chief of staff writes a short plan document and a checkbox card instead of a one-card confirmation. Applies to organizations created after you flip it.
 - **[GitHub review bots](../connectors/understanding-github-review-bots.md)** — connect agents to GitHub with their own App identity to review pull requests and respond to issues. It's independent of Chat connectors: turning it off hides setup and management, existing bots keep running, and GitHub tool connections stay available.
-- **[Grok Bot](../experimental/external-agents.md)** — connect an existing Grok Bot as an agent. Needs Assistant connections (MCP), Paperclip Runner, and authenticated public HTTPS. Usage isn't reported. Turning it off blocks Grok calls and new dispatch.
 - **[Memory connectors](../connectors/memory-connectors.md)** — exposes Mem0, Zep, Supermemory, Cognee, and Honcho setup. Hiding setup does not stop saved connections.
-- **[Muse — Personal agent](../experimental/external-agents.md)** — connect your personal Meta Muse: pair it, detect its receiver, and verify a background reply before assigning tasks. Needs Paperclip Runner and an authenticated instance with a public HTTPS URL. Provider usage and cost aren't available. Turning it off blocks new work.
 - **[OpenAI Dot](../experimental/external-agents.md)** — adds OpenAI Dot as a standalone agent choice. Pair your Dot and verify event delivery before assigning work. Needs Assistant connections (MCP) and an authenticated instance with a public HTTPS URL. Turning it off blocks Dot calls and new work, but saved connections are kept.
-- **[Paperclip Runner](../reference/adapters/paperclip-runner.md)** — lets agents select the experimental Rust Paperclip Runner. On by default on self-hosted instances and off by default on Cloud unless managed configuration changes it. Turning it off hides the choice without affecting existing native runs. Codex and Claude Code are the exceptions: the server resolves new Codex and Claude Code agents to the Runner on supported macOS and Linux hosts whether or not this card is on, unless you choose **Legacy runner** as the runner override. The card still gates the Runner's other providers, such as Muse and Grok Bot.
+- **[Paperclip Runner](../reference/adapters/paperclip-runner.md)** — lets new Codex agents select the experimental Rust Paperclip Runner. On by default on self-hosted instances and off by default on Cloud unless managed configuration changes it. Turning it off hides the choice without affecting existing native runs.
 - **[Simplified English Interactions](../reference/skills/optional/content/simplified-english.md)** — tells agents to write confirmations, questions, suggested tasks, and checkbox prompts in ASD-STE100 Simplified Technical English, with brief context on what each decision needs.
 - **[Status Cards](../experimental/status-cards.md)** — the shared status-card board and its gated API. Enabling Status Cards also enables Summaries.
 - **Streamlined UI** — **on by default**. The simplified main sidebar, shared Tasks and Inbox presentation, focused task detail layout, and contextual navigation across Agents, Routines, Skills, and Settings. Turning it off restores the legacy shell and navigation; task and page data are unchanged.
@@ -318,4 +316,4 @@ The two controls are orthogonal: pair them when you want a default *and* want th
 
 - [Heartbeats & Routines](../guides/projects-workflow/routines.md) — the full picture of timer vs. event-driven wakes, and how to configure individual agents.
 - [Environment Variables](../reference/deploy/environment-variables.md) — the deployment-level settings that the General page reports on (auth mode, bootstrap state, exposure).
-- [Agent complaints and suggestions](agent-commentary.md) — agent-submitted feedback you read in Audit → Commentary, separate from the AI feedback-sharing preference.
+- [Agent complaints and suggestions](agent-commentary.md) — agent-submitted feedback stored in your instance database, separate from the AI feedback-sharing preference.

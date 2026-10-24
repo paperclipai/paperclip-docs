@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Parallel Search Connector
 seo_description: Give agents keyless public web search and page reading through Parallel Search. No account needed, what the two actions do, and a quick test to run first.
 ---
@@ -7,7 +8,7 @@ seo_description: Give agents keyless public web search and page reading through 
 
 Agents can search the public web and pull the text of source pages through Parallel Search. It needs no account, so it is a quick way to give an agent up-to-date information from outside your company.
 
-> **Nightly draft:** This guide covers the current master implementation. Parallel Search appears in the catalog on every instance; no experimental setting is needed.
+> **Note:** Parallel Search appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 
@@ -59,5 +60,5 @@ Limitations: public web only, and only the two actions the public server exposes
 
 ## Sources
 
-- [Parallel Search definition](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions/parallel-search.json) — method label, server, and guidance.
-- [Permission review](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/doc/connections/tool-method-permission-reviews.json) — the two public actions.
+- [Parallel Search definition](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions/parallel-search.json) — method label, server, and guidance.
+- [Permission review](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/doc/connections/tool-method-permission-reviews.json) — the two public actions.

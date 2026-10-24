@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Firecrawl Web Scraping Connector
 seo_description: Let agents search, scrape, and parse public web pages with Firecrawl. Keyless, sign-in, and API key methods compared, credit-using jobs, a test, and fixes.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents search, scrape, and parse public web pages with Fire
 
 Agents can search the web, scrape a page into clean text, and parse documents through Firecrawl. With an account connected, they can also run larger crawl and research jobs.
 
-> **Nightly draft:** This guide covers the current master implementation. Firecrawl appears in the catalog on every instance; no experimental setting is needed.
+Firecrawl appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 
@@ -74,6 +75,6 @@ Limitations: one Firecrawl team per connection. The available actions are whatev
 
 ## Sources
 
-- [Firecrawl definition](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions/firecrawl.json) — methods, scopes, credential field, and warnings.
-- [Permission review](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/doc/connections/tool-method-permission-reviews.json) — keyless actions and credit-using jobs.
-- [Default action policy](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions.ts) — new connections reach all agents with actions Allowed.
+- [Firecrawl definition](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions/firecrawl.json) — methods, scopes, credential field, and warnings.
+- [Permission review](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/doc/connections/tool-method-permission-reviews.json) — keyless actions and credit-using jobs.
+- [Default action policy](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions.ts) — new connections reach all agents with actions Allowed.

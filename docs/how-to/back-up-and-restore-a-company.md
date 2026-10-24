@@ -65,7 +65,7 @@ Each managed folder lives at `<paperclipInstanceRoot>/companies/<companyId>/agen
 
 A run's temporary copy is not a backup: Paperclip removes it when the session stops. There is no new file revision history to roll back to, and the last completed synchronization wins if two writers change the same path. See [Agent files persist across tasks](../guides/org/agents.md#agent-files-persist-across-tasks) for the save rules and limits.
 
-Implementation reference: [managed storage path](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instructions.ts) and [run copy lifecycle](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-directory-working-copies.ts).
+Implementation reference: [managed storage path](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instructions.ts) and [run copy lifecycle](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-directory-working-copies.ts).
 
 ---
 

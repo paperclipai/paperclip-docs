@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Artifacts: Files Your Agents Produce
 seo_description: Documents, images, video, and exports from every task in one place. Filter by type, browse stacks by task, and read files in the in-app viewer.
 ---
@@ -104,7 +104,7 @@ A few details worth knowing:
 - **Branches without a link say so.** When an agent records a branch but no remote URL, the card reads **Branch · no remote link** rather than implying there's somewhere to click through to. Use **Show details** to see its provider, its status, and when it was last updated. If the agent saved a description, it's tucked under **Saved description**.
 - **Unhealthy outputs are flagged** with an **Unhealthy** badge, so a broken preview link doesn't pass for a working one.
 
-The tab is a quick answer to "what came out of this task?" It's also where you add files of your own. See [Uploading files to a task](#uploading-files-to-a-task). You can't delete outputs from it.
+The tab is read-only — a quick answer to "what came out of this task?", not a place to upload or delete.
 
 Implementation reference: [artifact cards](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/artifacts/IssueArtifactCard.tsx), [CSV preview limits](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/lib/artifact-card-data.ts), and [media gallery](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/ImageGalleryModal.tsx).
 
@@ -113,19 +113,6 @@ Implementation reference: [artifact cards](https://github.com/paperclipai/paperc
 Either way, the Artifacts page remains the place to see everything at once, across every task and project. See [Issues](./issues.md#tabs-in-the-properties-panel) for the rest of what those tabs hold.
 
 ---
-
-### Uploading files to a task
-
-Sometimes you want to hand an agent material before it starts, such as a brief, a spreadsheet, or a screenshot, without sending a message that wakes it up. You can add files straight to the task from the **Artifacts** tab.
-
-- Click the upload icon (**Upload files**) in the tab's header and pick one or more files.
-- Or drop files anywhere on the open panel, including its header and the cards already there.
-
-An empty tab invites you to *Add files to this task*. Each file shows *Uploading…* while it saves. A file that fails shows the error with **Retry** and a dismiss button, and the files that did save stay saved.
-
-Uploads go straight onto the task. They don't post a message, assign an agent, or release a pause. You can prepare a paused or unassigned task and start the work when you're ready. Markdown files (`.md`, `.markdown`) become task documents, and other files become attachments with the usual file-type and size limits. Uploading a Markdown file with the same name as an existing document creates a separate document instead of overwriting it.
-
-Files from people and from agents appear together in the tab. An attachment that was also handed back as a work product appears only once.
 
 ### CSV files as tables
 
@@ -141,7 +128,7 @@ Agents often deliver reports as a single HTML file with charts, tables, or filte
 
 The report runs in a locked-down sandbox. Its scripts can drive the page itself, but they can't read your Paperclip session, cookies, or storage, and they can't touch the rest of the app. Network requests, remote scripts, styles, images, and fonts, forms, pop-ups, and navigating away are all blocked. So a report has to be self-contained: inline its scripts and styles, and embed images and fonts as `data:` URLs. A report that loads a charting library from a CDN won't work until that library is embedded.
 
-Implementation reference: [upload controls](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/ui/src/components/artifacts/ArtifactUploadControls.tsx), [CSV table](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/ui/src/components/CsvPreview.tsx), and [HTML sandbox policy](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/ui/src/lib/html-preview.ts).
+Implementation reference: [CSV table](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/ui/src/components/CsvPreview.tsx) and [HTML sandbox policy](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/ui/src/lib/html-preview.ts).
 
 ---
 
@@ -227,7 +214,7 @@ Every comment is addressable. Open a thread and use **Copy link** to grab a deep
 - **Stacks** — artifacts grouped by their task (or rolled up by parent task), so related outputs stay together.
 - **Cards** — previews you can read or watch in place, each linking back to the issue it came from.
 - **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from a file artifact or from an inline file chip an agent left in its writing.
-- **Artifacts tab on a task** — one task's outputs in its properties panel, each on a card shaped to what it is: pull request, commit, document, image, video, link preview, CSV data, or file. You can upload or drop your own files here too.
+- **Artifacts tab on a task** — one task's outputs in its properties panel, each on a card shaped to what it is: pull request, commit, document, image, video, link preview, CSV data, or file.
 - **Document comments** — inline, Google-Docs-style threads anchored to a passage in a Plan or Artifact document; open or resolved, authored by people or agents, and shareable by deep link.
 
 You now know how to find, filter, and review everything your agents have made. When you want to dig into the work behind a given artifact, follow its link back to the issue and pick up the thread there.

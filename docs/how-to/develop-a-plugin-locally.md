@@ -132,8 +132,6 @@ This is the part that makes local development pleasant. Paperclip watches the ru
 - **Plugin UI.** Save a `.tsx` file → esbuild rewrites `dist/ui/` → Paperclip reloads the UI bundle on its next mount. For HMR during UI work, run `pnpm dev:ui` and point `devUiUrl` in your manifest at `http://127.0.0.1:4177` while developing.
 - **No watch build, no reload.** The watcher only fires on `dist/*` changes. If `pnpm dev` is stopped, source edits never reach Paperclip — restart `pnpm dev` (or run `pnpm build` once) before expecting changes.
 
-If you reinstall the same plugin from a different folder, the watcher follows it: it stops watching the old folder and starts watching the new one, and leftover changes from the old folder never restart the worker. If the new folder doesn't exist, or you reinstall the plugin from npm instead of a local path, the watcher simply stops. Plugins bundled with Paperclip itself are never watched — only the ones you installed from a local path.
-
 `node_modules`, `.git`, `.paperclip-sdk`, and other dotfolders are ignored by the watcher. Adding a new dependency requires actually importing it from your code and letting the watch build rebuild before the worker sees it.
 
 The Paperclip server never compiles plugin source for you. Your package's own build scripts own that step.

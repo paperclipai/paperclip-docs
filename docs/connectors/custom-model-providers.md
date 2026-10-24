@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Custom AI Endpoints and Bedrock
 seo_description: Connect a Responses, Messages, Chat Completions, local, or Bedrock endpoint. Match its API format to the agent harness and select a model explicitly.
 ---

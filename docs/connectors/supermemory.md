@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Supermemory Connector
 seo_description: Connect Supermemory through browser sign-in, select the workspace and tags it may reach, and review memory actions and saved agent guidance in Paperclip.
 ---
@@ -57,5 +58,5 @@ Turning off the experimental setting leaves saved connections running and allows
 
 ## Sources
 
-- [Supermemory definition](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/app-definitions/supermemory.json) — personal OAuth sign-in, endpoint, consent guidance, and default instructions.
-- [Feature defaults](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/feature-catalog.ts) — experimental availability.
+- [Supermemory definition](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/packages/shared/src/app-definitions/supermemory.json) — personal OAuth sign-in, endpoint, consent guidance, and default instructions.
+- [Feature defaults](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/packages/shared/src/feature-catalog.ts) — experimental availability.

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Costs and Budgets: Spend and Limits
 seo_description: Track API spend, subscription fees, and decision-model costs, and set budget limits Paperclip enforces automatically, from Audit's Costs and Budgets tabs.
 ---
@@ -147,7 +147,7 @@ On the left is the **By agent** card. Each agent that generated inference events
 - Token breakdown: `in <input+cached> (<cached> cached) · out <output>`.
 - Run-type breakdown: `runs: N api · N sub` — how many runs went through API-priced calls versus subscription-backed calls (see [Billers](#billers) below for the distinction).
 
-Charges that don't belong to any agent — for example, a [decision model](#decisions) request made by a background feature, or a [prompt injection check](../../connectors/prompt-injection-prevention.md) that ran outside an agent's work — appear in a **Paperclip services** row.
+Charges that don't belong to any agent — for example, a [decision model](#decisions) request made by a background feature — appear in a **Paperclip services** row.
 
 If an agent has a per-model breakdown available, a caret appears on the left of the row. Clicking the row expands it to show one line per `provider / model / billingType` combination with its share of that agent's spend, the cost, the token count, and which biller handled the call. This is the fastest way to see "why is this particular agent spending so much" — you can immediately tell whether it's one runaway model or a healthy mix.
 
@@ -167,7 +167,7 @@ To the right of the agent breakdown is the **By project** card. Paperclip attrib
 
 ### Active budget incidents (overview)
 
-If any budget has crossed its warning threshold or hit a hard stop, up to two **Budget incident cards** appear below the breakdowns. A warning card is amber and leaves work running; a hard-stop card is red and means the scope is paused. Each card has a **New budget (USD)** input and the matching actions — see [Active incidents](#active-incidents) for what each one does. If a hard stop happened because spend is uncertain rather than over the limit, the card says *Accounting is incomplete* and points you to the pending or unpriced usage instead. The full incident list lives on the [Budgets tab](#budgets-tab).
+If any budget has crossed its warning threshold or hit a hard stop, up to two **Budget incident cards** appear below the breakdowns. Each card shows the scope, the breach details, and two resolution buttons — **Keep paused** or **Raise budget & resume** (with a **New budget (USD)** input). See [Active incidents](#active-incidents) for what each one does. If a hard stop happened because spend is uncertain rather than over the limit, the card says *Accounting is incomplete* and points you to the pending or unpriced usage instead. The full incident list lives on the [Budgets tab](#budgets-tab).
 
 ### Finance ledger card
 
@@ -303,7 +303,7 @@ Some optional Paperclip features ask a small, fast model a quick question — "i
 
 Each company chooses one shared API connection to pay for these requests. New companies start unconfigured. You need permission to manage AI connections to set it up.
 
-1. Open **Company Settings → Connections**. The **Decision model** section is at the top of the page.
+1. Open **Company Settings → General** and find the **Decision model** section. If an instance admin has turned on **Experimental fast responses**, it's at the top of **Company Settings → Connections** instead.
 2. Pick an existing shared OpenAI or OpenRouter API connection, or click **Add connection** to create one. Paperclip uses GPT-6 Luna on OpenAI and Jev 1.13 on OpenRouter. Only company-shared API keys work here — not personal accounts, subscriptions, or custom endpoints.
 3. Leave **Enable decisions** on, and decide whether to keep **Allow company-sponsored background decisions** on. It starts on when you first set the model up. With it on, background features can charge the connection without a responsible person; those requests show up as **Paperclip services**. If you turn it off, it stays off when you later change connections.
 4. Click **Save decision model**.
@@ -372,17 +372,9 @@ $0 ─────────────────────── 80% ─
                           Warning        Auto-paused
 ```
 
-**At 80%:** Paperclip records a warning so you can intervene before the hard stop. The warning doesn't pause anything — the agent keeps working. Its incident card is amber, titled with the scope and *budget warning* (for example **agent budget warning**), and reads *Spending crossed the warning threshold. This warning does not pause work.* You can raise the budget or dismiss the warning from there.
+**At 80%:** Paperclip records a warning so you can intervene before the hard stop. The warning doesn't pause the agent. In v2026.1023.0, though, its incident card still uses the hard-stop design: it offers **Keep paused** and **Raise budget & resume**, and says the scope is paused. The screenshots show the corrected amber warning card from [the fix](https://github.com/paperclipai/paperclip/pull/16201), which ships in a later release. Until then, trust the policy card's **Warning** badge: the warning itself doesn't pause the agent.
 
-**At 100%:** Paperclip pauses the scope that hit its limit, and only that scope:
-
-- **Agent budget** — that agent is paused. No further heartbeats are triggered, and it stays paused until you increase its budget or the calendar month resets. Other agents keep working.
-- **Project budget** — new work in that project stops. The agents involved keep working on their other projects.
-- **Organization budget** — the whole company pauses.
-
-New work in the scope is refused as soon as the limit is hit. Work that's already running gets a stop request moments later rather than at the exact same instant, so it can add a little more spend before it stops.
-
-Running work counts against the budget while it runs, not only once it finishes — so a long run can hit the hard stop partway through. That depends on the provider reporting usage as it goes, or on Paperclip being able to price it. If a provider only reports usage at the end, the run's spend is counted when it finishes.
+**At 100%:** The agent is automatically paused. No further heartbeats are triggered. The agent stops all activity until either you increase its budget or the calendar month resets.
 
 An auto-paused agent doesn't lose its work — any tasks it had in progress remain assigned to it and will pick up again once the agent is resumed.
 
@@ -403,19 +395,9 @@ If any budget policy has been breached, an **Active incidents** section appears 
 
 - The scope (company, agent, or project) and its name.
 - The policy details — how much was configured and how much was actually spent.
-- Whether it's a **warning** or a **hard stop**, and its state (**Open**, **Pending approval**, **Escalated**, and so on).
-
-The actions depend on which kind it is.
-
-A **warning** (amber, *budget warning*) means spend crossed the soft threshold. Work keeps running.
-
-- **Raise budget** — set a new cap in **New budget (USD)**. The field starts at the current limit plus $10, and the new amount must be higher than what's already been spent.
-- **Dismiss warning** — acknowledge it and move on. Nothing else changes.
-
-A **hard stop** (red, *hard stop*) means the scope is paused — the card says *This scope is paused. New heartbeats will not start until you resolve the budget incident.* (or, for a project, that new work in the project won't start).
-
-- **Keep paused** — acknowledge the breach and leave the scope paused. Useful when you want the agent to stop for the rest of the month and resume naturally at rollover.
-- **Raise budget & resume** — increase the policy's amount (you enter the new cap in **New budget (USD)**; it must be higher than what's already been spent) and immediately un-pause the scope.
+- Two actions:
+  - **Keep paused** — acknowledge the breach and leave the scope paused. Useful when you want the agent to stop for the rest of the month and resume naturally at rollover.
+  - **Raise budget & resume** — increase the policy's amount (you enter the new cap in **New budget (USD)**; it must be higher than what's already been spent) and immediately un-pause the scope.
 
 Raising the budget won't work while the scope has runs awaiting accounting, or unpriced usage it's set to block on. In that case you'll see *Could not update the budget. Check any pending runs or unpriced usage shown on this page, then try again.* — sort those out first (see [When spend is uncertain](#when-spend-is-uncertain)).
 
@@ -429,13 +411,13 @@ Each policy card shows:
 
 - The scope type and name (who this applies to) and the window — **Monthly UTC budget** for organization and agent policies, **Lifetime budget** for projects.
 - A status badge: **Healthy**, **Warning**, **Hard stop**, or **Paused**.
-- **Observed** spend (with the percentage of the limit used, including what running work has reported so far) next to the **Budget** cap and the soft-alert threshold.
+- **Observed** spend (with the percentage of the limit used) next to the **Budget** cap and the soft-alert threshold.
 - A **Remaining** amount with a utilisation bar — green while healthy, amber once the warning threshold is crossed, red at the hard stop.
 - Any runs awaiting accounting or unpriced usage in the window.
 - A **Budget (USD)** field with a **Set budget** or **Update budget** button. Setting the budget to `0` turns the policy off.
 - An **Advanced settings** section with two controls:
   - **Block new work when usage has no reliable price** — on by default. See [When spend is uncertain](#when-spend-is-uncertain).
-  - **Reserve per run (USD)** — an estimate Paperclip sets aside from the budget before each run starts, saved with **Update reservation**. It stops a burst of runs from all starting at once and together blowing past the cap. Zero (the default) turns it off. Each unfinished run holds its reservation or the spend it has reported so far, whichever is higher. If what's held would push the scope over its cap, new runs wait until earlier ones finish. A reservation only controls when work can start — a run's real charge can still come in higher.
+  - **Reserve per run (USD)** — an estimate Paperclip sets aside from the budget before each run starts, saved with **Update reservation**. It stops a burst of runs from all starting at once and together blowing past the cap. Zero (the default) turns it off. Each unfinished run holds its reservation. If what's held would push the scope over its cap, new runs wait until earlier ones finish. A reservation only controls when work can start — a run's real charge can still come in higher.
 
 If no policies exist yet, a single empty-state card says so: "No budget policies yet. Set agent and project budgets from their detail pages, or use the existing organization monthly budget control." In practice, here's where each kind of policy starts:
 

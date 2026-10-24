@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Enterpret Connector
 seo_description: Let agents ask Enterpret about customer feedback and pull cited quotes. Connect with an org auth token or sign-in, and keep graph queries on Ask first.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents ask Enterpret about customer feedback and pull cited
 
 You can let agents ask questions about your customer feedback in Enterpret — themes, sentiment, and verbatim quotes with citations back to the original records. It is useful when a task needs the customer's own words, not a guess about what customers think.
 
-> **Nightly draft:** This guide covers the current master implementation. Enterpret appears in the catalog on every instance; no experimental setting is needed.
+Enterpret appears in the catalog on every instance; no experimental setting is needed.
 
 The connection uses Enterpret's official read-only MCP server. Enterpret runs a separate Agent MCP service that can make changes; this connector does not reach it.
 
@@ -83,5 +84,5 @@ Limitations: one Enterpret organization per token connection. Browser sign-in is
 
 ## Sources
 
-- [Enterpret definition](https://github.com/paperclipai/paperclip/blob/abbd88007f059dbadbd3f266febf264577b6ee78/packages/shared/src/app-definitions/enterpret.json) — methods, labels, credential field, scopes, and warnings.
-- [App defaults](https://github.com/paperclipai/paperclip/blob/abbd88007f059dbadbd3f266febf264577b6ee78/packages/shared/src/app-definitions.ts) and [tool connection service](https://github.com/paperclipai/paperclip/blob/abbd88007f059dbadbd3f266febf264577b6ee78/server/src/services/tool-access.ts) — Ask-first default for `run_graph_query` and held-back new actions.
+- [Enterpret definition](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions/enterpret.json) — methods, labels, credential field, scopes, and warnings.
+- [App defaults](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions.ts) and [tool connection service](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/server/src/services/tool-access.ts) — Ask-first default for `run_graph_query` and held-back new actions.

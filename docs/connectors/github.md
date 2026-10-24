@@ -1,19 +1,18 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1023.0
 seo_title: GitHub Connector
 seo_description: Two separate GitHub setups: repository tools for agents, or people working with an agent from issues. Includes the shell Git and gh exception.
 ---
 
 # GitHub
 
-GitHub supports repository tools, GitHub Copilot model access, and an experimental chat/review bot in Paperclip. Repository tools and Copilot share the **GitHub** entry on the **Connectors** page: **Connect GitHub** for repositories and **Connect Copilot** for Copilot. The bot is its own entry, **GitHub Code Review Bot**. Choose the one for the work you want to do.
+GitHub supports repository tools and an experimental chat/review bot in Paperclip. They are two separate entries on the **Connectors** page: **GitHub** for repository tools, and **GitHub Code Review Bot** for the bot. Choose the one for the work you want to do.
 
 ## Which do you want?
 
 | If you want | Set up | What it gives you |
 | --- | --- | --- |
 | Agents to read and act on repositories as part of their own work | **GitHub** → **Connect GitHub** | GitHub actions an agent can call, and for a managed identity the credential the run's shell uses |
-| Agents to run on your GitHub Copilot plan | **GitHub** → **Connect Copilot** | An AI connection holding a Copilot token. It gives model access only, no repository access. See [GitHub Copilot](github-copilot.md) |
 | People to start work from GitHub, or an agent to review PRs | **GitHub Code Review Bot** | A bot App assigned to one agent, with task-bound review tools and PR checks when enabled |
 
 A personal GitHub connection does not create a bot App. Use [GitHub connector setup](github-setup.md) for regular repository tools, or [Set up a GitHub review bot](github-review-bot-setup.md) for the experimental chat journey. Read [Understanding GitHub PR review bots](understanding-github-review-bots.md) to distinguish installation, triggers, and merge requirements.
@@ -162,7 +161,6 @@ The managed repository-tool path depends on Cloud enrollment. The review-bot pat
 - [Set up a GitHub review bot](github-review-bot-setup.md)
 
 - [Set up the GitHub connector](github-setup.md)
-- [GitHub Copilot](github-copilot.md) — run agents on your Copilot plan.
 - [Connect an agent to a GitHub repo](../how-to/connect-agent-to-github.md)
 - [Slack](slack.md) — the other mixed-purpose connector.
 - [How connector access works](access-model.md)

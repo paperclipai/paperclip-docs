@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Check AI Account Usage and Limits
 seo_description: Read provider-reported allowances for Claude, OpenAI, Grok, and OpenRouter accounts, understand missing values, and repair sign-in from a task.
 ---

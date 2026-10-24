@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Task-Pinned AI Connection Pools
 seo_description: Rotate new tasks across a pool of AI accounts while each task keeps its account. Turn on the router, build a pool, and assign it to your agents.
 ---

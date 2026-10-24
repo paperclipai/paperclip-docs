@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.525.0
+paperclip_version: v2026.1023.0
 seo_title: Bring Your Own Agent
 seo_description: Three ways to wire a non-built-in agent into Paperclip — OpenClaw, an HTTP webhook, or a custom script — through the adapter layer that decouples them.
 ---
@@ -40,13 +40,13 @@ If your external runtime is Hermes Agent, the Hermes-specific walkthrough is [He
 
 Start a new agent (the **Meet your next agent** dialog you use for local and managed agents), then:
 
-1. Click **Invite an external agent**. The dialog shows a grid of agent types: **Dot**, **Grok Bot**, **Hermes**, and **Other** (plus **Muse — Personal agent** when that experiment is on).
+1. Click **Invite an external agent**. The dialog shows a grid of agent types: **Dot**, **Hermes**, and **Other**.
 2. Pick **Other** for OpenClaw or a custom agent, or **Hermes** for a Hermes agent. Paperclip generates the onboarding prompt straight away.
-3. Click **Copy invitation prompt**. A **Back** link returns you to the agent types if you change your mind.
+3. Click **Copy invitation prompt**. **Back** returns you to the agent types if you change your mind.
 
 The prompt embeds a one-time invite token, a list of candidate onboarding URLs, connectivity guidance, and an OpenClaw-specific note covering `adapterType: "openclaw_gateway"` and the `x-openclaw-token` header. To add your own onboarding context, use the API call below with `agentMessage`.
 
-> **Tip:** **Dot**, **Grok Bot**, and **Muse** use their own guided pairing instead of this invite prompt. See [External agents: Dot, Grok Bot, and Muse](../experimental/external-agents.md).
+> **Tip:** **Dot** uses its own guided pairing instead of this invite prompt. See [External agents: OpenAI Dot](../experimental/external-agents.md).
 
 Prefer the API? The same flow is a single call:
 
@@ -289,7 +289,7 @@ A working version of all three paths lives at [`paperclipai/examples/byo-agent`]
 - [Adapters Overview](../reference/adapters/overview.md) — every adapter type and when to use it.
 - [HTTP adapter](../reference/adapters/http.md) — full field list, payload shape, and `Test Environment` behaviour for Option B.
 - [OpenClaw Gateway](../reference/adapters/openclaw-gateway.md) — transport, device auth, and onboarding checklist for Option A.
-- [External agents: Dot, Grok Bot, and Muse](../experimental/external-agents.md) — experimental guided pairing for assistants you already use.
+- [External agents: OpenAI Dot](../experimental/external-agents.md) — experimental guided pairing for the Dot you already use in ChatGPT.
 - [Connect an agent to a GitHub repo](./connect-agent-to-github.md) — pair this with Option A or B for a coding agent that opens PRs.
 - [Handle board approvals for hires](./handle-board-approvals-for-hires.md) — the approval flow each invite/hire passes through.
 - [Debug a stuck heartbeat](./debug-stuck-heartbeat.md) — first stop when the wake fires but nothing happens.

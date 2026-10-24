@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Bitly Connector
 seo_description: Let agents read Bitly links, QR codes, and click analytics, while keeping link deletion, Sites publishing, and custom-domain changes switched off.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents read Bitly links, QR codes, and click analytics, whi
 
 Agents can work with your Bitly account — looking up short links and QR codes, reading click analytics, and, where you allow it, creating and managing links.
 
-> **Nightly draft:** This guide covers the current master implementation. Bitly is back in the catalog on every instance; no experimental setting is needed.
+Bitly appears in the catalog on every instance; no experimental setting is needed.
 
 > **Warning:** Bitly's tool list includes permanent short-link deletion, Bitly Sites publishing and deletion, and custom-domain changes. A deleted short link stops redirecting everyone who has it. Keep write and destructive actions **Off** until you need one.
 
@@ -67,6 +68,6 @@ Limitations: one Bitly account per connection. The token and the `mcp.all` grant
 
 ## Sources
 
-- [Bitly definition](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions/bitly.json) — methods, scope, key field, and warnings.
-- [App catalog visibility](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions.ts) — Bitly is no longer in the hidden set.
-- [Tool connection service](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/server/src/services/tool-access.ts) — OAuth token exchange now requests JSON responses.
+- [Bitly definition](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions/bitly.json) — methods, scope, key field, and warnings.
+- [App catalog visibility](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions.ts) — Bitly is listed in the catalog.
+- [Tool connection service](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/server/src/services/tool-access.ts) — OAuth token exchange requests JSON responses.

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Asana Connector
 seo_description: Let agents read and update Asana tasks. Sign in with Paperclip's Asana app or your own, workspace and project reach, a read test, and fixes.
 ---

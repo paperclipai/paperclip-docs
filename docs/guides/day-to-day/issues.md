@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Issues: Creating and Tracking Work
 seo_description: Each issue is one unit of work tied to your company goal. Create them yourself or let the CEO do it, then track progress, comment, and close them.
 ---
@@ -49,8 +49,6 @@ Open **Tasks** to see the work across your company. The API calls these records 
    - Assignee = **[specific agent]** — see one agent's full workload
    - Status = **in_review** — see work that's done and waiting for sign-off
 
-   **Tasks created by agents are hidden by default.** Agent delegation and automatic routine runs can easily outnumber the requests people make, so the list starts with human-created work. To see everything, open **Filter** and tick **show agent-created tasks** under **Visibility**. Your choice is remembered for that list, and **Clear** in the filter menu hides them again. A hidden task still appears as a parent or as an expandable subtask of a task you can see, so trees stay intact. Tasks from chat channels count as agent-created, even when a person started the conversation. The same checkbox is on project task lists and in the Inbox.
-
    You can also search issues by title, identifier, description, or comment content using the search input. The URL `?q=` parameter reflects the current search so you can share a filtered view.
 
 3. **Group and arrange the list**
@@ -78,7 +76,7 @@ Implementation reference: [Tasks page and live updates](https://github.com/paper
 
 2. **Choose a project.**
 
-   Click **Project** above the text box. Search for a project, choose a recent one, or select **No project**. The project sets where the task belongs; the model picker below controls how the agent answers.
+   Click **Project** above the text box. Search for a project, choose a recent one, or select **No project**. The project sets where the task belongs; the model picker below controls how the agent answers. Paperclip remembers the last project you picked in this company and starts the next new task there.
 
 3. **Pick a work mode.**
 
@@ -204,19 +202,9 @@ The **Inbox** is the human-facing triage view. Where the Issues page is an exhau
 The Inbox URL has the shape `/inbox/<tab>`. Switching tabs navigates — it doesn't just hide content — so you can bookmark or link directly to any view.
 
 **Mine**
-Your personal work: issues and approvals assigned to you, tasks you created yourself, and tasks you've taken part in, filtered to the active statuses (todo, in_progress, in_review, blocked). This is the tab most users live in. When the Inbox is empty here, it reads "Inbox zero." — a deliberate nudge that Mine is the queue that matters most.
-
-Automatic work stays out of Mine by default. That covers tasks that come in from a connected chat channel such as Slack or GitHub, tasks a routine creates (even when you start the routine by hand with **Run now**), and tasks an agent creates. Having your account linked to the channel, being named as the creator or responsible person, a synced reply from the channel, or simply reading the task doesn't put it in Mine. One of these does:
-
-- the task is assigned to you;
-- you comment on it directly in Paperclip, or change it yourself;
-- an agent has an open question or request addressed to you on it. Once you answer it, the task needs another of these reasons to stay.
-
-The same rules decide your unread counts, the Inbox badge, and task notifications.
+Issues and approvals that are currently assigned to you or were created by you, filtered to the active statuses (todo, in_progress, in_review, blocked). This is the tab most users live in. When the Inbox is empty here, it reads "Inbox zero." — a deliberate nudge that Mine is the queue that matters most.
 
 Mine also shows failed agent runs — but only the ones you're responsible for, such as a run that started from your request. When an agent run fails for a teammate, it stays out of your Mine and out of the red failure count on the Inbox badge; you can still see it under **All** → **Failed runs** and in the run details. Only an agent's most recent run counts, so an old failure on a shared agent doesn't resurface once a newer run has gone through. On a local single-user board, older failed runs that aren't tied to anyone still show in Mine, since they can only be yours.
-
-A failed run that belongs to a task opens that task when you click it, and its row describes where the task stands now rather than the raw error: **Thinking** while a new attempt runs, *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* When the task is waiting on you, the row says what it needs instead, for example **Approval required**, **Reconnect account**, **Assign an agent**, **Choose a supported model**, **Work is paused**, or **Budget limit reached**. The **Retry** button only appears when retrying can help, and the row drops out once the task has recovered.
 
 **Recent**
 Recently touched issues, including ones you're not directly assigned to but have participated in (commented on, been mentioned in, or previously owned). Useful for keeping an eye on work that is adjacent to yours.
@@ -243,7 +231,7 @@ When the current tab contains unread items, a **Mark all as read** button appear
 The Inbox toolbar mirrors the Issues page:
 
 - A search input with URL-bound `q` parameter.
-- A filters popover covering assignees, creators, projects, labels, and **Visibility**, which includes **show agent-created tasks**. Agent-created tasks stay hidden unless you tick it, but a task you've taken part in still shows, for example one you commented on or that's assigned to you. Workspace is no longer a filter here; group by **Workspace** instead.
+- A filters popover covering assignees, creators, projects, labels, and routine visibility. Workspace is no longer a filter here; group by **Workspace** instead.
 - A group-by control (**None**, **Type**, **Responsible**, **Project**, or — when isolated workspaces are enabled — **Workspace**).
 - A column picker for the trailing columns (the default set is stored in `DEFAULT_INBOX_INBOX_ISSUE_COLUMNS` and can be reset).
 - A nesting toggle to collapse parent/child issue groups.
@@ -374,7 +362,7 @@ If either action fails, the bar tells you plainly — *"Couldn't confirm — try
 
 **Artifacts** gathers what this task produced, grouped by the run that produced it, newest run first. Each output gets a full-width card shaped to what it is — a pull request shows its state, checks, and changed lines; a commit its SHA and branch; a document expands with **Read document**; images and videos open in the gallery viewer; a CSV loads a table when you click **Preview data**. Markdown and text files open in a tab of their own with **Open in tab**. See [Artifacts](./artifacts.md#reaching-artifacts-from-a-task) for every card type.
 
-It's there to answer "what did this task produce?" without scrolling the thread. You can also add files here: use the upload icon, or drop files anywhere on the panel. They're saved straight to the task without sending a message, so a paused task stays paused. See [Uploading files to a task](./artifacts.md#uploading-files-to-a-task). The company-wide view of every output still lives on the [Artifacts page](./artifacts.md).
+It's there to answer "what did this task produce?" without scrolling the thread. The tab is read-only, so there's no uploading or deleting from it, and the company-wide view of every output still lives on the [Artifacts page](./artifacts.md).
 
 On the chat-style page, the centre column's **Attachments**, **Output**, keyed-documents, and **Plan decomposition** sections all step aside — the plan and the task's files live in this panel instead, leaving the middle of the page to the conversation.
 
@@ -503,7 +491,6 @@ The task conversation combines four data sources into a single timeline:
 At the bottom of the conversation sits the composer. [Chat-Style Tasks](../../experimental/task-chat.md#the-composer) covers its mode, model, effort, project, and pending-card controls. It also supports:
 
 - **@mentions** — type `@` to open the mentions picker. Mentioning an agent causes Paperclip to resolve it to a structured `[@Agent Name](agent://<agent-id>)` mention. A mention is context only: it doesn't wake the agent, start a run, hand it the task, or forward your comment to another task. To bring another agent in, assign the task or request a review.
-- **Default recipient** — when an agent hands a task to you and you open it, the composer picks the agent that most recently assigned it to you. Your reply goes back to that agent without any extra clicks. If no agent assigned it to you, it falls back to the most recent other commenter. If there isn't one, no recipient is chosen. A recipient you pick yourself stays put when the page refreshes.
 - **Reassignment on comment** — if your comment is directed at a different participant, the composer offers to reassign the issue along with the comment in one action (using the current vs suggested assignee values).
 - **Image attachments** — paste, drop, or attach image files; they upload inline and render as thumbnails inside the comment bubble. Clicking a thumbnail opens the shared gallery modal.
 - **File attachments** — non-image attachments upload to the issue and render beneath the comment as file rows.
@@ -590,13 +577,13 @@ Only the task's owner (the person responsible for it, its creator, or its assign
 
 A project can be private too. In the project's properties, turn on **Visibility**. **Private** means only access members can find the project. Members can see the project and read every task in it. Use **Manage access** to add or remove people and agents. To make a private project visible to the whole company again, turn **Visibility** off and confirm. Its private tasks stay private. Members who could only see them through the project lose access, so share those tasks directly first if they should keep it. See [Projects](../projects-workflow/projects.md).
 
-Implementation reference: [privacy actions](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/ui/src/components/IssuePrivacyActions.tsx) and [share dialog](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/ui/src/components/IssueShareSheet.tsx).
+Implementation reference: [privacy actions](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/ui/src/components/IssuePrivacyActions.tsx) and [share dialog](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/ui/src/components/IssueShareSheet.tsx).
 
 ---
 
 ## Live task notifications
 
-When something changes on a task while you're looking at another page, a notification can pop up in the corner. In a company with several people, you only get these for tasks you're part of: tasks you created, commented on, are assigned to, or were @-mentioned in. Just viewing a task, or being its responsible user, doesn't count. Activity on other people's work still updates your lists, but quietly.
+When something changes on a task while you're looking at another page, a notification can pop up in the corner.
 
 Each notification shows who made the change, with their name and avatar, whether it was a person or an agent. You don't get notifications for your own actions.
 
@@ -664,7 +651,7 @@ An empty composer shows **Stop** while the task is running and you can manage ta
 
 While paused, the composer says **Task is paused.** or **Subtree is paused.**, preserves your draft, and offers **Resume task** or **Resume subtree**. Resume releases the hold; waking agents is optional. If an interrupted run has uncertain outcomes, a resume that also tries to wake it is refused and the pause remains. Inspect the stopped run and follow its recovery instructions before continuing. See [Stop, pause, and resume](../../experimental/task-chat.md#stop-pause-and-resume) for the complete flow.
 
-If a run stops for a reason Paperclip can repair itself, the task shows one short status line instead of a stack of warnings: *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* once it has stopped retrying. **Retry** asks Paperclip to try the task again with your saved messages. If the provider rejected the selected model, choose a supported model or clear the task override, then retry. A provider sign-in request needs your authentication step before the run can continue. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention).
+**Model unavailable.** means the provider rejected the selected model: choose a supported model or clear the task override, then retry. A provider sign-in request needs your authentication step before the run can continue. Saved messages remain attached to the task while recovery is pending.
 
 ## Recovery actions
 
@@ -683,8 +670,6 @@ A recovery action carries:
 - A **resolution outcome** when the action is closed.
 
 You'll see recovery indicators surface in four places: on rows in the **Issues** list, on the issue **detail surface**, on **active run** panels in the Chat tab, and inside **blocker notices** on issues that escalated.
-
-When Paperclip itself owns the repair, you see plain status words instead of recovery details. A list row reads **Thinking** while an attempt is running, **Trying again soon** while an automatic retry is lined up, or **Retry available** once retrying has stopped and you can click **Retry** on the task. Automatic repair keeps trying only a limited number of times. After that, a **Retry** click starts a new round of attempts, so you don't have to clear old recovery records first.
 
 ### Resolution outcomes
 

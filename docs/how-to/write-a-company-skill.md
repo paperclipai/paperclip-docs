@@ -101,7 +101,7 @@ If the agent is using Paperclip's native Runner, you can ask it to save a proced
 
 For an existing editable skill, ask for the improvement directly: “Add a step checking the changelog to our release-review skill.” The agent reads the current version, then uses `update_skill` to replace the complete primary file with a version guard. If someone else saves first, the agent must reread and reapply its edit; retries with the same inputs do not create duplicate versions. Ask and pre-acceptance Plan modes do not expose these write tools.
 
-You can review the new skill from its **Skill created** card in the task, then use **Open in Skill Studio** to edit the live library copy. For the exact inputs and retry rules, see [Native Runner skill tools](../reference/skills.md#native-runner-skill-tools). Implementation reference: [tool validation and API binding](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/skill-tools.ts).
+You can review the new skill from its **Skill created** card in the task, then use **Open in Skill Studio** to edit the live library copy. For the exact inputs and retry rules, see [Native Runner skill tools](../reference/skills.md#native-runner-skill-tools). Implementation reference: [tool validation and API binding](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/skill-tools.ts).
 
 ---
 
@@ -289,7 +289,7 @@ Behaviour depends on where the skill came from.
 |---|---|---|
 | **Local path** (`/Users/.../release-note-writer`) | No — live | Edit the file on disk. The next read picks it up. Re-import only if you change the source location. |
 | **Paperclip-managed** (created from the UI's **+** button) | No — live | Edit in the Markdown editor on the Skills page. |
-| **GitHub** | Yes — pinned to a commit SHA | Sources update automatically about every five minutes while **Automatic updates** is on. To update now, use **Refresh** on **Skills → Sources**, or `GET /skills/{id}/update-status` to see the latest commit on the tracked ref and `POST /skills/{id}/install-update` to refresh its source. |
+| **GitHub** | Yes — pinned to a commit SHA | `GET /skills/{id}/update-status` shows the latest commit on the tracked ref. `POST /skills/{id}/install-update` refreshes its source. You can also use **Refresh** on **Skills → Sources**. |
 | **skills.sh** | Yes — resolves to GitHub under the hood | Same as GitHub. |
 | **URL / raw file** | No | Re-import the URL to refresh. |
 | **Bundled with Paperclip** | Pinned to the Paperclip release | Upgrade Paperclip itself; bundled skills can't be edited. |

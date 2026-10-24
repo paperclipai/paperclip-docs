@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Telem.AI Web Search Connector
 seo_description: Give agents web search and page reading across many search providers with one Telem.AI API key. Optional routing, tier, and provider include lists.
 ---
@@ -7,7 +8,7 @@ seo_description: Give agents web search and page reading across many search prov
 
 Agents can search the web and read pages through Telem.AI — useful when a task needs current information from outside your company. Telem.AI sends each search to many search providers behind one API key, so you do not have to sign up for each one.
 
-> **Nightly draft:** This guide covers the current master implementation. Telem.AI appears in the catalog on every instance; no experimental setting is needed.
+> **Note:** Telem.AI appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 

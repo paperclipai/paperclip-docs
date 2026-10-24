@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Grok Connector
 seo_description: Give agents xAI Grok model access with a subscription or an API key. Which agents can use it, credential assignment, a test run, and fixes.
 ---
@@ -107,7 +107,6 @@ Before you hand an agent a long task, you can see how much of the provider's all
 Paperclip reads the limits only when you ask. Opening the account, listing connections, and starting a run never trigger a check. Each limit window shows how much is used and when it resets, and is marked **Limit reached** or **Blocked** when the provider says so. **Overage** shows whether extra paid usage is available. Anything the provider leaves out shows as **Not reported**, never as zero. After a successful check, the button becomes **Refresh**.
 
 Grok does not always report how much of the included plan you have used. When it leaves that out, Paperclip shows **Not reported** rather than guessing.
-
 
 Checking is read-only. It does not move work to another account, stop runs at a limit, refresh the credential, or buy credit.
 

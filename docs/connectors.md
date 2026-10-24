@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Paperclip Connectors
 seo_description: Every service Paperclip can connect, grouped by what it is for, with the access model, action permissions, and a setup guide behind each one.
 ---
@@ -8,11 +8,11 @@ seo_description: Every service Paperclip can connect, grouped by what it is for,
 
 A **connector** is a saved connection to an outside service: a Gmail mailbox, a GitHub organization, a Notion workspace, a PostHog project. You set one up once, decide who and what it is for, and Paperclip carries that decision into every run.
 
-> **Note:** This nightly draft includes unreleased connector changes from Paperclip master. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
+> **Note:** These guides cover the connector model in Paperclip **v2026.1023.0**. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** New Google accounts connect through the single [Google Workspace](connectors/google-workspace.md) connector, where you choose Gmail, Drive, and Calendar access in one setup. The nine single-service Google connectors are no longer listed for new setup. Each one still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running with their access and permissions.
+> **Note:** While Google verification is pending, the nine Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. Only the list changes: existing Google connections keep running with their access and permissions, and an agent that needs a Google service can still ask you for it with a connection card on its task.
 
 ## Start here
 
@@ -58,12 +58,9 @@ Find an app and open its setup guide.
 
 ### Google Workspace
 
-Start with **Google Workspace** for a new Google account. The single-service connectors below it are listed for connections you already have; they no longer appear on the **Connectors** page for new setup.
-
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
-| [Google Workspace](connectors/google-workspace.md) | One Google account for Gmail, Drive (including Docs, Sheets, and Slides), and Calendar. You choose which services to connect and whether each is read-only or read and write before you sign in, and agents get only the actions you picked and Google granted. This is the Google connector offered for new setup. | Connect with Paperclip · Your own OAuth app |
-| [Gmail](connectors/gmail.md) | Google's email service. Agents search and read mail; on a draft connection they create drafts for you to review, and on an opt-in archive connection they remove the Inbox label from threads. Sending, deleting, and other label changes are never enabled. | Connect with Paperclip · Your own OAuth app |
+| [Gmail](connectors/gmail.md) | Google's email service. Agents search and read mail, and on a draft connection create drafts for you to review in Gmail. Sending, deleting, and relabelling mail are never enabled. | Connect with Paperclip · Your own OAuth app |
 | [Google Calendar](connectors/google-calendar.md) | Google's calendar. Agents read calendars, and on a write connection create and change events. | Connect with Paperclip · Your own OAuth app |
 | [Google Chat](connectors/google-chat.md) | Google Workspace's team messaging. Agents search and read conversations, and on a write connection post messages. This is an agent tool, not a way for people to talk to an agent. | Connect with Paperclip · Your own OAuth app |
 | [Google Docs](connectors/google-docs.md) | Google's word processor. Agents read documents, and on a write connection edit them. | Connect with Paperclip · Your own OAuth app |
@@ -116,11 +113,9 @@ Services that connect to many apps for you and hand them to Paperclip through on
 
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
-| [Braintrust](connectors/braintrust.md) | AI evaluation and observability. Agents query traces, manage datasets and scorers, and run evaluations, in the US or EU region. Dataset row edits and automation activation are destructive, and evaluations can use credits. | Sign in with Braintrust · API key |
-| [Browser Use Cloud](connectors/browser-use-cloud.md) | Run browser tasks in Browser Use Cloud, open a live browser session from the task, and reuse a browser profile. These master changes are not yet in the stable release. | API key |
+| [Browser Use Cloud](connectors/browser-use-cloud.md) | Run browser tasks in Browser Use Cloud, open a live browser session from the task, and reuse a browser profile. | API key |
 | [Cloudflare](connectors/cloudflare.md) | DNS, CDN, and edge compute. Agents work with the account your Cloudflare sign-in can reach. | Sign in with Cloudflare · API key |
 | [Context7](connectors/context7.md) | Up-to-date public library documentation and code examples. Read-only and keyless; anonymous rate limits apply, and private repositories are out of reach. | No credential |
-| [Daytona](connectors/daytona.md) | Manage your own Daytona account: sandboxes, files, commands, Git, snapshots, and volumes, across 274 actions. Separate from the Daytona sandbox provider that runs agents. Gate deletions and commands. | API key |
 | [GitHub](connectors/github.md) | Code hosting and review. Agents use repository tools with the connected credential's permissions. See the guide for setup and shell-access boundaries. The pull-request review bot is its own entry, **GitHub Code Review Bot**, under [Chat channels](#chat-channels). | Connect with Paperclip · API key |
 | [Netlify](connectors/netlify.md) | Hosting and deploys for web front ends. Agents work with the teams and sites your Netlify account can reach. | Sign in with Netlify |
 | [PagerDuty](connectors/pagerduty.md) | On-call scheduling and incident response. Agents work with the incidents, services, and schedules your token can reach. Choose the US or EU service region when you connect. | API key |
@@ -153,7 +148,6 @@ Google Sheets is the other common home for tabular data; it sits under [Google W
 | --- | --- | --- |
 | [Box](connectors/box.md) | Enterprise file storage and sharing. Agents work with the files and folders your Box integration can reach. | Your own OAuth app |
 | [Cloudinary](connectors/cloudinary.md) | Image and video hosting with on-the-fly transformation. Agents work with the assets your Cloudinary roles allow. | Sign in with Cloudinary |
-| [Ditto](connectors/ditto.md) | Product copy and style guides. Agents search approved text, check wording against your style guide, and create, edit, and translate text. Deletes are permanent, so set them to **Ask first**. | Sign in with Ditto · API key |
 | [Webflow](connectors/webflow.md) | Visual website builder with a CMS behind it. Agents work with the sites and collections your Webflow roles allow. | Sign in with Webflow |
 | [Wix](connectors/wix.md) | Website builder and hosting. Agents work with the sites your Wix account can reach. | Sign in with Wix |
 
@@ -221,7 +215,6 @@ These give people a place to talk to an agent. They require an administrator to 
 | [iMessage Photon](connectors/imessage-photon.md) | Message the agent from Apple Messages through a Photon Cloud project. Shared Pro lines carry direct messages; a dedicated line also carries groups you enable. | Provider app registration |
 | [Microsoft Teams](connectors/microsoft-teams.md) | Message the agent in a chat, a team channel, or a group chat. Needs a work or school Microsoft 365 organization; personal Teams accounts cannot complete the setup. | Provider app registration |
 | [Slack](connectors/slack.md) | Message the agent directly, or mention it in a channel to start a task from that thread. Set up separately from the Slack agent tool on the same page. | Provider app registration |
-| [Speko](connectors/speko.md) | Talk to an agent by voice from a task, and optionally by phone. | Provider API key |
 | [Telegram](connectors/telegram.md) | Message the agent through a bot you create with BotFather. | Provider app registration |
 
 ## Can't find your app?

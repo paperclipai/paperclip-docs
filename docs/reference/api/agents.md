@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Agents API
 seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate keys, sync skills, trigger runs, and register managed and remote agent profiles.
 ---
@@ -40,9 +40,8 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `budgetMonthlyCents` | Monthly budget in cents. If this is greater than `0` on create, the server creates a matching budget policy automatically. |
 | `status` | Lifecycle state. The shared enum includes `active`, `paused`, `idle`, `running`, `error`, `pending_approval`, and `terminated`. While setup, pause, or resume is in progress the agent reports `paused`; while termination or cleanup is in progress it reports `terminated`. Read `lifecycleState` for the precise step. |
 | `lifecycleState` | Read-only. Where the agent is in its hire-to-termination lifecycle: `pending_approval`, `preparing`, `verifying`, `ready`, `pausing`, `paused`, `resuming`, `terminating`, `cleaning_up`, `terminated`, or `rejected`. Only `ready` admits work; work assigned earlier stays queued. See [Lifecycle Steps and Retry](#lifecycle-steps-and-retry). |
-| `lifecycleError` | Read-only. A fixed, credential-free message naming the step that failed and what to fix, or `null`. |
+| `lifecycleError` | Read-only. A short, credential-free message when a lifecycle step failed, or `null`. |
 | `lifecycleVersion` | Read-only. A counter that increases with each lifecycle operation. |
-| `createdByUserId` | Read-only. The human user who created the agent, or `null` when an agent or the system created it. The server sets this from the authenticated user; a value in the request body is ignored. |
 | `permissions` | Agent-level permissions: `canCreateAgents` and `canCreateSkills` (defaults to `true`). |
 
 ---
@@ -156,7 +155,7 @@ Use the agent UUID and the same authorization required to read that agent. The r
 
 This read does not create an identity. New agents receive one at creation; older agents receive one on their next supported managed run. The endpoint never returns a private key. See [Agent cryptographic identity](../../guides/org/agent-identity.md) for signing and recovery. These keys do not replace agent API tokens.
 
-For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api). Board users read that feedback through the [commentary read routes](../../administration/agent-commentary.md#read-commentary-through-the-api).
+For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api).
 
 ---
 
@@ -336,10 +335,6 @@ Important behavior:
 - If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
 - For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds a short default `AGENTS.md`: a one-line role description for `role: "ceo"`, or a one-line generic placeholder for every other role. Keep it short — Paperclip's runtime and installed skills already supply the operating procedures. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
-- The optional `runner` field picks how a Codex, Claude Code, OpenCode, or Pi agent runs: `auto` (the default), `paperclip`, or `legacy`. With `adapterType: "codex_local"`, `auto` stores the agent as `paperclip_runner` with `provider: "codex"` when the target environment qualifies for Paperclip Runner (macOS on Apple Silicon or Intel, or Linux x64/ARM64 with GNU libc 2.39 or newer), and keeps `codex_local` otherwise. With `adapterType: "claude_local"`, `auto` stores `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"` on the same targets, except that a macOS host reached over SSH, or a target whose platform can't be detected, keeps `claude_local`. A blank Claude `model` resolves to `claude-opus-5-5`. With `adapterType: "opencode_local"`, `auto` stores `paperclip_runner` with `provider: "opencode"`, and with `adapterType: "pi_local"` it stores `provider: "acpx"` and `acpxAgent: "pi"`; both keep the classic adapter on Linux ARM64. `legacy` always keeps the classic adapter. See [New Codex and Claude agents use the Runner](../adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
-- Asking for `paperclip` on a target that doesn't qualify fails with `422` and code `agent_runner_unavailable`. Legacy-only settings that Paperclip Runner can't honour (for example a `codexPermissionMode` other than `never`, or `chrome` or `maxTurnsPerRun` on a Claude agent) fail with `422` and code `agent_runner_config_incompatible`, listing the offending `fields` — remove them or choose `legacy`.
-- Only an operator can set `adapterConfig.homeMode`. An agent caller that includes it gets `403` with `Only an operator can configure Runner homeMode.`
-- To save an agent before setup is finished (the way the **New Agent** dialog does when you submit a name), send a fresh uuid as `setupId`. The server creates the agent with that ID, `status: "paused"`, and `pauseReason: "setup"`, and skips the board-approval check, which happens when the hire is finished. Sending the same `setupId` again returns the same agent. Only a signed-in board user can do this. While setup is unfinished, `POST /api/agents/{agentId}/resume` returns `409` with `Finish agent setup before resuming`, and creating an API key returns `409` with `Finish agent setup before creating keys`.
 
 ### Example
 
@@ -470,12 +465,11 @@ Use this when the company may require board approval for new agents, or when you
 
 Important behavior:
 
-- The request body accepts the same core agent fields as create, including `runner`.
+- The request body accepts the same core agent fields as create.
 - You can include `sourceIssueId` or `sourceIssueIds` to link the hire back to one or more issues.
 - An agent on the `paperclip_runner` adapter can send `"inheritRuntimeFrom": "caller"` to give the new hire the calling agent's runner settings and default environment. The new agent must also use `adapterType: "paperclip_runner"`, and you can't combine this with `adapterConfig`, `runtimeConfig`, or `defaultEnvironmentId` — the server copies the adapter config and default environment from the calling agent. Board users can't use this option; it's rejected with `403 Forbidden`.
 - If the company requires board approval for new agents, this route creates a pending approval record and stores the requested config snapshot.
 - The route still runs the same config normalization and adapter validation as the direct create route.
-- To finish an agent saved with `setupId` on the create route, send its ID as `setupAgentId`. The hire completes that same agent instead of creating a new one, and any board-approval requirement applies here. Repeating the call for an agent whose setup is already finished returns the agent and its approval with `idempotent: true`. An unknown ID returns `404` with `Agent setup not found`.
 
 ---
 
@@ -610,7 +604,7 @@ The `permissionKey` field on a grant is one of:
 
 A new standard agent gets `canCreateAgents: true` and `canCreateSkills: true` when it is created; low-trust agents get `canCreateAgents: false`. Stored agents without an explicit `canCreateAgents` value are treated as `false`. An agent with the `ceo` role can always create agents, whatever its flag says. New standard agents also receive fourteen direct grants when they are created or their hire is approved: `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`, `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `audit:view_agent_actions`, `tools:use`, `tools:manage_runtime`, `inbox:manage` (scoped `{ "responsibleUserOnly": true }`), `tasks:assign`, `tasks:assign_scope` (scoped `{ "subtreeRootAgentId": "<the new agent's id>" }`), and `tasks:manage_active_checkouts`. Low-trust agents and managed built-in agents don't receive them, and existing agents aren't backfilled.
 
-Role-default human grants are applied automatically when a user joins. `owner` and `admin` receive the agent, skill, environment, invite, task-assignment, join-approval, and four tool keys (`owner` adds `users:manage_permissions`). `operator` receives company editing, invite, tool, and audit keys, but not `joins:approve` or `users:manage_permissions`. All four roles, `viewer` included, receive `commentary:view`, and it's added to accepted invites whose saved grant list leaves it out. The exact lists are in [Roles & Permissions](../../administration/roles-and-permissions.md#the-four-company-roles).
+Role-default human grants are applied automatically when a user joins. `owner` and `admin` receive the agent, skill, environment, invite, task-assignment, join-approval, and four tool keys (`owner` adds `users:manage_permissions`). `operator` receives the same agent, skill, environment, invite, and task-assignment keys plus `pipelines:write`, the tool keys (including `tools:manage_profiles` and `tools:view_audit`), and `audit:view_agent_actions`, but not `joins:approve` or `users:manage_permissions`. `viewer` gets none. The exact lists are in [Roles & Permissions](../../administration/roles-and-permissions.md#the-four-company-roles).
 
 ### Grant scope
 
@@ -726,7 +720,7 @@ Every hire, pause, resume, and termination runs through a short sequence of step
 
 `preparing` gives any required [plugins](../plugins/sdk.md#required-agent-lifecycle-work) a chance to set up resources; `verifying` tests the agent's saved runtime configuration. Messages and tasks accepted before the agent reaches `ready` stay queued and dispatch once it does.
 
-If a step fails, `lifecycleError` names it and suggests a fix — for example `Execution configuration check failed. The selected model is unavailable. Choose a model supported by the agent's AI connection in Configuration, then retry.` Paperclip retries failed steps automatically. To try again immediately (for example after you've fixed the configuration):
+If a step fails, `lifecycleError` reads `The lifecycle step failed. Retry the operation.` Paperclip retries failed steps automatically about a minute later. To try again immediately (for example after you've fixed the configuration):
 
 `POST /api/agents/{agentId}/lifecycle/retry`
 

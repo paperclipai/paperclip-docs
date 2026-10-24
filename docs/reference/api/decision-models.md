@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Decision Models API
 seo_description: Configure the shared OpenAI or OpenRouter connection that pays for a company's small-model decisions, run the billed setup test, and read request history.
 ---

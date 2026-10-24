@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Memory Connectors in Paperclip
 seo_description: Choose an experimental memory provider, enable its setup, and help agents recall useful context while keeping access and saved guidance under your control.
 ---
@@ -54,5 +55,5 @@ An empty result may mean the wrong context, an empty store, or indexing that has
 
 ## Sources
 
-- [Feature defaults](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/feature-catalog.ts) and [connection setup service](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/tool-access.ts) — the off-by-default setting and new-setup gate.
-- [Memory tool classification](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/tool-access.ts) — reviewed action risks.
+- [Feature defaults](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/packages/shared/src/feature-catalog.ts) and [connection setup service](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/tool-access.ts) — the off-by-default setting and new-setup gate.
+- [Memory tool classification](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/tool-access.ts) — reviewed action risks.

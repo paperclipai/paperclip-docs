@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Codex Adapter
 seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding agent, with persistent session state and a managed CODEX_HOME per agent.
 ---
@@ -7,8 +7,6 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 # Codex
 
 `codex_local` runs OpenAI's Codex CLI on the same machine as Paperclip. Use it when you want a local coding agent with persistent session state, managed `CODEX_HOME`, and Paperclip skills injected into the Codex skills directory.
-
-> **Heads-up:** New Codex agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer. Those agents are saved as `paperclip_runner` with `provider: "codex"`. To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
 
 ---
 
@@ -63,6 +61,8 @@ You stay in control when you say otherwise. Paperclip skips the bypass — keepi
 - Your `extraArgs` pick a sandbox mode or profile yourself — for example `--sandbox`, `--profile`, `--full-auto`, or a `sandbox_mode=` config override.
 - Your `extraArgs` set an `approval_policy=` override, or switch network access off with `sandbox_workspace_write.network_access=false`.
 - The execution target denies network access.
+
+This bypass applies to the classic Codex CLI lane (`engine: "cli"`). The ACP engine keeps Codex in its writable workspace sandbox, with network access switched on for each turn.
 
 > **Heads-up:** Earlier versions kept Codex in the workspace sandbox unless you opted in to the bypass. If you relied on that, set `dangerouslyBypassApprovalsAndSandbox` to `false` explicitly.
 

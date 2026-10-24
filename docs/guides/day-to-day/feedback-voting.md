@@ -121,15 +121,6 @@ feedback-export-20260331T120000Z.zip
 
 Exports are full by default. `traces/` contains the Paperclip envelope; `full-traces/` holds the richer per-trace bundle plus any recoverable adapter-native files.
 
-### What gets masked in feedback text
-
-Before feedback text leaves your instance, Paperclip masks anything that looks like a credential, so you can share a bundle without leaking keys. It tries hard not to mangle ordinary text along the way:
-
-- **Kept readable:** hostnames such as `api.openai.com`, dotted filenames, public schema IDs, and phrases that merely *talk about* authentication, like "bearer tokens" or "bearer authentication".
-- **Masked:** complete signed tokens (three dot-separated parts) and encrypted tokens (five parts) that carry a real token header, plus explicit credentials, secret fields, email addresses, and phone numbers.
-
-The redaction summary in the export counts only text that was actually replaced, so a high count really does mean a lot of sensitive material was found.
-
 ```sh
 # Custom server and output directory
 pnpm paperclipai feedback export --api-base http://127.0.0.1:3000 --company-id <company-id> --out ./my-export

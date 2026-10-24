@@ -159,10 +159,6 @@
           "file": "../docs/connectors/access-model.md"
         },
         {
-          "title": "Prompt Injection Prevention",
-          "file": "../docs/connectors/prompt-injection-prevention.md"
-        },
-        {
           "title": "Shared Guides",
           "pages": [
             {
@@ -255,10 +251,6 @@
               "file": "../docs/connectors/box.md"
             },
             {
-              "title": "Braintrust",
-              "file": "../docs/connectors/braintrust.md"
-            },
-            {
               "title": "Browser Use Cloud",
               "file": "../docs/connectors/browser-use-cloud.md"
             },
@@ -291,16 +283,8 @@
               "file": "../docs/connectors/context7.md"
             },
             {
-              "title": "Daytona",
-              "file": "../docs/connectors/daytona.md"
-            },
-            {
               "title": "Discord",
               "file": "../docs/connectors/discord.md"
-            },
-            {
-              "title": "Ditto",
-              "file": "../docs/connectors/ditto.md"
             },
             {
               "title": "Enterpret",
@@ -344,10 +328,6 @@
                 {
                   "title": "Set Up a Review Bot",
                   "file": "../docs/connectors/github-review-bot-setup.md"
-                },
-                {
-                  "title": "GitHub Copilot",
-                  "file": "../docs/connectors/github-copilot.md"
                 }
               ]
             },
@@ -386,10 +366,6 @@
             {
               "title": "Google Slides",
               "file": "../docs/connectors/google-slides.md"
-            },
-            {
-              "title": "Google Workspace",
-              "file": "../docs/connectors/google-workspace.md"
             },
             {
               "title": "Google Workspace Search",
@@ -498,10 +474,6 @@
             {
               "title": "Slack",
               "file": "../docs/connectors/slack.md"
-            },
-            {
-              "title": "Speko",
-              "file": "../docs/connectors/speko.md"
             },
             {
               "title": "Stripe",
@@ -619,7 +591,7 @@
       "tier": "Learn",
       "title": "Experimental",
       "icon": "flask-conical",
-      "desc": "Opt-in features that ship behind flags \u2014 what each one does, why it exists, and how to turn it on.",
+      "desc": "Opt-in features that ship behind flags — what each one does, why it exists, and how to turn it on.",
       "pages": [
         {
           "title": "Overview",
@@ -703,7 +675,7 @@
       "tier": "Learn",
       "title": "How-to Guides",
       "icon": "wrench",
-      "desc": "Field-tested recipes for specific problems \u2014 short, copy-pasteable, current.",
+      "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",
       "pages": [
         {
           "title": "Members & Access",
@@ -825,7 +797,7 @@
       "tier": "Learn",
       "title": "Administration",
       "icon": "shield",
-      "desc": "Company settings, instance configuration, plugins, and CLI auth \u2014 for operators and admins.",
+      "desc": "Company settings, instance configuration, plugins, and CLI auth — for operators and admins.",
       "pages": [
         {
           "title": "Company",
@@ -1302,7 +1274,7 @@
       "tier": "Reference",
       "title": "Adapters",
       "icon": "plug",
-      "desc": "Connect any agent runtime \u2014 Claude, Codex, Gemini, or your own HTTP service.",
+      "desc": "Connect any agent runtime — Claude, Codex, Gemini, or your own HTTP service.",
       "pages": [
         {
           "title": "Overview",
@@ -1418,7 +1390,7 @@
       "tier": "Reference",
       "title": "Deployment",
       "icon": "cloud",
-      "desc": "Run Paperclip on your laptop, in Docker, or on a server \u2014 with secrets and Tailscale.",
+      "desc": "Run Paperclip on your laptop, in Docker, or on a server — with secrets and Tailscale.",
       "pages": [
         {
           "title": "Overview",
@@ -1470,7 +1442,7 @@
       "tier": "Reference",
       "title": "Changelog",
       "icon": "history",
-      "desc": "What changed in these docs \u2014 pages added, rewritten, or expanded \u2014 with each documentation update.",
+      "desc": "What changed in these docs — pages added, rewritten, or expanded — with each documentation update.",
       "pages": [
         {
           "title": "Docs",

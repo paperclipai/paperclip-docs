@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Install Paperclip Runner Runtimes
 seo_description: Install and verify Paperclip's pinned Cursor and Pi runtimes on a supported host, import a Linux Pi companion, then configure a Runner agent.
 ---

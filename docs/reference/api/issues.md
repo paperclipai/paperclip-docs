@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Issues API
 seo_description: The core work objects: hierarchy, blockers, approvals, agent checkout, comments, and keyed extensions. Endpoints for creating, reading, and moving issues.
 ---
@@ -127,8 +127,6 @@ Return all issues visible to a company, ordered by priority unless a search quer
 | `originKind` | Filter by origin kind, such as `manual` or `routine_execution` |
 | `originId` | Filter by origin identifier |
 | `includeRoutineExecutions` | Include routine execution issues. Default is `false` |
-| `includeAgentCreatedTasks` | `true` or `false`. Send `false` to keep only tasks a person created through the normal task or onboarding flow; tasks created by an agent, with no creating user, or from another origin (including every chat-channel task) are left out. Omit it to keep the previous behaviour |
-| `includeParticipatedTasks` | `true` or `false`. Board users only. With `includeAgentCreatedTasks=false`, also keeps agent-created tasks the signed-in user has taken part in |
 | `q` | Full-text search across title, identifier, description, and comments |
 | `limit` | Positive integer result cap |
 
@@ -138,7 +136,6 @@ Notes:
 - `limit` must be a positive integer.
 - Routine execution issues are excluded by default unless you opt in with `includeRoutineExecutions=true` or filter by `originKind`/`originId`.
 - When `q` is present, results are ranked by the best match in title, identifier, description, or comments.
-- `includeAgentCreatedTasks` and `includeParticipatedTasks` return `400` for any value other than `true` or `false`. `includeParticipatedTasks=true` from a non-board caller returns `403`. The agent-created filter is applied before `limit` and pagination. The board's **show agent-created tasks** checkbox drives it.
 
 ### Example
 
@@ -560,24 +557,6 @@ POST /api/issues/{issueId}/access-grants/{grantId}/revoke
 - **Revoke access grant** takes an empty body and revokes one grant on this exact task. It returns `404` if the grant isn't active on this task. Revoking doesn't remove access the subject has for other reasons. Logged as `issue_access_grant.revoked`.
 
 To make a task private or public, `PATCH` its `visibility` (see [Update Issue](#update-issue)).
-
----
-
-## Task workspace
-
-Every task has one durable workspace binding, even without a project. These routes let you, or the agent working on the task, inspect it and request a change. Changes apply at the task's next normal admission, not mid-run.
-
-```
-GET  /api/issues/{issueId}/workspace
-PUT  /api/issues/{issueId}/workspace
-POST /api/issues/{issueId}/workspace/repositories
-```
-
-- **GET** returns the current workspace view plus `repositories` (each with `repoUrl`, `relativePath`, `requestedRef`, `state`, `pinnedCommit`, and `branchName`), `capabilities`, and `fileLocations`.
-- **PUT** requests a different workspace. The body is `{ "selection": ..., "expectedBindingRevision": <int>, "requestKey": "..." }`. `selection.kind` is one of `task_directory` (the task's own directory), `existing` (with `workspaceId`), or `configured_source` (with `projectWorkspaceId` and `mode` of `shared` or `managed_isolated`). If the binding changed since you read it, the request fails with `409` (`Task workspace binding changed; inspect it before selecting again`). Reusing a `requestKey` for a different selection also returns `409`. The response reports whether the change was `applied` or `scheduled`. Logged as `issue.workspace.selection_requested`.
-- **POST /repositories** asks for a repository to be prepared in the task workspace. The body is `{ "repository": { "kind": "catalog", "id": "..." } | { "kind": "url", "url": "..." }, "ref"?: "...", "requestKey": "..." }`.
-
-Writes need permission to change the task. An agent can only change the workspace of the task its run is working on (`Workspace selection is scoped to the current task`). See [Execution workspaces](../../guides/projects-workflow/workspaces.md) for how workspaces behave.
 
 ---
 
@@ -1351,7 +1330,7 @@ An expired-with-the-issue card looks like this:
 - For `request_item_verdicts`, `complete` is `false` and whatever verdicts were already recorded are preserved on `items`.
 - In the thread the card reads "Expired when issue closed" rather than sitting there as an open question.
 
-This runs on every terminal transition, not just the ones that come through the REST API — the tree controls, recovery flows, and other internal paths that close issues all funnel through the same path. Each expiry is logged as `issue.thread_interaction_expired` with `source: "issue.status_transition.issue_closed"`.
+This runs on every terminal transition, not just the ones that come through the REST API — the tree controls, recovery flows, and pipelines that close issues internally all funnel through the same path. Each expiry is logged as `issue.thread_interaction_expired` with `source: "issue.status_transition.issue_closed"`.
 
 Two related guarantees come with it:
 
@@ -1416,53 +1395,6 @@ The request body is empty. The response always includes `outcome`, `message`, an
 | `gate_suppressed` | The promotion was blocked by a heartbeat gate (e.g. concurrency or budget); the run stays scheduled. |
 
 Activity is logged as `issue.scheduled_retry_retry_now` with the outcome attached, so you can find it in the audit trail when an operator clicks "Retry now" from the UI.
-
----
-
-## Retry a Task
-
-`POST /api/issues/{issueId}/retry`
-
-Use this to ask Paperclip to try a stopped task again. It's what the **Retry** button on the task page and on failed-run rows in the Inbox calls. The route is board-only and needs permission to change the task. Paperclip reuses the task's saved messages and preserved work, so you don't pick a run or a recovery record yourself.
-
-Request body:
-
-| Field | Type | Notes |
-|---|---|---|
-| `idempotencyKey` | uuid, required | Generate one per deliberate click. Sending the same key again returns the original request instead of starting a second attempt, so it's safe to resend after a lost response. |
-| `observedRunId` | uuid or `null`, required | The latest run you saw for the task, usually `interruption.observedRunId`. If it no longer matches the task's latest run, nothing new is started. |
-
-```json
-{ "idempotencyKey": "6f1c7a52-3f0e-4b5a-9d63-0f8a1f2c4e11", "observedRunId": "0b8e2d47-91a6-4c3f-8f0d-5e7a2b9c1d34" }
-```
-
-The response is `202 Accepted` when the retry is recorded and `200 OK` when it isn't:
-
-| Field | Meaning |
-|---|---|
-| `accepted` | `true` when Paperclip recorded the retry. If a run is already queued or running, the request joins that work instead of starting another one. |
-| `stale` | `true` when nothing was started because the task moved on: a newer run exists, `observedRunId` didn't match, the task is `done` or `cancelled`, or it has no assigned agent. |
-| `requestId` | The retry request, or `null` when `stale`. |
-| `observedRunId` | The task's latest run as the server sees it. |
-| `presentation` | The task's refreshed `interruption` (see below). |
-
-A retry is a new, durable request. If automatic repair had used up its attempts, a retry gives it a fresh set. On a task bound to an [Agent Chat conversation](#agent-chat-conversations), only the conversation owner can retry (`403`, *"Only the conversation owner can retry a chat run"*), and the route returns `404` when Agent Chat is disabled. Reusing an `idempotencyKey` for a different task or user returns `409` with *"This retry request belongs to a different task or user."*
-
-### The `interruption` field
-
-`GET /api/issues/{issueId}` and the issue list (including the compact view) include `interruption`, a plain summary of why the task's work stopped. It's `null` when there's nothing to show.
-
-| Field | Values |
-|---|---|
-| `state` | `working`, `retry_scheduled`, `failed`, `waiting_for_user`, or `resolved` |
-| `responsibility` | `system` when Paperclip owns the repair, `user` when a person needs to act |
-| `userAction` | For `waiting_for_user`: `approval`, `reconnect`, `assign_agent`, `choose_model`, `resume`, or `budget`. Otherwise `null`. |
-| `nextRetryAt` | When the next automatic attempt is due, for `retry_scheduled` |
-| `canRetry` | Whether a retry can help right now |
-| `observedRunId` | The latest run; send it back as `observedRunId` when you retry |
-| `sourceRunIds`, `intentId` | The runs and the pending retry request behind the summary |
-
-This field is for display only. Paperclip still checks every permission and gate when the retry actually runs. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention) for how the UI presents it.
 
 ---
 
@@ -1558,7 +1490,6 @@ Additional constraints:
 
 - `outcome: "blocked"` requires the source issue to have at least one unresolved first-class blocker via `blockedByIssueIds` — otherwise the server returns `422 Unprocessable Entity`.
 - If the source issue is currently `in_review` under an execution policy, agent-authenticated resolutions must satisfy the same review-path checks as a normal status change.
-- Resolving with `outcome: "restored"` and `sourceIssueStatus: "todo"` retries the task. When the blocked run failed during setup because its shared workspace source was restricted, this retry is board-only: the server moves the task to an isolated workspace from the project's repository (source `recovery`) before it re-queues, unless the task already has a pending workspace choice. If a newer run exists or the task no longer matches the failed run, the server returns `409 Conflict`.
 - The server writes an `issue.recovery_action_resolved` activity log entry (and an `issue.updated` entry when the source status actually changed).
 
 Response:

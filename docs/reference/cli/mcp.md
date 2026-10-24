@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: MCP Device Login and Proxy Commands
 seo_description: Authorize an assistant through browser device consent, then expose Paperclip tools over local stdio with the CLI's private credential store.
 ---

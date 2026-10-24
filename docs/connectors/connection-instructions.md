@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Saved Connection Instructions
 seo_description: Give agents guidance from a saved connection, edit or disable provider defaults, and see when the instructions apply without changing tool permissions.
 ---
@@ -70,6 +71,6 @@ For a custom HTTP or process adapter, deliver the server-provided instruction sn
 
 ## Sources
 
-- [Settings contract](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/connection-instructions.ts) — fields, text limit, defaults, and public configuration.
-- [Editor and agent view](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/ConnectionInstructions.tsx) — labels, saving, reset, and notices.
-- [Authorized delivery](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/connection-instructions.ts) — task-dependent availability and instruction snapshots.
+- [Settings contract](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/packages/shared/src/connection-instructions.ts) — fields, text limit, defaults, and public configuration.
+- [Editor and agent view](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/features/connections/ConnectionInstructions.tsx) — labels, saving, reset, and notices.
+- [Authorized delivery](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/connection-instructions.ts) — task-dependent availability and instruction snapshots.

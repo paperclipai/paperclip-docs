@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.1023.0
 seo_title: Decisions: One Queue for Human Calls
 seo_description: Approvals, blocked issues, failed runs, and budget warnings in a single ranked queue, so you work through what needs you instead of hunting for it.
 ---
@@ -53,14 +53,13 @@ You may also meet a decision from the other direction. When a proposal raised el
 
 Use the toolbar to make a busy queue manageable:
 
-- **Search decisions…** finds items by words in their title, task identifier, reason, project, workspace, or the agent that raised them. A count under the toolbar shows how many decisions are in view.
 - **Type**, **Severity**, **Project**, and **Workspace** filters narrow the queue to the work you own right now.
 - **Group by** offers `none`, `date`, `type`, `project`, and `severity`.
 - **Sort** offers `newest` and `oldest`.
 
 ![The Decisions toolbar with the filter panel open, showing the Type, Severity, Project, and Workspace sections](../../user-guides/screenshots/light/decisions/toolbar-filters.png)
 
-Your filter, grouping, and sort choices (but not your search) stay with your current browser, so you can set up the view that fits your review rhythm.
+Your filter, grouping, and sort choices stay with your current browser, so you can set up the view that fits your review rhythm.
 
 ---
 
@@ -114,7 +113,7 @@ These choices are personal to your board user. They tidy your queue without chan
 
 ## When the queue is empty
 
-**You're all caught up** means Paperclip has no visible item that needs a decision from you. If you've typed a search or turned on filters, **No decisions match your search or filters.** means the work may still exist — clear your search and broaden the filters before assuming nothing needs attention.
+**You're all caught up** means Paperclip has no visible item that needs a decision from you. If you have filters turned on, **No decisions match your filters** means the work may still exist — broaden the filters before assuming nothing needs attention.
 
 ![The empty Decisions queue reading You're all caught up](../../user-guides/screenshots/light/decisions/empty-state.png)
 

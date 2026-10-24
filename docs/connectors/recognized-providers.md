@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1023.0
 seo_title: Recognized but Unlisted Providers
 seo_description: The provider definitions present in the Paperclip catalog but withheld from the Connectors list, and the providers that gate access behind their own approval.
 ---
@@ -10,7 +10,7 @@ Reference for the inventory behind the catalog. If you are looking for a connect
 
 Two separate things get confused here, so they are listed separately. A **withheld** provider has a complete definition that Paperclip still recognizes, but it is deliberately kept out of the customer-facing list. A **provider-gated** one is not offered because the provider itself will not let an independently registered client connect.
 
-> **Note:** Checked against Paperclip **v2026.1001.0**. Catalog visibility can change between releases; recognition is not a promise of availability. Existing connections still need to be verified independently.
+> **Note:** Checked against Paperclip **v2026.1023.0**. Catalog visibility can change between releases; recognition is not a promise of availability. Existing connections still need to be verified independently.
 
 ## Withheld from the Connectors list
 
@@ -20,7 +20,7 @@ What we can confirm at this commit: the definitions below are present, Paperclip
 
 None of these have connector pages, and none can be added from the catalog.
 
-In this nightly snapshot, Bitly, Context7, and Make have left this list and are back in the catalog — see [Bitly](bitly.md), [Context7](context7.md), and [Make](make.md). ClickUp, Klaviyo, and monday.com have joined it: their definitions exist, but sign-in has not yet been proven end to end, so they stay out of the list you browse.
+As of Paperclip v2026.1023.0, Bitly, Context7, and Make have left this list and are back in the catalog — see [Bitly](bitly.md), [Context7](context7.md), and [Make](make.md). ClickUp, Klaviyo, and monday.com have joined it: their definitions exist, but sign-in has not yet been proven end to end, so they stay out of the list you browse.
 
 | Provider | Slug |
 | --- | --- |

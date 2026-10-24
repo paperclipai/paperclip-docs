@@ -1,6 +1,7 @@
 ---
 seo_title: Agent Cryptographic Identity
 seo_description: Find an agent's public identity, understand which runtimes receive its private key, and preserve that identity when backing up your instance.
+paperclip_version: v2026.1023.0
 ---
 
 # Agent cryptographic identity

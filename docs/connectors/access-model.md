@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: How Connector Access Works
 seo_description: Which access controls apply depends on the kind of connector. This explains the four gates on tool connections, and what governs channels and models.
 ---
@@ -164,7 +164,6 @@ Access decisions resolve at call time, not at setup time. The tool gateway holds
 - [Share a connector with people and agents](share-access.md)
 - [Set action permissions](action-permissions.md)
 - [Tool Gateway](../reference/api/tool-gateway.md)
-- [Prompt injection prevention](prompt-injection-prevention.md)
 - [Trust and low-trust review](../administration/trust-and-low-trust-review.md)
 
 ## Sources

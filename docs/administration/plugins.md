@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Plugins: Extending Paperclip
 seo_description: Add dashboard widgets, file browsers, and custom tooling. Covers the Plugin Manager, installing, self-installing plugins, enabling, and handling upgrades.
 ---
@@ -165,26 +165,6 @@ Worth being explicit about, because it's the difference between "I'm pausing thi
 
 This matters for plugins that integrate with billed services. Disabling stops the polling and the scheduled work — so you stop paying the API bill — without forcing you to re-enter credentials the next time you turn it back on.
 
-### Plugins your agents depend on
-
-Some plugins are a required part of an agent's setup — they prepare something the agent can't work without (a sandbox, say) and clean it up when the agent is terminated. Paperclip remembers which of these plugins each agent needs from the moment the agent is first set up.
-
-If you disable or uninstall one of those plugins, the agents that rely on it can't finish setting up, pausing, resuming, or being cleaned up. Their page shows a failed step with the message *"A required plugin is unavailable. Check the plugin's status in Settings. Paperclip will retry automatically."* Re-enable the plugin and the step completes on its own (or click **Retry now** on the agent's page). See [Setup checks before a new agent starts work](../guides/org/agents.md#setup-checks-before-a-new-agent-starts-work).
-
-### Plugins that store your project's code
-
-A plugin can also take over where a project's repository lives. Instead of Paperclip keeping the code on its own disk and making each task's checkout there, the plugin keeps the project's storage — inside remote agent computers, for example — and prepares a checkout there for each task. Nothing changes for a project until its `executionWorkspacePolicy.storageProviderPluginId` is set to that plugin's ID; there's no project-settings control for this yet, so it's set through the [projects API](../reference/api/goals-and-projects.md).
-
-A few things behave differently for those projects:
-
-- **Files stay with the plugin.** Paperclip has no local folder for these workspaces, so file browsing and other host-side file actions aren't available for them.
-- **The owner is locked while work is live.** You can't change the project's repository source or its storage plugin while task workspaces still depend on them. Existing workspaces keep the owner they were created with.
-- **Cleanup is careful.** Paperclip only asks the plugin to remove a task's checkout once it's clean and its work is recoverable or merged.
-- **Agents run through the same plugin.** To run agents against that storage, the project's [environment](../experimental/environments.md) must come from the same plugin.
-- **Some workspace options don't apply.** When a Paperclip Runner agent works in a plugin environment, the plugin owns the task's workspace. Workspace services, Paperclip-made Git worktrees, and fresh attempts that discard the retained workspace aren't available there, and a workspace stays with the agent and environment that created it. Paperclip shows an error explaining which one blocked the run.
-
-Plugins like this may also keep private per-project credentials, such as a token for the remote storage. Paperclip stores them in its own encrypted secret store rather than the plugin's settings, and they never appear in your company's secret list. Because they're encrypted with your instance's local secrets master key, back that key up together with your database — see [Secrets](../reference/deploy/secrets.md).
-
 ### When the server can't be reached
 
 Plugin items in the sidebar stay quiet if the Paperclip server is briefly unreachable: they keep showing what last loaded instead of an error. Elsewhere in the app, a plugin area that fails to load shows **Plugin extensions unavailable** or **Plugin launchers unavailable** with the reason, so you know why it's empty.
@@ -220,8 +200,6 @@ A plugin can also declare a **page slot**. When it does, the plugin gets its own
 From your perspective as an operator, plugin pages behave like any other Paperclip page: they're scoped to the currently selected company, they show up in breadcrumbs, and they respect your permissions. The plugin just gets a canvas to render on.
 
 Plugins can also contribute smaller pieces — a widget on the dashboard, a tab on the project detail page, a link in a sidebar — rather than a full standalone page. These show up inline in the surfaces you already use, so you don't always have to navigate to the plugin detail page to get value out of it. The Hello World example adds a dashboard widget; the file-browser example adds a project tab; the kitchen-sink example scatters contributions across several surfaces so you can see what's possible.
-
-A plugin can also add its own view to each agent's page. These views are listed under **Apps** in the agent's sidebar, and opening one keeps the usual breadcrumbs back to the agent. You only see them for agents you're already allowed to view. Some of these views stream live data, such as build output or metrics. Those live connections need you to be signed in to the board and last at most five minutes at a time. The plugin's view can then reconnect, and Paperclip rechecks your access on every reconnect.
 
 If two plugins happen to contribute a page on the same route, Paperclip refuses to choose between them and surfaces a conflict message instead. Uninstall one of the colliding plugins, or use the plugin-id URL directly (`/<prefix>/plugins/<plugin-id>`) to reach a specific one while you sort it out.
 

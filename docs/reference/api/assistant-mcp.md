@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Assistant MCP Protocol and Tools
 seo_description: Integrate an assistant as a consenting Paperclip user. Discover work and configuration tools, transfer task files, subscribe to events, and revoke access.
 ---

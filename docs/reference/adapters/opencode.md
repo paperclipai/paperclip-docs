@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: OpenCode Adapter
 seo_description: Run OpenCode on the Paperclip host when you want provider and model routing in OpenCode's own format, plus session resume across heartbeats.
 ---
@@ -7,8 +7,6 @@ seo_description: Run OpenCode on the Paperclip host when you want provider and m
 # OpenCode
 
 `opencode_local` runs OpenCode on the same machine as Paperclip. Use it when you want provider/model routing in OpenCode's `provider/model` format and session resume across heartbeats.
-
-> **Heads-up:** New OpenCode agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64 with GNU libc `2.39` or newer (Linux ARM64 stays on the Legacy runner). Those agents are saved as `paperclip_runner` with `provider: "opencode"`, and they don't need the experimental Runner setting. A custom `command`, `extraArgs`, a `variant`, or `dangerouslySkipPermissions: false` only works on the classic adapter; see [What carries over for OpenCode](paperclip-runner.md#what-carries-over-for-opencode). To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
 
 ---
 

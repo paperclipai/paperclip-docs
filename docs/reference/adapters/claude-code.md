@@ -8,8 +8,6 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 
 `claude_local` runs Anthropic's Claude Code CLI on the same machine as Paperclip. Use it when you want a local coding agent with session persistence, skills injection, and full access to the configured working directory.
 
-> **Heads-up:** New Claude Code agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer (a Mac reached over SSH stays on the Legacy runner unless you pick the Runner yourself). Those agents are saved as `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"`, and a blank model resolves to `claude-opus-5-5`. To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
-
 ---
 
 ## When To Use
@@ -100,14 +98,6 @@ When the engine resolves to ACP (`auto` or `acp`), these extra fields apply:
 | `nonInteractivePermissions` | `deny` | What to do if the ACP agent asks for input outside an interactive session — `deny` the request or `fail` the run. |
 | `stateDir` | Paperclip-managed | Optional ACP session-state directory. Defaults to Paperclip's company- and agent-scoped storage. |
 | `warmHandleIdleMs` | `0` | How long to keep the ACP process warm between runs, in milliseconds. `0` closes it after each run while still retaining persistent session state. |
-| `stalledToolTimeoutSec` | `1800` | Ends the turn as failed with `acpx_tool_stalled` when a pending tool call gets no ACP update for this many seconds. `0` turns the watchdog off. |
-
-### Tool calls that stop responding
-
-On ACP, a tool call that goes quiet can't hold a run open forever:
-
-- **Stalled tool calls end the turn.** If a pending tool call gets no updates for 30 minutes, Paperclip ends the turn as failed with `acpx_tool_stalled`. The default always stays at least 15 minutes longer than any `MCP_TOOL_TIMEOUT` or `BASH_MAX_TIMEOUT_MS` you set in `env`, so Claude's own limits fire first. Set `stalledToolTimeoutSec` to change the bound, or `0` to turn it off. The run result also notes whether the stalled call had asked for permission.
-- **MCP tool calls get a deadline.** When a run attaches runtime MCP servers, Paperclip sets `MCP_TOOL_TIMEOUT` to 15 minutes (`900000` ms) for Claude, so one hung MCP tool can't stall the turn. A value you set yourself in `env` wins.
 
 > **Heads-up:** ACP is where the old standalone `acpx_local` adapter's capabilities now live. That adapter has been retired — pick `claude_local` (or `codex_local` / `gemini_local`) and leave `engine` on `auto` to get ACP by default.
 

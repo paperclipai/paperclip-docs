@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.618.0
+paperclip_version: v2026.1023.0
 seo_title: Pi Adapter
 seo_description: Run the Pi coding agent CLI on the Paperclip host, with its built-in tool set — read, bash, edit, write, grep, find, ls — and provider configuration.
 ---
@@ -7,8 +7,6 @@ seo_description: Run the Pi coding agent CLI on the Paperclip host, with its bui
 # Pi
 
 `pi_local` runs the Pi coding agent CLI on the same machine as Paperclip. Use it when you want Pi's built-in tool set (read, bash, edit, write, grep, find, ls), provider/model routing, and session resume across heartbeats.
-
-> **Heads-up:** New Pi agents now run on [Paperclip Runner](paperclip-runner.md#pi-on-paperclip-runner) by default when the execution environment is macOS or Linux x64 with GNU libc `2.39` or newer (Linux ARM64 stays on the Legacy runner). Those agents are saved as `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "pi"`, and they don't need the experimental Runner setting. On the Runner, `thinking` becomes `piThinkingLevel` (`off`, `low`, `high`, or `max`), and a custom `command`, `extraArgs`, or a `stdoutLogMode` other than `compact` only works on the classic adapter; see [What carries over for Pi](paperclip-runner.md#what-carries-over-for-pi). To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
 
 ---
 
@@ -40,7 +38,6 @@ seo_description: Run the Pi coding agent CLI on the Paperclip host, with its bui
 | `env` | no | Environment variables. Secret refs supported. |
 | `timeoutSec` | no | Run timeout in seconds. `0` means no timeout. |
 | `graceSec` | no | SIGTERM grace period before a forced stop. |
-| `stdoutLogMode` | no | How Pi's JSON output is stored in the run log. `compact` (the default) or `raw`. See [Run log size](#run-log-size). |
 
 > **Note:** Paperclip requires an explicit `model` value for `pi_local` agents. Use `pi --list-models` to list valid options on your machine.
 
@@ -58,12 +55,6 @@ Pi sessions are stored under `~/.pi/paperclips/` and resumed with `--session` on
 - The user task prompt is sent via `-p`.
 - All tools (`read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`) are enabled by default.
 - If the model you configured isn't available, the error names the model and how many models Pi found, and suggests `pi --list-models`, instead of pasting Pi's whole model list.
-
-### Run log size
-
-Pi repeats the full message so far in every streaming update, so a long run's log can grow very quickly. By default (`stdoutLogMode: "compact"`), Paperclip drops those repeated copies before writing to the run log and turns tool progress updates into small progress events. Streaming text still arrives as it's written, so the live transcript looks the same.
-
-Set `stdoutLogMode` to `"raw"` when you need Pi's untouched output, for example to investigate a problem. In compact mode, if a run stops before a tool finishes, that tool's partial output isn't kept. An unrecognized value falls back to `raw`.
 
 ---
 

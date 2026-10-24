@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Calendly Scheduling Connector
 seo_description: Let agents review Calendly event types and availability, and decide which booking actions they may take. Browser sign-in, scopes, a safe test, and fixes.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents review Calendly event types and availability, and de
 
 Agents can look at your Calendly account — your event types, your availability, who you are signed in as — and, where you allow it, use Calendly's scheduling actions such as booking or creating links.
 
-> **Nightly draft:** This guide covers the current master implementation. Calendly appears in the catalog on every instance; no experimental setting is needed.
+Calendly appears in the catalog on every instance; no experimental setting is needed.
 
 Scheduling actions reach real people. A booking lands in someone's calendar and usually sends them an email, so treat writes here the way you would treat sending mail.
 
@@ -56,7 +57,7 @@ Compare the list with your Calendly dashboard. A matching list confirms the sign
 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
-| Sign-in fails or returns an error | Calendly could not reach the callback address, or the first registration attempt was refused | Make sure Paperclip is reached over HTTPS (or local loopback), then try **Sign in with Calendly** again |
+| Sign-in fails or returns an error | Calendly could not reach the callback address, or the first registration attempt was refused | Make sure Paperclip is reached over HTTPS (or local loopback), then try signing in again |
 | An event type is missing | It belongs to a different Calendly account or user | Connect with the account that owns it |
 | Times look off by hours | The agent used the wrong timezone | Ask it to state the timezone it is using before it proposes times |
 | An agent booked a meeting unexpectedly | A scheduling write was **Allowed** | Set booking actions to **Ask first** or **Off**, and cancel the booking in Calendly |
@@ -73,5 +74,5 @@ Limitations: one Calendly account per connection, and browser sign-in is the onl
 
 ## Sources
 
-- [Calendly definition](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions/calendly.json) — method, scopes, guidance, and warnings.
-- [Default action policy](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions.ts) — new connections reach all agents with actions Allowed.
+- [Calendly definition](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions/calendly.json) — method, scopes, guidance, and warnings.
+- [Default action policy](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions.ts) — new connections reach all agents with actions Allowed.

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Agent Chat (Experimental)
 seo_description: Keep one ongoing conversation with each agent, talk a goal through, and let the agent hand the real work off to tasks and report back when they're done.
 ---
@@ -75,7 +76,7 @@ Turning **Agent Chat** off removes the **Chat** entry and stops new messages, bu
 - How well an agent breaks a conversation into tasks depends on the agent and its model. Read the tasks it creates before relying on them.
 - Results come back only for tasks a chat hands off after your instance is on a release with this behaviour. Tasks handed off earlier aren’t reported retroactively.
 
-Implementation reference: [session reset and handoff instructions](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-conversations.ts), [completion reports](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/chat-completion-delivery.ts), [Chat navigation](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/Sidebar.tsx), [agent rail](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/AgentConversationsSidebar.tsx), and [agent task and artifact panels](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/chat/AgentWorkPanels.tsx).
+Implementation reference: [session reset and handoff instructions](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/agent-conversations.ts), [completion reports](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/chat-completion-delivery.ts), [Chat navigation](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/Sidebar.tsx), [agent rail](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/AgentConversationsSidebar.tsx), and [agent task and artifact panels](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/components/chat/AgentWorkPanels.tsx).
 
 ## Where to go next
 

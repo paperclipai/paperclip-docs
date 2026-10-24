@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1012.0
 seo_title: Cognee Cloud Memory Connector
 seo_description: Connect an active Cognee Cloud workspace with its tenant URL and API key, then choose how agents recall, save, or forget memory through Paperclip.
 ---
@@ -64,5 +65,5 @@ Turning off the experimental setting leaves saved connections running and allows
 
 ## Sources
 
-- [Cognee definition](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/app-definitions/cognee.json) — credential fields and default instructions.
-- [Bundled Cloud client](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/cognee-connection.ts) and [tool connection service](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/tool-access.ts) — reviewed tools and setup behavior.
+- [Cognee definition](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/packages/shared/src/app-definitions/cognee.json) — credential fields and default instructions.
+- [Bundled Cloud client](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/cognee-connection.ts) and [tool connection service](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/tool-access.ts) — reviewed tools and setup behavior.

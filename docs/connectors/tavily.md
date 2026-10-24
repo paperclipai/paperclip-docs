@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Tavily Web Search Connector
 seo_description: Give agents web search and page extraction through your Tavily account. Browser sign-in, which Tavily key gets used, the HTTPS callback rule, and fixes.
 ---
@@ -7,7 +8,7 @@ seo_description: Give agents web search and page extraction through your Tavily 
 
 Agents can search the public web and extract the content of pages through Tavily, using your own Tavily account. It suits bounded research tasks where you want the agent to cite where each fact came from.
 
-> **Nightly draft:** This guide covers the current master implementation. Tavily appears in the catalog on every instance; no experimental setting is needed.
+> **Note:** Tavily appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 
@@ -65,5 +66,5 @@ Limitations: one Tavily account per connection, browser sign-in only, and public
 
 ## Sources
 
-- [Tavily definition](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions/tavily.json) — method, scopes, HTTPS callback rule, and key selection warning.
-- [Permission review](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/doc/connections/tool-method-permission-reviews.json) — read-only action surface.
+- [Tavily definition](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions/tavily.json) — method, scopes, HTTPS callback rule, and key selection warning.
+- [Permission review](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/doc/connections/tool-method-permission-reviews.json) — read-only action surface.

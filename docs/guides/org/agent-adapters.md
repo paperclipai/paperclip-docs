@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Choosing an Agent Adapter
 seo_description: Compare the adapters that run your agents — Claude Code, Codex, OpenCode, HTTP webhook and more — and pick the right bridge for each role you hire.
 ---
@@ -34,17 +34,13 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 > **Note:** On Paperclip Cloud, the new-agent picker offers Claude, Codex, OpenCode, and Grok. Grok agents connect with an xAI subscription or API key during setup.
 
-> **Tip:** Grok Build can also run on the experimental **Paperclip Runner** adapter (`paperclip_runner`) — choose **ACP agents** as the provider, then **Grok Build**. It needs Grok Build installed at a fixed path in the execution environment. See [Grok Build on Paperclip Runner](../../reference/adapters/grok-local.md#grok-build-on-paperclip-runner).
+> **Tip:** Grok Build can also run on the experimental **Paperclip Runner** adapter (`paperclip_runner`) — choose **Grok Build** as the provider. It needs Grok Build installed at a fixed path in the execution environment. See [Grok Build on Paperclip Runner](../../reference/adapters/grok-local.md#grok-build-on-paperclip-runner).
 
 ### Choose Paperclip Runner explicitly
 
-For the native lifecycle, choose **Paperclip Runner** and then select the provider. Codex and OpenCode have native routes; **ACP agents** offers Claude, Grok Build, Cursor, GitHub Copilot, and Pi. To run agents on your Copilot plan, see [GitHub Copilot](../../connectors/github-copilot.md). Existing direct-adapter agents keep their current runtime until you change the adapter.
+For the native lifecycle, choose **Paperclip Runner** and then select the provider: **Codex**, **OpenCode**, **Claude Managed**, **AWS AgentCore**, **ACP agents**, or **Grok Build**. Under **ACP agents**, you can pick Claude, Cursor, or Pi; GitHub Copilot is listed as awaiting qualification. Existing direct-adapter agents keep their current runtime until you change the adapter.
 
-You don't have to do anything for Codex, Claude Code, OpenCode, or Pi: a new agent on one of those harnesses runs on Paperclip Runner automatically when it runs on macOS or on Linux x64/ARM64 with GNU libc `2.39` or newer (OpenCode and Pi stay on the Legacy runner on Linux ARM64). To keep the classic `codex_local`, `claude_local`, `opencode_local`, or `pi_local` adapter, open **Advanced** and set **Runner** to **Legacy runner**. See [New Codex and Claude agents use the Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
-
-Already have a Claude Code or Codex agent on the Legacy runner? If its environment qualifies, its **Harness / Runtime** page shows an **Upgrade to Paperclip Runner** notice. Click **Upgrade runner** to switch while keeping its model, account, and compatible settings. See [Upgrade an existing Claude or Codex agent](../../reference/adapters/paperclip-runner.md#upgrade-an-existing-claude-or-codex-agent).
-
-The Runner is experimental: for providers other than Codex, OpenCode, ACP Claude, ACP Pi, and ACP GitHub Copilot, `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. Cursor needs a prepared pinned runtime (`paperclipai runtime setup cursor`), an explicit model, and an Agent, Plan, or Ask session mode. Its token totals and per-run dollar cost are unavailable. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md) and [native Cursor setup](../../reference/adapters/cursor-local.md#cursor-on-paperclip-runner).
+This feature is experimental: `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md).
 
 ### Agents run in full auto by default
 
@@ -66,8 +62,6 @@ The `claude_local` adapter runs your agent using Claude Code — Anthropic's com
 
 **What it means in practice:** Your agent thinks like Claude, can read and write files on your computer, browse the web, and run terminal commands — all within the workspace of the task it's working on. It's capable of doing real coding work, writing documents, doing research, and more.
 
-> **Note:** On macOS and supported Linux machines, new Claude Code agents run on [Paperclip Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default, as **ACP agents → Claude**. Pick **Legacy runner** under **Advanced → Runner** to use `claude_local` instead.
-
 ### Prerequisites
 
 - Claude Code installed on your Mac ([claude.ai/code](https://claude.ai/code))
@@ -79,7 +73,7 @@ The `claude_local` adapter runs your agent using Claude Code — Anthropic's com
 You won't see this field when you create a new agent. It only appears when you edit an older local agent that already has a working directory saved, and it's there as a legacy fallback. New agents get their folder from the task's project workspace instead, so set up a [project workspace](../projects-workflow/workspaces.md) rather than pointing each agent at a folder. If an older agent still shows the field, you can leave it as it is or clear it once the agent's work lives in a project.
 
 **Model**
-Which Claude model to use. If you leave it blank, Paperclip uses `claude-opus-5-5`. Some common choices:
+Which Claude model to use. If you leave it blank, Paperclip uses `claude-opus-5`. Some common choices:
 - `claude-opus-5-5` or `claude-opus-5` — most capable, best reasoning, highest cost. Good for your CEO or complex strategic agents.
 - `claude-sonnet-5-5` or `claude-sonnet-5` — fast, capable, lower cost. Good for worker agents doing routine tasks. Sonnet 5.5 needs Claude Code `2.1.284` or newer.
 
@@ -107,8 +101,6 @@ How long a single heartbeat run is allowed to take before Paperclip cuts it off.
 
 The `codex_local` adapter runs your agent using OpenAI's Codex CLI on your Mac. It works the same way as `claude_local` but uses OpenAI models instead of Anthropic.
 
-> **Note:** On macOS and supported Linux machines, new Codex agents run on [Paperclip Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default. Pick **Legacy runner** under **Advanced → Runner** to use `codex_local` instead.
-
 ### Prerequisites
 
 - OpenAI Codex CLI installed on your Mac
@@ -135,8 +127,6 @@ See [Codex — Models](../../reference/adapters/codex.md#models) for the full li
 The `opencode_local` adapter runs your agent using OpenCode — a flexible, open-source AI terminal tool that supports multiple providers. It lets you configure exactly which model and provider to use via the `adapterConfig.model` field in `provider/model` format.
 
 **When to use this:** If you want to switch between providers easily, or use a model not available through `claude_local` or `codex_local` directly.
-
-> **Note:** On macOS and supported Linux x64 machines, new OpenCode agents run on [Paperclip Runner](../../reference/adapters/paperclip-runner.md#what-carries-over-for-opencode) by default, with `provider: "opencode"`. Pick **Legacy runner** under **Advanced → Runner** to use `opencode_local` instead.
 
 The configuration is similar to the other local adapters, with an additional **Model** field in `provider/model` format (e.g., `anthropic/claude-opus-4-6` or `openai/gpt-5.3-codex`).
 

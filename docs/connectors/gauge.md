@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Gauge AI Visibility Connector
 seo_description: Let agents read Gauge AI visibility, SEO, and traffic data and run content workflows, with publish actions held behind Ask first before any CMS goes live.
 ---
@@ -6,8 +7,6 @@ seo_description: Let agents read Gauge AI visibility, SEO, and traffic data and 
 # Gauge
 
 Agents can work with your Gauge organization — checking how AI answer engines mention and cite your brand, researching keywords and traffic, and running Gauge's content workflows.
-
-> **Nightly draft:** This guide covers the current master implementation. Gauge appears in the catalog on every instance; no experimental setting is needed.
 
 > **Warning:** Gauge content tools can publish to the CMS you connected in Gauge, including straight to your live site. Set publish actions to **Ask first** before any agent runs unattended.
 
@@ -68,5 +67,5 @@ Limitations: one Gauge organization per connection. API keys cannot be narrowed.
 
 ## Sources
 
-- [Gauge definition](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions/gauge.json) — methods, scope, key field, capability, and warnings.
-- [Gallery copy](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/ui/src/lib/app-gallery-copy.ts) — catalog card text.
+- [Gauge definition](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions/gauge.json) — methods, scope, key field, capability, and warnings.
+- [Gallery copy](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/ui/src/lib/app-gallery-copy.ts) — catalog card text.

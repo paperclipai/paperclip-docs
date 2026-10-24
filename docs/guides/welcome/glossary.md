@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1023.0
 seo_title: Glossary of Paperclip Terms
 seo_description: Every term in Paperclip's interface and docs, defined in plain English and sorted A-Z — the place to look when a word in a guide isn't clicking.
 ---

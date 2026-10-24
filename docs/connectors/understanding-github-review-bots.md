@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Understanding GitHub PR Review Bots
 seo_description: Learn why installing a review bot, choosing when it runs, and requiring its check before merging are three independent decisions.
 ---
@@ -147,13 +148,6 @@ check on the PR. The comment explains the result to a person. The check gives
 GitHub a result its rules can use. The check is attached to the exact commit
 the agent reviewed.
 
-The summary comment is headed with the bot's own name — for example
-*Storybook Bot — 3/5*, or *Storybook Bot — Incomplete*. If the App has no display
-name, Paperclip uses its login, then the assigned agent's name. The check keeps
-the name **Paperclip Review** so existing branch rules continue to match. When
-several bots review the same PR, each App publishes and updates only its own
-check, so the headings tell you which bot said what.
-
 | Review situation | What the check reports |
 | --- | --- |
 | Waiting for the agent | Queued |
@@ -162,7 +156,6 @@ check, so the headings tell you which bot said what.
 | Complete assessment falls below the threshold | Failure |
 | Incomplete assessment or execution that cannot finish | A non-passing result requiring attention |
 | Complete assessment in report-only mode | Neutral; a low score does not fail the check |
-| Incomplete or failed run in report-only mode | Neutral, with text explaining what could not be completed |
 
 The threshold defaults to 5/5 and can be set from 1–5. An incomplete assessment
 cannot pass. Report-only mode is useful for feedback without enforcing a score;
@@ -268,21 +261,6 @@ A repeat review mention can also request a fresh assessment of the same commit.
 The conversation continues in the same Paperclip task, with review history
 retained and one current summary updated. Old executions cannot overwrite the
 latest head's assessment.
-
-On GitHub, the bot keeps one main comment per PR, owned by its App. A new push
-or repeat request updates that comment to **Review queued…**, and the agent's
-progress and final assessment keep editing the same comment rather than adding
-new ones. That stays true across restarts, and if you reconnect the same App
-while a review is running. Issue conversations and inline review threads still
-get one editable comment per request.
-
-If the work stops before the agent posts a result, Paperclip updates the comment
-so it doesn't keep claiming the bot is still working. When the task is blocked,
-the comment reads *"Work is paused. Your request is saved. See the Paperclip
-task for details."* and the request stays open until work resumes. If GitHub is slow or briefly
-unavailable while the result is being published, Paperclip retries it from the
-saved assessment instead of asking the agent to review again, and it does not
-post a duplicate comment or check.
 
 See [GitHub status checks](https://docs.github.com/en/pull-requests/reference/status-checks).
 

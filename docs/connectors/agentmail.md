@@ -138,5 +138,5 @@ Limitations: one inbox, one owning agent. Paperclip does not enforce who may wri
 
 ## Sources
 
-- [AgentMail setup and inline flow](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/AgentMailIntentSetup.tsx) — default access and saved-key setup for the requesting agent.
-- [Email connection service](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/email-channels.ts) — inbox ownership and conversation lifecycle.
+- [AgentMail setup and inline flow](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/features/connections/AgentMailIntentSetup.tsx) — default access and saved-key setup for the requesting agent.
+- [Email connection service](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/email-channels.ts) — inbox ownership and conversation lifecycle.

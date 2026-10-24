@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Set a Monthly Budget and Enforce It
 seo_description: A misconfigured loop can run a four-figure tab in a weekend. Set a cap Paperclip enforces automatically, with warnings before the hard stop.
 ---
@@ -80,7 +80,9 @@ At 80% (or whatever `warnPercent` you set) Paperclip records a **soft incident**
 
 ![Audit page on the Budgets tab, showing the Budget control plane card, active incidents, and budget policy cards](../user-guides/screenshots/light/costs/budgets.png)
 
-A warning shows as an amber **… budget warning** card that says *Spending crossed the warning threshold. This warning does not pause work.*, with **Raise budget** and **Dismiss warning**. A hard stop shows as a red **… hard stop** card that says the scope is paused, with **Raise budget & resume** and **Keep paused**. Only a hard stop pauses work.
+A warning shows as an amber **… budget warning** card with **Raise budget** and **Dismiss warning**. A hard stop shows as a red **… hard stop** card with **Raise budget & resume** and **Keep paused**.
+
+> **Heads-up:** in v2026.1023.0, the warning card still uses the hard-stop design. It is headed **… hard stop** and says *"This scope is paused"*, but the warning itself does not pause anything. The screenshots show the corrected card from [the fix](https://github.com/paperclipai/paperclip/pull/16201), which ships in a later release. Until then, check the policy card: **Warning** does not pause work. Only **Hard stop** or **Paused** means this policy has stopped it.
 
 Paperclip does not push outbound webhooks today. If you want Slack or Discord pings on incidents, run a routine that diffs `GET /api/companies/{COMPANY_ID}/budgets/overview` against a cursor and posts to a webhook — the same shape as the approval notifier. See [Wire Slack/Discord notifications](./wire-slack-discord-notifications.md).
 
@@ -128,12 +130,10 @@ Billing codes are *for attribution, not for enforcement* — they show up in the
 
 When the hard incident fires:
 
-1. The affected scope (company, agent, or project) is paused immediately. No new work starts in it.
-2. Any in-progress run for the scope gets a stop request moments later — the issue stays where it was, the agent stops working it. The run can add a little more spend before it stops.
+1. The affected scope (company, agent, or project) is paused immediately. No more heartbeats are scheduled.
+2. Any in-progress run for the scope is cancelled — the issue stays where it was, the agent stops working it.
 3. The Budget control plane card increments **Paused agents** / **Paused projects**.
 4. The incident appears as a card on the **Budgets** tab under **Audit**, and at the top of the **Costs** tab's **Overview**.
-
-Only the scope that hit its limit is affected. An agent budget pauses just that agent. A project budget stops work in that project, but the same agents keep working on their other projects. Running work also counts against the cap before it finishes, when the provider reports usage as it goes, so a long run can trip the hard stop partway through.
 
 ![Agent budget policy card on Audit → Budgets at 100% — full red bar, Paused status, and a note that heartbeats are paused until the budget is raised or the incident is dismissed](../user-guides/screenshots/light/costs/agent-budget-100pct-paused.png)
 

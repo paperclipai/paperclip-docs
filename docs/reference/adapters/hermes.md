@@ -57,7 +57,7 @@ seo_description: Run Hermes Agent by Nous Research on the Paperclip host, with p
 | `verbose` | no | `false` | Verbose output. |
 | `quiet` | no | `true` | Clean output — no banner or spinner. |
 | `promptTemplate` | no | built-in | Custom prompt template (see below). |
-| `paperclipApiUrl` | no | — | Optional API base override. When unset, the prompt uses `PAPERCLIP_API_URL` from the adapter's `env` if you set one there, then the server's `PAPERCLIP_API_URL`. |
+| `paperclipApiUrl` | no | — | Optional API base override. Defaults to `PAPERCLIP_API_URL`. |
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Grok Local Adapter
 seo_description: Run xAI's Grok Build CLI on the Paperclip host as a local coding agent that resumes the same Grok session across every heartbeat.
 ---
@@ -140,8 +140,6 @@ If you supply an `instructionsFilePath`, Paperclip prefers staging it into the w
 
 ## Grok Build On Paperclip Runner
 
-> **Note:** Grok Build is a coding runtime. It isn't the same as **Grok Bot**, the experimental external provider that connects an existing Grok Bot as an agent. See [Experimental external providers](paperclip-runner.md#experimental-external-providers).
-
 `grok_local` isn't the only way to run Grok. Grok Build is also available on **Paperclip Runner** (`paperclip_runner`), Paperclip's experimental native runner, which talks to Grok over the Agent Client Protocol (ACP) instead of wrapping the CLI. Pick it when you want the runner's durable sessions — a run that survives a server restart and picks up the same Grok conversation — and its built-in Paperclip tools.
 
 Your existing `grok_local` agents keep running on `grok_local`. Nothing migrates them; switching is a choice you make per agent.
@@ -150,7 +148,7 @@ Your existing `grok_local` agents keep running on `grok_local`. Nothing migrates
 
 1. Check that **Paperclip Runner** is enabled in Experimental settings. Its default is on for self-hosted instances and off for Cloud-managed instances.
 2. Create or edit an agent and choose **Paperclip Runner** as its adapter.
-3. Select **ACP agents**, then **Grok Build** as the **ACP agent**.
+3. Set **Harness** to **Grok Build**.
 
 The saved config looks like this. A new Grok runner agent defaults to the `grok-4.7` model:
 

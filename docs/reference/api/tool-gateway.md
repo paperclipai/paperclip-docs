@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Tool Gateway API
 seo_description: Agents decide what to do; the tool gateway decides whether they may. It sits between every agent and every external tool you have connected.
 ---
@@ -233,7 +233,7 @@ The call body takes:
 |---|---|---|
 | `tool` | yes | The tool name. A missing or non-string value returns `400` with `"tool" is required and must be a string`. |
 | `parameters` | no | The tool's arguments. Defaults to `{}`. |
-| `timeoutMs` | no | How long to wait on the upstream tool, capped at 60 seconds. Without it, most tools get 10 seconds; GitHub review bot tools get the full 60, so a slow review publication can finish and return its receipt. |
+| `timeoutMs` | no | How long to wait on the upstream tool, capped at 60 seconds. Defaults to 10 seconds. |
 | `approvedActionRequestId` | no | The approval you are cashing in, when a previous attempt returned `require_approval`. |
 | `idempotencyKey` | no | Makes a retry safe — the same key won't run the tool twice. |
 

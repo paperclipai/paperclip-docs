@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Goals and Projects API
 seo_description: Goals form the higher-level intent tree; projects group the concrete deliverables under them. Endpoints for both, and how the two link together.
 ---
@@ -171,7 +172,7 @@ Projects have a few important implementation details:
 - `goalIds` is preferred for new code.
 - `workspace` can be supplied during create to seed the first workspace in the same request.
 - `env` is the project environment binding config. Secret bindings are normalized before storage.
-- `executionWorkspacePolicy` is an advanced runtime policy object. Set its `storageProviderPluginId` to an installed plugin's ID to let that plugin own the project's storage and task workspaces (see [Plugins that store your project's code](../../administration/plugins.md#plugins-that-store-your-projects-code)); leave it unset or `null` to keep Paperclip's local behavior.
+- `executionWorkspacePolicy` is an advanced runtime policy object.
 - `archivedAt` can be set when archiving a project.
 
 Project statuses are:
