@@ -41,7 +41,7 @@ If sync needs separate credentials, use **Set up account sync** in the gateway's
 
 Accounts appear under their app cards in **Connectors**, labelled **Managed by Arcade**. Use **Open in Arcade** to manage them upstream. Paperclip access stays on the saved gateway and covers its exposed apps.
 
-A successful gateway setup is not proof that a particular app is authorized. If setup offers a task draft to verify an app, choose its agent and create the task; the agent may still need your help with provider authorization.
+A successful gateway setup is not proof that a particular app is authorized. The agent checks app access when it first uses it and may still need your help with provider authorization.
 
 ## Try it
 

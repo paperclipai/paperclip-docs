@@ -150,7 +150,7 @@ Your existing `grok_local` agents keep running on `grok_local`. Nothing migrates
 
 1. Check that **Paperclip Runner** is enabled in Experimental settings. Its default is on for self-hosted instances and off for Cloud-managed instances.
 2. Create or edit an agent and choose **Paperclip Runner** as its adapter.
-3. Select **ACP agents**, then **Grok Build** as the **ACP agent**.
+3. Set **Harness** to **Grok Build**.
 
 The saved config looks like this. A new Grok runner agent defaults to the `grok-4.7` model:
 

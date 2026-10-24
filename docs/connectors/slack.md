@@ -94,7 +94,7 @@ On the manual path, use the generated manifest rather than configuring scopes by
 | --- | --- |
 | The configuration token expired or was rejected | Generate a new token and try again. Your draft is kept. |
 | Paperclip isn't sure whether Slack created the app | Click **Open Slack app settings** and check. If no app exists, tick **I checked Slack and no app was created. Create a new app.** and try again. |
-| "Your app was created. Retry to finish its configuration." | Paste a fresh configuration token and click **Retry app configuration**. Paperclip reuses the same app. |
+| Your Slack app is saved, but its event settings still need to be applied | Paste a fresh configuration token and click **Retry app configuration**. Paperclip reuses the same app. |
 | Your credentials are saved but the connection check failed | Click **Retry connecting**. If Slack access changed, click **Authorize in Slack again**. |
 
 ### How a conversation becomes work

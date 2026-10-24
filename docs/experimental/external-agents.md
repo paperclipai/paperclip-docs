@@ -63,7 +63,7 @@ Three settings sit under the panel. They are all off by default:
 | Setting | What it does |
 | --- | --- |
 | **Read task attachments** | Lets Dot read files attached to its current task. The file contents are sent to OpenAI. |
-| **Workspace files and commands** | Lets Dot read and write its assigned workspace and publish files. Needs a local Runner. Commands only run on Linux with bubblewrap, without network access or injected credentials. On macOS, file tools work but commands are refused. |
+| **Workspace files and commands** | Lets Dot read and write its assigned workspace and publish files. Needs a local Runner. Commands are only available on Linux with bubblewrap, and they can't read your home directory or use injected credentials. |
 | **Allow externally billed provider** | Confirms you understand that Dot doesn't report usage or cost. Company and agent budget limits still apply. |
 
 ### How Dot works on tasks

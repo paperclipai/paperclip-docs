@@ -34,7 +34,7 @@ The only difference between **Owner** and **Admin** is `users:manage_permissions
 
 **Operator** is the everyday editing role, and it's what an invite hands out unless you pick something else. An Operator can hire and configure agents, edit skills and environments, invite people, assign work, connect accounts and manage tools, and read both audit trails. What they *can't* do is approve join requests (`joins:approve`) or change anyone's role or grants (`users:manage_permissions`) — those two stay with Admins and Owners.
 
-That boundary carries over to invites, so an invite can never hand out more than its creator holds. An Operator can invite new Operators and Viewers. Inviting someone as an **Admin** also needs `joins:approve`, and inviting an **Owner** needs both `joins:approve` and `users:manage_permissions`.
+That boundary carries over to invites, so an invite can't hand out membership powers (approving joins or managing permissions) that its creator lacks. An Operator can invite new Operators and Viewers. Inviting someone as an **Admin** also needs `joins:approve`, and inviting an **Owner** needs both `joins:approve` and `users:manage_permissions`.
 
 Two quirks are worth knowing:
 

@@ -34,11 +34,11 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 > **Note:** On Paperclip Cloud, the new-agent picker offers Claude, Codex, OpenCode, and Grok. Grok agents connect with an xAI subscription or API key during setup.
 
-> **Tip:** Grok Build can also run on the experimental **Paperclip Runner** adapter (`paperclip_runner`) — choose **ACP agents** as the provider, then **Grok Build**. It needs Grok Build installed at a fixed path in the execution environment. See [Grok Build on Paperclip Runner](../../reference/adapters/grok-local.md#grok-build-on-paperclip-runner).
+> **Tip:** Grok Build can also run on the experimental **Paperclip Runner** adapter (`paperclip_runner`) — choose **Grok Build** as the provider. It needs Grok Build installed at a fixed path in the execution environment. See [Grok Build on Paperclip Runner](../../reference/adapters/grok-local.md#grok-build-on-paperclip-runner).
 
 ### Choose Paperclip Runner explicitly
 
-For the native lifecycle, choose **Paperclip Runner** and then select the provider. Codex and OpenCode have native routes; **ACP agents** offers Claude, Grok Build, Cursor, GitHub Copilot, and Pi. To run agents on your Copilot plan, see [GitHub Copilot](../../connectors/github-copilot.md). Existing direct-adapter agents keep their current runtime until you change the adapter.
+For the native lifecycle, choose **Paperclip Runner** and then select the provider: **Codex**, **OpenCode**, **Claude Managed**, **AWS AgentCore**, **ACP agents**, or **Grok Build**. Under **ACP agents**, you can pick Grok Build, Claude, Cursor, GitHub Copilot, or Pi. To run agents on your Copilot plan, see [GitHub Copilot](../../connectors/github-copilot.md). Existing direct-adapter agents keep their current runtime until you change the adapter.
 
 You don't have to do anything for Codex, Claude Code, OpenCode, or Pi: a new agent on one of those harnesses runs on Paperclip Runner automatically when it runs on macOS or on Linux x64/ARM64 with GNU libc `2.39` or newer (OpenCode and Pi stay on the Legacy runner on Linux ARM64). To keep the classic `codex_local`, `claude_local`, `opencode_local`, or `pi_local` adapter, open **Advanced** and set **Runner** to **Legacy runner**. See [New Codex and Claude agents use the Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
 

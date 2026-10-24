@@ -79,7 +79,7 @@ These adapters ship with Paperclip and are always available in the host:
 
 ## Native Paperclip Runner
 
-Choose **Paperclip Runner** when you want the native run lifecycle and built-in task tools. Select a provider or **ACP agent** separately. Existing direct adapters keep their own paths; enabling the feature does not migrate them.
+Choose **Paperclip Runner** when you want the native run lifecycle and built-in task tools. Then pick its **Harness** — for **ACP agents**, choose the **ACP agent** too. Existing direct adapters keep their own paths; enabling the feature does not migrate them.
 
 New Codex and Claude Code agents get the Runner automatically on macOS and on Linux x64/ARM64 with GNU libc `2.39` or newer; choose **Legacy runner** under **Advanced → Runner** to keep `codex_local` or `claude_local`. For the other providers except GitHub Copilot, the `enableNativeRunner` default is on for self-hosted instances and off for Cloud-managed instances. **ACP agents** now include qualified **Pi** and **GitHub Copilot** runtimes; Copilot runs on your Copilot plan through a token you connect under **Connectors → GitHub → Connect Copilot** (see [GitHub Copilot](../../connectors/github-copilot.md)). Cursor uses a pinned runtime you prepare with `paperclipai runtime setup cursor`, an explicit model, and Agent, Plan, or Ask session mode. Grok has a separately pinned native runtime. See [Paperclip Runner](paperclip-runner.md), [Cursor](cursor-local.md#cursor-on-paperclip-runner), and [Grok](grok-local.md#grok-build-on-paperclip-runner).
 

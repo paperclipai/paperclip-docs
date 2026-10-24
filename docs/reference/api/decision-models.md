@@ -142,7 +142,7 @@ Requests are limited to 30 seconds and aren't retried. A request that times out 
 
 `GET /api/companies/{companyId}/decision-model/history`
 
-Takes the same `from`, `to`, and `period` filters as the [Costs API](./costs.md#choosing-a-date-range), plus `limit` from `1` to `500` (default `100`). Returns the most recent requests, newest first.
+Takes the same `from`, `to`, and `period` filters as the [Costs API](./costs.md#choosing-a-date-range), plus `limit` from `1` to `500` (default `100`). Unlike the cost reports, leaving out the dates doesn't narrow to the current month — you get the most recent requests from any time. Results are newest first.
 
 Each entry has:
 

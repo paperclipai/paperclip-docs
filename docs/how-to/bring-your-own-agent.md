@@ -42,7 +42,7 @@ Start a new agent (the **Meet your next agent** dialog you use for local and man
 
 1. Click **Invite an external agent**. The dialog shows a grid of agent types: **Dot**, **Grok Bot**, **Hermes**, and **Other** (plus **Muse — Personal agent** when that experiment is on).
 2. Pick **Other** for OpenClaw or a custom agent, or **Hermes** for a Hermes agent. Paperclip generates the onboarding prompt straight away.
-3. Click **Copy invitation prompt**. A **Back** link returns you to the agent types if you change your mind.
+3. Click **Copy invitation prompt**. **Back** returns you to the agent types if you change your mind.
 
 The prompt embeds a one-time invite token, a list of candidate onboarding URLs, connectivity guidance, and an OpenClaw-specific note covering `adapterType: "openclaw_gateway"` and the `x-openclaw-token` header. To add your own onboarding context, use the API call below with `agentMessage`.
 

@@ -642,7 +642,7 @@ The response is `201` with the adjustment. Paperclip keeps the provider's origin
 
 Pull daily cost totals straight from the OpenAI or Anthropic organization cost report. This sends a stored admin credential to the provider, so on top of board access it needs a company owner or admin, an instance admin, or a local trusted install. Others get `403` with `Company admin access required to import provider billing.`
 
-Before you start, store the provider's admin key as a company secret and mark it for billing use by setting its `providerMetadata` (see [Secrets](./secrets.md)):
+Before you start, store the provider's admin key as a company secret and mark it for billing use by setting its `providerMetadata` field when you create or update the secret through the [Secrets API](./secrets.md):
 
 ```json
 { "providerBilling": { "provider": "openai", "accountId": "<organization id>" } }

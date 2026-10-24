@@ -56,7 +56,7 @@ Compare the list with your Calendly dashboard. A matching list confirms the sign
 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
-| Sign-in fails or returns an error | Calendly could not reach the callback address, or the first registration attempt was refused | Make sure Paperclip is reached over HTTPS (or local loopback), then try **Sign in with Calendly** again |
+| Sign-in fails or returns an error | Calendly could not reach the callback address, or the first registration attempt was refused | Make sure Paperclip is reached over HTTPS (or local loopback), then try signing in again |
 | An event type is missing | It belongs to a different Calendly account or user | Connect with the account that owns it |
 | Times look off by hours | The agent used the wrong timezone | Ask it to state the timezone it is using before it proposes times |
 | An agent booked a meeting unexpectedly | A scheduling write was **Allowed** | Set booking actions to **Ask first** or **Off**, and cancel the booking in Calendly |

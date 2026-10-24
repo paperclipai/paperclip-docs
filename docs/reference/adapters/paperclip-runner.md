@@ -127,7 +127,7 @@ Managed providers need operator-prepared profiles; they are not configured by pa
 
 1. Create or edit the agent and choose **Paperclip Runner**.
 2. Select **Harness**. For **ACP agents**, select the **ACP agent** too.
-3. Select a model. For Codex, OpenCode, Claude, Grok, or GitHub Copilot, choose a compatible **Connection**; Cursor uses its secret-backed credential environment instead.
+3. Select a model. When you edit a saved agent, choose a compatible **Connection** for Codex, OpenCode, Claude, Grok, or GitHub Copilot; Cursor uses its secret-backed credential environment instead.
 4. Choose the execution environment and review permissions.
 5. Save and use **Test Environment** before assigning work.
 
