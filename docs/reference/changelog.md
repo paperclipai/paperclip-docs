@@ -16,7 +16,7 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 <summary>Docs for v2026.1023.0 <span class="accordion-meta">October 23, 2026</span></summary>
 <div class="accordion-body">
 
-This release is about control over who sees what and what it costs. Tasks and projects can be private and shared with chosen people. Costs separate estimated, unpriced and subscription spend from API spend. A company can choose a small decision model for quick yes/no questions. The connector catalog also grows by fifteen apps, and agents can now report complaints and suggestions about their own tools.
+This release is about control over who sees what and what it costs. Tasks and projects can be private and shared with chosen people. Costs separate estimated, unpriced and subscription spend from API spend. A company can choose a small decision model for quick yes/no questions. The connector catalog also grows by fourteen apps, and agents can now report complaints and suggestions about their own tools.
 
 **New pages**
 
@@ -40,7 +40,7 @@ This release is about control over who sees what and what it costs. Tasks and pr
 - [Paperclip Runner](adapters/paperclip-runner.md), [Cursor](adapters/cursor-local.md), [Codex](adapters/codex.md), [Pi](adapters/pi.md) and [Adapters overview](adapters/overview.md) — Cursor and Pi qualify on the Runner, the experimental OpenAI Dot provider, the Codex CLI version floor, and the **Harness** picker.
 - [Assistant connections](../experimental/assistant-connections.md) and [Assistant MCP API](api/assistant-mcp.md) — more direct tools for work and configuration, plus the `paperclip:configure` scope.
 - [Artifacts](../guides/day-to-day/artifacts.md) — CSV files open as tables, and HTML reports open rendered in a locked-down sandbox.
-- [Plugin SDK](plugins/sdk.md) and [Plugins](../administration/plugins.md) — the agent lifecycle contract for plugin setup and status, idle drain before sleep, and workspace acquisition and sync diagnostics.
+- [Plugin SDK](plugins/sdk.md) and [Plugins](../administration/plugins.md) — the agent lifecycle contract for plugin setup and status, idle drain before sleep, workspace acquisition and sync diagnostics, and how plugin items behave when the server can't be reached.
 - [Anthropic](../connectors/anthropic.md), [OpenAI](../connectors/openai.md), [OpenRouter](../connectors/openrouter.md) and [xAI](../connectors/xai.md) — server-host browser sign-in, and recovering a missing personal AI credential from chat. Also new sign-in methods for [Linear](../connectors/linear.md) (API key), [Airtable](../connectors/airtable.md) (token) and [Hugging Face](../connectors/hugging-face.md) (public Hub, no sign-in).
 - Smaller updates: the [connector catalog](../connectors.md), [Workspaces](../guides/projects-workflow/workspaces.md) (repairing an unavailable branch inline), [Environment variables](deploy/environment-variables.md), [Database](deploy/database.md), [Skills Reference](skills.md), [Task chat](../experimental/task-chat.md), [Settings](../administration/settings.md), [Experimental overview](../experimental/overview.md), and setup-button labels across the connector guides.
 

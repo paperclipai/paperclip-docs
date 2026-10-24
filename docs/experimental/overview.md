@@ -68,7 +68,7 @@ The tables follow the page's own sections and order. Where a feature has a page 
 | [Enable Environments](environments.md) | Environment management in settings, plus project and agent environment assignment — including custom sandbox images. |
 | [Enable External Objects](external-objects.md) | Detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects. |
 | [Enable Isolated Workspaces](isolated-workspaces.md) | Execution-workspace controls: per-run isolated copies of a project so agents don't step on each other. Turning it on reveals a **Use Isolated Workspaces By Default** card. |
-| Experimental fast responses | Shows **Connections** in company settings and lets agents post a short acknowledgement while they begin work ([details](../guides/day-to-day/costs.md#fast-responses)). |
+| Experimental fast responses | Shows **Connections** in company settings and allows a short, platform-generated acknowledgement while agents begin work ([details](../guides/day-to-day/costs.md#fast-responses)). |
 | [Experimental File Viewer](file-viewer.md) | Task-detail controls for browsing and previewing workspace files relative to a task. |
 | First task: propose with a plan document | For a single-task first request, the chief of staff writes a short plan document and a checkbox card. Applies to organizations created after you flip it. |
 | [GitHub review bots](../connectors/understanding-github-review-bots.md) | Connect agents to GitHub with their own App identity to review pull requests and respond to issues. Separate from Chat connectors; turning it off hides setup, but existing bots keep running. |

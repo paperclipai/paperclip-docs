@@ -25,7 +25,7 @@ If you plan to use a token instead of browser sign-in, you also need:
 1. Open **Connectors** and select **Make**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to pick a different identity, narrow the agents, or choose the token method.
 3. Connect with one of these methods:
-   - **Sign in with Make** — complete browser sign-in. Paperclip registers its client automatically, so there is nothing to set up in a developer console.
+   - **Sign in with Make** — select **Continue to sign in** and complete browser sign-in. Paperclip registers its client automatically, so there is nothing to set up in a developer console.
    - **Use an MCP token** — enter your **Make zone host** (for example `eu2.make.com`) and paste the token into **Your Make key**.
 
 With a token, Paperclip builds the server address as `https://<zone>/mcp`. The zone must be a `make.com` host. The token is stored as a secret and sent as a Bearer header. Never put it in a URL.

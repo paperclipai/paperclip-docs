@@ -138,7 +138,7 @@ DELETE /api/mcp/connections/{id}
 
 The setup response provides the live gate, canonical server URL, and non-secret invitation. It does not grant access. The delete operation requires the configured browser origin and the grant's owner.
 
-Each item in the connections list carries `id`, `companyId`, `clientName`, `companyName`, `scopes`, `createdAt`, and `revokedAt`, plus a `user` object with the authorizing person's `name` and `image`. Older servers omit `user`, so treat it as optional. The list still includes revoked grants (with `revokedAt` set); Paperclip's own pages filter those out and show only active connections.
+Each item in the connections list carries `id`, `companyId`, `clientName`, `companyName`, `scopes`, `createdAt`, and `revokedAt`, plus a `user` object with the authorizing person's `name` and `image`. `user` is `null` when the person's name isn't available, and older servers omit it, so treat it as optional. The list still includes revoked grants (with `revokedAt` set); Paperclip's own pages filter those out and show only active connections.
 
 ### Browser consent endpoints
 

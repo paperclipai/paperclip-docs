@@ -38,7 +38,7 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 ### Choose Paperclip Runner explicitly
 
-For the native lifecycle, choose **Paperclip Runner** and then select the provider: **Codex**, **OpenCode**, **Claude Managed**, **AWS AgentCore**, **ACP agents**, or **Grok Build**. Under **ACP agents**, you can pick Claude, Cursor, or Pi; GitHub Copilot is listed as awaiting qualification. Existing direct-adapter agents keep their current runtime until you change the adapter.
+For the native lifecycle, choose **Paperclip Runner** and then select the provider: **Codex**, **OpenCode**, **Claude Managed**, **AWS AgentCore**, **ACP agents**, or **Grok Build**. Under **ACP agents**, you can pick Grok Build, Claude, Cursor, or Pi; GitHub Copilot is listed as awaiting qualification. Existing direct-adapter agents keep their current runtime until you change the adapter.
 
 This feature is experimental: `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md).
 

@@ -516,7 +516,7 @@ The **Month Spend** card on the dashboard shows what the company has spent this 
 
 Check the card whenever you open Paperclip. Click it to jump to the Costs tab under Audit, where the **Overview** breaks spend down by agent and by project:
 
-![Overview on the Audit Costs tab, showing the date-range presets, the headline metric tiles, the inference and finance ledger cards, and the By agent breakdown](../../user-guides/screenshots/light/costs/costs-dashboard-overview.png)
+![Overview on the Audit Costs tab, showing the date-range presets, the headline metric tiles, and the By agent breakdown](../../user-guides/screenshots/light/costs/costs-dashboard-overview.png)
 
 An agent whose total has jumped unexpectedly since your last check is worth investigating.
 

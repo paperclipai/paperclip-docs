@@ -24,8 +24,6 @@ The mode is applied when you send. Changing the chip alone does not interrupt th
 
 Auto is the default. Plan focuses the agent on clarifying the goal and writing a plan document. Ask keeps the request read-only, so it suits a lookup, comparison, or explanation.
 
-Each agent reply shows the mode that request ran under. Read that chip when looking back through the thread: it describes that turn rather than promising that every message in the task used the same mode.
-
 ## How it behaves
 
 Use the **+** menu in the new-task or task composer to choose **Plan mode** or **Ask mode**. The selected mode appears beside the plus button. Click the chip to return to Auto, or choose the other mode to replace it. You can also cycle modes with **⌘+.** (**Ctrl+.** on Windows and Linux) or **Shift+Tab** while the text box is focused.
