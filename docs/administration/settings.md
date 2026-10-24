@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Settings: Profile and Instance
 seo_description: Two settings surfaces and why the difference matters. Covers your profile plus instance general, access, adapters, and experimental flags.
 ---
@@ -225,15 +225,18 @@ Open **Settings → Experimental**. The page groups its toggles into up to three
 - **Beta skills** — lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill, without removing the pins you saved.
 - **[Built-in Agents](../reference/api/built-in-agents.md)** — shows Paperclip-managed built-in agent surfaces (built-in roster badges, the **Built-in agents** tab, and the built-in agent setup controls) and makes the built-in-agent API available. Turn it on before you provision `briefs`, `learning`, or `reflection-coach`; with it off, the built-in-agent routes return `404 Not Found`.
 - **[Cases](../reference/api/cases.md)** — durable work products (blog posts, tweet storms…) that tasks create and iterate on. Adds the **Cases** tab and the agent case API. Turning it off hides the tab and blocks the API; existing case data is kept.
-- **[Chat connectors](../connectors.md#chat-channels-experimental)** — connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations. Turning it off hides chat setup, but existing chat connections keep running.
+- **[Chat connectors](../connectors.md#chat-channels-experimental)** — connect agents to Slack, Discord, Microsoft Teams, and Telegram conversations. Turning it off hides chat setup, but existing chat connections keep running. GitHub review bots have their own toggle below.
 - **[Combined Inbox + Task List](../experimental/task-chat.md#an-optional-combined-task-list)** — folds Inbox into **Tasks**: one Tasks row carries the unread badge, and a **Views** menu reaches every inbox and task view.
 - **[Decisions](../guides/day-to-day/decisions.md)** — shows the **Decisions** item in the main sidebar, the attention home that surfaces the tasks awaiting your input.
 - **[Enable Environments](../experimental/environments.md)** — environment management in company settings, plus project and agent environment assignment (including custom sandbox images).
 - **[Enable External Objects](../experimental/external-objects.md)** — detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects.
 - **[Enable Isolated Workspaces](../experimental/isolated-workspaces.md)** — execution-workspace controls in project configuration and isolated (git-worktree) checkouts for task runs. If you're not using isolated workspaces, leave this off. Once it's on, a **Use Isolated Workspaces By Default** card appears at the bottom of this section.
+- **Experimental fast responses** — shows **Connections** in company settings and allows short acknowledgements while agents begin work. See [Costs](../guides/day-to-day/costs.md#fast-responses).
 - **[Experimental File Viewer](../experimental/file-viewer.md)** — task-detail controls for browsing and previewing workspace files.
 - **First task: propose with a plan document** — when someone's first request is a single task, the chief of staff writes a short plan document and a checkbox card instead of a one-card confirmation. Applies to organizations created after you flip it.
+- **[GitHub review bots](../connectors/understanding-github-review-bots.md)** — connect agents to GitHub with their own App identity to review pull requests and respond to issues. It's independent of Chat connectors: turning it off hides setup and management, existing bots keep running, and GitHub tool connections stay available.
 - **[Memory connectors](../connectors/memory-connectors.md)** — exposes Mem0, Zep, Supermemory, Cognee, and Honcho setup. Hiding setup does not stop saved connections.
+- **[OpenAI Dot](../experimental/external-agents.md)** — adds OpenAI Dot as a standalone agent choice. Pair your Dot and verify event delivery before assigning work. Needs Assistant connections (MCP) and an authenticated instance with a public HTTPS URL. Turning it off blocks Dot calls and new work, but saved connections are kept.
 - **[Paperclip Runner](../reference/adapters/paperclip-runner.md)** — lets new Codex agents select the experimental Rust Paperclip Runner. On by default on self-hosted instances and off by default on Cloud unless managed configuration changes it. Turning it off hides the choice without affecting existing native runs.
 - **[Simplified English Interactions](../reference/skills/optional/content/simplified-english.md)** — tells agents to write confirmations, questions, suggested tasks, and checkbox prompts in ASD-STE100 Simplified Technical English, with brief context on what each decision needs.
 - **[Status Cards](../experimental/status-cards.md)** — the shared status-card board and its gated API. Enabling Status Cards also enables Summaries.
@@ -313,3 +316,4 @@ The two controls are orthogonal: pair them when you want a default *and* want th
 
 - [Heartbeats & Routines](../guides/projects-workflow/routines.md) — the full picture of timer vs. event-driven wakes, and how to configure individual agents.
 - [Environment Variables](../reference/deploy/environment-variables.md) — the deployment-level settings that the General page reports on (auth mode, bootstrap state, exposure).
+- [Agent complaints and suggestions](agent-commentary.md) — agent-submitted feedback stored in your instance database, separate from the AI feedback-sharing preference.

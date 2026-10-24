@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Plugin SDK
 seo_description: The worker-side authoring kit for Paperclip plugins. Import it in your worker entrypoint to declare a plugin and subscribe to host events.
 ---
@@ -120,6 +120,61 @@ Leave `multiCompanyConfig` off (the default) and your plugin is treated as singl
 
 The `companyId` has always travelled on the wire — it is the optional `companyId?: string | null` field on `ConfigChangedParams`. What changed is that the SDK now hands it to your hook instead of dropping it.
 
+#### Required agent lifecycle work
+
+Some plugins look after resources an agent can't work without — a sandbox, a mailbox, an account in another system — and those resources have to be ready *before* the agent takes its first task, and gone *before* termination is reported as finished. For that, your plugin can become a required step in the agent's lifecycle.
+
+Declare `agentLifecycle: true` in the manifest together with the `agents.lifecycle.manage` capability (the manifest is rejected with "Agent lifecycle participation requires agents.lifecycle.manage" if you forget the capability), and implement `onAgentLifecycle(request)`:
+
+```ts
+import { definePlugin, runWorker } from "@paperclipai/plugin-sdk";
+
+const plugin = definePlugin({
+  async setup() {},
+  async onAgentLifecycle(request) {
+    // Your own provider code. Make it idempotent and fence older versions.
+    const done = await reconcileAgentResources(request);
+    return {
+      operationId: request.operationId,
+      version: request.version,
+      status: done ? "complete" : "pending",
+    };
+  },
+});
+
+export default plugin;
+runWorker(plugin, import.meta.url);
+```
+
+The host calls your hook after each lifecycle command commits. The request (`AgentLifecycleRequest`) carries `companyId`, `agentId`, `operationId`, `version`, and the current `phase`. Echo `operationId` and `version` back in your `AgentLifecycleResult`, and return `status: "pending"` while an external operation is still running — Paperclip calls you again — or `"complete"` once the effect is confirmed. Accepting a deletion request isn't the same as the resource being gone, so don't report `complete` until it really is. Throw if the step fails; the agent page then shows a fixed failure message (never your error text) with a **Retry** button.
+
+| `phase` | What your plugin should do |
+|---|---|
+| `preparing` | Create or reconcile the agent's resources and wait until they're ready. |
+| `verifying` | Finish any remaining checks after the host has tested the agent's saved runtime configuration. |
+| `pausing` | Stop the resources once the host has confirmed the agent's execution has stopped. |
+| `resuming` | Start the resources again and wait until they're ready. |
+| `terminating` | Stop the resources once the host has revoked the agent's keys and stopped its execution. |
+| `cleaning_up` | Remove the resources you own and wait until removal completes. |
+
+Work assigned to the agent stays queued until every required step is done, so your plugin really does gate when the agent starts.
+
+A few rules worth building around:
+
+- **Calls repeat.** After a timeout or restart you may see the same phase again. Remember the highest `version` you've handled for each company and agent, ignore older ones, and make your external calls idempotent.
+- **Lifecycle authority is narrow.** It doesn't let you write the agent's configuration or read its secrets. Ask for `agents.read` separately if you need `ctx.agents.get`.
+- **Selection is fixed at hire time.** Paperclip records which plugins an agent needs the first time it selects them (skipping plugins disabled for that company). Disabling or removing a selected plugin blocks that agent's progress until you restore it; installing a plugin later doesn't add it to existing agents.
+- **This is separate from the resource event inbox.** Acknowledging a [durable resource lifecycle event](#durable-resource-lifecycle-hooks) doesn't complete a lifecycle step, and vice versa.
+
+#### Letting the instance sleep with `onIdleDrain`
+
+On instances that sleep automatically when nothing is happening, an enabled plugin worker keeps the instance awake unless it implements `onIdleDrain(signal)`. Before sleeping, the host stops sending your worker new work and asks the hook whether anything of yours is still in flight:
+
+- Return `"none"` only when your timers, sockets, detached operations, and cleanup have all settled and nothing can start again until `signal` aborts.
+- Return `"present"` while work remains, and `"unknown"` when you can't prove it's finished. Either answer keeps the instance awake.
+
+Don't cancel useful work just to look idle. The SDK already counts requests and notifications you're still handling, and the hold is released — aborting `signal` — when the sleep is cancelled or expires, so a hook that pauses its own background work should resume it then. A missing hook, an older SDK, or a hook that throws all count as "keep awake". Persisted work such as enabled jobs and deliveries still keeps the instance awake regardless of what your hook returns.
+
 ### Plugin context
 
 `PluginContext` is the parameter your `setup(ctx)` receives. It exposes one client per concern, all imported from `@paperclipai/plugin-sdk` as types:
@@ -128,7 +183,7 @@ The `companyId` has always travelled on the wire — it is the optional `company
 |---|---|
 | `PluginConfigClient` | Read and observe the plugin's resolved instance config. |
 | `PluginLocalFoldersClient` | Inspect and configure declared local-folder mounts (`PluginLocalFolderStatus`, `PluginLocalFolderListing`, `PluginLocalFolderProblem`, plus the newly exported `PluginLocalFolderConfigureInput`, `PluginLocalFolderListOptions`, and `PluginLocalFolderEntry` shapes for its `configure`/`list` calls). |
-| `PluginEventsClient` | Subscribe to host events (`ctx.events.on(...)`). |
+| `PluginEventsClient` | Subscribe to host events (`ctx.events.on(...)`), and read durable agent and project lifecycle hooks by hand (`ctx.events.listLifecycle(...)`, `ctx.events.acknowledgeLifecycle(...)`) — see [Durable resource lifecycle hooks](#durable-resource-lifecycle-hooks). |
 | `PluginJobsClient` | Register handlers for declared jobs (`ctx.jobs.register(...)`). |
 | `PluginLaunchersClient` | Register launcher render and action handlers (`PluginLauncherRegistration`). |
 | `PluginHttpClient` | Outbound HTTP, host-policed. |
@@ -163,11 +218,70 @@ Workspace metadata for `ctx.executionWorkspaces`: `PluginExecutionWorkspaceMetad
 
 Agent-session helpers: `AgentSession`, `AgentSessionEvent`, `AgentSessionSendResult`. When you send a message with `ctx.agents.sessions.sendMessage(...)`, the `message` field on the `AgentSessionEvent` you receive with `eventType: "done"` is the canonical final user-facing assistant reply for that run — or `null` when the run produced no reply text. That is the field to relay back to whoever asked; you no longer need to reassemble it from the `"chunk"` events. An `eventType: "error"` event carries a run-status string in `message` instead.
 
-Workspace, event, and scope helpers: `PluginWorkspace`, `PluginEvent`, `EventFilter`, `ScopeKey`, `PluginJobContext`.
+Workspace, event, and scope helpers: `PluginWorkspace`, `PluginEvent`, `EventFilter`, `ScopeKey`, `PluginJobContext`, `ResourceLifecycleEvent`.
+
+#### Durable resource lifecycle hooks
+
+Say your plugin provisions something outside Paperclip for every agent or project — a mailbox, a cloud folder, a seat in another tool — and you need to tear it down again when the agent is terminated or the project is archived. `ctx.events.on(...)` is fire-and-forget, so a missed event means a missed provision. The lifecycle hooks give you a durable, per-plugin inbox instead: Paperclip writes a journal entry whenever an agent or project is created or changes state, and your plugin acknowledges each one once its own work has succeeded. Anything you don't acknowledge comes back.
+
+Read the inbox with two calls on `ctx.events`, both gated by the `events.subscribe` capability and both scoped to one company:
+
+- `listLifecycle(companyId, limit?, afterId?)` returns up to `limit` pending events (default `50`, any integer from `1` to `100`) as `ResourceLifecycleEvent[]`. Pass the last `id` you saw as `afterId` to page forward.
+- `acknowledgeLifecycle(companyId, eventId)` marks one event as handled for your plugin. Call it only after the external operation has actually succeeded.
+
+Both calls are refused if the plugin isn't ready or has been disabled for that company.
+
+Each `ResourceLifecycleEvent` carries `id`, `companyId`, `resourceId`, `createdAt`, plus a `resourceType` and `action` pair:
+
+| `resourceType` | `action` | When Paperclip records it |
+|---|---|---|
+| `agent` | `create` | An agent is created without needing approval, or a pending hire is approved. |
+| `agent` | `pause` | The agent is paused — by a person or by a budget stop. |
+| `agent` | `resume` | A paused agent becomes active again. |
+| `agent` | `terminate` | The agent is terminated. |
+| `project` | `create` | A project is created. |
+| `project` | `update` | Project details or goal links change, a project workspace is added, edited, or removed, the project's linked repositories are synced, or an archived project is restored. |
+| `project` | `archive` | The project is archived. |
+
+Events are deliberately content-free: they tell you *which* resource changed and how, not what it looks like now. Re-read the agent or project through `ctx.agents` or `ctx.projects` before you act on it. Treat `id` as an opaque string, not a number.
+
+A few delivery rules shape how you write the consumer:
+
+- **One event per resource at a time, creation first.** For each resource you only ever see its oldest unacknowledged event, with `create` always ahead of anything else. Events across different resources come back in `id` order. If you try to acknowledge a later event before an earlier one for the same resource, the call fails with "Acknowledge earlier lifecycle events for this resource first".
+- **Delivery is at-least-once.** An event repeats until you acknowledge it, so give whatever you create on the other side a company-scoped idempotency key — for example, the company id plus the event `id`.
+- **Restart paging every sweep.** Start each polling pass with no `afterId` and only use it to page within that pass. That way failed events and events that committed late are picked up again.
+- **Acknowledgements are per plugin.** Two plugins reading the same company each get their own copy of every event.
+
+When this feature first rolls out, Paperclip seeds a one-time baseline so your plugin doesn't miss what already exists: a `create` for every existing project and every agent that isn't pending approval or terminated, followed by a `pause`, `terminate`, or `archive` for agents and projects that are currently in that state. A plugin you install later sees the same backlog, so its first sweep catches up on the whole company.
+
+A scheduled job is a natural home for the sweep:
+
+```ts
+ctx.jobs.register("sync-lifecycle", async () => {
+  for (const company of await ctx.companies.list()) {
+    let afterId: string | undefined;
+    for (;;) {
+      const events = await ctx.events.listLifecycle(company.id, 100, afterId);
+      if (events.length === 0) break;
+      for (const event of events) {
+        try {
+          await provisionOrTearDown(event); // your provider call, keyed on event.id
+          await ctx.events.acknowledgeLifecycle(company.id, event.id);
+        } catch (err) {
+          ctx.logger.warn("lifecycle event failed; will retry next sweep", { id: event.id });
+        }
+      }
+      afterId = events[events.length - 1].id;
+    }
+  }
+});
+```
 
 ### Manifest types
 
-Plugin manifests are validated against types re-exported from `@paperclipai/shared`. Importing them from the SDK gives you a single dependency:
+Plugin manifests are validated against types re-exported from `@paperclipai/shared`. Importing them from the SDK gives you a single dependency.
+
+The top-level manifest field `agentLifecycle: true` makes your plugin a [required lifecycle participant](#required-agent-lifecycle-work) (needs `agents.lifecycle.manage`).
 
 | Type | Declares |
 |---|---|
@@ -496,6 +610,8 @@ The worker sends only that validated record back to the host — never the provi
 
 Two helpers round this out: `readEnvironmentCreationCleanupError(error)` returns the validated `PluginEnvironmentCreationCleanup` from an error (or `null`), and `environmentCreationCleanupErrorData(error)` builds the wire payload the worker attaches to the JSON-RPC error. Drivers that can't leak an allocation this way can ignore all of it.
 
+To help operators see *where* an acquisition went wrong, you can pass an optional fourth constructor argument, a `PluginEnvironmentAcquisitionDiagnostic`: the `phase` that failed first (`create`, `workspace`, `shell`, `expiry`, or `sentinel`), `elapsedMs` from the start of acquisition to that failure, the `budgetMs` you were working to, and optionally the `providerState` you observed once after a create deadline — one of the values in `ENVIRONMENT_ACQUISITION_PROVIDER_STATES` (`absent`, `creating`, `pending_build`, `building_snapshot`, `pulling_snapshot`, `starting`, `started`, `error`, `build_failed`, `other`, `unavailable`). The host keeps it only for failed acquisitions, revalidates it with `readEnvironmentAcquisitionDiagnostic(error)`, and drops an unknown `providerState` rather than the whole record. It describes the step, not the cause, and never authorizes cleanup.
+
 #### Stopping a sandbox without deleting it (optional)
 
 Sometimes the host needs a sandbox to stop *and keep its files* — for example while it recovers a workspace export from a run that ended badly, or when a reusable sandbox finishes a turn. Your ordinary release hook can't promise that, because its behaviour follows the environment's release policy, and an ephemeral sandbox gets deleted on release.
@@ -517,6 +633,8 @@ The host sets `bypassSession: true` on a command that must run *before* the run'
 
 When the flag is absent or `false`, nothing changes — an ordinary in-run command opens and reuses the persistent session exactly as before. And a driver that doesn't keep a persistent session at all can ignore `bypassSession` entirely; there's no session to bypass.
 
+`PluginEnvironmentExecuteParams` can also carry `commandTimeoutMs` — the total time budget for the whole command, in milliseconds. If your driver runs commands in a session and polls for output, keep this separate from each individual poll's timeout. `0` disables the deadline, and when the field is absent the command keeps the session's existing lifetime.
+
 #### Sandbox file sync (optional)
 
 By default the host moves files in and out of a leased sandbox with a byte-identical base64-over-`environmentExecute` fallback. If your driver can do better — a provider-native bulk upload, an internal tar stream, per-file enumeration — you can take over the transfer by implementing a matched pair of hooks on the object you pass to `definePlugin({...})`:
@@ -537,7 +655,9 @@ Each params object carries the current `PluginEnvironmentLease` plus an ordered 
 | `exclude?` | `string[]` | Glob patterns to skip when `kind` is `"directory"`. |
 | `followSymlinks?` | `boolean` | Symlink handling for directory transfers. Falsy preserves symlinks as links; `true` dereferences them to their target bytes (mirrors tar's `-h`). |
 
-Return a `PluginEnvironmentSyncResult`: an `operations` array echoing each `operationId` with its `filesTransferred` and `bytesTransferred` counts, for host-side observability. The contract is provider-agnostic — transfer a directory however you like, as long as the observable result matches the mappings. For the full authoring rules, see the parent `doc/plugins/SANDBOX_FILE_SYNC_HOOKS.md`.
+Return a `PluginEnvironmentSyncResult`: an `operations` array echoing each `operationId` with its `filesTransferred` and `bytesTransferred` counts, for host-side observability.
+
+When a sync-out fails, the worker reports a small, safe diagnostic to the host — a known error code such as `ENOENT` or `ETIMEDOUT`, an HTTP status, or an exit code, never raw error text. You can make it more useful with the exported helpers: wrap each stage in `withEnvironmentSyncTransferStep(step, operation)` (steps such as `sandbox_access`, `file_download`, `archive_create`, `archive_extract`) so the failing stage is named, call `recordEnvironmentSyncError(error, diagnostic)` to attach a `transferFailureKind` (such as `download_missing` or `unsafe_archive`), and use `preserveEnvironmentSyncErrorDiagnostic(wrapper, source)` to keep that evidence when you wrap an error in your own. Anything outside the known lists is dropped. The diagnostic is evidence for operators only; it never authorizes cleanup or a retry. The contract is provider-agnostic — transfer a directory however you like, as long as the observable result matches the mappings. For the full authoring rules, see the parent `doc/plugins/SANDBOX_FILE_SYNC_HOOKS.md`.
 
 ##### Running commands after the files land
 
@@ -654,6 +774,8 @@ To test the interaction, approval, and attachment paths, seed them through `harn
 | `issueInteractions` | `IssueThreadInteraction[]` |
 | `issueAttachments` | `Array<IssueAttachment & { contentBase64?: string }>` |
 | `approvals` | `Approval[]` |
+
+To exercise a lifecycle consumer, seed journal entries with `harness.seed({ lifecycleEvents: [...] })` (a `ResourceLifecycleEvent[]`). The harness's `ctx.events.listLifecycle` and `ctx.events.acknowledgeLifecycle` follow the same rules as the host: the `events.subscribe` capability check, the `1`–`100` limit, creation-first and one-event-per-resource delivery, and the error when you acknowledge out of order.
 
 The harness deliberately mirrors the host's own write bar rather than waving it through: `respondInteraction` and `approvals.decide` both throw when `actorUserId` is missing, when it is not an active `user` member of the company, or when that member's `membershipRole` is `viewer`. Seed the members you want to act as through `harness.seed({ accessMembers: [...] })`, and a plugin test can't pass an attribution production would reject. The harness also honours `maxBytes` on `getAttachmentContent` and returns `applied: false` on replays, so idempotency is testable without a real host.
 

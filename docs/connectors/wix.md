@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1023.0
 seo_title: Wix Connector
 seo_description: Let agents work with your Wix sites. Site selection, why the connector is narrower than the Wix editor, a read test, and troubleshooting.
 ---
@@ -19,7 +19,7 @@ Agents can work with your Wix sites — reading site information and working wit
 
 1. Open **Connectors** and select **Wix**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
-3. Select **Sign in with Wix** and complete browser sign-in, choosing the site when Wix asks.
+3. Select **Continue to Wix** and complete browser sign-in, choosing the site when Wix asks.
 
 Paperclip registers its client automatically, so there is nothing to configure in a developer console.
 

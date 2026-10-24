@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Experimental Features
 seo_description: Real, working features shipped behind opt-in flags while they are evaluated against live usage. What lives here, and what turning one on commits you to.
 ---
@@ -61,16 +61,19 @@ The tables follow the page's own sections and order. Where a feature has a page 
 | [Assistant connections (MCP)](assistant-connections.md) | Connect an external assistant as your user through OAuth, with separate read, write, and configuration scopes. |
 | Beta skills | Lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill without removing saved pins. |
 | [Built-in Agents](../reference/api/built-in-agents.md) | Paperclip-managed built-in agent surfaces: roster badges, the **Built-in agents** tab, and setup controls. |
-| [Cases](../reference/api/cases.md) | Durable work products that tasks create and iterate on. Adds the **Cases** tab and the agent case API. |
-| [Chat connectors](../connectors.md#chat-channels-experimental) | Connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations. Existing chat connections keep running when it's off. |
+| [Cases](cases.md) | Durable work products that tasks create and iterate on. Adds the **Cases** tab and the agent case API ([API reference](../reference/api/cases.md)). |
+| [Chat connectors](../connectors.md#chat-channels-experimental) | Connect agents to Slack, Discord, Microsoft Teams, and Telegram conversations. Existing chat connections keep running when it's off. |
 | [Combined Inbox + Task List](task-chat.md#an-optional-combined-task-list) | Reach inbox and task views from one **Tasks** navigation entry. |
 | [Decisions](../guides/day-to-day/decisions.md) | Shows the **Decisions** item in the main sidebar, where the tasks awaiting your input collect. |
 | [Enable Environments](environments.md) | Environment management in settings, plus project and agent environment assignment — including custom sandbox images. |
 | [Enable External Objects](external-objects.md) | Detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects. |
 | [Enable Isolated Workspaces](isolated-workspaces.md) | Execution-workspace controls: per-run isolated copies of a project so agents don't step on each other. Turning it on reveals a **Use Isolated Workspaces By Default** card. |
+| Experimental fast responses | Shows **Connections** in company settings and allows a short, platform-generated acknowledgement while agents begin work ([details](../guides/day-to-day/costs.md#fast-responses)). |
 | [Experimental File Viewer](file-viewer.md) | Task-detail controls for browsing and previewing workspace files relative to a task. |
 | First task: propose with a plan document | For a single-task first request, the chief of staff writes a short plan document and a checkbox card. Applies to organizations created after you flip it. |
+| [GitHub review bots](../connectors/understanding-github-review-bots.md) | Connect agents to GitHub with their own App identity to review pull requests and respond to issues. Separate from Chat connectors; turning it off hides setup, but existing bots keep running. |
 | [Memory connectors](../connectors/memory-connectors.md) | Set up Mem0, Zep, Supermemory, Cognee, or Honcho for agents. Existing connections keep running when setup is hidden. |
+| [OpenAI Dot](external-agents.md) | Adds OpenAI Dot as a standalone agent choice. Needs Assistant connections (MCP) and an authenticated instance with a public HTTPS URL. |
 | [Paperclip Runner](../reference/adapters/paperclip-runner.md) | Native agent execution, on by default for self-hosted instances and off by default on Cloud. Agents must be explicitly configured to use it. |
 | [Simplified English Interactions](../reference/skills/optional/content/simplified-english.md) | Agents write confirmations, questions, and suggested tasks in ASD-STE100 Simplified Technical English. |
 | [Status Cards](status-cards.md) | A shared board of living summaries, kept current by the Summarizer. Enabling it also enables Summaries. |

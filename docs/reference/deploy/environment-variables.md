@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Environment Variables Reference
 seo_description: Every variable Paperclip reads for server configuration, plus the ones it injects into agent processes at runtime — the list to wire deployments from.
 ---
@@ -37,6 +37,8 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `PAPERCLIP_RUNNER_API_TOOLS_ENABLED` | on (unset) | Whether Paperclip Runner agents get the broad Paperclip API tools (`search_api`, `call_api`, and `hire_agent`). They're on by default; set the variable to anything other than `true` to switch them off for every company. |
 | `PAPERCLIP_RUNNER_API_TOOLS_COMPANY_IDS` | unset (all companies) | Comma-separated company IDs. When set, only those companies' Runner agents get the API tools. It can only narrow access — it has no effect if `PAPERCLIP_RUNNER_API_TOOLS_ENABLED` turns the tools off. |
 | `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` | `7` | How many days the terminal-workspace reaper waits after an issue tree becomes terminal before archiving its workspace. Someone can reopen the work inside this window. `0` disables the cooldown and restores immediate reaping; a negative or non-numeric value falls back to the default. |
+| `PAPERCLIP_DB_BACKUP_IDLE_CHECKPOINT_ENABLED` | off | Set to `1` on an instance with automatic database backups so it can still sleep when idle: the server takes and verifies a fresh backup as the final check before it reports the instance quiet, and refuses sleep if that backup fails. Keep the database and backup volume attached across sleep. |
+| `PAPERCLIP_ISSUE_PRIVACY_MODE` | `enforce` | How private tasks and projects are enforced. `enforce` hides them from anyone without access. `shadow` only logs the reads it would deny, and `off` skips the check; use those two only to diagnose a rollout, never when private tasks must stay confidential. |
 
 > **Note:** `DATABASE_URL` is the main switch between the embedded database and external PostgreSQL.
 
@@ -49,6 +51,7 @@ These variables matter most once you move beyond a default local install.
 | Variable | Meaning |
 |---|---|
 | `PAPERCLIP_PUBLIC_URL` | Canonical public URL for invites, redirects, and auth origin wiring. |
+| `PAPERCLIP_MCP_AUTHORIZATION_ORIGIN` | Optional second HTTPS origin for the public MCP server's browser pages: the advertised authorization endpoint, consent pages, and device verification pages. Use it when an MCP client's browser can't reach the `PAPERCLIP_PUBLIC_URL` host but can reach another trusted ingress for the same instance. The MCP resource, issuer, and token endpoint stay on `PAPERCLIP_PUBLIC_URL`. Plain HTTP is accepted only for loopback hosts. |
 | `PAPERCLIP_AUTH_PUBLIC_BASE_URL` | Explicit auth base URL when you want Better Auth to use a fixed public origin. |
 | `BETTER_AUTH_URL` | Alternate Better Auth base URL input. |
 | `BETTER_AUTH_SECRET` | Signing secret for Better Auth sessions and tokens. Falls back to `PAPERCLIP_AGENT_JWT_SECRET` when unset; the server refuses to start if neither is configured. For local development the `.env.example` ships `paperclip-dev-secret`. |
@@ -299,6 +302,9 @@ The server injects these variables into agent processes when it starts a run:
 |---|---|---|
 | `PAPERCLIP_AGENT_ID` | yes | Agent ID. |
 | `AGENT_HOME` | supported managed runs | Writable copy of the agent's persistent files. It is separate from the task workspace, `HOME`, and `CODEX_HOME`; see [Agent files](../../guides/org/agents.md#agent-files-persist-across-tasks). |
+| `PAPERCLIP_AGENT_KEY_ID` | supported managed runs | Persistent Ed25519 public-key fingerprint. Assigned by Paperclip; configured values cannot override it. |
+| `PAPERCLIP_AGENT_PUBLIC_KEY` | supported managed runs | Multiline public key in PEM format. |
+| `PAPERCLIP_AGENT_PRIVATE_KEY` | supported managed runs | Multiline private PEM. Managed remote runtimes receive it too; trust the host with that identity. Independently hosted HTTP/gateway agents do not receive it. |
 | `PAPERCLIP_COMPANY_ID` | yes | Company ID. |
 | `PAPERCLIP_API_URL` | yes | Paperclip API base URL. |
 | `PAPERCLIP_API_KEY` | local adapters | Short-lived JWT for API auth. Use as `Authorization: Bearer $PAPERCLIP_API_KEY`. For non-local adapters, the operator sets this in adapter config. |
@@ -312,6 +318,8 @@ The server injects these variables into agent processes when it starts a run:
 | `PAPERCLIP_LINKED_ISSUE_IDS` | optional | Comma-separated linked issue IDs. |
 
 Use these values when your agent runtime needs to authenticate back to Paperclip or understand what context triggered the run.
+
+See [Agent cryptographic identity](../../guides/org/agent-identity.md) for provisioning, signing, and recovery. Back up the database and its matching secrets encryption key to preserve identities.
 
 ### `PAPERCLIP_WAKE_REASON` values
 

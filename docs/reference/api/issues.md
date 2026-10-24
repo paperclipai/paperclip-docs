@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Issues API
 seo_description: The core work objects: hierarchy, blockers, approvals, agent checkout, comments, and keyed extensions. Endpoints for creating, reading, and moving issues.
 ---
@@ -168,6 +168,7 @@ The response includes the issue itself and these related fields:
 - `mentionedProjects`
 - `currentExecutionWorkspace`
 - `workProducts`
+- `createdFrom`
 
 ### Relationship Notes
 
@@ -176,6 +177,7 @@ The response includes the issue itself and these related fields:
 - `blockedBy` and `blocks` come from issue relations of type `blocks`.
 - `planDocument` is the keyed issue document with key `plan`, if it exists.
 - `legacyPlanDocument` is a read-only fallback extracted from an old `<plan>...</plan>` block in the issue description.
+- `createdFrom` names the task an agent run was working on when it created this one: `{ issue: { id, identifier, title, status }, run: { id, agentId }, agent: { id, name } | null }`. It records where the task came from. It isn't the parent and it isn't a blocker. It's `null` when the task has no recorded source, when the run belongs to another company, or when you can't read the source task or the run, so a private source looks the same as no source.
 
 ### Heartbeat Context
 
@@ -211,6 +213,8 @@ Notable inputs:
 - `status` defaults to `backlog`.
 - `priority` defaults to `medium`.
 - `projectId`, `goalId`, and `parentId` establish the issue's placement.
+- When an agent run bound to a task omits `parentId`, the server makes the new task a child of the run's task and records `parentDefaultedFromRunIssue: true` on the `issue.created` activity. Send `"parentId": null` for a standalone task (CLI: `issue create --standalone`). The default is skipped for conversation runs, board and user creates, watchdog follow-ups, and when it would create a cycle or the agent couldn't create a child there. Those tasks stay top-level, so no request that worked before now fails.
+- `visibility` is `open` (default) or `private`. A private task is readable only by its owners, its assignee, private-project members, and people or agents it's shared with. A child of a private task, or a task in a private project, is private regardless. See [Privacy and access grants](#privacy-and-access-grants).
 - `blockedByIssueIds` links blockers.
 - `labelIds` attaches labels.
 - `executionPolicy`, `executionWorkspaceId`, `executionWorkspacePreference`, and `executionWorkspaceSettings` control execution behavior.
@@ -313,6 +317,8 @@ Behavior to know:
 - Only board users can interrupt an active run from issue comments.
 - Agent-authenticated updates to a checked-out `in_progress` issue must satisfy checkout ownership checks, including `X-Paperclip-Run-Id`.
 - `hiddenAt` hides or unhides the issue from list responses.
+- `visibility` switches the issue between `open` and `private`. An agent that can update the task may make it `private`; any other change needs someone who can manage the task's privacy (see [Privacy and access grants](#privacy-and-access-grants)). Making a task public fails with `422` while it inherits privacy from a parent or a shared private project (`A task cannot be made public while it inherits private access`, `Move this task out of its private project before making it public`). In a personal private project, making the task public moves it out of that project instead. Existing private children stay private.
+- `expectedExecutionPolicy` is an optional snapshot of the `executionPolicy` you last read. When you send it, the update must change only `executionPolicy` (otherwise `422`, `expectedExecutionPolicy requires a policy-only update`), and the server rejects it with `409` and code `execution_policy_changed` if the stored policy changed since. The board uses this when you cancel a monitor from its card.
 
 ### Blocking Links
 
@@ -534,6 +540,26 @@ If you need to give the issue back to the backlog instead of just releasing it, 
 
 ---
 
+## Privacy and access grants
+
+These routes manage who can see a private task. You can call them if you can read the task and manage its privacy: the task's responsible user, creator, or assigned user, a company owner or admin, an instance admin, or the local board. Other callers, including agents, get `403` with `Only a responsible user, issue owner, or administrator can manage issue privacy`.
+
+```
+GET  /api/issues/{issueId}/privacy-constraints
+GET  /api/issues/{issueId}/access-grants
+POST /api/issues/{issueId}/access-grants
+POST /api/issues/{issueId}/access-grants/{grantId}/revoke
+```
+
+- **Privacy constraints** returns `{ "publicBlockedBy": "parent" | "project" | null, "leavesPersonalProject": boolean }`. Use it to tell whether the task can be made public and whether that would move it out of a personal project. It never reveals the protecting parent or project.
+- **List access grants** returns everyone with effective access. Each entry has `subjectType` (`user` or `agent`), `subjectId`, `source` (`explicit`, `assignment`, `project`, or `owner`), `inherited` (`true` when it comes from a private ancestor or private project), `revokedAt`, and display fields: `subjectDisplayName`, `subjectAvatarUrl`, `subjectInitials`, and `agentVisibility` (`private` or `discoverable` for agents).
+- **Create access grant** takes `{ "subjectType": "user" | "agent", "subjectId": "..." }` and shares the task and its descendants. It returns `201` for a new grant, or `200` if that grant already exists. An open task returns `409` (`Open issues do not require access grants`). Logged as `issue_access_grant.created`.
+- **Revoke access grant** takes an empty body and revokes one grant on this exact task. It returns `404` if the grant isn't active on this task. Revoking doesn't remove access the subject has for other reasons. Logged as `issue_access_grant.revoked`.
+
+To make a task private or public, `PATCH` its `visibility` (see [Update Issue](#update-issue)).
+
+---
+
 ## Agent Chat conversations
 
 With the experimental, off-by-default [Agent Chat](../../experimental/agent-chat.md) feature on, each person gets one persistent conversation per agent in a company. Each conversation is an ordinary issue, so you read and write it with the normal issue, comment, document, and attachment routes. These three routes find and create them.
@@ -559,7 +585,7 @@ POST /api/companies/{companyId}/chats/{agentRef}
 
 A comment whose trimmed body is exactly `/new` starts a fresh provider session while preserving conversation history. The session generation fences older turns; pending questions from the prior session expire. Handoff completion reports belong to the session that created them: tasks still run, but their completion updates are not delivered into a later `/new` session. Only a transition to `done` queues a completion report; other task states do not.
 
-Implementation reference: [conversation session boundaries](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-conversations.ts) and [handoff completion delivery](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/chat-completion-delivery.ts).
+Implementation reference: [conversation session boundaries](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-conversations.ts) and [handoff completion delivery](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/chat-completion-delivery.ts).
 
 ---
 
@@ -1405,7 +1431,7 @@ While an effective task or ancestor pause is active, a board comment — includi
 
 The UI waits for affected runs to stop and reports an inline error if stopping cannot be confirmed. Receiving a hold response alone is not proof that a provider stopped or that interrupted effects are reconciled. See [Stop, pause, and resume](../../experimental/task-chat.md#stop-pause-and-resume).
 
-Implementation reference: [routes and release checks](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/routes/issue-tree-control.ts), [request schemas](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/packages/shared/src/validators/issue-tree-control.ts), and [tree membership rules](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/issue-tree-control.ts).
+Implementation reference: [routes and release checks](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/routes/issue-tree-control.ts), [request schemas](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/shared/src/validators/issue-tree-control.ts), and [tree membership rules](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/issue-tree-control.ts).
 
 ---
 
@@ -1448,14 +1474,14 @@ Request body:
 |---|---|---|
 | `actionId` | uuid, optional | Optional. When set, must match the currently active recovery action on the issue. |
 | `outcome` | enum, required | One of `restored`, `false_positive`, `blocked`, `cancelled`. See the outcome table below. |
-| `sourceIssueStatus` | enum, required | One of `done`, `in_review`, `blocked`. Must be compatible with `outcome` (see rules). |
+| `sourceIssueStatus` | enum, required | One of `todo`, `done`, `in_review`, `blocked`. Must be compatible with `outcome` (see rules). |
 | `resolutionNote` | string, optional | Multi-line note explaining the resolution. |
 
 Outcome rules (enforced by the validator):
 
 | Outcome | Allowed `sourceIssueStatus` | Permission | Resulting action `status` |
 |---|---|---|---|
-| `restored` | `done` or `in_review` | Agent or board | `resolved` |
+| `restored` | `todo`, `done`, or `in_review` | Agent or board | `resolved` |
 | `false_positive` | `done` or `in_review` | Board only | `resolved` |
 | `blocked` | `blocked` | Agent or board | `resolved` |
 | `cancelled` | `done` or `in_review` | Board only | `cancelled` |

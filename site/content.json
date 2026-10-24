@@ -107,6 +107,10 @@
           "file": "../docs/guides/org/agents.md"
         },
         {
+          "title": "Agent Identity",
+          "file": "../docs/guides/org/agent-identity.md"
+        },
+        {
           "title": "Skills",
           "file": "../docs/guides/org/skills.md"
         },
@@ -198,6 +202,10 @@
               "file": "../docs/connectors/google-setup.md"
             },
             {
+              "title": "Custom Model Providers",
+              "file": "../docs/connectors/custom-model-providers.md"
+            },
+            {
               "title": "Check AI Usage",
               "file": "../docs/connectors/ai-usage.md"
             },
@@ -235,12 +243,20 @@
               "file": "../docs/connectors/asana.md"
             },
             {
+              "title": "Bitly",
+              "file": "../docs/connectors/bitly.md"
+            },
+            {
               "title": "Box",
               "file": "../docs/connectors/box.md"
             },
             {
               "title": "Browser Use Cloud",
               "file": "../docs/connectors/browser-use-cloud.md"
+            },
+            {
+              "title": "Calendly",
+              "file": "../docs/connectors/calendly.md"
             },
             {
               "title": "ClickHouse",
@@ -263,16 +279,36 @@
               "file": "../docs/connectors/composio.md"
             },
             {
+              "title": "Context7",
+              "file": "../docs/connectors/context7.md"
+            },
+            {
               "title": "Discord",
               "file": "../docs/connectors/discord.md"
+            },
+            {
+              "title": "Enterpret",
+              "file": "../docs/connectors/enterpret.md"
+            },
+            {
+              "title": "Exa",
+              "file": "../docs/connectors/exa.md"
             },
             {
               "title": "Executor",
               "file": "../docs/connectors/executor.md"
             },
             {
+              "title": "Firecrawl",
+              "file": "../docs/connectors/firecrawl.md"
+            },
+            {
               "title": "Fireflies",
               "file": "../docs/connectors/fireflies.md"
+            },
+            {
+              "title": "Gauge",
+              "file": "../docs/connectors/gauge.md"
             },
             {
               "title": "GitHub",
@@ -340,6 +376,10 @@
               "file": "../docs/connectors/xai.md"
             },
             {
+              "title": "GSC Wizard",
+              "file": "../docs/connectors/gsc-wizard.md"
+            },
+            {
               "title": "Honcho",
               "file": "../docs/connectors/honcho.md"
             },
@@ -358,6 +398,10 @@
             {
               "title": "Linear",
               "file": "../docs/connectors/linear.md"
+            },
+            {
+              "title": "Make",
+              "file": "../docs/connectors/make.md"
             },
             {
               "title": "Mem0",
@@ -400,6 +444,10 @@
               "file": "../docs/connectors/pagerduty.md"
             },
             {
+              "title": "Parallel Search",
+              "file": "../docs/connectors/parallel-search.md"
+            },
+            {
               "title": "PostHog",
               "file": "../docs/connectors/posthog.md"
             },
@@ -436,12 +484,24 @@
               "file": "../docs/connectors/supabase.md"
             },
             {
+              "title": "Superagent",
+              "file": "../docs/connectors/superagent.md"
+            },
+            {
               "title": "Supermemory",
               "file": "../docs/connectors/supermemory.md"
             },
             {
+              "title": "Tavily",
+              "file": "../docs/connectors/tavily.md"
+            },
+            {
               "title": "Telegram",
               "file": "../docs/connectors/telegram.md"
+            },
+            {
+              "title": "Telem.AI",
+              "file": "../docs/connectors/telem.md"
             },
             {
               "title": "Todoist",
@@ -450,6 +510,10 @@
             {
               "title": "Webflow",
               "file": "../docs/connectors/webflow.md"
+            },
+            {
+              "title": "Windsor.ai",
+              "file": "../docs/connectors/windsor-ai.md"
             },
             {
               "title": "Wix",
@@ -527,7 +591,7 @@
       "tier": "Learn",
       "title": "Experimental",
       "icon": "flask-conical",
-      "desc": "Opt-in features that ship behind flags \u2014 what each one does, why it exists, and how to turn it on.",
+      "desc": "Opt-in features that ship behind flags — what each one does, why it exists, and how to turn it on.",
       "pages": [
         {
           "title": "Overview",
@@ -566,12 +630,20 @@
           "file": "../docs/experimental/assistant-connections.md"
         },
         {
+          "title": "External Agents (Dot, Grok Bot, Muse)",
+          "file": "../docs/experimental/external-agents.md"
+        },
+        {
           "title": "Task-Pinned AI Routing",
           "file": "../docs/experimental/task-pinned-ai-routing.md"
         },
         {
           "title": "Chat-Style Tasks",
           "file": "../docs/experimental/task-chat.md"
+        },
+        {
+          "title": "Cases",
+          "file": "../docs/experimental/cases.md"
         },
         {
           "title": "Task Watchdogs",
@@ -603,7 +675,7 @@
       "tier": "Learn",
       "title": "How-to Guides",
       "icon": "wrench",
-      "desc": "Field-tested recipes for specific problems \u2014 short, copy-pasteable, current.",
+      "desc": "Field-tested recipes for specific problems — short, copy-pasteable, current.",
       "pages": [
         {
           "title": "Members & Access",
@@ -725,7 +797,7 @@
       "tier": "Learn",
       "title": "Administration",
       "icon": "shield",
-      "desc": "Company settings, instance configuration, plugins, and CLI auth \u2014 for operators and admins.",
+      "desc": "Company settings, instance configuration, plugins, and CLI auth — for operators and admins.",
       "pages": [
         {
           "title": "Company",
@@ -746,6 +818,10 @@
         {
           "title": "Settings",
           "file": "../docs/administration/settings.md"
+        },
+        {
+          "title": "Agent Complaints and Suggestions",
+          "file": "../docs/administration/agent-commentary.md"
         },
         {
           "title": "Trust & Low-Trust Review",
@@ -840,6 +916,10 @@
           "file": "../docs/reference/api/costs.md"
         },
         {
+          "title": "Decision Models",
+          "file": "../docs/reference/api/decision-models.md"
+        },
+        {
           "title": "Secrets",
           "file": "../docs/reference/api/secrets.md"
         },
@@ -918,6 +998,10 @@
         {
           "title": "Setup Commands",
           "file": "../docs/reference/cli/setup-commands.md"
+        },
+        {
+          "title": "Runtime Setup",
+          "file": "../docs/reference/cli/runtime.md"
         },
         {
           "title": "Test Drive",
@@ -1190,7 +1274,7 @@
       "tier": "Reference",
       "title": "Adapters",
       "icon": "plug",
-      "desc": "Connect any agent runtime \u2014 Claude, Codex, Gemini, or your own HTTP service.",
+      "desc": "Connect any agent runtime — Claude, Codex, Gemini, or your own HTTP service.",
       "pages": [
         {
           "title": "Overview",
@@ -1306,7 +1390,7 @@
       "tier": "Reference",
       "title": "Deployment",
       "icon": "cloud",
-      "desc": "Run Paperclip on your laptop, in Docker, or on a server \u2014 with secrets and Tailscale.",
+      "desc": "Run Paperclip on your laptop, in Docker, or on a server — with secrets and Tailscale.",
       "pages": [
         {
           "title": "Overview",
@@ -1358,7 +1442,7 @@
       "tier": "Reference",
       "title": "Changelog",
       "icon": "history",
-      "desc": "What changed in these docs \u2014 pages added, rewritten, or expanded \u2014 with each documentation update.",
+      "desc": "What changed in these docs — pages added, rewritten, or expanded — with each documentation update.",
       "pages": [
         {
           "title": "Docs",

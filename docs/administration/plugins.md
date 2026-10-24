@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Plugins: Extending Paperclip
 seo_description: Add dashboard widgets, file browsers, and custom tooling. Covers the Plugin Manager, installing, self-installing plugins, enabling, and handling upgrades.
 ---
@@ -164,6 +164,10 @@ Worth being explicit about, because it's the difference between "I'm pausing thi
 - **Preserved:** the plugin record itself, saved configuration (including secrets), historical job-run and webhook-delivery records, and log entries. When you re-enable the plugin everything resumes where it left off, on the same config.
 
 This matters for plugins that integrate with billed services. Disabling stops the polling and the scheduled work — so you stop paying the API bill — without forcing you to re-enter credentials the next time you turn it back on.
+
+### When the server can't be reached
+
+Plugin items in the sidebar stay quiet if the Paperclip server is briefly unreachable: they keep showing what last loaded instead of an error. Elsewhere in the app, a plugin area that fails to load shows **Plugin extensions unavailable** or **Plugin launchers unavailable** with the reason, so you know why it's empty.
 
 ---
 

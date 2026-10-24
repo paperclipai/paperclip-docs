@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: The test-drive Command
 seo_description: Spin up an isolated, self-initialized Paperclip instance with a ready-made company and CEO agent so you can try the product locally.
 ---
@@ -25,7 +25,7 @@ When you run `test-drive`, it:
 1. **Isolates the environment first.** Before the CLI's normal config and `.env` loading happens, `test-drive` clears every `PAPERCLIP_*` variable (and a handful of others like `DATABASE_URL`, `HOST`, and `PORT`) from the process so a stray shell export cannot point it at some other instance. The one thing it preserves is the environment variable you named with `--api-key-env`, if you used it.
 2. **Redacts your API key.** If you pass `--api-key`, the value is scrubbed from the process argument list immediately, so it does not leak into logs, telemetry, diagnostics, or crash output.
 3. **Asserts database isolation.** It refuses to run against a data directory wired to an external PostgreSQL database (`DATABASE_URL`, `DATABASE_MIGRATION_URL`, or a config `database.mode` of `postgres`), so the test drive always uses its own embedded database.
-4. **Starts the instance.** It boots a local server on a free loopback port (starting at `3100`), repairing the data directory and accepting defaults without prompting.
+4. **Starts the instance.** It boots a local server on a loopback port, repairing the data directory and accepting defaults without prompting. When you reuse a data directory, it keeps that directory's saved port if it's free, so callback and enrollment URLs keep working. Otherwise it takes the first free port starting at `3100`.
 5. **Bootstraps a company and agent.** If the data directory is empty, it creates a company, defines and stores the provider secret, and creates a CEO agent wired to the matching adapter. If a company already exists there, it reuses it and tells you the bootstrap flags were ignored.
 6. **Opens the dashboard.** It prints the URL and opens it in your browser (unless you pass `--no-browser`).
 

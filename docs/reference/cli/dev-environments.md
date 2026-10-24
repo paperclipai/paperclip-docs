@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1023.0
 seo_title: Worktree and Environment Lab Commands
 seo_description: Run a fully isolated Paperclip instance per git worktree, or build a deterministic local fixture to develop and test against.
 ---
@@ -52,6 +52,7 @@ paperclipai worktree:make feature-x
 | `--seed-mode <mode>` | Seed profile: `minimal` or `full` (default: `minimal`). |
 | `--preserve-live-work` | Do not quarantine copied agent timers or assigned open issues in the seeded worktree. |
 | `--no-seed` | Skip database seeding from the source instance entirely. |
+| `--empty` | Create an empty instance. Nothing is copied now, and the automatic deferred seed on first start is turned off too. The instance gets its own fresh agent JWT and tool-action signing secrets instead of the source's. A later successful `worktree reseed` clears this choice. |
 | `--force` | Replace existing repo-local config and isolated instance data. |
 
 > **Warning:** By default, seeding **quarantines** copied live work so a duplicated database does not silently auto-run agents in your isolated instance: timer-driven heartbeats are disabled, running agents are reset to idle, in-progress assigned issues are unassigned and moved to `blocked` (with an explanatory comment), and scheduled routines are paused. Pass `--preserve-live-work` only if you deliberately want the worktree instance to own and run that copied work.
@@ -81,6 +82,7 @@ paperclipai worktree init --name feature-x
 | `--seed-mode <mode>` | Seed profile: `minimal` or `full` (default: `minimal`). |
 | `--preserve-live-work` | Do not quarantine copied agent timers or assigned open issues. |
 | `--no-seed` | Skip database seeding from the source instance. |
+| `--empty` | Create an empty instance with no immediate or deferred database copy, as with `worktree:make`. |
 | `--force` | Replace existing repo-local config and isolated instance data. |
 
 If the config or instance data already exists and you do not pass `--force`, the command refuses rather than clobbering state.

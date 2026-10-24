@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Company Administration
 seo_description: Set your organization name and logo, manage members and invites, review join requests, and export or import the whole organization in one place.
 ---
@@ -8,7 +8,7 @@ seo_description: Set your organization name and logo, manage members and invites
 
 Every Paperclip company has a small cluster of surfaces that control its identity, its membership, and its portability. These pages are where you, as a board user (or a member with the right grants), set the company's name and logo, decide who else can sign in, hand out invite links, review join requests, and move the whole company in and out of a portable package. The CEO agent never touches most of this — it is deliberately human territory.
 
-This guide walks through each of those surfaces in the order you typically meet them: **General Settings**, **Members** (whose **Invites** tab now lives alongside the member list), **Join Requests**, **Export**, and **Import**. If you are looking for how hiring approvals themselves work, see the [Approvals guide](../guides/day-to-day/approvals.md). If you want to understand the reporting tree that sits underneath the membership model, see [Org Structure](../guides/org/org-structure.md).
+This guide walks through each of those surfaces in the order you typically meet them: **General Settings**, **Connections**, **Members** (whose **Invites** tab now lives alongside the member list), **Join Requests**, **Export**, and **Import**. If you are looking for how hiring approvals themselves work, see the [Approvals guide](../guides/day-to-day/approvals.md). If you want to understand the reporting tree that sits underneath the membership model, see [Org Structure](../guides/org/org-structure.md).
 
 ---
 
@@ -49,6 +49,10 @@ The toggle saves immediately; there is no separate save button for this setting.
 
 The **Interaction governance** section sets, for each kind of interaction card (suggested tasks, questions, confirmations, and so on), who may respond by default and the strictest audience allowed. Each kind has a **Default policy** and a **Cap**. See [Setting company-wide interaction governance](../guides/day-to-day/issues.md#setting-company-wide-interaction-governance) for how the two work together.
 
+### Decision model
+
+Unless an instance admin has turned on **Experimental fast responses**, the **Decision model** section also sits on **General**, below **Interaction governance**. It's where you choose the shared OpenAI or OpenRouter API connection Paperclip uses for optional small-model decisions. When fast responses are on, the section moves to the **Connections** page instead. See [Costs and Budgets → Decisions](../guides/day-to-day/costs.md#decisions) for setup, testing, and where the usage shows up.
+
 ### Feedback sharing, Export, and Import
 
 There's no organization-level feedback toggle on this page anymore. Whether thumbs-up / thumbs-down votes can send AI output to Paperclip Labs is now the instance-wide **AI feedback sharing** setting, further down the same page — see [Settings](./settings.md#ai-feedback-sharing).
@@ -60,6 +64,15 @@ The old **Company Packages** shortcuts are gone too. **Export** and **Import** a
 At the bottom of the page is a **Danger Zone** with an **Archive organization** button. Archiving hides the organization from the sidebar and persists the change in the database. A confirmation dialog appears before the archive takes effect, and the UI automatically switches you to the next non-archived organization if one is available.
 
 Archiving also quiets the company so it stops doing work in the background: every active agent is paused (with the pause reason `company_archived`), and any queued or in-flight wake-up requests are cancelled. Archiving is not destructive — unlike deletion, your agents, projects, and issues are all preserved — but the company will not wake its agents again until you bring it back.
+
+---
+
+## Connections
+
+The **Connections** page only appears in the settings navigation when an instance admin has turned on **Experimental fast responses**. It holds two sections:
+
+- **Decision model** — the shared connection Paperclip uses for optional small-model decisions. See [Costs and Budgets → Decisions](../guides/day-to-day/costs.md#decisions).
+- **Fast responses** — the connection that posts short acknowledgements. See [Costs and Budgets → Fast responses](../guides/day-to-day/costs.md#fast-responses).
 
 ---
 
@@ -75,7 +88,7 @@ Paperclip uses four human membership roles. The role determines a set of implici
 
 - **Owner** — full company access. Includes creating agents and skills, managing execution environments, inviting humans and agents, managing members and grants, assigning tasks, approving join requests, and managing the tool and MCP setup — connections, runtime slots, gateways, and test calls.
 - **Admin** — an operator with invite and approval powers. Can create agents and skills, manage execution environments, invite users, assign tasks, approve join requests, and manage the tool and MCP setup (connections, runtime, gateways, and test calls) just like an Owner. The one thing an Admin cannot do that an Owner can is manage other members' permissions.
-- **Operator** — a hands-on member who helps run work. Can assign tasks.
+- **Operator** — a hands-on member who helps run work. Can edit the company's work — create agents and skills, manage execution environments, invite people, assign tasks, write pipelines, use and manage tool connections, and view the agent-action audit feed — but cannot approve join requests or manage member permissions.
 - **Viewer** — read-only access. No built-in grants.
 
 The role drop-down in the edit dialog also accepts **Unset**, which leaves the member without any implicit grants.
@@ -104,7 +117,7 @@ Clicking **Edit** opens a dialog with three controls:
 2. **Membership status** — `Active`, `Pending`, or `Suspended`.
 3. **Grants** — a two-column grid of explicit permission grants. A read-only panel above the grid lists the grants the selected role provides implicitly. Checking a box here stores the grant explicitly on the member, so it persists even if the role later changes.
 
-The keys you will reach for most often are `agents:create`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `tasks:assign_scope`, `tasks:manage_active_checkouts`, `pipelines:write`, `audit:view_agent_actions`, and `joins:approve`. Each box is labelled with a human name and its underlying key for reference. Four of these — `tasks:assign_scope`, `tasks:manage_active_checkouts`, `pipelines:write`, and `audit:view_agent_actions` — are never part of a role's implicit grants, so the only way a member gets them is by checking the box here. For the complete list of keys, what each one gates, and which roles include it by default, see [Roles & Permissions](./roles-and-permissions.md).
+The keys you will reach for most often are `agents:create`, `skills:create`, `environments:manage`, `users:invite`, `users:manage_permissions`, `tasks:assign`, `tasks:assign_scope`, `tasks:manage_active_checkouts`, `pipelines:write`, `audit:view_agent_actions`, and `joins:approve`. Each box is labelled with a human name and its underlying key for reference. Two of these — `tasks:assign_scope` and `tasks:manage_active_checkouts` — are never part of a role's implicit grants, so the only way a member gets them is by checking the box here. `pipelines:write` and `audit:view_agent_actions` come with the Operator role only, so check them here to give them to anyone else. For the complete list of keys, what each one gates, and which roles include it by default, see [Roles & Permissions](./roles-and-permissions.md).
 
 Click **Save access** to persist the changes, or **Cancel** to close the dialog without saving.
 

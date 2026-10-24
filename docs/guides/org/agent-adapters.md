@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Choosing an Agent Adapter
 seo_description: Compare the adapters that run your agents — Claude Code, Codex, OpenCode, HTTP webhook and more — and pick the right bridge for each role you hire.
 ---
@@ -38,7 +38,7 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 ### Choose Paperclip Runner explicitly
 
-For the native lifecycle, choose **Paperclip Runner** and then select the provider: **Codex**, **OpenCode**, **Claude Managed**, **AWS AgentCore**, **ACP agents**, or **Grok Build**. Under **ACP agents**, Claude is the qualified choice; Cursor, GitHub Copilot, and Pi are listed as awaiting qualification. Existing direct-adapter agents keep their current runtime until you change the adapter.
+For the native lifecycle, choose **Paperclip Runner** and then select the provider: **Codex**, **OpenCode**, **Claude Managed**, **AWS AgentCore**, **ACP agents**, or **Grok Build**. Under **ACP agents**, you can pick Grok Build, Claude, Cursor, or Pi; GitHub Copilot is listed as awaiting qualification. Existing direct-adapter agents keep their current runtime until you change the adapter.
 
 This feature is experimental: `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md).
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Check AI Account Usage and Limits
 seo_description: Read provider-reported allowances for Claude, OpenAI, Grok, and OpenRouter accounts, understand missing values, and repair sign-in from a task.
 ---
@@ -36,13 +36,23 @@ Missing fields show **Not reported**, never zero. Grok may omit included-plan us
 
 Checking usage does not refresh your credential, buy credit, change the account selected for a task, or stop an active run. It is a provider observation, separate from Paperclip budgets and per-run cost accounting.
 
+## See quota on the Costs page
+
+The **Providers** tab on the [Costs page](../guides/day-to-day/costs.md#quota-windows) also shows a **Subscription quota** section for Anthropic and OpenAI subscription accounts. It lists each connected subscription account you're allowed to use, under its own name, and reads it with that account's stored credential — not a CLI login on the machine running Paperclip. Unlike **Check usage**, it refreshes on its own every few minutes while you're on the Providers tab.
+
+If a refresh fails briefly, the last good reading stays on screen. If the account needs to be connected or reconnected, the reading is cleared and the section asks you to reconnect it here in AI connections.
+
+## See what a subscription costs per month
+
+Usage checks tell you how much allowance is left; they don't tell you what the plan costs. For that, use the **Subscriptions** tile at the top of the [Costs page](../guides/day-to-day/costs.md#subscriptions). It lists the monthly fee for each subscription account your agents use, counts a shared seat once, and lets you enter the real price when Paperclip can only estimate it — or can't tell at all.
+
 ## Repair sign-in from a task
 
 When a task cannot start because its AI credential is missing or expired, it shows an authentication connection card. Open that card and connect your account or reconnect the existing one. After the card finishes successfully, the task resumes automatically through normal admission.
 
 Only the account owner can reconnect it. If the task uses someone else's account, the card explains who must restore it. If that account is no longer available to you, ask its owner to restore access or choose another available connection in the agent's settings.
 
-A reconnect retains the existing account's audience, agent access, and default selection. It does not broaden sharing. In agent settings, **Reconnect account** repairs your unavailable personal default; **Connect another account** lets you establish another account.
+A reconnect retains the existing account's audience, agent access, and default selection. It does not broaden sharing. In agent settings, **Reconnect account** repairs your unavailable personal default; **Connect an account…** lets you establish another account.
 
 ## Troubleshooting
 
@@ -71,3 +81,4 @@ Pass `?grantId={grantId}` when the connection has multiple eligible credential g
 - [OpenAI](openai.md)
 - [Grok](xai.md)
 - [OpenRouter](openrouter.md)
+- [Custom model providers](custom-model-providers.md)

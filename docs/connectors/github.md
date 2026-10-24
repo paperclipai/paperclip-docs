@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1023.0
 seo_title: GitHub Connector
 seo_description: Two separate GitHub setups: repository tools for agents, or people working with an agent from issues. Includes the shell Git and gh exception.
 ---
@@ -99,20 +99,22 @@ People comment in an issue or pull request, mentioning the agent, and Paperclip 
 
 ### Before you connect
 
-- **Chat connectors** must be switched on for the instance. It is an experimental setting, off by default, enabled by an instance administrator under experimental settings.
+- **GitHub review bots** must be switched on for the instance. It is its own experimental setting, off by default and independent of **Chat connectors**, enabled by an instance administrator under experimental settings.
 - Permission to create a GitHub App in the organization, and to install it.
 - The agent that will answer.
 
 ### Set up the bot
 
 [Set up a GitHub review bot](github-review-bot-setup.md) walks through the
-experimental setup with a Storybook example: choose the agent, register an App
-from a manifest (or connect an existing one), install it, enable repositories,
-verify tools, link your account, and configure behavior.
+experimental setup with a Storybook example. Setup is two steps — **Choose
+agent** and **Connect GitHub** — after which GitHub asks you to approve creating
+and installing the App. Paperclip then imports the repositories you granted,
+waits for signed webhook delivery, links your account, and opens the bot's
+settings. You can also connect an App you already have.
 
-The bot can receive its own App's governed GitHub tools through **Assign this
-bot’s GitHub tools**. Verify the assigned agent's effective access; a working
-webhook alone does not prove tool access. Your personal connection links your
+The bot's own App supplies the assigned agent's governed GitHub tools. Check
+anything listed under **Before your first review** when setup finishes; a
+working webhook alone does not prove the agent can run. Your personal connection links your
 identity and does not replace the bot's App credentials. Workspace shell Git
 access is configured separately.
 
@@ -139,7 +141,7 @@ Provider channel or repository access determines where a message can reach the i
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
 | **Connect GitHub** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the GitHub profile | Use **Personal access token (advanced)** |
-| **GitHub Code Review Bot** is not listed | **Chat connectors** is off for the instance | Ask an administrator to enable it |
+| **GitHub Code Review Bot** is not listed | **GitHub review bots** is off for the instance | Ask an administrator to enable it |
 | The agent sees fewer repositories than expected | The installation does not include them | **Add More Repos on GitHub**, then **Refresh access** |
 | *"You don't have permission to reconnect this identity."* | The identity belongs to another person or agent | Ask its owner, or use your own |
 | Tool calls succeed but shell `git push` fails | The account's repository permissions, or branch protection | Check both on GitHub |
@@ -149,7 +151,7 @@ Provider channel or repository access determines where a message can reach the i
 
 ## Limitations
 
-The managed repository-tool path depends on Cloud enrollment. The chat/review-bot path depends on the experimental chat setting and uses its own App. Both require appropriate GitHub repository access; review bots also have an enabled-repository subset in Paperclip. Paperclip cannot constrain shell Git or `gh` with per-action settings.
+The managed repository-tool path depends on Cloud enrollment. The review-bot path depends on the experimental **GitHub review bots** setting and uses its own App. Both require appropriate GitHub repository access; review bots also have an enabled-repository subset in Paperclip. Paperclip cannot constrain shell Git or `gh` with per-action settings.
 
 ## Related guides
 

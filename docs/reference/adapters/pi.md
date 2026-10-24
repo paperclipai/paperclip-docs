@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.618.0
+paperclip_version: v2026.1023.0
 seo_title: Pi Adapter
 seo_description: Run the Pi coding agent CLI on the Paperclip host, with its built-in tool set — read, bash, edit, write, grep, find, ls — and provider configuration.
 ---
@@ -54,6 +54,7 @@ Pi sessions are stored under `~/.pi/paperclips/` and resumed with `--session` on
 - Agent instructions are appended to Pi's system prompt via `--append-system-prompt`.
 - The user task prompt is sent via `-p`.
 - All tools (`read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`) are enabled by default.
+- If the model you configured isn't available, the error names the model and how many models Pi found, and suggests `pi --list-models`, instead of pasting Pi's whole model list.
 
 ---
 

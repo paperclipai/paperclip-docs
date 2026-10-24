@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Execution Workspaces
 seo_description: Give agents a real folder with your code checked out. Covers workspace modes, keeping reused workspaces consistent, runtime services, and HTTPS previews.
 ---
@@ -443,6 +443,12 @@ When something doesn't behave, run through this checklist before filing a bug:
 - **Is the agent looking at the right workspace?** When follow-up tasks are created, make sure either `parentId` or `inheritExecutionWorkspaceFromIssueId` is set on the child issue so Paperclip can resolve it back to this workspace.
 
 Most workspace-level issues come down to one of these six questions.
+
+### When a task stops before the agent starts
+
+One workspace problem shows up in the task thread as a notice, instead of a failed run:
+
+- **The starting branch doesn't exist.** If a task asks for a branch the repository doesn't have (say `main` in a repository that only has `master`), the notice says the branch wasn't found. When Paperclip can read the repository's default branch, it offers a **Use `<branch>` & retry** button. Otherwise, choose **Choose another branch**, type one under **Starting branch**, and click **Save branch & retry**. This changes only that task's starting branch, and Paperclip never switches branches silently.
 
 ---
 

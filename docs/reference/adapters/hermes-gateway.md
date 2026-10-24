@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.626.0
+paperclip_version: v2026.1023.0
 seo_title: Hermes Gateway Adapter
 seo_description: Connect to a Hermes API server already running elsewhere — another host or a cloud VM — over HTTP or HTTPS, instead of running it locally.
 ---
@@ -125,6 +125,10 @@ For a local development setup where Hermes and Paperclip both run on the same ma
 **Runs do not start and the adapter reports a connection error**
 
 Check that the Hermes API server is running and that `apiBaseUrl` is reachable from the Paperclip backend — not just from your browser. If Paperclip is inside Docker and Hermes is on the host, `127.0.0.1` will point to the container, not the host. Use `host.docker.internal` or a LAN address instead.
+
+**The connection to a loopback address is refused**
+
+When `apiBaseUrl` points at `localhost` or another loopback address and the connection is refused, the run error explains that the address is resolved on the Paperclip server — not in an agent sandbox or on your browser's machine. Make sure the Hermes API server is running on the Paperclip server, or set `apiBaseUrl` to an address the server can reach. Hermes Gateway only connects to a gateway that's already running. Use the [Hermes](hermes.md) adapter (`hermes_local`) if you want Paperclip to start the Hermes CLI for you.
 
 **The API key field says a secret is stored**
 

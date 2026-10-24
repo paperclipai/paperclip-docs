@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Skills Reference
 seo_description: The reference for company skills: file shape on disk, the install pipeline, attaching to agents, scoping rules, canonical keys, and versioning.
 ---
@@ -145,6 +145,11 @@ A few smaller changes to the bundled skills are worth knowing about, because the
 - **Open questions get a text box.** When an agent needs a free-text answer from you, the `paperclip` skill now gives it a complete `ask_user_questions` payload that renders a text field (a `questionSet` question with `answerMode: "text"`), instead of inventing multiple-choice options for something that isn't a choice. Choice cards are reserved for real decisions with at least two meaningful alternatives.
 - **Hiring from Paperclip Runner.** The skill's API reference now tells native runner agents to use the `hire_agent` tool when it's available. The new teammate inherits the caller's validated runner, model, permission settings, default environment, and managed AI connection, but gets its own instructions — the caller's secrets, workspace paths, sessions, and instructions aren't copied. Over the REST API the same thing is `"inheritRuntimeFrom": "caller"` on the hire request, which can't be combined with a non-empty `adapterConfig`, `runtimeConfig`, or an explicit `defaultEnvironmentId`. Your hiring permissions and approval policy still apply.
 - **`paperclip-create-agent` on Paperclip Runner.** Runner agents don't get `PAPERCLIP_API_URL` or `PAPERCLIP_API_KEY`, so the skill now tells them to use the runner's Paperclip tools instead — `get_task_context` and `list_agents` for context, then `search_api` to find the hiring endpoints and `call_api` to call them. If those API tools aren't available, the agent reports that you need to enable runner API tools for the company, keeps the proposed hire in the conversation, and doesn't claim an agent was created.
+- **No second checkout when the harness already did it.** If the run's **Paperclip Wake Payload** or **Paperclip Resume Delta** says the harness already checked out this issue for the current run, the `paperclip` skill tells the agent not to call checkout again and to carry straight on. That only covers that issue in that run — an agent that switches to another task still checks it out first, and it never infers a checkout from the issue's status or an earlier run.
+- **The completion helper ships with the skill.** `scripts/paperclip-issue-update.sh` — the helper that writes a status and comment and checks the write really landed — is now bundled inside the installed `paperclip` skill. The skill tells agents to run it from the installed skill's own directory, not the task workspace, and to fall back to a verified `PATCH` (rather than searching the disk) when that path isn't available.
+- **Artifact helper state stays in the workspace.** `scripts/paperclip-upload-artifact.sh` now keeps its temporary responses and retry receipts in the workspace's private `.paperclip/artifact-helper` folder, so it works inside CLI sandboxes that can't reach the system temp folder. Set `PAPERCLIP_HELPER_STATE_DIR` to put them somewhere else.
+- **Incidental feedback.** The `paperclip` skill now mentions the `complain` and `suggestion-box` skills that sit alongside it, and encourages agents to use them when something about the work genuinely warrants it — once, quietly, without letting it interrupt the task. See [Agent complaints and suggestions](../administration/agent-commentary.md).
+- **Review handoffs need a real card.** When an agent opens a pull request that a person has to review or merge, the skill tells it to put the PR link in the work product's `url`, create a human-only interaction that names the action, and leave the task `in_review`. A `needs_board_review` flag or a periodic monitor on its own doesn't put a card in front of anyone.
 
 ---
 
@@ -217,7 +222,7 @@ After a lost response, retry with exactly the same inputs and key to receive the
 
 `create_skill` takes `name`, `description`, `markdown`, and `idempotencyKey`, plus an optional `slug`. The name is lowercase and hyphenated; the complete file's name and description must match those inputs, and a supplied slug must equal the name. Company, agent, task, and run identity come from the authenticated run. A successful creation appears as a **Skill created** card in the task thread; see [Skills your agents create during a task](../guides/org/skills.md#skills-your-agents-create-during-a-task).
 
-Implementation reference: [update tool contract](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/packages/paperclip-runner/src/protocol-actions/update-skill.ts) and [tool validation and REST binding](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/server/src/services/skill-tools.ts).
+Implementation reference: [update tool contract](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/paperclip-runner/src/protocol-actions/update-skill.ts) and [tool validation and REST binding](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/skill-tools.ts).
 
 ### Import: accepted sources
 

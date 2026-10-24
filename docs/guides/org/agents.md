@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Agents: Your AI Employees
 seo_description: Hire agents, browse the agent list, and work the agent page — overview, instructions, harness and runtime — for the AI employees doing your company's work.
 ---
@@ -50,7 +50,7 @@ The org chart lives here now — there's no separate Org page. See [Org structur
 Every agent row shows the same pieces of information, just arranged differently in the two views:
 
 - **Character** on the far left — the agent's illustrated figure (an amber warning icon replaces it if the agent's reporting chain is broken)
-- **Name, role, and title** (e.g. "Ada" with "Engineer - Backend Engineer" underneath)
+- **Name, role, and title** (e.g. "Ada" with "Engineer - Backend Engineer" underneath). A small crown next to the name marks [your primary agent](#your-primary-agent).
 - **Live run pill** — a pulsing blue "Live" badge when the agent has a run currently in flight; click it to jump straight into the live transcript
 - **Model and adapter** — the model the agent runs and which AI runtime powers it (shown on wider screens)
 - **Last heartbeat** — a relative time like "4m ago"
@@ -112,6 +112,16 @@ There's no budget field in the setup flow. Budgets are managed from **Audit → 
 
 Skills aren't picked during setup either. Paperclip's own runtime skills are attached automatically; attach company skills from the agent's [Skills](#skills) page once it exists. See [Skills](./skills.md) for how the library works.
 
+### Setup checks before a new agent starts work
+
+A new agent doesn't take work the instant it's created. Paperclip first runs a short setup — it prepares anything the agent needs (including resources a [plugin](../../administration/plugins.md) looks after) and then tests the agent's saved runtime configuration. Tasks you assign during setup aren't lost: they wait in the queue and start as soon as the agent is ready.
+
+While setup runs, a status line under the agent's name in its page header tells you where it's up to — **Preparing agent** or **Verifying agent** — with a short note that work stays queued. The same line appears later when you pause, resume, or terminate the agent: **Pausing agent**, **Resuming agent**, **Terminating agent**, or **Cleaning up agent**.
+
+If a step fails, the badge turns red and the error appears beside a **Retry** button. Fix the cause, then click **Retry** to run the step again.
+
+> **Tip:** If the error alone doesn't explain the failure, open the agent's [Harness / Runtime](#harness-runtime) page and click **Run test** to see the individual checks.
+
 ### Approvals when agents hire agents
 
 When *you* create an agent through **New Agent**, it's usually ready straight away. (If your organization requires approval for new agents, the confirmation step says **Agent submitted for approval** instead.) When an *agent* creates one — by calling Paperclip's hire API — the request goes into the approval queue instead, and the new agent sits in `pending_approval` status until you decide. The proposal summary shows the proposed agent's **Name**, **Role**, **Title**, **Icon**, **Capabilities**, **Adapter**, and any requested **Skills**. The monthly budget it's asking for and who it would report to aren't in the summary — open **See full request** to check them in the raw payload. Review it like any other approval: **Approve**, **Reject**, or **Request revision**. See [Approvals — Reviewing a Hire Request](../day-to-day/approvals.md#reviewing-a-hire-request) for details.
@@ -161,6 +171,7 @@ The four **Audit** links don't open pages inside the agent. They take you to the
 The actions in the header work on every page:
 
 - **Star** — stars the agent so it's easy to find again
+- **Set as my primary** — a small link under the agent's name that makes this agent your personal default. See [Your primary agent](#your-primary-agent).
 - **Assign Task** — opens the new-task dialog with this agent pre-selected as assignee
 - **Run now** — wakes the agent for a heartbeat right away and takes you to the new run (useful for testing instruction changes)
 - **Run with provider trace** — the same, but also records the exact traffic to the model provider for that run. Only instance administrators (or a local single-user setup) see this button, and the trace expires after 24 hours.
@@ -192,6 +203,20 @@ On the agent detail page, the character in the header reacts to what the agent i
 The character animates and turns to follow your cursor. If your system is set to reduce motion, you see a still image instead. If the image can't load, Paperclip shows the agent's initials.
 
 > **Note:** There's no palette picker in the app yet. If you want to change an agent's character, send a new `appearance` value through the API — see [Agents API — Update Agent](../../reference/api/agents.md#update-agent).
+
+### Your primary agent
+
+When you work with several agents in the same company, you can pick one as **your primary agent** — your personal go-to. It's a per-person choice: your teammates each pick their own, and your choice follows you across devices.
+
+You don't have to set it up. The first agent you create in a company becomes your primary automatically. To change it, open another agent's page and click **Set as my primary** under its name. If you already have a primary, Paperclip asks **Change your primary agent?** and shows both characters side by side before you confirm. Agents that are terminated or still awaiting approval can't be your primary.
+
+Your primary agent gets a few small perks:
+
+- A **crown** next to its name on its page header and in the agent list (hover it to see **My primary agent**).
+- It's listed **first** among the agents in your sidebar.
+- It's the **fallback** when there's no recent choice to go on. The new-task dialog pre-selects your most recently used assignee if you have one, and otherwise your primary agent. Opening **Chat** without a recent conversation takes you straight to a chat with your primary agent.
+
+Choosing a primary also makes sure you're a member of that agent, the same as joining it yourself. If your primary agent is later terminated or you leave it, the crown simply goes away — Paperclip doesn't pick a replacement for you, so set a new one whenever you like.
 
 ### Banners at the top of the page
 
@@ -276,7 +301,7 @@ A few things are worth knowing:
 
 Agents that existed before this change keep their files. Paperclip brings their current instructions into the folder the first time it's used.
 
-Implementation reference: [runtime file instructions](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instruction-working-copies.ts) and [file storage limits and synchronization](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-file-store.ts).
+Implementation reference: [runtime file instructions](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instruction-working-copies.ts) and [file storage limits and synchronization](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-file-store.ts).
 
 **Who can change the files.** An agent can edit its own folder, but only within what its responsible user is currently allowed to change. Reading or editing *another* agent's files needs permission to configure that agent; being in the same company isn't enough. A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't change its own instructions from ordinary work — the one exception is when its user asks it to, directly, in their own Agent Chat. See [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 
@@ -644,6 +669,12 @@ Additional context variables are set when the wake has a specific trigger:
 
 These are exactly what you'll see in the Invocation card on any run — Paperclip redacts secrets (anything that looks like an API key, a bearer token, a password, or a JWT) before displaying them, but the structure is the same as what the agent actually received.
 
+### Cryptographic identity
+
+The agent's **Identity** panel shows its persistent Ed25519 fingerprint and lets you copy its public PEM. New agents receive a keypair when created; older agents receive one on their next supported managed run. Before then, the panel says **Not created yet**.
+
+Managed runtimes receive the private key, including managed remote hosts. Choose hosts you trust with that identity. API bearer authentication stays separate, and company imports or agent copies get new identities. See [Agent cryptographic identity](agent-identity.md) for runtime variables and backup requirements.
+
 ### Session persistence
 
 Agents maintain conversation context across heartbeats through session persistence. The adapter serializes session state (e.g. Claude Code session ID) after each run and restores it on the next wake. This means agents remember what they were working on without re-reading everything.
@@ -660,6 +691,8 @@ In a run's detail view, you see a **session ID before** and **session ID after**
 | `error` | Last heartbeat failed |
 | `paused` | Manually paused or budget-exceeded |
 | `terminated` | Permanently deactivated |
+
+While an agent is going through setup, or is mid-pause or mid-resume, its status reads `paused`; while termination and cleanup are still finishing, it reads `terminated`. The status line under the agent's name tells you which step is actually in progress — see [Setup checks before a new agent starts work](#setup-checks-before-a-new-agent-starts-work).
 
 The status dot on every row and badge on the agent header reflect one of these values directly. The **Active** filter on the agent list expands to include `active`, `running`, and `idle`, because all three mean "this agent is healthy and doing (or ready to do) work". **Paused** and **Error** are their own filters for triage.
 
@@ -726,6 +759,8 @@ Use pause liberally — it's reversible, cheap, and the right default when somet
 ## Related guides
 
 - [Skills](./skills.md) — how the company skill library works, how skills are written, and how they keep agent context lean
+- [Agent cryptographic identity](agent-identity.md) — public keys, runtime trust, and identity recovery
+- [Agent complaints and suggestions](../../administration/agent-commentary.md) — default feedback skills and native tools, and how you read their feedback
 - [Agent adapters](./agent-adapters.md) — which adapters are available, what each one is good at, and how to configure them
 - [Approvals](../day-to-day/approvals.md) — the governance layer around hire requests, strategy, and budget overrides
 - [Costs & budgets](../day-to-day/costs.md) — how API spend is computed, how budgets are enforced, and how to tune them across your whole company

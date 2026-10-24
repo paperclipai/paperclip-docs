@@ -1,11 +1,12 @@
 ---
+paperclip_version: v2026.1023.0
 seo_title: Understanding GitHub PR Review Bots
 seo_description: Learn why installing a review bot, choosing when it runs, and requiring its check before merging are three independent decisions.
 ---
 
 # Understanding GitHub PR review bots
 
-> **Experimental chat feature:** GitHub review bots are part of Paperclip's experimental **Chat connectors** feature. An instance administrator must enable it under experimental settings. The setup and behavior may change. Existing GitHub tool connections do not enable it automatically.
+> **Experimental feature:** GitHub review bots have their own experimental setting, **GitHub review bots**, which an instance administrator must turn on. It is off by default and independent of **Chat connectors**. Turning it off hides setup and management; existing bots keep running. The setup and behavior may change. Existing GitHub tool connections do not enable it automatically.
 
 A bot can review your PR, leave comments, and give it a 3/5 without preventing
 anyone from merging it. That can feel surprising: if the review failed, why
@@ -53,8 +54,13 @@ Here are the notifications involved:
 | --- | --- |
 | Someone comments on an issue or in a PR's main conversation | `issue_comment` |
 | Someone comments in an inline PR review thread | `pull_request_review_comment` |
+| Someone writes or edits an issue description | `issues` |
+| Someone writes or edits a PR description | `pull_request` |
+| Someone submits a PR review with a summary | `pull_request_review` |
 | Someone opens a PR | `pull_request`, with action `opened` |
 | Someone pushes new commits to an existing PR | `pull_request`, with action `synchronize` |
+
+Paperclip's setup subscribes the App to all five event types, so a mention works in a comment, an inline review comment, an issue or PR description, or a review summary.
 
 For example, you write `@your-bot please review this PR`. GitHub sends the comment
 to the App's webhook, and Paperclip recognizes an authorized request in its

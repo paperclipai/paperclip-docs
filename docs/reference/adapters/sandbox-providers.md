@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Sandbox Providers
 seo_description: Provider plugins that let Paperclip provision external compute as the execution environment for agent runs, instead of running them on the host.
 ---
@@ -72,6 +72,8 @@ Daytona counts a *stopped* sandbox against your org's storage quota — only an 
 | `autoDeleteInterval` | `10080` (minutes, 7 days) | Backstop reaper for sandboxes nobody resumes. `-1` disables auto-delete; `0` deletes immediately after stop. |
 
 These defaults only apply when you leave a field unset — an explicit value (including `0` or `-1`) is forwarded to Daytona unchanged. Auto-archive is reversible: resuming an archived reusable sandbox restores it, so warm reuse still works under these defaults. If you genuinely need long-lived warm sandboxes, raise or disable the intervals.
+
+When Paperclip keeps a sandbox for later inspection or repair instead of deleting it, it first turns off Daytona's auto-delete and rereads the sandbox to confirm the change took. Once the change is confirmed, Paperclip stops the sandbox unless it's already stopped.
 
 ### Resource overrides need an image
 

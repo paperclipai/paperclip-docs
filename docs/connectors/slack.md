@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1023.0
 seo_title: Slack Connector
 seo_description: Connect a Slack bot so people can work with an agent from Slack: guided setup, account linking, Slack tools, approvals, scheduled messages, and fixes.
 ---
@@ -31,41 +31,76 @@ People mention the agent in a channel or send it a direct message, and Paperclip
 
 - **Chat connectors** must be switched on for the instance. It is an experimental setting, off by default, enabled by an instance administrator under experimental settings.
 - A publicly reachable HTTPS address for the instance. Slack delivers events by calling Paperclip; this route does not use Slack's socket mode. Paperclip Cloud already has one. If you self-host, a private address (for example, a Tailscale Serve URL only your tailnet can reach) is not enough. The wizard shows **Public HTTPS URL required** with a **Learn how to set up HTTPS** link when this is missing.
-- Permission to create and install a Slack app in the workspace.
+- Permission to create and install a Slack app in the workspace. If your workspace requires admin approval for new apps, you'll need that approval too.
 - A Paperclip account that is a member of the company, so you can link your own Slack account at the end.
 
 ### Connect it
 
-Open **Connectors**, select **Slack**, then **Chat with an agent**. A guided setup walks you through seven steps, shown in the sidebar. You can leave at any point with **Save & exit** and come back through **Finish setup** on the connection's row; your progress is kept.
+Open **Connectors**, select **Slack**, then **Chat with an agent**. The first screen asks **Which agent do you want to chat with?** Pick the agent people will talk to. This agent is permanent for the connection; to represent a different agent, connect another Slack app.
 
-1. **Choose agent.** Pick the agent people will talk to. This agent is permanent for the connection; to represent a different agent, connect another Slack app.
-2. **Create Slack app.** Review the **Slack app name**, **Bot display name**, and **Slash command**. Paperclip fills them in from the agent's name, and every later instruction uses whatever you save here. Click **Create Slack app**: Slack opens in a new tab with Paperclip's manifest already filled in. Pick your workspace, create the app, and install it. If you made the app earlier, use **I already created the app** instead. To inspect the generated configuration, open **View Slack App Manifest**.
+Every agent gets its own Slack app, so it shows up in Slack with its own name and avatar. There are two ways to create that app:
+
+| Setup | What you do |
+| --- | --- |
+| **Automatic setup** (the default) | Paste a temporary Slack token. Paperclip creates the app, and you approve the install. |
+| **Manual setup** | Under **Advanced** on the token step, choose **Create manually** or **Use an existing app**, then create the app from Paperclip's manifest yourself and paste its credentials. |
+
+On the agent step, **Advanced** shows the **Slack app name**, **Bot display name**, and **Slash command**. Paperclip fills them in from the agent's name, and every later instruction uses whatever you save here.
+
+You can leave any setup with **Save & exit** and come back through **Finish setup** on the connection's row. Your progress is kept.
+
+#### Automatic setup
+
+Automatic setup has four steps: **Choose agent**, **App configuration access token**, **Install Slack app**, and **Send a message**.
+
+1. **App configuration access token.** Click **Get your App configuration access token**. In Slack app settings, find **Your App Configuration Tokens**, choose **Generate Token**, and pick the workspace for your bot. Copy the **Access Token** (not the refresh token) and paste it into the field. Click **Create Slack app**. Paperclip uses this token once to create and configure the app, then throws it away.
+2. **Install Slack app.** Paperclip opens Slack so you can approve the install. If it doesn't open, or you closed it, click **Install in Slack**. Use your own Slack account: Paperclip links the account that approves the install to you, and the bot sends you a welcome DM ("Your Slack account is connected to Paperclip").
+3. **Send a message to your agent.** Click **Open Slack** and send the bot a message. Paperclip checks for it automatically and shows **Success** when it arrives. Click **Done**. If it keeps waiting, open **Didn't work?** for the **Event Subscriptions** and **Request URL** steps.
+
+Paperclip uploads the agent's avatar as the app icon. If the upload fails, setup carries on, and you can upload an icon in Slack later.
+
+#### Manual setup or an existing app
+
+On the token step, open **Advanced** and choose **Create manually** to build the app yourself from Paperclip's manifest, or **Use an existing app** to connect an app you already have. The manual path has six steps:
+
+1. **Choose agent.**
+2. **Create Slack app.** Click **Create Slack app**: Slack opens in a new tab with Paperclip's manifest already filled in. Pick your workspace, create the app, and install it. If you made the app earlier, use **I already created the app** instead. To inspect the generated configuration, open **View Slack App Manifest**.
 3. **Add credentials.** The two secrets live on different Slack screens, and the wizard gives you directions next to each field:
    - **Bot User OAuth Token**, from **OAuth & Permissions**. It starts with `xoxb-`.
    - **Signing Secret**, from **Basic Information**. It has no token prefix. An `xapp-` app token is not the signing secret.
 
    Click **Connect Slack app**.
 4. **Verify Slack connection.** In your Slack app, choose **Event Subscriptions**. Beside the prefilled **Request URL**, click **Retry** if it isn't verified yet, and save if Slack asks. Paperclip moves on by itself once Slack has verified the connection.
-5. **Add avatar** (optional). Download your agent's avatar as a 512 × 512 PNG, then upload it in Slack under **Basic Information** → **Display Information** → **App icon & Preview** and click **Save Changes**. Click **I’ve uploaded the avatar**, or **Skip for now**. The download stays available in the connection's **Settings** under **Agent avatar**.
-6. **Connect your Slack account.** Copy the command Paperclip shows (your slash command followed by `connect`, for example `/yourbot connect`) and send it in your Slack workspace. It only identifies you; it does not start any agent work. When your Slack account appears in Paperclip, click **This is my Slack account**. Only confirm an account that belongs to you. You'll see **Linked to you**, then **Continue to message test**.
-7. **Try it** (optional). Open a channel, invite the bot if needed, and send the suggested message, for example `@yourbot you there?`. Pick the bot from Slack's @mention suggestions so it is really notified. Continue the conversation in the thread. Paperclip checks for your message automatically; finish with **I've sent the test message** or **Skip test and finish**.
+5. **Connect your Slack account.** Copy the command Paperclip shows (your slash command followed by `connect`, for example `/yourbot connect`) and send it in your Slack workspace. It only identifies you; it does not start any agent work. When your Slack account appears in Paperclip, click **This is my Slack account**. Only confirm an account that belongs to you. You'll see **Linked to you**, then **Continue to message test**.
+6. **Try it** (optional). Open a channel, invite the bot if needed, and send the suggested message, for example `@yourbot you there?`. Pick the bot from Slack's @mention suggestions so it is really notified. Continue the conversation in the thread. Paperclip checks for your message automatically; finish with **I've sent the test message**.
 
-Use the generated manifest rather than configuring scopes by hand. It is the supported configuration, and hand-picked scopes are the most common reason a setup half-works.
+On the manual path, use the generated manifest rather than configuring scopes by hand. It is the supported configuration, and hand-picked scopes are the most common reason a setup half-works. Upload the app icon yourself in Slack under **Basic Information** → **Display Information**.
 
-> **Tip:** On the **Choose agent** step, **Copy setup prompt** gives you a ready-made prompt you can paste into an assistant that has browser tools, so it can drive the Paperclip and Slack screens for you. It is told never to ask you to paste secrets into chat and to hand back to you for logins and ownership decisions.
+> **Danger:** The bot token, signing secret, and configuration token are full credentials. Paste them only into Paperclip. If one leaks, rotate it in Slack and reconnect.
 
-> **Danger:** The bot token and signing secret are full credentials for the app. Paste them only into Paperclip. If either leaks, rotate it in Slack and reconnect.
+#### If setup is interrupted
+
+| What you see | What to do |
+| --- | --- |
+| The configuration token expired or was rejected | Generate a new token and try again. Your draft is kept. |
+| Paperclip isn't sure whether Slack created the app | Click **Open Slack app settings** and check. If no app exists, tick **I checked Slack and no app was created. Create a new app.** and try again. |
+| Your Slack app is saved, but its event settings still need to be applied | Paste a fresh configuration token and click **Retry app configuration**. Paperclip reuses the same app. |
+| Your credentials are saved but the connection check failed | Click **Retry connecting**. If Slack access changed, click **Authorize in Slack again**. |
 
 ### How a conversation becomes work
 
 | In Slack | In Paperclip |
 | --- | --- |
 | A linked person mentions the agent in a channel | One task per new mentioned thread |
-| A linked person sends the agent a direct message | The agent replies in the DM (when **Allow direct messages** is on) |
-| The conversation continues in the thread | It continues on the same task |
+| A linked person sends the agent a direct message | The agent replies in the DM (when **Allow direct messages** is on). With **Require at-mention** on, the DM must @mention the bot too. |
+| The conversation continues in the thread | It continues on the same task. With **Require at-mention** on, channel replies must @mention the bot. |
 | The agent has answered and nothing is left to do | The task shows as **Idle** |
 
 Paperclip acknowledges with a reaction so people can see a message was picked up before the agent has finished thinking.
+
+**Require at-mention** is on for new Slack connections. It keeps ordinary chatter from starting agent work: the agent only responds to messages that @mention it, including replies in a thread it's already in. The setting applies to direct messages as well as channels. Turn it off in **Settings** if you want any reply in a followed thread to reach the agent. Connections made before this setting existed keep their previous behavior.
+
+If you stop the agent's run from the Slack thread, the current response ends. Your next message in the thread starts a fresh turn on the same task.
 
 **Idle** means the agent answered and is waiting for the next message. It is not a request for review, so an answered Slack thread does not clutter your review queue or active work counts. You can still find it under the connection's **Conversations** tab, in search, and in recent tasks. A new message in the thread, or one you send from Paperclip, picks the task straight back up. If delivery failed, a decision is pending, or more work is queued, the task stays active instead.
 
@@ -84,9 +119,9 @@ Some actions always need approval through Paperclip first: creating channels, in
 
 The agent works with the permissions of the linked person who asked. Only linked people can direct these tools, and the agent can only read channels that both the bot and that person can see. Private-channel material stays in its source channel or in that person's DM with the bot. The bot cannot join channels on its own, invite itself, or read other people's DMs with it.
 
-See the list in the connection's **Settings** under **Slack tools**. Expand **Tool permissions and availability** to see each tool marked **Available**, **Ask first**, **Needs permissions**, or **Not verified**, and use **Manage action permissions** to change the rules. See [Set action permissions](action-permissions.md).
+Open **Slack tools** at the bottom of the connection's **Settings** tab to check whether the app has every permission the tools need. To change which actions need approval, see [Set action permissions](action-permissions.md).
 
-If you connected Slack before these tools existed, **Settings** shows **Add permissions to unlock more tools** with the missing scopes. Your connection keeps working. To unlock the rest, open your app in Slack, go to **OAuth & Permissions**, add those Bot Token Scopes, and reinstall the app to your workspace.
+If you connected Slack before these tools existed, **Slack tools** shows **Add permissions to unlock more tools** with the missing scopes. Your connection keeps working. To unlock the rest, open your app in Slack, go to **OAuth & Permissions**, add those Bot Token Scopes, and reinstall the app to your workspace.
 
 The same tools are available to the agent in its ordinary Paperclip tasks and routines, using the bot assigned to that agent and the Slack account linked to the person responsible for the work.
 
@@ -102,10 +137,10 @@ For something like "every weekday at 10am, post the standup summary in #team", u
 
 The connection's page has **Settings**, **Access**, **Conversations**, and **Activity** tabs.
 
-- **Settings** repeats the suggested first message under **Chat in Slack**, holds the avatar download, the **Slack tools** summary, and **Additional communication instructions**. Under **Where this agent can work**, **Allowed Channels** lists every channel the bot is in, and there's an **Allow direct messages** toggle.
-- **Access** holds identity links and the **Allow unlinked people** setting.
+- **Settings** lists **Allowed Channels** (every channel the bot is in), the **Allow direct messages** and **Require at-mention** toggles, **Additional communication instructions**, and the **Slack tools** summary.
+- **Access** holds linked people, **Invite people**, and two optional sections: **Guest access** and **Personal Slack search**.
 
-**Allowed Channels** controls where the agent replies and writes, not what it can read. Channels you invite the bot to start enabled. If you switch one off, it stays off until someone turns it back on in Paperclip; a new mention does not re-enable it.
+**Allowed Channels** controls where the agent replies and writes, not what it can read. To add a channel, invite the bot to it in Slack. Channels you invite the bot to start enabled, and the list refreshes by itself while you have it open. If you switch one off, it stays off until someone turns it back on in Paperclip; a new mention or invitation does not re-enable it.
 
 By default, the agent replies conversationally in Slack: answer first, short paragraphs or short lists, with bigger deliverables attached or linked. Use **Additional communication instructions** (up to 4,000 characters) to add your own guidance, such as product names or audience. It applies when new tasks start, and does not grant any extra permissions.
 
@@ -113,19 +148,19 @@ By default, the agent replies conversationally in Slack: answer first, short par
 
 Provider channel access determines where a message can reach the integration; it does not by itself authorize agent work. Paperclip also checks the sender's linked identity and company membership. Linked users must be active non-viewer members, and their messages run with their own Paperclip permissions.
 
-To let a teammate use the agent, share the instructions under **Invite others to connect their Slack accounts** on the **Access** tab:
+To let a teammate use the agent, click **Invite people** on the **Access** tab and use **Copy invitation** to share the instructions:
 
-1. They send the connect command in your Slack workspace.
+1. They send the connect command (your slash command followed by `connect`) in your Slack workspace.
 2. The bot sends them a private link. They open it, sign in to Paperclip, and confirm their Slack account. The link expires in 15 minutes and works once.
-3. If they aren't a member of the organization yet, they choose **Request access**, and an admin approves the request before they can link.
+3. If they aren't a member of the organization yet, they request access, and an admin approves the request before they can link.
 
-Nobody needs to create another Slack app or share credentials.
+Nobody needs to create another Slack app or share credentials. Inviting someone to a Slack channel does not give them Paperclip access. The agent knows this flow too: if a teammate asks it in Slack how to connect, it gives them the right command.
 
-**Allow unlinked people** is off for new connections. When on, unlinked senders are restricted guests: their tasks run only with an isolated workspace and sandbox environment, and they cannot approve, hire, spend, manage access, or reassign agents.
+**Allow unlinked people**, under **Guest access**, is off for new connections. When on, people without linked accounts can start isolated tasks. They cannot approve actions, spend, or manage access, and their requests are refused when isolation is unavailable.
 
 ### Optional: personal Slack search
 
-On the **Access** tab, **Your Slack search access** lets each linked person authorize private search with **Connect Slack search**. Basic channel reading works without it. A connection manager first sets up the Slack app's **Client ID** and **Client Secret** under **OAuth app configuration for connection managers**, registering the shown redirect URL and the user scopes `search:read.public`, `search:read.private` and `search:read.files` in Slack.
+On the **Access** tab, **Personal Slack search** → **Your Slack search access** lets each linked person authorize private search with **Connect Slack search**. Basic channel reading works without it. A connection manager first sets up the Slack app's **Client ID** and **Client Secret** under **OAuth app configuration for connection managers**, registering the shown redirect URL and the user scopes `search:read.public`, `search:read.private` and `search:read.files` in Slack.
 
 > **Note:** Slack's real-time search is not enabled on current runtimes, even when a personal grant is connected. Paperclip shows this limitation on the same screen. Agents use bounded channel-history search instead and report what they covered.
 
@@ -170,10 +205,12 @@ A read confirms the credential without putting a message in front of colleagues.
 | **Chat with an agent** is not offered | **Chat connectors** is off for the instance | Ask an administrator to enable it |
 | **Public HTTPS URL required** appears | Slack can't reach the instance | Put the instance behind a public HTTPS address, then continue |
 | Slack refuses to install the app | The workspace restricts app installation or requires approval | Ask a workspace administrator, then resume with **Finish setup** |
+| The configuration token is rejected | App configuration tokens are short-lived and tied to one workspace | Generate a new token for the right workspace and paste the **Access Token**, not the refresh token |
 | Paperclip warns about the signing secret | You pasted a bot or app token into **Signing Secret** | Copy **Signing Secret** from **Basic Information** |
 | **Verify Slack connection** keeps waiting | Slack hasn't re-checked the Request URL since you saved credentials | In **Event Subscriptions**, click **Retry** beside the Request URL |
 | Your account never appears after the connect command | The command went to a different workspace or app | Send your app's exact slash command plus `connect` in the workspace where you installed it |
 | A mention in a channel does nothing | The bot isn't in the channel, the channel is off in **Allowed Channels**, or the bot was typed as plain text | Invite the bot, enable the channel, and pick the bot from @mention suggestions |
+| A reply in the thread doesn't reach the agent | **Require at-mention** is on, so channel replies need an @mention | @mention the bot in the reply, or turn **Require at-mention** off in **Settings** |
 | The agent reads a channel but won't reply there | The channel is off in **Allowed Channels** | Enable it in **Settings** |
 | **Settings** shows **Add permissions to unlock more tools** | The app predates the newer Slack tools | Add the listed Bot Token Scopes in Slack and reinstall the app |
 | A scheduled or requested DM doesn't arrive | The responsible person has no linked Slack account, or the app lacks `im:write` | Link the account from **Access**, or reinstall with the updated manifest |

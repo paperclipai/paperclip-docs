@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.720.0
+paperclip_version: v2026.1023.0
 seo_title: Decision Training API
 seo_description: Capture the judgement calls people make — answering agent questions, approving or rejecting risky actions — as signal agents can learn from later.
 ---
@@ -10,7 +10,7 @@ Every day, the people in your company make judgement calls that agents can learn
 
 Think of it as bookmarking good judgement. The snapshot is the input, your note plus the recorded outcome is the label.
 
-Decision training examples are company-scoped, and company access is enforced on every request. If you are new to the API, read the [API Overview](./overview.md) first for base URL, authentication, and error-code conventions; this page builds on those and won't repeat them.
+Decision training examples are company-scoped, and company access is enforced on every request. Each example also follows the permissions of the issue it came from: if you can't read that issue — for example, a private task you haven't been given access to — you can't capture, preview, list, export, or read examples from it. If you are new to the API, read the [API Overview](./overview.md) first for base URL, authentication, and error-code conventions; this page builds on those and won't repeat them.
 
 > **Writes are human-only.** Creating, editing, and deleting examples require a signed-in human user on the board. An agent token calling those routes gets `403 Forbidden` with `{ "error": "Decision training writes require a human user" }`. This is deliberate — the whole point is to capture human judgement.
 
@@ -93,6 +93,8 @@ Unknown fields are rejected.
 
 **One example per decision, per person.** The server enforces uniqueness on `(sourceKind, sourceId, createdByUserId)`. If you have already trained this decision, a second attempt returns `409 Conflict` with `{ "error": "This decision is already trained by this user" }`. Your colleague can still train the same decision independently — the constraint is per author, so several people can label the same moment differently.
 
+If you can't read the issue, the create is refused with `404 Not Found` and `{ "error": "Decision training source not found" }`. The [preview](#preview-an-example) route answers the same way.
+
 A successful create records a `decision_training.created` activity entry.
 
 ### Example
@@ -142,7 +144,7 @@ Preview is read-only, but it carries the same human-only authorization as a writ
 GET /api/companies/{companyId}/decision-training
 ```
 
-Return the company's examples, newest first. Each row is `{ example, issueTitle, issueIdentifier }`, so you can render a list without a second lookup per issue.
+Return the company's examples, newest first — only those whose issue you can read. Each row is `{ example, issueTitle, issueIdentifier }`, so you can render a list without a second lookup per issue.
 
 ### Query Parameters
 
@@ -163,7 +165,7 @@ An invalid query returns `400 Bad Request` with `{ "error": "Invalid decision tr
 GET /api/decision-training/{id}
 ```
 
-Return one example by UUID, including its full `snapshot`, `notes`, and `notesHistory`. If the id is not a UUID, or the example belongs to a company you cannot access, the response is `404 Not Found` with `{ "error": "Decision training example not found" }` — the same answer either way, so the route never confirms an example you aren't allowed to see.
+Return one example by UUID, including its full `snapshot`, `notes`, and `notesHistory`. If the id is not a UUID, or the example belongs to a company or issue you cannot access, the response is `404 Not Found` with `{ "error": "Decision training example not found" }` — the same answer either way, so the route never confirms an example you aren't allowed to see.
 
 Reads are logged as `decision_training.read` activity.
 
@@ -224,7 +226,7 @@ As with editing, only the author can delete, and only a human user can. A deleti
 GET /api/companies/{companyId}/decision-training/export.jsonl
 ```
 
-This is the endpoint you point a training pipeline at. It returns the company's examples — the same set and order as the list route, newest first — as newline-delimited JSON, served with content type `application/x-ndjson`.
+This is the endpoint you point a training pipeline at. It returns the company's examples — the same set and order as the list route, newest first, limited to issues the caller can read — as newline-delimited JSON, served with content type `application/x-ndjson`.
 
 Each line is one complete JSON object with exactly three keys:
 

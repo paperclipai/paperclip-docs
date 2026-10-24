@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: OpenCode Adapter
 seo_description: Run OpenCode on the Paperclip host when you want provider and model routing in OpenCode's own format, plus session resume across heartbeats.
 ---
@@ -54,6 +54,8 @@ OpenCode sessions are resumed with `--session` when the stored session `cwd` mat
 
 - Runs are invoked as `opencode run --format json ...`.
 - Model selection is passed via the `--model` CLI flag.
+- OpenCode runs in the task's prepared workspace: Paperclip passes it as `--dir`. If your `extraArgs` already set `--dir` (before any `--`), your value is kept.
+- If a run hits its timeout, it fails with `OpenCode execution timed out`.
 - `OPENCODE_DISABLE_PROJECT_CONFIG=true` is set automatically to prevent OpenCode from writing config into the project directory.
 - When `dangerouslySkipPermissions` is enabled (the default for unattended runs), Paperclip copies your existing `opencode` config into a temporary `XDG_CONFIG_HOME`, sets `permission=allow` in that copy's `opencode.json`, and points the run at it. That puts OpenCode in full-auto mode for all tools and connections, so unattended runs never stall on approval prompts, and your real config is never touched. Any `permission` rules from your own config are replaced in that temporary copy, so set `dangerouslySkipPermissions` to `false` if you need OpenCode to honour them. The env overrides below (`PAPERCLIP_OPENCODE_PROVIDERS`, `PAPERCLIP_OPENCODE_SMALL_MODEL`) are written into this same temporary file, so they apply only when `dangerouslySkipPermissions` is on and the target runs locally.
 

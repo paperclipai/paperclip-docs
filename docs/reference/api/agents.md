@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1023.0
 seo_title: Agents API
 seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate keys, sync skills, trigger runs, and register managed and remote agent profiles.
 ---
@@ -31,14 +31,17 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `name` | Human-friendly name. The server also derives a company-unique URL key from it. |
 | `role` | Role label such as `ceo`, `engineer`, or `general`. |
 | `title` | Optional display title. |
-| `appearance` | The agent's character (avatar) identity: `{ "schemaVersion": 1, "characterVersion": "cap-v1", "paletteId": "<palette>" }`. See [Agent Avatars](#agent-avatars) for the palette ids. |
-| `avatarUrl` | Read-only. A ready-made URL for the agent's character image, derived from `appearance`. |
+| `appearance` | The agent's character (avatar) identity: `{ "schemaVersion": 1, "characterVersion": "cap-v1", "paletteId": "<palette>" }`. See [Agent Avatars](#agent-avatars) for the palette ids. When a custom picture has been uploaded, it also carries `customAvatarAssetId` — see [Upload a Custom Avatar](#upload-a-custom-avatar). |
+| `avatarUrl` | Read-only. A ready-made URL for the agent's image, derived from `appearance` — the custom picture's `/api/assets/{assetId}/content` URL when one is set, otherwise the character image. |
 | `reportsTo` | Parent agent in the org tree. Must be in the same company and cannot create a cycle. |
 | `adapterType` | Runtime type such as `process`, `http`, `paperclip_runner`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `hermes_local`, `cursor`, or `openclaw_gateway`. External adapters can also be registered. |
 | `adapterConfig` | Adapter-specific config. Secret references are allowed inside `env`. |
 | `runtimeConfig` | Runtime settings. `heartbeat.enabled` defaults to `false` when you create an agent. |
 | `budgetMonthlyCents` | Monthly budget in cents. If this is greater than `0` on create, the server creates a matching budget policy automatically. |
-| `status` | Lifecycle state. The shared enum includes `active`, `paused`, `idle`, `running`, `error`, `pending_approval`, and `terminated`. |
+| `status` | Lifecycle state. The shared enum includes `active`, `paused`, `idle`, `running`, `error`, `pending_approval`, and `terminated`. While setup, pause, or resume is in progress the agent reports `paused`; while termination or cleanup is in progress it reports `terminated`. Read `lifecycleState` for the precise step. |
+| `lifecycleState` | Read-only. Where the agent is in its hire-to-termination lifecycle: `pending_approval`, `preparing`, `verifying`, `ready`, `pausing`, `paused`, `resuming`, `terminating`, `cleaning_up`, `terminated`, or `rejected`. Only `ready` admits work; work assigned earlier stays queued. See [Lifecycle Steps and Retry](#lifecycle-steps-and-retry). |
+| `lifecycleError` | Read-only. A short, credential-free message when a lifecycle step failed, or `null`. |
+| `lifecycleVersion` | Read-only. A counter that increases with each lifecycle operation. |
 | `permissions` | Agent-level permissions: `canCreateAgents` and `canCreateSkills` (defaults to `true`). |
 
 ---
@@ -132,6 +135,27 @@ res = requests.get(
 agent = res.json()
 ```
 <!-- /tabs -->
+
+---
+
+## Public Identity
+
+Read an agent's public cryptographic identity:
+
+`GET /api/agents/{id}/identity`
+
+Use the agent UUID and the same authorization required to read that agent. The response is `null` if the agent has not been provisioned, otherwise an object with:
+
+| Field | Value |
+| --- | --- |
+| `algorithm` | `Ed25519`. |
+| `keyId` | `sha256:` followed by the base64url SHA-256 fingerprint of the public key's SPKI DER bytes. |
+| `publicKeyPem` | Public key in SPKI PEM format. |
+| `createdAt` | Identity creation timestamp. |
+
+This read does not create an identity. New agents receive one at creation; older agents receive one on their next supported managed run. The endpoint never returns a private key. See [Agent cryptographic identity](../../guides/org/agent-identity.md) for signing and recovery. These keys do not replace agent API tokens.
+
+For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api).
 
 ---
 
@@ -302,7 +326,7 @@ Use this when you are hiring or provisioning a new agent. In the current impleme
 Important behavior:
 
 - The server validates the target company.
-- The new agent is created with `status: "idle"`.
+- The new agent starts its [setup steps](#lifecycle-steps-and-retry) straight away: `lifecycleState` begins at `preparing` (and `status` reads `paused`) until preparation and verification finish and the agent reaches `ready`. Work you assign in the meantime is queued.
 - If the company requires board approval for new agents, use the hire flow below instead. That route creates `pending_approval` and records the approval payload.
 - Duplicate names are deduplicated on create. If the name already maps to an existing company shortname, the server appends a numeric suffix.
 - `runtimeConfig.heartbeat.enabled` defaults to `false` if you omit it.
@@ -580,7 +604,7 @@ The `permissionKey` field on a grant is one of:
 
 A new standard agent gets `canCreateAgents: true` and `canCreateSkills: true` when it is created; low-trust agents get `canCreateAgents: false`. Stored agents without an explicit `canCreateAgents` value are treated as `false`. An agent with the `ceo` role can always create agents, whatever its flag says. New standard agents also receive fourteen direct grants when they are created or their hire is approved: `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`, `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `audit:view_agent_actions`, `tools:use`, `tools:manage_runtime`, `inbox:manage` (scoped `{ "responsibleUserOnly": true }`), `tasks:assign`, `tasks:assign_scope` (scoped `{ "subtreeRootAgentId": "<the new agent's id>" }`), and `tasks:manage_active_checkouts`. Low-trust agents and managed built-in agents don't receive them, and existing agents aren't backfilled.
 
-Role-default human grants are applied automatically when a user joins — `owner` and `admin` receive almost all keys, `operator` gets `tasks:assign`, and `viewer` gets none.
+Role-default human grants are applied automatically when a user joins. `owner` and `admin` receive the agent, skill, environment, invite, task-assignment, join-approval, and four tool keys (`owner` adds `users:manage_permissions`). `operator` receives the same agent, skill, environment, invite, and task-assignment keys plus `pipelines:write`, the tool keys (including `tools:manage_profiles` and `tools:view_audit`), and `audit:view_agent_actions`, but not `joins:approve` or `users:manage_permissions`. `viewer` gets none. The exact lists are in [Roles & Permissions](../../administration/roles-and-permissions.md#the-four-company-roles).
 
 ### Grant scope
 
@@ -677,7 +701,36 @@ Important edge cases:
 - Resuming a terminated agent fails.
 - Resuming a pending approval agent fails.
 - Terminating an agent revokes all of its API keys.
+- Terminating an agent that is still `pending_approval` rejects its hire instead (its `lifecycleState` becomes `rejected`).
+- Pause, resume, and terminate record the request and return straight away. The external steps finish in the background — poll `GET /api/agents/{agentId}` and watch `lifecycleState`.
 - Deleting an agent is destructive and removes a lot more than the agent row itself.
+- You can only delete an agent once termination has fully finished (or its hire was rejected). Otherwise the call returns `409 Conflict` with `Complete termination before deleting the agent`.
+- A lifecycle request that doesn't fit the agent's current step (for example resuming an agent that is still terminating) returns `409 Conflict` with a message like `Cannot resume an agent in state terminating`.
+
+### Lifecycle Steps and Retry
+
+Every hire, pause, resume, and termination runs through a short sequence of steps, shown in `lifecycleState`:
+
+| Command | Steps |
+|---|---|
+| Hire (direct, or after approval) | `preparing` → `verifying` → `ready` |
+| Pause | `pausing` → `paused` |
+| Resume | `resuming` → back to the step saved before the pause (usually `ready`) |
+| Terminate | `terminating` → `cleaning_up` → `terminated` |
+
+`preparing` gives any required [plugins](../plugins/sdk.md#required-agent-lifecycle-work) a chance to set up resources; `verifying` tests the agent's saved runtime configuration. Messages and tasks accepted before the agent reaches `ready` stay queued and dispatch once it does.
+
+If a step fails, `lifecycleError` reads `The lifecycle step failed. Retry the operation.` Paperclip retries failed steps automatically about a minute later. To try again immediately (for example after you've fixed the configuration):
+
+`POST /api/agents/{agentId}/lifecycle/retry`
+
+This is board-only and needs permission to update the agent. It returns the updated agent and records an `agent.lifecycle_retried` activity entry.
+
+```bash
+curl -s -X POST \
+  "http://localhost:3100/api/agents/{agentId}/lifecycle/retry" \
+  -H "Authorization: Bearer <token>"
+```
 
 ---
 
@@ -886,6 +939,76 @@ Notes:
 
 ---
 
+## Primary Agent
+
+Each person can choose one **primary agent** per company — their personal default for new tasks and Chat. The preference is private to the signed-in user. See [Your primary agent](../../guides/org/agents.md#your-primary-agent) for how the app uses it.
+
+`GET /api/companies/{companyId}/primary-agent/me`
+`PUT /api/companies/{companyId}/primary-agent/me`
+
+Both routes need a signed-in board user with active access to the company (viewers included, since it's a personal preference). Agent credentials can't call them.
+
+`GET` returns:
+
+```json
+{
+  "companyId": "...",
+  "userId": "...",
+  "primaryAgentId": "...",
+  "initialized": true
+}
+```
+
+- `primaryAgentId` is `null` when you have no primary, or when your primary is an agent you can no longer read.
+- `initialized` becomes `true` once a primary has been set — automatically when you create your first agent in the company, or explicitly with `PUT`. It stays `true` even if the primary is later cleared, so Paperclip doesn't silently pick a new one for you.
+
+`PUT` takes exactly one field:
+
+```json
+{ "primaryAgentId": "<agent-uuid>" }
+```
+
+It returns the updated preference. Setting a primary also joins you to that agent. The agent must be in this company (`404 Agent not found` otherwise), readable by you (`403`), and neither `terminated` nor `pending_approval` (`422 Choose an active, approved agent as your primary.`). There's no delete route — set a different agent to change it.
+
+```bash
+curl -s -X PUT \
+  "http://localhost:3100/api/companies/{companyId}/primary-agent/me" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{ "primaryAgentId": "{agentId}" }'
+```
+
+Changes are recorded in the activity log as `primary_agent.updated` without revealing which agent you picked.
+
+---
+
+## Upload a Custom Avatar
+
+Replace an agent's illustrated character with your own picture, or go back to the character.
+
+`PUT /api/companies/{companyId}/agents/{agentId}/avatar`
+
+```json
+{ "imageBase64": "<raw image bytes, base64-encoded>" }
+```
+
+- `imageBase64` is the image file itself, base64-encoded — not a URL and not a `data:` URL. Send `null` to remove the custom picture and restore the Paperclip character.
+- Use a static PNG, JPEG, or WebP image of at most 512 KiB and 16 megapixels. SVGs and animated images are refused. Paperclip re-encodes the picture as a PNG no larger than 512×512, dropping any metadata.
+- **Who can call it:** a board user with permission to update the agent's configuration (viewers can't), or the agent itself with its own key. An agent can only change its own avatar, and task-scoped credentials can't change it at all.
+- Terminated agents and agents awaiting approval can't be changed (`409`).
+
+The response is `{ agentId, appearance, avatarUrl }`. The change is recorded as an `agent.avatar_updated` activity entry and as a configuration revision.
+
+```bash
+curl -s -X PUT \
+  "http://localhost:3100/api/companies/{companyId}/agents/{agentId}/avatar" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d "{ \"imageBase64\": \"$(base64 < avatar.png | tr -d '\n')\" }"
+```
+
+---
+
 ## Agent Avatars
 
 Renders the character image for an agent's `appearance`.
@@ -903,6 +1026,7 @@ The route only serves preset artwork. It doesn't look up any agent or company, s
 | `pose` | One of `rest`, `idle`, `listening`, `thinking`, `working`, `success`, `confused`, `sleepy`, `loading`. |
 | `size` (query) | Pixel size: `16`, `20`, `24`, `32`, `40`, `48`, `64`, `96`, `128`, `256`, or `512`. Defaults to `512`. |
 | `scale` (query) | `1` or `2` (for high-density screens). Defaults to `1`. |
+| `background` (query) | `transparent` or `paperclip-dark`. Defaults to `transparent`. |
 
 ```bash
 curl -s -o ada.png \
@@ -1095,7 +1219,7 @@ A managed folder holds up to 100,000 files and folders, 256 MiB per file, and 2 
 
 Run synchronization saves only changed or deleted files. If separate runs or a browser save modify the same path, the last completed synchronization wins. Unchanged files remain intact. Current bytes live under `<paperclipInstanceRoot>/companies/<companyId>/agents/<agentId>/instructions/`, so include the instance filesystem in your backup as well as the database. Temporary working copies are cleaned up when their session stops and provide no new revision history.
 
-Implementation reference: [file store](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-file-store.ts), [managed directory path](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instructions.ts), and [instruction entry validation](https://github.com/paperclipai/paperclip/blob/467125fafb47a8520856504fecc48d6e32055db1/server/src/services/agent-instruction-files.ts).
+Implementation reference: [file store](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-file-store.ts), [managed directory path](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instructions.ts), and [instruction entry validation](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instruction-files.ts).
 
 ### Older revision and conflict routes
 
