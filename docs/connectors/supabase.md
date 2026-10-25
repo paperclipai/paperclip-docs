@@ -8,6 +8,8 @@ seo_description: Let agents create Supabase projects, deploy Edge Functions, and
 
 Agents can build on Supabase for you — creating projects, running database work, deploying Edge Functions, and configuring Auth and the Data API for an app.
 
+> **Nightly draft:** This guide covers the current master implementation. The **Deploy and configure with an access token** method and the optional project pin are not yet in the stable release; there, the project reference is still required.
+
 > **Warning:** Use a development project. Supabase connections can reach real data and, without read-only mode, change schema, database contents, deployed functions, and how users sign in to your app. Do not connect a production project unless you have read Supabase's own MCP security guidance and accepted the risk deliberately.
 
 Actions start enabled on this connector. They are governed by Paperclip's action settings, but the default is not read-only — you have to choose that.
@@ -94,7 +96,7 @@ This method has a fixed list of actions that Paperclip reviewed, each with a ris
 
 A few things are deliberately out of reach. Auth reads leave provider secrets out, Data API reads leave signing secrets out, and secret listings return names and update times only, never values. SMTP and OAuth provider secrets are not configurable here — set those in the Supabase Dashboard. When a person needs to enter a credential privately, the Dashboard is also the right place.
 
-Deploying a function replaces any existing function with the same name, and JWT verification is on unless the agent turns it off. Setting a secret takes effect for functions that are already running.
+Deploying a function replaces any existing function with the same slug, and JWT verification is on unless the agent turns it off. Setting a secret takes effect for functions that are already running.
 
 ## Choose access
 

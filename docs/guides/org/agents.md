@@ -69,7 +69,7 @@ Each agent is saved on its own. If some can't be saved, the panel shows which on
 A few things to know:
 
 - **Changes apply to future runs.** Running work keeps its current settings, and model overrides you've set on individual tasks stay in place. A model change may start a fresh session.
-- **Some agents can't be bulk edited.** Their checkbox is disabled — hover it to see why. Agents whose adapter manages its own connection (such as HTTP or process agents) and agents that use a connection pool are edited on their own [Harness / Runtime](#harness-runtime) page instead.
+- **Some agents can't be bulk edited.** Their checkbox is disabled — hover it to see why. Agents whose adapter manages its own connection (such as HTTP or process agents), agents that use a connection pool, and terminated or pending-approval agents are edited on their own [Harness / Runtime](#harness-runtime) page instead.
 - **Each change is recorded.** Every updated agent gets a new entry on its [Revisions](#revisions) page.
 - Bulk editing lives in the list view only; the org chart doesn't have checkboxes.
 
@@ -193,7 +193,7 @@ The actions in the header work on every page:
 - **Set as my primary** — a small link under the agent's name that makes this agent your personal default. See [Your primary agent](#your-primary-agent).
 - **Assign Task** — opens the new-task dialog with this agent pre-selected as assignee
 - **Run now** — wakes the agent for a heartbeat right away and takes you to the new run (useful for testing instruction changes)
-- **Raw tracing on** — a small label next to **Run now** when the agent is recording the exact traffic to its model provider. There's no separate trace button; to capture traces, turn on **Capture raw provider traces** in the **Debugging** card on the agent's [Harness / Runtime](#harness-runtime) page and save. Tracing then applies to every future run until you switch it off, and each trace is deleted after 24 hours.
+- **Raw tracing on** — a small label at the start of the header actions (on wider screens) when the agent is recording the exact traffic to its model provider. There's no separate trace button; to capture traces, turn on **Capture raw provider traces** in the **Debugging** card on the agent's [Harness / Runtime](#harness-runtime) page and save. Tracing then applies to every future run until you switch it off, and each trace is deleted after 24 hours.
 - **Pause / Resume** — toggles the agent between `paused` and `active`. An agent whose setup isn't finished shows **Finish setup** instead of **Resume**.
 - **Clear error** — appears when the agent is in `error`, and returns it to idle
 - **More actions (`⋯`)** — Duplicate Agent, Copy Agent ID, Reset Sessions, Terminate

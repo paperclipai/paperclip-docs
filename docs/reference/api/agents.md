@@ -527,7 +527,7 @@ Rules to know:
 - `runtimeSettings` can't be combined with any other field in the same request (`422` with `Runtime settings cannot be combined with other agent changes`).
 - The caller needs permission to configure the agent — the same check used for agent setup. The update is still recorded as a configuration revision.
 - `process` and `http` agents, and agents that are `terminated` or `pending_approval`, are refused with `422` and `This agent cannot be updated from the roster`.
-- Connection pools can't be set or changed this way (`422` with `Edit connection pool members on the agent's configuration page`).
+- Connection pools can't be set or changed this way: `aiConnection` only accepts the `shared`, `delegated`, and `responsible_user` shapes, and an agent that's already on a pool can't be described in `expected`. Edit pool members on the agent's configuration page instead.
 - When the selected connection lists specific models, the model must be one of them; otherwise the call fails with `422` and `Choose a default model available on the selected connection`.
 
 ### Example

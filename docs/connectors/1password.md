@@ -81,7 +81,7 @@ Removing the connection in Paperclip clears its stored token and stops agents us
 | 1Password denied an action | The service account lacks access to that vault, or lacks **Write Items** | Create a new service account with the access you need, then reconnect |
 | The request limit was reached | 1Password rate-limits service accounts | Try again later |
 | A result is too large | Results are capped at 1 MiB | Ask for a single item or field |
-| A write timed out | Calls are capped at 30 seconds, and the change may still have gone through | Check the item in 1Password before retrying; Paperclip never retries writes automatically |
+| A write timed out | Calls time out after 10 seconds by default and never run longer than 30, and the change may still have gone through | Check the item in 1Password before retrying; Paperclip never retries writes automatically |
 
 Limitations: one service account per connection. Vault administration, sharing, file and document export, and running commands are not offered. To change vault access or permissions, replace the service account and reconnect.
 

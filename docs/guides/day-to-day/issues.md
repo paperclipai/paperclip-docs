@@ -212,7 +212,7 @@ Automatic work stays out of Mine by default. That covers tasks that come in from
 - you comment on it directly in Paperclip, or change it yourself;
 - an agent has an open question or request addressed to you on it. Once you answer it, the task needs another of these reasons to stay.
 
-GitHub review bots follow the same rule. After a bot publishes its review, the task can wait in review for the next GitHub event without asking you anything, so a low score, pending or failed CI, or an unmerged pull request doesn't put it in Mine. If the bot later publishes a newer review, it withdraws the completion request its earlier review left behind. The task only shows up in Mine when the bot needs something real from you, such as repository access.
+GitHub review bots follow the same rule. After a bot publishes its review, the task can wait in review for the next GitHub event without asking you anything, so a low score, pending or failed CI, or an unmerged pull request doesn't put it in Mine. If the same bot later publishes a newer review that doesn't need your input itself, it withdraws the completion request its earlier review left behind. The task only shows up in Mine when the bot needs something real from you, such as repository access.
 
 The same rules decide your unread counts, the Inbox badge, and task notifications.
 

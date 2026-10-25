@@ -51,7 +51,7 @@ New actions start as **Allowed**, so set the policy before you hand the connecti
 
 Reading an instance is not permission to stop it or delete it. Those are separate actions with separate settings. See [Set action permissions](action-permissions.md).
 
-If an agent waits on a sandbox command that is still running when the wait times out, the result says the command is still running rather than failing, so the agent can wait again or check the logs.
+If an agent uses `unikraft_sandbox_wait_for_command_with_timeout` and the command is still running when the wait times out, the result says the command is still running rather than failing, so the agent can wait again or check the logs.
 
 ## Try it
 
@@ -71,7 +71,7 @@ Compare the list with the Unikraft Cloud console.
 | --- | --- | --- |
 | The token is rejected at setup | The token was revoked, belongs to another organization, or was copied incompletely | Create a new token in the console and reconnect |
 | An action is refused for its metro | The metro is not one of the five published metros | Use `dal`, `fra`, `sfo`, `sin`, or `was` |
-| A command or write timed out | Calls are capped at 30 seconds, and the work may still be running in Unikraft | Check the instance before retrying; Paperclip never retries changes automatically |
+| A command or write timed out | Calls time out after 10 seconds by default and never run longer than 30, and the work may still be running in Unikraft | Check the instance before retrying; Paperclip never retries changes automatically |
 | A request or response fails on size | Bodies are limited to 8 MiB | Use smaller files or narrower requests |
 | Actions changed after an update | Paperclip refreshed the catalog | Open the connection and review the **Permissions** tab; new actions need review |
 | **Needs attention** | The token was revoked | Select **Reconnect** with a valid token |

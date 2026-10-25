@@ -224,7 +224,7 @@ Every comment is addressable. Open a thread and use **Copy link** to grab a deep
 
 Paperclip is trying out a refreshed look for artifacts across the three places you meet them: the **Artifacts** page, a task's **Artifacts** tab, and the task thread. It's off by default. To try it, an instance admin opens **Settings → Experimental** and turns on **Artifacts V1**. See [Experimental features](../../experimental/overview.md).
 
-It changes how artifacts look, not what they are. Your artifacts, filters, search, and links stay the same, and turning the setting off brings the current cards straight back.
+It changes how artifacts look, not what they are. Your artifacts, search, and links stay the same, and turning the setting off brings the current cards straight back.
 
 ### On the Artifacts page
 
@@ -243,7 +243,7 @@ Picking a type view always shows the flat list. If you pick a grouping from the 
 The tab becomes one flat list of compact rows, newest first, with no run sections. Each row shows the artifact's name and a few details, such as its size and date. The rows behave the way the cards did:
 
 - Images and videos open the gallery, and text files open in a tab in the side pane.
-- Other files have open and download buttons next to the name.
+- Every file row has open and download buttons beside the name, and other files open in a new tab when you click the row.
 - A Markdown document still expands into its review surface, and document comments still work.
 - Pull requests, links, and other outputs open in a new tab, with their status (such as **Unhealthy**) beside them.
 

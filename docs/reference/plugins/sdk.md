@@ -425,14 +425,14 @@ workspaceProvider: {
 
 If the pair isn't in your own `modes` and `strategies`, the manifest is rejected with "Project defaults must use a declared workspace mode and strategy".
 
-Once your plugin is installed and enabled for a company, every project there that hasn't made an explicit choice inherits it, including projects that existed before the install. For Git projects, Paperclip also fills in your default mode and strategy where the project hasn't set its own. It works this out each time and never writes it into the project's saved policy, so the project still shows as inheriting.
+Once your plugin is installed, and unless it's turned off for a company, every project there that hasn't made an explicit choice inherits it, including projects that existed before the install. For Git projects, Paperclip also fills in your default mode and strategy where the project hasn't set its own. It works this out each time and never writes it into the project's saved policy, so the project still shows as inheriting.
 
 A few rules keep the default predictable:
 
 - **Explicit choices win.** A project set to a specific plugin, or to `null` for Core / local, keeps that choice.
 - **Clashing settings fail clearly.** If a project's own mode or strategy isn't one you support, runs fail with a configuration error asking the operator to change the setting or pick another storage provider.
 - **Only one default at a time.** If more than one enabled plugin claims the default, inheriting projects don't pick one. They show an error naming the plugins until an operator picks a provider for the project or disables one of the plugins.
-- **No silent fallback.** If the default plugin is down, runs fail instead of quietly switching to local storage.
+- **No silent fallback.** If the default plugin is still installed and enabled but its worker is down, runs fail instead of quietly switching to local storage. Disabling or uninstalling it is different: inheriting projects go back to Core / local for new workspaces.
 - **Existing workspaces keep their owner.** Changing or adding a default never moves, resets, or recreates a workspace that already exists, local ones included.
 
 The project API returns the saved `executionWorkspacePolicy` as before, plus a separate `workspaceProvider` object. It has the `source` (`"project"`, `"default"`, or `"core"`), the selected `pluginId` and `displayName`, the available `providers` (each with `id`, `displayName`, and `isDefault`), the resulting `effectivePolicy`, and any `error`.
@@ -467,7 +467,7 @@ To run agents against these checkouts, the project's environment must use a task
 
 Agents on the `paperclip_runner` adapter can now be assigned a plugin environment. When one of them starts work there, your plugin owns the task's workspace.
 
-A plugin environment whose driver declares `supportsTasks: true` is Runner-only. Codex and Claude agents on it always resolve to Paperclip Runner — Paperclip doesn't need a reported platform for them, because your plugin provisions the host and launches its own Runner. The agent form offers no Legacy runner there and switches a Legacy choice to Paperclip Runner. The agent's **Test** button picks the runner first, then checks that the environment's driver is allowed for it. Paperclip doesn't prepare or reuse a Git worktree on its own disk for that environment. For projects backed by your storage provider, Paperclip uses the pinned workspace binding, and your declared `modes` and `strategies` still apply. When a run finishes, and again after a server restart, Paperclip checks the managed workspace through your storage provider rather than looking for a local folder.
+A plugin environment whose driver declares `supportsTasks: true` is Runner-only. Codex, Claude, OpenCode, and Pi agents on it always resolve to Paperclip Runner — Paperclip doesn't need a reported platform for them, because your plugin provisions the host and launches its own Runner. The agent form greys out Legacy runner there and switches a Legacy choice to Paperclip Runner. The agent's **Test** button picks the runner first, then checks that the environment's driver is allowed for it. Paperclip doesn't prepare or reuse a Git worktree on its own disk for that environment. For projects backed by your storage provider, Paperclip uses the pinned workspace binding, and your declared `modes` and `strategies` still apply. When a run finishes, and again after a server restart, Paperclip checks the managed workspace through your storage provider rather than looking for a local folder.
 
 Paperclip refuses a few combinations up front, so the problem shows up as a clear error instead of a half-started run:
 
@@ -489,7 +489,7 @@ To opt in, declare all three:
 - `freshWorkspaceVersion: 1` on the task-capable entry in `environmentDrivers`.
 - `freshWorkspaceVersion: 1` in your `describe` result.
 
-If the storage provider hasn't opted in, the retry fails with the "fresh attempt is unavailable" error above. If the environment hasn't, it fails with "Plugin-provided fresh workspace preparation unavailable".
+If the storage provider or the environment driver hasn't opted in, the retry fails with the "fresh attempt is unavailable" error above, and the existing workspace is kept. If your `describe` result doesn't report `freshWorkspaceVersion: 1`, the task call fails with "Plugin-provided fresh workspace preparation unavailable".
 
 Paperclip then sends a `fresh` object (a `PluginFreshWorkspace`) on the workspace `prepare` operation and as `PluginEnvironmentTaskParams.fresh` on the launch-related task calls. It holds:
 
@@ -1030,7 +1030,7 @@ By default, each run gets its own Runner task. A driver can instead keep a Codex
 - Declare `warmTaskVersion: 1` on the driver and return `warmTaskVersion: 1` from `describe`, but only when your host supports attaching a new run to a running task.
 - Implement `onEnvironmentResumeLease`. Its params now include the new run's `runId`.
 
-An agent gets warm reuse when it uses the Codex provider with the **Warm session** Runner lifecycle and a selected AI account. Paperclip then sends a `warm` `lifecyclePolicy` (with an `idleTimeoutMs`) in the `submit` launch limits. Each later run's `prepare` carries the exact `priorIdentity` and a stable `accountIdentity`. Record that handoff idempotently before letting the new run in. If anything that matters changes — the account, credentials, workspace, authorized projects, or runtime settings — Paperclip retires the old process first and recovers from its checkpoint. OpenCode and ACP providers stay per turn.
+An agent gets warm reuse when it uses the Codex provider with the **Warm session** Runner lifecycle and a selected AI account. Paperclip then sends a `warm` `lifecyclePolicy` (with an `idleTimeoutMs`) in the `submit` launch limits. Each later run's `prepare` carries the exact `priorIdentity` and a stable `accountIdentity`. Record that handoff idempotently before letting the new run in. If anything that matters changes — the account, credentials, workspace, authorized projects, or runtime settings — Paperclip retires the old process first and recovers from its checkpoint. OpenCode and ACP providers stay per turn. A `runnerLifecycleMode` set on the environment's config overrides the agent's lifecycle.
 
 #### Login PTY and duplex channel streaming (optional)
 

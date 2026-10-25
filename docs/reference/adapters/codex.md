@@ -57,7 +57,7 @@ Codex normally hides any variable whose name contains `KEY`, `SECRET`, or `TOKEN
 
 Now, a variable you set in the agent's `env` reaches Codex's shell commands by name, even when its name contains one of those words. This works the same on the ACP and CLI engines. A few things stay out regardless:
 
-- **Codex's own login keys** — `OPENAI_API_KEY` and `CODEX_API_KEY` — plus managed provider keys and observability credentials.
+- **Codex's own login keys** — `OPENAI_API_KEY` and `CODEX_API_KEY` — plus managed provider keys, observability credentials, and Paperclip's own `PAPERCLIP_GITHUB_*`, `PAPERCLIP_RUNNER_*`, `PAPERCLIP_NATIVE_*`, and `PAPERCLIP_ACPX_*` secrets, even if you set them in `env`.
 - **Host secrets you didn't assign.** Only variables in the agent's own configuration are opted in; nothing is pulled from the Paperclip host's environment.
 
 `PAPERCLIP_API_KEY` and the agent's identity variables are delivered as before. Remove a variable from `env` and the shell loses access to it at the next launch.

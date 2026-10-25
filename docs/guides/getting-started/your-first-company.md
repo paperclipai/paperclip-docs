@@ -53,7 +53,7 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
 ### Connecting a model in the wizard
 
-After **Create your first agent**, the wizard's last screen is **Connect a model**. Pick a **Model source** tile, then sign in with your subscription or click **Use API key instead** to paste a key.
+After **Create your first agent**, the wizard's next screen is **Connect a model**. Pick a **Model source** tile, then sign in with your subscription or click **Use API key instead** to paste a key.
 
 Already run your own model gateway? When you pick **Claude** or **OpenAI** and switch to an API key, a **Use a custom gateway** button appears under the key field. It opens **Custom gateway connection**, the same form you'd use from **Connectors**, with the **API format** already set to match — **Anthropic Messages · Claude** for Claude, **OpenAI Responses · Codex** for OpenAI. Fill in your gateway's details and click **Save connection**.
 

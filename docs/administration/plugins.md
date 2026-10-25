@@ -183,7 +183,7 @@ To choose where a project's code lives, open the project's configuration and use
 
 Under the picker, the project shows *"Inherited default: …"* or *"Selected: …"* so you can tell which one applies. The same setting is `executionWorkspacePolicy.storageProviderPluginId` in the [projects API](../reference/api/goals-and-projects.md): a plugin ID, `null` for Core / local, or left out to inherit.
 
-A storage plugin can claim the default when you install it. Once it's enabled for a company, every project there that's still set to inherit starts using it, including projects that existed before. If two enabled plugins both claim the default, inheriting projects show an error naming both until you pick a provider for the project or disable one of them. If the default plugin is unavailable, runs fail instead of quietly falling back to local storage. Changing the default never moves or recreates workspaces that already exist.
+A storage plugin can claim the default when you install it. Unless it's turned off for a company, every project there that's still set to inherit starts using it, including projects that existed before. If two enabled plugins both claim the default, inheriting projects show an error naming both until you pick a provider for the project or disable one of them. If the default plugin is enabled but not running, runs fail instead of quietly falling back to local storage; if you disable or uninstall it, inheriting projects go back to Core / local for new workspaces. Changing the default never moves or recreates workspaces that already exist.
 
 A few things behave differently for those projects:
 

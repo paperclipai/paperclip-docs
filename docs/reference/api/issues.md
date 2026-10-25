@@ -1295,7 +1295,7 @@ There's no request body. Dismissal works on any pending interaction kind. It onl
 - `status` stays `pending`, and `result` and `resolvedAt` stay empty. Nothing is answered, accepted, or rejected, and the assignee is not woken.
 - `dismissedAt` and `dismissedByUserId` are set on the interaction, which is returned in the response.
 - The card drops out of the composer's pending reminders, and the agent is told the request is deferred so it doesn't repeat it. An ordinary dismissed card no longer holds up completion; when the task completes, a dismissed card that isn't a question expires.
-- Dismissal never counts as approval. Requests that gate a tool action, a secret, a connection, or a plan document keep their gate until someone actually decides them.
+- Dismissal never counts as approval. Requests that gate a tool action, a secret, a connection, or a plan document keep their gate until someone actually decides them, and so do requests whose resolver was set by company or review policy.
 
 The call is idempotent: dismissing a card that's already dismissed, or no longer `pending`, returns it unchanged.
 

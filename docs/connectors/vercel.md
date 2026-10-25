@@ -7,6 +7,8 @@ seo_description: Let agents deploy websites and manage Vercel projects, environm
 
 Agents can deploy websites to Vercel and configure the projects behind them — build settings, environment variables, and domains — inside the one Vercel team you connect.
 
+> **Nightly draft:** This guide covers the current master implementation, which is not yet in the stable release. Vercel appears in the catalog on every instance; no experimental setting is needed.
+
 > **Warning:** Deployments and configuration changes affect real projects, and deployment and resource usage may incur Vercel charges. A production deployment puts code in front of real visitors. Keep deploy, configuration, and delete actions on **Ask first** or **Off** until you trust the workflow.
 
 ## Before you connect
