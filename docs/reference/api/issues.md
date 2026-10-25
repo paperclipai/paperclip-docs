@@ -1282,6 +1282,27 @@ POST /api/issues/{issueId}/interactions/{interactionId}/respond
 
 After a terminal action, the interaction is sealed — further responses are rejected.
 
+### Set a card aside: dismiss
+
+When you don't want to answer a card right now but don't want it nagging you either, a person can **dismiss** it. This is what the task conversation calls when you close a request's form above the composer.
+
+```
+POST /api/issues/{issueId}/interactions/{interactionId}/dismiss
+```
+
+There's no request body. Dismissal works on any pending interaction kind. It only changes attention state — the card is not resolved:
+
+- `status` stays `pending`, and `result` and `resolvedAt` stay empty. Nothing is answered, accepted, or rejected, and the assignee is not woken.
+- `dismissedAt` and `dismissedByUserId` are set on the interaction, which is returned in the response.
+- The card drops out of the composer's pending reminders, and the agent is told the request is deferred so it doesn't repeat it. An ordinary dismissed card no longer holds up completion; when the task completes, a dismissed card that isn't a question expires.
+- Dismissal never counts as approval. Requests that gate a tool action, a secret, a connection, or a plan document keep their gate until someone actually decides them, and so do requests whose resolver was set by company or review policy.
+
+The call is idempotent: dismissing a card that's already dismissed, or no longer `pending`, returns it unchanged.
+
+Who may dismiss a card: a board user who can read the issue and who is in the card's resolver audience. For confirmation cards on an issue that's `in_review`, the issue's current review policy is checked too. Agent callers get `403` (`Board access required`), and any non-human actor gets `403` (`Only a human can dismiss a request`).
+
+Dismissal is written to the audit trail as `issue.thread_interaction_dismissed`, with the interaction id and kind attached.
+
 ### Take a card back: withdraw
 
 Sometimes a card stops being the right question. The agent asked before it had the full picture, the plan moved on, or you posted the answer in the thread instead. Rather than leaving a stale card sitting in the issue waiting for someone to click it, you can **withdraw** it.

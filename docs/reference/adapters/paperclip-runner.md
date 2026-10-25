@@ -44,6 +44,8 @@ A few extra rules apply to Claude:
 - **A Mac reached over SSH defaults to Legacy.** You can still pick **Paperclip Runner** yourself for that host, as long as it has the matching Runner assets installed.
 - **Linux SSH hosts can use a preinstalled provider pack.** Install the pack from the same Paperclip release at `/opt/paperclip-runner/provider-pack` or `$HOME/.local/share/paperclip-runner/provider-pack`. The Runner looks there, verifies the pack, and picks the Linux x64 or ARM64 build that matches the host.
 
+Some environment plugins run Paperclip Runner themselves. On one of those [plugin environments](../../experimental/environments.md), a Codex, Claude Code, OpenCode, or Pi agent always gets Paperclip Runner, with no platform check, and **Legacy runner** is greyed out.
+
 ### Pick a runner yourself
 
 To choose, open **Advanced** in the agent form, onboarding, or the built-in agent setup and set **Runner**:
@@ -160,6 +162,8 @@ Company permissions, governed approvals, and budgets still apply. Grok cannot au
 ## Sessions and task modes
 
 The Runner records native session identity and recovers through the provider's supported session-load path. Recovery rechecks the saved provider, environment, credential, and task authority; a durable run is not a guarantee that every interrupted provider operation can resume.
+
+A Codex agent with the **Warm session** Runner lifecycle can also stay warm in a plugin environment, as long as the plugin supports it and the agent has a selected AI account. The next run then picks up the same Codex process instead of starting a new one. Other providers in plugin environments run turn by turn. If the environment itself sets a Runner lifecycle, that setting wins over the agent's.
 
 For Claude, the Runner loads three task tools up front — `set_task_title`, `paperclip_finish`, and `paperclip_block` — so Claude doesn't have to search for them before it can name or finish a simple task. Its other Paperclip tools load on demand, with the same access checks.
 

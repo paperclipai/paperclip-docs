@@ -62,9 +62,10 @@ The tables follow the page's own sections and order. Where a feature has a page 
 | Feature | What it adds |
 | --- | --- |
 | [Agent Chat](agent-chat.md) | One ongoing conversation per agent. **Chat** leads the **Work** group; agents clarify your goal, hand real work off to tasks, and report back when those tasks are done. |
+| [Artifacts V1](../guides/day-to-day/artifacts.md#the-artifacts-v1-presentation-experimental) | A new presentation for artifacts: paper stacks and tiles on the **Artifacts** page, compact rows in a task's **Artifacts** tab, and grouped rows in the task thread. Presentation only; turning it off restores the current cards. |
 | [Assistant connections (MCP)](assistant-connections.md) | Connect an external assistant as your user through OAuth, with separate read, write, and configuration scopes. |
 | Beta skills | Lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill without removing saved pins. |
-| [Built-in Agents](../reference/api/built-in-agents.md) | Paperclip-managed built-in agent surfaces: roster badges, the **Built-in agents** tab, and setup controls. |
+| [Built-in Agents](../reference/api/built-in-agents.md) | Paperclip-managed built-in agent surfaces: roster badges and setup controls. |
 | [Cases](cases.md) | Durable work products that tasks create and iterate on, with one primary task that agents hand off phase by phase. Adds the **Cases** tab and the agent case API ([API reference](../reference/api/cases.md)). |
 | [Chat connectors](../connectors.md#chat-channels-experimental) | Connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations. Existing chat connections keep running when it's off. |
 | [Combined Inbox + Task List](task-chat.md#an-optional-combined-task-list) | Reach inbox and task views from one **Tasks** navigation entry. |

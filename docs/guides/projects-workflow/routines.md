@@ -224,6 +224,8 @@ The **Runs** section shows every task this routine has created, using the same i
 
 Because it's a real issue list, you can manage runs right here: change a task's status or assignee inline without opening it, and the routine's run data refreshes as soon as the update lands. Click a row to open the task itself; the breadcrumb brings you back to **Runs** when you're done. Your view choices are remembered per routine.
 
+Going the other way works too. Every task a routine creates shows a **Routine** row in its **Properties** panel, just below **Parent**. It names the routine that made it and links straight back to the routine page, so you don't have to hunt for it by hand. If that routine has since been deleted, the row simply doesn't appear.
+
 When you fire the routine from the **Run** button, Paperclip drops you on **Runs** so you can watch the new task appear.
 
 Runs that didn't create a task — a tick skipped by the concurrency policy or the activity gate, for example — have nothing to list here. You'll still see them on the **Overview** under recent runs, with their status badge, and the API's [List Runs](../../reference/api/routines.md#list-runs) endpoint gives the full record including `failureReason`.

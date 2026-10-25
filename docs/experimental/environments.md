@@ -48,6 +48,7 @@ UI-only gate: the Environments page content, the agent override picker, and the 
 
 - Sandbox environments require a provider plugin that supports run execution; custom-image capture additionally requires the provider to advertise interactive setup and template capture.
 - Some provider plugins run Paperclip's Runner inside their own environment instead of giving Paperclip a shell. For those, the **Test** button on an agent's configuration starts a short-lived private session, verifies that Runner starts and answers, and passes only once that session is cleaned up — so you can confirm the setup before real tasks reach it.
+- Those Runner-running plugin environments only run agents through [Paperclip Runner](../reference/adapters/paperclip-runner.md). Pick one for a Codex, Claude Code, OpenCode, or Pi agent and the agent uses Paperclip Runner: the **Runner** setting in **Advanced** shows Legacy runner greyed out there, and in the agent form a Legacy choice switches to Paperclip Runner on its own.
 - Environment management is restricted to board operators regardless of the flag.
 
 ## Where to go next

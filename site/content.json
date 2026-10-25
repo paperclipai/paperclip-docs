@@ -227,6 +227,10 @@
           "title": "Connector Catalog",
           "pages": [
             {
+              "title": "1Password",
+              "file": "../docs/connectors/1password.md"
+            },
+            {
               "title": "AgentMail",
               "file": "../docs/connectors/agentmail.md"
             },
@@ -534,6 +538,14 @@
             {
               "title": "Todoist",
               "file": "../docs/connectors/todoist.md"
+            },
+            {
+              "title": "Unikraft",
+              "file": "../docs/connectors/unikraft.md"
+            },
+            {
+              "title": "Vercel",
+              "file": "../docs/connectors/vercel.md"
             },
             {
               "title": "Webflow",
