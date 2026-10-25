@@ -212,6 +212,8 @@ Automatic work stays out of Mine by default. That covers tasks that come in from
 - you comment on it directly in Paperclip, or change it yourself;
 - an agent has an open question or request addressed to you on it. Once you answer it, the task needs another of these reasons to stay.
 
+GitHub review bots follow the same rule. After a bot publishes its review, the task can wait in review for the next GitHub event without asking you anything, so a low score, pending or failed CI, or an unmerged pull request doesn't put it in Mine. If the bot later publishes a newer review, it withdraws the completion request its earlier review left behind. The task only shows up in Mine when the bot needs something real from you, such as repository access.
+
 The same rules decide your unread counts, the Inbox badge, and task notifications.
 
 Mine also shows failed agent runs — but only the ones you're responsible for, such as a run that started from your request. When an agent run fails for a teammate, it stays out of your Mine and out of the red failure count on the Inbox badge; you can still see it under **All** → **Failed runs** and in the run details. Only an agent's most recent run counts, so an old failure on a shared agent doesn't resurface once a newer run has gone through. On a local single-user board, older failed runs that aren't tied to anyone still show in Mine, since they can only be yours.
@@ -300,6 +302,7 @@ The fields are grouped into sections, in this order. Some rows only appear when 
 **Relationships**
 
 - **Parent** — the parent task this one is a subtask of. `parentId` is what ties work into a tree the CEO can reason about.
+- **Routine** — only on tasks a [routine](../projects-workflow/routines.md) created. It shows the routine's name and links to its page. Read-only.
 - **Blocked by** — other tasks blocking this one. While any "blocked by" link is unresolved, agents treat the task as not-yet-startable.
 - **Blocking** — the inverse view: tasks that depend on this one. Read-only here; you edit it from the other side.
 - **Subtasks** — direct children, shown as pills. Open the picker to see the full list and use **Add subtask** to create a new child without leaving the page. Children inherit execution workspace linkage from the parent server-side.

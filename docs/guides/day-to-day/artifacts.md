@@ -220,6 +220,39 @@ Every comment is addressable. Open a thread and use **Copy link** to grab a deep
 
 ---
 
+## The Artifacts V1 presentation (experimental)
+
+Paperclip is trying out a refreshed look for artifacts across the three places you meet them: the **Artifacts** page, a task's **Artifacts** tab, and the task thread. It's off by default. To try it, an instance admin opens **Settings → Experimental** and turns on **Artifacts V1**. See [Experimental features](../../experimental/overview.md).
+
+It changes how artifacts look, not what they are. Your artifacts, filters, search, and links stay the same, and turning the setting off brings the current cards straight back.
+
+### On the Artifacts page
+
+The type filters and the stack view merge into one row of views:
+
+- **Tasks** — one tile per task (the default).
+- **All files** — every artifact as its own tile, with no grouping.
+- **Images**, **Videos**, **Documents**, **Text**, **Files** — the flat view, narrowed to one type.
+
+In the **Tasks** view, a task with several artifacts shows as a paper stack with its newest artifact on top. Under it you see the task's title, its identifier, how many artifacts it holds (for example "3 Artifacts"), and when it was last updated. Click the stack to open it, the same as before. A task with just one artifact is a single tile that opens that artifact directly.
+
+Picking a type view always shows the flat list. If you pick a grouping from the grouping control, the page switches back to **Tasks**. Search works as it always has.
+
+### In a task's Artifacts tab
+
+The tab becomes one flat list of compact rows, newest first, with no run sections. Each row shows the artifact's name and a few details, such as its size and date. The rows behave the way the cards did:
+
+- Images and videos open the gallery, and text files open in a tab in the side pane.
+- Other files have open and download buttons next to the name.
+- A Markdown document still expands into its review surface, and document comments still work.
+- Pull requests, links, and other outputs open in a new tab, with their status (such as **Unhealthy**) beside them.
+
+### In the task thread
+
+Files a message produced appear as a row of compact file rows under the message, in place of the image grid and file chips. Pictures and videos open the gallery, text files open a text tab, and anything else opens in a new tab. Deliverables, documents, and attachments in the thread each show as a single row and open where they used to.
+
+---
+
 ## A quick mental model
 
 - **Artifacts page** — every output your agents produced, company-wide, in one place.
@@ -228,6 +261,7 @@ Every comment is addressable. Open a thread and use **Copy link** to grab a deep
 - **Cards** — previews you can read or watch in place, each linking back to the issue it came from.
 - **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from a file artifact or from an inline file chip an agent left in its writing.
 - **Artifacts tab on a task** — one task's outputs in its properties panel, each on a card shaped to what it is: pull request, commit, document, image, video, link preview, CSV data, or file. You can upload or drop your own files here too.
+- **Artifacts V1** — an opt-in experimental look: stacks and tiles on the page, compact rows in the tab and the thread.
 - **Document comments** — inline, Google-Docs-style threads anchored to a passage in a Plan or Artifact document; open or resolved, authored by people or agents, and shareable by deep link.
 
 You now know how to find, filter, and review everything your agents have made. When you want to dig into the work behind a given artifact, follow its link back to the issue and pick up the thread there.

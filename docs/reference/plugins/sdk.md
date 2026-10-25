@@ -365,6 +365,14 @@ The `PluginAgentRuntimeState` it returns holds:
 
 Treat the result as desired state, not a frozen snapshot of a run in progress. Changes made outside Paperclip's managed write APIs — editing files on disk directly, for instance — don't produce `agent_runtime` events.
 
+The full read does a fair amount of work. When you only need to check that nothing has changed before you act — say, right before an external write — use the lighter call:
+
+```ts
+const identity = await ctx.agents.getRuntimeIdentity(agentId, companyId);
+```
+
+It has the same capability, ownership, and company checks as `getRuntime`, and also returns `null` for a missing agent. The `PluginAgentRuntimeIdentity` it returns holds only the `revision`, your plugin's `instanceSecrets`, and a trimmed `agent` with its `id`, `companyId`, `status`, `lifecycleState`, and `lifecycleVersion`. It skips instruction files, skills, and connection assignments. Each call reads current state; nothing is cached. A good pattern is to read the full runtime once to sync, then use `getRuntimeIdentity` to guard each later write against changes.
+
 > **Note:** `agent_runtime` delivery relies on PostgreSQL `LISTEN`/`NOTIFY`, so your database connection must support session-level `LISTEN`. Transaction-mode connection poolers aren't supported for this opt-in stream.
 
 ### Project storage and task workspaces
@@ -381,21 +389,66 @@ A storage provider needs four things in its manifest:
 
 Without the capability and the project lifecycle stream, the manifest is rejected with "Workspace providers require workspaces.manage and project resource lifecycle".
 
+`workspaceProvider` also takes three optional fields:
+
+- `defaultForProjects` — a `{ mode, strategy }` pair that makes your plugin the [default storage for projects](#becoming-the-default-for-projects).
+- `finalizationVersion: 1` — you support the lighter [`finalize`](#what-each-operation-does) step when a run completes.
+- `freshWorkspaceVersion: 1` — you can prepare [fresh retry workspaces](#fresh-retry-workspaces).
+
 The same plugin implements two hooks. `onResourceLifecycle` creates and retains the project's storage as projects come and go. `onWorkspaceOperation(params: PluginWorkspaceParams): Promise<PluginWorkspaceResult>` manages the per-task checkouts inside that storage.
 
 #### Pointing a project at your plugin
 
-A project uses your storage once its `executionWorkspacePolicy.storageProviderPluginId` is set to your installed plugin's ID. Paperclip then reserves the execution workspace record and binds the task to it *before* calling your hook. Projects without this setting keep working exactly as before, and existing workspaces keep the owner they were created with.
+A project's `executionWorkspacePolicy.storageProviderPluginId` decides who owns its storage:
+
+| Value | What happens |
+|---|---|
+| Your installed plugin's ID | The project uses your storage, whatever the default is. |
+| `null` | The project explicitly uses Core / local storage on the Paperclip host. |
+| Not set | The project inherits the installed default, if there is one. Otherwise it keeps Core / local storage. |
+
+Whichever owner is picked, Paperclip reserves the execution workspace record and binds the task to it *before* calling your hook. The choice stays fixed while that task's workspace is being prepared. Tasks that don't need a project source don't prepare project storage at all.
+
+Operators can make the same choice in the project's configuration, under **Workspace storage**. It offers **Inherit installed default**, **Core / local**, and each installed storage plugin (the default one is marked "(default)"). Below the picker, the project shows either *"Inherited default: …"* or *"Selected: …"*, plus any configuration error.
+
+#### Becoming the default for projects
+
+Want every project to use your storage without anyone setting it project by project? Declare `defaultForProjects` with one of the modes and strategies you support:
+
+```ts
+workspaceProvider: {
+  modes: ["isolated_workspace", "operator_branch"],
+  strategies: ["git_worktree"],
+  defaultForProjects: { mode: "isolated_workspace", strategy: "git_worktree" },
+}
+```
+
+If the pair isn't in your own `modes` and `strategies`, the manifest is rejected with "Project defaults must use a declared workspace mode and strategy".
+
+Once your plugin is installed and enabled for a company, every project there that hasn't made an explicit choice inherits it, including projects that existed before the install. For Git projects, Paperclip also fills in your default mode and strategy where the project hasn't set its own. It works this out each time and never writes it into the project's saved policy, so the project still shows as inheriting.
+
+A few rules keep the default predictable:
+
+- **Explicit choices win.** A project set to a specific plugin, or to `null` for Core / local, keeps that choice.
+- **Clashing settings fail clearly.** If a project's own mode or strategy isn't one you support, runs fail with a configuration error asking the operator to change the setting or pick another storage provider.
+- **Only one default at a time.** If more than one enabled plugin claims the default, inheriting projects don't pick one. They show an error naming the plugins until an operator picks a provider for the project or disables one of the plugins.
+- **No silent fallback.** If the default plugin is down, runs fail instead of quietly switching to local storage.
+- **Existing workspaces keep their owner.** Changing or adding a default never moves, resets, or recreates a workspace that already exists, local ones included.
+
+The project API returns the saved `executionWorkspacePolicy` as before, plus a separate `workspaceProvider` object. It has the `source` (`"project"`, `"default"`, or `"core"`), the selected `pluginId` and `displayName`, the available `providers` (each with `id`, `displayName`, and `isDefault`), the resulting `effectivePolicy`, and any `error`.
 
 #### What each operation does
 
-Every call carries `pluginId`, `companyId`, `projectId`, `executionWorkspaceId`, a `generation` number, a `deadline`, a stable `operationId`, and the `operation` itself. `runId` and `agentId` are optional context — your hook must work without an environment lease, a live agent, or any folder on the Paperclip host.
+Every call carries `pluginId`, `companyId`, `projectId`, `executionWorkspaceId`, a `generation` number, a `deadline`, a stable `operationId`, and the `operation` itself. `runId` and `agentId` are optional context — your hook must work without an environment lease, a live agent, or any folder on the Paperclip host. The exception is `finalize`, which always carries the run and agent it's finishing.
 
 | `operation.kind` | Return | What you do |
 |---|---|---|
-| `prepare` | `prepared` | Create or restore the checkout from the project `source` (its `id`, `revision`, `repoUrl`, `repoRef`, `defaultRef`) using the requested `mode`, `strategy`, `branchName`, and `baseRef`. Return a `binding`, the `branchName`, the starting `baseSha`, and whether you `created` it and created the branch (`branchCreatedByRuntime`). |
+| `prepare` | `prepared` | Create or restore the checkout from the project `source` (its `id`, `revision`, `repoUrl`, `repoRef`, `defaultRef`) using the requested `mode`, `strategy`, `branchName`, and `baseRef`. Return a `binding`, the `branchName`, the starting `baseSha`, and whether you `created` it and created the branch (`branchCreatedByRuntime`). A retry that needs a new workspace also sends `fresh` — see [Fresh retry workspaces](#fresh-retry-workspaces). |
+| `finalize` | `finalized` | Only sent if you declare `finalizationVersion: 1`. When a run completes, confirm the `binding` is the right workspace and that the run's writes are saved durably, then return `headSha` and `branchName` (`null` for non-Git workspaces). |
 | `inspect` | `inspection` | Report the `headSha`, `branchName`, whether there are tracked changes (`hasDirtyTrackedFiles`), untracked files (`hasUntrackedFiles`), or ignored and local-only data (`hasLocalOnlyData`), plus `isMergedIntoBase` and `remotelyRecoverable`. Use `null` when you can't tell. |
 | `remove` | `removed` | Check the `expectedHeadSha` again, remove the checkout, and return only once removal is confirmed. Throw if the checkout is busy, the removal fails, or you aren't sure. |
+
+**Why `finalize`?** Without it, Paperclip runs a full `inspect` when a run completes — the same check it uses before cleanup. If your inspection is slow (fetching remote refs, scanning files), a finished run can stall on it. `finalize` asks a smaller question: is the work saved? Uncommitted, untracked, and unpushed work is all fine here, because finalizing doesn't permit deletion. Paperclip gives it 30 seconds. If the execution host is unreachable or you can't confirm the writes are durable, throw so Paperclip retries — never report success. Cleanup still uses `inspect` and `remove` exactly as before, and providers that don't declare `finalizationVersion` keep the inspection-based completion.
 
 A few rules keep this safe:
 
@@ -412,7 +465,9 @@ To run agents against these checkouts, the project's environment must use a task
 
 #### Native Runner sessions in a plugin environment
 
-Agents on the `paperclip_runner` adapter can now be assigned a plugin environment. When one of them starts work there, your plugin owns the task's workspace. Paperclip doesn't prepare or reuse a Git worktree on its own disk for that environment. For projects backed by your storage provider, Paperclip uses the pinned workspace binding, and your declared `modes` and `strategies` still apply. When a run finishes, and again after a server restart, Paperclip checks the managed workspace through your storage provider rather than looking for a local folder.
+Agents on the `paperclip_runner` adapter can now be assigned a plugin environment. When one of them starts work there, your plugin owns the task's workspace.
+
+A plugin environment whose driver declares `supportsTasks: true` is Runner-only. Codex and Claude agents on it always resolve to Paperclip Runner — Paperclip doesn't need a reported platform for them, because your plugin provisions the host and launches its own Runner. The agent form offers no Legacy runner there and switches a Legacy choice to Paperclip Runner. The agent's **Test** button picks the runner first, then checks that the environment's driver is allowed for it. Paperclip doesn't prepare or reuse a Git worktree on its own disk for that environment. For projects backed by your storage provider, Paperclip uses the pinned workspace binding, and your declared `modes` and `strategies` still apply. When a run finishes, and again after a server restart, Paperclip checks the managed workspace through your storage provider rather than looking for a local folder.
 
 Paperclip refuses a few combinations up front, so the problem shows up as a clear error instead of a half-started run:
 
@@ -420,9 +475,34 @@ Paperclip refuses a few combinations up front, so the problem shows up as a clea
 - **Core workspace services.** If the agent's workspace runtime configures services, you get "The selected plugin environment does not support Core workspace services."
 - **Core Git worktrees.** If the workspace would need a Git worktree that Paperclip makes itself, you get "The selected plugin environment does not support Core Git worktree preparation." or "The selected plugin environment cannot reuse a Core Git worktree."
 - **Another owner's workspace.** A workspace made for one agent, environment, or storage provider can't be reused by another. That fails with "The retained workspace belongs to a different agent, environment, or storage provider."
-- **Fresh attempts.** You can't start a fresh attempt that discards the retained workspace. You'll see "A fresh attempt is unavailable for this workspace storage provider. The existing workspace is retained."
+- **Fresh attempts.** A retry that needs a fresh workspace only works if you've opted in — see [Fresh retry workspaces](#fresh-retry-workspaces). Otherwise you'll see "A fresh attempt is unavailable for this workspace storage provider. The existing workspace is retained."
 
 Repository preparation is also unavailable for workspaces your environment owns.
+
+#### Fresh retry workspaces
+
+When a task fails, an operator can retry it in a fresh workspace while keeping the failed attempt's files. Your plugin can support that on its own storage. You choose how — Paperclip doesn't require a particular Git or filesystem layout.
+
+To opt in, declare all three:
+
+- `workspaceProvider.freshWorkspaceVersion: 1` on the storage provider.
+- `freshWorkspaceVersion: 1` on the task-capable entry in `environmentDrivers`.
+- `freshWorkspaceVersion: 1` in your `describe` result.
+
+If the storage provider hasn't opted in, the retry fails with the "fresh attempt is unavailable" error above. If the environment hasn't, it fails with "Plugin-provided fresh workspace preparation unavailable".
+
+Paperclip then sends a `fresh` object (a `PluginFreshWorkspace`) on the workspace `prepare` operation and as `PluginEnvironmentTaskParams.fresh` on the launch-related task calls. It holds:
+
+- `attemptId` — stays the same if preparation is interrupted and retried.
+- `sourceRunId` — the failed run.
+- `previousWorkspaceId` — the retained workspace. This tells you what to leave alone, not permission to change or remove it.
+- `recoverySnapshots` — verified copies of the failed attempt's work that Paperclip has staged for you. Each has an `operationId`, a `sourceRunId`, and an `archive` and `manifest` file, each described by a host `path`, a `sha256`, and a `byteSize`.
+
+What your provider does with it:
+
+- **Build a clean working directory** from the authorized source and base. Sharing repository objects or other read-only storage is fine.
+- **Attach each snapshot separately.** Check the bytes against the digest and size, then unpack each one under `.paperclip-recovered/<operationId>` in the new working directory. Never spread recovered files over the clean tree or overwrite an earlier attachment. Paperclip points the new attempt at those folders.
+- **Reconcile retries.** If a reply gets lost and preparation repeats with the same `attemptId`, reuse what you already made. Never replace the failed workspace or allocate yet another one.
 
 ### Manifest types
 
@@ -430,7 +510,7 @@ Plugin manifests are validated against types re-exported from `@paperclipai/shar
 
 Two top-level manifest fields opt into lifecycle features: `agentLifecycle: true` makes your plugin a [required lifecycle participant](#required-agent-lifecycle-work) (needs `agents.lifecycle.manage`), and `resourceLifecycle` — an array of `"agent"`, `"project"`, and/or `"agent_runtime"` — turns on [automatic event delivery](#automatic-delivery-with-onresourcelifecycle) (needs `events.subscribe`).
 
-Two more opt into execution features. The top-level `workspaceProvider` object (`modes` and `strategies`) makes your plugin the owner of a project's [storage and task workspaces](#project-storage-and-task-workspaces) — it needs `workspaces.manage` plus `"project"` in `resourceLifecycle`. And `supportsTasks: true` on an entry in `environmentDrivers` (a `PluginEnvironmentDriverDeclaration`) says that driver can [run Runner tasks](#running-runner-tasks-optional).
+Two more opt into execution features. The top-level `workspaceProvider` object (`modes` and `strategies`, plus optional `defaultForProjects`, `finalizationVersion`, and `freshWorkspaceVersion`) makes your plugin the owner of a project's [storage and task workspaces](#project-storage-and-task-workspaces) — it needs `workspaces.manage` plus `"project"` in `resourceLifecycle`. And `supportsTasks: true` on an entry in `environmentDrivers` (a `PluginEnvironmentDriverDeclaration`) says that driver can [run Runner tasks](#running-runner-tasks-optional); the same entry can add `freshWorkspaceVersion: 1` and `warmTaskVersion: 1`.
 
 | Type | Declares |
 |---|---|
@@ -912,9 +992,10 @@ The SDK validates every operation and result for you. Each result must carry the
 
 | `operation.kind` | Return `kind` | What you do |
 |---|---|---|
-| `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. |
-| `prepare` | `prepared` | Build the provider configuration for the exact `requirements` (schema `paperclip.runner.launch-requirements.v1`) without starting a process. Return a `launch` with a `configurationId`, a `requirementsDigest`, and a `provider` descriptor. |
+| `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. Add `freshWorkspaceVersion: 1`, `workspaceFileReadVersion: 1`, or `warmTaskVersion: 1` for the optional features below. |
+| `prepare` | `prepared` | Build the provider configuration for the exact `requirements` (schema `paperclip.runner.launch-requirements.v1`) without starting a process. Return a `launch` with a `configurationId`, a `requirementsDigest`, and a `provider` descriptor. You can add `projectAuthCheckAtSubmit: true` to skip the separate `check_project_auth` step (see below). A warm handoff also sends `priorIdentity` and `accountIdentity`. |
 | `check_project_auth` | `project_auth` | Check that nothing in the prepared configuration for these projects can replace or redirect the selected account. Return `allowed: true` only if the checks pass. |
+| `read_file` | `file` | Only sent if you advertise `workspaceFileReadVersion: 1`. Read one file from the active task — see [Reading task output files](#reading-task-output-files). |
 | `submit` | `accepted` | Start the task at most once, using the structured launch inputs — the Runner protocol range, Runner identity, `bootstrapTicket`, and optional `preparedLaunchId`, `credential`, and `launch` limits. Paperclip never sends a command line or a guest path. |
 | `connection` | `connection` | Return an `authenticated_websocket` endpoint: a `wss://` `websocketUrl` with no user info, query, or fragment, `secretHeaders` for authentication, and a `generation`. |
 | `status` | `status` | Report the `phase` and, once the Runner and everything it started have stopped, `executionStopped: true`. |
@@ -929,9 +1010,27 @@ A few rules keep this safe:
 - **An uncertain submit isn't a failure.** If a `submit` reply is lost, Paperclip retries with the same `taskId`. Don't start a second task to find out what happened.
 - **Accepting a stop isn't proof.** Set `executionStopped: true` only after you've observed the process and its descendants stop. A terminal `phase` on its own doesn't let Paperclip release the environment.
 - **Credentials are transient.** A `credential` is either `codex-auth-json` or `claude-env` (exactly one of `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`). Don't write it into task metadata or logs. A `null` credential result means cancellation stopped the task before it started — never that an export failed.
+- **Checking authentication at submit is a promise.** Returning `projectAuthCheckAtSubmit: true` from `prepare` tells Paperclip to skip `check_project_auth` and leave that check to your `submit` handler. It doesn't mean preparation already checked anything. Inside `submit`, validate the effective configuration and the current project grants *before* you install credentials or start the task, and reject anything that conflicts or has changed since preparation. Paperclip pins the configuration, provider, and projects on the lease and checks them again at dispatch; a new preparation clears that. Leave the flag off to keep the separate check. Older Paperclip versions reject the flag.
 - **Preparation is idempotent.** The same task and requirements must give the same configuration, and a late preparation result must not authorize anything after a cancellation.
 
 This also powers the agent environment test: when an agent uses a task-capable plugin environment, the test prepares a launch on a short-lived private lease, checks authentication routing, and verifies the Runner hello exchange. It passes only once cleanup is confirmed.
+
+##### Reading task output files
+
+When an agent in your environment uploads a file through an API call or registers a deliverable, that file lives on your execution host, not the Paperclip server. Advertise `workspaceFileReadVersion: 1` in `describe` and Paperclip asks you for it with `read_file`. Without it, those uploads fail — Paperclip never falls back to reading the path on its own server.
+
+The request carries the submitted Runner `identity`, the validated `projectIds`, a `path`, and a `maxBytes` limit of at most 10 MiB (exported as `MAX_ENVIRONMENT_TASK_FILE_BYTES`). Relative paths resolve from the task's prepared workspace. Absolute paths can reach other locations granted to the task, such as the agent's home, but never your supervisor's files or another agent's.
+
+Refuse inactive tasks, paths that escape, symlinks, hard links, anything that isn't a regular file, protected credentials, oversized files, and files that change while you read them. Return a `file` result with the content as `base64`, its `byteSize`, and its `sha256` digest. Paperclip checks the result and the task's authority again before publishing it.
+
+##### Keeping a Codex task warm
+
+By default, each run gets its own Runner task. A driver can instead keep a Codex agent's Runner process alive between runs, so the next run picks up the same process without a cold start. To offer this:
+
+- Declare `warmTaskVersion: 1` on the driver and return `warmTaskVersion: 1` from `describe`, but only when your host supports attaching a new run to a running task.
+- Implement `onEnvironmentResumeLease`. Its params now include the new run's `runId`.
+
+An agent gets warm reuse when it uses the Codex provider with the **Warm session** Runner lifecycle and a selected AI account. Paperclip then sends a `warm` `lifecyclePolicy` (with an `idleTimeoutMs`) in the `submit` launch limits. Each later run's `prepare` carries the exact `priorIdentity` and a stable `accountIdentity`. Record that handoff idempotently before letting the new run in. If anything that matters changes — the account, credentials, workspace, authorized projects, or runtime settings — Paperclip retires the old process first and recovers from its checkpoint. OpenCode and ACP providers stay per turn.
 
 #### Login PTY and duplex channel streaming (optional)
 
@@ -943,7 +1042,7 @@ Some environment-driver work is a live, bidirectional stream rather than a one-s
 
 The four worker-to-host notification method names are exported as constants: `LOGIN_PTY_OUTPUT_NOTIFICATION`, `LOGIN_PTY_EXIT_NOTIFICATION`, `DUPLEX_CHANNEL_DATA_NOTIFICATION`, and `DUPLEX_CHANNEL_EXIT_NOTIFICATION`. The per-hook parameter shapes (`PluginLoginPtyOpenParams`, `PluginDuplexChannelOpenParams`, and friends) live in the SDK's `protocol.ts` but are reachable through the hook signatures rather than re-exported as names.
 
-Runner task and storage-provider exports: `environmentTaskOperationSchema`, `environmentTaskResultSchema`, `environmentTaskCredentialSchema`, `environmentRunnerLaunchRequirementsSchema`, and `parseEnvironmentTaskResult`, with the types `PluginEnvironmentTaskOperation`, `PluginEnvironmentTaskParams`, `PluginEnvironmentTaskResult`, and `PluginEnvironmentTaskCredential`; plus `workspaceProviderOperationSchema`, `workspaceProviderResultSchema`, `pluginWorkspaceParamsSchema`, and `parseWorkspaceProviderResult`, with the types `PluginWorkspaceOperation`, `PluginWorkspaceResult`, and `PluginWorkspaceParams`. The host-to-worker methods behind them are `environmentTask` and `workspaceOperation`.
+Runner task and storage-provider exports: `MAX_ENVIRONMENT_TASK_FILE_BYTES`, `environmentTaskOperationSchema`, `environmentTaskResultSchema`, `environmentTaskCredentialSchema`, `environmentRunnerLaunchRequirementsSchema`, and `parseEnvironmentTaskResult`, with the types `PluginEnvironmentTaskOperation`, `PluginEnvironmentTaskParams`, `PluginEnvironmentTaskResult`, and `PluginEnvironmentTaskCredential`; plus `workspaceProviderOperationSchema`, `workspaceProviderResultSchema`, `pluginWorkspaceParamsSchema`, and `parseWorkspaceProviderResult`, with the types `PluginWorkspaceOperation`, `PluginWorkspaceResult`, and `PluginWorkspaceParams`. The host-to-worker methods behind them are `environmentTask` and `workspaceOperation`.
 
 Launcher render shapes: `PluginModalBoundsRequest`, `PluginRenderCloseEvent`, `PluginLauncherRenderContextSnapshot`.
 
@@ -958,7 +1057,7 @@ For embedding the host side of the bridge in tests or custom integrations:
 
 Types: `HostServices`, `HostClientFactoryOptions`, `HostClientHandlers`.
 
-`HostServices` groups the handlers you must supply by domain. Alongside the existing `issues` group — which now also needs `listInteractions`, `respondInteraction`, `listAttachments`, and `getAttachmentContent` — there are the `approvals` group (`list`, `get`, `decide`) and two more new groups: `access` (`listMembers`, `getMember`, `updateMember`, `listInvites`, `createInvite`, `revokeInvite`) and `authorization` (`listGrants`, `setGrants`, `policySummary`, `getPolicy`, `updatePolicy`, `previewAssignment`, `explainAssignment`, `searchAudit`). The `projects` group also needs `getInstanceSecrets`, gated by `projects.instance-secrets`. `getRequiredCapability` is the place to confirm which capability each call sits behind.
+`HostServices` groups the handlers you must supply by domain. Alongside the existing `issues` group — which now also needs `listInteractions`, `respondInteraction`, `listAttachments`, and `getAttachmentContent` — there are the `approvals` group (`list`, `get`, `decide`) and two more new groups: `access` (`listMembers`, `getMember`, `updateMember`, `listInvites`, `createInvite`, `revokeInvite`) and `authorization` (`listGrants`, `setGrants`, `policySummary`, `getPolicy`, `updatePolicy`, `previewAssignment`, `explainAssignment`, `searchAudit`). The `projects` group also needs `getInstanceSecrets`, gated by `projects.instance-secrets`. The `agents` group can optionally supply `getRuntimeIdentity`, gated by `agents.lifecycle.manage`; without it, the call fails with "Agent runtime identity is unavailable". `getRequiredCapability` is the place to confirm which capability each call sits behind.
 
 ### Bundling and dev server
 
@@ -994,7 +1093,7 @@ To exercise a lifecycle consumer, seed journal entries with `harness.seed({ life
 
 To test [per-project credentials](#private-per-project-credentials), seed them with `harness.seed({ projectInstanceSecrets: [{ companyId, projectId, values }] })`. The harness's `ctx.projects.getInstanceSecrets` checks for the `projects.instance-secrets` capability and returns a copy of the seeded values (or an empty object).
 
-`ctx.agents.getRuntime` checks for the `agents.lifecycle.manage` capability in the harness but has no built-in data — it throws "Agent runtime state requires a host service fixture" — so stub it when your tests need runtime inputs.
+`ctx.agents.getRuntime` checks for the `agents.lifecycle.manage` capability in the harness but has no built-in data — it throws "Agent runtime state requires a host service fixture" — so stub it when your tests need runtime inputs. `ctx.agents.getRuntimeIdentity` works the same way and throws "Agent runtime identity requires a host service fixture".
 
 The harness deliberately mirrors the host's own write bar rather than waving it through: `respondInteraction` and `approvals.decide` both throw when `actorUserId` is missing, when it is not an active `user` member of the company, or when that member's `membershipRole` is `viewer`. Seed the members you want to act as through `harness.seed({ accessMembers: [...] })`, and a plugin test can't pass an attribution production would reject. The harness also honours `maxBytes` on `getAttachmentContent` and returns `applied: false` on replays, so idempotency is testable without a real host.
 

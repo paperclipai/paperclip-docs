@@ -178,6 +178,12 @@ A complete run finding the word scores 5/5; a complete run finding no matching
 page scores 3/5. A build failure leaves the assessment incomplete. With a 5/5
 threshold, only the first outcome passes.
 
+A low score, pending CI, or an unmerged PR doesn't call you into Paperclip on its
+own. After publishing, the bot's task waits in review for the next GitHub event
+and stays out of your Inbox **Mine** tab. A later 5/5 review with its completion
+conditions met can finish the task quietly. You only hear from the bot when it
+genuinely needs your input, such as repository access.
+
 See [GitHub's Checks API guide](https://docs.github.com/en/rest/guides/using-the-rest-api-to-interact-with-checks).
 
 ## 4. GitHub's repository rules decide whether the check blocks merging

@@ -20,19 +20,13 @@ The agent list is the front door. Open **Agents** in the sidebar and you land on
 
 ![Agent list](../../user-guides/screenshots/light/agents/list.png)
 
-### Search and filter tabs
+### Search and filter
 
-A toolbar at the top of the page holds a **Search agents…** box, the view toggle, and the **New Agent** button. Type in the search box to narrow the list by name, role, or title — it works in both the list and the org chart, and combines with the tab you're on. If nothing matches, you'll see *"No agents match your search and selected status."*
+A toolbar at the top of the page holds a **Search agents…** box, the view toggle, and the **New Agent** button. Type in the search box to narrow the list by name, role, or title — it works in both the list and the org chart.
 
-Tabs just below the search box scope what you see:
+In the list view, a filter button sits above the roster. Click it to open **Filters** and pick a **Harness** — for example only your Codex agents — or **All harnesses** to see everyone again. A small count shows how many agents match. If nothing matches, you'll see *"No agents match these filters."*
 
-- **All** — every agent in the company
-- **Active** — agents currently able to run; includes `active`, `running`, and `idle`
-- **Paused** — agents that are manually paused or paused by the budget system
-- **Error** — agents whose last heartbeat failed
-- **Built-in** — Paperclip's managed built-in agents (only shown when built-in agents are turned on for your instance)
-
-The tab you're on is part of the URL (`/agents/active`, `/agents/paused`, etc.), so you can bookmark a filter or share a link that lands on one.
+There are no status tabs any more. Paused agents stay in the full roster and carry a `paused` status badge, so you can spot them without switching views. Old bookmarks such as `/agents/active` or `/agents/paused` simply open the full roster at `/agents/all`.
 
 ### Terminated and pending agents
 
@@ -54,11 +48,30 @@ Every agent row shows the same pieces of information, just arranged differently 
 - **Character** on the far left — the agent's illustrated figure (an amber warning icon replaces it if the agent's reporting chain is broken)
 - **Name, role, and title** (e.g. "Ada" with "Engineer - Backend Engineer" underneath). A small crown next to the name marks [your primary agent](#your-primary-agent).
 - **Live run pill** — a pulsing blue "Live" badge when the agent has a run currently in flight; click it to jump straight into the live transcript
-- **Model and adapter** — the model the agent runs and which AI runtime powers it (shown on wider screens)
+- **Harness**, **Connection**, and **Default model** columns (list view) — which AI runtime powers the agent, which AI connection it signs in with, and the model it uses when a task doesn't ask for another. **Harness default** means no model is pinned; **Managed externally** means the adapter handles its own connection.
 - **Last heartbeat** — a relative time like "4m ago"
 - **Status badge** — the agent's current status, such as `idle`, `running`, or `paused`
 
 Clicking anywhere on the row opens the agent's detail page. Clicking the live pill opens the run directly.
+
+### Change the connection or model for several agents at once
+
+When you switch providers or want a whole team on a newer model, you don't have to open every agent. In the list view you can update the AI connection, the default model, or both for a group of agents in one go.
+
+1. Tick the checkbox at the start of each agent you want to change, or use the checkbox in the header row to select every editable agent you can see. The filter helps here — pick a **Harness** first to select, say, all your Claude Code agents.
+2. A bar appears showing how many agents are selected. Click **Edit connection & model**. If your selection mixes harnesses, the bar says **Choose a harness to edit** and shows one button per harness (for example **Edit 3 Codex**), because each harness has its own connections and models. Agents of the other harnesses stay selected but won't change.
+3. In the panel that opens, tick **Change connection**, **Change default model**, or both, and make your choice. The model list only offers models available on every selected agent's connection; when no connection restricts the models, you can also type a model ID your harness supports.
+4. Check the **Changes to apply** preview, which lists each agent with its old and new settings. If a model isn't available on an agent's connection, Paperclip names that agent and tells you what to change before you can save.
+5. Click **Update** (the button shows how many agents will change, for example **Update 4 agents**).
+
+Each agent is saved on its own. If some can't be saved, the panel shows which ones and why, and a **Retry** button (for example **Retry 2 agents**) tries only those. If an agent's connection or model changed since you opened the panel, Paperclip refuses that one rather than overwrite it — close the panel and select it again to review the latest settings.
+
+A few things to know:
+
+- **Changes apply to future runs.** Running work keeps its current settings, and model overrides you've set on individual tasks stay in place. A model change may start a fresh session.
+- **Some agents can't be bulk edited.** Their checkbox is disabled — hover it to see why. Agents whose adapter manages its own connection (such as HTTP or process agents) and agents that use a connection pool are edited on their own [Harness / Runtime](#harness-runtime) page instead.
+- **Each change is recorded.** Every updated agent gets a new entry on its [Revisions](#revisions) page.
+- Bulk editing lives in the list view only; the org chart doesn't have checkboxes.
 
 ### Creating a new agent from the list
 
@@ -180,7 +193,7 @@ The actions in the header work on every page:
 - **Set as my primary** — a small link under the agent's name that makes this agent your personal default. See [Your primary agent](#your-primary-agent).
 - **Assign Task** — opens the new-task dialog with this agent pre-selected as assignee
 - **Run now** — wakes the agent for a heartbeat right away and takes you to the new run (useful for testing instruction changes)
-- **Run with provider trace** — the same, but also records the exact traffic to the model provider for that run. Only instance administrators (or a local single-user setup) see this button, and the trace expires after 24 hours.
+- **Raw tracing on** — a small label next to **Run now** when the agent is recording the exact traffic to its model provider. There's no separate trace button; to capture traces, turn on **Capture raw provider traces** in the **Debugging** card on the agent's [Harness / Runtime](#harness-runtime) page and save. Tracing then applies to every future run until you switch it off, and each trace is deleted after 24 hours.
 - **Pause / Resume** — toggles the agent between `paused` and `active`. An agent whose setup isn't finished shows **Finish setup** instead of **Resume**.
 - **Clear error** — appears when the agent is in `error`, and returns it to idle
 - **More actions (`⋯`)** — Duplicate Agent, Copy Agent ID, Reset Sessions, Terminate
@@ -463,7 +476,7 @@ The page is a stack of cards, top to bottom:
 - **Environment** — where the agent runs. Leave it on the company default or pick a specific environment.
 - **Environment variables** — values passed to the agent's runtime on every run.
 - **Run Policy** — when the agent wakes up on its own (see below).
-- **Debugging** — the **Capture raw provider traces** switch. Only instance administrators see this card.
+- **Debugging** — the **Capture raw provider traces** switch. Turn it on and save to record the exact provider traffic for every future run until you turn it off; traces may contain sensitive prompts and tool arguments, and are deleted after 24 hours. Only instance administrators see this card.
 
 Adapter-specific fields only affect this agent — changing them has no effect on any other agent.
 
@@ -700,7 +713,7 @@ In a run's detail view, you see a **session ID before** and **session ID after**
 
 While an agent is going through setup, or is mid-pause or mid-resume, its status reads `paused`; while termination and cleanup are still finishing, it reads `terminated`. The status line under the agent's name tells you which step is actually in progress — see [Setup checks before a new agent starts work](#setup-checks-before-a-new-agent-starts-work).
 
-The status dot on every row and badge on the agent header reflect one of these values directly. The **Active** filter on the agent list expands to include `active`, `running`, and `idle`, because all three mean "this agent is healthy and doing (or ready to do) work". **Paused** and **Error** are their own filters for triage.
+The status badge on every row and on the agent header reflects one of these values directly. `active`, `running`, and `idle` all mean "this agent is healthy and doing (or ready to do) work"; `paused` and `error` are the ones to watch for when you triage.
 
 **One thing to know about `paused`:** you can still assign work to a paused agent — staging a task for an agent you plan to resume later is a legitimate workflow, and the pause state is right there on screen so you know what you're doing. Other **agents** can't. When an agent tries to assign a task to a paused agent, Paperclip refuses it with `Cannot assign work to a paused agent. Assign an invokable agent, leave the issue unassigned, or escalate to a board operator instead.` Without that refusal, agent escalations to a paused manager would be accepted and then never run. See [Delegation → Guardrails on agent-to-agent delegation](./delegation.md#guardrails-on-agent-to-agent-delegation).
 

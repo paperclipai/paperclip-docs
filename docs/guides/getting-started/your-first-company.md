@@ -51,6 +51,16 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
    Your company now exists, with no goal and no team yet. That's exactly where you should be.
 
+### Connecting a model in the wizard
+
+After **Create your first agent**, the wizard's last screen is **Connect a model**. Pick a **Model source** tile, then sign in with your subscription or click **Use API key instead** to paste a key.
+
+Already run your own model gateway? When you pick **Claude** or **OpenAI** and switch to an API key, a **Use a custom gateway** button appears under the key field. It opens **Custom gateway connection**, the same form you'd use from **Connectors**, with the **API format** already set to match — **Anthropic Messages · Claude** for Claude, **OpenAI Responses · Codex** for OpenAI. Fill in your gateway's details and click **Save connection**.
+
+Back on the card, choose a model for your saved connection; you can't click **Connect** until you've picked one. **Connect** then tests the gateway with your agent and finishes setup. Changed your mind? **Use a different API key** takes you back to the plain key field. See [Custom model providers](../../connectors/custom-model-providers.md) for the gateway fields and how to pick the right format.
+
+> **On Paperclip Cloud:** if the wizard can't finish connecting your agent, it says *"Paperclip couldn't finish connecting this agent. Try connecting again."* rather than showing troubleshooting commands. If your environment has an older Claude Code, Paperclip prepares a compatible version for you before the test, so there's nothing to upgrade by hand.
+
 ---
 
 ## Set your goal after creating the company

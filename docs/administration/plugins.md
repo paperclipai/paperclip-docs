@@ -173,7 +173,17 @@ If you disable or uninstall one of those plugins, the agents that rely on it can
 
 ### Plugins that store your project's code
 
-A plugin can also take over where a project's repository lives. Instead of Paperclip keeping the code on its own disk and making each task's checkout there, the plugin keeps the project's storage — inside remote agent computers, for example — and prepares a checkout there for each task. Nothing changes for a project until its `executionWorkspacePolicy.storageProviderPluginId` is set to that plugin's ID; there's no project-settings control for this yet, so it's set through the [projects API](../reference/api/goals-and-projects.md).
+A plugin can also take over where a project's repository lives. Instead of Paperclip keeping the code on its own disk and making each task's checkout there, the plugin keeps the project's storage — inside remote agent computers, for example — and prepares a checkout there for each task.
+
+To choose where a project's code lives, open the project's configuration and use **Workspace storage**:
+
+- **Inherit installed default** — use the storage plugin that claims the default, or Core / local storage if none does.
+- **Core / local** — keep the code on the Paperclip host, even if a plugin is the default.
+- **A specific plugin** — use that plugin. The one that claims the default is marked "(default)".
+
+Under the picker, the project shows *"Inherited default: …"* or *"Selected: …"* so you can tell which one applies. The same setting is `executionWorkspacePolicy.storageProviderPluginId` in the [projects API](../reference/api/goals-and-projects.md): a plugin ID, `null` for Core / local, or left out to inherit.
+
+A storage plugin can claim the default when you install it. Once it's enabled for a company, every project there that's still set to inherit starts using it, including projects that existed before. If two enabled plugins both claim the default, inheriting projects show an error naming both until you pick a provider for the project or disable one of them. If the default plugin is unavailable, runs fail instead of quietly falling back to local storage. Changing the default never moves or recreates workspaces that already exist.
 
 A few things behave differently for those projects:
 
@@ -181,7 +191,7 @@ A few things behave differently for those projects:
 - **The owner is locked while work is live.** You can't change the project's repository source or its storage plugin while task workspaces still depend on them. Existing workspaces keep the owner they were created with.
 - **Cleanup is careful.** Paperclip only asks the plugin to remove a task's checkout once it's clean and its work is recoverable or merged.
 - **Agents run through the same plugin.** To run agents against that storage, the project's [environment](../experimental/environments.md) must come from the same plugin.
-- **Some workspace options don't apply.** When a Paperclip Runner agent works in a plugin environment, the plugin owns the task's workspace. Workspace services, Paperclip-made Git worktrees, and fresh attempts that discard the retained workspace aren't available there, and a workspace stays with the agent and environment that created it. Paperclip shows an error explaining which one blocked the run.
+- **Some workspace options don't apply.** When a Paperclip Runner agent works in a plugin environment, the plugin owns the task's workspace. Workspace services and Paperclip-made Git worktrees aren't available there, and a workspace stays with the agent and environment that created it. Retrying a task in a fresh workspace only works if the plugin supports it; the failed attempt's workspace is kept either way. Paperclip shows an error explaining which one blocked the run.
 
 Plugins like this may also keep private per-project credentials, such as a token for the remote storage. Paperclip stores them in its own encrypted secret store rather than the plugin's settings, and they never appear in your company's secret list. Because they're encrypted with your instance's local secrets master key, back that key up together with your database — see [Secrets](../reference/deploy/secrets.md).
 

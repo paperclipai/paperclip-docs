@@ -499,6 +499,37 @@ Important behavior:
 - Terminated agents cannot be resumed through a status patch.
 - Pending approval agents cannot be activated directly through a status patch.
 
+### Change only the connection or default model (`runtimeSettings`)
+
+The **Edit connection & model** bulk action on the agent list (see [Agents → Change the connection or model for several agents at once](../../guides/org/agents.md#change-the-connection-or-model-for-several-agents-at-once)) uses a narrower form of this route. Instead of sending `adapterConfig` and `runtimeConfig`, you send a single `runtimeSettings` object, and the server merges just the model and AI connection into the agent's latest configuration. Every other setting is left untouched.
+
+| Field | Notes |
+|---|---|
+| `harness` | Required. The harness you expect the agent to be on, such as `codex_local` or `claude_local`. If the agent's harness changed, the call fails with `409` and `This agent's harness changed. Refresh the roster and select it again.` |
+| `model` | Optional. The new default model, up to 512 characters. |
+| `aiConnection` | Optional. The new AI connection binding: `{ "mode": "shared" \| "delegated", "provider", "method", "connectionId", "grantId" }` or `{ "mode": "responsible_user", "provider", "method" }`. |
+| `expected` | Required. `{ "model": <string or null>, "aiConnection": <binding or null> }` — the values you saw before editing. If either no longer matches, the call fails with `409` and `This agent's connection or model changed. Refresh the roster and review the changes again.` |
+
+Send at least one of `model` or `aiConnection`; otherwise validation fails with `Choose a connection or default model to change`.
+
+```json
+{
+  "runtimeSettings": {
+    "harness": "codex_local",
+    "model": "gpt-5.5",
+    "expected": { "model": "gpt-5.4", "aiConnection": null }
+  }
+}
+```
+
+Rules to know:
+
+- `runtimeSettings` can't be combined with any other field in the same request (`422` with `Runtime settings cannot be combined with other agent changes`).
+- The caller needs permission to configure the agent — the same check used for agent setup. The update is still recorded as a configuration revision.
+- `process` and `http` agents, and agents that are `terminated` or `pending_approval`, are refused with `422` and `This agent cannot be updated from the roster`.
+- Connection pools can't be set or changed this way (`422` with `Edit connection pool members on the agent's configuration page`).
+- When the selected connection lists specific models, the model must be one of them; otherwise the call fails with `422` and `Choose a default model available on the selected connection`.
+
 ### Example
 
 <!-- tabs: cURL, JavaScript, Python -->

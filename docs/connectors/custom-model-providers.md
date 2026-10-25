@@ -57,6 +57,8 @@ Open the agent's **Connection** selector and choose the named compatible account
 
 When you create a new agent, the **Connect a model** step shows three tiles side by side: the provider's subscription, the provider's API key, and **Advanced** (tagged **Custom Gateway**). Choose **Advanced** to pick a saved compatible connection, or set up a new OpenRouter, Amazon Bedrock, **Custom gateway**, or **Local endpoint** connection without leaving agent setup. Then select **Use connection**.
 
+The first-agent setup wizard offers the same gateway form. After you pick Claude or OpenAI and switch to an API key, select **Use a custom gateway**, save the connection, and choose a model before **Connect** — see [Connecting a model in the wizard](../guides/getting-started/your-first-company.md#connecting-a-model-in-the-wizard).
+
 A personal account can be selected explicitly, or a connection manager can share an account with the company. Every run still needs a responsible user who may use the credential, and the connection must be available to the agent. See [How connector access works](access-model.md).
 
 Use an exact model ID supplied by the endpoint. The IDs saved on the connection become model-picker choices; you can also enter an ID on the agent. Paperclip does not automatically fetch a model catalog from arbitrary gateways, local servers, or Bedrock. An OpenRouter connection without saved model IDs uses OpenRouter's public catalog and offers a refresh.
