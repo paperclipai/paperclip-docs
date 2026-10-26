@@ -514,6 +514,7 @@ The rest of the **Runtime** section in the side menu covers what the agent can r
 The **Permissions / Trust** page sets how much the agent is trusted and what it's allowed to do:
 
 - **Trust** — the **Trust preset** decides how broadly the agent can read and act on Paperclip work. See [Trust and low-trust review](../../administration/trust-and-low-trust-review.md).
+- **Allowed projects** — for a **Low-trust review** agent, the projects whose tasks and repositories it may access. Choose **Add project**, then **Save project access** to add more without loosening any other restriction. See [Allowed projects](../../administration/trust-and-low-trust-review.md#allowed-projects).
 - **Permissions** — switches for **Can create new agents**, **Can create/import skills**, and **Can assign tasks**. Task assignment is switched on automatically for the CEO and for any agent that can create agents.
 
 These switches save as soon as you flip them.

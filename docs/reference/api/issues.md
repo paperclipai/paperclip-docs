@@ -138,6 +138,7 @@ Notes:
 - `limit` must be a positive integer.
 - Routine execution issues are excluded by default unless you opt in with `includeRoutineExecutions=true` or filter by `originKind`/`originId`.
 - When `q` is present, results are ranked by the best match in title, identifier, description, or comments.
+- ID filters must be UUIDs. A malformed `participantAgentId`, `projectId`, `workspaceId`, `executionWorkspaceId`, `parentId`, `parentIssueId`, `descendantOf`, `createdFromIssueId`, or `labelId` returns `422` with an error naming the parameter, such as `parentId must be a UUID`. The `/issues/count` endpoint checks the same filters.
 - `includeAgentCreatedTasks` and `includeParticipatedTasks` return `400` for any value other than `true` or `false`. `includeParticipatedTasks=true` from a non-board caller returns `403`. The agent-created filter is applied before `limit` and pagination. The board's **show agent-created tasks** checkbox drives it.
 
 ### Example

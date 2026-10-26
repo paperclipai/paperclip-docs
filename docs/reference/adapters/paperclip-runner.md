@@ -66,13 +66,19 @@ Existing agents, and hires that are already waiting for review, keep their saved
 
 Already have a Claude Code or Codex agent on the Legacy runner? When Paperclip Runner is the default for that agent's environment, its **Harness / Runtime** page shows an **Upgrade to Paperclip Runner** notice. Click **Upgrade runner** to move it over in one step.
 
+You can also upgrade an agent whose computer hasn't been verified for the Runner yet, such as a Daytona snapshot or a sandbox pinned to an image digest. The notice tells you *"The upgrade will verify your computer first. This can take a few minutes."* When you click **Upgrade runner**, Paperclip checks the agent's saved computer, then converts the agent if the check passes. If the computer doesn't support the Runner, you see *"This environment does not support Paperclip Runner. Your agent still uses Legacy runner."* and nothing changes.
+
+You don't need instance-admin access for this. Anyone who can update the agent, such as a company owner, can run the check and the upgrade.
+
 - **What stays the same.** The agent keeps its harness, model, account, instructions, and every setting the Runner can honor. Settings are translated exactly as they are for a new agent (see [What carries over for Claude](#what-carries-over-for-claude)).
 - **Unsaved edits come along.** If you've changed anything on the page, the notice says *"Your unsaved changes will be included."* and the upgrade saves those edits too.
+- **Save a computer change first.** If you've picked a different computer but haven't saved it, the notice says *"Save your computer change before upgrading the runner."* and the button stays disabled until you save.
+- **Old Claude tuning options are dropped.** Settings the Runner doesn't use, like a turn limit, don't block the upgrade. Paperclip removes them and shows a warning for each one (see [What carries over for Claude](#what-carries-over-for-claude)).
 - **Fresh sessions, same history.** The agent's next runs start new sessions on the Runner. Its past runs stay available.
 - **While it works** the button reads **Upgrading…**, and when it's done you see *"Upgraded to Paperclip Runner."*
 - **If a setting can't carry over**, the error appears in the notice and the agent stays on the Legacy runner. Fix or remove the setting the error names, then click **Upgrade runner** again.
 
-The notice only appears for Claude Code and Codex agents on the Legacy runner whose environment defaults to the Runner. You won't see it for agents already on the Runner, for other harnesses, for environments that keep the Legacy runner, or when Paperclip can't check runner availability. Opening the page or saving unrelated changes never upgrades an agent. From the API, the same switch is a normal agent update that sends `runner: "paperclip"`.
+The notice only appears for Claude Code and Codex agents on the Legacy runner whose environment defaults to the Runner, or whose active sandbox computer Paperclip can verify on the spot. You won't see it for agents already on the Runner, for other harnesses, for environments that keep the Legacy runner, or when Paperclip can't check runner availability. Opening the page or saving unrelated changes never upgrades an agent. From the API, the same switch is a normal agent update that sends `runner: "paperclip"`.
 
 ### What carries over for Claude
 
@@ -82,7 +88,9 @@ A Claude agent that lands on the Runner keeps your connection, instructions, ski
 - **Effort.** The thinking effort you chose is saved as `modelReasoningEffort`. The Runner waits for Claude to confirm that effort before it sends the first prompt, and again when it resumes a session. If Claude ignores the setting, or the model isn't available, the run stops with an error instead of carrying on without it.
 - **Permissions.** The Runner uses `acpxPermissionMode`, which defaults to `approve-all`. An older `permissionMode` of `approve-all`, `approve-reads`, or `deny-all` is carried over; any other value fails.
 
-These `claude_local` settings only work on the Legacy runner: `chrome`, a custom `command`, `agentCommand`, `stateDir`, `warmHandleIdleMs`, `extraArgs`, filesystem or network scopes, `maxTurnsPerRun`, a `mode` other than `persistent`, a `nonInteractivePermissions` other than `deny`, and `dangerouslySkipPermissions: false`. Setting one while the Runner is picked fails with `agent_runner_config_incompatible`. The agent form leaves out its default turn limit when the Runner is selected, so you only hit this if you change it.
+A few older Claude tuning options have no Runner equivalent, so the Runner ignores them instead of failing: `maxTurnsPerRun`, `chrome`, `warmHandleIdleMs`, and `acpWarmHandleIdleMs`. If one is set, Paperclip drops it when the agent is saved or upgraded and shows a warning such as *"Max turns per run (maxTurnsPerRun) is not supported by Paperclip Runner and is ignored. The agent can still run."* The agent keeps running, but without a turn cap, Chrome integration, or the old idle-time tuning.
+
+These `claude_local` settings still only work on the Legacy runner: a custom `command`, `agentCommand`, `stateDir`, `extraArgs`, filesystem or network scopes, a `mode` other than `persistent`, a `nonInteractivePermissions` other than `deny`, and `dangerouslySkipPermissions: false`. Setting one while the Runner is picked fails with `agent_runner_config_incompatible`.
 
 ### What carries over for OpenCode
 

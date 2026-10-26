@@ -337,7 +337,8 @@ Important behavior:
 - For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds a short default `AGENTS.md`: a one-line role description for `role: "ceo"`, or a one-line generic placeholder for every other role. Keep it short — Paperclip's runtime and installed skills already supply the operating procedures. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
 - The optional `runner` field picks how a Codex, Claude Code, OpenCode, or Pi agent runs: `auto` (the default), `paperclip`, or `legacy`. With `adapterType: "codex_local"`, `auto` stores the agent as `paperclip_runner` with `provider: "codex"` when the target environment qualifies for Paperclip Runner (macOS on Apple Silicon or Intel, or Linux x64/ARM64 with GNU libc 2.39 or newer), and keeps `codex_local` otherwise. With `adapterType: "claude_local"`, `auto` stores `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"` on the same targets, except that a macOS host reached over SSH, or a target whose platform can't be detected, keeps `claude_local`. A blank Claude `model` resolves to `claude-opus-5-5`. With `adapterType: "opencode_local"`, `auto` stores `paperclip_runner` with `provider: "opencode"`, and with `adapterType: "pi_local"` it stores `provider: "acpx"` and `acpxAgent: "pi"`; both keep the classic adapter on Linux ARM64. `legacy` always keeps the classic adapter. See [New Codex and Claude agents use the Runner](../adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
-- Asking for `paperclip` on a target that doesn't qualify fails with `422` and code `agent_runner_unavailable`. Legacy-only settings that Paperclip Runner can't honour (for example a `codexPermissionMode` other than `never`, or `chrome` or `maxTurnsPerRun` on a Claude agent) fail with `422` and code `agent_runner_config_incompatible`, listing the offending `fields` — remove them or choose `legacy`.
+- Asking for `paperclip` on a target that doesn't qualify fails with `422` and code `agent_runner_unavailable`. Legacy-only settings that Paperclip Runner can't honour (for example a `codexPermissionMode` other than `never`) fail with `422` and code `agent_runner_config_incompatible`, listing the offending `fields` — remove them or choose `legacy`.
+- A few obsolete Claude options — `maxTurnsPerRun`, `chrome`, `warmHandleIdleMs`, and `acpWarmHandleIdleMs` — don't block a Claude agent on Paperclip Runner. The server drops them and the response includes a `configurationWarnings` array, with one `{ "code": "runner_option_ignored", "field", "message" }` entry per ignored option. The agent can still run. The array is left out when nothing was ignored. See [Configuration warnings](#configuration-warnings).
 - Only an operator can set `adapterConfig.homeMode`. An agent caller that includes it gets `403` with `Only an operator can configure Runner homeMode.`
 - To save an agent before setup is finished (the way the **New Agent** dialog does when you submit a name), send a fresh uuid as `setupId`. The server creates the agent with that ID, `status: "paused"`, and `pauseReason: "setup"`, and skips the board-approval check, which happens when the hire is finished. Sending the same `setupId` again returns the same agent. Only a signed-in board user can do this. While setup is unfinished, `POST /api/agents/{agentId}/resume` returns `409` with `Finish agent setup before resuming`, and creating an API key returns `409` with `Finish agent setup before creating keys`.
 
@@ -475,6 +476,7 @@ Important behavior:
 - An agent on the `paperclip_runner` adapter can send `"inheritRuntimeFrom": "caller"` to give the new hire the calling agent's runner settings and default environment. The new agent must also use `adapterType: "paperclip_runner"`, and you can't combine this with `adapterConfig`, `runtimeConfig`, or `defaultEnvironmentId` — the server copies the adapter config and default environment from the calling agent. Board users can't use this option; it's rejected with `403 Forbidden`.
 - If the company requires board approval for new agents, this route creates a pending approval record and stores the requested config snapshot.
 - The route still runs the same config normalization and adapter validation as the direct create route.
+- When obsolete Claude options were ignored, the returned `agent` object carries a `configurationWarnings` array, just like the create route. See [Configuration warnings](#configuration-warnings).
 - To finish an agent saved with `setupId` on the create route, send its ID as `setupAgentId`. The hire completes that same agent instead of creating a new one, and any board-approval requirement applies here. Repeating the call for an agent whose setup is already finished returns the agent and its approval with `idempotent: true`. An unknown ID returns `404` with `Agent setup not found`.
 
 ---
@@ -498,6 +500,21 @@ Important behavior:
 - Renaming an agent can fail with `409 Conflict` if the new shortname would collide with another non-terminated agent in the company.
 - Terminated agents cannot be resumed through a status patch.
 - Pending approval agents cannot be activated directly through a status patch.
+- Saving a Claude agent on Paperclip Runner with obsolete options drops them and returns a `configurationWarnings` array. See [Configuration warnings](#configuration-warnings).
+
+### Configuration warnings
+
+Sometimes a saved agent carries settings that Paperclip Runner no longer uses. Rather than refusing the whole save, the server ignores those settings and tells you which ones it dropped.
+
+The create, hire, and update responses add a `configurationWarnings` array only when something was ignored. Each entry looks like this:
+
+| Field | Meaning |
+|---|---|
+| `code` | Always `runner_option_ignored`. |
+| `field` | The ignored `adapterConfig` key, such as `maxTurnsPerRun` or `chrome`. |
+| `message` | A readable explanation you can show to people, ending with "The agent can still run." |
+
+In the agent's settings, these messages appear in the **Agent saved** toast.
 
 ### Change only the connection or default model (`runtimeSettings`)
 
@@ -617,6 +634,86 @@ Current permission fields:
 Board sessions can call this route. Agent sessions can only call it when the caller is the company CEO agent.
 
 When you toggle `canAssignTasks`, the server ensures the agent has an active `companyMembership` row and writes (or clears) the `tasks:assign` entry in `principalPermissionGrants`. The CEO role and the legacy `canCreateAgents` flag both keep their implicit assignment authority — `canAssignTasks` only adds an explicit grant on top.
+
+## Allowed Projects (Project Access)
+
+Lets an operator see and extend the projects a low-trust agent may work in.
+
+`GET /api/agents/{agentId}/project-access`
+`POST /api/agents/{agentId}/project-access`
+
+An agent on the `low_trust_review` preset can only reach projects listed in its trust boundary (`permissions.authorizationPolicy.trustBoundary.projectIds`). When it's assigned a task in any other project, workspace setup stops the run before it starts. These routes are how the **Allowed projects** editor reads that list and adds to it — see [Trust & Low-Trust Review → Allowed projects](../../administration/trust-and-low-trust-review.md#allowed-projects).
+
+Both routes are board-only. An agent caller gets `403`, and an agent outside your companies returns `404` with `Agent not found`.
+
+### Read project access
+
+`GET` returns the current list and whether you may change it:
+
+```json
+{
+  "projectIds": ["7f0c1d2e-0000-4000-8000-000000000001"],
+  "canManage": true
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `projectIds` | The projects already in the agent's trust boundary. Empty when none are set. |
+| `canManage` | `true` only when you have permission to create agents in the company, the agent isn't `pending_approval`, and the agent is on the `low_trust_review` preset with no trust boundary, or a `low_trust_review` boundary that isn't tied to another company. |
+
+### Add projects
+
+`POST` adds projects. It never removes any.
+
+```json
+{
+  "projectIds": ["7f0c1d2e-0000-4000-8000-000000000002"]
+}
+```
+
+- `projectIds` is required: between 1 and 100 project UUIDs. No other fields are accepted.
+- Projects already allowed are skipped, and duplicates are collapsed.
+- Every other part of the agent's permissions and trust boundary stays exactly as it was. The new ids are appended to the existing list.
+- The response has the same shape as `GET`, with the full updated `projectIds` and `canManage: true`.
+- When something new is added, the activity log records `agent.project_access_added` with the `addedProjectIds`.
+- Saving access doesn't start or retry any work. Retry the task separately.
+
+Errors:
+
+| Status | When |
+|---|---|
+| `403` | You don't have permission to create agents in the company, or you can't read one of the selected projects (`A selected project is unavailable`). |
+| `404` | One of the selected projects isn't in the agent's company (`A selected project is unavailable`). |
+| `409` | The agent is still `pending_approval` (`Pending approval agent permissions cannot be changed before board approval`), its trust settings can't be read (`The agent’s trust settings need review before adding project access.`), or it's no longer on the `low_trust_review` preset, or it has a trust boundary that isn't a `low_trust_review` boundary for this company (`The agent’s trust settings changed. Refresh before adding project access.`). |
+
+---
+
+## Qualify the Agent's Computer for Paperclip Runner
+
+Checks that a Claude or Codex agent's saved computer can run Paperclip Runner, and records the result.
+
+`POST /api/agents/{agentId}/qualify-runner`
+
+Use this when you're moving a `claude_local` or `codex_local` agent onto Paperclip Runner and its default environment is a sandbox. Send the environment id you expect the agent to use:
+
+```json
+{
+  "expectedEnvironmentId": "5b6a7c8d-0000-4000-8000-000000000003"
+}
+```
+
+- `expectedEnvironmentId` is required and must be a UUID. No other fields are accepted.
+- You need permission to update the agent — the same check as editing its configuration. You don't need to be an instance admin.
+- The server probes the environment and returns a result with `ok`, `driver: "sandbox"`, a `summary`, and `details.platformQualificationRecorded`, which is `true` only when the computer was qualified.
+- Every completed probe, whether it passes or fails, is logged as `agent.runner_qualification_tested`.
+
+Errors:
+
+| Status | When |
+|---|---|
+| `409` | The agent's computer can't be resolved or has changed since you loaded it (`The agent's computer changed. Save any environment changes, reload, and retry the upgrade.`). |
+| `422` | The agent isn't a `claude_local` or `codex_local` agent (`This agent does not need a runner upgrade.`), or its computer isn't a sandbox (`This computer does not need sandbox qualification.`). |
 
 ---
 

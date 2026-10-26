@@ -323,8 +323,6 @@ The fields are grouped into sections, in this order. Some rows only appear when 
 **About**
 
 - **Originating** — the user or agent that created the task.
-
-When an agent creates a task while it's working on another one, the new task shows **Created from *&lt;task&gt;* by *&lt;agent&gt;*** under the breadcrumb (on the default page, in the **Tasks** tab). It tells you where the task came from without digging through run logs. It's only a record of where the task came from. It isn't a parent link or a blocker, and it only appears when you're allowed to see the source task.
 - **Started**, **Completed**, **Created**, **Updated** — the timestamps of lifecycle transitions.
 - **Depth** — how deep this task sits in its parent hierarchy (only shown for subtasks).
 
@@ -670,6 +668,8 @@ An empty composer shows **Stop** while the task is running and you can manage ta
 While paused, the composer says **Task is paused.** or **Subtree is paused.**, preserves your draft, and offers **Resume task** or **Resume subtree**. Resume releases the hold; waking agents is optional. If an interrupted run has uncertain outcomes, a resume that also tries to wake it is refused and the pause remains. Inspect the stopped run and follow its recovery instructions before continuing. See [Stop, pause, and resume](../../experimental/task-chat.md#stop-pause-and-resume) for the complete flow.
 
 If a run stops for a reason Paperclip can repair itself, the task shows one short status line instead of a stack of warnings: *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* once it has stopped retrying. **Retry** asks Paperclip to try the task again with your saved messages. If the provider rejected the selected model, choose a supported model or clear the task override, then retry. A provider sign-in request needs your authentication step before the run can continue. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention).
+
+A low-trust agent can also be stopped because the task's project isn't one of its allowed projects. Then the task shows a **Project access** notice instead: the agent hasn't started, and your message is saved. Choose **Manage project access** (or **View agent access** if you can't change it) to open the agent's settings and add the project. Saving access doesn't restart anything. Back on the task, the notice reads **Project access is ready**, and **Retry task** picks the work up again. See [Allowed projects](../../administration/trust-and-low-trust-review.md#allowed-projects).
 
 ## Recovery actions
 
