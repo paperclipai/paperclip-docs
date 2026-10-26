@@ -660,7 +660,7 @@ Both routes are board-only. An agent caller gets `403`, and an agent outside you
 | Field | Meaning |
 |---|---|
 | `projectIds` | The projects already in the agent's trust boundary. Empty when none are set. |
-| `canManage` | `true` only when you have permission to create agents in the company, the agent isn't `pending_approval`, and the agent is on the `low_trust_review` preset with a boundary for this company. |
+| `canManage` | `true` only when you have permission to create agents in the company, the agent isn't `pending_approval`, and the agent is on the `low_trust_review` preset with no trust boundary, or a `low_trust_review` boundary that isn't tied to another company. |
 
 ### Add projects
 
@@ -685,7 +685,7 @@ Errors:
 |---|---|
 | `403` | You don't have permission to create agents in the company, or you can't read one of the selected projects (`A selected project is unavailable`). |
 | `404` | One of the selected projects isn't in the agent's company (`A selected project is unavailable`). |
-| `409` | The agent is still `pending_approval`, or its trust settings changed or need review (`The agent’s trust settings changed. Refresh before adding project access.`). |
+| `409` | The agent is still `pending_approval` (`Pending approval agent permissions cannot be changed before board approval`), its trust settings can't be read (`The agent’s trust settings need review before adding project access.`), or it's no longer on the `low_trust_review` preset, or it has a trust boundary that isn't a `low_trust_review` boundary for this company (`The agent’s trust settings changed. Refresh before adding project access.`). |
 
 ---
 
@@ -706,13 +706,13 @@ Use this when you're moving a `claude_local` or `codex_local` agent onto Papercl
 - `expectedEnvironmentId` is required and must be a UUID. No other fields are accepted.
 - You need permission to update the agent — the same check as editing its configuration. You don't need to be an instance admin.
 - The server probes the environment and returns a result with `ok`, `driver: "sandbox"`, a `summary`, and `details.platformQualificationRecorded`, which is `true` only when the computer was qualified.
-- Every attempt is logged as `agent.runner_qualification_tested`.
+- Every completed probe, whether it passes or fails, is logged as `agent.runner_qualification_tested`.
 
 Errors:
 
 | Status | When |
 |---|---|
-| `409` | The agent's computer changed since you loaded it (`The agent's computer changed. Save any environment changes, reload, and retry the upgrade.`). |
+| `409` | The agent's computer can't be resolved or has changed since you loaded it (`The agent's computer changed. Save any environment changes, reload, and retry the upgrade.`). |
 | `422` | The agent isn't a `claude_local` or `codex_local` agent (`This agent does not need a runner upgrade.`), or its computer isn't a sandbox (`This computer does not need sandbox qualification.`). |
 
 ---

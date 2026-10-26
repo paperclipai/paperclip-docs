@@ -132,9 +132,9 @@ Where Slack has a control that fits the request, you answer right on the card:
 | A choice, or your own answer | A button for each option, plus **Other…** to type your own |
 | Typed answers or several questions | **Respond**, which opens a Slack form with any starting text already filled in |
 | A yes-or-no confirmation | **Accept** and **Reject**, or the labels the agent chose |
-| A checklist | **Select checks** checkboxes, then **Save checks** (or the agent's label) |
-| A verdict on each item in a list | **Review decisions**, which opens a form with a verdict and an optional reason per item |
-| Tasks it suggests creating | **Create task** and **Dismiss** for one task. For several, pick them under **Select tasks to create** and click **Create selected**, or use **Revise in Paperclip** to change them first |
+| A checklist | **Select checks** checkboxes (a multi-select dropdown when there are more than 10), then **Save checks** (or the agent's label) |
+| A verdict on each item in a list | **Review decisions**, which opens a form with a verdict and a reason per item (optional unless the agent requires one for that verdict) |
+| Tasks it suggests creating | **Create task** and **Dismiss** for one task. For several, pick them under **Select tasks to create** and click **Create selected**. Either way, **Revise in Paperclip** lets you change them first |
 | Access to another service | **Review connection** to open the request in Paperclip, or **Not now** to decline it |
 
 Slack forms remind you that **Your answers will be shared in this Slack conversation.** If an answer doesn't match a required format, the form stays open and asks you to use the format shown.
