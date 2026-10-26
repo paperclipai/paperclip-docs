@@ -122,6 +122,31 @@ If you stop the agent's run from the Slack thread, the current response ends. Yo
 
 A Slack-linked task shows a **Connected to Slack** banner with an **Open Slack** link. Messages you send on the task, and the agent's replies, are also posted to the Slack thread, labelled with your name. You can also write in the banner's composer and click **Send to channel**: your message is posted to Slack with your name and starts the agent. Your Slack account must be linked to this connection for your messages to go through.
 
+### Answer questions and reviews in Slack
+
+When the agent needs something from you on a Slack-started task, such as an answer, a decision, or a review, it posts a card in the same thread. The card shows the actual question with its context, help text, and any recommended option marked **(recommended)**, so you can decide without leaving Slack.
+
+Where Slack has a control that fits the request, you answer right on the card:
+
+| The agent asks for | What you see in Slack |
+| --- | --- |
+| One choice from a short list | A button for each option |
+| One choice from a longer list | A searchable **Choose an answer** dropdown |
+| One or more choices | Checkboxes (or a **Choose one or more** dropdown for long lists), then **Submit answer** |
+| A choice, or your own answer | A button for each option, plus **Other…** to type your own |
+| Typed answers or several questions | **Respond**, which opens a Slack form with any starting text already filled in |
+| A yes-or-no confirmation | **Accept** and **Reject**, or the labels the agent chose |
+| A checklist | **Select checks** checkboxes, then **Save checks** (or the agent's label) |
+| A verdict on each item in a list | **Review decisions**, which opens a form with a verdict and an optional reason per item |
+| Tasks it suggests creating | **Create task** and **Dismiss** for one task. For several, pick them under **Select tasks to create** and click **Create selected**, or use **Revise in Paperclip** to change them first |
+| Access to another service | **Review connection** to open the request in Paperclip, or **Not now** to decline it |
+
+Slack forms remind you that **Your answers will be shared in this Slack conversation.** If an answer doesn't match a required format, the form stays open and asks you to use the format shown.
+
+Some requests can't be answered faithfully in Slack, so the card gives you an **Open in Paperclip** link instead. These include confirmations that need a reason when you reject, ones that approve a tool action, secret, or connection, reviews of a document, and requests too long for a Slack message. Granting a connection always happens in Paperclip, too. Answering from Slack never gives anyone extra approval rights.
+
+Once you answer, in Slack or in Paperclip, one response is saved and Paperclip checks again that you're allowed to give it. The card then updates to show the saved answer and its buttons go away. The task picks back up, and the agent's result arrives in the same Slack thread.
+
 ### What the agent can do from Slack
 
 The bot connection gives its agent a set of Slack tools. Ask for things in plain language, such as "summarize this thread and create follow-up tasks for the decisions". The agent can:
@@ -229,6 +254,7 @@ A read confirms the credential without putting a message in front of colleagues.
 | A reply in the thread doesn't reach the agent | **Require at-mention** is on, so channel replies need an @mention | @mention the bot in the reply, or turn **Require at-mention** off in **Settings** |
 | The agent reads a channel but won't reply there | The channel is off in **Allowed Channels** | Enable it in **Settings** |
 | **Settings** shows **Add permissions to unlock more tools** | The app predates the newer Slack tools | Add the listed Bot Token Scopes in Slack and reinstall the app |
+| A question card only offers **Open in Paperclip** | The request needs Paperclip's full review screen, such as a rejection reason, an approval with side effects, or a very long request | Click **Open in Paperclip** and answer there. The Slack card updates and the result still arrives in the thread |
 | A scheduled or requested DM doesn't arrive | The responsible person has no linked Slack account, or the app lacks `im:write` | Link the account from **Access**, or reinstall with the updated manifest |
 | Signature verification failures | The signing secret does not match the installed app | Copy the current signing secret and reconnect |
 | Agent-tool route: "Slack MCP access is disabled for this app" | MCP access is switched off in the Slack app's settings; signing in doesn't turn it on | Ask the Slack app owner to enable MCP access, then refresh the connection |

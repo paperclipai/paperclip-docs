@@ -116,6 +116,8 @@ If your instance is managed by a Paperclip control plane rather than run by you,
 | `POST /api/plugins/:pluginId/jobs/:jobId/trigger` | Manually trigger a job run. |
 | `POST /api/plugins/:pluginId/webhooks/:endpointKey` | Inbound webhook delivery to the plugin worker's `handleWebhook`. |
 
+Plugin logs, job runs, and the webhook deliveries on the plugin dashboard are scoped to your companies. A board member sees only rows attributed to companies they belong to, so `GET /api/plugins/:pluginId/logs`, `GET /api/plugins/:pluginId/jobs/:jobId/runs`, and `GET /api/plugins/:pluginId/dashboard` never show another company's log messages or errors. Instance admins and the local trusted board keep the instance-wide view, including instance-level rows that belong to no company.
+
 ## Local folders
 
 Plugins can declare local-folder mounts; the UI and CLI use these endpoints to inspect and configure them per company.

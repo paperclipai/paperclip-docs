@@ -447,14 +447,14 @@ Plain Git expiration only removes a worktree it can rebuild exactly from upstrea
 
 Restore points build on Git expiration, so they only do anything while `PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED` is `true` (and they follow its dry-run setting). Turn them on with `PAPERCLIP_GIT_RESTORE_POINTS_ENABLED=true`. They're off by default.
 
-**What a restore point saves.** Your uncommitted and staged changes, untracked files, local commits that aren't on upstream, file permissions, and ignored files that aren't regenerable build output or caches. Each nested project repository under `.paperclip-repositories/` gets its own restore point. A few things are never saved:
+**What a restore point saves.** Your uncommitted and staged changes, untracked files, local commits that aren't on upstream, file permissions, and ignored files that aren't regenerable build output or caches. Each nested project repository under `.paperclip-repositories/` gets its own restore point. If a nested checkout was converted from an older standalone clone, it can still carry copies of upstream branches that were later deleted or force-pushed. Their commits go into the restore point too, so they no longer keep the worktree on disk. Only branches that are genuinely local hold it back. A few things are never saved:
 
 - Files named `.env` or `.env.*` that Git doesn't track. Paperclip deliberately leaves them out, and they don't keep the worktree on disk either, so they're gone once the worktree is removed. Recreate them, for example from your provision command.
 - Regenerable folders such as `node_modules` and `dist`. The provision command rebuilds them, just as it does after compaction.
 
-If a worktree can't be captured, it simply stays on disk as before. That happens, for example, when it has submodules, special files, a nested repository Git doesn't track, files that go through a Git filter such as LFS, or unresolved merge conflicts. It also happens when the save would be too big: more than 20,000 changed files, a single file over 64 MiB, more than 256 MiB of changes in total, or more than 1,000 unpushed commits.
+If a worktree can't be captured, it simply stays on disk as before. That happens, for example, when it has submodules, special files, a nested repository Git doesn't track, files that go through a Git filter such as LFS, or unresolved merge conflicts. It also happens when the save would be too big: more than 20,000 changed files, a single file over 64 MiB, more than 256 MiB of changes in total, or more than 1,000 unpushed commits. Those limits don't apply when a workspace is moved onto the project's shared clone (see [Extra project repositories share one clone](#extra-project-repositories-share-one-clone)). That transfer stays on the same machine, so it uses much larger limits and oversized workspaces still move.
 
-**When it happens.** A finished task tree gets a restore point once all of its tasks have been done or cancelled for `PAPERCLIP_GIT_RESTORE_POINT_TERMINAL_DELAY_DAYS` (three days by default). Restore points can also clear out worktrees of tasks that are still open but have gone quiet. If nothing in the task tree, in other tasks using the workspace, or in their runs has changed for `PAPERCLIP_GIT_RESTORE_POINT_IDLE_DAYS` (seven days by default), Paperclip saves the worktree and removes it. A queued or running run, a running service, or a pending recovery always keeps the worktree in place.
+**When it happens.** A finished task tree gets a restore point once all of its tasks have been done or cancelled for `PAPERCLIP_GIT_RESTORE_POINT_TERMINAL_DELAY_DAYS` (three days by default). Only the tasks that actually use the workspace count here. If you close a parent task while its children stay open in their own workspaces, the parent's worktree can still be saved and removed. Should one of those children later pick up the parent's workspace, Paperclip brings it back from the restore point. Restore points can also clear out worktrees of tasks that are still open but have gone quiet. If nothing in the task tree, in other tasks using the workspace, or in their runs has changed for `PAPERCLIP_GIT_RESTORE_POINT_IDLE_DAYS` (seven days by default), Paperclip saves the worktree and removes it. A queued or running run, a running service, or a pending recovery always keeps the worktree in place.
 
 **Where it's kept.** Each restore point is encrypted with its own key, which is in turn protected by the instance's secrets master key. The encrypted file goes into the instance's configured [storage](../../reference/deploy/storage.md). If that storage is S3, set `PAPERCLIP_SECRETS_MASTER_KEY` as an environment variable. Without it, Paperclip skips restore points, because a key that only lives on the server's disk might not outlast the bucket.
 
@@ -469,6 +469,23 @@ If someone reopens a task after its restore point has been deleted, Paperclip do
 > The saved state of this workspace expired, so it was reopened as a fresh workspace on its branch. Unpushed and uncommitted work from before it was cleaned up is no longer available.
 
 Anything that was pushed is still on the branch. Only the unpushed and uncommitted work from the saved state is lost.
+
+#### Private repositories
+
+When expiration, a re-home, a nested clone migration, or a reopen needs to reach a workspace's remote, it signs in as the task itself: the task's responsible user and assigned agent, the same identity the agent's own runs use. So workspaces with private repositories expire, move, and come back just like public ones, instead of staying on disk because the remote couldn't be read.
+
+### Task directories without a repository
+
+A task in a project with no repository doesn't get a Git worktree. Its agent works in a plain task directory under the instance's `isolated-workspaces` folder, one per company and task. Git expiration can't help with those, so operators can let Paperclip reclaim them separately:
+
+1. **Saved, then removed.** Once every task in the tree has been done or cancelled for `PAPERCLIP_GIT_RESTORE_POINT_TERMINAL_DELAY_DAYS` (three days by default), Paperclip saves the whole task directory as an encrypted restore point, archives the workspace, and removes the directory. A `node_modules` folder that sits next to a `package.json` is left out, because it can be reinstalled. The same size limits as worktree restore points apply. A directory that's too big stays on disk. One that changes while it's being saved stays too, and Paperclip tries again later.
+2. **Restored on reopen.** When the task reopens, Paperclip puts the directory back exactly as it was before the agent starts. If the restore point has already expired, the task gets an empty directory and this system comment:
+
+   > The saved files of this task directory expired, so it was reopened as an empty directory. Files from before it was cleaned up are no longer available.
+
+3. **Orphans cleared after a grace period.** Some task directories have no live workspace attached, for example because the workspace was archived by hand. Paperclip deletes those once their task tree has been closed and none of their files has changed for `PAPERCLIP_TASK_DIRECTORY_ORPHAN_GRACE_DAYS` (seven days by default). No restore point is made for these, and a running run, service, or recovery always keeps the directory.
+
+Turn it on with `PAPERCLIP_TASK_DIRECTORY_RETENTION_ENABLED=true`. It doesn't need Git expiration, but saving and removing finished directories needs restore points (`PAPERCLIP_GIT_RESTORE_POINTS_ENABLED=true`, plus `PAPERCLIP_SECRETS_MASTER_KEY` on S3 storage). It starts in dry-run mode, where it only logs each directory it inspects (look for `Isolated task directory retention inspected` and `Isolated task directory inspected`, with an outcome of `dry_run` and the bytes it would free). Set `PAPERCLIP_TASK_DIRECTORY_RETENTION_DRY_RUN=false` when you're happy with what it reports.
 
 ---
 
@@ -518,7 +535,7 @@ When a project has more than one repository, each task worktree also gets a chec
 Instances that ran older versions may still have full standalone clones lying around. Operators can move them onto the shared clone, keeping each workspace's exact state:
 
 - `PAPERCLIP_NESTED_CLONE_MIGRATION_ENABLED=true` converts standalone nested clones in open workspaces into worktrees of the shared clone, keeping their branches and local history, and then deletes the standalone clones.
-- `PAPERCLIP_ISOLATED_SOURCE_REHOME_ENABLED=true` moves open isolated workspaces that still have their own private clone onto the project's shared clone, then deletes the private clone once nothing else uses it. This one also needs Git expiration (`PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED=true`).
+- `PAPERCLIP_ISOLATED_SOURCE_REHOME_ENABLED=true` moves open isolated workspaces that still have their own private clone onto the project's shared clone, then deletes the private clone once nothing else uses it and everything in it can be fetched again: its checkout is clean and its history is either in the shared clone or on the remote. A clone holding work that exists nowhere else is kept. This one also needs Git expiration (`PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED=true`).
 
 Both are off by default. Each has a matching `_DRY_RUN` variable that only logs what it would change. Any workspace that can't move safely is left exactly as it is.
 

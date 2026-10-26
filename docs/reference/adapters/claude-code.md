@@ -40,7 +40,7 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 | `extraArgs` | no | Extra CLI arguments appended to the Claude invocation. |
 | `effort` | no | Reasoning effort passed with `--effort`. The choices depend on the model — see [Reasoning Effort](#reasoning-effort). In a sandbox environment whose Claude CLI is too old to advertise `--effort`, Paperclip drops the flag and warns you to upgrade the environment's Claude Code to restore reasoning-effort control. |
 | `chrome` | no | Passes `--chrome` when enabled. |
-| `maxTurnsPerRun` | no | Caps the number of agentic turns in one heartbeat. Defaults to `300`. |
+| `maxTurnsPerRun` | no | Caps the number of agentic turns in one heartbeat. Defaults to `300`. [Paperclip Runner](paperclip-runner.md#what-carries-over-for-claude) ignores it and shows a warning. |
 | `dangerouslySkipPermissions` | no | Defaults to `true` because Paperclip runs Claude in headless `--print` mode. When on, local and remote runs alike get `--dangerously-skip-permissions`, covering built-in and connected tools. See [Permissions](#permissions). |
 | `timeoutSec` | no | Run timeout in seconds. On local and SSH targets, `0` means no adapter wall-clock timeout. On a sandbox target, `0` or an unset value uses the 14,400-second sandbox default; use a positive value to override it or a negative value to opt out of the adapter timeout. |
 | `graceSec` | no | Grace period before a forced stop. |

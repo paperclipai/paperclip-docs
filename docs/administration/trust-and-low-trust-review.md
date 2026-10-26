@@ -158,6 +158,42 @@ When a save is refused, the agent should tell you which action was blocked and w
 
 ---
 
+## Allowed projects
+
+A low-trust agent whose boundary is set by project can only work in the projects on its list. That keeps it contained, but sometimes you do want it on a task in another project. Here's what happens then, and how to let it in.
+
+### When a task falls outside the list
+
+If the agent is assigned a task in a project it isn't allowed to use, workspace setup stops the run before the agent starts. The task tells you why with a **Project access** notice: "*Agent* can’t access this project". The notice says the agent hasn't started and your message is saved, so nothing is lost. Open **Run details** to see that it stopped during workspace setup because the project is outside the allowed scope.
+
+From the notice, choose **Manage project access** to go straight to the agent's settings. If you can't change the agent's access, the button reads **View agent access** instead, and the notice explains that a person with agent-management permission can add the project.
+
+### Adding a project
+
+The **Allowed projects** editor sits in the agent's **Permissions / Trust** settings while the agent is on **Low-trust review**. It lists the projects whose tasks and repositories the agent may access.
+
+1. Choose **Add project**, search for the project, and tick it. Projects already on the list show **Already allowed**.
+2. Choose **Done**. New projects appear in the list marked **To add**, and you can undo any of them before saving.
+3. Check the summary, then choose **Save project access**.
+
+When the save succeeds you'll see "Project access saved. Return to your task to retry." If you came from a task, **Return to task** takes you back. If a save fails, your selection is kept so you can choose **Try saving again**.
+
+### Who can add projects
+
+You need to be signed in as a board user with permission to create agents in the company. Agents can't add projects for themselves or for each other. An agent that's still waiting for board approval can't have its access changed yet. Without permission, you can still see the list, but you can't edit it.
+
+### What stays the same
+
+Adding a project only adds. Projects already on the list stay, and every other restriction on the agent stays exactly as it was: the sandbox and isolated-workspace requirements, secret and tool limits, and output quarantine. Each addition is recorded in the activity log.
+
+### Retrying the task
+
+Saving access doesn't start any work by itself. Go back to the task: the notice changes to **Project access is ready**, and you can choose **Retry task** to continue with your saved message.
+
+For the API behind the editor, see [Allowed Projects (Project Access)](../reference/api/agents.md#allowed-projects-project-access).
+
+---
+
 ## Reporting up to a parent issue
 
 Most real work is split into a parent issue and children. An agent working a child usually needs to tell the parent how things are going — "found the cause, still digging" or "this is blocked on a decision you need to make". That report has to cross from one issue to another, which is exactly the kind of move the trust boundary is suspicious of. So Paperclip grants one narrow, audited hop for it, and nothing more.

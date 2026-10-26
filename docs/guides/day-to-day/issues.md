@@ -671,6 +671,8 @@ While paused, the composer says **Task is paused.** or **Subtree is paused.**, p
 
 If a run stops for a reason Paperclip can repair itself, the task shows one short status line instead of a stack of warnings: *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* once it has stopped retrying. **Retry** asks Paperclip to try the task again with your saved messages. If the provider rejected the selected model, choose a supported model or clear the task override, then retry. A provider sign-in request needs your authentication step before the run can continue. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention).
 
+A low-trust agent can also be stopped because the task's project isn't one of its allowed projects. Then the task shows a **Project access** notice instead: the agent hasn't started, and your message is saved. Choose **Manage project access** (or **View agent access** if you can't change it) to open the agent's settings and add the project. Saving access doesn't restart anything. Back on the task, the notice reads **Project access is ready**, and **Retry task** picks the work up again. See [Allowed projects](../../administration/trust-and-low-trust-review.md#allowed-projects).
+
 ## Recovery actions
 
 Sometimes an issue's run finishes without choosing a next step, or an assigned issue gets stranded with no live execution path. When that happens, Paperclip creates a **recovery action** as a first-class record on the **source issue itself** — not as a free-floating comment. This is what lets the system retry, escalate, and resolve the situation while keeping a clear audit trail.

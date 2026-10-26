@@ -2,42 +2,37 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `5e26b733` (@ 2026-10-24T07:30Z). 572 commits, 24h quarantine applied (cutoff 2026-10-24T11:00Z). 4,334 files in window.
-- **Compare truncation:** 0 truncated leaves (cumulative 44 leaves; incremental 6 leaves).
-- **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly` (realigned after #156).
-- **Already on nightly:** drafts for `1b4c8038..043f2514` from earlier runs. This run covers the 76 newer commits, `043f2514..5e26b733` (853 files).
-- **Verification:** every page changed this run was checked against `5e26b733` with `verify-edit`. Lines added this run: 0 genuine unverified claims. The only flag on a new line is `MAX_ENVIRONMENT_TASK_FILE_BYTES` in `plugins/sdk.md`, which is an exported SDK constant that the checker reads as an env var. Every parent read came from a worktree pinned to `5e26b733`.
-- **Auto-merge tier:** empty. The 11 new env vars went to the PR tier with the restore-points guide, because their meaning depends on the surrounding prose.
+- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `b7dc594b` (@ 2026-10-25T10:55Z). 637 commits, 24h quarantine applied (cutoff 2026-10-25T11:00Z). 4,460 files in window.
+- **Compare truncation:** 0 truncated leaves (cumulative 44 leaves; incremental 2 leaves).
+- **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
+- **Already on nightly:** drafts for `1b4c8038..5e26b733` from earlier runs. This run covers the 65 newer commits, `5e26b733..b7dc594b` (336 files).
+- **Verification:** every page changed this run was checked against `b7dc594b` with `verify-edit`. Lines added this run: 0 unverified claims. The remaining flags are all on older lines (the chat routes in `api/issues.md`, the avatar route in `api/agents.md`, `PAPERCLIP_GITHUB_TOKEN` in `day-to-day/issues.md`, the Runner config fields in `adapters/paperclip-runner.md`, which the checker searches under a path that matches 0 files). Every parent read came from a worktree pinned to `b7dc594b`.
+- **Auto-merge tier:** empty. The 3 new env vars went to the PR tier with the task-directory section, because what they do depends on restore points being on.
 
-## Applied this run (`043f2514..5e26b733`)
+## Applied this run (`5e26b733..b7dc594b`)
 
-- **Git workspace restore points and shared project clones** (#17238, #17241, #17248, #17257, #17269, #17271, #17289, #17290, #17341, #17344, #17369, #17382, #17407)
-  - `guides/projects-workflow/workspaces.md`: new **Restore points for unsaved work** section. It's off by default and requires Git cache expiration. It covers what is saved and what isn't (`.env` files), size limits, terminal and idle timing, encryption (S3 needs `PAPERCLIP_SECRETS_MASTER_KEY`), 90-day retention, and the exact comment shown when a restore point has expired. New **Extra project repositories share one clone** section, with the two opt-in migrations.
-  - `deploy/environment-variables.md`: 11 rows: `PAPERCLIP_GIT_RESTORE_POINTS_ENABLED`, `_RETENTION_DAYS`, `_TERMINAL_DELAY_DAYS`, `_IDLE_DAYS`; `PAPERCLIP_ISOLATED_SOURCE_REHOME_*` and `PAPERCLIP_NESTED_CLONE_MIGRATION_*` (enabled + dry run); `PAPERCLIP_NATIVE_WORKSPACE_SYNC_RETENTION_*` (on by default, 7 days).
-- **Artifacts V1, experimental** (#17228): `guides/day-to-day/artifacts.md` new section (stacks and tiles on the Artifacts page, a flat panel tab, file rows in the thread). The **Artifacts V1** toggle is listed in `administration/settings.md` and `experimental/overview.md`.
-- **New connectors: Unikraft Cloud and 1Password** (#17139, #17249): new pages `connectors/unikraft.md` (105 actions, default metro, marked not yet qualified) and `connectors/1password.md` (service-account vault scope, eight actions, secret-returning reads). Added catalog rows and nav entries.
-- **Supabase and Vercel deploy/configure** (#17217): `connectors/supabase.md` rewritten. It covers three methods, an optional project pin, feature groups, the new Management API method and its risk table, and Ask-first secret handling. Vercel is now connectable, so it gets a new page `connectors/vercel.md`, covering 17 actions and the preview-vs-production guard on empty projects. Catalog rows and a nav entry were added.
-- **Agents roster bulk edit; provider trace button removed** (#17215, #17211)
-  - `guides/org/agents.md`: harness filter replaces the status tabs, adds the Connection/Default model columns, and gets a new **Change the connection or model for several agents at once** section. Raw tracing now lives in the **Debugging** card.
-  - `api/agents.md`: the `runtimeSettings` PATCH body.
-- **Onboarding** (#17253, #17259): `getting-started/your-first-company.md` gets **Connecting a model in the wizard** (**Use a custom gateway**, a model is required before **Connect**) and a Cloud note. A cross-link was added in `connectors/custom-model-providers.md`.
-- **Codex: assigned service secrets reach shell tools** (#17216): `adapters/codex.md`.
-- **Tasks** (#16471, #17218, #17318)
-  - The **Routine** row in Relationships is described in `projects-workflow/routines.md` and `day-to-day/issues.md`.
-  - The new `POST /api/issues/{issueId}/interactions/{interactionId}/dismiss` is in `api/issues.md`. `experimental/task-chat.md` now says dismissal persists.
-  - Advisory GitHub review waits stay out of Inbox **Mine** (`day-to-day/issues.md`, `connectors/understanding-github-review-bots.md`).
-- **Plugin SDK and plugin environments** (#17247, #17252, #17285, #17329, #17377, #17380, #17390)
-  - `reference/plugins/sdk.md`: `workspaceProvider.defaultForProjects`, **Fresh retry workspaces**, `finalize`, `read_file` / **Reading task output files**, **Keeping a Codex task warm**, `ctx.agents.getRuntimeIdentity`, and `projectAuthCheckAtSubmit`.
-  - `administration/plugins.md`: the **Workspace storage** picker.
-  - `experimental/environments.md` and `adapters/paperclip-runner.md`: task-capable plugin environments are Runner-only.
+- **Agent project access** (#17509)
+  - `administration/trust-and-low-trust-review.md`: new **Allowed projects** section. When a task sits outside the agent's projects, it shows a **Project access** notice. A board user with `agents:create` permission can open the editor and add projects; adding only adds and never removes another restriction. Saving doesn't start work; the task then offers **Retry task**.
+  - `guides/org/agents.md` (Trust bullet) and `day-to-day/issues.md` (Stopping and resuming work) link to it.
+  - `api/agents.md`: `GET` and `POST /api/agents/{agentId}/project-access`.
+- **Task directories and workspace reclamation** (#17472, #17410, #17464, #17535, #17515)
+  - `guides/projects-workflow/workspaces.md`: new **Task directories without a repository** section. Finished directories are saved to a restore point and removed, then restored on reopen, and orphans are deleted after a grace period. Dry run is on by default, and it needs restore points outside dry run.
+  - The same page notes that the restore point size limits don't apply when a workspace moves onto the shared clone, and that a closed parent can expire while open children work elsewhere. Converted nested checkouts keep upstream-missing commits in the restore point. A re-homed clone is deleted only when it can be reproduced, and background jobs sign in with the task's identity, so private repositories work.
+  - `deploy/environment-variables.md`: `PAPERCLIP_TASK_DIRECTORY_RETENTION_ENABLED`, `_RETENTION_DRY_RUN`, `PAPERCLIP_TASK_DIRECTORY_ORPHAN_GRACE_DAYS`.
+- **Slack questions and reviews** (#17255): `connectors/slack.md` gets a new **Answer questions and reviews in Slack** section. A table maps each question or review kind to the Slack controls it gets. It lists what stays **Open in Paperclip**, how a response settles the card and resumes the task in the thread, and adds a troubleshooting row.
+- **Runner upgrade on unverified computers** (#17361, #17448)
+  - `adapters/paperclip-runner.md`: the upgrade now verifies a Daytona snapshot or digest-pinned sandbox when you click it. Anyone who can update the agent can do it, not only instance admins. `maxTurnsPerRun`, `chrome`, `warmHandleIdleMs`, `acpWarmHandleIdleMs` are now ignored with a warning instead of failing with `agent_runner_config_incompatible`.
+  - `adapters/claude-code.md`: pointer on the `maxTurnsPerRun` row.
+  - `api/agents.md`: `POST /api/agents/{agentId}/qualify-runner` and the `configurationWarnings` array on create, hire, and update. The stale 422 example was corrected.
+- **API details** (#17389, #17435): `api/issues.md` adds that malformed UUID filters on the list and count endpoints return `422`. `api/plugins.md` adds that plugin logs, job runs, and dashboard webhook deliveries are scoped to the caller's companies, while instance admins keep the instance-wide view.
 
 ## Applied in earlier runs (still on nightly, unreleased)
 
+- `043f2514..5e26b733` (#157): restore points and shared project clones, Unikraft, 1Password, Vercel, Supabase deploy, Artifacts V1, agent bulk edit, onboarding gateway, plugin SDK.
 - `8b873e01..043f2514` (#155): Braintrust, Ditto, Runner defaults for OpenCode and Pi, Cases workflows, plugin WebSockets, scoped budgets.
-- `cde944ed..8b873e01` (#154): GitHub Copilot qualified, Cases same-task handoffs, prompt injection prevention, plugin SDK project storage and Runner tasks, task Retry and Inbox changes.
-- `2f6ad222..cde944ed` (#153) and earlier: Pipelines removal, Commentary in Audit, Google Workspace, Claude on the Runner, company observability, and more.
+- `cde944ed..8b873e01` (#154) and earlier: GitHub Copilot qualified, Cases same-task handoffs, prompt injection prevention, Pipelines removal, Google Workspace, Claude on the Runner, and more.
 
-Everything after the `v2026.1023.0` tag is master-only, so release review must keep it off `main` until the matching stable release. Phase 5.7 handles that. Upstream's next stable notes (`v2026.1026.0`, beta soak) already cover much of this, including restore points, bulk edit, Unikraft and Artifacts V1.
+Everything after the `v2026.1023.0` tag is master-only, so release review must keep it off `main` until the matching stable release. Phase 5.7 handles that.
 
 ## ↻ Reconcile
 
@@ -45,14 +40,15 @@ None. No entry left the cumulative window, and there are no revert commits in th
 
 ## Not documented this run
 
-- Artifact directions lab (#17213): a dev-only Vite and Storybook lab with no product route.
-- Runner provider packs dropping musl builds and the duplicate Copilot (#17387): an internal size cut, and no page lists pack contents.
-- Plugin-prepared working directory recorded (#17243): no new SDK surface.
-- Internal only: perf read-narrowing (#17348, #17355, #17367, #17378, #17395, #17396, #17405), native recovery/cleanup state (#17357, #17358, #17359, #17374), evals and Product E2E (#17158, #17262, #17009, #17326, #17352, #17354, #17360, #17365, #17371), lockfile, release-notes commits, lazy-chunk reload (#17349), and assorted runner/recovery fixes (#17267, #17309, #17310, #17317, #17320, #17340, #17353, #17362, #17366, #17384, #17398, #17399, #17415).
+- The new-task form opening immediately (#17041): removes a loading state, and no page mentions it.
+- Bounded database response diagnostics (#17504, #17522, #17537, #17564): a developer-only diagnostic window documented in parent `doc/DATABASE.md`.
+- S3 call names in Sentry storage events (#17424), GitHub App setup ping draining and journey diagnostics (#17551, #17513), and idle environment cleanup polling (#17145): internal, with no user-facing surface.
+- Warm-session and task-directory session fixes (#17417, #17418, #17419, #17444, #17461): bug fixes with nothing new to configure.
+- Internal only: perf read-narrowing (#17530, #17531, #17539–#17541, #17544, #17547, #17559, #17560, #17562, #17563, #17565, #17567, #17569, #17570, #17579, #17581, #17587, #17588), recovery and authority projections (#17460, #17463, #17467, #17481, #17485, #17491, #17501, #17525, #11699), evals and E2E (#17381, #17432, #17440, #17457, #17483, #17529, #17556), and runner/native fixes (#17445, #17447, #17511, #17512).
 
 ## ⚠ Drift (checked against parent master)
 
-33 candidates, the same false positives as the last four runs.
+33 candidates, the same false positives as the last five runs.
 
 High-confidence (env vars 21, CLI 1):
 - `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (4), `PAPERCLIP_WORKSPACE_GIT_SNAPSHOT_TIMEOUT_MS`, `PAPERCLIP_RUNNER_API_*` (3), `PAPERCLIP_NATIVE_MCP_*` (2), `PAPERCLIP_MCP_AUTHORIZATION_ORIGIN`, `PAPERCLIP_CLOUD_CONNECTOR_*` / `PAPERCLIP_ID_CONNECTOR_*` (10): read through `envInteger`, `env.` / `environment.` receivers, or packages the checker doesn't scan.
@@ -66,21 +62,15 @@ Medium (REST routes, 11):
 
 ## Open questions from this run
 
-- Restore points: untracked `.env` / `.env.*` files are never saved and don't block expiry, so they're lost when a worktree expires. The page says so; it's worth confirming upstream that this is intended. The "1,000 commits" cap is approximate, because it counts bundle commits, including Paperclip's snapshot commits.
-- 1Password: the key-field label may show the manifest's "Paste your…" text verbatim, but it isn't quoted. **Change**, **Needs attention** and **Reconnect** labels were borrowed from the Daytona page and not traced.
-- Unikraft: the "older `kraft.cloud` hosts not reachable" line rests on the parent's reference doc plus the five-metro restriction.
-- Vercel: no paperclip.ing connector overview link was added, because the page's existence wasn't confirmed. The setup-time team check wasn't traced to its call site.
-- Supabase: the token-permission text differs slightly between the overrides file and the shipped definition; the page follows the shipped one.
-- Task dismissal: which dismissed cards stop gating completion is narrower in code (the resolver policy must come from the request) than "ordinary cards". Non-question cards expiring on completion is confirmed by a test, not traced in code.
-- Onboarding: `your-first-company.md` says the next guide "covers in full" the wizard's hiring step, but `your-first-agent.md` describes the separate New Agent page. Worth a wording pass.
-- Plugin SDK: the Codex warm-session mapping to `runnerLifecycleMode` and the 300000 ms idle default come from server code paths and are not documented as UI.
-- Artifacts V1: upstream hadn't done a browser pass with real artifacts, so visual details may shift.
-- Carried over: Braintrust/Ditto qualification, Cases tool-group toggle, plugin agent-view notice texts, OpenCode missing-model error, budget stop latency, Copilot "awaits qualification" vs `qualified: true`, and others from earlier runs.
+- Slack: the "How a conversation becomes work" section has two copies of the **Require at-mention** and "stop the run" paragraphs. They disagree on whether direct messages need an @mention. This was already on the page before this run; pick one and delete the other.
+- Project access: the editor's permission gate is described as `agents:create` on the board. Confirm that's the intended capability and not a stand-in for agent configuration.
+- Task directories: the orphan rule (task tree closed or task gone, plus no file changes for the grace period) was traced in code but not exercised.
+- Slack: the per-kind control limits (5 buttons, 100 dropdown options, 12 item verdicts, the 32,000-character cap) come from the card builder, not from a live Slack workspace.
+- Carried over from #157: restore-point `.env` handling and the commit cap, 1Password labels, Unikraft host reachability, the Vercel overview link, Supabase token text, task-dismissal scope, onboarding wording, the plugin SDK warm-session defaults, and Artifacts V1 visuals. Older carry-overs: Braintrust/Ditto qualification, the Cases tool-group toggle, plugin agent-view notice texts, the OpenCode missing-model error, budget stop latency, Copilot "awaits qualification" vs `qualified: true`, and others.
 
-## Arriving next run (in quarantine, landed after 2026-10-24T11:00Z)
+## Arriving next run (in quarantine, landed after 2026-10-25T11:00Z)
 
-- Workspaces: reclaim finished isolated task directories with restore points (#17472), expire closed workspaces unused by open descendants (#17464), delete re-homed isolated clones (#17410), and preserve remote-tracking history when expiring nested worktrees (#17535).
-- Git credentials resolved with the issue's identity in background jobs (#17515). Project access denials explained, with an authorized repair path (#17509).
-- Slack rich questions and review delivery (#17255). GitHub App setup and journey diagnostics (#17551, #17513).
-- Runner: Daytona runner upgrades and obsolete Claude options ignored (#17361); runner qualification with agent-configuration permission (#17448); explicit native tracing in the Runner eval CLI (#17483); warm sessions across project revisions (#17461).
-- Issue list/count UUID validation (#17389), the new-task form opening immediately (#17041), S3 call names in storage error events (#17424), and bounded database response diagnostics (#17504, #17522, #17537).
+- Native runner continuity archives expire and quarantine (#17616). Runner native work survives controller outages (#17594), and failover backups carry less provider state (#17618).
+- UI: eligible wake targets shown when resuming tasks (#17521), and idle task run polling stopped with live updates (#17608, #17602).
+- DB prepared-statement opt-in honored for ORM queries (#17673), which may affect a documented env var. Monitor proof and results settling (#17641, #17665), duplicate terminal run notifications (#17614).
+- Perf: recovery payload narrowing (#17694, #17695, #17604, #15697).
