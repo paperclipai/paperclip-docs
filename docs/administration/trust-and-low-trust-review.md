@@ -180,7 +180,7 @@ When the save succeeds you'll see "Project access saved. Return to your task to 
 
 ### Who can add projects
 
-You need to be signed in as a board user with permission to create agents in the company. Agents can't add projects for themselves or for each other. An agent that's still waiting for board approval can't have its access changed yet. Without permission, you can still see the list, but you can't edit it.
+You need to be signed in as a board user with permission to create agents in the company (`agents:create`, which the Owner, Admin, and Operator roles have; see [Roles and permissions](roles-and-permissions.md)). It's the same permission that lets you change an agent's other permissions. You also need to be able to see every project you add; a project you can't read is refused. Agents can't add projects for themselves or for each other. An agent that's still waiting for board approval can't have its access changed yet. Without permission, you can still see the list, but you can't edit it.
 
 ### What stays the same
 

@@ -112,10 +112,6 @@ Paperclip acknowledges with a reaction so people can see a message was picked up
 
 If you stop the agent's run from the Slack thread, the current response ends. Your next message in the thread starts a fresh turn on the same task.
 
-**Require at-mention** is on for new Slack connections. It keeps ordinary chatter from starting agent work: the agent only responds to messages that @mention it, including replies in a thread it's already in. The setting applies to direct messages as well as channels. Turn it off in **Settings** if you want any reply in a followed thread to reach the agent. Connections made before this setting existed keep their previous behavior.
-
-If you stop the agent's run from the Slack thread, the current response ends. Your next message in the thread starts a fresh turn on the same task.
-
 **Idle** means the agent answered and is waiting for the next message. It is not a request for review, so an answered Slack thread does not clutter your review queue or active work counts. You can still find it under the connection's **Conversations** tab, in search, and in recent tasks. A new message in the thread, or one you send from Paperclip, picks the task straight back up. If delivery failed, a decision is pending, or more work is queued, the task stays active instead.
 
 ### Reply from Paperclip
@@ -143,7 +139,7 @@ Where Slack has a control that fits the request, you answer right on the card:
 
 Slack forms remind you that **Your answers will be shared in this Slack conversation.** If an answer doesn't match a required format, the form stays open and asks you to use the format shown.
 
-Some requests can't be answered faithfully in Slack, so the card gives you an **Open in Paperclip** link instead. These include confirmations that need a reason when you reject, ones that approve a tool action, secret, or connection, reviews of a document, and requests too long for a Slack message. Granting a connection always happens in Paperclip, too. Answering from Slack never gives anyone extra approval rights.
+Some requests can't be answered faithfully in Slack, so the card gives you an **Open in Paperclip** link instead. These include confirmations that need a reason when you reject, ones that approve a tool action, secret, or connection, reviews of a document, item reviews with more than 12 items or with attachments, and requests too long for a Slack message. Granting a connection always happens in Paperclip, too. Answering from Slack never gives anyone extra approval rights.
 
 Once you answer, in Slack or in Paperclip, one response is saved and Paperclip checks again that you're allowed to give it. The card then updates to show the saved answer and its buttons go away. The task picks back up, and the agent's result arrives in the same Slack thread.
 

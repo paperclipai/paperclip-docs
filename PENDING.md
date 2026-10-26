@@ -62,10 +62,12 @@ Medium (REST routes, 11):
 
 ## Open questions from this run
 
-- Slack: the "How a conversation becomes work" section has two copies of the **Require at-mention** and "stop the run" paragraphs. They disagree on whether direct messages need an @mention. This was already on the page before this run; pick one and delete the other.
-- Project access: the editor's permission gate is described as `agents:create` on the board. Confirm that's the intended capability and not a stand-in for agent configuration.
-- Task directories: the orphan rule (task tree closed or task gone, plus no file changes for the grace period) was traced in code but not exercised.
-- Slack: the per-kind control limits (5 buttons, 100 dropdown options, 12 item verdicts, the 32,000-character cap) come from the card builder, not from a live Slack workspace.
+- Resolved this run:
+  - The duplicated Slack **Require at-mention** paragraphs, and identical duplicates in `day-to-day/costs.md` and `day-to-day/issues.md`, were left by the realign merge after #156. The `issues.md` copy also split the **About** field list.
+    - DM exemption: #16151 ("allow direct messages without at-mentions", 2026-10-13) is on master but not in `v2026.1023.0`. So nightly keeps "Direct messages never need an @mention", and `main`'s "applies to direct messages as well" stays correct for the current release. Release review must carry the nightly wording forward only once a stable tag includes #16151.
+  - Project access: `agents:create` is intended. It's the same check (`assertBoardCanManageAgentsForCompany`) that gates `PATCH /api/agents/{agentId}/permissions`. The trust page now names the roles and the `project:read` requirement for each added project.
+  - Task-directory orphans: traced in `isolated-task-directory-retention.ts`. The tree must have been closed for the grace period, not just closed, and a missing task falls back to the file-age check alone. `workspaces.md` was corrected.
+  - Slack card limits: confirmed in code (5 options for buttons, 100 for a dropdown, 10 checkboxes, 12 item verdicts with no attachments, 32,000 characters). The page keeps "short" and "long" wording, and now lists oversize item reviews among the **Open in Paperclip** cases.
 - Carried over from #157: restore-point `.env` handling and the commit cap, 1Password labels, Unikraft host reachability, the Vercel overview link, Supabase token text, task-dismissal scope, onboarding wording, the plugin SDK warm-session defaults, and Artifacts V1 visuals. Older carry-overs: Braintrust/Ditto qualification, the Cases tool-group toggle, plugin agent-view notice texts, the OpenCode missing-model error, budget stop latency, Copilot "awaits qualification" vs `qualified: true`, and others.
 
 ## Arriving next run (in quarantine, landed after 2026-10-25T11:00Z)
