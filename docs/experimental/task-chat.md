@@ -145,7 +145,7 @@ Paperclip waits for affected runs to stop. If stopping cannot be confirmed, you 
 
 Once paused, an amber **Task is paused.** or **Subtree is paused.** panel replaces the task's input controls. Your text and attachments remain in the draft. Use **Resume task** or **Resume subtree** before sending another message. If the pause comes from an ancestor, the button takes you to that ancestor.
 
-Resume releases the hold. You can optionally wake eligible agents, but a task with uncertain execution outcomes needs recovery first; trying to wake it keeps the pause in place and explains what to review. Releasing without waking agents is still available. If the release succeeds but a wake fails, the page says that the pause was released and identifies the startup problem.
+Resume releases the hold. You can optionally wake eligible agents. **Wake affected agents** counts only agents assigned to a task that is to do, in progress, or in review, and the checkbox is off when there are none. Blocked, backlog, and unassigned tasks are unpaused but don't start, and the resume dialog warns you about this. Paperclip also checks each task again when it wakes agents, so a task that's since been closed, or that is still held by another pause, stays idle. A task with uncertain execution outcomes needs recovery first; trying to wake it keeps the pause in place and explains what to review. Releasing without waking agents is still available. If the release succeeds but a wake fails, the page says that the pause was released and identifies the startup problem.
 
 ### When a run needs attention
 

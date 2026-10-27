@@ -98,14 +98,19 @@ Supabase exposes two useful connection styles:
 - direct connection on port `5432` for migrations and one-off scripts
 - pooled connection on port `6543` for the running application
 
-If you use the pooled connection, disable prepared statements in `packages/db/src/client.ts`:
+If you use the pooled connection and your pooler can't handle named prepared statements (most transaction-mode poolers can't), switch them off with an environment variable. You don't need to edit any code:
 
-```ts
-export function createDb(url: string) {
-  const sql = postgres(url, { prepare: false });
-  return drizzlePg(sql, { schema });
-}
+```sh
+DATABASE_PREPARED_STATEMENTS=false
 ```
+
+The variable has three settings:
+
+| Value | What happens |
+|---|---|
+| Unset | Paperclip keeps its normal behavior. Leave it unset unless you have a reason to change it. |
+| `false` | Paperclip never prepares statements. Use this behind a pooler that doesn't support them. |
+| `true` | Paperclip also prepares its ordinary queries, including the ones inside transactions. This only helps on a direct connection or a pooler that supports named prepared statements, so check your provider's settings first. Only the query plan is cached, never the results. |
 
 > **Warning:** Use the direct connection for schema changes. Pointing migrations at the pooled endpoint is a common way to get avoidable connection errors.
 

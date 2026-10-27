@@ -2,32 +2,24 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `b7dc594b` (@ 2026-10-25T10:55Z). 637 commits, 24h quarantine applied (cutoff 2026-10-25T11:00Z). 4,460 files in window.
-- **Compare truncation:** 0 truncated leaves (cumulative 44 leaves; incremental 2 leaves).
+- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `1fbbef45` (@ 2026-10-26T04:51Z). 668 commits, 24h quarantine applied (cutoff 2026-10-26T11:00Z). 4,498 files in window.
+- **Compare truncation:** 0 truncated leaves (cumulative 47 leaves; incremental 1 leaf).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
-- **Already on nightly:** drafts for `1b4c8038..5e26b733` from earlier runs. This run covers the 65 newer commits, `5e26b733..b7dc594b` (336 files).
-- **Verification:** every page changed this run was checked against `b7dc594b` with `verify-edit`. Lines added this run: 0 unverified claims. The remaining flags are all on older lines (the chat routes in `api/issues.md`, the avatar route in `api/agents.md`, `PAPERCLIP_GITHUB_TOKEN` in `day-to-day/issues.md`, the Runner config fields in `adapters/paperclip-runner.md`, which the checker searches under a path that matches 0 files). Every parent read came from a worktree pinned to `b7dc594b`.
-- **Auto-merge tier:** empty. The 3 new env vars went to the PR tier with the task-directory section, because what they do depends on restore points being on.
+- **Already on nightly:** drafts for `1b4c8038..b7dc594b` from earlier runs. This run covers the 31 newer commits, `b7dc594b..1fbbef45`. Most of them are perf read-narrowing.
+- **Verification:** every page changed this run was checked against `1fbbef45` with `verify-edit`. Lines added this run: 1 unverified claim, `DATABASE_PREPARED_STATEMENTS`. It's a false positive, because the checker only scans `server/src` and the variable is read in `packages/db/src/client.ts:208` (`envBoolean`, so it accepts `true`/`1`/`false`/`0`). Every parent read was pinned to `1fbbef45`.
+- **Auto-merge tier:** `PAPERCLIP_NATIVE_RUNNER_EVIDENCE_RETENTION_DAYS` (one row). It ships in the same draft PR as the PR-tier edits.
 
-## Applied this run (`5e26b733..b7dc594b`)
+## Applied this run (`b7dc594b..1fbbef45`)
 
-- **Agent project access** (#17509)
-  - `administration/trust-and-low-trust-review.md`: new **Allowed projects** section. When a task sits outside the agent's projects, it shows a **Project access** notice. A board user with `agents:create` permission can open the editor and add projects; adding only adds and never removes another restriction. Saving doesn't start work; the task then offers **Retry task**.
-  - `guides/org/agents.md` (Trust bullet) and `day-to-day/issues.md` (Stopping and resuming work) link to it.
-  - `api/agents.md`: `GET` and `POST /api/agents/{agentId}/project-access`.
-- **Task directories and workspace reclamation** (#17472, #17410, #17464, #17535, #17515)
-  - `guides/projects-workflow/workspaces.md`: new **Task directories without a repository** section. Finished directories are saved to a restore point and removed, then restored on reopen, and orphans are deleted after a grace period. Dry run is on by default, and it needs restore points outside dry run.
-  - The same page notes that the restore point size limits don't apply when a workspace moves onto the shared clone, and that a closed parent can expire while open children work elsewhere. Converted nested checkouts keep upstream-missing commits in the restore point. A re-homed clone is deleted only when it can be reproduced, and background jobs sign in with the task's identity, so private repositories work.
-  - `deploy/environment-variables.md`: `PAPERCLIP_TASK_DIRECTORY_RETENTION_ENABLED`, `_RETENTION_DRY_RUN`, `PAPERCLIP_TASK_DIRECTORY_ORPHAN_GRACE_DAYS`.
-- **Slack questions and reviews** (#17255): `connectors/slack.md` gets a new **Answer questions and reviews in Slack** section. A table maps each question or review kind to the Slack controls it gets. It lists what stays **Open in Paperclip**, how a response settles the card and resumes the task in the thread, and adds a troubleshooting row.
-- **Runner upgrade on unverified computers** (#17361, #17448)
-  - `adapters/paperclip-runner.md`: the upgrade now verifies a Daytona snapshot or digest-pinned sandbox when you click it. Anyone who can update the agent can do it, not only instance admins. `maxTurnsPerRun`, `chrome`, `warmHandleIdleMs`, `acpWarmHandleIdleMs` are now ignored with a warning instead of failing with `agent_runner_config_incompatible`.
-  - `adapters/claude-code.md`: pointer on the `maxTurnsPerRun` row.
-  - `api/agents.md`: `POST /api/agents/{agentId}/qualify-runner` and the `configurationWarnings` array on create, hire, and update. The stale 422 example was corrected.
-- **API details** (#17389, #17435): `api/issues.md` adds that malformed UUID filters on the list and count endpoints return `422`. `api/plugins.md` adds that plugin logs, job runs, and dashboard webhook deliveries are scoped to the caller's companies, while instance admins keep the instance-wide view.
+- **Native session evidence retention** (#17616): `deploy/environment-variables.md` adds `PAPERCLIP_NATIVE_RUNNER_EVIDENCE_RETENTION_DAYS` (default `7`, minimum `1`). The existing harness-backup sweep now also removes continuity-break archives and quarantined session state, and it skips sessions that are running, warm, or closing. The row explains that once quarantined state is gone, a later run may start a fresh provider session. The backup sweep's `_ENABLED` and `_DRY_RUN` switches apply to it too.
+- **Prepared statements** (#17673)
+  - `deploy/database.md`, Hosted PostgreSQL: the stale "edit `packages/db/src/client.ts` to pass `prepare: false`" snippet is replaced by `DATABASE_PREPARED_STATEMENTS=false`. A three-row table covers unset (normal behavior), `false` (off, for transaction-mode poolers), and `true` (prepares ORM queries too; only for direct connections or poolers that support named statements).
+  - `deploy/environment-variables.md`: new `DATABASE_PREPARED_STATEMENTS` row. The variable has existed since `v2026.817.0` but was never in the table.
+- **Resuming a paused subtree** (#17521): `experimental/task-chat.md`. **Wake affected agents** now counts only agents assigned to to-do, in-progress, or in-review tasks, and the box is off when there are none. Blocked, backlog, and unassigned tasks are unpaused but don't start, and the dialog warns about this. Each task is checked again at wake time, so a task that has been closed or is still held by another pause stays idle.
 
 ## Applied in earlier runs (still on nightly, unreleased)
 
+- `5e26b733..b7dc594b` (#158): agent project access, task-directory retention, Slack question and review cards, Runner upgrade on unverified computers, UUID filter `422`s, plugin operational read scoping.
 - `043f2514..5e26b733` (#157): restore points and shared project clones, Unikraft, 1Password, Vercel, Supabase deploy, Artifacts V1, agent bulk edit, onboarding gateway, plugin SDK.
 - `8b873e01..043f2514` (#155): Braintrust, Ditto, Runner defaults for OpenCode and Pi, Cases workflows, plugin WebSockets, scoped budgets.
 - `cde944ed..8b873e01` (#154) and earlier: GitHub Copilot qualified, Cases same-task handoffs, prompt injection prevention, Pipelines removal, Google Workspace, Claude on the Runner, and more.
@@ -40,17 +32,18 @@ None. No entry left the cumulative window, and there are no revert commits in th
 
 ## Not documented this run
 
-- The new-task form opening immediately (#17041): removes a loading state, and no page mentions it.
-- Bounded database response diagnostics (#17504, #17522, #17537, #17564): a developer-only diagnostic window documented in parent `doc/DATABASE.md`.
-- S3 call names in Sentry storage events (#17424), GitHub App setup ping draining and journey diagnostics (#17551, #17513), and idle environment cleanup polling (#17145): internal, with no user-facing surface.
-- Warm-session and task-directory session fixes (#17417, #17418, #17419, #17444, #17461): bug fixes with nothing new to configure.
-- Internal only: perf read-narrowing (#17530, #17531, #17539–#17541, #17544, #17547, #17559, #17560, #17562, #17563, #17565, #17567, #17569, #17570, #17579, #17581, #17587, #17588), recovery and authority projections (#17460, #17463, #17467, #17481, #17485, #17491, #17501, #17525, #11699), evals and E2E (#17381, #17432, #17440, #17457, #17483, #17529, #17556), and runner/native fixes (#17445, #17447, #17511, #17512).
+- Live-update polling (#17608, #17602): the task page stops polling for runs while a live connection is open. Nothing changes on screen.
+- Runner and native resilience (#17594, #17618, #17641, #17665, #17614): native work survives controller outages, failover backups carry less provider state, results with a valid monitor settle, and duplicate terminal-run notifications are gone. These are bug fixes with no new setting.
+- Bundled skill release verification (#17652): an internal integrity check.
+- Internal only: perf read-narrowing (#17589, #17591, #17600, #17604, #17612, #17613, #17619, #17621, #17622, #17645, #17646, #17650, #17663, #17669, #17684, #17686, #17694, #15697, #16140).
+- Gap noticed, outside this window: the pool tuning variables (`DATABASE_POOL_MAX`, `DATABASE_IDLE_TIMEOUT_SECONDS`, `DATABASE_CONNECT_TIMEOUT_SECONDS`, `DATABASE_MAX_LIFETIME_SECONDS`, `DATABASE_APPLICATION_NAME`) are read in `packages/db/src/client.ts` and documented in parent `docs/deploy/database.md`, but no page here mentions them. Worth a follow-up once someone confirms which release introduced them.
 
 ## ⚠ Drift (checked against parent master)
 
-33 candidates, the same false positives as the last five runs.
+34 candidates: the 33 false positives from the last six runs, plus `DATABASE_PREPARED_STATEMENTS`.
 
-High-confidence (env vars 21, CLI 1):
+High-confidence (env vars 22, CLI 1):
+- `DATABASE_PREPARED_STATEMENTS` in `deploy/environment-variables.md:23`: new row this run. It's read in `packages/db/src/client.ts`, which the checker doesn't scan.
 - `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (4), `PAPERCLIP_WORKSPACE_GIT_SNAPSHOT_TIMEOUT_MS`, `PAPERCLIP_RUNNER_API_*` (3), `PAPERCLIP_NATIVE_MCP_*` (2), `PAPERCLIP_MCP_AUTHORIZATION_ORIGIN`, `PAPERCLIP_CLOUD_CONNECTOR_*` / `PAPERCLIP_ID_CONNECTOR_*` (10): read through `envInteger`, `env.` / `environment.` receivers, or packages the checker doesn't scan.
 - `paperclipai payload` in `cli/service.md:56`: quoted message text.
 
@@ -60,19 +53,17 @@ Medium (REST routes, 11):
 - Verify: `GET|POST /api/companies/{companyId}/chats/{agentRef}` (`router[method]` loop).
 - Verify: `GET /api/mcp/requests/{id}` and the two Dot pairing routes (array registration).
 
+
 ## Open questions from this run
 
-- Resolved this run:
-  - The duplicated Slack **Require at-mention** paragraphs, and identical duplicates in `day-to-day/costs.md` and `day-to-day/issues.md`, were left by the realign merge after #156. The `issues.md` copy also split the **About** field list.
-    - DM exemption: #16151 ("allow direct messages without at-mentions", 2026-10-13) is on master but not in `v2026.1023.0`. So nightly keeps "Direct messages never need an @mention", and `main`'s "applies to direct messages as well" stays correct for the current release. Release review must carry the nightly wording forward only once a stable tag includes #16151.
-  - Project access: `agents:create` is intended. It's the same check (`assertBoardCanManageAgentsForCompany`) that gates `PATCH /api/agents/{agentId}/permissions`. The trust page now names the roles and the `project:read` requirement for each added project.
-  - Task-directory orphans: traced in `isolated-task-directory-retention.ts`. The tree must have been closed for the grace period, not just closed, and a missing task falls back to the file-age check alone. `workspaces.md` was corrected.
-  - Slack card limits: confirmed in code (5 options for buttons, 100 for a dropdown, 10 checkboxes, 12 item verdicts with no attachments, 32,000 characters). The page keeps "short" and "long" wording, and now lists oversize item reviews among the **Open in Paperclip** cases.
-- Carried over from #157: restore-point `.env` handling and the commit cap, 1Password labels, Unikraft host reachability, the Vercel overview link, Supabase token text, task-dismissal scope, onboarding wording, the plugin SDK warm-session defaults, and Artifacts V1 visuals. Older carry-overs: Braintrust/Ditto qualification, the Cases tool-group toggle, plugin agent-view notice texts, the OpenCode missing-model error, budget stop latency, Copilot "awaits qualification" vs `qualified: true`, and others.
+- None new. The resume wording describes task statuses in plain prose ("to do, in progress, or in review") rather than quoting UI labels, because the exact status labels weren't confirmed.
+- Carried over from #158 and #157: restore-point `.env` handling and the commit cap, 1Password labels, Unikraft host reachability, the Vercel overview link, Supabase token text, task-dismissal scope, onboarding wording, the plugin SDK warm-session defaults, and Artifacts V1 visuals. The Slack DM at-mention exemption (#16151) is master-only, so release review must keep `main`'s wording until a stable tag includes it. Older carry-overs: Braintrust/Ditto qualification, the Cases tool-group toggle, plugin agent-view notice texts, the OpenCode missing-model error, budget stop latency, Copilot "awaits qualification" vs `qualified: true`, and others.
 
-## Arriving next run (in quarantine, landed after 2026-10-25T11:00Z)
+## Arriving next run (in quarantine, landed after 2026-10-26T11:00Z)
 
-- Native runner continuity archives expire and quarantine (#17616). Runner native work survives controller outages (#17594), and failover backups carry less provider state (#17618).
-- UI: eligible wake targets shown when resuming tasks (#17521), and idle task run polling stopped with live updates (#17608, #17602).
-- DB prepared-statement opt-in honored for ORM queries (#17673), which may affect a documented env var. Monitor proof and results settling (#17641, #17665), duplicate terminal run notifications (#17614).
-- Perf: recovery payload narrowing (#17694, #17695, #17604, #15697).
+- Background project Git with explicit Connector consent (#17798), suspended GitHub installations no longer counted as repository access (#17343), and task Retry after a GitHub reconnect (#17733).
+- Hiring: agent-owned environments prepared during hiring (#17761), simpler agent harness configuration choices (#17722), and accounts identified in AI connection choices (#17738).
+- Plugins and skills: plugin panels in task sidebars (#17796), managed skills for selected environments (#17774), and the directions-lab skill (#17437).
+- Adapters: refreshed model catalogs and sandbox CLI pins (#17809), `pi_local` stripping inherited `PAPERCLIP_*` env (#14503), and preserved disabled Codex web search (#17744).
+- UI: the app can be installed as a standalone window (#13461), a fallback icon when an Artifacts V1 preview fails (#17260), a stable iPhone task chat (#17232), recent conversation shown before activity (#17593), and a hidden empty history disclosure (#17751).
+- Other: watchdogs rejecting incomplete subtree scans (#15063), AWS secret provider error classification (#10946), and retry checks for selected workspace projects (#17552).
