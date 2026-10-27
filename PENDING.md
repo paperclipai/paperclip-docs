@@ -6,7 +6,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Compare truncation:** 0 truncated leaves (cumulative 47 leaves; incremental 1 leaf).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
 - **Already on nightly:** drafts for `1b4c8038..b7dc594b` from earlier runs. This run covers the 31 newer commits, `b7dc594b..1fbbef45`. Most of them are perf read-narrowing.
-- **Verification:** every page changed this run was checked against `1fbbef45` with `verify-edit`. Lines added this run: 1 unverified claim, `DATABASE_PREPARED_STATEMENTS`. It's a false positive, because the checker only scans `server/src` and the variable is read in `packages/db/src/client.ts:208` (`envBoolean`, so it accepts `true`/`1`/`false`/`0`). Every parent read was pinned to `1fbbef45`.
+- **Verification:** every page changed this run was checked against `1fbbef45` with `verify-edit`. Lines added this run: the only unverified claims are the six `DATABASE_*` variables. They're false positives, because the checker doesn't scan `packages/db`, and all six are read in `databaseClientOptionsFromEnv` in `packages/db/src/client.ts` at `1fbbef45`. Every parent read was pinned to `1fbbef45`.
 - **Auto-merge tier:** `PAPERCLIP_NATIVE_RUNNER_EVIDENCE_RETENTION_DAYS` (one row). It ships in the same draft PR as the PR-tier edits.
 
 ## Applied this run (`b7dc594b..1fbbef45`)
@@ -15,6 +15,10 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Prepared statements** (#17673)
   - `deploy/database.md`, Hosted PostgreSQL: the stale "edit `packages/db/src/client.ts` to pass `prepare: false`" snippet is replaced by `DATABASE_PREPARED_STATEMENTS=false`. A three-row table covers unset (normal behavior), `false` (off, for transaction-mode poolers), and `true` (prepares ORM queries too; only for direct connections or poolers that support named statements).
   - `deploy/environment-variables.md`: new `DATABASE_PREPARED_STATEMENTS` row. The variable has existed since `v2026.817.0` but was never in the table.
+- **Connection pool settings** (a gap in the released docs, not new in this window): `deploy/database.md` gets a new **Connection Pool Settings** section covering `DATABASE_POOL_MAX`, `DATABASE_IDLE_TIMEOUT_SECONDS`, `DATABASE_CONNECT_TIMEOUT_SECONDS`, `DATABASE_MAX_LIFETIME_SECONDS`, and `DATABASE_APPLICATION_NAME`. `environment-variables.md` gets a row for each.
+  - Four have been read in `packages/db/src/client.ts` since `v2026.817.0`. `DATABASE_APPLICATION_NAME` is present at `v2026.1012.0` and `v2026.1023.0`. All five are in the current stable release, so this section is safe to ship at the next release, or to hot-fix onto `main` now.
+  - The section also covers startup validation and a `pg_stat_activity` lookup. A `max_connections` sizing list names the extra connections each server process opens: a second pool when `DATABASE_MIGRATION_URL` is set, the 2-connection `paperclip-controller-lease` pool, and the short-lived `paperclip-workspace-finalization-lock` connection.
+- **Corrections found while re-verifying:** `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_DAYS` (an older row) and the new evidence-retention row both said "values below `1` are raised to `1`". In `config.ts`, only `0` is raised; a negative value falls back to the default. The evidence row now also lists starting sessions as protected, and notes that quarantine entries created by cleanup itself are kept.
 - **Resuming a paused subtree** (#17521): `experimental/task-chat.md`. **Wake affected agents** now counts only agents assigned to to-do, in-progress, or in-review tasks, and the box is off when there are none. Blocked, backlog, and unassigned tasks are unpaused but don't start, and the dialog warns about this. Each task is checked again at wake time, so a task that has been closed or is still held by another pause stays idle.
 
 ## Applied in earlier runs (still on nightly, unreleased)
@@ -36,14 +40,13 @@ None. No entry left the cumulative window, and there are no revert commits in th
 - Runner and native resilience (#17594, #17618, #17641, #17665, #17614): native work survives controller outages, failover backups carry less provider state, results with a valid monitor settle, and duplicate terminal-run notifications are gone. These are bug fixes with no new setting.
 - Bundled skill release verification (#17652): an internal integrity check.
 - Internal only: perf read-narrowing (#17589, #17591, #17600, #17604, #17612, #17613, #17619, #17621, #17622, #17645, #17646, #17650, #17663, #17669, #17684, #17686, #17694, #15697, #16140).
-- Gap noticed, outside this window: the pool tuning variables (`DATABASE_POOL_MAX`, `DATABASE_IDLE_TIMEOUT_SECONDS`, `DATABASE_CONNECT_TIMEOUT_SECONDS`, `DATABASE_MAX_LIFETIME_SECONDS`, `DATABASE_APPLICATION_NAME`) are read in `packages/db/src/client.ts` and documented in parent `docs/deploy/database.md`, but no page here mentions them. Worth a follow-up once someone confirms which release introduced them.
 
 ## ⚠ Drift (checked against parent master)
 
-34 candidates: the 33 false positives from the last six runs, plus `DATABASE_PREPARED_STATEMENTS`.
+39 candidates: the 33 false positives from the last six runs, plus the six `DATABASE_*` variables documented this run.
 
-High-confidence (env vars 22, CLI 1):
-- `DATABASE_PREPARED_STATEMENTS` in `deploy/environment-variables.md:23`: new row this run. It's read in `packages/db/src/client.ts`, which the checker doesn't scan.
+High-confidence (env vars 27, CLI 1):
+- `DATABASE_PREPARED_STATEMENTS`, `DATABASE_POOL_MAX`, `DATABASE_IDLE_TIMEOUT_SECONDS`, `DATABASE_CONNECT_TIMEOUT_SECONDS`, `DATABASE_MAX_LIFETIME_SECONDS`, and `DATABASE_APPLICATION_NAME` (`deploy/environment-variables.md:23–28`): new rows this run. They're read in `packages/db/src/client.ts`, which the checker doesn't scan.
 - `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (4), `PAPERCLIP_WORKSPACE_GIT_SNAPSHOT_TIMEOUT_MS`, `PAPERCLIP_RUNNER_API_*` (3), `PAPERCLIP_NATIVE_MCP_*` (2), `PAPERCLIP_MCP_AUTHORIZATION_ORIGIN`, `PAPERCLIP_CLOUD_CONNECTOR_*` / `PAPERCLIP_ID_CONNECTOR_*` (10): read through `envInteger`, `env.` / `environment.` receivers, or packages the checker doesn't scan.
 - `paperclipai payload` in `cli/service.md:56`: quoted message text.
 

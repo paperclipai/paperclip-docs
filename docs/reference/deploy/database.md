@@ -98,7 +98,7 @@ Supabase exposes two useful connection styles:
 - direct connection on port `5432` for migrations and one-off scripts
 - pooled connection on port `6543` for the running application
 
-If you use the pooled connection and your pooler can't handle named prepared statements (most transaction-mode poolers can't), switch them off with an environment variable. You don't need to edit any code:
+If you use the pooled connection in transaction mode and your pooler doesn't support named prepared statements, switch them off with an environment variable. You don't need to edit any code:
 
 ```sh
 DATABASE_PREPARED_STATEMENTS=false
@@ -110,9 +110,43 @@ The variable has three settings:
 |---|---|
 | Unset | Paperclip keeps its normal behavior. Leave it unset unless you have a reason to change it. |
 | `false` | Paperclip never prepares statements. Use this behind a pooler that doesn't support them. |
-| `true` | Paperclip also prepares its ordinary queries, including the ones inside transactions. This only helps on a direct connection or a pooler that supports named prepared statements, so check your provider's settings first. Only the query plan is cached, never the results. |
+| `true` | Paperclip also prepares its ordinary queries, including the ones inside transactions. Only use this on a direct connection or a pooler that supports named prepared statements, so check your provider's settings first. Preparing caches statement metadata on the connection, never query results. |
 
 > **Warning:** Use the direct connection for schema changes. Pointing migrations at the pooled endpoint is a common way to get avoidable connection errors.
+
+---
+
+## Connection Pool Settings
+
+Paperclip keeps a pool of open connections to PostgreSQL and reuses them across requests. The defaults suit most installs, so you only need these settings when you're sharing a database with other apps, running several server processes, or chasing connection limits on a hosted plan. Each one is an optional environment variable, and they apply in every database mode.
+
+| Variable | Default | What it does |
+|---|---|---|
+| `DATABASE_POOL_MAX` | `10` | The most connections the pool opens at once. |
+| `DATABASE_IDLE_TIMEOUT_SECONDS` | `60` | Closes a connection after it has sat idle this long, so a quiet server gives its connections back. `0` keeps idle connections open indefinitely. |
+| `DATABASE_CONNECT_TIMEOUT_SECONDS` | `30` | How long to wait for a new connection before giving up. |
+| `DATABASE_MAX_LIFETIME_SECONDS` | a random 30–60 minutes | Replaces a pooled connection with a fresh one once it's this old. |
+| `DATABASE_APPLICATION_NAME` | `paperclip` | The name Paperclip's connections show in PostgreSQL's `pg_stat_activity` view, so you can tell them apart from other clients. |
+| `DATABASE_PREPARED_STATEMENTS` | unset | Prepared statements. See [Hosted PostgreSQL](#hosted-postgresql). |
+
+Values are checked when the server starts, and a bad one stops startup with an error that names the variable instead of being quietly ignored. The number settings take whole numbers of `1` or more, except `DATABASE_IDLE_TIMEOUT_SECONDS`, which also accepts `0`. `DATABASE_PREPARED_STATEMENTS` takes `true` or `false` (`1` and `0` work too).
+
+To see Paperclip's connections, run this against your database:
+
+```sql
+SELECT * FROM pg_stat_activity WHERE application_name LIKE 'paperclip%';
+```
+
+If you've set `DATABASE_APPLICATION_NAME`, the main pool uses your name instead, so search for that too. The two helper connections below keep their own names.
+
+**Sizing `max_connections`.** Each server process can use more than `DATABASE_POOL_MAX` connections. When you set PostgreSQL's `max_connections`, budget for these per server process, plus your other clients:
+
+- the main pool, up to `DATABASE_POOL_MAX`
+- a second pool of the same size when `DATABASE_MIGRATION_URL` is set
+- up to 2 connections named `paperclip-controller-lease`, which keep agent runs alive so they never wait behind slow queries
+- a short-lived single connection named `paperclip-workspace-finalization-lock` while a workspace is being finalized
+
+Paperclip closes its pools when the server shuts down, and when startup fails after a pool has opened, so restarts don't leave idle connections behind.
 
 ---
 
