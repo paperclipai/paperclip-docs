@@ -7,6 +7,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
 - **Already on nightly:** drafts for `1b4c8038..1fbbef45` from earlier runs. This run covers the 136 newer commits, `1fbbef45..cff331f6`.
 - **Verification:** every page changed this run was checked against `cff331f6` with `verify-edit`. No added line has an unverified claim; the remaining flags are on untouched lines (example-JSON values, env vars read outside config files). Every parent read was pinned to `cff331f6`. Of the files changed on master after the window, only Grok Runner internals overlap this run's sources, and those were read at the pinned ref.
+- **Second verification pass:** four independent fact-checkers re-read every added line against `cff331f6`. Corrections applied: Grok Build is *not* exempt from `enableNativeRunner` at run time (only on save); per-agent installs need `agents:configure` plus connection access, while `tools:manage_profiles` covers company-wide install changes; `subjectUserId` is required; the plugin `environmentDrivers` example needed `displayName`; and four overstatements were softened (first-task creation scope, queued-message note, retry after GitHub reconnect, plugin skill naming).
 - **Auto-merge tier:** none. No `.env.example`, `server/src/config.ts`, or CLI command changes in the increment.
 
 ## Applied this run (`1fbbef45..cff331f6`)
@@ -29,7 +30,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
   - `codex.md` (#17809): ChatGPT sign-in retirements of `gpt-5.5` (2026-10-14) and `gpt-5.4` / `gpt-5.4-mini` (2026-08-31) with replacements; still selectable with API keys; the Test hint names the retirement.
   - `opencode.md` (#17809): `anthropic/claude-haiku-5-5` and `google/gemini-4-argon` in the model table.
   - `pi.md` (#14503): Pi no longer inherits the server's own `PAPERCLIP_*` variables.
-  - `grok-local.md`, `paperclip-runner.md`, `guides/org/agent-adapters.md` (#17922, #17942): **Upgrade runner** now covers Grok Build, carrying over model, `reasoningEffort`, and `disableWebSearch`.
+  - `grok-local.md`, `paperclip-runner.md`, `guides/org/agent-adapters.md` (#17922, #17942): **Upgrade runner** now covers Grok Build (macOS ARM64, or Linux x64 with glibc 2.39+), carrying over model, `reasoningEffort`, and `disableWebSearch`. The upgrade saves with the experimental Runner setting off, but new Grok runs still need `enableNativeRunner`.
   - `paperclip-runner.md` (#17744, #17826): `search: false` carries over to the Runner; Claude user settings in HOME stay trusted.
   - Harness dropdown (#17722): `overview.md`, `process.md`, `http.md`, `openclaw-gateway.md`, `agents.md` — unavailable adapters are no longer listed (was "Coming soon"); the **ACP agent** selector is hidden when the Harness already picks the profile.
 - **Operations**
@@ -77,6 +78,8 @@ Medium (REST routes, 11):
 
 ## Open questions from this run
 
+- **Parent doc vs code (Grok):** `doc/grok-native-runner.md` says Grok Build doesn't need `enableNativeRunner`, but `runtime-mode.ts` rejects new Grok runs without it. Docs follow the code; this may be a parent bug.
+- **Unchanged-text follow-ups:** `tool-gateway.md` still says `test-agents` needs `tools:use`/`tools:manage_connections` (now any member can read it), and `agents.md#grant-scope` doesn't list the connection scope keys.
 - **Owner/Admin permission tightening (#17737):** connection activity now needs `tools:view_audit` (not in the Owner/Admin bundles), and changing a connection that isn't yours needs `tools:manage_connections`. Documented, but worth a changelog callout at release. `roles-and-permissions.md` still says "`tools:admin` is not a superset"; it now covers profile changes for Owners/Admins, so that sentence may need softening.
 - **Grok on the Runner by default:** the selection code at `cff331f6` defaults new `grok_local` agents to the Runner on qualified macOS ARM64 / Linux x64. Only the upgrade path is documented.
 - **First-task completion check** is enforced only for native runs; the doc doesn't say so.

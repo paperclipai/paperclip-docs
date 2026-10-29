@@ -425,7 +425,7 @@ If your environment gives agents special tools — a desktop, a browser, a devic
 ```json
 {
   "skills": [{ "skillKey": "desktop-tools", "displayName": "Desktop tools" }],
-  "environmentDrivers": [{ "driverKey": "desktop", "skillKeys": ["desktop-tools"] }]
+  "environmentDrivers": [{ "driverKey": "desktop", "displayName": "Desktop", "skillKeys": ["desktop-tools"] }]
 }
 ```
 

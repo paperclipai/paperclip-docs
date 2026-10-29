@@ -171,7 +171,7 @@ Some plugins are a required part of an agent's setup — they prepare something 
 
 If you disable or uninstall one of those plugins, the agents that rely on it can't finish setting up, pausing, resuming, or being cleaned up. Their page shows a failed step with the message *"A required plugin is unavailable. Check the plugin's status in Settings. Paperclip will retry automatically."* Re-enable the plugin and the step completes on its own (or click **Retry now** on the agent's page). See [Setup checks before a new agent starts work](../guides/org/agents.md#setup-checks-before-a-new-agent-starts-work).
 
-An environment plugin can also bring skills its agents need, such as instructions for a desktop or browser it provides. Agents using that environment get those skills automatically, and they appear in your skill library with names starting `plugin-`. If an agent also has a company skill with the same name, the plugin's skill is used for the run and the run log notes which skill was skipped; nothing in your library or the agent's assignments changes.
+An environment plugin can also bring skills its agents need, such as instructions for a desktop or browser it provides. Agents using that environment get those skills automatically, and newly installed ones appear in your skill library with names starting `plugin-`. If an agent also has a company skill with the same name, the plugin's skill is used for the run and the run log notes which skill was skipped; nothing in your library or the agent's assignments changes.
 
 ### Plugins that store your project's code
 

@@ -23,13 +23,13 @@ Most routes on this page are connection-setup routes, and each one checks a perm
 | Permission key | Covers |
 |---|---|
 | `tools:manage_connections` | Creating, updating, reconnecting, refreshing, and deleting applications and connections, and starting their sign-in. |
-| `tools:manage_profiles` | Profiles, profile entries and bindings, company tool policies, trust rules, and a connection's installs. An Owner or Admin without this key can use `tools:admin` instead. |
+| `tools:manage_profiles` | Profiles, profile entries and bindings, company tool policies, trust rules, and changing a connection's company-wide install. An Owner or Admin without this key can use `tools:admin` instead. |
 | `tools:admin` | Creating, listing, and updating named MCP gateways; minting and revoking gateway tokens; managing approved stdio command templates. |
 | `tools:manage_runtime` | Listing runtime slots, and stopping or restarting them. |
 | `tools:view_audit` | Reading the gateway audit feed and a connection's activity. |
 | `tools:use` | Running test calls against a connection (either this or `tools:manage_connections` is enough). |
 
-`GET` routes that only describe setup — connections, catalogs, profiles, installs — need an active membership, and Viewers can read them. Every change needs a role other than Viewer. You don't need `tools:manage_connections` or `tools:manage_profiles` to view, change, or install a connection you created yourself.
+`GET` routes that only describe setup — connections, catalogs, profiles, installs — need an active membership, and Viewers can read them. Every change needs a role other than Viewer. You don't need `tools:manage_connections` or `tools:manage_profiles` to view, change, or install a connection you created yourself, though choosing which agents get it still needs `agents:configure` for those agents.
 
 ### Agents calling these routes
 
@@ -271,7 +271,7 @@ POST /api/agents/me/connections/{connectionId}/start-authorization
 POST /api/agents/me/connections/{connectionId}/token
 ```
 
-`start-authorization` prepares a sign-in for the run's responsible user. It's a connection-setup change, so it needs the same delegated authority as the other setup routes (see [Agents calling these routes](#agents-calling-these-routes)). Its body takes an optional `subjectUserId`, `scopes`, and `returnTo`. The agent never receives a provider sign-in link of its own: `url` points at the saved setup page in Paperclip, where the person starts the provider sign-in in their own browser session, and the response's `requiredUserAction` (kind `authenticate`) names that person. For Google Workspace, any services the agent requests are saved and preselected for the person.
+`start-authorization` prepares a sign-in for the run's responsible user. It's a connection-setup change, so it needs the same delegated authority as the other setup routes (see [Agents calling these routes](#agents-calling-these-routes)). Its body needs a `subjectUserId`, which must be the run's responsible user, and takes optional `scopes` and `returnTo`. The agent never receives a provider sign-in link of its own: `url` points at the saved setup page in Paperclip, where the person starts the provider sign-in in their own browser session, and the response's `requiredUserAction` (kind `authenticate`) names that person. For Google Workspace, any services the agent requests are saved and preselected for the person.
 
 `token` mints a short-lived token the agent can present to the upstream service. It needs a run id, so a token without one is refused `401` with `{ "error": "Agent run id required", "code": "run_id_required" }`, and if you also send an `X-Paperclip-Run-Id` header it must match the token's run or you get `403` with `run_id_mismatch`. A successful mint returns `200` with `status` `minted` and the `token`, `tokenType`, `expiresAt`, `ttlSeconds`, `scope`, and `grantId`. If the connection is backed by static credentials rather than a broker, minting is refused with `409 Conflict` and `status` `use_env_lease` — the signal to reach the credential through an audited environment lease instead.
 
@@ -455,7 +455,7 @@ GET /api/tool-connections/{connectionId}/installs
 PUT /api/tool-connections/{connectionId}/installs
 ```
 
-The `PUT` replaces the whole install set and requires `tools:manage_profiles`. Changing the company-wide install also checks `tools:manage_connections`. If you only change which agents have a connection you can already use, `agents:configure` for each of those agents is enough instead.
+The `PUT` replaces the whole install set. If the company-wide install stays as it is, the check is `agents:configure` for each agent involved, and you must already have access to the connection. Adding or removing the company-wide install needs `tools:manage_profiles` and `tools:manage_connections` instead. An agent calling this route always needs both of those keys.
 
 Saving the install set gives the connection's app profile only to newly added targets. Targets that stay installed keep their current profile assignments, so a profile you removed from an agent stays removed. Removing a target and adding it back counts as a new install.
 
