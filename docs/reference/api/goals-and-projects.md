@@ -340,6 +340,38 @@ DELETE /api/projects/{projectId}/access-members/{memberId}
 
 Adding and removing members are board-only, and only the project's privacy owner, a company owner or admin, or an instance administrator can do it — anyone else gets `403` with `Only the project privacy owner or an administrator can change project access`. Changes are logged as `project.access_member_added` and `project.access_member_removed`.
 
+### Project Git Authorization
+
+Some work on a project's repositories happens with no task attached, such as a storage plugin provisioning or cleaning up workspaces in the background. For private GitHub repositories, that work needs someone's explicit permission to use their GitHub connection. These routes read and set that permission. In the app, it's the **Background GitHub authorization** section of the project's configuration — see [Background GitHub authorization](../../guides/projects-workflow/projects.md#background-github-authorization).
+
+```
+GET /api/projects/{projectId}/git-authorization
+PUT /api/projects/{projectId}/git-authorization
+```
+
+Both routes are board-only and need a signed-in user (`403 A signed-in user is required` otherwise). `GET` needs read access to the project; `PUT` also needs permission to edit the project's workspaces. Both return the same shape:
+
+```json
+{
+  "grantId": "<grant-id or null>",
+  "authorizedByUserId": "<user-id or null>",
+  "options": [
+    { "grantId": "<grant-id>", "connectionName": "GitHub", "login": "octocat" }
+  ]
+}
+```
+
+- `grantId` and `authorizedByUserId` describe the current authorization, or are `null` when there isn't one.
+- `options` lists only *your own* GitHub connection grants that you could choose: active, personal, and on a GitHub connection that's enabled and installed for the company. Members with the `viewer` role get an empty list.
+
+To authorize the project, send one of your `options`:
+
+```json
+{ "grantId": "<grant-id>" }
+```
+
+Send `{ "grantId": null }` to revoke it. Choosing a grant that isn't one of your own eligible options returns `403 Select your own active company-installed GitHub authorization`, and you can't authorize an archived project (`404 Active project not found`). Paperclip stores only the grant ID and who consented, never a credential. Changes are logged as `project.git_authorized` and `project.git_authorization_revoked`. Agents can't call these routes.
+
 ---
 
 ## Project Workspaces

@@ -144,10 +144,12 @@ Provider channel or repository access determines where a message can reach the i
 | **Connect GitHub** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the GitHub profile | Use **Personal access token (advanced)** |
 | **GitHub Code Review Bot** is not listed | **GitHub review bots** is off for the instance | Ask an administrator to enable it |
 | The agent sees fewer repositories than expected | The installation does not include them | **Add More Repos on GitHub**, then **Refresh access** |
+| *"The Paperclip GitHub installation is suspended. Unsuspend it on GitHub before refreshing access."* | Someone suspended the Paperclip installation on GitHub. GitHub still lists its repositories, but the connection can't use them while it's suspended | Select **Open installation settings on GitHub**, unsuspend it there, then select **Retry access** |
 | *"You don't have permission to reconnect this identity."* | The identity belongs to another person or agent | Ask its owner, or use your own |
 | Tool calls succeed but shell `git push` fails | The account's repository permissions, or branch protection | Check both on GitHub |
 | Comments do not create tasks | The App is not installed on that repository, or the events are not selected | Install it there and confirm the two comment events |
 | Webhook deliveries fail in GitHub | The webhook secret or URL does not match | Regenerate the secret in Paperclip and update the App |
+| A conversation's task failed because the App needed reconnecting | The App's credentials stopped working mid-run | Reconnect the same App, then **Retry** the task. If comments were saved while it was down, the retry picks those up instead of repeating the older request |
 | **Needs attention** | The token expired or the installation was removed | Select **Reconnect** |
 
 ## Limitations

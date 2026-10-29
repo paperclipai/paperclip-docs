@@ -167,6 +167,25 @@ Repository changes don't auto-save. When you've made your picks, click **Save ch
 
 When a workspace points at a GitHub repository, Paperclip imports that repository's skills into your library in the background and keeps them up to date. See [Skills from your project repositories](../org/skills.md#skills-from-your-project-repositories). The skill source follows the branch set on the workspace, so change the branch here, not in Skills.
 
+### Background GitHub authorization
+
+When a task runs, it reaches GitHub as that task's own identity. But some repository work happens with no task at all — a [storage plugin](../../administration/plugins.md#plugins-that-store-your-projects-code) setting up or cleaning out the project's workspaces, for example. For private repositories, that background work needs your permission to use your GitHub connection. Public repositories never need it.
+
+The **Background GitHub authorization** section, just below **Source repos**, is where you give that permission. Anyone who can edit the project's workspaces can authorize it or revoke the authorization; agents can't.
+
+1. Open **Select your GitHub account** and pick one of your own GitHub connections. Each is shown as your GitHub login and the connection's name.
+2. Click **Authorize project**.
+
+The section then shows **Authorized:** with the GitHub login in use. If the authorization belongs to another member, or the connection is no longer available, it reads *"selected grant (unavailable or owned by another member)"* instead. Click **Revoke authorization** to take the permission back, or pick a different account and authorize again to replace it.
+
+A few things to know:
+
+- **It's your connection.** Only your own active GitHub connections appear, and the GitHub Connector has to be installed for the company. If the list is empty, you'll see *"Connect your GitHub account and install the Connector for this company to authorize it."*
+- **It covers what the connection can reach.** The authorization follows your GitHub connection's current repository access, including repositories added to the project later. To change which repositories it can reach, manage them in the GitHub connection itself.
+- **It shares your connection's permissions.** The workspace provider gets a short-lived token with the connection's existing GitHub permissions. Paperclip checks your membership, your access to the project, and the connection every time before handing one out.
+- **Nothing starts without it.** Private repositories wait for an authorization before provisioning begins, so you won't end up with a half-made workspace. If the chosen connection stops working, Paperclip doesn't quietly switch to someone else's.
+- **Task runs aren't affected.** Running tasks keep using their own identity.
+
 ### Codebase and local folder
 
 Below the first divider, the **Codebase** section shows where the project's code lives on the machine running Paperclip. Use **Set local folder** (or **Change local folder**) to point the project at a directory. Agents work directly in this folder, or in isolated worktrees derived from it. If the project's primary workspace defines runtime services, they're listed here too.

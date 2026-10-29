@@ -101,6 +101,10 @@ Here's the sequence, so nothing is a surprise:
 
 If the restarted service fails to come back healthy at the new version, the update rolls itself back to the previous payload and restarts that instead, then reports the failure. You should not end up on a broken build.
 
+**What you see in the browser while the server restarts.** Any open Paperclip tab keeps what's already on screen. If the server stays unreachable for more than a couple of seconds, a small banner at the top says *"Connection interrupted. Reconnecting automatically…"* (or *"You’re offline. Reconnecting when your network is back…"* if your own network dropped). If you made changes in the meantime, it adds how many will send when you're back online. Once the server answers again, the banner briefly shows *"Back online."* and the page picks up where it left off — no manual refresh needed.
+
+**Agents on remote computers keep going.** Paperclip Runner agents that work on a remote computer (for example a Daytona sandbox) can keep their current turn running for up to five minutes while the main server is down or being replaced. When the new server comes up, it reconnects to them and carries on; tools that need the server simply wait for it. For that to work, the new server must use the same PostgreSQL database and the same secrets master key (`PAPERCLIP_SECRETS_MASTER_KEY` or the instance's key file). Agents that were already running before you moved to a version with this behaviour don't gain it retroactively.
+
 | Flag | Use |
 |---|---|
 | `--check` | Check for an available update without applying it. |

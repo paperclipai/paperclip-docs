@@ -43,7 +43,7 @@ Task drain is an instance-wide pause on picking up new work: while it is on, age
 | `POST /api/instance/task-drain` | Start (or refresh) a drain. Body is validated against `startTaskDrainRequestSchema`; pass an optional `ttlMs` to have the drain expire automatically after that many milliseconds, or omit it for a drain that stays on until you stop it. Returns the resulting drain state. |
 | `DELETE /api/instance/task-drain` | Stop draining. Returns `{ "wasActive": <boolean> }` — whether a drain was in effect when you called. |
 
-Reading the status needs only authenticated org access; starting and stopping a drain require instance-admin. Overlapping start/stop calls are serialised, so the audit log and the live drain state always agree.
+Reading the status needs only authenticated org access; starting and stopping a drain require instance-admin. Overlapping start/stop calls are serialised, so the audit log and the live drain state always agree. Task-chat turns that queued while the drain was on start on their own as soon as you stop it or it expires.
 
 ### Idle holds
 

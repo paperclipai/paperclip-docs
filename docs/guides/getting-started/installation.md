@@ -453,6 +453,14 @@ Common errors:
 
 ---
 
+## Install Paperclip as an app (optional)
+
+If you'd rather have Paperclip in its own window than in a browser tab, you can install it. Open your Paperclip address in Chrome and use the browser's install option (for example the install icon in the address bar). Paperclip then opens in a standalone window with its own icon.
+
+The installed window has no address bar. On a phone, Paperclip makes up for that with three small buttons along the top: **Refresh**, **Share** (which copies the page link when your device has no share sheet), and **Open in Browser**. Installing doesn't change anything on your server — it's the same Paperclip, just in its own window.
+
+---
+
 ## You're in
 
 Paperclip is running. The next guide walks you through creating your first company, setting a goal if you have one ready, and getting it ready for agents.

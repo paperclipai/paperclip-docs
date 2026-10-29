@@ -58,6 +58,7 @@ Pi sessions are stored under `~/.pi/paperclips/` and resumed with `--session` on
 - The user task prompt is sent via `-p`.
 - All tools (`read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`) are enabled by default.
 - If the model you configured isn't available, the error names the model and how many models Pi found, and suggests `pi --list-models`, instead of pasting Pi's whole model list.
+- Pi doesn't inherit the Paperclip server's own `PAPERCLIP_*` variables, such as `PAPERCLIP_AGENT_JWT_SECRET`, so server secrets never reach the agent. This applies to runs, the environment test, and `pi --list-models` model discovery. Only `PAPERCLIP_RUNTIME_API_URL`, `PAPERCLIP_LISTEN_HOST`, and `PAPERCLIP_LISTEN_PORT` pass through from the server. The run's own variables (such as `PAPERCLIP_AGENT_ID` and `PAPERCLIP_API_KEY`) and anything you set in `env` still reach Pi, so put a value in `env` if Pi needs it.
 
 ### Run log size
 

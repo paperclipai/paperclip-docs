@@ -125,6 +125,8 @@ OpenCode supports multiple providers. Common ids:
 | `anthropic/claude-fable-5-1` | Anthropic |
 | `anthropic/claude-sonnet-5-5` | Anthropic |
 | `anthropic/claude-sonnet-5` | Anthropic |
+| `anthropic/claude-haiku-5-5` | Anthropic |
+| `google/gemini-4-argon` | Google |
 | `google/gemini-3.8-flash` | Google |
 | `xai/grok-4.7` | xAI |
 | `openai/gpt-5.5` | OpenAI |

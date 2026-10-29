@@ -79,6 +79,20 @@ POST /runtime-tools/connections/request
 
 Each method can carry a `purpose` of `tool`, `channel`, or `ai`. Channel and AI methods also carry a company-scoped `setupPath` pointing at their own setup flow, which the agent shares with the user. Tool methods and AgentMail use `connection_request` instead. Chat channel methods appear only when the instance's **Chat connectors** setting is on; AgentMail always appears. A search match is not proof that an account is authorized or that a tool is installed.
 
+Each method also carries a `management` block, so the agent can tell whether it may do the setup itself instead of handing it to a person:
+
+| Field | Meaning |
+|---|---|
+| `allowed` | Whether this agent, acting for its responsible user, may configure this method itself. |
+| `reason` | Why it's allowed or refused. |
+| `operation` | The setup operation that was checked. |
+| `canUse` | Whether the agent can already use the connection. For a tool connection, at least one of its tools must be allowed. |
+| `requiresApproval` | `true` when some of the connection's tools are set to **Ask first**. |
+| `requiresHumanAuthentication` | `true` when the method needs a sign-in or key and nothing usable is connected yet. |
+| `nextApiOperation` | The API route to call next: `POST /api/companies/{companyId}/tools/apps/connect` for tools, `POST /api/companies/{companyId}/chat-endpoints` for chat, or `POST /api/companies/{companyId}/ai-connections` for AI. |
+
+When `allowed` is `true`, the agent configures the connection through that route and only hands the person the steps that need them — signing in, consent, or credentials — at the saved `setupPath`. The rules behind `allowed` are in [How connector access works](../../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you).
+
 Each result's `state` is one of `ready` (a connection is connected and usable by this agent right now, with `connectionId` set), `needs_user_action` (a matching connection exists but isn't usable yet), `available` (the service can be connected but nothing exists), or `unavailable` (the service offers no connection methods).
 
 `request` takes a body of `{ "service": <string> }` — trimmed, 1–120 characters. A service that isn't available comes back `422` with `Connection service <slug> is not available`. Otherwise it returns:
@@ -110,7 +124,7 @@ These are mounted under `/api` and answer the connection card. Every one is a bo
 GET /api/connection-intents/{interactionId}/setup-options
 ```
 
-Returns what the person needs to answer the card: the interaction itself, the requested `service` (name, description, logo, and connection `methods`), any `existingConnections` for that service they're eligible to use, and the `requestedAgentId`. For an AgentMail card that was partly completed, it also returns `emailSetup` with the saved `credentialConnectionId` and `readyConnectionId`, so the card can resume. If the service is no longer offered, this responds `404` with `Connection service is no longer available`.
+Returns what the person needs to answer the card: the interaction itself, the requested `service` (name, description, logo, and connection `methods`), any `existingConnections` for that service they're eligible to use, and the `requestedAgentId`. For an AgentMail card that was partly completed, it also returns `emailSetup` with the saved `credentialConnectionId` and `readyConnectionId`, so the card can resume. When an agent already saved a chat setup and only needs the person's sign-in, it returns `chatSetup` with the `endpointId`, `connectionId`, and the `path` of the saved setup page, and the card offers **Continue authentication** there. If the service is no longer offered, this responds `404` with `Connection service is no longer available`.
 
 ### Update the phase
 

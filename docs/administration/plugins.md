@@ -171,6 +171,8 @@ Some plugins are a required part of an agent's setup — they prepare something 
 
 If you disable or uninstall one of those plugins, the agents that rely on it can't finish setting up, pausing, resuming, or being cleaned up. Their page shows a failed step with the message *"A required plugin is unavailable. Check the plugin's status in Settings. Paperclip will retry automatically."* Re-enable the plugin and the step completes on its own (or click **Retry now** on the agent's page). See [Setup checks before a new agent starts work](../guides/org/agents.md#setup-checks-before-a-new-agent-starts-work).
 
+An environment plugin can also bring skills its agents need, such as instructions for a desktop or browser it provides. Agents using that environment get those skills automatically, and newly installed ones appear in your skill library with names starting `plugin-`. If an agent also has a company skill with the same name, the plugin's skill is used for the run and the run log notes which skill was skipped; nothing in your library or the agent's assignments changes.
+
 ### Plugins that store your project's code
 
 A plugin can also take over where a project's repository lives. Instead of Paperclip keeping the code on its own disk and making each task's checkout there, the plugin keeps the project's storage — inside remote agent computers, for example — and prepares a checkout there for each task.
@@ -192,6 +194,8 @@ A few things behave differently for those projects:
 - **Cleanup is careful.** Paperclip only asks the plugin to remove a task's checkout once it's clean and its work is recoverable or merged.
 - **Agents run through the same plugin.** To run agents against that storage, the project's [environment](../experimental/environments.md) must come from the same plugin.
 - **Some workspace options don't apply.** When a Paperclip Runner agent works in a plugin environment, the plugin owns the task's workspace. Workspace services and Paperclip-made Git worktrees aren't available there, and a workspace stays with the agent and environment that created it. Retrying a task in a fresh workspace only works if the plugin supports it; the failed attempt's workspace is kept either way. Paperclip shows an error explaining which one blocked the run.
+
+If the project's repositories are private on GitHub, the plugin needs a project member's permission before it can clone or clean them up in the background. A member gives it under **Background GitHub authorization** in the project's configuration — see [Background GitHub authorization](../guides/projects-workflow/projects.md#background-github-authorization). Until then, private repositories wait instead of failing halfway through.
 
 Plugins like this may also keep private per-project credentials, such as a token for the remote storage. Paperclip stores them in its own encrypted secret store rather than the plugin's settings, and they never appear in your company's secret list. Because they're encrypted with your instance's local secrets master key, back that key up together with your database — see [Secrets](../reference/deploy/secrets.md).
 

@@ -144,13 +144,23 @@ If you supply an `instructionsFilePath`, Paperclip prefers staging it into the w
 
 `grok_local` isn't the only way to run Grok. Grok Build is also available on **Paperclip Runner** (`paperclip_runner`), Paperclip's experimental native runner, which talks to Grok over the Agent Client Protocol (ACP) instead of wrapping the CLI. Pick it when you want the runner's durable sessions — a run that survives a server restart and picks up the same Grok conversation — and its built-in Paperclip tools.
 
-Your existing `grok_local` agents keep running on `grok_local`. Nothing migrates them; switching is a choice you make per agent.
+Your existing `grok_local` agents keep running on `grok_local` until you upgrade them yourself. On a macOS ARM64 computer, or a Linux x64 computer with GNU libc `2.39` or newer, open the agent's **Harness / Runtime** page and click **Upgrade runner**. The agent keeps its model, account, instructions, and history; its next run starts a fresh session. **Advanced** also offers an explicit Runner choice. Settings the Runner can't honor — a custom `command`, `extraArgs`, `permissionMode`, `maxTurns`, or `alwaysApprove: false` — are rejected before saving, so remove them or stay on Legacy.
+
+The upgrade carries your Grok settings across:
+
+- **Model:** an unset model, or the legacy `grok-build` default, becomes `grok-4.7`. Any other model you picked stays.
+- **Thinking effort:** your `reasoningEffort` moves over (`minimal`, `low`, `medium`, `high`, or `xhigh`). Before the first prompt, the Runner checks that Grok confirmed the exact effort, and stops the run if it didn't. Leave it empty to use Grok's own default.
+- **Web search:** your `disableWebSearch` setting moves over, and it stays `true` (search off) when you never set it. The Runner keeps search off across restarts and resumed sessions.
+
+When you change the model or effort for a single task, the choices come from the Grok catalog, and the agent's account and web-search setting stay the same.
 
 ### Setting it up
 
 1. Check that **Paperclip Runner** is enabled in Experimental settings. Its default is on for self-hosted instances and off for Cloud-managed instances.
 2. Create or edit an agent and choose **Paperclip Runner** as its adapter.
 3. Set **Harness** to **Grok Build**.
+
+**Upgrade runner** saves the change even when the experimental **Paperclip Runner** setting is off, but the Runner only starts new Grok work while that setting is on. If it's off, new runs stop with *"Paperclip Runner is experimental and disabled on this instance."*
 
 The saved config looks like this. A new Grok runner agent defaults to the `grok-4.7` model:
 

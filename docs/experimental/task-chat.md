@@ -45,6 +45,8 @@ If your company has turned on fast responses, a short acknowledgement can appear
 
 A message you just sent shows as **Sending…** (or **Queued**) until the server confirms it.
 
+When you open a task with a long history, Paperclip shows the original request and the most recent exchange first, so you can start reading straight away. Earlier messages and older run activity sit behind a **More messages** button and load only when you click it. A fresh task with nothing hidden doesn't show the button. New messages that arrive while you have the task open stay in view.
+
 ### Turns
 
 Everything an agent does between two replies is grouped into one **turn**. While the run is live the turn is open and streaming — you watch thinking, tool calls, and diffs land in order.
@@ -71,7 +73,7 @@ Where an agent had to ask permission for a call, the row also shows whether it w
 
 ### The live status line
 
-While a run is in flight, a status line sits at the bottom of the thread with a pulsing dot, a ticking elapsed timer, and a label for what's happening right now — **Thinking**, **Responding**, **Searching**, **Running a command**, **Reading files**, **Editing files**, **Fetching the web**, **Delegating**, or **Using *ToolName*** for an MCP tool. A run that hasn't started yet reads **Queued · Waiting to start**.
+While a run is in flight, a status line sits at the bottom of the thread with a pulsing dot, a ticking elapsed timer, and a label for what's happening right now — **Thinking**, **Responding**, **Searching**, **Running a command**, **Reading files**, **Editing files**, **Fetching the web**, **Delegating**, or **Using *ToolName*** for an MCP tool. A run that hasn't started yet reads **Queued · Waiting to start**. If an instance admin has paused new work for maintenance, the turn reads **Waiting for maintenance** instead and starts on its own as soon as the maintenance pause ends or expires — you don't need to retry. The message that started the turn stays in the conversation while it waits.
 
 When the run ends, that line is replaced in place by the folded turn summary — the same spot, so your eye doesn't have to move.
 
@@ -131,7 +133,7 @@ Moving on from a question also tells the agent you've moved on. Once you've sent
 
 Dismissing a confirmation or review works the same way: the agent treats it as deferred, won't ask you for it again, and an ordinary dismissed card no longer stops the task from finishing. Dismissal is never an approval, though — a dismissed request for a tool action, a credential, or a plan sign-off, or one whose approver was set by company or review policy, keeps holding the gated work until someone actually decides it.
 
-**Queued messages.** A message you send while the agent is mid-run waits in the queue above the composer. **Steer** pushes it into the run that's going now, and **Interrupt** stops that run and starts a fresh one with your message. Either way your message shows up in the conversation straight away. If it can't be delivered, it goes back into the queue with an error explaining why, so nothing you typed is lost. And if a run was stopped before it really got going, the conversation offers **Retry**, or you can just send a new message to start a fresh turn. If the agent you're messaging is paused, your message is kept and delivered once you resume the agent. It isn't dropped.
+**Queued messages.** A message you send while the agent is mid-run waits in the queue above the composer. **Steer** pushes it into the run that's going now, and **Interrupt** stops that run and starts a fresh one with your message. Either way your message shows up in the conversation straight away. If it can't be delivered, it goes back into the queue with an error explaining why, so nothing you typed is lost. If the run stops before your queued messages go out, they stay in the queue and the button on them reads **Send** instead of **Interrupt**. Click it when you're ready to continue — the messages and their attachments go to the agent as you wrote them, and nothing starts until you do. If the task can't take them yet, they stay queued with a short note under the queue explaining the wait — by default *"Messages are still queued. They will send when the task is ready."* And if a run was stopped before it really got going, the conversation offers **Retry**, or you can just send a new message to start a fresh turn. If the agent you're messaging is paused, your message is kept and delivered once you resume the agent. It isn't dropped.
 
 **Choose a project when you create the task.** **New Task** uses the same composer, with a **Project** picker above the text box. Search by project name, choose a recent project, or select **No project**. Model and effort are part of the task's initial run settings; the project is a property of the task, not a per-message override.
 
