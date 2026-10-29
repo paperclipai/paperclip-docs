@@ -73,7 +73,7 @@ If server-host sign-in is unavailable you will see *"Server-host subscription si
 
 ## Assign the credential
 
-Open the saved connection and use **Make default** under **Personal default** for your own account. In the agent's **Connection** selector, choose **Responsible user’s default** to use each responsible person's account, or select a named compatible personal or company-shared account. Save the agent configuration.
+Open the saved connection and use **Make default** under **Personal default** for your own account. In the agent's **Connection** selector, choose **Responsible user’s default** to use each responsible person's account, or select a named compatible personal or company-shared account. Save the agent configuration. Each account in the selector shows its name, sign-in method, **Personal** or **Company shared**, and the account or owner name when Paperclip knows it, so two accounts with the same name are easy to tell apart.
 
 A connected account is not yet the account a run uses. Two ways to bind it:
 

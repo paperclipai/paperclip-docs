@@ -190,6 +190,8 @@ Adding a project only adds. Projects already on the list stay, and every other r
 
 Saving access doesn't start any work by itself. Go back to the task: the notice changes to **Project access is ready**, and you can choose **Retry task** to continue with your saved message.
 
+Paperclip checks every project the task's work needs, not just the task's own project. If you moved the task to an allowed project but it still uses a workspace or repository from a project the agent can't access, the notice keeps explaining the block. It changes to **Project access is ready** once those projects are allowed too, or once you switch the task to a workspace from an allowed project. If the selected workspace has been archived or no longer exists, adding projects can't fix it, so the task shows an ordinary failure instead, without **Retry task** or a project-access button.
+
 For the API behind the editor, see [Allowed Projects (Project Access)](../reference/api/agents.md#allowed-projects-project-access).
 
 ---

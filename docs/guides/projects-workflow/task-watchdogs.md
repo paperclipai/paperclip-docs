@@ -46,6 +46,8 @@ The review's outcome lands back in the watched issue's thread, so the record of 
 
 One refinement makes the loop livable: Paperclip fingerprints the stopped state it has already reviewed. If nothing has changed since the last review, no new review task is created. A stalled tree gets looked at once per distinct state, not once per scan, so the watchdog never fills the thread with duplicate reviews of the same silence.
 
+Paperclip reads the watched tree up to 100 levels deep, counting the watched issue as the first. If sub-issues continue below that, it can't prove the whole tree has stopped, so it doesn't open a review — and it rejects any change the watchdog tries to make — until the tree fits again. The server log warns once when a watched issue hits this limit. In practice this only matters for unusually deep chains of sub-issues.
+
 ---
 
 ## Set a watchdog

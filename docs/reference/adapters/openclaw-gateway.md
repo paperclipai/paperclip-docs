@@ -8,7 +8,7 @@ seo_description: Connect to an OpenClaw instance over the Gateway WebSocket prot
 
 `openclaw_gateway` connects Paperclip to an OpenClaw instance over the OpenClaw Gateway WebSocket protocol. Use it when OpenClaw is running on another machine, inside Docker, or behind a shared gateway and you want Paperclip agents to delegate work to it.
 
-> **Info:** `openclaw_gateway` is fully functional in the runtime but currently shown as **"Coming soon"** in the agent-config adapter-type dropdown. It's reached through the OpenClaw invite-prompt flow instead of being picked manually. This page documents the adapter so you can target it via the API or an imported company. Direct UI selection is planned.
+> **Info:** `openclaw_gateway` is fully functional in the runtime but isn't listed in the agent form's **Harness** dropdown. It's reached through the OpenClaw invite-prompt flow instead of being picked manually. This page documents the adapter so you can target it via the API or an imported company. Direct UI selection is planned.
 
 ---
 

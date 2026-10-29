@@ -116,6 +116,10 @@ After the dialog, you land on a setup page with your agent's character and name 
 2. **Configure** — choose the **Runtime** options (the model, plus any adapter-specific fields like an API key) and the **Environment** the agent runs in. The **Test your agent** card at the bottom runs a quick check that your runtime and model can respond; click **Run test** before you finish.
 3. **Confirmation** — click **Finish setup**. Paperclip completes the agent you started and shows **Your agent is ready**, with buttons to **Edit configuration** or assign the new agent its first task. If your company requires board approval for new agents, the approval is requested at this point.
 
+**Environments that give each agent its own computer.** Some environments come from a [plugin](../../administration/plugins.md) that creates a separate computer for every agent. When you pick one, Paperclip saves your choice straight away and starts preparing that agent's computer in the background. You'll see **Preparing your agent computer…** while it works, and the test waits until it's done, because it runs on that computer. If preparation fails, the error appears with a **Retry preparation** button. Switching to a different environment keeps the account you already connected but clears the previous test result, so run the test again. If the switch can't be saved, click **Retry saving environment**. The agent still won't take ordinary work until you finish setup.
+
+If your company requires approval for new agents, the computer isn't created until the hire is approved. The test tells you *"The selected account will be verified on the agent computer after hire approval."* and you can finish setup without it.
+
 **Coming back to an unfinished agent.** If you close setup part-way, the agent stays paused in your list. Its page shows **Finish setup** where **Resume** would normally be. Click it to return to setup with your saved choices. An unfinished agent can't be resumed, and API keys can't be created for it, until setup is done.
 
 ### What Paperclip fills in for you
@@ -471,7 +475,7 @@ The **Harness / Runtime** page is where you change how the agent is *wired* — 
 The page is a stack of cards, top to bottom:
 
 - **Agent identity** — **Name**, **Title**, and **Reports to**. Change the reporting line here to move the agent in the org chart.
-- **Adapter** — **Adapter type** (every adapter enabled for your instance), **Model**, and adapter-specific fields such as **Thinking effort**. Switching adapters is a structural change and usually resets the model and options to safe defaults for the new adapter, so pick deliberately. Some adapters (OpenCode, for example) need the model in a specific format; the form shows an inline error if the model can't be validated.
+- **Adapter** — **Harness** (every adapter you can pick on your instance; adapters that can't be selected yet aren't listed), **Model**, and adapter-specific fields such as **Thinking effort**. Switching adapters is a structural change and usually resets the model and options to safe defaults for the new adapter, so pick deliberately. Some adapters (OpenCode, for example) need the model in a specific format; the form shows an inline error if the model can't be validated.
 - **Configuration** — adapter-specific settings, with less common options such as **Command** and **Extra args** tucked under **Advanced**.
 - **Environment** — where the agent runs. Leave it on the company default or pick a specific environment.
 - **Environment variables** — values passed to the agent's runtime on every run.

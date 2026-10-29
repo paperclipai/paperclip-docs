@@ -133,6 +133,14 @@ Pick any of the known Codex model ids in the `model` field. The picker lists the
 - `o3-mini`
 - `codex-mini-latest`
 
+> **Heads-up:** OpenAI retired `gpt-5.5` (on 2026-10-14) and `gpt-5.4` and `gpt-5.4-mini` (on 2026-08-31) from Codex with ChatGPT sign-in. They stay in the picker because OpenAI API-key sessions still serve them. If you sign in with ChatGPT, switch to the replacement instead:
+>
+> | Retired model | Replacement with ChatGPT sign-in |
+> |---|---|
+> | `gpt-5.5` | `gpt-6.1-sol` (`gpt-6-luna` on Free and Go plans) |
+> | `gpt-5.4` | `gpt-6-sol` |
+> | `gpt-5.4-mini` | `gpt-6-luna` |
+
 This is a curated list. Even when an OpenAI API key is available, the picker doesn't fill itself from OpenAI's model catalog, because that catalog also includes image, audio, and embedding models Codex can't run. If you need extra models in the dropdown — say, ones served through your own gateway — declare them with [`PAPERCLIP_ADAPTER_MODELS`](../deploy/environment-variables.md#adding-models-to-the-model-picker).
 
 You can also type a model id that is not in this list. Anything Paperclip does not recognize is treated as a manual model id and passed straight through to the Codex CLI.
@@ -262,7 +270,7 @@ The `Test Environment` button checks:
 - The installed Codex CLI is new enough for the selected model. With ChatGPT sign-in, `gpt-6.1-sol` needs Codex `0.159.0` or newer, and `gpt-6-sol` and `gpt-6-luna` need `0.157.0` or newer. The test runs `codex --version` where the agent runs (locally, over SSH, or in the sandbox) and reports `codex_cli_version_compatible` or `codex_cli_version_incompatible`. When the CLI is too old, the hello probe is skipped.
 - The hello probe can run `codex exec --json -` with the prompt `Respond with hello.`
 
-If the probe fails, fix the command or auth path before saving the adapter. If the Codex backend rejects the model for your ChatGPT account, the test reports `codex_hello_probe_model_rejected` and explains the likely cause: a Codex CLI that's too old, a plan that doesn't include the model, or a rollout that hasn't reached your account yet. In a sandbox, the fix for an old CLI is to promote an image that ships the Codex version Paperclip pins. Adding a model to the catalog doesn't update the CLI baked into existing images.
+If the probe fails, fix the command or auth path before saving the adapter. If the Codex backend rejects the model for your ChatGPT account, the test reports `codex_hello_probe_model_rejected` and explains the likely cause: a Codex CLI that's too old, a plan that doesn't include the model, or a rollout that hasn't reached your account yet. In a sandbox, the fix for an old CLI is to promote an image that ships the Codex version Paperclip pins. Adding a model to the catalog doesn't update the CLI baked into existing images. When the rejected model is one OpenAI retired from ChatGPT sign-in, the hint says so instead — for example *"OpenAI retired gpt-5.5 from Codex with ChatGPT sign-in on 2026-10-14. Choose gpt-6.1-sol (gpt-6-luna on Free and Go plans), or use an OpenAI API key; API-key sessions are not affected."* The same hint appears when the agent runs on [Paperclip Runner](paperclip-runner.md).
 
 ---
 

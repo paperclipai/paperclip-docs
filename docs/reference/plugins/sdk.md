@@ -59,6 +59,27 @@ Each declared slot shows up in an **Apps** section of the agent's sidebar, label
 
 If your view needs data about the agent from your own API routes, use `companyResolution: { from: "agent", param: "agentId" }` on those routes (see [Plugin API routes over WebSocket](#plugin-api-routes-over-websocket)). Paperclip then applies the same `agent:read` check the agent's own page uses before your worker sees the request.
 
+#### Showing the view beside a running task
+
+An agent view is often most useful while the agent is working, like a live console you want to watch next to the task conversation. You can offer the same view as a tab in the task's side panel by adding `taskSidePanel` to the slot and pointing it at an availability route:
+
+```json
+{
+  "type": "detailTab",
+  "id": "live-console",
+  "displayName": "Live console",
+  "exportName": "LiveConsole",
+  "entityTypes": ["agent"],
+  "taskSidePanel": { "availabilityPath": "/agents/:entityId/view/availability" }
+}
+```
+
+Then declare that exact path in `apiRoutes` as a `GET` route with `auth: "board"` and `companyResolution: { from: "agent", param: "entityId" }`. It answers `{ "available": true }` only while your view has something to show, and `{ "available": false }` otherwise.
+
+While a task has a running agent, Paperclip replaces `:entityId` with that agent's ID, checks your route every few seconds, and, while it says yes, mounts your component in the task's side panel with the agent as its context. The tab opens by itself the first time it becomes available and is listed in the side panel's launcher under your `displayName`. If someone closes the tab, it stays closed while the run continues, and they can reopen it from the launcher. Nothing shows when the route says no or fails, the run isn't active, or your plugin is missing. Your plugin decides when the view is available and what it shows. Paperclip only remembers which tabs are open, never your route's answers.
+
+The manifest is rejected if the rules aren't met: `taskSidePanel` on anything but a `detailTab` with `"agent"` in `entityTypes` fails with "taskSidePanel requires an agent detailTab", and a missing or mismatched route fails with "taskSidePanel availability requires a declared board GET route scoped to agent :entityId". The route can't be a WebSocket route.
+
 ---
 
 ## Public API
@@ -344,12 +365,33 @@ Outside a lifecycle callback, trusted worker code can read the values with `ctx.
 
 These values never appear in lifecycle inbox listings or the company's secret list. Keep them out of plugin entities, state, data handlers, UI, and logs too. Agent instance secrets keep their own [lifecycle contract](#required-agent-lifecycle-work).
 
+##### Git credentials for a project's repositories
+
+A storage plugin that clones a project's private GitHub repositories can ask Paperclip for a short-lived Git token instead of storing one. Declare the trusted `projects.git-credentials` capability and call:
+
+```ts
+const token = await ctx.projects.resolveGitCredential(projectId, workspaceId, companyId);
+```
+
+It only works while Paperclip is calling your plugin for that project: a project `onResourceLifecycle` delivery, or a workspace `prepare`, `inspect`, or `remove` operation for that workspace. Calls from data handlers, actions, tools, UI, or your own timers are refused with "Git credentials require a matching host project operation". The workspace has to be one of the project's stored repositories, so you can't ask for a token for an arbitrary URL.
+
+Which identity Paperclip uses depends on why you're asking:
+
+- **Preparing a workspace for a running task** uses the task run's own GitHub identity and the usual trust checks.
+- **Background work** — provisioning, checking, or removing workspaces with no task attached — uses the project's [background GitHub authorization](../../guides/projects-workflow/projects.md#background-github-authorization). That's a project member's explicit consent to use their own GitHub connection. If nobody has given it, a private repository fails with "Authorize this project's GitHub connection before provisioning private repositories". Paperclip never swaps in another person's connection.
+
+Public repositories return `null` and need no connection. For background work, every call re-checks the consenting person's company membership and project access, the connection's status, and whether the repository is one that connection can reach, and projects with a low-trust or unverified trust policy can't receive a token. After a project is archived, the existing consent still covers inspecting and removing its workspaces, but not preparing new ones.
+
+The token carries the GitHub connection's existing permissions; it isn't narrowed to one repository or made read-only. Send it only to your trusted execution infrastructure over HTTPS, and never save it in plugin entities, state, configuration, receipts, or logs. Revoking the authorization stops new tokens, but it can't recall one already handed to an operation in progress.
+
 #### Reading an agent's runtime inputs
 
 A plugin that keeps an external "computer" in step with an agent — copying its instructions, skills, and connections into a sandbox, for example — can read everything the agent runs with in one call:
 
 ```ts
 const runtime = await ctx.agents.getRuntime(agentId, companyId);
+// or, from a task provider whose task overrides the agent's default environment:
+const taskRuntime = await ctx.agents.getRuntime(agentId, companyId, environmentId);
 ```
 
 It needs the `agents.lifecycle.manage` capability, must be called from a company-scoped invocation (such as an `onResourceLifecycle` or `onAgentLifecycle` call), and only works for the enabled, ready plugin that's in that agent's required lifecycle set and whose manifest's `resourceLifecycle` includes `"agent_runtime"` (otherwise `403`). A missing agent, or one in another company, returns `null`.
@@ -360,7 +402,8 @@ The `PluginAgentRuntimeState` it returns holds:
 - `agent` — the normalized agent record.
 - `instructionsRootPath` and `instructionsEntryFile` — where the agent's instruction files live on the host, and the entry file's name. Your worker reads them through its own filesystem access; this call grants no extra file access.
 - `instanceSecrets` — your plugin's own [private credentials](#required-agent-lifecycle-work) for this agent. Never put these in UI data, logs, plugin state, or agent files.
-- `skills` — the agent's assigned skills as `PluginAgentRuntimeSkill` entries: `key`, `runtimeName`, `source`, and, where available, `versionId`, `currentVersionId`, `sourceStatus` (`"available"` or `"missing"`), and `missingDetail`.
+- `skills` — the agent's assigned skills as `PluginAgentRuntimeSkill` entries: `key`, `runtimeName`, `source`, and, where available, `versionId`, `currentVersionId`, `sourceStatus` (`"available"` or `"missing"`), and `missingDetail`. This includes any [skills the agent's environment brings](#skills-that-come-with-an-environment).
+- `shadowedSkills` — present only when a selected company skill was left out because a required environment skill has the same name. Each entry gives the omitted `key` and the `shadowedBy` key that won.
 - `connectionAssignments` — a `PluginAgentConnectionAssignments` snapshot: `features` (whether `publicMcp` and `chatConnectors` are switched on), the assigned `connections` (each with `id`, `name`, `transport`, `enabled`, and `status`), and active `profileIds`. It covers company-wide assignments plus this agent's own, never another agent's, and contains no credentials, grant details, or tool schemas. A snapshot over 512 connections or 128 active profiles is refused rather than returned partially.
 
 Treat the result as desired state, not a frozen snapshot of a run in progress. Changes made outside Paperclip's managed write APIs — editing files on disk directly, for instance — don't produce `agent_runtime` events.
@@ -374,6 +417,36 @@ const identity = await ctx.agents.getRuntimeIdentity(agentId, companyId);
 It has the same capability, ownership, and company checks as `getRuntime`, and also returns `null` for a missing agent. The `PluginAgentRuntimeIdentity` it returns holds only the `revision`, your plugin's `instanceSecrets`, and a trimmed `agent` with its `id`, `companyId`, `status`, `lifecycleState`, and `lifecycleVersion`. It skips instruction files, skills, and connection assignments. Each call reads current state; nothing is cached. A good pattern is to read the full runtime once to sync, then use `getRuntimeIdentity` to guard each later write against changes.
 
 > **Note:** `agent_runtime` delivery relies on PostgreSQL `LISTEN`/`NOTIFY`, so your database connection must support session-level `LISTEN`. Transaction-mode connection poolers aren't supported for this opt-in stream.
+
+#### Skills that come with an environment
+
+If your environment gives agents special tools — a desktop, a browser, a device — the agents need instructions for them. You can ship those instructions as [managed skills](#managed-resources) and have every agent that uses the environment pick them up automatically. List the skills' `skillKey`s in `skillKeys` on the entry in `environmentDrivers`:
+
+```json
+{
+  "skills": [{ "skillKey": "desktop-tools", "displayName": "Desktop tools" }],
+  "environmentDrivers": [{ "driverKey": "desktop", "skillKeys": ["desktop-tools"] }]
+}
+```
+
+Each key must be one of your own `skills[]` entries and appear only once; otherwise the manifest fails with "Environment skill keys must be unique references to this plugin's managed skills". Your plugin also needs the `skills.managed` capability and must be ready and enabled for the company, or runs fail with "Environment skills require an enabled plugin with skills.managed capability".
+
+Here's what happens when an agent uses one of your plugin environments:
+
+- **The skills join the agent's normal selection**, even if the agent has no other skills selected. Nothing in the agent's saved configuration is rewritten.
+- **Missing skills are installed** in the company's library the first time they're needed, either when a new run starts or when your lifecycle code asks for them (below). Edits someone made to an installed copy and pinned versions are kept.
+- **Same-name skills step aside.** If the agent also has a company skill with the same name, your environment's skill is delivered and the other one is skipped for that run. The run log shows *Skill "…" was skipped because required plugin skill "…" uses the same name.*, and `getRuntime` reports it in `shadowedSkills`. The agent's assignments and both library entries stay as they are, so removing the requirement brings the original skill back.
+- **Idle computers stay current.** Changing a required skill, the agent's default environment, or your plugin's requirements queues a normal `agent_runtime` event, so a ready computer gets the update without waiting for a new run.
+
+`getRuntime` only installs missing environment skills when you ask it to. Pass `true` as the fourth argument from your lifecycle reconciliation code, for example `ctx.agents.getRuntime(agentId, companyId, undefined, true)`. Ordinary reads and recovery leave that off. By default the call uses the agent's default environment; pass an `environmentId` when a task uses a different one. An unknown environment ID fails with "The selected environment is unavailable".
+
+This applies to plugin environments only. Other environment drivers, and plugin drivers without `skillKeys`, behave as before.
+
+#### Environments that need the agent first
+
+Some environments can't hand out a lease until they've prepared something for a specific agent, such as that agent's own computer. Declare `requiresAgent: true` on the entry in `environmentDrivers` to say so. It needs [agent lifecycle participation](#required-agent-lifecycle-work) (`agentLifecycle: true`); without it the manifest fails with "Agent-dependent environments require agent lifecycle participation".
+
+With this set, Paperclip prepares the agent while it's still being hired. When someone picks your environment in the new-agent setup, Paperclip saves the draft agent and runs your `onAgentLifecycle` preparation straight away. Connection tests then run against that saved draft, and a test without an agent reports what's missing instead of taking a lease. The draft can't pick up ordinary tasks until hiring is finished. If the company requires approval for new hires, preparation waits until the hire is approved.
 
 ### Project storage and task workspaces
 
@@ -510,7 +583,9 @@ Plugin manifests are validated against types re-exported from `@paperclipai/shar
 
 Two top-level manifest fields opt into lifecycle features: `agentLifecycle: true` makes your plugin a [required lifecycle participant](#required-agent-lifecycle-work) (needs `agents.lifecycle.manage`), and `resourceLifecycle` — an array of `"agent"`, `"project"`, and/or `"agent_runtime"` — turns on [automatic event delivery](#automatic-delivery-with-onresourcelifecycle) (needs `events.subscribe`).
 
-Two more opt into execution features. The top-level `workspaceProvider` object (`modes` and `strategies`, plus optional `defaultForProjects`, `finalizationVersion`, and `freshWorkspaceVersion`) makes your plugin the owner of a project's [storage and task workspaces](#project-storage-and-task-workspaces) — it needs `workspaces.manage` plus `"project"` in `resourceLifecycle`. And `supportsTasks: true` on an entry in `environmentDrivers` (a `PluginEnvironmentDriverDeclaration`) says that driver can [run Runner tasks](#running-runner-tasks-optional); the same entry can add `freshWorkspaceVersion: 1` and `warmTaskVersion: 1`.
+Two more opt into execution features. The top-level `workspaceProvider` object (`modes` and `strategies`, plus optional `defaultForProjects`, `finalizationVersion`, and `freshWorkspaceVersion`) makes your plugin the owner of a project's [storage and task workspaces](#project-storage-and-task-workspaces) — it needs `workspaces.manage` plus `"project"` in `resourceLifecycle`. And `supportsTasks: true` on an entry in `environmentDrivers` (a `PluginEnvironmentDriverDeclaration`) says that driver can [run Runner tasks](#running-runner-tasks-optional); the same entry can add `freshWorkspaceVersion: 1` and `warmTaskVersion: 1`. An `environmentDrivers` entry can also list [`skillKeys`](#skills-that-come-with-an-environment) to hand agents your managed skills, and set [`requiresAgent: true`](#environments-that-need-the-agent-first) when its leases depend on a prepared agent.
+
+On a `PluginUiSlotDeclaration`, the optional `taskSidePanel` object (`{ availabilityPath }`) lets an agent `detailTab` [appear beside a running task](#showing-the-view-beside-a-running-task).
 
 | Type | Declares |
 |---|---|
@@ -574,6 +649,8 @@ The relevant methods are `get()`, `reconcile()`, and `reset()` — plus `update(
 Dependencies between managed resources are declared with `PluginManagedResourceRef` — for example a routine's `assigneeRef` and `projectRef`. Reconcile the referenced agent and project before reconciling the routine; if a ref is still missing, the routine resolution reports `missing_refs` instead of guessing.
 
 Keys are stable identity. Renaming `agentKey`, `projectKey`, `routineKey`, or `skillKey` after publishing creates a new managed resource from the host's point of view.
+
+Managed skills get a name that can't collide with a company's own skills: `plugin-<short-plugin-id>-<skill-slug>`, used for both the library slug and the `name` in its `SKILL.md`. The short ID is the last dot-separated part of your plugin ID, without a leading `plugin-`, so a `desktop-tools` skill from `acme.desktop` becomes `plugin-desktop-desktop-tools`. A company skill that already uses the same slug keeps its own separate entry. Copies a company installed earlier keep their edits and names until someone resets them.
 
 For the full manifest example and authoring rules, see the parent `doc/plugins/PLUGIN_AUTHORING_GUIDE.md`; the declaration types listed under [Manifest types](#manifest-types) above are the source of truth for what each managed entry accepts.
 
@@ -1057,7 +1134,7 @@ For embedding the host side of the bridge in tests or custom integrations:
 
 Types: `HostServices`, `HostClientFactoryOptions`, `HostClientHandlers`.
 
-`HostServices` groups the handlers you must supply by domain. Alongside the existing `issues` group — which now also needs `listInteractions`, `respondInteraction`, `listAttachments`, and `getAttachmentContent` — there are the `approvals` group (`list`, `get`, `decide`) and two more new groups: `access` (`listMembers`, `getMember`, `updateMember`, `listInvites`, `createInvite`, `revokeInvite`) and `authorization` (`listGrants`, `setGrants`, `policySummary`, `getPolicy`, `updatePolicy`, `previewAssignment`, `explainAssignment`, `searchAudit`). The `projects` group also needs `getInstanceSecrets`, gated by `projects.instance-secrets`. The `agents` group can optionally supply `getRuntimeIdentity`, gated by `agents.lifecycle.manage`; without it, the call fails with "Agent runtime identity is unavailable". `getRequiredCapability` is the place to confirm which capability each call sits behind.
+`HostServices` groups the handlers you must supply by domain. Alongside the existing `issues` group — which now also needs `listInteractions`, `respondInteraction`, `listAttachments`, and `getAttachmentContent` — there are the `approvals` group (`list`, `get`, `decide`) and two more new groups: `access` (`listMembers`, `getMember`, `updateMember`, `listInvites`, `createInvite`, `revokeInvite`) and `authorization` (`listGrants`, `setGrants`, `policySummary`, `getPolicy`, `updatePolicy`, `previewAssignment`, `explainAssignment`, `searchAudit`). The `projects` group also needs `getInstanceSecrets`, gated by `projects.instance-secrets`, and `resolveGitCredential`, gated by `projects.git-credentials`; the handler also refuses the call unless it comes from a matching host project operation. The `agents` group can optionally supply `getRuntimeIdentity`, gated by `agents.lifecycle.manage`; without it, the call fails with "Agent runtime identity is unavailable". `getRequiredCapability` is the place to confirm which capability each call sits behind.
 
 ### Bundling and dev server
 
@@ -1091,7 +1168,7 @@ To test the interaction, approval, and attachment paths, seed them through `harn
 
 To exercise a lifecycle consumer, seed journal entries with `harness.seed({ lifecycleEvents: [...] })` (a `ResourceLifecycleEvent[]`). The harness's `ctx.events.listLifecycle` and `ctx.events.acknowledgeLifecycle` follow the same rules as the host: the `events.subscribe` capability check, the `1`–`100` limit, creation-first and one-event-per-resource delivery, and the error when you acknowledge out of order.
 
-To test [per-project credentials](#private-per-project-credentials), seed them with `harness.seed({ projectInstanceSecrets: [{ companyId, projectId, values }] })`. The harness's `ctx.projects.getInstanceSecrets` checks for the `projects.instance-secrets` capability and returns a copy of the seeded values (or an empty object).
+To test [per-project credentials](#private-per-project-credentials), seed them with `harness.seed({ projectInstanceSecrets: [{ companyId, projectId, values }] })`. The harness's `ctx.projects.getInstanceSecrets` checks for the `projects.instance-secrets` capability and returns a copy of the seeded values (or an empty object). `ctx.projects.resolveGitCredential` checks for `projects.git-credentials` and then always throws "Git credentials require a matching host project operation", since the harness never runs a host project operation; stub it if your tests need a token.
 
 `ctx.agents.getRuntime` checks for the `agents.lifecycle.manage` capability in the harness but has no built-in data — it throws "Agent runtime state requires a host service fixture" — so stub it when your tests need runtime inputs. `ctx.agents.getRuntimeIdentity` works the same way and throws "Agent runtime identity requires a host service fixture".
 

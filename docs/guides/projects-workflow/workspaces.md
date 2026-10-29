@@ -541,7 +541,7 @@ Both are off by default. Each has a matching `_DRY_RUN` variable that only logs 
 
 ### When a plugin stores the project
 
-Some projects keep their code somewhere other than the Paperclip host — for example inside remote agent computers — through a [storage plugin](../../administration/plugins.md#plugins-that-store-your-projects-code). The idea is the same: each task still gets its own branch and checkout. The difference is that the plugin prepares, checks, and removes those checkouts in its own storage, so there's no host folder for you to drop into, and file browsing isn't available for those workspaces.
+Some projects keep their code somewhere other than the Paperclip host — for example inside remote agent computers — through a [storage plugin](../../administration/plugins.md#plugins-that-store-your-projects-code). The idea is the same: each task still gets its own branch and checkout. The difference is that the plugin prepares, checks, and removes those checkouts in its own storage, so there's no host folder for you to drop into, and file browsing isn't available for those workspaces. If the project uses private GitHub repositories, the plugin can only set up and clean out workspaces in the background once someone has given the project a [background GitHub authorization](projects.md#background-github-authorization).
 
 ### When isolation is overkill
 

@@ -7,7 +7,7 @@ seo_description: Configure Paperclip Runner for native agent sessions. Choose a 
 
 Use `paperclip_runner` when you want Paperclip's native run lifecycle, durable session recovery, and built-in task tools. You select the provider separately from the adapter, then configure model access and the execution environment.
 
-Paperclip Runner is experimental. Native Codex, native OpenCode, **ACP agents → Claude**, **ACP agents → Pi**, and **ACP agents → GitHub Copilot** are the exceptions to the rollout switch. Copilot agents keep running when the switch is off, and first-run setup offers **GitHub Copilot** either way. New Codex, Claude, OpenCode, and Pi agents also use the Runner by default on supported machines (see [New Codex and Claude agents use the Runner](#new-codex-and-claude-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
+Paperclip Runner is experimental. Native Codex, native OpenCode, **ACP agents → Claude**, **ACP agents → Pi**, **ACP agents → Grok Build**, and **ACP agents → GitHub Copilot** are the exceptions to the rollout switch. Copilot agents keep running when the switch is off, and first-run setup offers **GitHub Copilot** either way. New Codex, Claude, OpenCode, and Pi agents also use the Runner by default on supported machines (see [New Codex and Claude agents use the Runner](#new-codex-and-claude-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
 
 ## Before you start
 
@@ -58,13 +58,15 @@ To choose, open **Advanced** in the agent form, onboarding, or the built-in agen
 
 From the API, send `runner` (`auto`, `paperclip`, or `legacy`) alongside `adapterType: "codex_local"`, `"claude_local"`, `"opencode_local"`, or `"pi_local"` when you create or hire an agent. In the CLI, `paperclipai agent create` and `paperclipai agent hire` take `--runner <runner>`.
 
-Some `codex_local` settings have no Runner equivalent, such as a custom `command`, `extraArgs`, `search`, `fastMode`, filesystem or network scopes, or `maxTurns`. If you set one and the Runner gets picked, saving fails with `agent_runner_config_incompatible`. The message names the fields and asks you to remove them or choose **Legacy runner** in **Advanced**. Paperclip never switches runners on its own: if authentication, the model, a dependency, or the runtime fails, the error tells you what to fix and the agent keeps the runner it has.
+Some `codex_local` settings have no Runner equivalent, such as a custom `command`, `extraArgs`, `search: true`, `fastMode`, filesystem or network scopes, or `maxTurns`. If you set one and the Runner gets picked, saving fails with `agent_runner_config_incompatible`. The message names the fields and asks you to remove them or choose **Legacy runner** in **Advanced**. Paperclip never switches runners on its own: if authentication, the model, a dependency, or the runtime fails, the error tells you what to fix and the agent keeps the runner it has.
+
+Turning web search off does carry over. When a Codex agent is saved with `search: false`, the Runner keeps that setting and launches Codex with hosted web search disabled, including on resumed sessions. The Runner's account and model check before a run always has web search off.
 
 Existing agents, and hires that are already waiting for review, keep their saved runner when you upgrade Paperclip or edit them. Company exports record the runner that was resolved, so an import recreates the same choice.
 
 ### Upgrade an existing Claude or Codex agent
 
-Already have a Claude Code or Codex agent on the Legacy runner? When Paperclip Runner is the default for that agent's environment, its **Harness / Runtime** page shows an **Upgrade to Paperclip Runner** notice. Click **Upgrade runner** to move it over in one step.
+Already have a Claude Code, Codex, or Grok Build agent on the Legacy runner? When Paperclip Runner is the default for that agent's environment, its **Harness / Runtime** page shows an **Upgrade to Paperclip Runner** notice. Click **Upgrade runner** to move it over in one step. Grok Build upgrades need a macOS ARM64 or Linux x64 computer; see [what carries over for Grok](grok-local.md#grok-build-on-paperclip-runner).
 
 You can also upgrade an agent whose computer hasn't been verified for the Runner yet, such as a Daytona snapshot or a sandbox pinned to an image digest. The notice tells you *"The upgrade will verify your computer first. This can take a few minutes."* When you click **Upgrade runner**, Paperclip checks the agent's saved computer, then converts the agent if the check passes. If the computer doesn't support the Runner, you see *"This environment does not support Paperclip Runner. Your agent still uses Legacy runner."* and nothing changes.
 
@@ -136,7 +138,7 @@ Managed providers need operator-prepared profiles; they are not configured by pa
 ## Configure an agent
 
 1. Create or edit the agent and choose **Paperclip Runner**.
-2. Select **Harness**. For **ACP agents**, select the **ACP agent** too.
+2. Select **Harness**. For **ACP agents**, select the **ACP agent** too. When you pick a harness such as Claude or Pi directly in the agent form, that choice already sets the Runner profile, so there's no separate **ACP agent** selector to fill in.
 3. Select a model. When you edit a saved agent, choose a compatible **Connection** for Codex, OpenCode, Claude, Grok, or GitHub Copilot; Cursor uses its secret-backed credential environment instead.
 4. Choose the execution environment and review permissions.
 5. Save and use **Test Environment** before assigning work.
@@ -186,7 +188,7 @@ A new Pi agent lands here automatically on a supported machine. You can also pic
 By default the Runner gives each session a private, isolated provider home and sets up login, skills, and MCP servers there for you. If the execution machine already has a working setup, an operator can set `homeMode: "preconfigured"` in the agent's adapter config to use that account's existing home instead. The default is `"isolated"`.
 
 - **Supported providers:** native Codex and **ACP agents → Claude**. Other providers reject the option. ACP Codex in this mode fails before launch; use native Codex or isolated mode instead.
-- **Prepare the machine first.** In this mode the Runner doesn't sign in, install skills, add external MCP servers, or copy or remove credentials. It still supplies the model, task instructions, and its own task and completion tools. Your local permission rules and hooks keep applying.
+- **Prepare the machine first.** In this mode the Runner doesn't sign in, install skills, add external MCP servers, or copy or remove credentials. It still supplies the model, task instructions, and its own task and completion tools. Your local permission rules and hooks keep applying. If Claude's working directory is the home directory itself, your user settings there are still trusted as user settings, even though Claude also sees them as project settings.
 - **Permissions:** native Codex stays on `never`. ACP Claude needs the default `acpxPermissionMode: "approve-all"` and rejects approval requests; other ACP modes fail before launch. Planning and other read-only ACP Claude tasks also fail before launch in this mode, so use isolated mode or native Codex for planning.
 - **Operators only.** Agents can't set, change, or remove `homeMode`, and a task can't override it. Hires don't inherit it.
 - **Sessions stay separate.** Several sessions can share one home. Switching the mode or the home starts a new session, and a recovered run keeps the mode it started with. Backups never include the external home. On a remote machine, the Runner finds that account's own home there rather than copying the server's.
@@ -195,7 +197,7 @@ By default the Runner gives each session a private, isolated provider home and s
 
 Environment variables you configure for a task's agent, project, environment, or routine reach the native provider process and its tool commands, including custom `PAPERCLIP_*` names. When you add, change, or remove one, the Runner replaces its retained provider process at the next run boundary, so the next turn sees the new value. Unchanged variables let the warm process be reused. Only names are passed through the Runner's launch path; the secret values stay in the child environment. Ambient secrets on the host are never forwarded. A native launch carries up to 128 configured variable names.
 
-Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, `opencode_local`, and `pi_local` agents remain direct adapters until you explicitly choose Runner. For Claude Code and Codex agents, the [upgrade notice](#upgrade-an-existing-claude-or-codex-agent) is the quickest way. A saved obsolete native-runner toggle on a direct adapter does not switch fresh runs to this path.
+Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, `opencode_local`, and `pi_local` agents remain direct adapters until you explicitly choose Runner. For Claude Code, Codex, and Grok Build agents, the [upgrade notice](#upgrade-an-existing-claude-or-codex-agent) is the quickest way. A saved obsolete native-runner toggle on a direct adapter does not switch fresh runs to this path.
 
 ## Current limits
 

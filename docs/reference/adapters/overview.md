@@ -69,11 +69,11 @@ These adapters ship with Paperclip and are always available in the host:
 | [Grok Local](./grok-local.md) | `grok_local` | Selectable | Grok Build CLI runs with `--resume` session continuity, streaming reasoning output, and skills staged into `.claude/skills`. |
 | [Paperclip Runner](./paperclip-runner.md) | `paperclip_runner` | Experimental; instance setting applies | Native run lifecycle, durable session recovery, and qualified Codex, OpenCode, Claude, Grok, Cursor, GitHub Copilot, and Pi providers. |
 | [Kimi Code](./kimi-local.md) | `kimi_local` | Selectable | Kimi Code CLI runs on the shared ACP engine with headless-CLI fallback, session resume, and per-run skills injection. |
-| [OpenClaw Gateway](./openclaw-gateway.md) | `openclaw_gateway` | **Coming soon** (use OpenClaw invite flow) | Remote OpenClaw instances reached over the WebSocket gateway protocol. |
-| [Process](./process.md) | `process` | **Coming soon** (API / import only) | Shell commands, scripts, and custom local runtimes. |
-| [HTTP](./http.md) | `http` | **Coming soon** (API / import only) | Webhook-style invocation into your own service. |
+| [OpenClaw Gateway](./openclaw-gateway.md) | `openclaw_gateway` | Not listed (use OpenClaw invite flow) | Remote OpenClaw instances reached over the WebSocket gateway protocol. |
+| [Process](./process.md) | `process` | Not listed (API / import only) | Shell commands, scripts, and custom local runtimes. |
+| [HTTP](./http.md) | `http` | Not listed (API / import only) | Webhook-style invocation into your own service. |
 
-> **Info:** The agent-config adapter-type dropdown currently marks `openclaw_gateway`, `process`, and `http` as **"Coming soon"**. They're fully functional in the runtime — they just can't be picked manually from the UI yet. Configure them via the API or an imported company export until direct UI selection lands.
+> **Info:** The **Harness** dropdown in the agent form doesn't list `openclaw_gateway`, `process`, or `http`. They're fully functional in the runtime — you just can't pick them manually from the UI yet. Configure them via the API or an imported company export until direct UI selection lands. An agent that's already saved with `process` or `http` still shows that harness, and editing other settings keeps it.
 
 ---
 
