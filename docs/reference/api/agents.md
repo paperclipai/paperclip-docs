@@ -501,6 +501,26 @@ Important behavior:
 - Terminated agents cannot be resumed through a status patch.
 - Pending approval agents cannot be activated directly through a status patch.
 - Saving a Claude agent on Paperclip Runner with obsolete options drops them and returns a `configurationWarnings` array. See [Configuration warnings](#configuration-warnings).
+- The response includes the agent's configuration fields and a fresh `configurationRevision`, so you can chain another guarded update without re-reading. See [Guard against stale writes](#guard-against-stale-writes-expectedconfigurationrevision).
+
+### Guard against stale writes (`expectedConfigurationRevision`)
+
+If you read an agent's configuration, let someone edit it, and then write it back, you can overwrite a change made in between. To prevent that, send the revision you started from.
+
+1. Read `GET /api/agents/{agentId}/configuration`. The response includes `configurationRevision`, a 64-character hex string that changes whenever the agent's configuration fields or permissions change.
+2. Send that value as `expectedConfigurationRevision` in your `PATCH /api/agents/{agentId}` body.
+
+If the agent changed since you read it, the update is rejected with `409 Conflict` and nothing is written:
+
+```json
+{ "error": "Agent configuration changed while you were editing. Reload the saved configuration and apply your changes again." }
+```
+
+Read the configuration again, reapply your change, and retry with the new revision. The check runs again inside the database write, so a change that lands between the check and the save is caught too.
+
+A guarded update also handles redacted values for you. Configuration reads show secret-bearing values in `adapterConfig`, `runtimeConfig`, and `metadata` as `***REDACTED***`. If you send any of those back unchanged, at the same place, the server keeps the stored value. You can remove a redacted entry or replace it with a whole new value, but changing part of a redacted string or moving it elsewhere returns `422` with `A redacted value was changed or moved. Keep it unchanged, remove it, or replace the entire value.`
+
+The agent's **Advanced** page sends this guard whenever a save changes the agent's configuration fields. See [Edit an agent as YAML](../../guides/org/agent-configuration-yaml.md).
 
 ### Configuration warnings
 
@@ -1284,6 +1304,7 @@ Use them when you need to:
 
 Important notes:
 
+- `GET /api/agents/{agentId}/configuration` and each entry from `GET /api/companies/{companyId}/agent-configurations` include a `configurationRevision`. Pass it as `expectedConfigurationRevision` on [Update Agent](#update-agent) to reject stale writes with `409`.
 - If you are a board (human) member of the company, configuration and config-revision reads need only your company membership — no `agents:create` permission is required. Agent (non-human) actors still need `agents:create` (granted, or the legacy `canCreateAgents` flag on their own record) to read these. Mutations and environment probes always require `agents:create`.
 - Revisions redact secret-bearing fields before returning them, so reads never expose secrets regardless of who you are.
 - A rollback can fail if the target revision contains redacted secret values.

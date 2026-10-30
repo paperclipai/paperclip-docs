@@ -107,6 +107,10 @@
           "file": "../docs/guides/org/agents.md"
         },
         {
+          "title": "Edit an Agent as YAML",
+          "file": "../docs/guides/org/agent-configuration-yaml.md"
+        },
+        {
           "title": "Agent Identity",
           "file": "../docs/guides/org/agent-identity.md"
         },
@@ -664,6 +668,10 @@
         {
           "title": "Agent Chat",
           "file": "../docs/experimental/agent-chat.md"
+        },
+        {
+          "title": "Coordinator Workspace",
+          "file": "../docs/experimental/coordinator-workspace.md"
         },
         {
           "title": "Assistant Connections (MCP)",

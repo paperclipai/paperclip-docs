@@ -186,7 +186,7 @@ The side menu groups the pages like this:
 |---|---|
 | **Agent** | [Overview](#overview), [Instructions](#instructions), [Skills](#skills) |
 | **Runtime** | [Harness / Runtime](#harness-runtime), [Secrets & variables](#secrets-tools-and-channels), [Tools](#secrets-tools-and-channels), [Channels](#secrets-tools-and-channels) |
-| **Governance** | [Permissions / Trust](#permissions-trust), [API Keys](#api-keys), [Revisions](#revisions) |
+| **Governance** | [Permissions / Trust](#permissions-trust), [API Keys](#api-keys), [Revisions](#revisions), [Advanced](#advanced) |
 | **Audit** | Activity, [Runs](#runs), Costs, [Budgets](#budgets) |
 
 The four **Audit** links don't open pages inside the agent. They take you to the company-wide **Audit** page, already filtered to this agent. That's where run history, spending, and budgets live now.
@@ -197,8 +197,9 @@ The actions in the header work on every page:
 - **Set as my primary** — a small link under the agent's name that makes this agent your personal default. See [Your primary agent](#your-primary-agent).
 - **Assign Task** — opens the new-task dialog with this agent pre-selected as assignee
 - **Run now** — wakes the agent for a heartbeat right away and takes you to the new run (useful for testing instruction changes)
+- **Finish setup** — replaces both **Run now** and **Resume** when the agent was saved before its setup was complete. Click it to return to setup with the same saved agent and your earlier choices; once setup finishes, the normal buttons come back. If you have unsaved edits on the page, Paperclip asks before leaving.
 - **Raw tracing on** — a small label at the start of the header actions (on wider screens) when the agent is recording the exact traffic to its model provider. There's no separate trace button; to capture traces, turn on **Capture raw provider traces** in the **Debugging** card on the agent's [Harness / Runtime](#harness-runtime) page and save. Tracing then applies to every future run until you switch it off, and each trace is deleted after 24 hours.
-- **Pause / Resume** — toggles the agent between `paused` and `active`. An agent whose setup isn't finished shows **Finish setup** instead of **Resume**.
+- **Pause / Resume** — toggles the agent between `paused` and `active`
 - **Clear error** — appears when the agent is in `error`, and returns it to idle
 - **More actions (`⋯`)** — Duplicate Agent, Copy Agent ID, Reset Sessions, Terminate
 
@@ -281,9 +282,7 @@ Below that, four cards sum up the agent at a glance:
 
 A list of up to six tasks this agent has worked on, most recent first. **See All** opens the full task list filtered to this agent. Use it to pick up context before you run the agent or reassign work.
 
-### Audit
-
-At the bottom, four shortcuts — **Activity**, **Runs**, **Costs**, and **Budgets** — open the company-wide Audit page filtered to this agent. Spending charts and per-run costs live there now; see [Costs & budgets](../day-to-day/costs.md).
+For the agent's activity, runs, costs, and budgets, use the **Audit** links in the side menu. Spending charts and per-run costs live there; see [Costs & budgets](../day-to-day/costs.md).
 
 ---
 
@@ -534,6 +533,16 @@ Every time you save a change to this agent's configuration, Paperclip records a 
 Click **Restore** on any entry to put the agent back to that exact configuration. Restoring is itself saved as a new revision, so you can always undo an undo.
 
 > **Tip:** Use restore when a change breaks an agent and you don't have time to debug. Pause the agent, restore the last known-good revision, resume, and investigate the bad change later.
+
+---
+
+## Advanced
+
+The **Advanced** page shows the agent's whole configuration — profile, runtime, instructions, skills, tools, channels, permissions — as one editable `paperclip/v1` YAML document. You can also use it to create or revoke API keys, create or rotate secrets, and restore a revision, all from the same editor.
+
+Before you save, a summary lists every change that will be applied, in order. If someone else changed the agent while you were editing, the save stops and asks you to click **Reload saved**. Secret values are never shown.
+
+See [Edit an agent as YAML](agent-configuration-yaml.md) for the document format, the save rules, and how to recover from a conflict or a partial save.
 
 ---
 

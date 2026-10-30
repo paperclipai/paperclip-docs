@@ -45,11 +45,15 @@ Conversations follow your company's normal task visibility. Teammates can read y
 
 ## Talking it through, then handing off
 
-In a chat, the agent's job is to understand what you want — not to quietly start building. It asks about anything important that's missing, can research and draft a plan with you, and then, when there's substantial work to do, creates ordinary tasks for it: assigned to the right agent, in a suitable project, with the context, any plan you agreed, and what "done" looks like. The conversation itself never turns into the work.
+In a chat, the agent's job is to understand what you want — not to quietly start building. It asks about anything important that's missing, can research and draft a plan with you, and then, when there's substantial work to do, creates ordinary tasks for it, in a suitable project, with the context, any plan you agreed, and what "done" looks like. The conversation itself never turns into the work.
 
 You can still pick **Plan mode** or **Ask mode** in the composer, just like on a task. Ask mode keeps the agent read-only; Plan mode is for clarifying and shaping a plan.
 
 When a reply is finished, the conversation simply waits for your next message. An idle chat doesn't count as unfinished work.
+
+### Who gets the task
+
+A task the agent creates from your chat is assigned to that same agent, unless you say otherwise. The same goes for tasks it suggests. To give the work to another agent or a person, name them in your message. Saying a task is "for me" doesn't assign it to you, and the agent won't hand the work to a different agent just because that agent seems a better fit. If a suggested task arrives with no assignee, Paperclip assigns it to the agent you're chatting with when you accept it.
 
 ## Getting results back
 
@@ -67,7 +71,7 @@ Pending questions from the previous session expire, so an old question does not 
 
 ## When it's off
 
-Turning **Agent Chat** off removes the **Chat** entry and stops new messages, but nothing is deleted. Turns that were already running are allowed to finish, and existing conversations stay readable through their task links. Opening a chat page while it's off tells you *"Agent Chat is disabled. Enable it in Experimental settings."* Turn it back on and everything is where you left it.
+Turning **Agent Chat** off removes the **Chat** entry and stops new messages, but nothing is deleted. Turns that were already running are allowed to finish, and existing conversations stay readable through their task links. Opening a chat page while it's off tells you that Agent Chat is off for this instance and that an administrator can enable it in **Experimental settings**. Your personal [Coordinator workspace](coordinator-workspace.md) preference doesn't change that. Turn it back on and everything is where you left it.
 
 ## Caveats
 
@@ -83,4 +87,5 @@ Implementation reference: [session reset and handoff instructions](https://githu
 - [Work Modes](../guides/day-to-day/work-modes.md) — what Auto, Plan, and Ask modes change about a turn.
 - [Issues](../guides/day-to-day/issues.md) — the tasks your chats hand work off to.
 - [Agent Chat conversations API](../reference/api/issues.md#agent-chat-conversations) — finding and creating conversations programmatically.
+- [Coordinator workspace](coordinator-workspace.md) — a personal workspace that puts chat, task proposals, and decisions on one path.
 - [Experimental features overview](overview.md)
