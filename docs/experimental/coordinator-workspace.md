@@ -47,9 +47,9 @@ The sidebar now has three main destinations:
 - **Tasks** opens the company task list. Hover the row for a **New task** button.
 - **Needs You** collects everything waiting on your decision. Its badge counts what's open.
 
-Everything else is under **More**: **Search**, **Inbox**, **Dashboard**, **Projects**, **Routines**, **Artifacts**, **Agents**, **Skills**, **Connectors**, **Audit**, and **Settings**. Hover any of them and click the pin to keep it in a **Pinned** section under the main three. Pins are saved in this browser, for your account.
+Other pages live under **More**: **Search**, **Inbox**, **Dashboard**, **Projects**, **Routines**, **Artifacts**, **Agents**, **Skills**, **Connectors**, **Audit**, and **Settings**. Hover any of them and click the pin to keep it in a **Pinned** section under the main three. Pins are saved in this browser, for your account.
 
-Below that, **Recents** mixes the tasks you've opened, your agent conversations, and projects you've visited, newest first. Expand a project there to see its most recently updated tasks without leaving the page.
+Below that, **Recents** mixes the tasks you've opened, your agent conversations, and projects you've visited in this session, newest first. Expand a project there to see its most recently updated tasks without leaving the page.
 
 On a phone, the bottom bar carries **Chat**, **Tasks**, **Needs You**, and **New task**.
 
@@ -97,7 +97,7 @@ Documents an agent writes or links don't take over the thread. They show up as c
 
 **Needs You** replaces the classic Decisions page while the workspace is on. It lives at the same address, `/decisions`, and lists everything waiting on you, from questions and confirmations to agent decisions and reviews.
 
-Most items can be resolved right on the card. A task stuck in review with no one to pick it up asks you to **Choose how this task continues**: send it back to work, request changes, or **Mark task done**. Anything that can't be handled in place has an **Open to review** button. Every card links to its task.
+Most items can be resolved right on the card. A task stuck in review with no one to pick it up asks you to **Choose how this task continues**: send it back to work, request changes, or **Mark task done**. Anything that can't be handled in place has an **Open to review** button. Cards tied to a task link back to it.
 
 Use the toolbar above the queue to narrow it down:
 

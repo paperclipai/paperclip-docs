@@ -122,7 +122,7 @@ curl -s \
 
 | Param | Description |
 |---|---|
-| `search` | Case-insensitive match against the decision title, the issue identifier, or the issue title. Up to 200 characters. |
+| `search` | Case-insensitive match against the record's title, the issue identifier, or the issue title. Up to 200 characters. |
 | `outcome` | Only records with this outcome, such as `accepted`, `rejected`, `answered`, `cancelled`, `expired`, or `decided`. Item reviews match `accepted` or `rejected` according to the verdicts they recorded, so a mixed review can match both. `answered` leaves out item reviews. |
 | `agentId` | Only records raised by this agent (UUID). |
 | `projectId` | Only records on issues in this project (UUID). |

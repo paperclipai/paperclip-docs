@@ -520,7 +520,7 @@ Read the configuration again, reapply your change, and retry with the new revisi
 
 A guarded update also handles redacted values for you. Configuration reads show secret-bearing values in `adapterConfig`, `runtimeConfig`, and `metadata` as `***REDACTED***`. If you send any of those back unchanged, at the same place, the server keeps the stored value. You can remove a redacted entry or replace it with a whole new value, but changing part of a redacted string or moving it elsewhere returns `422` with `A redacted value was changed or moved. Keep it unchanged, remove it, or replace the entire value.`
 
-The agent's **Advanced** page uses this guard for every save. See [Edit an agent as YAML](../../guides/org/agent-configuration-yaml.md).
+The agent's **Advanced** page sends this guard whenever a save changes the agent's configuration fields. See [Edit an agent as YAML](../../guides/org/agent-configuration-yaml.md).
 
 ### Configuration warnings
 

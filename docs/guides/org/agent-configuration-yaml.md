@@ -16,7 +16,7 @@ The editor doesn't bypass anything. Each part of the document is saved through t
 1. Open the agent from the **Agents** list.
 2. In the side menu, under **Governance**, click **Advanced**.
 
-The page address ends in `/advanced`. Paperclip loads the agent's settings from every service it touches (you'll see **Loading configuration…** for a moment), then shows the document in the **Agent YAML configuration** editor.
+The page address ends in `/advanced`. Paperclip loads the agent's settings from every service it touches (you'll see **Loading configuration…** for a moment), then shows the document in a YAML editor.
 
 ---
 
@@ -66,7 +66,7 @@ When you reload, the command sections are empty again. The results show up in `o
 
 ### The `observed` section
 
-`observed` is a read-only snapshot to help you write the `spec`: the agent's existing API keys, recent revisions (with their IDs, for `revisions.restore`), instruction files that can't be edited as text, skill and instruction warnings, every tool connection in the company and whether it's inherited, available and inherited tool profiles, inherited tool policies, channel status and linked people, the company's secrets (names and IDs only — never values), and pending secret proposals.
+`observed` is a read-only snapshot to help you write the `spec`: the agent's existing API keys, recent revisions (with their IDs, for `revisions.restore`), instruction files that can't be edited as text, skill and instruction warnings, every tool connection in the company and whether it's inherited, available and inherited tool profiles, inherited tool policies, channel status and linked people, the company's secrets (names, IDs, and other metadata — never values), and pending secret proposals.
 
 Don't change or remove `observed`. If you do, the editor says **observed is read-only. Edit spec to change configuration.**
 
@@ -157,14 +157,14 @@ The footer shows **Unsaved changes** while you have edits, or **No configuration
 
 Click **Save changes**. The footer shows each step as it runs (**Saving: …**). When everything finishes, Paperclip reloads the document from the server and shows an **Agent saved** toast. If any setting was ignored along the way, the toast lists the [configuration warnings](../../reference/api/agents.md#configuration-warnings).
 
-While a save is running, the editor is read-only and the agent's header actions are disabled. Paperclip also asks before you leave the page with unsaved edits.
+While a save is running, the editor is read-only and the header's **Assign Task**, **Run now**, and **Pause / Resume** buttons are disabled. Paperclip also asks before you leave the page with unsaved edits.
 
 ### Rules the editor enforces
 
 A few combinations are rejected before anything is saved, with a message telling you what to do:
 
-- **Instruction location vs. file edits.** Changing `mode`, `rootPath`, or `entryFile` is its own save. Save the new location first, then edit the files Paperclip loads from it. An `external` bundle needs an absolute `rootPath`, a `managed` bundle's root is assigned by Paperclip, and you can't remove the entry file.
-- **Shared tool profiles.** If a profile in `tools.profiles` is also bound to other agents or the company, changing its definition affects all of them. Paperclip requires `updateSharedDefinition: true` on that row to confirm, or you can use `profileId: null` to create a separate profile instead.
+- **Instruction location vs. file edits.** Changing `mode`, `rootPath`, or `entryFile` can't be combined with file edits in the same save. Save the new location first, then edit the files Paperclip loads from it. An `external` bundle needs an absolute `rootPath`, a `managed` bundle's root is assigned by Paperclip, and you can't remove the entry file.
+- **Shared tool profiles.** If a profile in `tools.profiles` is also bound anywhere else — another agent, the company, a project, and so on — changing its definition affects all of them. Paperclip requires `updateSharedDefinition: true` on that row to confirm, or you can use `profileId: null` to create a separate profile instead.
 - **Organization-wide tool installs** can't be switched off for one agent.
 - **Tool policies** in `tools.policies` must be scoped only to this agent.
 - **Channels** can't change `provider` — create a new channel instead.
@@ -175,7 +175,7 @@ A few combinations are rejected before anything is saved, with a message telling
 
 ## When someone else changed the agent
 
-The editor protects you from overwriting changes you haven't seen. Just before it saves, it reloads the agent's current settings and compares them with the version you started editing. If someone (or something) changed the agent in the meantime, the save stops before writing anything, with a message like **Agent configuration changed while you were editing. Reload saved before saving.** or **skills changed while you were editing. Reload saved before saving.**
+The editor protects you from overwriting changes you haven't seen. Just before it saves, it reloads the agent's current settings and compares them with the version you started editing. If someone (or something) changed the agent's core settings, or a section you're editing, in the meantime, the save stops before writing anything, with a message like **Agent configuration changed while you were editing. Reload saved before saving.** or **skills changed while you were editing. Reload saved before saving.**
 
 The server double-checks the core settings too: if they change in the moment between that check and the write, the save is refused with a conflict.
 
@@ -214,4 +214,4 @@ The document never shows secret values.
 
 - [Agents](agents.md) — the agent detail page and each settings page in detail
 - [Revisions](agents.md#revisions) — the history you can restore with `revisions.restore`
-- [Agents API — Configuration](../../reference/api/agents.md#configuration) — `configurationRevision` and the stale-write check for API clients
+- [Agents API — Guard against stale writes](../../reference/api/agents.md#guard-against-stale-writes-expectedconfigurationrevision) — `configurationRevision` and the stale-write check for API clients
