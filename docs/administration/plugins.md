@@ -91,7 +91,9 @@ This used to be a Kubernetes-only shortcut. It's now a general path with a fixed
 
 | Key | Plugin it installs |
 |---|---|
+| `boxd` | `paperclip.boxd-sandbox-provider` |
 | `cloudflare` | `paperclip.cloudflare-sandbox-provider` |
+| `createos` | `paperclip.createos-sandbox-provider` |
 | `daytona` | `paperclip.daytona-sandbox-provider` |
 | `e2b` | `paperclip.e2b-sandbox-provider` |
 | `exe-dev` | `paperclip.exe-dev-sandbox-provider` |

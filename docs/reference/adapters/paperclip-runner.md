@@ -38,6 +38,8 @@ Paperclip Runner is chosen automatically when the agent's execution environment 
 
 Windows, 32-bit ARM, Alpine and other musl-based Linux, and Linux with an older or unknown libc keep the Legacy runner. Paperclip checks the machine the agent will actually run on, not the machine running the Paperclip server. For a sandbox environment, use an immutable image digest and run the environment's connection probe, so Paperclip can confirm the operating system, architecture, and libc.
 
+On Paperclip Cloud, a sandbox environment that Paperclip manages and that still uses the image Paperclip Cloud picks for it is trusted as is. Those agents default to Paperclip Runner without a saved platform check, and they keep starting after Paperclip Cloud updates the image, with no separate **Run test** in between. If the image really can't run the Runner, the run's startup reports it. Once you capture a [custom sandbox image](../../guides/projects-workflow/custom-sandbox-images.md) for the environment, the usual checks apply again. A stale or missing check on a custom image still stops the run with `sandbox_snapshot_qualification_required` until you click **Run test** on the agent's **Harness / Runtime** page.
+
 A few extra rules apply to Claude:
 
 - **Paperclip has to know the platform.** If it can't tell which operating system and architecture the agent will run on, a new Claude agent keeps the Legacy runner.

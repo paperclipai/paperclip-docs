@@ -14,6 +14,44 @@ A sandbox provider plugin registers an `environmentDriver` of kind `sandbox_prov
 
 ---
 
+## boxd (`provider: "boxd"`)
+
+Package: `@paperclipai/plugin-boxd`
+
+Reach for boxd when you want each agent run in its own isolated [boxd](https://boxd.sh) microVM, and you want a reused sandbox to pick up where it left off. With reuse on, the machine is suspended between runs and resumed with its disk, memory, and running processes intact, so later runs on the same issue skip the setup cost. Install it from the [Plugins](../../administration/plugins.md) page like the other first-party providers.
+
+Configure it from **Settings → Instance settings → Environments** with core `driver: "sandbox"` and `provider: "boxd"`; the driver shows up as **boxd Machine**. Put the boxd API key (`bxd_...`) on the sandbox environment itself. You can paste it or pick a saved Paperclip secret. The key decides which boxd org the machines belong to. `BOXD_API_KEY` remains an optional host-level fallback when an environment omits the key. One of the two is required; validation fails without it.
+
+The driver's `configSchema` exposes:
+
+| Field | Default | Purpose |
+|---|---|---|
+| `apiKey` | (none) | boxd API key: a pasted key or an existing Paperclip secret reference. Falls back to `BOXD_API_KEY` when omitted. |
+| `reuseLease` | `false` | Suspend the machine after a run and resume it for the next run on the same issue, instead of deleting it. |
+| `snapshot` | (none) | Optional snapshot name or ID to restore for each run, such as a machine with your tools preinstalled. Leave blank to start from the default boxd image (Ubuntu 24.04 with Node 24, git, Docker, Claude Code, Codex, and OpenCode). |
+| `vcpu` | (org default) | Size for fresh machines: `1` (1 vCPU/4 GB), `2` (8 GB), `4` (16 GB), or `8` (32 GB). Any other value is rejected. |
+| `org` | (API key's org) | Optional org name or ID. |
+| `namePrefix` | `paperclip` | Prefix for machine names. Machines are reachable at `https://<name>.boxd.sh`. |
+| `timeoutMs` | `3600000` | Default command timeout in milliseconds, also used as the default run timeout for this environment. Validated between `1` and `86400000`. |
+
+Everything below `reuseLease` sits behind **Advanced options**: `snapshot`, `vcpu`, `org`, and `namePrefix` in the **Machine** group, and `timeoutMs` in the **Runtime** group.
+
+A snapshot keeps its own size, so `vcpu` only applies to fresh machines. Setting both `vcpu` and `snapshot` fails validation; clear one of them.
+
+Each run's workspace is a `paperclip-workspace` folder in the machine's home directory, unless the run asks for a specific directory. **Test** (or **Test provider** on a saved environment) creates a short-lived probe machine, checks that it can set up the workspace, then deletes it.
+
+### Reusable leases (opt-in)
+
+Leave `reuseLease` off and every run gets a fresh machine that's deleted when the run releases it. Turn it on and the release suspends the machine instead. The next run resumes the same machine, waking it from whichever state it's in. Paperclip turns off boxd's own auto-suspend on the machines it creates, so the machine is suspended only when a run releases it.
+
+A few edge cases:
+
+- **The suspend fails.** Paperclip logs a warning and deletes the machine instead, so nothing is left running.
+- **The run is cancelled mid-work.** The machine is stopped rather than suspended.
+- **The machine is gone.** If it was deleted or failed in the meantime, the old lease counts as expired and the next run gets a fresh machine.
+
+---
+
 ## Cloudflare (`provider: "cloudflare"`)
 
 Package: `@paperclipai/plugin-cloudflare-sandbox`

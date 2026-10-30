@@ -2,46 +2,35 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `cff331f6` (@ 2026-10-28T07:05Z). 804 commits, 24h quarantine applied (cutoff 2026-10-28T11:00Z). 5,107 files in window.
-- **Compare truncation:** 0 truncated leaves (cumulative 57 leaves; incremental 9 leaves).
+- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `8ac5a128` (@ 2026-10-29T10:35Z). 890 commits, 24h quarantine applied (cutoff 2026-10-29T11:00Z). 5,565 files in window.
+- **Compare truncation:** 0 truncated leaves (cumulative 64 leaves; incremental 7 leaves).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
-- **Already on nightly:** drafts for `1b4c8038..1fbbef45` from earlier runs. This run covers the 136 newer commits, `1fbbef45..cff331f6`.
-- **Verification:** every page changed this run was checked against `cff331f6` with `verify-edit`. No added line has an unverified claim; the remaining flags are on untouched lines (example-JSON values, env vars read outside config files). Every parent read was pinned to `cff331f6`. Of the files changed on master after the window, only Grok Runner internals overlap this run's sources, and those were read at the pinned ref.
-- **Second verification pass:** four independent fact-checkers re-read every added line against `cff331f6`. Corrections applied: Grok Build is *not* exempt from `enableNativeRunner` at run time (only on save); per-agent installs need `agents:configure` plus connection access, while `tools:manage_profiles` covers company-wide install changes; `subjectUserId` is required; the plugin `environmentDrivers` example needed `displayName`; and four overstatements were softened (first-task creation scope, queued-message note, retry after GitHub reconnect, plugin skill naming).
+- **Already on nightly:** drafts for `1b4c8038..cff331f6` from earlier runs. This run covers the 86 newer commits, `cff331f6..8ac5a128`.
+- **Verification:** every page changed this run was checked against `8ac5a128` with `verify-edit` (local pinned snapshot). No added line has an unverified claim; the remaining flags are on untouched lines (Runner example config values, `PAPERCLIP_GITHUB_TOKEN` in `issues.md`, the avatar route in `api/agents.md`). Every parent read was pinned to `8ac5a128`.
+- **Second verification pass:** three independent fact-checkers re-read every added line against `8ac5a128`. Corrections applied: the workspace-preference routes return `Board access required` for non-board callers, and only local trusted boards skip the membership check (instance admins don't); the `404` for an unknown company is only reachable on local trusted instances; decision-history `label` values are examples, not a full list; YAML `secrets.create` rows always carry `bind.env` and `bind.api` lists, and `bind.api` names bind to `adapterConfig["access.<name>"]`; `observed` has no available-policies list; file paths also reject `.` segments and backslashes; redaction covers `runtimeConfig` and `metadata`, not just `adapterConfig.env`; "Created credentials" is an aria-label, not visible text; the stalled-send notice says comment, task or message depending on where you sent it; **Check now** is hidden on tasks blocked by provider usage limits.
 - **Auto-merge tier:** none. No `.env.example`, `server/src/config.ts`, or CLI command changes in the increment.
 
-## Applied this run (`1fbbef45..cff331f6`)
+## Applied this run (`cff331f6..8ac5a128`)
 
-- **Agents managing connections within delegated authority** (#17737, #17739, #17906)
-  - `connectors/access-model.md`: new section "When an agent sets up a connection for you". An agent can create, resume, change and remove connections, profiles, policies, trust rules and installs, run test calls, manage runtimes, read audit, and manage gateways, but only when it holds the matching key **and** the run's responsible user could make the same change. Provider sign-in, Ask-first approvals, OAuth callbacks, local AI login codes, and GitHub identity linking stay with a person (handed over via `requiredUserAction`). Covers the saved chat-setup task card (**Continue authentication** / **Not now**).
-  - `administration/roles-and-permissions.md`: `tools:manage_profiles` is no longer "not wired up yet"; the `tools:*` rows explain how the keys now apply.
-  - `reference/api/tool-gateway.md`: rewritten Permissions section, a "Agents calling these routes" table, `start-authorization` now returns a Paperclip setup page URL, installs `PUT` needs `tools:manage_profiles`, and saving installs no longer re-adds a removed app profile.
-  - `reference/api/connection-intents.md`: the per-method `management` block and `chatSetup`.
-- **AI connection choices identify the account** (#17738): one sentence each in `connectors/anthropic.md`, `openai.md`, `xai.md`.
-- **GitHub** (#17343, #17733): `connectors/github.md` troubleshooting rows for suspended installations (**Open installation settings on GitHub** → **Retry access**) and Retry after reconnecting the App.
-- **Project Git authorization** (#17798)
-  - `guides/projects-workflow/projects.md`: new "Background GitHub authorization" walkthrough (**Authorize project**, **Revoke authorization**).
-  - `reference/api/goals-and-projects.md`: `GET/PUT /api/projects/{projectId}/git-authorization`.
-  - `reference/plugins/sdk.md`: `ctx.projects.resolveGitCredential(...)` and the `projects.git-credentials` capability; cross-references in `workspaces.md` and `administration/plugins.md`.
-- **Plugin SDK** (#17796, #17774, #17761): `sdk.md` gains task-sidebar panels (`taskSidePanel.availabilityPath`), environment-bundled skills (`skillKeys`, `plugin-<id>-<slug>` naming, same-name skills skipped), and agent-dependent environments (`requiresAgent: true`). `administration/plugins.md` notes environment-provided skills.
-- **Hiring prepares the agent's computer** (#17761): `guides/org/agents.md` covers **Preparing your agent computer…**, **Retry preparation**, and the hire-approval wait.
-- **First-task approval** (#17914, #17940): `guides/org/skills.md`. Until you accept the agent's latest proposal, it can't create tasks or mark the first task done.
-- **Adapters**
-  - `codex.md` (#17809): ChatGPT sign-in retirements of `gpt-5.5` (2026-10-14) and `gpt-5.4` / `gpt-5.4-mini` (2026-08-31) with replacements; still selectable with API keys; the Test hint names the retirement.
-  - `opencode.md` (#17809): `anthropic/claude-haiku-5-5` and `google/gemini-4-argon` in the model table.
-  - `pi.md` (#14503): Pi no longer inherits the server's own `PAPERCLIP_*` variables.
-  - `grok-local.md`, `paperclip-runner.md`, `guides/org/agent-adapters.md` (#17922, #17942): **Upgrade runner** now covers Grok Build (macOS ARM64, or Linux x64 with glibc 2.39+), carrying over model, `reasoningEffort`, and `disableWebSearch`. The upgrade saves with the experimental Runner setting off, but new Grok runs still need `enableNativeRunner`.
-  - `paperclip-runner.md` (#17744, #17826): `search: false` carries over to the Runner; Claude user settings in HOME stay trusted.
-  - Harness dropdown (#17722): `overview.md`, `process.md`, `http.md`, `openclaw-gateway.md`, `agents.md` — unavailable adapters are no longer listed (was "Coming soon"); the **ACP agent** selector is hidden when the Harness already picks the profile.
+- **Coordinator workspace** (#17983)
+  - NEW `experimental/coordinator-workspace.md`: a personal, off-by-default workspace from **Settings → Experimental** built around **Chat**, **Tasks** and **Needs You**. Covers task proposals (**Accept drafts** / **Reject**, Runner agents only), decision cards and receipts, document panels, the **All tasks** / **Needs attention** views, **Recent Decisions** and **Decision history**, and going back to classic.
+  - `experimental/overview.md`: a "Your workspace" table and a note that this card is personal, not an instance flag.
+  - `reference/api/attention.md`: `GET /api/companies/{companyId}/attention/history`, plus `GET /api/workspace-preferences/me` and `PUT /api/companies/{companyId}/workspace-preferences/me`.
+  - `experimental/agent-chat.md`: "Who gets the task". Tasks an agent creates or suggests from a chat default to that agent unless you name someone else (paperclip skill change); the disabled-chat message updated to the current text.
+- **Agent YAML editor** (#18036)
+  - NEW `guides/org/agent-configuration-yaml.md`: the **Advanced** tab and the `paperclip/v1` document: editable, command and `observed` sections, preview, stale-write conflicts, partial saves and **Reload saved**, secrets and redaction, and an example.
+  - `guides/org/agents.md`: Advanced in the side-menu table and a short section; **Finish setup** replaces **Run now** / **Resume** for agents saved before setup finished (#17976); the Overview audit shortcuts are gone (#17867).
+  - `reference/api/agents.md`: `configurationRevision` and the `expectedConfigurationRevision` guard (`409` on stale writes, `422` when a redacted value is changed).
+- **boxd sandbox provider** (#17284): `reference/adapters/sandbox-providers.md` gets a boxd section (`@paperclipai/plugin-boxd`, **boxd Machine**, `BOXD_API_KEY` fallback, config table, reusable leases via suspend/resume). `administration/plugins.md` adds `boxd` (and the previously missing `createos`) to the built-in allowlist table.
 - **Operations**
-  - `how-to/update-paperclip.md` (#15754, #17439): the reconnecting/offline banner, and remote Runner agents keeping their turn for up to five minutes while the server is replaced.
-  - `guides/getting-started/installation.md` (#13461): installing Paperclip as an app window.
-  - `guides/projects-workflow/task-watchdogs.md` (#15063): 100-level subtree depth limit.
-  - `administration/trust-and-low-trust-review.md` (#17552): Retry task checks the workspace's projects.
-  - `experimental/task-chat.md` (#17593, #17751, #17959, #17967) and `reference/api/instance-admin.md`: latest exchange first behind **More messages**, **Send** after Stop, **Waiting for maintenance** resuming when a drain ends.
+  - `reference/api/instance-admin.md` (#18037): hot-upgrade readiness via `GET /api/instance/task-drain?upgradeReadiness=1` (instance-admin, read-only snapshot, field list, when `ready` is false). Linked from `how-to/update-paperclip.md`.
+  - `how-to/update-paperclip.md` (#17960): edits and sends survive temporary disconnects (*Will save when reconnected*, *Automatic saving paused* / **Retry saving**, *Sending when reconnected…*, **Resend now** / **Cancel**, the unconfirmed-send notice).
+  - `guides/day-to-day/issues.md` (#18061, #18017): **Check now** on blocked tasks with a retained monitor while automatic checks are paused; task rows no longer show retry labels.
+  - `reference/adapters/paperclip-runner.md` (#18066): Paperclip-managed Cloud sandbox images no longer need a saved qualification; custom images still do.
 
 ## Applied in earlier runs (still on nightly, unreleased)
 
+- `1fbbef45..cff331f6` (#161): delegated connection management, project Git authorization, plugin task panels, Codex retirements, Grok Runner upgrade.
 - `b7dc594b..1fbbef45` (#159): database pool settings and prepared statements, native evidence retention, subtree resume.
 - `5e26b733..b7dc594b` (#158): agent project access, task-directory retention, Slack question and review cards, Runner upgrade on unverified computers, UUID filter `422`s, plugin operational read scoping.
 - `043f2514..5e26b733` (#157): restore points and shared project clones, Unikraft, 1Password, Vercel, Supabase deploy, Artifacts V1, agent bulk edit, onboarding gateway, plugin SDK.
@@ -56,14 +45,16 @@ None. No entry left the cumulative window, and there are no revert commits in th
 
 ## Not documented this run
 
-- Sandbox CLI pin bumps (#17809): no page lists the pinned Grok/Gemini/Kimi/Cursor/GitHub CLI versions.
-- Company deletion removes chat endpoints first (#17561): the companies API description stays accurate.
-- Bugfixes with no setting or doc-stated behaviour: Artifacts V1 preview icon fallback (#17260), iPhone task chat (#17232), recoverable live transcripts (#17456), managed Runner connection test (#17965), ACPX failure detail (#17837), OpenRouter key proxying (#17949), and the many "schedule/wake … from committed changes / saved deadlines" idle-sleep fixes.
-- Internal: the `directions-lab` contributor skill (#17437, under `.agents/skills`), evals/Runner controller qualification, perf read-narrowing, benchmarks, lockfile refreshes.
+- Runner fixes that restore behaviour the docs already promise: assigned tool search page bounds (#18056), human input tool visible to Claude (#18046), selected skills in remote Codex homes (#18080), Claude native options replayed on ACP reconnect (#18135), Stop retried after a deadlock (#17895), checkpoint/warm-preparation fixes (#18011, #18018), OpenCode exit codes (#18076), Pi download retries (#18126).
+- No re-probe when saving an agent with an unchanged connection (#18016): the docs never said otherwise.
+- First-task onboarding skill confirmation recipes (#18025): agent-facing onboarding asset.
+- New per-issue routes from #17983 (`/issues/{id}/chat-handoffs`, `/decision-receipts`, `/pending-questions`): UI plumbing for the Coordinator workspace; `api/issues.md` not extended.
+- `POST /api/issues/{id}/monitor/check-now` (and its new `409`): the route isn't documented in `api/issues.md` at all.
+- Bugfixes and internals: the many "wake/schedule … from committed changes / saved deadlines" idle-sleep fixes, GitHub broker caching for local git (#17886), plugin session reuse (#18045), sidebar popover (#18117), evals, perf query narrowing, benchmarks, lockfile refreshes.
 
-## ⚠ Drift (checked against parent master)
+## ⚠ Drift (checked against parent `8ac5a128`)
 
-39 candidates, unchanged from the last run: all are known false positives (checked against `cff331f6`).
+39 candidates, unchanged from the last run: all are known false positives.
 
 High-confidence (env vars 27, CLI 1):
 - `DATABASE_PREPARED_STATEMENTS`, `DATABASE_POOL_MAX`, `DATABASE_IDLE_TIMEOUT_SECONDS`, `DATABASE_CONNECT_TIMEOUT_SECONDS`, `DATABASE_MAX_LIFETIME_SECONDS`, and `DATABASE_APPLICATION_NAME` (`deploy/environment-variables.md:23–28`): read in `packages/db/src/client.ts`, which the checker doesn't scan.
@@ -78,6 +69,15 @@ Medium (REST routes, 11):
 
 ## Open questions from this run
 
+- **Coordinator task proposals** only appear when the chat agent runs on Paperclip Runner and the conversation owner has the workspace on. Documented; worth a release-note callout.
+- **Recents** in the Coordinator sidebar keep visited projects only for the current session (in memory). The page doesn't claim they persist.
+- **Sidebar label drift:** `guides/org/agents.md` still says "Secrets & variables"; the sidebar label is now "Secrets" (and #18121, in quarantine, changes that page again).
+- **YAML example:** pasting the trimmed example over a real agent could trip the instructions-location rule; it's marked as trimmed.
+- **Custom captured images** count as managed again if they stop matching the environment's base configuration; `paperclip-runner.md` describes the normal case only.
+- **Plugins allowlist:** `createos` was added alongside `boxd` because it was missing from a table that says it's complete.
+
+### Carried over from earlier runs
+
 - **Parent doc vs code (Grok):** `doc/grok-native-runner.md` says Grok Build doesn't need `enableNativeRunner`, but `runtime-mode.ts` rejects new Grok runs without it. Docs follow the code; this may be a parent bug.
 - **Unchanged-text follow-ups:** `tool-gateway.md` still says `test-agents` needs `tools:use`/`tools:manage_connections` (now any member can read it), and `agents.md#grant-scope` doesn't list the connection scope keys.
 - **Owner/Admin permission tightening (#17737):** connection activity now needs `tools:view_audit` (not in the Owner/Admin bundles), and changing a connection that isn't yours needs `tools:manage_connections`. Documented, but worth a changelog callout at release. `roles-and-permissions.md` still says "`tools:admin` is not a superset"; it now covers profile changes for Owners/Admins, so that sentence may need softening.
@@ -87,9 +87,9 @@ Medium (REST routes, 11):
 - Placeholder values in the new git-authorization response and plugin manifest examples are illustrative.
 - Carried over: restore-point `.env` handling and the commit cap, 1Password labels, Unikraft host reachability, the Vercel overview link, Supabase token text, task-dismissal scope, onboarding wording, plugin SDK warm-session defaults, Artifacts V1 visuals, the master-only Slack DM at-mention exemption (#16151), and older carry-overs (Braintrust/Ditto qualification, Cases tool-group toggle, plugin agent-view notices, the OpenCode missing-model error, budget stop latency, Copilot qualification wording).
 
-## Arriving next run (in quarantine, landed after 2026-10-28T11:00Z)
+## Arriving next run (in quarantine, landed after 2026-10-29T11:00Z)
 
-- Opt-in Coordinator workspace for chat, tasks, and decisions (#17983), the complete agent YAML configuration editor (#18036), and the boxd sandbox provider (#17284).
-- Durable writes through temporary disconnects (#17960), hot-upgrade readiness (#18037), and Setup instead of Run for unfinished agents (#17976).
-- Runner: reused prepared storage and installed skill selections (#18089), selected skills delivered to remote Codex homes (#18080), Claude native options replayed on ACP reconnect (#18135), and the human input tool kept visible to Claude (#18046).
-- Other: Check now for retained monitors on blocked tasks (#18061), operator Stop retried after a deadlock (#17895), the sidebar account popover (#18117), and duplicate audit links removed from the agent overview (#17867).
+- Google Antigravity: native ACP execution, pinned runtime, setup with saved Google subscriptions (#18187, #18188, #18189).
+- Task plugin panels mapped to runtime activity (#18131), the GitHub credential broker for task providers (#18178) and Codex shell commands (#17605).
+- Agent Secrets pages show environment variables (#18121), compact agent YAML that keeps omitted settings (#18168), skill repository packages moved out of Postgres (#18082).
+- Restart recovery retains workspaces (#17839), Daytona exports under disk pressure (#18172), shallow sandbox exports (#18221), explicit JSON file outputs need publication (#18228), deliverables guided to the task workspace (#18226), the markdown document card underline (#18215).

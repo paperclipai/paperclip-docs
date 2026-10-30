@@ -33,6 +33,8 @@ All experimental flags live in one place, and they're instance-wide (they apply 
 
 Changes take effect immediately — no restart, no migration. Each feature page in this section repeats the exact toggle name to look for.
 
+One card works differently. **Coordinator workspace**, at the top of the page above the warning, is a personal preference rather than an instance flag. It changes only your own interface, across every company on the instance, and it's off until you turn it on. See [Coordinator workspace](coordinator-workspace.md).
+
 The page groups its toggles into up to three sections — **Experimental features**, **Paperclip Developer Mode**, and **Legacy** — and lists the cards alphabetically within each one, so you can scan for a name. If every toggle in the developer or legacy section is hidden, that section heading disappears too.
 
 ## If a toggle is missing
@@ -56,6 +58,14 @@ On a Cloud staging instance (an address ending in `.staging.paperclip.app`), you
 ## The features
 
 The tables follow the page's own sections and order. Where a feature has a page in these docs, its name links there.
+
+### Your workspace
+
+This card sits above the instance-wide sections, and only affects you.
+
+| Feature | What it adds |
+| --- | --- |
+| [Coordinator workspace](coordinator-workspace.md) | **Personal, off by default.** A workspace built around **Chat**, **Tasks**, and **Needs You**, with task proposals, decision cards and receipts, and decision history. Turn it off to return to the classic workspace. Chat still needs Agent Chat to be on for the instance. |
 
 ### Experimental features
 

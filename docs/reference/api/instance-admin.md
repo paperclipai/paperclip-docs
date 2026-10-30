@@ -55,6 +55,20 @@ A host that wants to stop an idle instance (to save compute) can take a short, o
 
 If you set `PAPERCLIP_DB_BACKUP_IDLE_CHECKPOINT_ENABLED=1` (see [Environment Variables](../deploy/environment-variables.md)), the safety check also takes and verifies a fresh database backup before it reports `none`. On cloud-managed instances, only the Paperclip Cloud control plane can run that backup-checkpoint check.
 
+### Hot-upgrade readiness
+
+Before you replace the server while agents are still working, you can ask whether every running task would survive the swap. Call `GET /api/instance/task-drain?upgradeReadiness=1`. Alongside the usual drain status you get an `upgradeReadiness` object. This read needs instance-admin, because it covers work across every company. It's only a snapshot: it doesn't start a drain, hold new work, or disconnect any runner.
+
+The fields you'll care about most:
+
+- `ready` — `true` only when nothing would be lost by replacing the server right now.
+- `activeRuns`, `recoverableRuns`, `blockingRuns` — how many runs are in progress, how many can carry on through a replacement, and how many can't.
+- `pendingWakes` and `draining` — queued wakeups and whether a drain is on.
+- `truncated` — `true` if more than 1,000 running runs were found and the report stopped counting.
+- `observedAt`, `version`, `controllerBootId`, `supportedOutageMs` (five minutes) and `recoveryGraceMs` (seven minutes).
+
+Only [Paperclip Runner](../adapters/paperclip-runner.md) runs on a remote computer, with a saved checkpoint and a live hold from this server, count as recoverable. Everything else counts as blocking. `ready` is `false` whenever any run is blocking, wakeups are pending, a drain is on, or the report was truncated. If it's `false`, drain and let the work finish before you upgrade. The report can go stale as work starts and stops, so read it right before you act.
+
 ---
 
 ## Liveness probe
