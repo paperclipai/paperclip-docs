@@ -506,7 +506,7 @@ Edits are tracked as you make them. The bar at the bottom of the page shows "You
 
 The rest of the **Runtime** section in the side menu covers what the agent can reach:
 
-- **Secrets & variables** — under **Secret access**, choose which of your organization's secrets this agent may use. Environment variables themselves are set on [Harness / Runtime](#harness-runtime).
+- **Secrets & variables** — everything that hands the agent a credential, in one place. The **Environment variables** card lists every environment variable configured for the agent, whether it holds a typed-in value or points at a secret; saved values stay masked, and you can add, edit, or remove variables here. Below it, under **Secret access**, choose which of your organization's secrets this agent may use. You can still edit the same environment variables on [Harness / Runtime](#harness-runtime) if you prefer.
 - **Tools** — the connected apps and tools this agent can use, and its effective access.
 - **Channels** — the chat channels this agent takes part in.
 
@@ -538,7 +538,7 @@ Click **Restore** on any entry to put the agent back to that exact configuration
 
 ## Advanced
 
-The **Advanced** page shows the agent's whole configuration — profile, runtime, instructions, skills, tools, channels, permissions — as one editable `paperclip/v1` YAML document. You can also use it to create or revoke API keys, create or rotate secrets, and restore a revision, all from the same editor.
+The **Advanced** page shows the agent's own settings — profile, runtime, instructions, skills, tools, channels, permissions — as one compact, editable `paperclip/v1` YAML document. Settings you leave out stay as they are when you save. You can also use it to create or revoke API keys, create or rotate secrets, and restore a revision, all from the same editor.
 
 Before you save, a summary lists every change that will be applied, in order. If someone else changed the agent while you were editing, the save stops and asks you to click **Reload saved**. Secret values are never shown.
 

@@ -62,6 +62,8 @@ Now, a variable you set in the agent's `env` reaches Codex's shell commands by n
 
 `PAPERCLIP_API_KEY` and the agent's identity variables are delivered as before. Remove a variable from `env` and the shell loses access to it at the next launch.
 
+When the agent has a [managed GitHub connection](../../connectors/github.md), Paperclip also passes the run's GitHub broker capability (`PAPERCLIP_GITHUB_BROKER_TOKEN` and `PAPERCLIP_GITHUB_BRIDGE_TOKEN`, whichever the run has) into the shell, so Paperclip's managed `git` and `gh` commands can fetch the run's GitHub credential. Earlier versions kept it out, and those commands printed `Paperclip: GitHub capability_missing; continuing without managed credentials.` and ran unauthenticated. You don't set these; Paperclip injects them for each run, and any value you put in `env` is dropped. The capability works only while the run is live. Without a managed GitHub connection, nothing is added.
+
 > **Warning:** Assigning a credential this way gives the run's shell commands real access to it — a command the model chooses to run can read it. Only assign credentials the agent is meant to use, with no more service permissions than it needs.
 
 ---

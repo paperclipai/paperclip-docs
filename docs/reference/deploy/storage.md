@@ -75,4 +75,14 @@ This includes the instruction entry and any notes, folders, or binary files the 
 
 Include the saved agent directories in filesystem backups. A database backup alone cannot restore their bytes, and a company export is not a complete copy of this personal storage. See [Agents](../../guides/org/agents.md#agent-files-persist-across-tasks) for limits and sync behavior, and [Back up and restore a company](../../how-to/back-up-and-restore-a-company.md) for recovery boundaries.
 
+### Company skill packages
+
+When you import a skill from a repository or edit a skill's files in Paperclip, the package contents go to the same storage provider as your uploads, under the `skill-packages` namespace. The database keeps the skill's versions, hashes, and source details, which keeps the database small.
+
+You don't need to run anything after upgrading. Paperclip moves packages that were saved in the database into storage in the background. It checks each copy before it removes the database version, and it retries an hour later if a move fails. Version numbers and agent pins stay the same.
+
+Back up your storage provider as well as the database. Paperclip can download a missing repository package again from the exact commit it came from, as long as it still has access to that repository. Skills you wrote or edited in Paperclip only exist in storage, so a database backup alone can't bring their files back. With `local_disk`, that means keeping the storage directory on a durable, backed-up volume.
+
+> **Note:** On a rolling upgrade where some servers still run an older version, set `PAPERCLIP_SKILL_PACKAGE_STORAGE_ENABLED=false` until every server is upgraded. It stops new package writes to storage and pauses the background move. Once packages have moved, older versions can't read them.
+
 > **Tip:** If a local upload disappears after a restart, check whether you were running inside a container or another ephemeral environment without the bind mount you expected.

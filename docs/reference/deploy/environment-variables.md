@@ -70,6 +70,7 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `PAPERCLIP_SKILL_VERSION_RETENTION_DRY_RUN` | off | Set to `true` to have the skill version sweep only report what it would remove. |
 | `PAPERCLIP_SKILL_VERSION_RETENTION_KEEP` | `0` | How many of the newest materialized versions of each skill to keep on disk as a warm cache. A negative, empty, or non-numeric value falls back to the default. |
 | `PAPERCLIP_SKILL_VERSION_RETENTION_GRACE_MINUTES` | `60` | How long, in minutes, a materialized skill version stays on disk after its last use. A negative, empty, or non-numeric value falls back to the default. |
+| `PAPERCLIP_SKILL_PACKAGE_STORAGE_ENABLED` | on | Company skill package contents are kept in the configured storage provider, and packages still saved in the database move there in the background. Set to `false` only during a rolling upgrade while some servers run an older version: it stops new package writes to storage and pauses the move. See [Storage → Company skill packages](./storage.md#company-skill-packages). |
 | `PAPERCLIP_DB_BACKUP_IDLE_CHECKPOINT_ENABLED` | off | Set to `1` on an instance with automatic database backups so it can still sleep when idle: the server takes and verifies a fresh backup as the final check before it reports the instance quiet, and refuses sleep if that backup fails. Keep the database and backup volume attached across sleep. |
 | `PAPERCLIP_ISSUE_PRIVACY_MODE` | `enforce` | How private tasks and projects are enforced. `enforce` hides them from anyone without access. `shadow` only logs the reads it would deny, and `off` skips the check; use those two only to diagnose a rollout, never when private tasks must stay confidential. |
 | `PAPERCLIP_NATIVE_MCP_STDIO` | unset | Set on the **execution host**, not in task environments: a JSON array of local stdio MCP server bindings (`name`, `command`, `args`, `env`, `sha256`, `serialResource`) that Paperclip Runner offers to native sessions. Each command is checked against its digest before it runs. Read-only sessions leave these tools out. See [Local MCP tools on the execution host](../adapters/paperclip-runner.md#local-mcp-tools-on-the-execution-host). |
@@ -261,7 +262,7 @@ These values are covered in more detail in [Secrets](./secrets.md).
 | Variable | Default | Meaning |
 |---|---|---|
 | `HEARTBEAT_SCHEDULER_ENABLED` | `true` | Enables or disables timer-based scheduling. |
-| `HEARTBEAT_SCHEDULER_INTERVAL_MS` | `30000` | Scheduler poll interval in milliseconds. |
+| `HEARTBEAT_SCHEDULER_INTERVAL_MS` | `30000` | How often, in milliseconds, the scheduler runs its periodic recovery sweep, and how long it waits before retrying scheduled work that failed. Values below `10000` are raised to `10000`. Agent timers, routines, and issue monitors aren't polled on this interval; they're scheduled from their saved due times. |
 
 ---
 
