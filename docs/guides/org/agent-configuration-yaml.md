@@ -50,7 +50,7 @@ Below the core, `spec` can hold the agent's related resources. Each section only
 | `permissions` | `canCreateAgents`, `canCreateSkills`, `canAssignTasks`, `trustPreset` (`standard` or `low_trust_review`), and an `authorizationPolicy` if the agent has one. Only values that differ from the standard defaults are shown. Same settings as [Permissions / Trust](agents.md#permissions-trust). |
 | `instructions` | The bundle `mode` (`managed` or `external`), `rootPath` (shown for `external` bundles), and `entryFile`. File contents aren't shown; to change a file, add a `files` map of relative file path to text content. Same files as the [Instructions](agents.md#instructions) page. |
 | `skills` | The skills the agent should have. Unpinned skills are shown as plain skill keys; a pinned skill is a `key` with a `versionId`. |
-| `tools` | `connections` installed directly on this agent (each a `connectionId`), the tool `profiles` bound directly to this agent (each referenced by `profileKey`, or `profileId` if the profile has no key, with `priority` and `metadata` only when they're set), and the tool `policies` scoped only to this agent. |
+| `tools` | `connections` installed directly on this agent (each a `connectionId`), the tool `profiles` bound directly to this agent (each referenced by `profileKey`, or `profileId` if the profile has no key, with `priority` only when it isn't the default `100`, and `metadata` only when it's set), and the tool `policies` scoped only to this agent. |
 | `channels` | The chat channels assigned to this agent, by `id` and `provider`, with any `settings` that are set and the `resources` that are enabled. |
 
 ### Command sections

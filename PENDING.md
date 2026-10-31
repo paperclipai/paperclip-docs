@@ -14,6 +14,12 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
   - Tool profiles appear by `profileId` when they have no key.
   - The Secrets card lists variables configured on the agent, not ones injected at runtime.
   - The Antigravity setup test button is **Run test**, not **Test Environment**.
+- **Third verification pass (before PR):** three fresh fact-checkers, with the files split differently, re-read every added line against `8035f8b2`. Corrections applied:
+  - The Antigravity sign-in is the **Google** tile in the **Connect a model** step, and it's only offered for the local environment.
+  - The default commit author applies only when `git` goes through Paperclip's managed launcher. Local and SSH runs without a managed GitHub connection use the host's Git config (`useHostGitHub` in `execution-configuration.ts`).
+  - The GitHub broker also answers `absent`, and only `available` carries credentials.
+  - Task panel checks aren't retried on any 4xx response.
+  - A tool profile's `priority` is shown only when it isn't the default `100`.
 - **Auto-merge tier:** one mechanical fix. The agent-sandbox install manifest is now `sandbox.yaml` (#11410, `sandbox-providers.md`).
 
 ## Applied this run (`8ac5a128..8035f8b2`)
@@ -35,7 +41,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Operations**
   - `reference/deploy/storage.md` and `environment-variables.md` (#18082): company skill packages now live in storage under `skill-packages`, with a background move from Postgres and an hourly retry. Back up storage as well as the database. Adds the new `PAPERCLIP_SKILL_PACKAGE_STORAGE_ENABLED` row.
   - `environment-variables.md` (#17840, #17863, #17876): `HEARTBEAT_SCHEDULER_INTERVAL_MS` now only paces the recovery sweep and scheduled-work retries, with a minimum of 10000. Timers, routines and monitors now run from their saved due times.
-  - `how-to/connect-agent-to-github.md` (#18094): local commits fall back to the default author `Paperclip <noreply@paperclip.ing>`, and the page explains what overrides it.
+  - `how-to/connect-agent-to-github.md` (#18094): commits made through the managed launcher fall back to the default author `Paperclip <noreply@paperclip.ing>`. Local and SSH runs without a managed connection keep using the host's Git config. The page also explains what overrides the default.
 
 ## Applied in earlier runs (still on nightly, unreleased)
 
@@ -83,7 +89,7 @@ Medium (11 REST routes):
 - **Antigravity save errors:** if the instance's experimental Runner setting is off, an API save fails first with "Paperclip Runner is experimental and disabled on this instance." The setup UI doesn't try to save a pending agent at all. The page quotes the acceptance error for runs and API saves only.
 - **No Google AI connector page:** #18189 renamed the AI connection "Google Gemini" → "Google" and added a "Google Antigravity account" method. There's no Google AI page next to `openai.md` / `anthropic.md` / `xai.md`. Worth writing one when Antigravity is generally available.
 - **Older "Test Environment" wording:** `paperclip-runner.md:146` (unchanged text) still says **Test Environment**. The agent config form's button is now "Test", and setup uses **Run test**.
-- **Default commit author isn't universal:** the launcher skips it for sandbox runner tasks owned by a provider, for native runs that have GitHub configured, and when its temp config can't be written. The how-to describes the common case.
+- **Default commit author:** it's also skipped for sandbox runner tasks owned by a provider, and when the launcher can't write its temporary config. The how-to covers the managed launcher versus host Git split, but not these edge cases.
 - **YAML secret/proposal IDs:** didn't confirm whether the Secrets & variables page shows the full IDs that `secrets.rotate` / `secrets.update` / `secrets.proposals` need.
 - **Skill-package move retry:** the move is retried an hour later in code, but the parent doc notes it may wait until the next ingress wake.
 
