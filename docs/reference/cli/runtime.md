@@ -1,15 +1,16 @@
 ---
 seo_title: Install Paperclip Runner Runtimes
-seo_description: Install and verify Paperclip's pinned Cursor and Pi runtimes on a supported host, import a Linux Pi companion, then configure a Runner agent.
+seo_description: Install and verify Paperclip's pinned Cursor, Pi, and Antigravity runtimes on a supported host, import a Linux Pi companion, and configure agents.
 ---
 
 # Runtime Commands
 
-Prepare a host to run Cursor or Pi through the experimental [Paperclip Runner](../adapters/paperclip-runner.md). Runtime setup downloads and verifies the pinned runtime; it makes no model calls.
+Prepare a host to run Cursor, Pi, or Google Antigravity through the experimental [Paperclip Runner](../adapters/paperclip-runner.md). Runtime setup downloads and verifies the pinned runtime; it makes no model calls.
 
 ```sh
 paperclipai runtime setup cursor
 paperclipai runtime setup pi
+paperclipai runtime setup antigravity
 ```
 
 ## Set up Cursor
@@ -20,7 +21,7 @@ Run the command as the same OS user that runs Paperclip, on the machine where th
 | --- | --- |
 | `paperclipai runtime setup cursor` | Download, materialize, and verify the pinned Cursor distribution for this host, or verify an existing installation. |
 
-The supported provider arguments are `cursor` and `pi`. There are no provider-specific flags for this command.
+The supported provider arguments are `cursor`, `pi`, and `antigravity`. There are no provider-specific flags for this command. Any other argument fails with `Supported runtime setup: paperclipai runtime setup pi, cursor, or antigravity`.
 
 The installation uses the OS account's cache under `~/.paperclip/runtimes/cursor`. Runtime identity includes the platform, architecture, and verified content hash. An existing invalid installation is rejected rather than replaced automatically. A packaged runtime supplied by the execution image remains authoritative.
 
@@ -44,6 +45,14 @@ paperclipai runtime import-remote <directory> --sha256 <digest>
 | `--sha256 <digest>` | Required. The SHA-256 of `companion.json`, taken from the trusted release. |
 
 The command checks every file against the manifest before it imports the companion into the installed server, and prints the result as JSON. Press Ctrl+C to cancel.
+
+## Set up Google Antigravity
+
+`paperclipai runtime setup antigravity` downloads and verifies the pinned Google Antigravity ACP runtime (`1.4.3`) from Google, or verifies an existing installation. Antigravity is an operator-gated [preview](../adapters/paperclip-runner.md#google-antigravity-on-paperclip-runner-preview), and macOS ARM64 is the only supported target. On macOS x64, Linux x64, or Linux ARM64 setup fails with `Antigravity <platform>/<architecture> is inventory-only; its complete runtime closure is not verified`.
+
+Run it as the OS user that runs Paperclip, from an installed Paperclip distribution. The runtime is cached under `~/.paperclip/runtimes/antigravity`. Like Pi setup, it passes your proxy and certificate settings through to the download, but never provider keys or your `HOME`. If it fails, you see `Antigravity setup did not finish. Review its error; an invalid installation is never replaced automatically.`
+
+Installing the runtime doesn't sign you in to Google or enable the preview. The instance operator still has to authorize the company.
 
 ## Configure the agent
 

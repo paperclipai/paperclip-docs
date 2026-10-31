@@ -185,6 +185,23 @@ Standard, planning, and ask tasks are supported. Cursor additionally has `acpxSe
 
 A new Pi agent lands here automatically on a supported machine. You can also pick it yourself: choose **ACP agents**, then **Pi**. Pi accepts any `provider/model` ID, so type the exact model you want. A **Pi thinking level** field appears with `off`, `low` (the default), `high`, and `max`; it's saved as `piThinkingLevel`. The Runner checks that exact level before each session can prompt, and changing it starts a new session. To install the pinned Pi runtime on a host, use [`paperclipai runtime setup pi`](../cli/runtime.md#set-up-pi). You can connect an OpenRouter, OpenAI, Anthropic, or Google API-key account. The model ID should start with that account's provider, for example `openrouter/…` for an OpenRouter account. For custom Pi providers, set `PAPERCLIP_PI_PROVIDERS` as described on the [Pi adapter page](pi.md#custom-providers--gateway-routing). Don't combine it with a Paperclip-managed account: that fails with *"The configured provider routing is incompatible with this AI connection"*.
 
+### Google Antigravity on Paperclip Runner (preview)
+
+> **Note:** Google Antigravity is an operator-gated preview, not a generally available provider. It runs only on a macOS ARM64 Paperclip host, and only for a company the instance operator has authorized.
+
+Antigravity runs through the pinned Google Antigravity ACP runtime (`acpx`, `antigravity`). Everyone with Paperclip Runner sees a **Google Antigravity** tile when adding an agent. Until your company is authorized, choosing it shows *"Google Antigravity is not available yet."* You can connect a Google account and look at the settings, but the agent can't finish setup or run tasks. Saving or running it fails with *"Google Antigravity is awaiting native Runner acceptance. Its profile is not enabled for production runs."*
+
+**For operators.** Two steps turn the preview on for one company:
+
+1. Install the runtime on the Paperclip host with [`paperclipai runtime setup antigravity`](../cli/runtime.md#set-up-google-antigravity).
+2. Start the Paperclip server with a candidate authorization in `PAPERCLIP_ACPX_CANDIDATE_ADMISSION`. It names one company and one exact model, is tied to the pinned runtime, and expires within 24 hours. Agent and task configuration can't set it.
+
+Once that's in place, the adapter list includes `candidateHarnesses` on the `paperclip_runner` entry when you pass `companyId` and the target is the local Paperclip host. Setup shows *"Google Antigravity candidate is enabled for testing on this instance."* and fills in the authorized model. The general **Paperclip Runner** experimental setting isn't needed. If the authorization expires or names a different model, saving fails with *"This Google Antigravity candidate requires the exact enabled model and a current operator authorization."*
+
+**Connect a Google account.** In the **Connect a model** step, choose the **Google** tile, click **Sign in to Google**, finish signing in in the Google browser window, then return to Paperclip and click **Connect**. Sign-in runs on the Paperclip host, so it's only offered when the agent uses the local environment, not a sandbox or other remote one. If you've already saved your own default Google account, setup reuses it. A signed-in account lets Paperclip list that account's models; with a Gemini API key, type the exact model ID instead. Model discovery and Test only run on the Paperclip host, not in a remote environment.
+
+In setup, **Run test** checks the selected account and exact model without sending a prompt. A pass reads *"The Google Antigravity candidate verified the selected account and exact model. No model prompt was sent."* If the local runtime check fails, Test reports *"Paperclip could not complete the local Google Antigravity installation check."*, and the operator needs to repair the runtime.
+
 ### Keep working in your own provider home
 
 By default the Runner gives each session a private, isolated provider home and sets up login, skills, and MCP servers there for you. If the execution machine already has a working setup, an operator can set `homeMode: "preconfigured"` in the agent's adapter config to use that account's existing home instead. The default is `"isolated"`.

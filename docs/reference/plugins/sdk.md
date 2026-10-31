@@ -61,7 +61,7 @@ If your view needs data about the agent from your own API routes, use `companyRe
 
 #### Showing the view beside a running task
 
-An agent view is often most useful while the agent is working, like a live console you want to watch next to the task conversation. You can offer the same view as a tab in the task's side panel by adding `taskSidePanel` to the slot and pointing it at an availability route:
+An agent view is often most useful while the agent is working, like a live console you want to watch next to the task conversation. You can offer the same view as a tab in the task's side panel by adding `taskSidePanel` to the slot, pointing it at an availability route, and naming the runtime activity that means "this view is in use":
 
 ```json
 {
@@ -70,13 +70,30 @@ An agent view is often most useful while the agent is working, like a live conso
   "displayName": "Live console",
   "exportName": "LiveConsole",
   "entityTypes": ["agent"],
-  "taskSidePanel": { "availabilityPath": "/agents/:entityId/view/availability" }
+  "taskSidePanel": {
+    "availabilityPath": "/agents/:entityId/view/availability",
+    "activation": { "namespace": "example.runtime", "activityKey": "desktop.used" }
+  }
 }
 ```
 
 Then declare that exact path in `apiRoutes` as a `GET` route with `auth: "board"` and `companyResolution: { from: "agent", param: "entityId" }`. It answers `{ "available": true }` only while your view has something to show, and `{ "available": false }` otherwise.
 
-While a task has a running agent, Paperclip replaces `:entityId` with that agent's ID, checks your route every few seconds, and, while it says yes, mounts your component in the task's side panel with the agent as its context. The tab opens by itself the first time it becomes available and is listed in the side panel's launcher under your `displayName`. If someone closes the tab, it stays closed while the run continues, and they can reopen it from the launcher. Nothing shows when the route says no or fails, the run isn't active, or your plugin is missing. Your plugin decides when the view is available and what it shows. Paperclip only remembers which tabs are open, never your route's answers.
+`activation` is what makes the tab appear. Both `namespace` and `activityKey` are your own opaque strings, 1–160 characters with no control characters. They don't have to match your plugin key or slot `id`. A declaration without `activation` is still valid and the tab still shows on the agent's own page, but it never appears beside a task. If you shipped `taskSidePanel` before `activation` existed, add it to keep your task tab.
+
+The tab appears once the agent's run reports that activity. Whatever the agent uses inside the run (your CLI, a desktop tool, a script) records it through the helper Runner puts in the run's environment as `PAPERCLIP_RUNTIME_NOTIFICATION_HELPER`. Capture a context before the operation, and record the activity only after it succeeds:
+
+```sh
+context=$("$PAPERCLIP_RUNTIME_NOTIFICATION_HELPER" notification-context)
+# ...do the work; record only on success...
+"$PAPERCLIP_RUNTIME_NOTIFICATION_HELPER" record-activity "$context" example.runtime desktop.used
+```
+
+Treat recording as best effort: skip it for help output, status probes, and failures, and don't fail your operation if the helper is missing (older runtimes don't provide it). The run's identity comes from Runner, not from you, so the helper takes no run ID. Paperclip saves the activity as a `runtime.activity.recorded` event in the run log. A recorded activity is only a hint that your view might be ready. It grants no permissions.
+
+When a task's running agent has recorded a matching activity, Paperclip replaces `:entityId` with that agent's ID, adds `runId` and `issueId` query parameters for the active task, and asks your route whether the view is ready. It asks when the activity arrives and again when the task page loads or reconnects. If your route says no or fails, Paperclip tries up to three times, then waits for the activity to be recorded again. Client errors (4xx responses, such as access denials) aren't retried. There's no timer polling your route. While the route says yes, Paperclip mounts your component in the task's side panel with the agent as its context. The tab opens by itself the first time it becomes available and is listed in the side panel's launcher under your `displayName`. If someone closes the tab, it stays closed for the rest of that run, and they can reopen it from the launcher. Nothing shows when the route says no or fails, the activity came from a different task, the run isn't active, or your plugin is missing or disabled. Your plugin decides when the view is available and what it shows. Paperclip only remembers which tabs are open, never your route's answers.
+
+Board clients can read which task panels a run has activated with `GET /api/heartbeat-runs/:runId/events?view=plugin-panels`. It uses the same run-read access as the run's events and returns up to 128 `{ pluginKey, slotId }` pairs for installed plugins.
 
 The manifest is rejected if the rules aren't met: `taskSidePanel` on anything but a `detailTab` with `"agent"` in `entityTypes` fails with "taskSidePanel requires an agent detailTab", and a missing or mismatched route fails with "taskSidePanel availability requires a declared board GET route scoped to agent :entityId". The route can't be a WebSocket route.
 
@@ -243,6 +260,15 @@ Don't cancel useful work just to look idle. The SDK already counts requests and 
 When you emit a metric with `metrics.write` (via `PluginMetricsClient`) or write a line with `log` (via `PluginLogger`), you can pass an optional `companyId` to scope that record to a company so it is cascade-deleted when the company is removed; omit it or pass `null` to keep the record at instance scope.
 
 `ctx.tracer` lets you wrap a piece of work in a span so it shows up in the host's traces. You use it the same way as `ctx.logger`: call `ctx.tracer.startSpan("my-work", { attributes: { … } })`, set attributes or a status on the returned `PluginSpan`, and call `end()` when you're done. It's a deliberately minimal, OpenTelemetry-free contract — the SDK never pulls in `@opentelemetry/api` — and the host does the real recording. Two things to keep in mind: a span you open when tracing is off (or when there's no active host trace context) is a harmless no-op that records nothing, so you can always open one without guarding; and the host re-clamps every attribute at its trust boundary, so an attribute outside the host's allowlist never makes it onto a recorded span. If you need the default explicitly — say, to keep tests free of a real tracer — import the shared no-ops `NOOP_PLUGIN_TRACER` and `NOOP_PLUGIN_SPAN`.
+
+Spans are recorded only for plugins with the `environment.drivers.register` or `workspaces.manage` capability; for any other plugin, `ctx.tracer` is a no-op. Newer hosts also add a few optional methods to `PluginTracer`, so check they exist before you call them (older hosts leave them out):
+
+- `withSpan(name, work, attributes?)` runs `work` inside a span and nests any spans opened inside it, so a multi-step operation shows up as one tree. It still runs `work` when tracing is off.
+- `now()` returns the current time in epoch milliseconds on the same clock the spans use.
+- `isRecording()` tells you whether spans in this call will be recorded, so you can skip expensive attribute work.
+- `recordSpan(span)` attaches a span you timed yourself (`name`, optional `attributes`, `status`, `startTimeMs`, `endTimeMs`, and nested `children`) to the enclosing `withSpan`. Call it from inside a `withSpan` block; outside one, the span is dropped.
+
+Each call records at most 256 spans; the host validates the times and parentage of everything you send.
 
 Issue-domain helpers: `PluginIssueMutationActor`, `PluginIssueRelationSummary`, `PluginIssueCheckoutOwnership`, `PluginIssueWakeupResult`, `PluginIssueWakeupBatchResult`, `PluginIssueRunSummary`, `PluginIssueApprovalSummary`, `PluginIssueCostSummary`, `PluginBudgetIncidentSummary`, `PluginIssueInvocationBlockSummary`, `PluginIssueOrchestrationSummary`, `PluginIssueSubtreeOptions`, `PluginIssueAssigneeSummary`, `PluginIssueSubtree`, `IssueDocumentSummary`.
 
@@ -585,7 +611,7 @@ Two top-level manifest fields opt into lifecycle features: `agentLifecycle: true
 
 Two more opt into execution features. The top-level `workspaceProvider` object (`modes` and `strategies`, plus optional `defaultForProjects`, `finalizationVersion`, and `freshWorkspaceVersion`) makes your plugin the owner of a project's [storage and task workspaces](#project-storage-and-task-workspaces) — it needs `workspaces.manage` plus `"project"` in `resourceLifecycle`. And `supportsTasks: true` on an entry in `environmentDrivers` (a `PluginEnvironmentDriverDeclaration`) says that driver can [run Runner tasks](#running-runner-tasks-optional); the same entry can add `freshWorkspaceVersion: 1` and `warmTaskVersion: 1`. An `environmentDrivers` entry can also list [`skillKeys`](#skills-that-come-with-an-environment) to hand agents your managed skills, and set [`requiresAgent: true`](#environments-that-need-the-agent-first) when its leases depend on a prepared agent.
 
-On a `PluginUiSlotDeclaration`, the optional `taskSidePanel` object (`{ availabilityPath }`) lets an agent `detailTab` [appear beside a running task](#showing-the-view-beside-a-running-task).
+On a `PluginUiSlotDeclaration`, the optional `taskSidePanel` object (`{ availabilityPath, activation? }`, where `activation` is `{ namespace, activityKey }`) lets an agent `detailTab` [appear beside a running task](#showing-the-view-beside-a-running-task).
 
 | Type | Declares |
 |---|---|
@@ -1069,8 +1095,8 @@ The SDK validates every operation and result for you. Each result must carry the
 
 | `operation.kind` | Return `kind` | What you do |
 |---|---|---|
-| `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. Add `freshWorkspaceVersion: 1`, `workspaceFileReadVersion: 1`, or `warmTaskVersion: 1` for the optional features below. |
-| `prepare` | `prepared` | Build the provider configuration for the exact `requirements` (schema `paperclip.runner.launch-requirements.v1`) without starting a process. Return a `launch` with a `configurationId`, a `requirementsDigest`, and a `provider` descriptor. You can add `projectAuthCheckAtSubmit: true` to skip the separate `check_project_auth` step (see below). A warm handoff also sends `priorIdentity` and `accountIdentity`. |
+| `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. Add `freshWorkspaceVersion: 1`, `workspaceFileReadVersion: 1`, `warmTaskVersion: 1`, or `githubCredentialBrokerVersion: 1` for the optional features below. |
+| `prepare` | `prepared` | Build the provider configuration for the exact `requirements` (schema `paperclip.runner.launch-requirements.v1`) without starting a process. Return a `launch` with a `configurationId`, a `requirementsDigest`, and a `provider` descriptor. You can add `projectAuthCheckAtSubmit: true` to skip the separate `check_project_auth` step (see below). A warm handoff also sends `priorIdentity` and `accountIdentity`. If you advertise the GitHub broker, it can also carry a `githubBroker` (see below). |
 | `check_project_auth` | `project_auth` | Check that nothing in the prepared configuration for these projects can replace or redirect the selected account. Return `allowed: true` only if the checks pass. |
 | `read_file` | `file` | Only sent if you advertise `workspaceFileReadVersion: 1`. Read one file from the active task — see [Reading task output files](#reading-task-output-files). |
 | `submit` | `accepted` | Start the task at most once, using the structured launch inputs — the Runner protocol range, Runner identity, `bootstrapTicket`, and optional `preparedLaunchId`, `credential`, and `launch` limits. Paperclip never sends a command line or a guest path. |
@@ -1099,6 +1125,20 @@ When an agent in your environment uploads a file through an API call or register
 The request carries the submitted Runner `identity`, the validated `projectIds`, a `path`, and a `maxBytes` limit of at most 10 MiB (exported as `MAX_ENVIRONMENT_TASK_FILE_BYTES`). Relative paths resolve from the task's prepared workspace. Absolute paths can reach other locations granted to the task, such as the agent's home, but never your supervisor's files or another agent's.
 
 Refuse inactive tasks, paths that escape, symlinks, hard links, anything that isn't a regular file, protected credentials, oversized files, and files that change while you read them. Return a `file` result with the content as `base64`, its `byteSize`, and its `sha256` digest. Paperclip checks the result and the task's authority again before publishing it.
+
+##### Giving task commands the run's GitHub identity
+
+When an agent with a [managed GitHub connection](../../connectors/github.md) runs in your environment, its `git` and `gh` commands should act as that connected identity, not as whatever account happens to be signed in on your host. To support this, return `githubCredentialBrokerVersion: 1` from `describe`. Paperclip then includes a `githubBroker: { url, token }` in each `prepare` for runs that have GitHub configured.
+
+That pair is a run-scoped capability, not a GitHub token. To get credentials, send `POST` with the body `{}` to `/runtime-tools/github/credentials` on the broker URL (drop a trailing `/api` from `url` first, so `https://paperclip.example/api` becomes `https://paperclip.example/runtime-tools/github/credentials`), using `Authorization: Bearer <token>`. The JSON answer has a `status` of `available` (with the credentials in `env`), `absent` (no GitHub identity is connected), or `unavailable` (with a `reason`). Only `available` carries credentials. Paperclip checks the live run and its grants on every request, so ask once at the start of each command and pass the returned `env` only to that command and the processes it starts.
+
+How your commands do this is up to you: a wrapper, a credential helper, or a proxy all work. A few rules apply:
+
+- **Never keep the credential.** Don't write the returned values into plugin state, the launch you return, logs, or files. You can stage the capability itself privately for your commands, but keep it out of the launch descriptor.
+- **No broker means anonymous.** Hide host credentials and Git or GitHub configuration from task commands. If the broker is missing or doesn't answer `available`, run without GitHub credentials rather than falling back to a host account.
+- **Replace it on warm reuse.** A warm task gets a new capability in the next run's `prepare`. Swap it in before that run's commands start; a `prepare` without `githubBroker` clears the old one.
+
+Deploy the plugin together with a Paperclip version that sends `githubBroker`. If a run has GitHub configured but your `describe` result doesn't include `githubCredentialBrokerVersion: 1`, the run fails with "Update the environment plugin to support the GitHub credential broker v1". Runs without a GitHub connection work as before.
 
 ##### Keeping a Codex task warm
 

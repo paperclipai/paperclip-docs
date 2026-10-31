@@ -1,11 +1,11 @@
 ---
 seo_title: Edit an Agent as YAML
-seo_description: Use the agent Advanced tab to view and edit an agent's whole configuration as one paperclip/v1 YAML document, preview changes, and recover from conflicts.
+seo_description: Use the agent Advanced tab to view and edit an agent's settings as one compact paperclip/v1 YAML document, preview changes, and recover from conflicts.
 ---
 
 # Edit an agent as YAML
 
-Most of the time you configure an agent one page at a time — instructions here, tools there, permissions somewhere else. When you want to see *everything* at once, or make a handful of related changes in one go, open the agent's **Advanced** page. It shows the agent's complete configuration as a single YAML document you can edit and save.
+Most of the time you configure an agent one page at a time — instructions here, tools there, permissions somewhere else. When you want to see the agent's settings side by side, or make a handful of related changes in one go, open the agent's **Advanced** page. It shows the agent's own settings as a single, compact YAML document you can edit and save.
 
 The editor doesn't bypass anything. Each part of the document is saved through the same service the regular settings pages use, with the same permission checks and validation. Think of it as a different view of the same settings, not a back door.
 
@@ -22,38 +22,40 @@ The page address ends in `/advanced`. Paperclip loads the agent's settings from 
 
 ## What's in the document
 
-Every document starts with the same two lines, then has a `spec` section you edit and an `observed` section you read:
+Every document starts with the same two lines, followed by a `spec` section that holds the agent's settings:
 
 ```yaml
 apiVersion: paperclip/v1
 kind: Agent
 spec:
-  # ...everything you can change...
-observed:
-  # ...read-only state Paperclip fills in...
+  # ...the agent's own settings...
 ```
+
+The document is kept short on purpose. It shows only what's specific to this agent, and leaves out anything that's still at its default or empty: unset fields, empty lists and maps, a zero budget, standard permissions, and empty command sections. It also doesn't copy in company-wide data — shared tool profile definitions, the contents of instruction files, history, inherited access, or secret details. A note above the editor reminds you: **Omitted settings stay unchanged. Instruction file contents, inherited access, and history are available in their settings tabs.**
+
+So a missing key doesn't mean "empty" — it means "leave it as it is". See [Leave out, change, or clear a setting](#leave-out-change-or-clear-a-setting) below.
 
 ### The `spec` core
 
-These keys are always present and map to the agent record itself: `name`, `role`, `title`, `icon`, `appearance`, `reportsTo`, `capabilities`, `adapterType`, `adapterConfig`, `runtimeConfig`, `defaultEnvironmentId`, `budgetMonthlyCents`, and `metadata`. They're the same fields you'd send to [Update Agent](../../reference/api/agents.md#update-agent), and they're saved together as one change.
+These keys map to the agent record itself: `name`, `role`, `title`, `icon`, `appearance`, `reportsTo`, `capabilities`, `adapterType`, `adapterConfig`, `runtimeConfig`, `defaultEnvironmentId`, `budgetMonthlyCents`, and `metadata`. They're the same fields you'd send to [Update Agent](../../reference/api/agents.md#update-agent), and they're saved together as one change. Any of them that's unset, empty, or zero is left out of the document; add it back when you want to set it.
 
 Instruction and skill settings don't belong in `adapterConfig`. If you add keys like `instructionsEntryFile` or `paperclipSkillSync` there, the editor tells you to use the `instructions` or `skills` section instead.
 
 ### Resource sections
 
-Below the core, `spec` holds the agent's related resources. You edit these as the desired end state — change a value, add a row, or delete a row, and Paperclip works out what to call.
+Below the core, `spec` can hold the agent's related resources. Each section only appears when it has something to show, and you can add any of them when you want to change it.
 
 | Section | What it covers |
 |---|---|
-| `permissions` | `canCreateAgents`, `canCreateSkills`, `canAssignTasks`, `trustPreset` (`standard` or `low_trust_review`), and an `authorizationPolicy` if the agent has one. Same settings as [Permissions / Trust](agents.md#permissions-trust). |
-| `instructions` | The bundle `mode` (`managed` or `external`), `rootPath`, `entryFile`, and `files` — a map of relative file path to text content. Same files as the [Instructions](agents.md#instructions) page. |
-| `skills` | The skills the agent should have, each as a skill key or a `key` with a `versionId` pin (`versionId: null` when it isn't pinned). |
-| `tools` | `connections` (each with `connectionId` and whether it's `installed` for this agent), the tool `profiles` bound directly to this agent, and the tool `policies` scoped only to this agent. |
-| `channels` | The chat channels assigned to this agent, with their `settings` and per-resource `enabled` switches. |
+| `permissions` | `canCreateAgents`, `canCreateSkills`, `canAssignTasks`, `trustPreset` (`standard` or `low_trust_review`), and an `authorizationPolicy` if the agent has one. Only values that differ from the standard defaults are shown. Same settings as [Permissions / Trust](agents.md#permissions-trust). |
+| `instructions` | The bundle `mode` (`managed` or `external`), `rootPath` (shown for `external` bundles), and `entryFile`. File contents aren't shown; to change a file, add a `files` map of relative file path to text content. Same files as the [Instructions](agents.md#instructions) page. |
+| `skills` | The skills the agent should have. Unpinned skills are shown as plain skill keys; a pinned skill is a `key` with a `versionId`. |
+| `tools` | `connections` installed directly on this agent (each a `connectionId`), the tool `profiles` bound directly to this agent (each referenced by `profileKey`, or `profileId` if the profile has no key, with `priority` only when it isn't the default `100`, and `metadata` only when it's set), and the tool `policies` scoped only to this agent. |
+| `channels` | The chat channels assigned to this agent, by `id` and `provider`, with any `settings` that are set and the `resources` that are enabled. |
 
 ### Command sections
 
-A few things aren't settings you can describe as an end state — creating a key, rotating a secret, restoring a revision. Those live in **command** sections. They always load empty, and anything you put in them runs once when you save:
+A few things aren't settings you can describe as an end state — creating a key, rotating a secret, restoring a revision. Those live in **command** sections. They don't appear in the document you load; add one when you need it, and whatever you put in it runs once when you save:
 
 | Section | What you can ask for |
 |---|---|
@@ -62,17 +64,15 @@ A few things aren't settings you can describe as an end state — creating a key
 | `channelOperations` | `create` a new channel for this agent, run a `setup` action on an existing one, or `revokeIdentityLinks` for a linked person. |
 | `revisions` | `restore` a configuration revision by ID. A restore must be the only change in its save — restore first, then edit the result. |
 
-When you reload, the command sections are empty again. The results show up in `observed` (for example, a new key appears under `observed.apiKeys`).
+After the save, Paperclip reloads the document and the command sections are gone again. You only need to list the actions you want; you don't have to fill in the others. Existing keys, revisions, secrets, and pending proposals are listed on the agent's [API Keys](agents.md#api-keys), [Revisions](agents.md#revisions), and [Secrets & variables](agents.md#secrets-tools-and-channels) pages. Those pages don't show full API key or revision IDs (Revisions shows only the first 8 characters), so get those from the API: `GET /api/agents/{agentId}/keys` and `GET /api/agents/{agentId}/config-revisions` — see [Agents API](../../reference/api/agents.md#api-keys).
 
-### The `observed` section
+### Older exports with an `observed` section
 
-`observed` is a read-only snapshot to help you write the `spec`: the agent's existing API keys, recent revisions (with their IDs, for `revisions.restore`), instruction files that can't be edited as text, skill and instruction warnings, every tool connection in the company and whether it's inherited, available and inherited tool profiles, inherited tool policies, channel status and linked people, the company's secrets (names, IDs, and other metadata — never values), and pending secret proposals.
-
-Don't change or remove `observed`. If you do, the editor says **observed is read-only. Edit spec to change configuration.**
+Earlier versions of the editor added a read-only `observed` section with company-wide details. The editor no longer produces it. If you paste in an older export that still has one, remove the whole `observed` block before saving — otherwise the editor says **observed is read-only. Remove this block and edit spec to change configuration.**
 
 ### A compact example
 
-Here's a trimmed document for a simple agent. The real one Paperclip shows you will be longer, and `observed` is left out here:
+Here's the document Paperclip shows for a simple agent:
 
 ```yaml
 apiVersion: paperclip/v1
@@ -81,12 +81,10 @@ spec:
   name: Release Writer
   role: engineer
   title: Release notes writer
-  icon: null
   appearance:
     schemaVersion: 1
     characterVersion: cap-v1
     paletteId: golden-hour
-  reportsTo: null
   capabilities: Drafts release notes from merged pull requests.
   adapterType: process
   adapterConfig:
@@ -95,45 +93,48 @@ spec:
     heartbeat:
       enabled: false
       wakeOnDemand: true
-  defaultEnvironmentId: null
-  budgetMonthlyCents: 0
-  metadata: null
-  permissions:
-    canCreateAgents: false
-    canCreateSkills: true
-    canAssignTasks: false
-    trustPreset: standard
   instructions:
     mode: external
     rootPath: /srv/agents/release-writer
     entryFile: AGENTS.md
+```
+
+There's no `permissions`, `skills`, `tools`, or `channels` here because this agent uses the standard permissions and has nothing assigned. You don't need the whole document to make a change, either. To give the agent a skill, rewrite its entry file, and create an API key in one save, this is enough:
+
+```yaml
+apiVersion: paperclip/v1
+kind: Agent
+spec:
+  skills:
+    - paperclip
+  instructions:
     files:
       AGENTS.md: |
         You write release notes.
-  skills: []
-  tools:
-    connections: []
-    profiles: []
-    policies: []
-  channels: []
   apiKeys:
     create:
       - name: ci-pipeline
-    revoke: []
-  revisions:
-    restore: null
-  secrets:
-    create: []
-    rotate: []
-    update: []
-    proposals: []
-  channelOperations:
-    create: []
-    setup: []
-    revokeIdentityLinks: []
 ```
 
-Saving this would update whatever differs from the saved agent and create one new API key called `ci-pipeline`.
+Everything you left out stays as it was. Saving this would make `paperclip` the agent's skill list, replace the text of `AGENTS.md`, and create one new API key called `ci-pipeline`. Because `skills` is a list, it replaces the whole set — if the agent already had other skills, list them too or they'll be unassigned.
+
+## Leave out, change, or clear a setting
+
+When you save, Paperclip compares your document with the agent's saved settings:
+
+- **Leave a key out** and its saved value is kept. Deleting a line doesn't clear a setting.
+- **Change a value** and it's updated.
+- **Clear a value** by writing its empty value explicitly — for example `title: null`, `skills: []`, `tools: { profiles: [] }`, or `adapterConfig: {}`.
+
+A few rules decide how much a key replaces:
+
+- **Lists replace the whole list.** If you supply `skills`, `tools.connections`, `tools.profiles`, `tools.policies`, or `channels`, that list becomes the full set. A row you leave out of a list you supplied is removed — a skill is unassigned, a direct tool install is uninstalled, a profile is unbound from this agent, an agent-scoped policy is deleted, and a channel is removed.
+- **`adapterConfig`, `runtimeConfig`, and `metadata` replace the whole map** when you supply them, so include every key you want to keep.
+- **`permissions`, `instructions`, and `tools` merge.** Keys you don't mention inside them keep their saved values — for example, `tools: { profiles: [...] }` leaves the agent's connections and policies alone.
+- **Instruction files are patched by name.** Only the files you list under `instructions.files` change; the rest stay as they are, and `files: {}` changes nothing. Set a file to `null` to delete it, for example `workflow.md: null`. You can't delete the entry file, and files that can't be edited as text are refused with **Instruction file … cannot be edited as text.**
+- **Channel settings and resources merge.** In a `channels` row, settings you leave out keep their saved values; set a field to an empty value to clear it. Resources you leave out of a supplied `resources` list are disabled.
+- **Tool profile references keep their binding details.** A row like `- profileKey: engineering` binds that existing profile without touching its shared definition. Leave out `priority` or `metadata` and the agent's current binding values are kept (a new binding gets priority `100`).
+- **Legacy prompt templates stay hidden.** If the agent still has an old `promptTemplate`, it's left out of `adapterConfig` and kept when you save other adapter changes. Set `adapterConfig.promptTemplate` to an empty string to clear it.
 
 ### YAML rules
 
@@ -169,7 +170,7 @@ A few combinations are rejected before anything is saved, with a message telling
 - **Tool policies** in `tools.policies` must be scoped only to this agent.
 - **Channels** can't change `provider` — create a new channel instead.
 - **Task assignment.** A CEO agent, or any agent with `canCreateAgents: true`, must also have `canAssignTasks: true`.
-- **Keep fields explicit.** For tool profiles, tool policies, and channel settings, don't delete a field to clear it. Set it to `null`, `false`, an empty string, or an empty list instead.
+- **Keep fields explicit.** When you edit a tool profile's or tool policy's definition, don't delete a field to clear it. Set it to `null`, `false`, an empty string, or an empty list instead.
 
 ---
 
