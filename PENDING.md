@@ -6,7 +6,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Compare truncation:** 0 truncated leaves (increment: 7 leaves, 67 commits, 1092 files).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
 - **Already on nightly:** drafts for `1b4c8038..8035f8b2` from earlier runs. This run covers the 67 newer commits, `8035f8b2..322fa6b6`.
-- **Verification:** every page changed this run was checked against `322fa6b6` with `verify-edit` (local pinned snapshot). No added line has a real unverified claim. The only flags on added lines are `KIMI_API_KEY` (read in `kimi-connection-probe.ts` and the setup UI), `RUN_LOG_S3_BUCKET` (read in `run-log-store.ts`) and `PAPERCLIP_RUNTIME_NOTIFICATION_HELPER` (set by the Runner's Rust code). All three are outside what the checker scans. Every parent read was pinned to `322fa6b6`.
+- **Verification:** every page changed this run was checked against `322fa6b6` with `verify-edit`. On the first pass, the only flags on added lines were `KIMI_API_KEY`, `RUN_LOG_S3_BUCKET` and `PAPERCLIP_RUNTIME_NOTIFICATION_HELPER`. They came from the old 700-file scan cap, and the fixed checker (#165, full parent snapshot) verifies all three. A re-run with the fixed checker leaves no unverified claim on this run's pages, apart from the pre-existing `adapter-config-field` class on `paperclip-runner.md` (see Open questions). Every parent read was pinned to `322fa6b6`.
 - **Second verification pass:** two independent fact-checkers re-read every added line against `322fa6b6`. Corrections applied:
   - The Kimi **Run test** failure for sandboxes applies only to hosted Runner-task sandboxes. Other remote and SSH targets are still probed through the provider pack.
   - Legacy `RUN_LOG_S3_*` mirroring is only replaced by instance storage on an `s3` instance. On `local_disk`, the mirror still applies to new logs.
@@ -75,22 +75,18 @@ None. No entry left the cumulative window, and there are no revert commits in th
 
 ## ⚠ Drift (checked against parent `322fa6b6`)
 
-40 candidates. 39 are unchanged from the last run; the new one is a false positive too.
+None. `check-drift` with the fixed checker (#165) scanned a full parent snapshot (5,459 non-test source files, `source: snapshot`, no warnings) and found 0 drift candidates.
 
-High-confidence (28 env vars, 1 CLI):
-- `PAPERCLIP_SKILL_PACKAGE_STORAGE_ENABLED` (`deploy/environment-variables.md:73`): new this run. It is still read in `server/src/services/skill-package-store.ts:23`; #18334 moved the read, and the checker misses it.
-- `DATABASE_PREPARED_STATEMENTS`, `DATABASE_POOL_MAX`, `DATABASE_IDLE_TIMEOUT_SECONDS`, `DATABASE_CONNECT_TIMEOUT_SECONDS`, `DATABASE_MAX_LIFETIME_SECONDS`, and `DATABASE_APPLICATION_NAME` (`deploy/environment-variables.md:23–28`): read in `packages/db/src/client.ts`, which the checker doesn't scan.
-- `PAPERCLIP_WORKSPACE_GIT_SCAN_*` (4), `PAPERCLIP_WORKSPACE_GIT_SNAPSHOT_TIMEOUT_MS`, `PAPERCLIP_RUNNER_API_*` (3), `PAPERCLIP_NATIVE_MCP_*` (2), `PAPERCLIP_MCP_AUTHORIZATION_ORIGIN`, `PAPERCLIP_CLOUD_CONNECTOR_*` / `PAPERCLIP_ID_CONNECTOR_*` (10): read through `envInteger`, `env.` / `environment.` receivers, or packages the checker doesn't scan.
-- `paperclipai payload` in `cli/service.md:56`: quoted message text, not a command.
+The ~40 "known false positives" listed in earlier runs were all checker limits, not doc problems:
+- **Env vars:** a silent 700-file scan cap, with parent `server/src` at ~1,665 files.
+- **CLI:** quoted output that was read as a command.
+- **REST routes:** routes registered through an array, a `router[method]` loop or a path constant.
 
-Medium (11 REST routes):
-- Verify: `GET /api/agent-avatars/{version}/{palette}/{pose}.png` (`:file` param).
-- Verify: `/api/companies/import/transfers*` (5) (constant route path).
-- Verify: `GET|POST /api/companies/{companyId}/chats/{agentRef}` (`router[method]` loop).
-- Verify: `GET /api/mcp/requests/{id}` and the two Dot pairing routes (array registration).
+All three are fixed and covered by tests in `scripts/sync/test.mjs`. From now on, a drift item that repeats every run is a checker bug to fix, not a standing list.
 
 ## Open questions from this run
 
+- **`adapter-config-field` checks on `paperclip-runner.md`:** `verify-edit` looks for an adapter package named after the page, and the Runner has none, so `adapterType`, `provider`, `model` and similar names come back unverified. The claims are correct. The checker needs to know which package backs the Runner page.
 - **Kimi Code read-only work:** the Runner page calls read-only Kimi work "such as planning". The "planning" example is inferred from task modes.
 - **Skill-package conversion note:** `storage.md` points at `server/scripts/migrate-skill-packages.ts`, which runs from a source checkout. Operators on packaged builds may not be able to run it. Trim the note if it's too dev-oriented.
 - **Product copy is out of date:** the Experimental settings toggle still says "First-run setup offers qualified GitHub Copilot" (`InstanceExperimentalSettings.tsx:557`), but first-run now offers only Claude and Codex. The docs follow the behaviour.
