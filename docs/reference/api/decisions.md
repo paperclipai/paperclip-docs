@@ -459,7 +459,7 @@ Unknown fields are rejected. Omitting a field leaves its current value alone, so
 
 Writes are serialised per source and bump `version`, so two people triaging the same item at once cannot interleave. Each write records a `decision_triage.updated` activity entry with the previous and new values.
 
-Triage feeds straight back into the attention feed: `decideBy` and `snoozedUntil` appear on each item, `sort=decide` orders by deadline, and `decideNowCount` counts what is due today. See [Attention](./attention.md) for how that ranking works.
+Triage feeds straight back into the attention feed: `decideBy` and `snoozedUntil` appear on each item, `sort=decide` orders by deadline, and `deskBadgeCount` counts what surfaced today or is due today or overdue. See [Attention](./attention.md) for how that ranking works.
 
 ---
 

@@ -77,6 +77,8 @@ You'll find routines on the **Routines** page in the sidebar.
 
 When the trigger fires, Paperclip creates a task, assigns it to the agent, and that assignment wakes the agent immediately. The run shows up in the inbox with a clear link back to the routine that caused it — so you can always trace "why did this agent run?" back to a specific cause.
 
+> **Tip:** Want the result in your chat instead of buried in a task? If [Agent Chat](../../experimental/agent-chat.md) is on, ask for it in the routine's instructions — "send the digest to my chat". The agent posts it to its chat with you, with a link back to the routine's task, and the chat shows as unread until you've seen it. See [Messages from tasks and routines](../../experimental/agent-chat.md#messages-from-tasks-and-routines).
+
 ### Routine policies worth knowing
 
 Two policies control what happens when schedules overlap or the scheduler has been offline:
@@ -92,7 +94,7 @@ For most cases the defaults (coalesce if active, skip missed) are what you want:
 
 ![Routines list](../../user-guides/screenshots/light/routines/list.png)
 
-The Routines page is reached from **Routines** in the sidebar. There are no tabs: a single toolbar across the top holds a **Search routines…** box, the **Sort** and **Group** menus, and the **View all runs** and **Create routine** buttons. The routine list sits right below.
+The Routines page is reached from **Routines** in the sidebar. There are no tabs: a single toolbar across the top holds a **Search routines…** box, the **Sort** and **Group** menus, and the **View all tasks** and **Create routine** buttons. The routine list sits right below.
 
 ### List rows and badges
 
@@ -142,7 +144,7 @@ Draft routines without a default agent are valid — they save and stay paused u
 
 ### Seeing every run
 
-To check on executions, click **View all runs** in the toolbar. It takes you to the **Runs** section of the Audit area (`/activity/runs`), where every heartbeat run is listed with its status and links to the work it produced. It's the fastest way to answer "did all my morning routines run?"
+To check on executions, click **View all tasks** in the toolbar. It opens the **Tasks** list filtered to the tasks your routines created (`/issues?view=all&originKind=routine_execution`), with the **Routine tasks** filter already ticked. It's the fastest way to answer "did all my morning routines run?" Untick **Routine tasks** under **Visibility** in the filter menu to go back to the full list.
 
 If **Streamlined UI** is turned off in Experimental settings, the Routines page instead shows **Routines** and **Recent Runs** tabs. Recent Runs is a task list filtered to the execution tasks your routines created, with live-run indicators that refresh every few seconds.
 

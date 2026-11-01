@@ -7,7 +7,7 @@ seo_description: Configure Paperclip Runner for native agent sessions. Choose a 
 
 Use `paperclip_runner` when you want Paperclip's native run lifecycle, durable session recovery, and built-in task tools. You select the provider separately from the adapter, then configure model access and the execution environment.
 
-Paperclip Runner is experimental. Native Codex, native OpenCode, **ACP agents → Claude**, **ACP agents → Pi**, and **ACP agents → GitHub Copilot** are the exceptions to the rollout switch. Copilot agents keep running when the switch is off, and first-run setup offers **GitHub Copilot** either way. New Codex, Claude, OpenCode, and Pi agents also use the Runner by default on supported machines (see [New Codex and Claude agents use the Runner](#new-codex-and-claude-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
+Paperclip Runner is experimental. Native Codex, native OpenCode, **ACP agents → Claude**, **ACP agents → Pi**, and **ACP agents → GitHub Copilot** are the exceptions to the rollout switch. Copilot agents keep running when the switch is off. First-run setup offers only Claude and Codex; you add Copilot agents afterwards. New Codex, Claude, OpenCode, and Pi agents also use the Runner by default on supported machines (see [New Codex and Claude agents use the Runner](#new-codex-and-claude-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
 
 ## Before you start
 
@@ -129,6 +129,7 @@ Pi also needs its pinned runtime installed on the execution host before it can r
 | **ACP agents → Grok Build** (`acpx`, `grok`) | Qualified Grok Build runtime. See [Grok setup](grok-local.md#grok-build-on-paperclip-runner). |
 | **ACP agents → Cursor** (`acpx`, `cursor`) | Pinned Cursor runtime with an explicit model and Agent, Plan, or Ask mode. See [Cursor setup](cursor-local.md#cursor-on-paperclip-runner). |
 | **ACP agents → GitHub Copilot** (`acpx`, `copilot`) | Qualified Copilot runtime, pinned to Copilot CLI `1.0.88` and installed with Paperclip's packages on macOS and Linux x64. Connect a Copilot token through **Connectors → GitHub → Connect Copilot** and pick an explicit model. See [GitHub Copilot](../../connectors/github-copilot.md). |
+| **ACP agents → Kimi Code** (`acpx`, `kimi`) | Qualified Kimi Code runtime, pinned to `@moonshot-ai/kimi-code` `2.3.3`, on macOS ARM64 and Linux x64. Install it with `paperclipai runtime setup kimi`, bind a company secret as `KIMI_API_KEY`, and type an exact model ID. See [Kimi Code on Paperclip Runner](#kimi-code-on-paperclip-runner). |
 | **ACP agents → Pi** (`acpx`, `pi`) | Qualified Pi 1.0 runtime. Enter an explicit `provider/model` ID; Pi uses the company credentials bound to the agent's environment, such as `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY`. See [Pi on Paperclip Runner](#pi-on-paperclip-runner). |
 | **Claude Managed** (`claude_managed`) | A company-qualified managed-agent profile, retention acknowledgement, and session spend ceiling. |
 | **AWS AgentCore** (`aws_agentcore`) | A company-qualified remote-agent profile, retention acknowledgement, and estimated session spend ceiling. |
@@ -141,7 +142,7 @@ Managed providers need operator-prepared profiles; they are not configured by pa
 
 1. Create or edit the agent and choose **Paperclip Runner**.
 2. Select **Harness**. For **ACP agents**, select the **ACP agent** too. When you pick a harness such as Claude or Pi directly in the agent form, that choice already sets the Runner profile, so there's no separate **ACP agent** selector to fill in.
-3. Select a model. When you edit a saved agent, choose a compatible **Connection** for Codex, OpenCode, Claude, Grok, or GitHub Copilot; Cursor uses its secret-backed credential environment instead.
+3. Select a model. When you edit a saved agent, choose a compatible **Connection** for Codex, OpenCode, Claude, Grok, or GitHub Copilot; Cursor and Kimi Code use their secret-backed credential environment instead.
 4. Choose the execution environment and review permissions.
 5. Save and use **Test Environment** before assigning work.
 
@@ -185,6 +186,36 @@ Standard, planning, and ask tasks are supported. Cursor additionally has `acpxSe
 
 A new Pi agent lands here automatically on a supported machine. You can also pick it yourself: choose **ACP agents**, then **Pi**. Pi accepts any `provider/model` ID, so type the exact model you want. A **Pi thinking level** field appears with `off`, `low` (the default), `high`, and `max`; it's saved as `piThinkingLevel`. The Runner checks that exact level before each session can prompt, and changing it starts a new session. To install the pinned Pi runtime on a host, use [`paperclipai runtime setup pi`](../cli/runtime.md#set-up-pi). You can connect an OpenRouter, OpenAI, Anthropic, or Google API-key account. The model ID should start with that account's provider, for example `openrouter/…` for an OpenRouter account. For custom Pi providers, set `PAPERCLIP_PI_PROVIDERS` as described on the [Pi adapter page](pi.md#custom-providers--gateway-routing). Don't combine it with a Paperclip-managed account: that fails with *"The configured provider routing is incompatible with this AI connection"*.
 
+### Kimi Code on Paperclip Runner
+
+Kimi Code runs through the pinned Kimi Code runtime (`acpx`, `kimi`). Unlike the Google Antigravity preview, it's a qualified provider: there's no operator authorization to set up. It works like the other experimental providers, so your instance needs **Paperclip Runner** turned on under **Settings → Experimental**. The supported execution targets are macOS ARM64 and Linux x64.
+
+**Install the runtime.** On the machine where the agent runs, use [`paperclipai runtime setup kimi`](../cli/runtime.md#set-up-kimi-code). For a remote Linux x64 machine, install the provider pack from the same Paperclip release at `/opt/paperclip-runner/provider-pack` or `$HOME/.local/share/paperclip-runner/provider-pack`.
+
+**Create the agent.** When you add an agent, choose the **Kimi Code (Runner)** tile. It sits next to the existing **Kimi Code** tile, which still creates a direct [`kimi_local`](kimi-local.md) agent. You can also pick **ACP agents**, then **Kimi Code**, on a Runner agent's settings. Then fill in two things:
+
+- **Model.** Kimi Code doesn't suggest models, so type the exact model ID from your Kimi Code account. Leaving it blank stops setup with *"Enter the exact Kimi model ID."*
+- **`KIMI_API_KEY`.** Paste a Kimi Code API key or pick an existing organization secret. New keys are saved as organization secrets when you finish setup. Without one, setup stops with *"Enter KIMI_API_KEY or select an organization secret."*
+
+The account needs Kimi Code access. This release talks to the global Kimi Code endpoint, `https://api.kimi.ai/coding/v1`. It doesn't borrow a `kimi login` session from the host, and there's no managed Kimi connection yet.
+
+**Test before you assign work.** **Run test** checks the installed runtime and asks your account's Kimi Code model catalog whether it lists the exact model you chose, without sending a prompt. A pass reads *"The selected environment verified the pinned Kimi Code runtime. Its Code model catalog accepted the credential and lists the exact selected model. No model prompt was sent."* Common failures:
+
+| Message | What to do |
+| --- | --- |
+| *"Bind a company secret to KIMI_API_KEY in the agent environment."* | Add the `KIMI_API_KEY` secret to the agent. |
+| *"Select the exact Kimi Code model."* | Enter a model ID. |
+| *"Install the current verified Kimi Code runtime in this execution environment."* | Run `paperclipai runtime setup kimi` on that machine, or install the matching provider pack on a remote host. |
+| *"Kimi Code metadata verification is unavailable in this hosting environment."* | Run test can't check Kimi Code inside this kind of hosted Runner sandbox. |
+
+A passing test proves the key and model, not a full run. Your first real task is what confirms the model's answers and tool use.
+
+**Good to know.**
+
+- Existing `kimi_local` agents keep their runtime and history. Nothing is converted for you.
+- Read-only Kimi work, such as planning, uses Paperclip's own scoped tools. Kimi's built-in file and shell tools are turned off for it.
+- Live steering, native child work, and per-run token and dollar accounting aren't available for Kimi Code on the Runner yet.
+
 ### Google Antigravity on Paperclip Runner (preview)
 
 > **Note:** Google Antigravity is an operator-gated preview, not a generally available provider. It runs only on a macOS ARM64 Paperclip host, and only for a company the instance operator has authorized.
@@ -216,7 +247,7 @@ By default the Runner gives each session a private, isolated provider home and s
 
 Environment variables you configure for a task's agent, project, environment, or routine reach the native provider process and its tool commands, including custom `PAPERCLIP_*` names. When you add, change, or remove one, the Runner replaces its retained provider process at the next run boundary, so the next turn sees the new value. Unchanged variables let the warm process be reused. Only names are passed through the Runner's launch path; the secret values stay in the child environment. Ambient secrets on the host are never forwarded. A native launch carries up to 128 configured variable names.
 
-Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, `opencode_local`, and `pi_local` agents remain direct adapters until you explicitly choose Runner. For Claude Code, Codex, and Grok Build agents, the [upgrade notice](#upgrade-an-existing-claude-or-codex-agent) is the quickest way. A saved obsolete native-runner toggle on a direct adapter does not switch fresh runs to this path.
+Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, `kimi_local`, `opencode_local`, and `pi_local` agents remain direct adapters until you explicitly choose Runner. For Claude Code, Codex, and Grok Build agents, the [upgrade notice](#upgrade-an-existing-claude-or-codex-agent) is the quickest way. A saved obsolete native-runner toggle on a direct adapter does not switch fresh runs to this path.
 
 ## Current limits
 

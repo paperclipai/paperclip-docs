@@ -55,6 +55,8 @@ Make sure Paperclip is installed and running. If you haven't done that yet, star
 
 After **Create your first agent**, the wizard's next screen is **Connect a model**. Pick a **Model source** tile, then sign in with your subscription or click **Use API key instead** to paste a key.
 
+First-run setup keeps the choice short: the only tiles are **Claude** and **OpenAI** (Codex). Want GitHub Copilot or another provider? Finish setup with one of these two, then add more agents from the **Agents** page, where every supported provider is available. If an administrator has turned off both Claude and Codex, the wizard says *"Claude and Codex are unavailable on this instance."* Ask them to enable one, or exit setup and choose **New Agent** on the **Agents** page.
+
 Already run your own model gateway? When you pick **Claude** or **OpenAI** and switch to an API key, a **Use a custom gateway** button appears under the key field. It opens **Custom gateway connection**, the same form you'd use from **Connectors**, with the **API format** already set to match — **Anthropic Messages · Claude** for Claude, **OpenAI Responses · Codex** for OpenAI. Fill in your gateway's details and click **Save connection**.
 
 Back on the card, choose a model for your saved connection; you can't click **Connect** until you've picked one. **Connect** then tests the gateway with your agent and finishes setup. Changed your mind? **Use a different API key** takes you back to the plain key field. See [Custom model providers](../../connectors/custom-model-providers.md) for the gateway fields and how to pick the right format.

@@ -51,6 +51,8 @@ Open **Tasks** to see the work across your company. The API calls these records 
 
    **Tasks created by agents are hidden by default.** Agent delegation and automatic routine runs can easily outnumber the requests people make, so the list starts with human-created work. To see everything, open **Filter** and tick **show agent-created tasks** under **Visibility**. Your choice is remembered for that list, and **Clear** in the filter menu hides them again. A hidden task still appears as a parent or as an expandable subtask of a task you can see, so trees stay intact. Tasks from chat channels count as agent-created, even when a person started the conversation. The same checkbox is on project task lists and in the Inbox.
 
+   On the main Tasks list, **Visibility** also has a **Routine tasks** checkbox. Tick it to show only the tasks your [routines](../projects-workflow/routines.md) created, agent-created or not. The filter lives in the URL as `originKind=routine_execution`, so you can bookmark or share it. The **View all tasks** button on the Routines page opens this view.
+
    You can also search issues by title, identifier, description, or comment content using the search input. The URL `?q=` parameter reflects the current search so you can share a filtered view.
 
 3. **Group and arrange the list**
@@ -377,7 +379,7 @@ If either action fails, the bar tells you plainly — *"Couldn't confirm — try
 
 **Artifacts** gathers what this task produced, grouped by the run that produced it, newest run first. Each output gets a full-width card shaped to what it is — a pull request shows its state, checks, and changed lines; a commit its SHA and branch; a document expands with **Read document**; images and videos open in the gallery viewer; a CSV loads a table when you click **Preview data**. Markdown and text files open in a tab of their own with **Open in tab**. See [Artifacts](./artifacts.md#reaching-artifacts-from-a-task) for every card type.
 
-It's there to answer "what did this task produce?" without scrolling the thread. You can also add files here: use the upload icon, or drop files anywhere on the panel. They're saved straight to the task without sending a message, so a paused task stays paused. See [Uploading files to a task](./artifacts.md#uploading-files-to-a-task). The company-wide view of every output still lives on the [Artifacts page](./artifacts.md).
+It's there to answer "what did this task produce?" without scrolling the thread. You can also add files here: use the upload icon, or drop files anywhere on the panel. They're saved straight to the task without sending a message, so a paused task stays paused. See [Uploading files to a task](./artifacts.md#uploading-files-to-a-task). The tab's **Documents** section, with its **New document** button, is where you write and edit the task's general documents; see [Writing and editing task documents](./artifacts.md#writing-and-editing-task-documents). The company-wide view of every output still lives on the [Artifacts page](./artifacts.md).
 
 On the chat-style page, the centre column's **Attachments**, **Output**, keyed-documents, and **Plan decomposition** sections all step aside — the plan and the task's files live in this panel instead, leaving the middle of the page to the conversation.
 
@@ -500,6 +502,8 @@ The task conversation combines four data sources into a single timeline:
 - **Active run** — thinking, tools, and replies stream into the thread while the agent works.
 - **Live runs** — other runs linked to the task appear with their own activity.
 - **Historical runs** — completed runs that were linked to this issue. Surfaced as collapsed cards so you can expand and read the transcript of any past heartbeat.
+
+When an agent creates a subtask or a separate follow-up task from this task, a card for it appears in the timeline at the moment it was created. The card reads **Subtask created** or **Task created** and shows the new task's current title, number, and status. Click it to open that task. A task that already appears as a handoff or as an accepted task suggestion doesn't get a second card.
 
 ### Composer
 

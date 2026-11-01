@@ -112,6 +112,18 @@ Implementation reference: [artifact cards](https://github.com/paperclipai/paperc
 
 Either way, the Artifacts page remains the place to see everything at once, across every task and project. See [Issues](./issues.md#tabs-in-the-properties-panel) for the rest of what those tabs hold.
 
+### Writing and editing task documents
+
+The task's **Artifacts** tab is also where you write documents of your own. A **New document** button sits above the output cards, under a **Documents** heading once the task has documents. Give the document a **Document key** (lowercase letters, numbers, `-`, or `_`, starting with a letter or number), an optional title, and a Markdown body, then click **Create document**. Existing documents open in the same editor, so you can revise them in place, and every save becomes a new revision.
+
+Unfinished work is kept for you. If you switch to another tab in the panel, or reload the page, before saving, your draft is still there when you come back. Drafts are stored in this browser for your account and that task. This editor is for general documents; the plan is still created and revised through the task conversation, and you read it in the **Plan** tab. In **Classic Task Interface**, documents stay in their section on the task page.
+
+### Image galleries in documents
+
+When a document contains images, click any of them, or focus one and press **Enter** or **Space**, to open it in the gallery viewer. The gallery holds every image in the document in reading order. Move through them with **Previous** and **Next** or the left and right arrow keys, and it wraps around at either end. **Esc**, **Close**, or a click on the empty backdrop closes it.
+
+The open image is part of the page address, so you can share a link to it. The link adds `&image=` and the image's position, counting from 1, to the document link. For example, `#document-report&image=2` opens the second image of the `report` document. If you share a link to a specific revision, the image numbers follow that saved version. On the latest version, editing the document can shift the positions. This works in the Artifacts tab, in documents opened in the side panel, and in **Classic Task Interface**.
+
 ---
 
 ### Uploading files to a task

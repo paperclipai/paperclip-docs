@@ -24,10 +24,12 @@ Click it and Paperclip takes you back to the last agent chat you had open in thi
 
 The chat area has its own sidebar, headed **Chat**, beside the conversation:
 
-- **Teammates** lists your existing conversations first, followed by the other agents you can chat with. Each row shows the agent's avatar, name, and title. An agent that's replying right now reads **Working…**; a paused or terminated agent says so.
+- **Teammates** lists your existing conversations first, followed by the other agents you can chat with. Each row shows the agent's avatar, name, and title. An agent that's replying right now reads **Working…**; a paused or terminated agent says so. A small dot beside a name means that agent has sent you something you haven't read yet.
 - **Find an agent** filters the list by name or role.
 - **Add chat** (the **+** button) opens **Chat with an agent**, a searchable list of every agent in the company. Each one is marked **Open chat** if you already have a conversation with it, or **New chat** if you don't. Pick one and its conversation opens straight away.
 - **Browse all agents** at the bottom takes you to the full agent list.
+
+The **Chat** entry in the main navigation also carries a count of how many of your chats have unread agent messages. A message counts as read once you've scrolled to it at the bottom of the conversation while the window is in focus.
 
 The sidebar and header stay in the same place whether or not you've picked an agent, so switching between conversations doesn't make the page jump around.
 
@@ -36,6 +38,8 @@ The sidebar and header stay in the same place whether or not you've picked an ag
 You get exactly one conversation with each agent. Adding a chat with an agent you've already talked to just reopens it — **"One conversation per agent. Pick up where you left off."** — so you never end up with duplicates to keep track of.
 
 A conversation is a task behind the scenes, so it uses the same composer, transcript, attachments, and documents as the ordinary task page. See [Chat-Style Tasks](task-chat.md) for those controls.
+
+Long conversations open quickly: the chat loads your most recent messages first, and earlier ones load in pages as you scroll up, keeping your place and your draft.
 
 The right side panel starts on **Tasks**, showing tasks this agent has worked on across the company, rather than just tasks created in this chat. Search, filter, or sort the cards, then open one to read the work in a new browser tab. **Artifacts** shows files the agent produced, with a link back to the task for each one. The panel shows up to 200 recent tasks and 500 recent artifacts and tells you when it reaches that limit; use the company Tasks or Artifacts page for the wider view.
 
@@ -61,6 +65,21 @@ You don't have to keep checking on the tasks a chat created. When one of them is
 
 Only finished tasks are reported this way — progress, blocked, failed, and cancelled tasks aren't announced in the chat. Reopening a task before its update has been posted cancels that update; finishing it again sends a new one.
 
+## Messages from tasks and routines
+
+An agent can also write to your chat from its ordinary task work — for example, a routine that reviews open pull requests every morning and drops the digest straight into your conversation with that agent. Just ask for it in the task or routine instructions ("send the summary to my chat").
+
+The message goes to the agent's chat with the task's responsible person — you don't pick a recipient, and if you've never opened a chat with that agent, Paperclip creates it for you. Each message shows a **From** link to the task it came from (for example *From PC-42*), and the chat is marked unread until you've seen it. Sending a message doesn't wake the agent in the chat, doesn't change the task's status, and doesn't replace the usual completion update you get for tasks the chat handed off.
+
+A few things have to be true for the message to go through. If one isn't, the agent's attempt fails with an explanation rather than going somewhere else:
+
+- Agent Chat is on.
+- The agent is actively running the task, in normal (not review or skill-test) mode, and the task isn't done, cancelled, or paused.
+- The task has a responsible person who is still an active member of the company and can open the chat.
+- The task isn't restricted. Chats follow ordinary company visibility, so restricted task content can't be sent into one.
+
+Inside a chat conversation itself, the agent just replies normally — this is for work happening in other tasks. Agent developers can find the details in the [send-to-chat API](../reference/api/agents.md#send-a-message-to-your-chat).
+
 ## Starting fresh with /new
 
 Long conversations build up a lot of context. Send **/new** on its own — the composer offers it as **New session**, *"Start fresh context here, preserving conversation history."* — and the agent starts its next turn with a clean slate. Everything you've said, every plan, and every linked task stays visible in the conversation; a divider marks where the new session began.
@@ -79,7 +98,7 @@ Turning **Agent Chat** off removes the **Chat** entry and stops new messages, bu
 - How well an agent breaks a conversation into tasks depends on the agent and its model. Read the tasks it creates before relying on them.
 - Results come back only for tasks a chat hands off after your instance is on a release with this behaviour. Tasks handed off earlier aren’t reported retroactively.
 
-Implementation reference: [session reset and handoff instructions](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-conversations.ts), [completion reports](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/chat-completion-delivery.ts), [Chat navigation](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/Sidebar.tsx), [agent rail](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/AgentConversationsSidebar.tsx), and [agent task and artifact panels](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/chat/AgentWorkPanels.tsx).
+Implementation reference: [session reset and handoff instructions](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-conversations.ts), [completion reports](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/chat-completion-delivery.ts), [Chat navigation](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/Sidebar.tsx), [agent rail](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/AgentConversationsSidebar.tsx), [agent task and artifact panels](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/chat/AgentWorkPanels.tsx), [messages from tasks](https://github.com/paperclipai/paperclip/blob/322fa6b65cc707a726d50d84ce72aeb6282aa59e/server/src/services/agent-chat-messages.ts), and [unread tracking](https://github.com/paperclipai/paperclip/blob/322fa6b65cc707a726d50d84ce72aeb6282aa59e/ui/src/hooks/useAgentChatRead.tsx).
 
 ## Where to go next
 

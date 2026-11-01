@@ -19,19 +19,9 @@ Copilot runs on macOS (Apple Silicon and Intel) and on Linux x64. The runtime is
 
 ## Connect Copilot
 
-There are two ways in, depending on where you are.
+First-run setup doesn't offer Copilot. The **Model source** tiles there are only **Claude** and **OpenAI**, so you connect Copilot once your company exists. If a setup draft you started earlier had GitHub Copilot selected, onboarding drops that choice, so you pick Claude or OpenAI instead.
 
-### During first-run setup
-
-When you create your first agent, onboarding offers **GitHub Copilot** as a recommended choice. Pick it and Paperclip shows **Connect GitHub Copilot and choose a model**:
-
-1. Add your token as a new AI connection, or choose one you already saved.
-2. Wait for the **Model** list to load, then pick a model.
-3. Continue. Paperclip won't create the agent until a connection and an available model are selected.
-
-If the list is empty, Paperclip says *"No available Copilot models were discovered. Check this account’s Copilot access."* Select **Refresh models** after you fix the account.
-
-### In an existing company
+### From Connectors
 
 1. Open **Connectors** and find **GitHub**.
 2. Select **Connect Copilot**. This is separate from the GitHub repository connection on the same row.
@@ -117,7 +107,7 @@ Usage is attributed to **GitHub**. Copilot reports credits and model multipliers
 
 ## Copilot and the Paperclip Runner switch
 
-Like Codex and ACP Claude, Copilot agents run even when the **Paperclip Runner** experimental switch is off, and first-run setup still offers **GitHub Copilot**. Turning the switch off hides **Paperclip Runner** as a choice in the agent form, but it doesn't stop your existing Copilot agents. See [Experimental features](../experimental/overview.md).
+Like Codex and ACP Claude, Copilot agents run even when the **Paperclip Runner** experimental switch is off. Turning the switch off hides **Paperclip Runner** as a choice in the agent form, but it doesn't stop your existing Copilot agents. See [Experimental features](../experimental/overview.md).
 
 ## Try it
 

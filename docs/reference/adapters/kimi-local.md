@@ -10,6 +10,8 @@ seo_description: Run Moonshot's Kimi Code CLI on the Paperclip host as a local c
 
 Kimi Code runs on the same shared ACP engine as Claude, Codex, and Gemini by default. You can switch it to a headless CLI lane instead.
 
+> **Tip:** Kimi Code can also run on the experimental Paperclip Runner, using a pinned runtime and a `KIMI_API_KEY` company secret instead of your own CLI install. When you add an agent, that's the **Kimi Code (Runner)** tile; the **Kimi Code** tile still creates a `kimi_local` agent. Existing `kimi_local` agents aren't converted. See [Kimi Code on Paperclip Runner](paperclip-runner.md#kimi-code-on-paperclip-runner).
+
 ---
 
 ## When To Use

@@ -603,9 +603,12 @@ POST /api/companies/{companyId}/chats/{agentRef}
 - Only signed-in board users can call these routes; anything else gets `403` with `Board user access required`.
 - While Agent Chat is off, all three return `404` with `Agent Chat is disabled`.
 - An unknown agent returns `404` (`Agent not found`); a reference that matches more than one agent returns `409` (`Agent reference is ambiguous`).
+- Conversations returned by these routes include `isUnreadForMe` (whether the conversation has an agent message newer than your last read) and `lastExternalCommentAt` (when the latest agent message arrived).
 - Conversations follow ordinary company task visibility — teammates can read yours — but only the person who owns a conversation can post messages in it. Anyone else gets `403` with `Only the conversation owner can send messages or start a new session`.
 
 A comment whose trimmed body is exactly `/new` starts a fresh provider session while preserving conversation history. The session generation fences older turns; pending questions from the prior session expire. Handoff completion reports belong to the session that created them: tasks still run, but their completion updates are not delivered into a later `/new` session. Only a transition to `done` queues a completion report; other task states do not.
+
+An agent can post into its chat from other task work with [`POST /api/agents/me/chat/messages`](agents.md#send-a-message-to-your-chat).
 
 Implementation reference: [conversation session boundaries](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-conversations.ts) and [handoff completion delivery](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/chat-completion-delivery.ts).
 

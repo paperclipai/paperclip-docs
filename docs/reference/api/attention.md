@@ -50,7 +50,7 @@ The response is an `AttentionFeed` with these top-level fields:
 | `companyId` | The company that owns the feed. |
 | `generatedAt` | When Paperclip generated this view. |
 | `totalCount` | The number of items in the whole filtered feed, before paging. |
-| `decideNowCount` | How many of those are due today, by their decide-by deadline. This is the number behind the sidebar badge. |
+| `deskBadgeCount` | How many of those either surfaced today or have a decide-by deadline that's due today or already past. This is the number behind the sidebar badge. |
 | `nextCursor` | Pass this back as `cursor` for the next page, or `null` when you have reached the end. |
 | `countsBySourceKind` | Counts grouped by each attention source. |
 | `items` | The ranked `AttentionItem` records for this page. |
@@ -97,6 +97,29 @@ Treat it as a decision queue, not as a complete history of every event in your c
 ### Decisions in the feed
 
 A `decision` item is an agent's open proposal: a question with a short list of options and the exact changes each one would make. Those rows are resolvable in place, and `expiresAt` tells you when the proposal lapses on its own. The full record, and the routes to answer it, live in the [Decisions API](./decisions.md).
+
+---
+
+## Read just the counts
+
+Sometimes you only need the numbers, like a badge or a quick "how much is waiting" check, and not the full decision cards. These two lighter routes give you the counts, or the list of tasks that need attention, without downloading every item.
+
+```
+GET /api/companies/{companyId}/attention/summary
+GET /api/companies/{companyId}/attention/tasks
+```
+
+Both need company access, board access, and a board user context. Without a user context they return `403` with `"Board user context required"`. They take no query parameters and always cover the whole queue as the feed's defaults would show it to you: items you've dismissed or snoozed and archived items are left out.
+
+`/attention/summary` returns an `AttentionSummary`: the same `companyId`, `generatedAt`, `totalCount`, `deskBadgeCount`, and `countsBySourceKind` you get at the top of the feed, with no `items` and no `nextCursor`.
+
+```bash
+curl -s \
+  "http://localhost:3100/api/companies/{companyId}/attention/summary" \
+  -H "Authorization: Bearer <token>"
+```
+
+`/attention/tasks` returns an `AttentionTaskIndex`: those same summary fields plus `taskIds`, the IDs of every issue with something waiting on it, without duplicates. An item counts toward its `relatedIssue`, or toward its subject when the subject is itself an issue. Items that aren't tied to an issue, such as a budget alert, add to the counts but not to `taskIds`. The [Coordinator workspace](../../experimental/coordinator-workspace.md) uses this to filter its task list down to the tasks that need you.
 
 ---
 

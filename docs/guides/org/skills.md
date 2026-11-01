@@ -280,6 +280,8 @@ Studio is explicit about unsaved work, because a half-edited skill is not what y
 
 **Save** writes the file and creates the next version of the skill immediately — the header shows the current revision as `v1`, `v2`, and so on, and **Version history** opens the full list so you can look back or restore an earlier one.
 
+If someone else (a teammate or an agent) saved the skill after you opened it, your save doesn't overwrite their work. Studio keeps your edits in the editor and shows *"This skill changed since you opened it. Your unsaved edits are still here. Copy them before loading the latest file to reconcile the changes."* Copy what you need, then click **Load latest saved file**. Studio asks *"Discard unsaved edits and load the latest saved file?"* before replacing your draft, and anything you type while it loads stays put.
+
 The toolbar above the file tree covers the rest of the housekeeping: **Add file**, **Add folder**, **Delete file**, and **Delete folder**. Two things to know. `SKILL.md` cannot be deleted — the button stays disabled with a tooltip saying so, which makes sense given it's the file agents read first. And adding a folder seeds it with a `README.md`, because a folder with nothing in it has nowhere to show up in the tree.
 
 The **⋯** menu in the header has **Share link**, which copies the current Studio URL — including which input and which run you're looking at — so a teammate opens exactly the view you're describing.
