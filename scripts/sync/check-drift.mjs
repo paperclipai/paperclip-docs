@@ -30,6 +30,17 @@ import {
 } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  collectStringConstants,
+  ensureParentSnapshot,
+  inlineRouteConstants,
+  isTestPath,
+  normalizeRoute,
+  readSnapshotEnvSources,
+  routeIsDefined,
+  snapshotContents,
+  snapshotFiles,
+} from "./lib/parent-source.mjs";
 
 const SELF_DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(SELF_DIR, "../..");
@@ -40,6 +51,17 @@ const FIXTURE_DIR = process.env.PAPERCLIP_SYNC_FIXTURE_DIR || null;
 // per ref, so there's nothing to save). Tests that need to exercise the
 // cache-key path opt in explicitly by setting PAPERCLIP_SYNC_CACHE_DIR.
 const CACHE_ENABLED = !FIXTURE_DIR || !!process.env.PAPERCLIP_SYNC_CACHE_DIR;
+// Directory holding a full snapshot of the parent at the resolved SHA (see
+// lib/parent-source.mjs). Set in main(); null means "use the contents API".
+let SNAPSHOT = null;
+// GitHub-API fallback only: the most source files fetched for the env-var
+// class. Snapshot mode has no cap. When the cap bites, the run says so.
+const API_ENV_SOURCE_CAP = 700;
+const warnings = [];
+function warn(msg) {
+  warnings.push(msg);
+  process.stderr.write(`${msg}\n`);
+}
 
 // --- gh wrapper -------------------------------------------------------------
 
@@ -49,6 +71,7 @@ function pathSlug(p) {
 
 function ghContents(repo, path, ref) {
   // Returns { status: 200|404, content?: <utf8 decoded string> }.
+  if (SNAPSHOT) return snapshotContents(SNAPSHOT, path);
   if (FIXTURE_DIR) {
     const file = join(FIXTURE_DIR, `contents-${pathSlug(path)}-${ref}.json`);
     if (!existsSync(file)) {
@@ -163,6 +186,9 @@ function ghResolveSha(repo, ref) {
     }
     return ref;
   }
+  // A full SHA needs no lookup. This also lets PAPERCLIP_SYNC_LOCAL_SRC runs
+  // work offline.
+  if (/^[0-9a-f]{40}$/i.test(ref)) return ref.toLowerCase();
   const r = spawnSync("gh", ["api", `repos/${repo}/commits/${ref}`, "-q", ".sha"], { encoding: "utf8" });
   if (r.status !== 0) return null;
   const sha = r.stdout.trim();
@@ -170,6 +196,7 @@ function ghResolveSha(repo, ref) {
 }
 
 function ghTreeFiles(repo, ref) {
+  if (SNAPSHOT) return snapshotFiles(SNAPSHOT);
   if (FIXTURE_DIR) {
     const file = join(FIXTURE_DIR, `tree-${ref}.json`);
     if (!existsSync(file)) return null;
@@ -226,6 +253,7 @@ function cacheSet(refSlug, key, value) {
 }
 
 function cachedContents(repo, path, ref, refSlug) {
+  if (SNAPSHOT) return snapshotContents(SNAPSHOT, path);
   const cached = cacheGet(refSlug, `contents:${path}`);
   if (cached) return cached;
   const result = ghContents(repo, path, ref);
@@ -311,16 +339,48 @@ const CLI_CMD_DIRS = ["cli/src/commands", "cli/src/commands/client"];
 // Words that follow `paperclipai` but are flags or non-commands.
 const CLI_FALSE_POSITIVES = new Set(["--help", "--version", "-V", "-h", "-v"]);
 
+// Offsets of text that is presented as a command: lines inside fenced code
+// blocks, and inline code spans that *start* with the CLI name. Prose and
+// quoted output (`Installed the managed paperclipai payload…`) are not
+// commands, so a `paperclipai <word>` there is not a documented command.
+function commandRanges(content) {
+  const ranges = [];
+  const fenceRe = /^(\s*)(```|~~~)[^\n]*\n([\s\S]*?)^\1\2[ \t]*$/gm;
+  let f;
+  const fenced = [];
+  while ((f = fenceRe.exec(content))) {
+    const bodyStart = f.index + f[0].indexOf("\n") + 1;
+    ranges.push([bodyStart, bodyStart + f[3].length]);
+    fenced.push([f.index, f.index + f[0].length]);
+  }
+  const inFence = (i) => fenced.some(([a, b]) => i >= a && i < b);
+  const spanRe = /(`+)([^`\n][\s\S]*?)\1/g;
+  let s;
+  while ((s = spanRe.exec(content))) {
+    if (inFence(s.index)) continue;
+    const body = s[2];
+    if (/^\s*(?:\$\s+)?(?:(?:pnpm|npx|pnpm\s+exec)\s+)?paperclipai\s/.test(body)) {
+      const start = s.index + s[1].length;
+      ranges.push([start, start + body.length]);
+    }
+  }
+  return ranges;
+}
+
 function collectCliCommands(docFiles) {
   const refs = new Map();
   for (const file of docFiles) {
     if (!file.includes("/docs/reference/cli/")) continue;
     const content = readFileSync(file, "utf8");
     const fmEnd = frontmatterEnd(content);
+    const ranges = commandRanges(content);
+    const isCommandText = (i) => ranges.some(([a, b]) => i >= a && i < b);
     CLI_INVOCATION_RE.lastIndex = 0;
     let m;
     while ((m = CLI_INVOCATION_RE.exec(content))) {
       if (m.index < fmEnd) continue; // skip seo_title / seo_description prose
+      // The regex may consume a leading space; judge the "paperclipai" token.
+      if (!isCommandText(m.index + m[0].indexOf("paperclipai"))) continue;
       const head = m[1];
       const sub = m[2];
       if (CLI_FALSE_POSITIVES.has(head)) continue;
@@ -456,24 +516,33 @@ function shouldFetchEnvSource(path) {
 
 function envVarSourcesToCheckFromTree(repo, ref, refSlug) {
   const tree = ghTreeFiles(repo, ref);
-  if (!tree) return envVarSourcesToCheck();
+  if (!tree) return { sources: envVarSourcesToCheck(), eligible: null };
   const sources = new Set(envVarSourcesToCheck());
   for (const p of tree) {
     if (shouldFetchEnvSource(p)) sources.add(p);
   }
-  // Keep source fetching bounded if the parent tree grows unexpectedly.
-  return [...sources].slice(0, 700);
+  // API mode only: keep per-file fetching bounded. The caller reports when
+  // this cuts files off — a silent cap is what hid the 2026 false positives.
+  const all = [...sources];
+  return { sources: all.slice(0, API_ENV_SOURCE_CAP), eligible: all.length };
 }
 
-function envVarPresent(name, contentsByPath) {
+// Every upper-case identifier in the scanned sources. One pass over the
+// corpus instead of one substring scan per documented var.
+function envTokenSet(contentsByPath) {
+  const tokens = new Set();
+  for (const [path, content] of Object.entries(contentsByPath)) {
+    if (path === ".env.example" || !content) continue;
+    for (const m of content.matchAll(/[A-Z_][A-Z0-9_]{2,}/g)) tokens.add(m[0]);
+  }
+  return tokens;
+}
+
+function envVarPresent(name, contentsByPath, tokens = envTokenSet(contentsByPath)) {
   if (isExternallySuppliedEnvVar(name) || isRuntimeInjectedEnvVar(name)) return true;
   const envExample = contentsByPath[".env.example"];
   if (envExample && new RegExp(`^${name}\\b`, "m").test(envExample)) return true;
-  for (const [path, content] of Object.entries(contentsByPath)) {
-    if (path === ".env.example") continue;
-    if (content && content.includes(name)) return true;
-  }
-  return false;
+  return tokens.has(name);
 }
 
 function isExternallySuppliedEnvVar(name) {
@@ -507,15 +576,6 @@ function isRuntimeInjectedEnvVar(name) {
 
 const REST_ROUTE_RE = /(?:^|[\s|`])((GET|POST|PUT|PATCH|DELETE)\s+(\/api\/[^\s`|)\]]+))/gm;
 
-function normalizeRoute(path) {
-  // Strip querystring and trailing punctuation.
-  let p = path.split("?")[0].split("#")[0];
-  p = p.replace(/[.,;:`)\]]+$/g, "");
-  // Normalize {foo} and :foo to :id (placeholder match).
-  p = p.replace(/\{[^}]+\}/g, ":id");
-  p = p.replace(/:[A-Za-z][A-Za-z0-9_]*/g, ":id");
-  return p;
-}
 
 function surfaceFromDocPath(file) {
   // docs/reference/api/companies.md → companies
@@ -549,72 +609,6 @@ function collectRestRoutes(docFiles) {
   return perDoc;
 }
 
-function routeIsDefined(method, normalized, routeFileContent, surface = null) {
-  if (!routeFileContent) return false;
-  const m = method.toLowerCase();
-  // Build candidate matchers. Parent route files often mount with a path
-  // prefix applied externally (e.g. app.use("/api/companies", router)), so the
-  // strings inside the file are typically relative to that prefix.
-  const candidates = new Set();
-  candidates.add(normalized);
-  if (normalized.startsWith("/api/")) candidates.add(normalized.slice(4)); // /api/foo → /foo
-  if (normalized.startsWith("/api")) candidates.add(normalized.slice(4));
-  const withoutApi = normalized.replace(/^\/api/, "");
-  candidates.add(withoutApi);
-  // Strip the surface segment too (most common mount).
-  if (surface) {
-    const surfacePrefix = `/api/${surface}`;
-    if (normalized === surfacePrefix) {
-      candidates.add("/");
-    } else if (normalized.startsWith(`${surfacePrefix}/`)) {
-      candidates.add(normalized.slice(surfacePrefix.length)); // → /:id/logo
-    }
-    // Also strip /api/<plural> singular form (e.g. /api/issues/{issueId} mounted under /issues
-    // but sometimes other plurals exist — keep generic).
-  }
-  // Some routes are documented under one surface doc but mounted on a sibling
-  // path (e.g. /api/goals/{goalId} living in routes/goals-and-projects.ts but
-  // mounted at "/api/goals"). For each "/api/<word>/..." prefix the route
-  // itself starts with, also add the variant with that <word> stripped.
-  const apiSegMatch = normalized.match(/^\/api\/([a-zA-Z0-9_-]+)(\/.*)?$/);
-  if (apiSegMatch) {
-    const rest = apiSegMatch[2] || "/";
-    candidates.add(rest);
-  }
-
-  // Method patterns: app.get("..."), router.get('...'), fastify .route({ method: 'GET', url: '...' })
-  for (const cand of candidates) {
-    // Build variants: with :id and with {id}-style we already normalized to :id; check both forms.
-    const variants = new Set([cand, cand.replace(/:id/g, "{id}")]);
-    // Also try without trailing slash.
-    for (const v of [...variants]) variants.add(v.replace(/\/$/, ""));
-    for (const v of variants) {
-      if (!v) continue;
-      // Build a regex pattern from the candidate that treats :id placeholders
-      // as "any param name" (so a doc's :id can match a parent's :companyId).
-      // Also tolerate the {param} brace form on the parent side.
-      const pattern = candidateToPattern(v);
-      // Match the candidate as a complete quoted path (anchored to quote, and
-      // ended by quote or a query/anchor character) to avoid substring hits.
-      const reMethod = new RegExp(
-        `\\.${m}\\(\\s*["'\`]${pattern}(?:[?#]|["'\`])`,
-        "i"
-      );
-      if (reMethod.test(routeFileContent)) return true;
-      const reFastify = new RegExp(
-        `method\\s*:\\s*["'\`]${method}["'\`][^}]*url\\s*:\\s*["'\`]${pattern}(?:[?#]|["'\`])`,
-        "is"
-      );
-      if (reFastify.test(routeFileContent)) return true;
-      const reFastifyRev = new RegExp(
-        `url\\s*:\\s*["'\`]${pattern}(?:[?#]|["'\`])[^}]*method\\s*:\\s*["'\`]${method}["'\`]`,
-        "is"
-      );
-      if (reFastifyRev.test(routeFileContent)) return true;
-    }
-  }
-  return false;
-}
 
 function fetchRouteFiles(repo, ref, refSlug) {
   const acc = [];
@@ -628,7 +622,7 @@ function fetchRouteFiles(repo, ref, refSlug) {
         acc.push({ path: p, content: res.content });
       }
     }
-    return acc;
+    return withInlinedRouteConstants(acc, tree);
   }
 
   function visit(dir) {
@@ -648,7 +642,24 @@ function fetchRouteFiles(repo, ref, refSlug) {
     }
   }
   visit("server/src/routes");
-  return acc;
+  return withInlinedRouteConstants(acc, null);
+}
+
+// Route paths are sometimes named constants (`router.post(IMPORT_PATH, …)`,
+// `${IMPORT_PATH}/:id`). Resolve string constants defined in the route files
+// themselves and — when the tree is known — in packages/shared, where shared
+// path constants live, then inline them so the matchers see literal paths.
+function withInlinedRouteConstants(routeFiles, tree) {
+  const sources = [...routeFiles];
+  if (tree && SNAPSHOT) {
+    for (const p of tree) {
+      if (!/^packages\/shared\/src\/.+\.ts$/.test(p) || isTestPath(p)) continue;
+      const res = snapshotContents(SNAPSHOT, p);
+      if (res.status === 200 && typeof res.content === "string") sources.push({ path: p, content: res.content });
+    }
+  }
+  const constants = collectStringConstants(sources);
+  return routeFiles.map((f) => ({ ...f, content: inlineRouteConstants(f.content, constants) }));
 }
 
 function routeIsDefinedInAnyFile(method, normalized, routeFiles, surface) {
@@ -662,24 +673,6 @@ function escapeRegex(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// Build a regex pattern that matches the candidate path with placeholder
-// tolerance: each ":id" or "{id}" segment in the candidate becomes a pattern
-// that matches ANY param style on the parent — either `:<word>` or `{<word>}`.
-function candidateToPattern(v) {
-  // Split on :id / {id} tokens, escape each literal piece, join with the
-  // param-style pattern.
-  const PARAM_TOKEN = /(:id|\{id\})/g;
-  const parts = v.split(PARAM_TOKEN);
-  let out = "";
-  for (const part of parts) {
-    if (part === ":id" || part === "{id}") {
-      out += `(?::[A-Za-z][A-Za-z0-9_]*|\\{[A-Za-z][A-Za-z0-9_]*\\})`;
-    } else {
-      out += escapeRegex(part);
-    }
-  }
-  return out;
-}
 
 // --- argparse --------------------------------------------------------------
 
@@ -823,6 +816,13 @@ function main() {
   }
   const against = resolvedSha;
   const refSlug = pathSlug(resolvedSha);
+  SNAPSHOT = ensureParentSnapshot({
+    repo,
+    sha: resolvedSha,
+    cacheRoot: CACHE_ROOT,
+    fixtureMode: !!FIXTURE_DIR,
+    log: (msg) => process.stderr.write(`${msg}\n`),
+  });
   const checkedAgainst =
     requestedRef === resolvedSha ? shortRef(resolvedSha) : `${requestedRef} (${shortRef(resolvedSha)})`;
 
@@ -833,6 +833,7 @@ function main() {
     cli_commands_checked: 0,
     env_vars_checked: 0,
     rest_routes_checked: 0,
+    env_sources_scanned: 0,
     permission_keys_checked: 0,
     permission_roles_checked: 0,
   };
@@ -882,23 +883,42 @@ function main() {
   const envRefs = collectEnvVars(docFiles);
   stats.env_vars_checked = envRefs.size;
   if (envRefs.size > 0) {
-    const sources = envVarSourcesToCheckFromTree(repo, against, refSlug);
-    const contentsByPath = {};
-    for (const s of sources) {
-      if (s.includes("*")) continue; // skip globs; handled by watcher in live sync
-      const res = cachedContents(repo, s, against, refSlug);
-      if (res.status === 200 && typeof res.content === "string") {
-        contentsByPath[s] = res.content;
+    let contentsByPath = {};
+    let searchedLabel;
+    if (SNAPSHOT) {
+      // Snapshot mode: every non-test source file, no cap.
+      contentsByPath = readSnapshotEnvSources(SNAPSHOT);
+      searchedLabel = `all ${Object.keys(contentsByPath).length} non-test source files@${against}`;
+    } else {
+      const { sources, eligible } = envVarSourcesToCheckFromTree(repo, against, refSlug);
+      for (const s of sources) {
+        if (s.includes("*")) continue; // skip globs; handled by watcher in live sync
+        const res = cachedContents(repo, s, against, refSlug);
+        if (res.status === 200 && typeof res.content === "string") {
+          contentsByPath[s] = res.content;
+        }
       }
+      if (eligible !== null && eligible > sources.length) {
+        warn(
+          `warning: env-var scan was capped at ${sources.length} of ${eligible} parent files (GitHub API mode). ` +
+            `env-var-missing results may be false positives. Unset PAPERCLIP_SYNC_NO_SNAPSHOT or set ` +
+            `PAPERCLIP_SYNC_LOCAL_SRC to scan everything.`
+        );
+      }
+      searchedLabel = `${Object.keys(contentsByPath).length} selected source files${
+        eligible !== null && eligible > sources.length ? ` (capped; ${eligible} eligible)` : ""
+      }@${against}`;
     }
+    stats.env_sources_scanned = Object.keys(contentsByPath).length;
+    const envTokens = envTokenSet(contentsByPath);
     for (const [name, entry] of envRefs) {
-      if (!envVarPresent(name, contentsByPath)) {
+      if (!envVarPresent(name, contentsByPath, envTokens)) {
         for (const d of entry.docs) {
           drift.push({
             kind: "env-var-missing",
             doc: `${relative(ROOT, d.file)}${d.line ? `:${d.line}` : ""}`,
             documented: name,
-            parent_searched: `${Object.keys(contentsByPath).join(", ")}@${against}`,
+            parent_searched: searchedLabel,
             confidence: "high",
             suggest: "Confirm the env var still exists upstream. If removed, drop the row; if renamed, update the name and surrounding prose.",
           });
@@ -950,7 +970,8 @@ function main() {
     }
     if (res.status !== 200 || typeof res.content !== "string") continue;
     for (const r of routes) {
-      if (!routeIsDefined(r.method, r.normalized, res.content, surface)) {
+      const inlined = inlineRouteConstants(res.content, collectStringConstants([{ content: res.content }]));
+      if (!routeIsDefined(r.method, r.normalized, inlined, surface)) {
         drift.push({
           kind: "rest-route-missing",
           doc: `${relative(ROOT, docFile)}${r.line ? `:${r.line}` : ""}`,
@@ -1034,7 +1055,11 @@ function main() {
 
   if (args.json) {
     process.stdout.write(
-      JSON.stringify({ checked_against: checkedAgainst, stats, drift }, null, 2) + "\n"
+      JSON.stringify(
+        { checked_against: checkedAgainst, source: SNAPSHOT ? "snapshot" : "github-api", stats, warnings, drift },
+        null,
+        2
+      ) + "\n"
     );
     process.exit(0);
   }
@@ -1045,6 +1070,8 @@ function main() {
   lines.push(
     `Checked: ${stats.parent_paths_checked} parent paths, ${stats.cli_commands_checked} CLI commands, ${stats.env_vars_checked} env vars, ${stats.rest_routes_checked} REST routes, ${stats.permission_keys_checked} permission keys, ${stats.permission_roles_checked} roles`
   );
+  lines.push(`Parent source: ${SNAPSHOT ? `full snapshot (${SNAPSHOT})` : "GitHub contents API"}`);
+  for (const w of warnings) lines.push(w);
   if (drift.length === 0) {
     lines.push("");
     lines.push("OK — no drift detected.");
