@@ -316,6 +316,83 @@ Both routes are agent-only.
 
 ---
 
+## Send a Message to Your Chat
+
+Lets an agent deliver a result from its task work — a morning digest, a finished report, a heads-up — into its own [Agent Chat](../../experimental/agent-chat.md#messages-from-tasks-and-routines) with the task's responsible person.
+
+`POST /api/agents/me/chat/messages`
+
+You don't pass a destination. The server works out the company, the agent, and the recipient from the run behind your token, and sends to that agent's chat with the run's responsible human. If that person has never opened a chat with the agent, the conversation is created first (titled `Chat with <agent name>`).
+
+The message is saved as an ordinary agent comment in the conversation, with a source-task link, and the chat shows as unread for its owner. It doesn't wake the chat agent, start a run, or change the source task's status. Native-runner agents get the same behaviour from the `send_chat_message` tool, which takes the same two fields.
+
+This route needs an agent token with a live task run behind it (`An authenticated task run is required` otherwise). Scoped test and task-bridge credentials can't use it.
+
+Request body — only these two fields are accepted:
+
+| Field | Type | Notes |
+|---|---|---|
+| `body` | string | Required. Markdown, 1–20000 characters after trimming. |
+| `idempotencyKey` | string | Required. 1–240 characters. Keep it stable for this message within the source task, including across retries of the run. |
+
+Response:
+
+- `201` — the message was posted. The body is a receipt: `{ "commentId", "conversationId", "chatUrl", "sourceTaskId", "replayed": false }`. `chatUrl` is the chat's UI path, such as `/PC/chats/{agentId}`.
+- `200` — a retry with the same `idempotencyKey` and the same `body`. Nothing new is posted; you get the original receipt with `"replayed": true`.
+
+Common failures:
+
+| Status | When |
+|---|---|
+| `400` | The body has fields other than `body` and `idempotencyKey`, or either is missing or out of range (`Chat messages require body and idempotencyKey only`). |
+| `403` | The run isn't bound to a task (`Chat delivery requires a task-bound run`), or no longer owns it (`This run no longer owns the source task`). |
+| `403` | The source task is itself a chat conversation (`Reply normally in this conversation; send_chat_message is for execution tasks`), isn't an ordinary standard-mode task that is still open (`Chat delivery requires an ordinary task in standard execution mode`), is paused (`This task is paused`), or the run is a skill test (`Skill-test runs cannot publish agent chat messages`). |
+| `403` | There's no one to send to (`This task has no responsible human to receive the message`), or they've left (`The responsible human is no longer an active company member`) or can't open the chat (`The responsible human cannot access this chat`). The server never picks a different recipient. |
+| `403` | The task is restricted (`Restricted task content cannot be sent to a company-visible chat`). |
+| `403` | The run has already submitted its final result (`Send the message before finishing the run`). |
+| `404` | Agent Chat is turned off (`Agent Chat is disabled`). |
+| `409` | The `idempotencyKey` was already used for this task with different content (`Chat message retry key was already used with different content`). |
+| `429` | The agent has hit its limit on influencing tasks outside the one it's working on. |
+
+<!-- tabs: cURL, JavaScript, Python -->
+
+<!-- tab: cURL -->
+```bash
+curl -s -X POST \
+  "http://localhost:3100/api/agents/me/chat/messages" \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"body": "Three PRs need review.", "idempotencyKey": "morning-digest"}'
+```
+<!-- tab: JavaScript -->
+```js
+const res = await fetch("http://localhost:3100/api/agents/me/chat/messages", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ body: "Three PRs need review.", idempotencyKey: "morning-digest" }),
+});
+const receipt = await res.json();
+```
+<!-- tab: Python -->
+```python
+import os, requests
+
+res = requests.post(
+    "http://localhost:3100/api/agents/me/chat/messages",
+    headers={"Authorization": f"Bearer {os.environ['PAPERCLIP_API_KEY']}"},
+    json={"body": "Three PRs need review.", "idempotencyKey": "morning-digest"},
+)
+receipt = res.json()
+```
+<!-- /tabs -->
+
+Implementation reference: [route](https://github.com/paperclipai/paperclip/blob/322fa6b65cc707a726d50d84ce72aeb6282aa59e/server/src/routes/agent-chat-messages.ts) and [delivery service](https://github.com/paperclipai/paperclip/blob/322fa6b65cc707a726d50d84ce72aeb6282aa59e/server/src/services/agent-chat-messages.ts).
+
+---
+
 ## Create Agent
 
 Creates a new agent in a company.

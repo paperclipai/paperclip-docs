@@ -85,4 +85,37 @@ Back up your storage provider as well as the database. Paperclip can download a 
 
 > **Note:** On a rolling upgrade where some servers still run an older version, set `PAPERCLIP_SKILL_PACKAGE_STORAGE_ENABLED=false` until every server is upgraded. It stops new package writes to storage and pauses the background move. Once packages have moved, older versions can't read them.
 
+Skills you create, edit, copy, rename, or restore in Paperclip are owned by Paperclip itself rather than by a folder on the web server. Each save publishes a new saved version, and that version is what agents receive. When a run starts, the server rebuilds the skill files the agent needs from the exact saved version it was pinned to. That means you can replace a web server with a fresh one that has an empty home directory: as long as it uses the same database, storage provider, and secrets, your skills, their history, and agent pins carry over.
+
+A routine upgrade doesn't need any skill conversion or file copying. Two cases still depend on disk:
+
+- **Skills imported from a project** keep pointing at files in that project's working tree, so they only work where that checkout exists.
+- **`local_disk` storage** keeps saved versions on the server's own volume. It's fine for a self-hosted server that keeps its disk, but it doesn't survive replacing the server with an empty one. Use S3-compatible storage for that.
+
+> **Note:** Installations created before this change may still read skill content from directories on the server. Before you move them to servers with empty disks, convert them with the bounded maintenance script ([`server/scripts/migrate-skill-packages.ts`](https://github.com/paperclipai/paperclip/blob/322fa6b65cc707a726d50d84ce72aeb6282aa59e/server/scripts/migrate-skill-packages.ts)): run its `eligibility` and `installations` phases, stop skill writers before applying with `--apply --writers-stopped`, then run `verification`. After the conversion, only versions that read saved skill versions are safe rollback targets.
+
+### Run logs and provider traces
+
+A run's log (what the agent printed while it worked) and any raw provider traces you chose to capture follow your storage provider automatically. There's nothing extra to configure:
+
+- **`s3`** — new run logs and opted-in provider traces go to the same bucket, endpoint, region, and prefix your uploads use, with the same credentials. They live in their own folders under your existing prefix:
+
+  ```txt
+  <prefix>/run-logs/segments-v1/<company>/<agent>/<run>/
+  <prefix>/provider-traces/segments-v1/<company>/<run>/<trace>/<channel>/
+  ```
+
+  Because the log is written to storage as the run goes, it survives losing the web server's disk. Output is shown in the live log once it's stored.
+- **`local_disk`** — logs and traces stay as files on the server, as before.
+
+After you upgrade an S3 instance, Paperclip moves older run logs and traces that were kept on local disk into the bucket in the background. It checks each one before switching over. If an item can't be moved yet, it stays where it is and Paperclip tries again later, starting at five minutes and backing off to every 30 minutes. Keep the original files in place until the server logs `Run evidence migration complete`.
+
+If you set up the older run-log mirror with `RUN_LOG_S3_BUCKET` and the other `RUN_LOG_S3_*` variables, keep them for now. Paperclip still reads them for logs that were recorded that way, but on an `s3` instance new logs use the instance storage settings instead.
+
+A few things to plan for:
+
+- **Your provider must support conditional writes.** Paperclip relies on `If-None-Match: *` and ETag `If-Match` uploads and prefix-scoped listing. It runs a quick check the first time it writes a log, and rejects a provider that ignores these conditions with *"Object storage does not enforce conditional publication"*. Being "S3-compatible" isn't always enough, so test your provider before relying on it in production.
+- **Keep the bucket and prefix stable.** Changing them doesn't move anything. Copy the complete namespace, keeping its keys, before you change the configuration. Switching to `local_disk` doesn't bring existing logs back from S3, and Paperclip won't show an empty log in place of one it can't reach — point it back at the original storage to read that history.
+- **Raw traces need your existing secrets key.** Captured traces stored in S3 are encrypted with a key derived from the instance key (`PAPERCLIP_SECRETS_MASTER_KEY` or the existing key file). Paperclip never creates a new key for this; if the key is missing, trace storage fails with *"Secrets master key file is missing"* instead. Keep that key with your other secrets when you replace a server. Capturing traces is still off unless you turn it on per agent, and each trace is still deleted after 24 hours.
+
 > **Tip:** If a local upload disappears after a restart, check whether you were running inside a container or another ephemeral environment without the bind mount you expected.
