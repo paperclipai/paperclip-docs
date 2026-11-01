@@ -1191,7 +1191,9 @@ function main() {
       // track per-claim command context, so we search across all cli files.
       const files = getCliFiles();
       const flag = claim.value.slice(2); // strip --
-      const re = new RegExp(`\\.option\\(\\s*["'][^"']*--${escapeRegex(flag)}\\b`);
+      // Commander declares flags with .option(), .requiredOption() and
+      // new Option(); all three are real flags.
+      const re = new RegExp(`(?:\\.(?:required)?[oO]ption|new\\s+Option)\\(\\s*["'][^"']*--${escapeRegex(flag)}\\b`);
       let hit = false;
       for (const f of files) {
         if (re.test(f.content)) { hit = true; break; }
@@ -1202,7 +1204,7 @@ function main() {
         // Collect all known long flags for fuzzy.
         const known = new Set();
         for (const f of files) {
-          const fre = /\.option\(\s*["'][^"']*--([a-z][a-z0-9-]*)\b/g;
+          const fre = /(?:\.(?:required)?[oO]ption|new\s+Option)\(\s*["'][^"']*--([a-z][a-z0-9-]*)\b/g;
           let m;
           while ((m = fre.exec(f.content))) known.add(m[1]);
         }

@@ -1520,6 +1520,24 @@ test("check-drift snapshot: routes via arrays, router[method], path constants an
   rmSync(snap, { recursive: true, force: true });
 });
 
+test("verify-edit snapshot: .requiredOption() flags verify, unknown flags don't", () => {
+  const { root, scriptInRoot } = makeVerifyFixture();
+  writeFile(root, "docs/reference/cli/runtime.md", "# Runtime\n\n```sh\npaperclipai runtime import-remote ./dir --sha256 abc --bogus\n```\n");
+  const snap = makeSnapshot({
+    "cli/src/commands/runtime.ts": 'program.command("runtime").command("import-remote <d>").requiredOption("--sha256 <digest>", "x");\n',
+    "cli/src/index.ts": "\n",
+  });
+  const env = { ...process.env, PAPERCLIP_SYNC_LOCAL_SRC: snap };
+  delete env.PAPERCLIP_SYNC_FIXTURE_DIR;
+  const r = spawnSync(process.execPath, [scriptInRoot, "docs/reference/cli/runtime.md", "--json", "--against", SNAP_SHA], { cwd: root, encoding: "utf8", env });
+  assert(r.status === 0, `exit ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  const flags = out.unverified.filter((u) => u.kind === "cli-flag").map((u) => u.value);
+  assert(JSON.stringify(flags) === JSON.stringify(["--bogus"]), `got ${JSON.stringify(flags)}`);
+  rmSync(root, { recursive: true, force: true });
+  rmSync(snap, { recursive: true, force: true });
+});
+
 test("verify-edit snapshot: a git-archive extract (no .git) is fully scanned", () => {
   const { root, scriptInRoot } = makeVerifyFixture();
   writeFile(root, "docs/reference/adapters/kimi.md", "# Kimi\n\n## Environment\n\nSet the environment variable `KIMI_API_KEY`, and optionally `MADE_UP_VAR`.\n");
