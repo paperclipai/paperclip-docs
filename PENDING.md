@@ -2,53 +2,32 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `322fa6b6` (@ 2026-10-31T06:49Z). 24h quarantine applied (cutoff 2026-10-31T11:00Z).
-- **Compare truncation:** 0 truncated leaves (increment: 7 leaves, 67 commits, 1092 files).
+- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `1d348bbe` (@ 2026-11-01T10:09Z). 24h quarantine applied (cutoff 2026-11-01T11:00Z).
+- **Compare truncation:** 0 truncated leaves (increment: 4 leaves, 51 commits, 680 files).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
-- **Already on nightly:** drafts for `1b4c8038..8035f8b2` from earlier runs. This run covers the 67 newer commits, `8035f8b2..322fa6b6`.
-- **Verification:** every page changed this run was checked against `322fa6b6` with `verify-edit`. On the first pass, the only flags on added lines were `KIMI_API_KEY`, `RUN_LOG_S3_BUCKET` and `PAPERCLIP_RUNTIME_NOTIFICATION_HELPER`. They came from the old 700-file scan cap, and the fixed checker (#165, full parent snapshot) verifies all three. A re-run with the fixed checker leaves no unverified claim on this run's pages, apart from the pre-existing `adapter-config-field` class on `paperclip-runner.md` (see Open questions). Every parent read was pinned to `322fa6b6`.
-- **Second verification pass:** two independent fact-checkers re-read every added line against `322fa6b6`. Corrections applied:
-  - The Kimi **Run test** failure for sandboxes applies only to hosted Runner-task sandboxes. Other remote and SSH targets are still probed through the provider pack.
-  - Legacy `RUN_LOG_S3_*` mirroring is only replaced by instance storage on an `s3` instance. On `local_disk`, the mirror still applies to new logs.
-  - The task **Artifacts** tab shows a **New document** button, and the **Documents** heading appears only once the task has documents.
-  - Plans are created and revised through the task conversation. The **Plan** tab is for reading.
-  - A saved first-run draft with GitHub Copilot is dropped silently. There's no prompt.
-- **Auto-merge tier:** nothing this run.
+- **Already on nightly:** drafts for `1b4c8038..322fa6b6` from earlier runs. This run covers the 51 newer commits, `322fa6b6..1d348bbe`.
+- **Verification:** every page changed this run was checked against `1d348bbe` with `verify-edit` (`source: snapshot`, no warnings). Nothing on this run's added lines is unverified. The remaining flags are on older lines: `_ENABLED` / `_DRY_RUN` suffix fragments, and the user-named example secret `PAPERCLIP_CLOUD_PROD_PROVIDER_RAILWAY_TOKEN`. Every parent read was pinned to `1d348bbe`.
+- **Auto-merge tier:** nothing this run. The env-var row ships with the storage prose, so it's in the PR tier.
 
-## Applied this run (`8035f8b2..322fa6b6`)
+## Applied this run (`322fa6b6..1d348bbe`)
 
-- **Kimi Code on Paperclip Runner** (#18028, #18391)
-  - `reference/adapters/paperclip-runner.md`: new "Kimi Code on Paperclip Runner" subsection, plus a provider-table row. Kimi Code is a *qualified* ACP provider, not an operator-gated preview, but it still needs the experimental native Runner switch. The subsection covers the **Kimi Code (Runner)** tile, the exact model ID and the `KIMI_API_KEY` secret, the endpoint, **Run test** and its failures, and current limits. It runs on macOS ARM64 and Linux x64 only.
-  - `reference/cli/runtime.md`: `paperclipai runtime setup kimi` installs pinned `@moonshot-ai/kimi-code` `2.3.3` inside the server package, with its error strings and JSON `status` values. The `seo_description` was updated.
-  - `reference/adapters/kimi-local.md`, `adapters/overview.md`, `guides/org/agent-adapters.md`: cross-references, and the two Kimi tiles explained.
-- **Agent Chat** (#18374, #18358)
-  - `experimental/agent-chat.md`:
-    - Unread dots and the **Chat** unread count.
-    - History that loads in pages as you scroll up.
-    - A new "Messages from tasks and routines" section: the **From** link, what a message doesn't do, and the preconditions.
-  - `reference/api/agents.md`: new `POST /api/agents/me/chat/messages` section (`body`, `idempotencyKey`, 201/200 replay, error table), plus the `send_chat_message` native tool.
-  - `reference/api/issues.md`: `isUnreadForMe` / `lastExternalCommentAt` on chat responses.
-  - `guides/projects-workflow/routines.md`: a tip for sending a routine's result to your chat.
-- **Task page** (#18157, #18356, #18320, #18317)
-  - `guides/day-to-day/artifacts.md`: writing general task documents from **Artifacts** (**New document**, drafts survive reload). Also image galleries in documents, with the `#document-<key>&image=N` share links.
-  - `guides/day-to-day/issues.md`: the **Routine tasks** filter (`originKind=routine_execution`) and the inline **Subtask created** / **Task created** cards.
-  - `guides/projects-workflow/routines.md`: **View all runs** → **View all tasks**, which opens the filtered task list.
-- **Onboarding** (#18309): first-run setup offers only **Claude** and **OpenAI**.
-  - `getting-started/your-first-company.md`: the two tiles and the unavailable message.
-  - `connectors/github-copilot.md`: the old first-run section is removed, and you now add Copilot after setup.
-  - `experimental/overview.md` and `adapters/paperclip-runner.md`: the stale "first-run offers Copilot" lines are removed.
-- **Storage** (#18327, #18334)
-  - `reference/deploy/storage.md`:
-    - New "Run logs and provider traces" subsection: S3 folders, background migration, legacy `RUN_LOG_S3_*`, the conditional-write requirement, moving buckets, and the vault key.
-    - Skill packages: saved versions are now the source of truth, so a replacement server keeps your skills. A note covers converting older installations.
-  - `guides/org/skills.md`: the Skill Studio conflict message and **Load latest saved file**.
-- **Plugins and API**
-  - `reference/plugins/sdk.md` (#18363): `taskSidePanel` views are always listed in the launcher, and `activation` only requests automatic opening. Also a new "Recovering an interrupted create" subsection (`creationOperationVersion`, `creationOperationId`, `creationOperation`, `creationCleanup`).
-  - `reference/api/attention.md`: `GET …/attention/summary` and `GET …/attention/tasks`. Also a pre-existing stale field: `decideNowCount` → `deskBadgeCount`, fixed in `decisions.md` too.
-  - `reference/api/activity.md`: the `runIds` filter on `GET /api/issues/{issueId}/runs`.
+- **Remote task workspaces** (#18403, #18504, #18514)
+  - `reference/deploy/storage.md`: new "Remote task workspaces" section. Covers:
+    - `remoteWorkspaceStorageEnabled`: on by default, and it only enrolls a workspace when the instance has external Postgres, S3 and a stable master key.
+    - The S3 version permissions it needs, what's protected and what isn't, the seven-day grace period and disaster recovery.
+    - Closing a workspace, turning the feature off through the API (there's no UI toggle), the rollback warning, and the `migrate-remote-workspaces.ts` dry-run/apply import.
+    - The `seo_description` was updated for the page's wider scope.
+  - `guides/projects-workflow/workspaces.md`: new "When the workspace lives in a sandbox" subsection.
+  - `experimental/file-viewer.md`: remote-storage workspaces can be browsed, with the **Live workspace** / **Saved copy** label.
+- **Durable agent files** (#18518, #18531)
+  - `reference/deploy/storage.md`: new "Opt-in: keep agent files in S3" subsection. Covers `PAPERCLIP_DURABLE_AGENT_FILES`, the `agent-files` maintenance migration and object-cleanup phases, `AGENT_FILES_MIGRATION_REQUIRED`, and the no-rollback rule.
+  - `reference/deploy/environment-variables.md`: a `PAPERCLIP_DURABLE_AGENT_FILES` row.
+- **Readiness probe** (#18518): `reference/api/instance-admin.md` gets a new `GET`/`HEAD /api/ready` section.
+- **Plugin SDK** (#18410): `reference/plugins/sdk.md` documents `workspaceProvider.supportsMergeAncestry: false`.
 
 ## Applied in earlier runs (still on nightly, unreleased)
 
+- `8035f8b2..322fa6b6` (#166): Kimi Code on Runner, send-to-chat, task document galleries, run logs in S3.
 - `8ac5a128..8035f8b2` (#164): Antigravity preview, compact agent YAML, plugin GitHub broker, skill package storage.
 - `cff331f6..8ac5a128` (#162): Coordinator workspace, agent YAML editor, boxd sandbox provider, durable writes, upgrade readiness.
 - `1fbbef45..cff331f6` (#161): delegated connection management, project Git authorization, plugin task panels, Codex retirements, Grok Runner upgrade.
@@ -65,26 +44,27 @@ None. No entry left the cumulative window, and there are no revert commits in th
 
 ## Not documented this run
 
-- Managed-cloud startup prerequisites (#18350) and Cloud configuration/release-image packages (#18335): these are Paperclip Cloud internals.
-- Company skill API idempotency rework (company-skills routes): what callers see is unchanged from `reference/skills.md`.
-- Native `search_tasks` pagination (#18282) and GitHub review score headings (#18321): the docs never described either.
-- `disableCodexProjectInstructions` launch requirement: `sdk.md` doesn't list launch-requirement fields individually.
-- Selected Google services kept when setup resumes (#18048), budget history for deleted resources (#18389), late Antigravity login URL (#18254): these are bug fixes for cases the docs don't describe.
-- ACPX release attestation (#18325, #18342), the Runner Windows build and CI lane (#18250, the first of a porting series, not a supported platform yet), and the managed Git helper interpreter (#18337): internal.
-- Bugfixes and internals: Coordinator loading (#18312, #18323), sandbox ownership and cleanup, lifecycle verification, perf work, evals/TestOps, e2e journeys, CI selection, and the lockfile bot.
+- **Zero-downtime web deploys for Paperclip Cloud** (#18518, #18526, #18529): `PAPERCLIP_EPHEMERAL_SERVER`, `PAPERCLIP_SHARED_UI_ASSETS`, `PAPERCLIP_DATABASE_LISTEN_URL`, `PAPERCLIP_EPHEMERAL_MIGRATION` / `_ID` / `_TOKEN`, the `ephemeral-migration` maintenance process and `POST /api/instance/connector-events/wake`. These are Cloud deployment internals, and the parent plan marks them as still being qualified.
+- `PAPERCLIP_GITHUB_EVENT_POLLING`: a test/fallback switch that forces GitHub event polling.
+- GitHub review finding categories (#18429): these are better agent instructions and a clearer error. Our docs never described finding categories.
+- A native run can't change its own task status through recovery (#18411): an agent-facing contract that the docs don't describe.
+- Completed transcripts deferred on task open (#18461): **More run output** isn't documented today. Also faster Tasks/Inbox startup (#18492) and the Coordinator composer footer (#18455).
+- OpenCode written answers allowed by default (#18456): restores the upstream default.
+- Committed native chat replies recovered (#18465), native chat responses and API discovery (#18364), and serialized completion replies (#18502): bug fixes with no new surface.
+- The "drive recovery from durable work and deadlines" series (#18380, #18382, #18384, #18387, #18388, #18395, #18399, #18401, #18402, #18409, #18419, #18425), controller recovery across web server replacement (#18343), provider-pack session admission (#18469), and Daytona file recovery (#18527): internal.
+- Tests, CI timing, TestOps, evals and benchmarks.
 
-## ⚠ Drift (checked against parent `322fa6b6`)
+## ⚠ Drift (checked against parent `8ea24021`)
 
-None. `check-drift` with the fixed checker (#165) scanned a full parent snapshot (5,459 non-test source files, `source: snapshot`, no warnings) and found 0 drift candidates.
-
-The ~40 "known false positives" listed in earlier runs were all checker limits, not doc problems:
-- **Env vars:** a silent 700-file scan cap, with parent `server/src` at ~1,665 files.
-- **CLI:** quoted output that was read as a command.
-- **REST routes:** routes registered through an array, a `router[method]` loop or a path constant.
-
-All three are fixed and covered by tests in `scripts/sync/test.mjs`. From now on, a drift item that repeats every run is a checker bug to fix, not a standing list.
+None. `check-drift` scanned a full parent snapshot (`source: snapshot`, no warnings) and found 0 drift candidates.
 
 ## Open questions from this run
+
+- **File viewer and remote workspaces:** the browse list shows the **Live workspace** / **Saved copy** label. Resolving a deep link to a path in a remote workspace still returns `remote_resource`, which shows *"Remote workspace preview coming soon"*. The page now says remote-storage workspaces *can be browsed*. That wasn't checked end to end with a live sandbox, and the parent marks the read path `not-run`.
+- **Remote workspace storage is on by default for self-hosted instances** that meet the prerequisites, but the parent only has `source-only` evidence for it, with no live qualification. Worth a release-note callout, and maybe moving the page section under Experimental.
+- **Durable agent files:** the docs give both the packaged (`node server/dist-runtime/agent-files.mjs`) and source-checkout commands. `--phase=eligibility` checks the Cloud ephemeral configuration and was left out on purpose.
+
+### Carried over from earlier runs
 
 - **`adapter-config-field` checks on `paperclip-runner.md`:** `verify-edit` looks for an adapter package named after the page, and the Runner has none, so `adapterType`, `provider`, `model` and similar names come back unverified. The claims are correct. The checker needs to know which package backs the Runner page.
 - **Kimi Code read-only work:** the Runner page calls read-only Kimi work "such as planning". The "planning" example is inferred from task modes.
@@ -92,8 +72,6 @@ All three are fixed and covered by tests in `scripts/sync/test.mjs`. From now on
 - **Product copy is out of date:** the Experimental settings toggle still says "First-run setup offers qualified GitHub Copilot" (`InstanceExperimentalSettings.tsx:557`), but first-run now offers only Claude and Codex. The docs follow the behaviour.
 - **Send-to-chat side effects:** "doesn't wake the chat agent" and "doesn't replace the completion update" are based on there being no such call in the send path. Neither was traced end to end.
 - **View all tasks visibility:** the button now appears whether or not Streamlined UI is on. Before, the old link appeared only with Streamlined UI on. The legacy paragraph doesn't mention this.
-
-### Carried over from earlier runs
 
 - **Antigravity save errors**, **no Google AI connector page**, **older "Test Environment" wording** (`paperclip-runner.md`), **default commit author edge cases**, **YAML secret/proposal IDs**, **skill-package move retry**: all from the `8035f8b2` run.
 - **Coordinator task proposals** only appear when the chat agent runs on Paperclip Runner and the conversation owner has the workspace on. Worth a release-note callout. **Recents** in the Coordinator sidebar only last for the session.
@@ -108,12 +86,9 @@ All three are fixed and covered by tests in `scripts/sync/test.mjs`. From now on
 - Placeholder values in the git-authorization response and plugin manifest examples are illustrative.
 - Older carry-overs: restore-point `.env` handling and the commit cap, 1Password labels, Unikraft host reachability, the Vercel overview link, Supabase token text, task-dismissal scope, onboarding wording, plugin SDK warm-session defaults, Artifacts V1 visuals, the Slack DM at-mention exemption that is only on master (#16151), Braintrust/Ditto qualification, the Cases tool-group toggle, plugin agent-view notices, the OpenCode missing-model error, budget stop latency, Copilot qualification wording.
 
+## Arriving next run (in quarantine, landed after 2026-11-01T11:00Z)
 
-## Arriving next run (in quarantine, landed after 2026-10-31T11:00Z)
-
-- Kimi Code lifecycle qualification (#18029) and native workspace files kept after a lifecycle Stop (#18517).
-- Remote workspace files kept off the web-server disk (#18403), volume-free web server handoff (#18518), rolling web deployments qualified (#18526), and existing-volume ephemeral enrollment (#18529).
-- Private remote workspaces for metadata project tasks (#18514), project references kept without source folders (#18504), and durable agent folders restored with bounded concurrency (#18531).
-- GitHub review finding categories (#18429), committed native Agent Chat replies recovered (#18465), native chat responses and API discovery (#18364), and serialized native completion replies (#18502).
-- Faster Tasks and Inbox startup (#18492), compact opens that defer completed transcripts (#18461), and an opaque Coordinator composer footer (#18455).
-- Native backups expired from retention deadlines (#18380), a native run blocked from changing its own task status (#18411), and OpenCode written-answer defaults (#18456). Plus the "drive recovery from durable work and deadlines" series (#18387, #18399, #18401, #18402, #18409, #18419, #18425) and verified provider-pack session admission (#18469).
+- Volume-free controller admission and recovery (#18543), sessions preserved with busy-overlap recovery deferred (#18552), and suspended sessions resumed after controller replacement (#18554).
+- The Refine-v2 layout on the agent page (#18378). That's a UI change, so expect agent screenshots to go stale.
+- Tests: durable file assertions (#18533) and the chat completion pilot through TestOps (#18516).
+- Still not on master: Kimi Code lifecycle qualification (#18029), which was listed for this run.

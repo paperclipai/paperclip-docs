@@ -84,6 +84,17 @@ Use `/api/liveness` for routine "is it running?" probes. Keep `/api/health` for 
 
 ---
 
+## Readiness probe
+
+```
+GET  /api/ready
+HEAD /api/ready
+```
+
+Point your load balancer or deploy platform here to decide when a new server can take traffic. Like the liveness probe, it's anonymous, never cached, and doesn't touch the database. It returns `200` with `{ "status": "ready" }` once startup recovery has finished. While the server is starting, recovering, or draining, it returns `503` with the current phase in `status` and a `Retry-After: 1` header.
+
+---
+
 ## Cloud lifecycle
 
 These two routes exist for instances managed by Paperclip Cloud, so the Cloud control plane can keep its view of your organization's archive state in step with the instance. On a self-hosted instance both return `404` with `{ "error": "not_cloud_managed" }`. Both require instance-admin.

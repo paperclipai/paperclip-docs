@@ -543,6 +543,10 @@ Both are off by default. Each has a matching `_DRY_RUN` variable that only logs 
 
 Some projects keep their code somewhere other than the Paperclip host — for example inside remote agent computers — through a [storage plugin](../../administration/plugins.md#plugins-that-store-your-projects-code). The idea is the same: each task still gets its own branch and checkout. The difference is that the plugin prepares, checks, and removes those checkouts in its own storage, so there's no host folder for you to drop into, and file browsing isn't available for those workspaces. If the project uses private GitHub repositories, the plugin can only set up and clean out workspaces in the background once someone has given the project a [background GitHub authorization](projects.md#background-github-authorization).
 
+### When the workspace lives in a sandbox
+
+On an instance with an external PostgreSQL database and S3 storage, a new task that runs on [Paperclip Runner](../../reference/adapters/paperclip-runner.md) in a cloud sandbox keeps its working files in that sandbox, not on the Paperclip host. Paperclip saves encrypted copies to S3 when the workspace is prepared and when each run finishes. If the server is replaced or the sandbox goes away, the task carries on from the last saved copy, unpushed commits included. Changes made since the last save only exist in the live sandbox. Closing a clean, saved workspace frees the sandbox and keeps the saved copy for when you reopen the task. You can't run manual workspace commands, jobs, or services against it: do that work through an agent task. Your operator sets this up; see [Storage → Remote task workspaces](../../reference/deploy/storage.md#remote-task-workspaces).
+
 ### When isolation is overkill
 
 Isolation has a cost: each worktree needs its own `node_modules` (or equivalent), its own dev server, its own migrations. For large projects this adds up. You probably don't want isolated workspaces for:
