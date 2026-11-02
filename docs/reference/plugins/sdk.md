@@ -490,11 +490,12 @@ A storage provider needs four things in its manifest:
 
 Without the capability and the project lifecycle stream, the manifest is rejected with "Workspace providers require workspaces.manage and project resource lifecycle".
 
-`workspaceProvider` also takes three optional fields:
+`workspaceProvider` also takes four optional fields:
 
 - `defaultForProjects` — a `{ mode, strategy }` pair that makes your plugin the [default storage for projects](#becoming-the-default-for-projects).
 - `finalizationVersion: 1` — you support the lighter [`finalize`](#what-each-operation-does) step when a run completes.
 - `freshWorkspaceVersion: 1` — you can prepare [fresh retry workspaces](#fresh-retry-workspaces).
+- `supportsMergeAncestry: false` — your inspection can't tell whether a branch was merged. Automatic cleanup then inspects a workspace only once a matching pull request has merged, instead of re-checking it on a timer. Open or unknown pull requests keep the normal retries, and an explicit close still inspects the workspace. Leave the field out to keep the usual ancestry checks.
 
 The same plugin implements two hooks. `onResourceLifecycle` creates and retains the project's storage as projects come and go. `onWorkspaceOperation(params: PluginWorkspaceParams): Promise<PluginWorkspaceResult>` manages the per-task checkouts inside that storage.
 
