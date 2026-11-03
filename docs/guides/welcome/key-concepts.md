@@ -87,7 +87,7 @@ They can also be marked `blocked` if an agent is waiting on something, or `cance
 
 **What you do with it:**
 - Configure how often each agent's heartbeat fires (e.g. every hour)
-- Use **Run now** on the agent's page when you want to trigger one manually
+- Use **Run now** (in the **⋯** actions menu on the agent's page) when you want to trigger one manually
 - Use comments and assignments to wake agents on demand when their run policy allows it
 
 Each heartbeat is logged with a full transcript so you can read exactly what the agent did and why.
@@ -96,10 +96,10 @@ A heartbeat can be triggered by:
 - **Schedule** — a timer fires at your configured interval
 - **Task assignment** — a new task is assigned to the agent
 - **New comment** — someone comments on a task assigned to the agent (an @-mention on its own doesn't wake an agent)
-- **Manual invoke** — you click **Run now** on the agent's page
+- **Manual invoke** — you choose **Run now** from the actions menu on the agent's page
 - **Approval resolution** — a pending approval the agent submitted is approved or rejected
 
-![The Audit page's Runs tab filtered to one agent, listing its recent heartbeat runs](../../user-guides/screenshots/light/agents/agent-detail-run-history.png)
+![An agent's Runs list, opened from Audit → Runs on the agent's page, listing its recent heartbeat runs](../../user-guides/screenshots/light/agents/agent-detail-run-history.png)
 
 ---
 

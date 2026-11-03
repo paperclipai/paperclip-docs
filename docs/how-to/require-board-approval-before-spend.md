@@ -52,7 +52,7 @@ reason. Do not retry without new direction.
 
 **Half two: the helper.** Most agents resolve the rule with a tiny shared procedure that creates the approval, marks the issue blocked, and exits. The exact shape depends on your runtime — bash if you wrote a webhook handler, Python or TypeScript if you wrote a custom script, a skill file if you ride on `claude_local`. Section 3 shows the shape end-to-end.
 
-> **Why instructions, not code?** A real spend interceptor would have to wrap every HTTP client an agent might use, plus filesystem writes that touch credentials, plus shell calls. Paperclip is not in that path. Putting the gate in the agent's instructions keeps it in the same surface as everything else the agent decides — auditable in the run transcript, editable on the Instructions tab, the same shape as every other procedure the agent follows.
+> **Why instructions, not code?** A real spend interceptor would have to wrap every HTTP client an agent might use, plus filesystem writes that touch credentials, plus shell calls. Paperclip is not in that path. Putting the gate in the agent's instructions keeps it in the same surface as everything else the agent decides — auditable in the run transcript, editable on the agent's **Identity** page, the same shape as every other procedure the agent follows.
 
 ---
 
@@ -247,9 +247,9 @@ For BYO-agent runtimes that don't get Paperclip-driven wakes at all (the polling
 
 Before relying on the gate in production, prove the loop closes. Use a throwaway agent and a low-value approval.
 
-1. **Make sure the agent's instructions name the gate.** Open the agent → **Instructions**, paste a minimal version of the rule from Section 2, save.
+1. **Make sure the agent's instructions name the gate.** Open the agent → **Identity** (where its instruction files live), paste a minimal version of the rule from Section 2, save.
 
-2. **Trigger the spend.** Assign the agent an issue that should hit the gate ("Sign up for the demo SaaS account"). Run a heartbeat — either let one fire on schedule or click **Run now** in the agent header.
+2. **Trigger the spend.** Assign the agent an issue that should hit the gate ("Sign up for the demo SaaS account"). Run a heartbeat — either let one fire on schedule or choose **Run now** from the **⋯** actions menu at the top of the agent's page.
 
 3. **Confirm the approval lands.** Open **Approvals → Pending**. You should see the request, with the proposal payload your agent submitted. Confirm `issueIds` links to the source issue.
 

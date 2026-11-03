@@ -37,7 +37,7 @@ You'll need:
 
    ![The "Meet your next agent" dialog with the Agent name field](../../user-guides/screenshots/light/agents/new-agent-name-role.png)
 
-   There's no role to pick. The first agent in a company is always the **CEO**, and Paperclip sets that for you. The CEO reports directly to the board — to you. Agents you hire later start with a general role and report to the CEO; you can change both afterwards on each agent's **Harness / Runtime** page.
+   There's no role to pick. The first agent in a company is always the **CEO**, and Paperclip sets that for you. The CEO reports directly to the board — to you. Agents you hire later start with a general role and report to the CEO; you can change both afterwards by editing `role` and `reportsTo` on the agent's **Advanced** page (see [Changing an agent's manager](../org/org-structure.md#changing-an-agents-manager)).
 
 3. **Choose an adapter**
 
@@ -89,11 +89,9 @@ You'll need:
 
 7. **Decide on a heartbeat schedule**
 
-   New agents start with their timed heartbeat switched off. They still wake when you give them work or click **Run now** — they just don't wake on a timer. You'll turn the timer on in the next guide, once you're ready to let the CEO start working.
+   New agents start with their timed heartbeat switched off. They still wake when you give them work or choose **Run now** from the **⋯** actions menu on the agent's page — they just don't wake on a timer. You'll turn the timer on in the next guide, once you're ready to let the CEO start working.
 
-   The setting lives in the **Run Policy** card on the agent's **Harness / Runtime** page: switch on **Heartbeat on interval** and set **Run heartbeat every … sec**.
-
-   ![The Run Policy card on the Harness / Runtime page with the Heartbeat on interval switch](../../user-guides/screenshots/light/agents/budget-and-heartbeat-fields.png)
+   The setting lives in the agent's `runtimeConfig`, which you edit on the agent's **Advanced** page (under **Agent** in its side menu). Under `runtimeConfig` → `heartbeat`, set `enabled: true` and `intervalSec` to the number of seconds between heartbeats, then click **Save changes**. [Watching Agents Work](./watching-agents-work.md) walks through it step by step.
 
    > **Tip:** Don't set the interval too short early on. Every heartbeat costs money. For a CEO, once per hour (3600 seconds) is a good starting point. You can make it faster later once you understand your company's rhythm.
 
@@ -131,7 +129,7 @@ The two most common causes:
 
 **Agent shows "error" status after its first heartbeat**
 
-On the agent's page, click **Runs** under **Audit** in the side menu. That opens the **Audit** page's **Runs** list filtered to this agent; click the most recent run. You'll see a full transcript of what happened. Error messages in the transcript will point to what went wrong.
+On the agent's page, click **Runs** under **Audit** in the side menu. The agent's runs open right there on its page; click the most recent run. You'll see a full transcript of what happened. Error messages in the transcript will point to what went wrong.
 
 **Budget immediately shows near 100%**
 

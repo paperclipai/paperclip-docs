@@ -11,11 +11,16 @@ This feature has no experimental toggle. It does not replace the bearer credenti
 
 ## Find an agent's public key
 
-Open the agent's page and find **Identity**. The panel shows a shortened fingerprint and lets you copy the full public key in PEM format. The fingerprint identifies the key; the PEM is what a cryptographic verifier needs.
+The agent's page doesn't show its public key. (The **Identity** item in the agent's side menu is about something else — it's where you edit the agent's instruction files.) To get the key, read it through [`GET /api/agents/:id/identity`](../../reference/api/agents.md#public-identity):
 
-New agents receive an identity when you create them. An agent created before this feature receives one when Paperclip prepares its next managed run. Until then, the panel says **Not created yet**. Opening the page, restarting the instance, or reading the API does not create one.
+```bash
+curl -s http://localhost:3100/api/agents/{agentId}/identity \
+  -H "Authorization: Bearer <token>"
+```
 
-You can also read the public identity through [`GET /api/agents/:id/identity`](../../reference/api/agents.md#public-identity). It returns `null` before provisioning, or the algorithm, key ID, public PEM, and creation time. It uses the same access checks as reading that agent.
+The response has the algorithm, the key ID (a fingerprint beginning with `sha256:`), the public key in PEM format, and the creation time. The fingerprint identifies the key; the PEM is what a cryptographic verifier needs. The route uses the same access checks as reading that agent. To find an agent's ID, open its page, click the **⋯** actions menu at the top right, and choose **Copy agent ID**.
+
+New agents receive an identity when you create them. An agent created before this feature receives one when Paperclip prepares its next managed run. Until then, the API returns `null`. Opening the page, restarting the instance, or reading the API does not create one.
 
 ## What a runtime receives
 

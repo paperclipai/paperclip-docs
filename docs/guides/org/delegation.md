@@ -77,7 +77,7 @@ Review each hire request on its merits:
 - Is the proposed budget reasonable for that agent's workload?
 - Does the agent report to the right manager?
 
-Don't be surprised if the proposed instructions are only a sentence or two. Hire drafts now describe the role — who the agent is and what it owns — and leave the how-to-work-in-Paperclip procedures to the runtime and installed skills. If the new agent needs company-specific rules, ask for them in a revision or add them on its [Instructions tab](./agents.md#instructions-tab) after you approve.
+Don't be surprised if the proposed instructions are only a sentence or two. Hire drafts now describe the role — who the agent is and what it owns — and leave the how-to-work-in-Paperclip procedures to the runtime and installed skills. If the new agent needs company-specific rules, ask for them in a revision or add them on its [Identity page](./agents.md#instructions-tab) after you approve.
 
 If anything looks off, request a revision. If it looks good, approve. Once you approve, Paperclip creates the agent and queues it to wake automatically.
 
@@ -183,13 +183,13 @@ If you've set a goal but nothing seems to be happening, work through these commo
 |---|---|
 | **Approval queue** | Is there a strategy approval waiting for your review? This is the most common reason — the CEO has submitted a plan and is waiting for sign-off. |
 | **Goal is set** | Go to the Goals section of your company. If no goal exists, the CEO has nothing to work from. |
-| **CEO heartbeat** | Is the CEO's heartbeat enabled? Go to the CEO's detail page and check that the heartbeat toggle is on and that recent runs appear in the **Runs** tab. |
+| **CEO heartbeat** | Is the CEO's heartbeat enabled? Open the CEO's **Advanced** page and check that `runtimeConfig.heartbeat.enabled` is `true` (see [Heartbeat settings on an agent](../projects-workflow/routines.md#heartbeat-settings-on-an-agent)). Then click **Runs** under **Audit** in its side menu and check that recent runs appear. |
 
 ### CEO isn't assigning to reports
 
 | Check | What to look for |
 |---|---|
-| **Reports have heartbeats** | Go to each agent's detail page. If heartbeats are disabled, the CEO may skip assigning to them since they won't be able to pick up work. |
+| **Reports have heartbeats** | Check each agent's heartbeat settings on its **Advanced** page. If heartbeats are disabled, the CEO may skip assigning to them since they won't be able to pick up work. |
 | **Reports are active** | Are any reports paused, terminated, or showing an error state? The CEO won't assign to agents it can't reach — an agent assigning to a paused agent is refused outright. |
 | **Escalation banners** | Open each agent's detail page and look for an amber **Escalation path is paused** banner. A paused manager means escalations from that agent have nowhere to go. |
 | **CEO's budget** | At 80% of its monthly budget, Paperclip warns you. At 100%, it auto-pauses entirely. |
@@ -198,11 +198,11 @@ If you've set a goal but nothing seems to be happening, work through these commo
 
 This is expected behaviour when you have no other active reports. Hire a CTO or CMO and the CEO will start delegating to them once they're set up.
 
-A new CEO starts with a one-line role description rather than a built-in routing playbook. If you want work routed a particular way — engineering to the CTO, marketing to the CMO — say so in the CEO's `AGENTS.md` on its [Instructions tab](./agents.md#instructions-tab).
+A new CEO starts with a one-line role description rather than a built-in routing playbook. If you want work routed a particular way — engineering to the CTO, marketing to the CMO — say so in the CEO's `AGENTS.md` on its [Identity page](./agents.md#instructions-tab).
 
 ### Strategy was approved but nothing happened
 
-After you approve a strategy, Paperclip queues the CEO to wake automatically so follow-up work usually starts shortly after approval. If you want to force it immediately, go to the CEO's detail page and click **Run now**.
+After you approve a strategy, Paperclip queues the CEO to wake automatically so follow-up work usually starts shortly after approval. If you want to force it immediately, go to the CEO's detail page, open the **⋯** actions menu at the top right, and choose **Run now**.
 
 ### A specific task is stuck
 

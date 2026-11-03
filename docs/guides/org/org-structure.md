@@ -96,9 +96,7 @@ Manager-level agents (CTO, CMO, Head of Design, etc.) report directly to the CEO
 
 4. **Give it a title (and check its manager)**
 
-   Click **Edit configuration** on the confirmation screen (or open the agent and click **Harness / Runtime** in its side menu). In the **Agent identity** card, add a **Title** (e.g. "CTO") and confirm **Reports to** shows your CEO. Click **Save changes**.
-
-   ![The Agent identity card on Harness / Runtime, with the Reports to picker open and the CEO selected](../../user-guides/screenshots/light/agents/new-agent-reports-to-field.png)
+   Open the agent. Its title sits just under the name at the top of the page — click it, type a title (e.g. "CTO"), and press Enter. Next to it, **Reports to** shows the agent's manager; check that it names your CEO.
 
    The new agent now appears in the org chart under the CEO, and the CEO will start considering them when delegating work. Agent budgets are managed from **Audit → Budgets**.
 
@@ -106,14 +104,14 @@ Manager-level agents (CTO, CMO, Head of Design, etc.) report directly to the CEO
 
 ## Adding workers
 
-Workers report to a manager rather than directly to the CEO. The steps are identical to adding a manager — except that, after setup, you change **Reports to** from the CEO to a manager-level agent.
+Workers report to a manager rather than directly to the CEO. The steps are identical to adding a manager — except that, after setup, you move the new agent from the CEO to a manager-level agent.
 
 For example, to add a Backend Engineer who reports to your CTO:
 
 1. Click **New Agent**, name it "Jordan", and pick an adapter
 2. Configure the adapter, then click **Finish setup**
-3. Open **Harness / Runtime**, set **Title** to "Backend Engineer" and **Reports to** to your CTO
-4. Click **Save changes**
+3. Open Jordan's page, click the title under the name, type "Backend Engineer", and press Enter
+4. Point Jordan at the CTO, as described in [Changing an agent's manager](#changing-an-agents-manager)
 
 The CTO can now delegate subtasks to Jordan. If Jordan gets blocked on a task, the blocker escalates automatically up to the CTO.
 
@@ -123,7 +121,16 @@ The CTO can now delegate subtasks to Jordan. If Jordan gets blocked on a task, t
 
 You can reassign an agent to a different manager at any time — after a reorg, or when you want to move someone to a different workstream.
 
-Open the agent, click **Harness / Runtime** in its side menu, and change **Reports to** in the **Agent identity** card. Click **Save changes** and the change takes effect immediately. Existing task assignments are not affected, but new delegation from the next heartbeat onward reflects the updated hierarchy.
+The agent's page shows who it **Reports to** under its name, but that's a link, not a picker. To change it, you edit the agent's `reportsTo` setting, which takes the new manager's agent ID:
+
+1. **Copy the new manager's ID.** Open the manager's page, open the **⋯** actions menu at the top right, and click **Copy agent ID**.
+2. **Open the agent you're moving.** In its side menu, under **Agent**, click **Advanced**. This opens the agent's settings as a YAML document.
+3. **Set `reportsTo`.** Under `spec`, add or change the line `reportsTo: <manager's agent ID>`. To have the agent report straight to the board, write `reportsTo: null`.
+4. **Click Save changes.**
+
+The change takes effect immediately, and the **Reports to** link under the agent's name updates to the new manager. Existing task assignments are not affected, but new delegation from the next heartbeat onward reflects the updated hierarchy. See [Edit an agent as YAML](./agent-configuration-yaml.md) for more on the editor.
+
+If you'd rather script it, send the same field to the API: `PATCH /api/agents/{agentId}` with `{"reportsTo": "<manager's agent ID>"}` — see [Update Agent](../../reference/api/agents.md#update-agent).
 
 ---
 
@@ -165,13 +172,11 @@ For a text-only view, switch to **List view**. It shows the same agents as a fla
 
 ## Reassigning an agent via the chart
 
-You can reassign any agent to a different manager without leaving the chart. The flow is:
+The chart is the quickest way to get to the agents you want to rearrange. You can't drag cards between managers, but you can start a reassignment from it:
 
-1. **Click the card of the agent you want to move.** The chart opens the agent's page.
-2. **Click Harness / Runtime** in the agent's side menu and change **Reports to** in the **Agent identity** card to the new manager.
-3. **Click Save changes.** The reporting line is updated immediately, and when you return to the org chart, the card re-parents under the new manager. Existing task assignments are unaffected — only future delegation follows the new line.
-
-![The Agent identity card on Harness / Runtime with the Reports to picker open, selecting a new manager](../../user-guides/screenshots/light/org/reassign.png)
+1. **Click the card of the new manager** to open its page, then copy its ID from the **⋯** actions menu (**Copy agent ID**).
+2. **Go back to the chart and click the card of the agent you want to move.** The chart opens the agent's page.
+3. **Click Advanced** in the agent's side menu, set `reportsTo` to the manager's ID, and click **Save changes**. The reporting line is updated immediately, and when you return to the org chart, the card re-parents under the new manager. Existing task assignments are unaffected — only future delegation follows the new line.
 
 A few guardrails apply:
 
@@ -179,7 +184,7 @@ A few guardrails apply:
 - You cannot remove the CEO's own reporting line — the CEO always reports to the board.
 - Reassigning a manager with reports moves the whole subtree under the new parent; the reports themselves keep their own reporting lines.
 
-> **Tip:** If you are doing a bigger reorg (swapping teams between two managers, for example), open the Agents page's org chart view in one browser tab and the agent's Harness / Runtime page in another. The chart refreshes automatically when you save, so you can use it as a live preview of the new structure.
+> **Tip:** If you are doing a bigger reorg (swapping teams between two managers, for example), open the Agents page's org chart view in one browser tab and the agent's **Advanced** page in another. The chart refreshes automatically when you save, so you can use it as a live preview of the new structure.
 
 ---
 
@@ -189,8 +194,8 @@ The lines between cards are not just decorative — they encode the company's de
 
 - Every line points from a **manager** (top) to a **direct report** (bottom). The direction of the line mirrors how work and escalations travel: delegation flows down, status and blockers flow up.
 - **Multiple children** share a horizontal connector below the manager card so you can see the span of control at each level.
-- **Separate subtrees** mean separate reporting lines. If you ever end up with more than one root, it usually means an agent lost its manager (for example, after a termination) — fix it on the agent's **Harness / Runtime** page by setting **Reports to** again.
-- **Terminated agents** don't appear on the chart. If a terminated agent had reports, they move up and show directly under the next visible manager — a cue to give them a new **Reports to**.
+- **Separate subtrees** mean separate reporting lines. If you ever end up with more than one root, it usually means an agent lost its manager (for example, after a termination) — fix it by setting the agent's `reportsTo` again on its **Advanced** page (see [Changing an agent's manager](#changing-an-agents-manager)).
+- **Terminated agents** don't appear on the chart. If a terminated agent had reports, they move up and show directly under the next visible manager — a cue to give them a new manager.
 
 Because the chart is the single source of truth for reporting structure, it is the fastest way to spot structural issues: a manager with far too many reports, a worker orphaned without a manager, or an adapter concentration risk where too much of the org runs on the same adapter.
 

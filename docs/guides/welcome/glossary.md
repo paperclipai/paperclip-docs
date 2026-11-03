@@ -140,7 +140,7 @@ A scheduled, recurring instruction that fires on a defined schedule — for exam
 
 ### Run history
 
-A log of every heartbeat an agent has executed, with timestamps, status, and a full transcript of what happened. The run history is available on the agent detail page and is the primary tool for understanding what an agent did, and why.
+A log of every heartbeat an agent has executed, with timestamps, status, and a full transcript of what happened. On the agent's page, click **Runs** under **Audit** in its side menu to see it. It's the primary tool for understanding what an agent did, and why.
 
 ---
 
