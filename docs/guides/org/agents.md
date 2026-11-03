@@ -187,7 +187,7 @@ The side menu groups the pages like this:
 | **Agent** | [Overview](#overview), [Identity](#identity), [Harness / Runtime](#harness-runtime), [Secrets & variables](#secrets-tools-and-channels), [Permissions / Trust](#permissions-trust), [Advanced](#advanced) |
 | **Audit** | [Activity](#activity-and-costs), [Runs](#runs), [Costs](#activity-and-costs), [Budgets](#budgets) |
 
-Everything opens inside the agent's page, so you keep the agent's header and menu while you look at its history. The **Audit** pages show only this agent's activity, runs, spending, and budget.
+Every page in these two groups opens inside the agent's page, so you keep the agent's header and menu while you look at its history. The **Audit** pages show only this agent's activity, runs, spending, and budget.
 
 A few pages aren't in the side menu, but they still open when you go to their address directly. Open any agent page, then change the last part of the address — for example, from `…/agents/ada/overview` to `…/agents/ada/skills`:
 
@@ -197,10 +197,11 @@ A few pages aren't in the side menu, but they still open when you go to their ad
 | [Tools](#secrets-tools-and-channels) | `/tools` |
 | [Channels](#secrets-tools-and-channels) | `/channels` |
 | [API Keys](#api-keys) | `/api-keys` |
+| Configuration Revisions (the full-page version of [Agent history](#agent-history)) | `/revisions` |
 
 The Identity page lives at `/identity`. Older links that end in `/instructions` still work and take you there.
 
-If an installed plugin adds its own page to agents, it shows up under an **Apps** group in the side menu, just above **Audit**.
+If an installed plugin adds its own page to agents, it shows up under an **Apps** group in the side menu, just above **Audit**. A plugin page opens on its own, with a link back to the agent instead of the full header.
 
 ### The header
 
@@ -212,7 +213,7 @@ The header sits at the top of every agent page. From left to right you'll see:
 - **The title and manager** on the third line: the agent's title (or its role, if it has no title), then **Reports to** with a link to its manager's page, or **Board** if it reports straight to you.
 - **The status line** while the agent is being set up, paused, resumed, or terminated — see [Setup checks before a new agent starts work](#setup-checks-before-a-new-agent-starts-work).
 
-**Rename an agent or change its title right in the header.** Click the name or the title, type, and press Enter (or click away) to save. Press Escape to cancel. If the save fails, the old value comes back and the reason appears under the header. Renaming an agent also updates the page address, because agent URLs are based on the name. If you have unsaved changes on the page you're on, Paperclip asks you to **save or discard** them first, so nothing gets lost.
+**Rename an agent or change its title right in the header.** Click the name or the title, type, and press Enter (or click away) to save. Press Escape to cancel. If the save fails, the old value comes back and the reason appears under the header. Renaming an agent also updates the page address, because agent URLs are based on the name. If you have unsaved changes on the page you're on, the edit isn't saved. A message under the header asks you to save or discard those changes first, so nothing gets lost.
 
 The manager is shown as a link only. To change who an agent reports to, edit `reportsTo` on the [Advanced](#advanced) page.
 
@@ -230,11 +231,11 @@ The actions menu holds everything else:
 - **Duplicate agent** — makes a copy of the agent, including its instruction files, after you confirm.
 - **Copy agent ID** — copies the agent's ID to your clipboard.
 - **Reset sessions** — clears the agent's saved conversation state so its next run starts fresh.
-- **Terminate** — shuts the agent down for good.
+- **Terminate** — shuts the agent down for good. It acts straight away, with no confirmation step, so be sure before you click it. Built-in agents don't have this item, and pausing one asks you to confirm first.
 
 If the agent's reporting chain is broken, **Assign task** and **Run now** stay disabled until you repair it (see [Banners at the top of the page](#banners-at-the-top-of-the-page)).
 
-When the agent is recording the exact traffic to its model provider, a small **Raw tracing on** label appears next to the actions (on wider screens). There's no separate trace button; to capture traces, turn on **Capture raw provider traces** in the **Debugging** panel on the agent's [Harness / Runtime](#harness-runtime) page and save. Tracing then applies to every future run until you switch it off, and each trace is deleted after 24 hours.
+When the agent is recording the exact traffic to its model provider, a small **Raw tracing on** label appears next to the actions (on wider screens). To trace a single run, open a finished run and click **Re-run with provider trace**, which starts a one-off traced copy of it. To trace every run, turn on **Capture raw provider traces** in the **Debugging** panel on the agent's [Harness / Runtime](#harness-runtime) page and save. Tracing then applies to every future run until you switch it off, and each trace is deleted after 24 hours.
 
 > **Danger:** Terminate permanently shuts the agent down. Use Pause if you might want it back. See [Approvals — Board Override Powers](../day-to-day/approvals.md#board-override-powers) for the broader discussion of Pause vs Terminate vs Delete.
 
@@ -296,7 +297,7 @@ This is worth checking after an instance import, which pauses every agent by def
 
 **Overview** is the agent's home page — the one you open when you want to know "who is this agent, and what has it been doing?"
 
-![An agent's Overview page with the Latest Run card, the Identity, Harness / Runtime, Capabilities, and Skills cards, and Recent Tasks](../../user-guides/screenshots/light/agents/dashboard.png)
+![An agent's Overview page (screenshot from an earlier layout, before the metric tiles)](../../user-guides/screenshots/light/agents/dashboard.png)
 
 ### The four metric tiles
 
@@ -333,14 +334,14 @@ To see the agent's current or latest run, open **Runs** under **Audit**, or clic
 
 The **Identity** page is where you edit what the agent *is* — its role description and any other files it should keep. For most agents it is also the agent's own folder: a place it can keep notes and working material from one task to the next. It lives at `/agents/<agent>/identity`; older `/instructions` links still bring you here.
 
-![An agent's Instructions page with the file list and the AGENTS.md editor](../../user-guides/screenshots/light/agents/instructions.png)
+![An agent's Identity page with the file list and the AGENTS.md file open (screenshot from an earlier layout)](../../user-guides/screenshots/light/agents/instructions.png)
 
 ### Managed vs external bundles
 
 Local adapters (Claude Code, Codex, Cursor, Gemini, OpenCode) support an **instructions bundle**: a folder of files that belongs to the agent. Paperclip can manage that folder for you (it owns the filesystem layout) or you can point it at an existing folder on disk. The two modes are:
 
-- **Managed** — Paperclip keeps one folder per agent in its own storage. You edit it here, and the agent can add its own files to it. This is the mode that keeps agent files across tasks (see below). Files show a **Managed by you** chip next to their name.
-- **External** — Paperclip reads and writes the files in a folder you choose on disk; useful when the instructions already live in a repo you want to keep canonical. Files show a **Managed externally** chip. External folders keep their existing behaviour and aren't treated as the agent's persistent personal folder.
+- **Managed** — Paperclip keeps one folder per agent in its own storage. You edit it here, and the agent can add its own files to it. This is the mode that keeps agent files across tasks (see below). The open file's heading shows a **Managed by you** chip.
+- **External** — Paperclip reads and writes the files in a folder you choose on disk; useful when the instructions already live in a repo you want to keep canonical. The open file's heading shows a **Managed externally** chip. External folders keep their existing behaviour and aren't treated as the agent's persistent personal folder.
 
 #### Point the agent at a folder on disk
 
@@ -349,7 +350,7 @@ To switch to an external folder, open **Advanced settings** above the file list.
 - **Root path** — the folder that holds the files. Use an absolute path that starts with `/` or `~`.
 - **Entry file** — the file the agent reads first, such as `AGENTS.md`. It can have any name, as long as it sits inside the root path.
 
-Click **Load profile**. Paperclip only switches over if the folder and the entry file already exist; it never creates them for you here. If something's missing, the switch is refused and the panel tells you why, so you can fix the path and try again. When it works, a green dot appears with a confirmation such as *Loaded AGENTS.md from /home/you/prompts*.
+Click **Load profile**. Paperclip only switches over if the folder and the entry file already exist; it never creates them for you here. If something's missing, the switch is refused and the panel tells you why, so you can fix the path and try again. When it works, a green dot appears with a confirmation such as *Loaded AGENTS.md from /home/you/prompts*. Servers that run without a local disk don't allow external folders at all; there the switch is refused with *Volume-free servers require managed agent instructions*.
 
 To go back to Paperclip's own storage, click **Use managed bundle** in the same panel.
 
@@ -457,7 +458,7 @@ Existing agents keep whatever files they already have — Paperclip doesn't rewr
 
 ### Editing files
 
-The **Files** panel lists the agent's files and folders; the entry file is tagged **entry**, and other files show their size. Click a file to open it on the right. Add a file with the **+** button (**Add agent file**) at the top of the list — type a name such as `TOOLS.md`, or a path with folders, then click **Create**. Rename is via delete + create for now.
+The **Files** panel lists the agent's files and folders; the entry file is tagged **entry**, and other files show their size. Click a file to open it on the right. Add a file with the **+** button (**Add agent file**) at the top of the list — type a name such as `TOOLS.md`, or a path with folders, then click **Create**. The new file opens empty and is written when you click **Save changes** in the bar at the bottom. Rename is via delete + create for now.
 
 A file opens as a read-only preview of its raw text, exactly as the agent sees it. Next to the file name you'll find three icon buttons:
 
@@ -536,7 +537,7 @@ Under the heading, a one-line summary reminds you what the page covers: how the 
 - **Environment panel** — where the agent runs. Leave it on the company default or pick a specific environment.
 - **Test your agent** — a quick check that the runtime and model can respond (see below).
 - **Environment variables** — values passed to the agent's runtime on every run.
-- **Debugging** — the **Capture raw provider traces** switch. Turn it on and save to record the exact provider traffic for every future run until you turn it off; traces may contain sensitive prompts and tool arguments, and are deleted after 24 hours. Only instance administrators see this panel.
+- **Debugging** — the **Capture raw provider traces** switch. Turn it on and save to record the exact provider traffic for every future run until you turn it off; traces may contain sensitive prompts and tool arguments, and are deleted after 24 hours. Only instance administrators see this panel (or anyone, on a local trusted instance), and it isn't shown for agents on an external runner.
 
 Adapter-specific fields only affect this agent — changing them has no effect on any other agent.
 
@@ -546,7 +547,7 @@ These aren't on the Harness / Runtime page:
 
 - **Name and title** — edit them in place in the [header](#the-header).
 - **Reports to** — the header shows the manager as a link. To move the agent to a different manager, change `reportsTo` on the [Advanced](#advanced) page.
-- **Heartbeat and run policy** — change these on the [Advanced](#advanced) page too. Whether the agent wakes on a timer (`enabled`), how often (`intervalSec`), `wakeOnDemand`, `cooldownSec`, and `maxConcurrentRuns` live under `runtimeConfig.heartbeat`. A run's time limit (`timeoutSec`) and interrupt grace period (`graceSec`) live in `adapterConfig`. When you save one of those maps, it replaces the whole map, so keep every key you want. See [Edit an agent as YAML](agent-configuration-yaml.md) for an example and the save rules.
+- **Heartbeat and run policy** — change these on the [Advanced](#advanced) page too. Whether the agent wakes on a timer (`enabled`), how often (`intervalSec`), `wakeOnDemand`, `cooldownSec`, `maxConcurrentRuns`, and the automatic continuation after a max-turn stop (`maxTurnContinuation`) live under `runtimeConfig.heartbeat`. A run's time limit (`timeoutSec`) and interrupt grace period (`graceSec`) live in `adapterConfig`. When you save one of those maps, it replaces the whole map, so keep every key you want. See [Edit an agent as YAML](agent-configuration-yaml.md) for an example and the save rules.
 
 New agents start with the heartbeat timer switched off, so they wake only when something needs them — an assignment, an approval, a comment on their task — or when you choose **Run now**. @-mentions don't wake an agent; they're context only.
 
@@ -563,7 +564,7 @@ Edits are tracked as you make them, on Harness / Runtime, [Identity](#identity),
 - A **green dot** with **Changes saved** confirms the save went through.
 - **No unsaved changes** means there's nothing pending.
 
-**Discard** puts every changed field back the way it was; **Save changes** saves them. Each save of the agent's settings creates a new entry in its [Agent history](#agent-history).
+**Discard** puts every changed field back the way it was; **Save changes** saves them. Saving a change to the agent's settings (Harness / Runtime, Secrets, or the YAML on Advanced) adds an entry to its [Agent history](#agent-history). Instruction files on the Identity page have their own per-file history instead.
 
 **Leaving with unsaved changes.** If you click a link to another page while you have unsaved changes, Paperclip asks **Discard unsaved changes?** Choose **Keep editing** to stay, or **Discard changes** to drop your edits and go. Using the browser's Back button, or a header action that would take you away (such as **Run now**), shows your browser's own confirmation instead.
 
@@ -588,7 +589,7 @@ The **Permissions / Trust** page sets how much the agent is trusted and what it'
 - **Allowed projects** — for a **Low-trust review** agent, the projects whose tasks and repositories it may access. Choose **Add project**, then **Save project access** to add more without loosening any other restriction. See [Allowed projects](../../administration/trust-and-low-trust-review.md#allowed-projects).
 - **Capabilities** — a panel of switches for **Can create new agents**, **Can create/import skills**, and **Can assign tasks**. Task assignment is switched on automatically for the CEO and for any agent that can create agents.
 
-Everything on this page saves the moment you change it — there's no save bar here.
+The trust cards, boundary, and capability switches save the moment you change them — there's no save bar here. Allowed projects is the exception: it waits for **Save project access**.
 
 ---
 
@@ -597,7 +598,7 @@ Everything on this page saves the moment you change it — there's no save bar h
 <a id="revisions"></a>
 <a id="configuration-revisions"></a>
 
-Every time someone saves a change to this agent's identity or configuration — a rename, a new model, a different manager — Paperclip records that version. **Agent history** lets you look back through those versions and restore one.
+Every time someone saves a change to this agent's configuration — a rename, a new model, a different manager — Paperclip records that version. Edits to instruction files aren't part of it, and restoring a version doesn't roll them back. **Agent history** lets you look back through those versions and restore one.
 
 Open the actions menu (`⋯`) in the header and choose **Agent history**. A dialog lists every saved change, newest first, in four columns:
 
@@ -630,7 +631,7 @@ See [Edit an agent as YAML](agent-configuration-yaml.md) for the document format
 
 When you want to see what the agent actually did — and whether it worked — open its runs. Click **Runs** under **Audit** in the agent's side menu, or click the **Runs** tile on [Overview](#overview). The list opens right inside the agent's page and only ever shows this agent's runs: every execution, newest first.
 
-![The Audit page's Runs tab filtered to one agent, listing recent runs with status, trigger, and timing](../../user-guides/screenshots/light/agents/runs.png)
+![An agent's runs listed with status, trigger, and timing (screenshot from an earlier layout, on the company Audit page)](../../user-guides/screenshots/light/agents/runs.png)
 
 ### The run list
 
@@ -693,7 +694,7 @@ If the agent spent nothing in that period, the page says so. For how costs are w
 
 Every agent can have its own monthly budget, so one busy agent can't run away with your spending. Click **Budgets** under **Audit** in the agent's side menu, or the **Budget used** tile on [Overview](#overview). The page opens inside the agent and shows only this agent's budget.
 
-![The Audit page's Budgets tab with the Budget control plane summary and active budget incidents](../../user-guides/screenshots/light/agents/budget.png)
+![Budget incidents and the budget summary (screenshot from an earlier layout, on the company Audit page)](../../user-guides/screenshots/light/agents/budget.png)
 
 ### What's on the Budgets page
 

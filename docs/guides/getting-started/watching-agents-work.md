@@ -29,7 +29,7 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
    Go to the **Agents** page and open the CEO. In the agent's side menu, under **Agent**, click **Advanced**. The agent's settings open as a YAML document.
 
-   Find the `heartbeat` block under `runtimeConfig`. A new agent has `enabled: false` there. Change it to `true` and set `intervalSec` to how often the CEO should wake, in seconds (3600 is once an hour):
+   Find the `heartbeat` block under `runtimeConfig`. An agent hired from **New Agent** has `enabled: false` there; the first agent from onboarding may already have it on. Change it to `true` and set `intervalSec` to how often the CEO should wake, in seconds (3600 is once an hour):
 
    ```yaml
    runtimeConfig:

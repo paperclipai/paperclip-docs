@@ -1409,13 +1409,13 @@ For a **managed** bundle, these files are the agent's persistent folder: it hold
 
 | Field | Notes |
 |---|---|
-| `mode` | Optional. `managed` (Paperclip stores the files) or `external` (the files live in a folder you point at). Switching to `external` needs an instance admin. |
-| `rootPath` | The folder for an `external` bundle. Must be an absolute path. |
+| `mode` | Optional. `managed` (Paperclip stores the files) or `external` (the files live in a folder you point at). Any request that sets `mode` to `external`, or changes an agent that is already external, needs an instance admin. |
+| `rootPath` | Optional. The folder for an `external` bundle; leave it out to keep the current one. Must be an absolute path (a path starting with `~` is expanded to your home folder). |
 | `entryFile` | Optional. The file the agent reads first, e.g. `AGENTS.md`. |
 | `clearLegacyPromptTemplate` | Optional. `true` also clears the agent's old inline prompt template. |
 | `requireExistingEntry` | Optional. Only applies to `external` bundles. `true` makes Paperclip check that the folder and its entry file already exist before it creates or copies anything. |
 
-By default, pointing an agent at an external folder is forgiving: Paperclip creates the folder if it's missing, copies the agent's current files into it if it's empty, and writes an entry file if there isn't one. That's handy for a fresh folder, but a typo in the path quietly gives you a new, nearly empty bundle.
+By default, pointing an agent at an external folder is forgiving: Paperclip creates the folder if it's missing, copies the agent's current files into it if it's empty, and writes an entry file if there isn't one. That's handy for a fresh folder, but a typo in the path quietly gives you a duplicate bundle in the wrong place, and the agent reads from that copy from then on.
 
 Send `requireExistingEntry: true` when you mean "use the files that are already there". If the folder doesn't exist, the request fails with `422` and `No directory exists at <rootPath>`. If the folder exists but the entry file doesn't, it fails with `422` and `<entryFile> was not found in <rootPath>`. Either way, nothing is created and the agent's settings stay as they were.
 

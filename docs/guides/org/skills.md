@@ -434,7 +434,7 @@ Skills live at the company level, but each agent decides which of those skills t
 **From the agent.** To see and change everything one agent uses:
 
 1. **Open the agent's detail page** from the Agents list or the org chart.
-2. **Open its Skills page.** It isn't listed in the agent's side menu (the **Overview** shows the enabled skills, but read-only), so go to it by address: add `/skills` to the end of the agent page's URL — for example, `…/agents/cto/skills`. The top line reads "*N* of *M* enabled", next to the skill application mode badge and a **Search skills** box.
+2. **Open its Skills page.** It isn't listed in the agent's side menu (the **Overview** shows the enabled skills, but read-only), so open it from the company **Skills** page (the **View** link next to an agent that uses a skill), or go to it by address: add `/skills` to the end of the agent page's URL — for example, `…/agents/cto/skills`. The top line reads "*N* of *M* enabled", next to the skill application mode badge and a **Search skills** box.
 3. You will see these groups:
    - **Enabled on this agent** — the skills this agent uses now. Flip a row's switch off to detach it.
    - **Available from the library** — every other skill in the company library that the agent *could* use. Flip a row's switch on to assign it.
