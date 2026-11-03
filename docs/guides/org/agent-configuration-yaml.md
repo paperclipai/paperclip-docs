@@ -14,7 +14,7 @@ The editor doesn't bypass anything. Each part of the document is saved through t
 ## Open the editor
 
 1. Open the agent from the **Agents** list.
-2. In the side menu, under **Governance**, click **Advanced**.
+2. In the side menu, under **Agent**, click **Advanced**.
 
 The page address ends in `/advanced`. Paperclip loads the agent's settings from every service it touches (you'll see **Loading configuration…** for a moment), then shows the document in a YAML editor.
 
@@ -48,7 +48,7 @@ Below the core, `spec` can hold the agent's related resources. Each section only
 | Section | What it covers |
 |---|---|
 | `permissions` | `canCreateAgents`, `canCreateSkills`, `canAssignTasks`, `trustPreset` (`standard` or `low_trust_review`), and an `authorizationPolicy` if the agent has one. Only values that differ from the standard defaults are shown. Same settings as [Permissions / Trust](agents.md#permissions-trust). |
-| `instructions` | The bundle `mode` (`managed` or `external`), `rootPath` (shown for `external` bundles), and `entryFile`. File contents aren't shown; to change a file, add a `files` map of relative file path to text content. Same files as the [Instructions](agents.md#instructions) page. |
+| `instructions` | The bundle `mode` (`managed` or `external`), `rootPath` (shown for `external` bundles), and `entryFile`. File contents aren't shown; to change a file, add a `files` map of relative file path to text content. Same files as the agent's [Identity](agents.md#instructions) page. |
 | `skills` | The skills the agent should have. Unpinned skills are shown as plain skill keys; a pinned skill is a `key` with a `versionId`. |
 | `tools` | `connections` installed directly on this agent (each a `connectionId`), the tool `profiles` bound directly to this agent (each referenced by `profileKey`, or `profileId` if the profile has no key, with `priority` only when it isn't the default `100`, and `metadata` only when it's set), and the tool `policies` scoped only to this agent. |
 | `channels` | The chat channels assigned to this agent, by `id` and `provider`, with any `settings` that are set and the `resources` that are enabled. |
@@ -64,7 +64,7 @@ A few things aren't settings you can describe as an end state — creating a key
 | `channelOperations` | `create` a new channel for this agent, run a `setup` action on an existing one, or `revokeIdentityLinks` for a linked person. |
 | `revisions` | `restore` a configuration revision by ID. A restore must be the only change in its save — restore first, then edit the result. |
 
-After the save, Paperclip reloads the document and the command sections are gone again. You only need to list the actions you want; you don't have to fill in the others. Existing keys, revisions, secrets, and pending proposals are listed on the agent's [API Keys](agents.md#api-keys), [Revisions](agents.md#revisions), and [Secrets & variables](agents.md#secrets-tools-and-channels) pages. Those pages don't show full API key or revision IDs (Revisions shows only the first 8 characters), so get those from the API: `GET /api/agents/{agentId}/keys` and `GET /api/agents/{agentId}/config-revisions` — see [Agents API](../../reference/api/agents.md#api-keys).
+After the save, Paperclip reloads the document and the command sections are gone again. You only need to list the actions you want; you don't have to fill in the others. Existing keys, revisions, secrets, and pending proposals are listed on the agent's [API Keys](agents.md#api-keys) page (it isn't in the side menu — add `/api-keys` to the end of the agent's address), in its [Agent history](agents.md#revisions) (open the **⋯** actions menu in the agent's header and choose **Agent history**), and on its [Secrets & variables](agents.md#secrets-tools-and-channels) page. Those don't show full API key or revision IDs, so get those from the API: `GET /api/agents/{agentId}/keys` and `GET /api/agents/{agentId}/config-revisions` — see [Agents API](../../reference/api/agents.md#api-keys).
 
 ### Older exports with an `observed` section
 
@@ -158,7 +158,7 @@ The footer shows **Unsaved changes** while you have edits, or **No configuration
 
 Click **Save changes**. The footer shows each step as it runs (**Saving: …**). When everything finishes, Paperclip reloads the document from the server and shows an **Agent saved** toast. If any setting was ignored along the way, the toast lists the [configuration warnings](../../reference/api/agents.md#configuration-warnings).
 
-While a save is running, the editor is read-only and the header's **Assign Task**, **Run now**, and **Pause / Resume** buttons are disabled. Paperclip also asks before you leave the page with unsaved edits.
+While a save is running, the editor is read-only, the header's **Assign task** button is disabled, and so are **Run now**, **Pause** / **Resume**, and **Clear error** in the header's actions menu. Paperclip also asks before you leave the page with unsaved edits.
 
 ### Rules the editor enforces
 
@@ -214,5 +214,5 @@ The document never shows secret values.
 ## Related
 
 - [Agents](agents.md) — the agent detail page and each settings page in detail
-- [Revisions](agents.md#revisions) — the history you can restore with `revisions.restore`
+- [Agent history](agents.md#revisions) — the history you can restore with `revisions.restore`
 - [Agents API — Guard against stale writes](../../reference/api/agents.md#guard-against-stale-writes-expectedconfigurationrevision) — `configurationRevision` and the stale-write check for API clients

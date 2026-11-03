@@ -6,17 +6,17 @@ seo_description: The handful of symptoms behind almost every agent-not-working r
 
 # Debug a stuck heartbeat
 
-A handful of symptoms that cover almost every "this agent isn't working right" report. Open the agent's detail page and scroll to **Run history** before you start — every diagnosis below begins there.
+A handful of symptoms that cover almost every "this agent isn't working right" report. Open the agent's detail page and click **Runs** under **Audit** in its side menu before you start — every diagnosis below begins with that list of the agent's runs.
 
 ---
 
 ## 1. Agent wakes up, then exits immediately
 
-**Symptom.** Runs appear in **Run history**, complete in seconds, post no comment. Status flips back to `idle`.
+**Symptom.** Runs appear in the agent's **Runs** list, complete in seconds, post no comment. Status flips back to `idle`.
 
 **Cause.** Empty inbox plus a timer.
 
-**Fix.** Agent → **Run Policy → Heartbeat on interval**. Turn it off and rely on assignment-driven wakes. See [Heartbeats & Routines](../guides/projects-workflow/routines.md).
+**Fix.** Agent → **Advanced**, then set `runtimeConfig.heartbeat.enabled` to `false` and click **Save changes**. Rely on assignment-driven wakes instead. See [Heartbeats & Routines](../guides/projects-workflow/routines.md).
 
 ---
 
@@ -87,7 +87,7 @@ A handful of symptoms that cover almost every "this agent isn't working right" r
 
 When none of those is present and nothing else already owns the next action — no queued wake, no pending approval or interaction, no monitor, no open recovery issue, no pause hold — Paperclip queues one corrective wake back to the same agent, with the wake reason `finish_successful_run_handoff`.
 
-**Fix.** Usually nothing: let it run. That corrective wake goes out on the agent's **normal** model and adapter settings, not the cheap, status-only recovery profile it used to get, and the wake carries the task's own description plus the agent's final report and recorded next action back to it. The agent re-reads its own evidence, does the smallest verification still missing, and only then picks an outcome — so this wake can look like a full work run in **Run history**, and it costs accordingly.
+**Fix.** Usually nothing: let it run. That corrective wake goes out on the agent's **normal** model and adapter settings, not the cheap, status-only recovery profile it used to get, and the wake carries the task's own description plus the agent's final report and recorded next action back to it. The agent re-reads its own evidence, does the smallest verification still missing, and only then picks an outcome — so this wake can look like a full work run in the agent's **Runs** list, and it costs accordingly.
 
 Two things to keep in mind while you watch it:
 
@@ -98,7 +98,7 @@ If you would rather not pay for these wakes at all, the cure is upstream: have y
 
 ## Where to look first
 
-- **Run logs.** Agent detail → **Run history** → click any run for the full transcript and exit code.
+- **Run logs.** Agent detail → **Audit → Runs** → click any run for the full transcript and exit code.
 - **Heartbeat context.** `GET /api/issues/{issueId}/heartbeat-context` returns the exact payload the agent sees on wake.
 - **Comment history.** `GET /api/issues/{issueId}/comments` is the source of truth for what the agent has actually said.
 

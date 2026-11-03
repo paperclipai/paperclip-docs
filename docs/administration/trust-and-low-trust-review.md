@@ -154,7 +154,7 @@ What makes this safe enough:
 
 One honest caveat: Paperclip checks *who* sent the message, not what it means, and it doesn't ask you to approve each edit. If the agent reads something hostile during your chat, prompt injection is still possible, so keep an eye on what it changes.
 
-When a save is refused, the agent should tell you which action was blocked and why — for example, that the current run isn't your direct chat, or that you don't have edit permission. You can then ask in your own chat or make the edit yourself on the [Instructions tab](../guides/org/agents.md#instructions-tab). Creating another task doesn't authorize the change.
+When a save is refused, the agent should tell you which action was blocked and why — for example, that the current run isn't your direct chat, or that you don't have edit permission. You can then ask in your own chat or make the edit yourself on the agent's [Identity page](../guides/org/agents.md#instructions-tab). Creating another task doesn't authorize the change.
 
 ---
 

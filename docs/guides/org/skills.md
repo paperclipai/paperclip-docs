@@ -413,7 +413,7 @@ The skill **Key** (the stable identifier adapters use) and its **Mode** (Editabl
 
 ## Adapter sync preferences
 
-Different adapters handle skills differently. The Agent → Skills tab surfaces this as a small **skill application mode** badge next to the "*N* of *M* enabled" count, above the skill list — hover it for details:
+Different adapters handle skills differently. The agent's **Skills** page surfaces this as a small **skill application mode** badge next to the "*N* of *M* enabled" count, above the skill list — hover it for details:
 
 - **Kept in workspace** (`persistent`) — the adapter writes skill files into the agent's workspace directory and leaves them there between runs. Most long-running local adapters use this mode.
 - **Applied on next run** (`ephemeral`) — the adapter materialises skill files for each run, then cleans up afterwards. This is the default for sandboxed adapters that treat the workspace as disposable.
@@ -434,14 +434,14 @@ Skills live at the company level, but each agent decides which of those skills t
 **From the agent.** To see and change everything one agent uses:
 
 1. **Open the agent's detail page** from the Agents list or the org chart.
-2. **Switch to the Skills tab.** The top line reads "*N* of *M* enabled", next to the skill application mode badge and a **Search skills** box.
+2. **Open its Skills page.** It isn't listed in the agent's side menu (the **Overview** shows the enabled skills, but read-only), so open it from the company **Skills** page (the **View** link next to an agent that uses a skill), or go to it by address: add `/skills` to the end of the agent page's URL — for example, `…/agents/cto/skills`. The top line reads "*N* of *M* enabled", next to the skill application mode badge and a **Search skills** box.
 3. You will see these groups:
    - **Enabled on this agent** — the skills this agent uses now. Flip a row's switch off to detach it.
    - **Available from the library** — every other skill in the company library that the agent *could* use. Flip a row's switch on to assign it.
    - **Automatic and detected skills (read-only)** — a collapsible group for skills the adapter supplies or picked up from somewhere Paperclip does not control (for example, a global skill bundle on the host). These are shown for visibility only.
 4. Changes autosave shortly after you stop clicking — a small status chip shows "Saving soon…", then "Saving…", then "Saved". The agent will pick up the new skill list on its next run.
 
-A **Browse skills store** button at the top of the tab jumps to the company-wide Skills page, so you can open the underlying skill to tweak its instructions without losing your place.
+A **Browse skills store** button at the top of the page jumps to the company-wide Skills page, so you can open the underlying skill to tweak its instructions without losing your place.
 
 > **Tip:** If a skill you expect is not under **Available from the library**, it is not in the company library yet. Add it from the Skills page first, then come back.
 
@@ -463,7 +463,7 @@ It is off by default everywhere — cloud and self-hosted alike — and it is no
 
 ### Pick a release
 
-Open the agent, go to the **Skills** tab, and find the Paperclip core skill row — it needs to be enabled for that agent. A **Skill release** dropdown appears alongside it:
+Open the agent's **Skills** page (add `/skills` to the end of the agent page's URL), and find the Paperclip core skill row — it needs to be enabled for that agent. A **Skill release** dropdown appears alongside it:
 
 - **Default — current (recommended)** — no pin at all. The agent runs the live skill and picks up every future change. This is where every agent starts.
 - Each frozen release, shown as its name plus the day it was cut — for example **V7 — Roster champion · released 2026-07-21** — carrying a small **Beta** badge.

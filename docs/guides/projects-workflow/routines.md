@@ -41,18 +41,28 @@ The natural response to that noise is to start pausing agents — which is why p
 
 ## Heartbeat settings on an agent
 
-Open any agent and find the **Run Policy** section. You'll see:
+An agent's heartbeat settings live in its `runtimeConfig`, under `heartbeat`. To see or change them, open the agent and, in its side menu under **Agent**, click **Advanced**. The settings open as a YAML document; an agent created from the **New Agent** flow starts with a block like this:
 
-- **Heartbeat on interval** — the master switch. Off by default. Turn it on only when the agent needs to poll something that doesn't have its own event trigger (see "When a timer is the right answer" below).
-- **Run heartbeat every _N_ sec** — only visible when the interval is on. If you need a timer at all, prefer minutes or hours, not seconds.
+```yaml
+runtimeConfig:
+  heartbeat:
+    enabled: false
+    intervalSec: 300
+    wakeOnDemand: true
+    skipTimerWhenNoActionableWork: true
+    cooldownSec: 10
+    maxConcurrentRuns: 20
+```
 
-Under **Advanced Run Policy** you'll also find:
+- **`enabled`** — the master switch for the timer. Off by default. Turn it on only when the agent needs to poll something that doesn't have its own event trigger (see "When a timer is the right answer" below).
+- **`intervalSec`** — how often the timer fires, in seconds. It only matters when `enabled` is `true`. If you need a timer at all, prefer minutes or hours, not seconds.
+- **`wakeOnDemand`** — leave this on. It's what lets assignments, comments, and routines reach the agent.
+- **`cooldownSec`** — minimum gap between runs, useful for bursty work.
+- **`maxConcurrentRuns`** — how many tasks the agent can work in parallel.
 
-- **Wake on demand** — leave this on. It's what lets assignments, comments, and routines reach the agent.
-- **Cooldown (sec)** — minimum gap between runs, useful for bursty work.
-- **Max concurrent runs** — how many tasks the agent can work in parallel.
+Change the values in place and click **Save changes**. Keep the other lines under `runtimeConfig` — the whole block replaces the saved one when you save. See [Edit an agent as YAML](../org/agent-configuration-yaml.md) for the details. You can also send the same `runtimeConfig` to the API with [Update Agent](../../reference/api/agents.md#update-agent).
 
-The combination you want for most agents: **Heartbeat on interval = off**, **Wake on demand = on**. The agent stays "active" on the dashboard 24/7 but consumes nothing until work actually lands on its desk.
+The combination you want for most agents: `enabled: false`, `wakeOnDemand: true`. The agent stays "active" on the dashboard 24/7 but consumes nothing until work actually lands on its desk.
 
 ---
 

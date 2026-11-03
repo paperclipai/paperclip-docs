@@ -88,8 +88,8 @@ When in doubt, start with Sonnet for workers and Opus for the CEO. The **effort*
 **Environment variables**
 The agent form includes an **Environment variables** section. Add `ANTHROPIC_API_KEY` there, either as a plain value or as a secret reference. If you're not sure what key name to use, `ANTHROPIC_API_KEY` is the standard one.
 
-**Timeout (sec)**
-How long a single heartbeat run is allowed to take before Paperclip cuts it off. You'll find it on an existing agent's **Harness / Runtime** page under **Run Policy → Advanced Run Policy**. It starts at `0`, which means no timeout. If you set one, leave plenty of headroom — complex coding tasks can run for 10 minutes or more, and a limit that's too low cuts agents off mid-task.
+**Timeout (`timeoutSec`)**
+How long a single heartbeat run is allowed to take before Paperclip cuts it off. On an existing agent, it's the `timeoutSec` key in `adapterConfig`, which you edit on the agent's **Advanced** page (see [Edit an agent as YAML](./agent-configuration-yaml.md)). It starts at `0`, which means no timeout. If you set one, leave plenty of headroom — complex coding tasks can run for 10 minutes or more, and a limit that's too low cuts agents off mid-task.
 
 ![The Adapter card on an agent's Harness / Runtime page, showing the Claude Code adapter type, Model, and Thinking effort, with the top of the Configuration card below](../../user-guides/screenshots/light/agents/claude-local-config-filled.png)
 
