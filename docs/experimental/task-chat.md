@@ -156,7 +156,7 @@ Resume releases the hold. You can optionally wake eligible agents. **Wake affect
 - *Trying again in 30s…* (or in minutes, for a longer wait) while Paperclip has an automatic retry lined up. Your saved work and messages are kept while it repairs things.
 - *Couldn’t finish this attempt. Your message is saved.* once Paperclip has stopped retrying on its own.
 
-The retry countdown stays quiet. When Paperclip has stopped retrying, the line gets a lightly tinted panel with an error icon, so you can spot that it needs you.
+The retry countdown stays quiet. When Paperclip has stopped retrying, the line gets a lightly tinted panel with an error icon, so you can spot that it needs you. A failure the model provider reports (a rate limit, a sign-in problem, an unavailable model and so on) shows as a red banner naming the provider and the reason instead, even while a retry is lined up.
 
 If you can manage recovery on the board, the line also has a **Retry** button. Click it to have Paperclip try the task again, picking up the saved messages and the work the agent already preserved. Each click counts as a new request, so if the automatic retries had run out, Retry gives recovery a fresh set of attempts. If nothing seems to happen, the line changes to *Taking longer than usual…*. Your request is still saved, so clicking **Retry** again won't start a second attempt. Retry also won't start anything extra if the task has already moved on since you looked, for example because a newer run started or the task is done.
 

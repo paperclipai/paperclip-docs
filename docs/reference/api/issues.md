@@ -114,7 +114,7 @@ Return all issues visible to a company, ordered by priority unless a search quer
 | Param | Description |
 |---|---|
 | `status` | Filter by one status or a comma-separated list, such as `todo,in_progress` |
-| `displayStatus` | Filter by the status the UI displays, one value or a comma-separated list. Accepts the values in `ISSUE_DISPLAY_STATUSES`: `backlog`, `todo`, `in_progress`, `monitoring`, `in_review`, `done`, `blocked`, `cancelled`. Use `displayStatus=monitoring` for in-progress tasks waiting on a scheduled monitor |
+| `displayStatus` | Filter by the status the UI displays, one value or a comma-separated list. Accepts the values in `ISSUE_DISPLAY_STATUSES`: `backlog`, `todo`, `in_progress`, `monitoring`, `in_review`, `done`, `blocked`, `cancelled`. Use `displayStatus=monitoring` for in-progress tasks waiting on a scheduled monitor. An unknown value isn't rejected; it just matches nothing |
 | `assigneeAgentId` | Filter by assigned agent |
 | `participantAgentId` | Filter by issues the agent created, was assigned to, or commented on |
 | `assigneeUserId` | Filter by assigned user |

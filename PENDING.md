@@ -6,7 +6,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Compare truncation:** 0 truncated leaves (increment: 3 leaves, 76 commits, 566 files).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
 - **Already on nightly:** drafts for `1b4c8038..8ea24021` from earlier runs. This run covers the 76 newer commits, `8ea24021..7b8aa60b`.
-- **Verification:** every page changed this run was checked against `7b8aa60b` with `verify-edit` (`source: snapshot`, no warnings): 0 unverified in new text. `paperclip-runner.md` still shows its 10 known `adapter-config-field` misses on older lines (see carried-over notes). Every parent read was pinned to `7b8aa60b` (local snapshot).
+- **Verification:** every page changed this run was first checked against `7b8aa60b`. All of them were then re-verified against the **latest parent master `b891e69b`** (2026-11-04T13:19Z): `verify-edit` on every page (`source: snapshot`, no warnings) and an independent review of every added claim (UI labels, conditions, params, errors, links). 0 unverified in new text. `paperclip-runner.md` still shows its 10 known `adapter-config-field` misses on older lines (see carried-over notes).
 - **Auto-merge tier:** nothing this run.
 - **Heads-up — release imminent:** parent master has `docs(release): prepare v2026.1103.0 stable notes before publish` (#18842, 2026-11-03T22:49Z). The tag isn't out yet (`releases/latest` is still `v2026.1023.0`). When it lands, the next run should be release mode.
 
@@ -19,9 +19,9 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Task sort kept in URLs** (946735d0). Sort choices write `sortField`/`sortDir` to the URL. The list API's `sortField` now accepts `created`. `sortField` and `sortDir` weren't documented before, so `reference/api/issues.md` now covers both, with their `400` errors. **View all tasks** on Routines opens newest first (`issues.md`, `routines.md`).
 - **Composer images** (#18689): rounded thumbnails above the text in both composers, and new-task files kept in the browser until the task is created (`issues.md`).
 - **Closing a task stops its native run first** (#18616): a short paragraph in `issues.md` under reviewing and closing.
-- **Sentry run-failure intake** (#18714): new `POST /api/routine-triggers/public/{publicId}/sentry-run-failures`.
-  - `reference/api/routines.md`: a full section covering bearer-only auth, which alerts qualify, `202` `status: "ignored"`, loop protection, privacy, dedup, the `task_identifier`/`task_id`/`run_id` variables, and Sentry setup.
-  - `guides/projects-workflow/routines.md`: new "Example: repair failed runs reported by Sentry" walkthrough.
+- **Sentry run-failure repairs** (#18714, then reworked upstream by #18772 after the quarantine cutoff). The dedicated `/sentry-run-failures` endpoint from #18714 was **removed** on master by #18772, so the docs follow `b891e69b` and never mention it.
+  - `reference/api/routines.md`: a privacy note that app-webhook sender JSON is copied as-is into history and the task. New sections **Verified creation provenance** (`X-Paperclip-Source-Run-Token`, recorded as `createdByRunId`, `401` on bad tokens) and **Routine-wide execution receipts** (`X-Paperclip-Idempotency-Scope: routine` with `Idempotency-Key`, and its `400`s).
+  - `guides/projects-workflow/routines.md`: "Example: repair failed runs reported by Sentry" uses the normal `/fire` webhook. The Sentry tags Paperclip sends include `automation_origin_status`, `automation_routine_ids` and `task_shareable`. Loops are prevented with a Sentry alert filter on `automation_routine_ids`.
   - Pointers from `how-to/create-a-daily-routine.md` and `connectors/sentry.md`.
 - **AI account identity** (#18653).
   - `connectors/anthropic.md`: new "See which account is connected" section (Claude account, Organization, Sign-in method, Access), the profile-denied message, **Retry**, and `GET /api/companies/{companyId}/ai-connections/{connectionId}/identity`.
@@ -61,15 +61,15 @@ None. No entry left the cumulative window, and there are no revert commits in th
 - **Plugin SDK internals:** environment-task `executionContext`, workspace-provider `recoveryPullRequest`/`destinationRef`. These are internal to sandbox and workspace providers, and the SDK page doesn't cover environment-task schemas.
 - Internal recovery, heartbeat, native-runtime, workspace-migration, S3 multipart, redaction and DB teardown fixes; Daytona lease tracing; performance work (inbox, profile projection, review counts); evals, TestOps, e2e and CI changes.
 
-## ⚠ Drift (checked against parent `7b8aa60b`)
+## ⚠ Drift (checked against parent `7b8aa60b` and latest master `b891e69b`)
 
-None. `check-drift` scanned a full parent snapshot (`source: snapshot`, no warnings) and found 0 drift candidates. (`npm run sync:check` flags the two new tool-connection routes as `Verify:` only because it checks against the previous `last_seen_parent_sha`. It goes away once this state update lands.)
+At `7b8aa60b`: none (`source: snapshot`, no warnings). At `b891e69b`: two items, both from post-window commits. (1) The removed `/sentry-run-failures` route. The docs have since been rewritten, and the item is now cleared. (2) `agents:read` is undocumented in `roles-and-permissions.md` (#18766), which is left for the next run.
 
 ## Open questions from this run
 
-- **Sentry intake signing mode:** parent docs say the endpoint needs bearer auth "even if another signing mode is set". The code rejects any trigger whose signing mode isn't `bearer` with `401`. The docs follow the code: set **Signing mode** to `bearer`. Not checked: whether the webhook wizard's connection check accepts a test sent to the `/sentry-run-failures` address.
-- **Sentry intake prerequisite:** Paperclip only sends failed runs to Sentry with `PAPERCLIP_SENTRY_RUN_FAILURES=unexpected` or `all`, so the guide lists it as step 1. `unexpected` leaves out known configuration, quota and connection failures, so those never reach the repair routine.
-- **"Reuse an existing repair task or PR"** in the Sentry walkthrough is advice taken from the parent feature map. The code doesn't enforce it.
+- **Sentry docs pulled forward to master:** the Sentry example and API sections describe `b891e69b` behaviour (#18772), which lands after this run's quarantine window. If #18772 is reverted, revert those sections too.
+- **Sentry prerequisite:** Paperclip only sends failed runs to Sentry with `PAPERCLIP_SENTRY_RUN_FAILURES=unexpected` or `all`, so the guide lists it as step 1. The parent tutorial's `fix-failed-paperclip-run` skill appears nowhere in the code, so it was left out. Sentry's own UI wording is described in general terms only.
+- **Follow-ups for the next run (post-window, found during re-verification):** `environment-variables.md` doesn't list the three new Sentry provenance tags. `roles-and-permissions.md` lacks the new `agents:read` permission (#18766; `check-drift` flags it at master). The Coordinator sidebar label is now "Needs you", but `coordinator-workspace.md` says **Needs You**.
 - **"Native run" wording:** the closing-a-task paragraph calls `runtimeMode === "native"` "the Paperclip Runner". That matches how existing pages use the term.
 - **AI identity route** is documented only on `anthropic.md`. It could also sit next to the `/usage` route in `connectors/ai-usage.md`.
 - **Runner OOM subsection** sits under "Running several Runners on one machine", because that's where `paperclip-runnerd` launch flags already live. A neutral heading might suit it better.

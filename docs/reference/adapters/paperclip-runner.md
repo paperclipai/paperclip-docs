@@ -285,6 +285,8 @@ On Linux, processes inherit the Runner's out-of-memory protection. So if your VM
 
 When you give the Runner a negative score, the processes it supervises (the provider harness and its tool commands) are set back to `0`. That way the kernel can stop the runaway tool process, and the Runner stays up to report the failure. A value outside the range stops the Runner from starting. A negative score needs the right privilege on the host. If the Runner can't apply the score, it logs a warning and keeps running without the extra protection. The flag only has an effect on Linux.
 
+If your launcher puts a task's processes in a memory cgroup, also pass `--task-memory-cgroup <path>`. The agent is then told its memory limit, and when the kernel kills a process for using too much memory, the agent can see that this is what happened instead of facing an unexplained exit.
+
 ## Local MCP tools on the execution host
 
 An execution host can hand a native session its own local stdio MCP servers, alongside the HTTP gateway. Set `PAPERCLIP_NATIVE_MCP_STDIO` on the execution host to a JSON array of bindings, and `PAPERCLIP_NATIVE_MCP_PROXY` to the assigned Runner executable:

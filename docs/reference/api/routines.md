@@ -666,9 +666,11 @@ For timestamped HMAC validation, the server enforces the replay window from the 
 
 For `app_webhook` triggers, the validated JSON payload is appended to the execution issue's description inside a fenced data block, labelled as external data the agent must not treat as instructions. The block is capped at 16,384 characters; the full payload is always stored on the routine run. A signed `app_webhook` delivery without an idempotency key is deduplicated by a digest of the trigger and the exact body, so an identical signed retry does not start a second run.
 
+Paperclip copies that JSON as it arrives. There's no field allowlist and no scrubber: the full payload lands in routine history, which everyone in the company can read, and in the execution task. Only send data you're happy for everyone in the company to see, and strip secrets or personal data at the source. Authenticating the request, or attaching a verified caller, doesn't make the payload private.
+
 `fireflies_hmac` triggers keep their provider-specific handling: only authenticated meeting metadata (`event`, `meeting_id`, `timestamp`, and an optional `client_reference_id`) becomes run input, runs are deduplicated per meeting, and events other than `meeting.summarized` are acknowledged with `{ "status": "ignored", "routineStarted": false, "linkedIssueId": null }` without creating a run.
 
-For deduplication the server reads an idempotency key from the `Idempotency-Key` header, falling back to `X-GitHub-Delivery`. Sending the same key on a retry prevents a duplicate run — and, during setup, prevents a retried test delivery from starting the routine once the trigger is enabled.
+For deduplication the server reads an idempotency key from the `Idempotency-Key` header, falling back to `X-GitHub-Delivery`. Sending the same key on a retry prevents a duplicate run — and, during setup, prevents a retried test delivery from starting the routine once the trigger is enabled. Keys are matched per trigger unless you opt into [routine-wide receipts](#routine-wide-execution-receipts).
 
 If the trigger is still [setup-pending](#webhook-setup-and-test-deliveries), the endpoint validates the delivery and records it as a test receipt, but does not create a run.
 
@@ -734,59 +736,45 @@ run = response.json()
 
 <!-- /tabs -->
 
-## Sentry Run-Failure Intake
+### Verified creation provenance
 
-```http
-POST /api/routine-triggers/public/{publicId}/sentry-run-failures
+Sometimes one Paperclip run calls another routine's webhook, for example a build agent that hands off to a follow-up routine. You can tell the receiving routine which run made the call, so the new task keeps a trustworthy record of the automation that created it.
+
+Add the optional `X-Paperclip-Source-Run-Token` header with the calling run's current Paperclip run JWT. On local adapters that's usually the `PAPERCLIP_API_KEY` Paperclip injects into the run. Board API keys and long-lived agent API keys don't qualify. If your agent only has a different kind of credential, call [Manual Run](#manual-run) instead. The trigger still needs its own authentication, so the header goes alongside the normal signing headers, never instead of them:
+
+```bash
+curl -X POST "$WEBHOOK_URL" \
+  -H "Authorization: Bearer $WEBHOOK_SECRET" \
+  -H "X-Paperclip-Source-Run-Token: $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"event": "build.failed", "build_id": "123"}'
 ```
 
-Use this endpoint when you want a routine to pick up failed Paperclip runs automatically. Paperclip reports a failed run to Sentry, a Sentry alert calls this endpoint, and the routine opens a repair task for the failed work. The endpoint checks every alert against your own data first. It never starts a repair for a repair, so the routine can't loop on its own output.
+Paperclip checks the token after the trigger's own authentication. It has to be a valid run JWT for the routine's company on this instance, and the run it names must still be running, not cancelled, with an agent that isn't terminated or pending approval. Anything else returns `401` and creates no run. Leave the header out and the call works as before, with no caller recorded.
 
-It is a second address for an ordinary webhook trigger. Create a webhook trigger on your repair routine, then replace `/fire` at the end of its `webhookUrl` with `/sentry-run-failures`. The body rules match the [fire endpoint](#fire-public-trigger): `Content-Type: application/json` and a JSON object.
+A verified caller is stored as `createdByRunId` on the routine run, separate from `triggerPayload`. Fields in the JSON body, such as a `createdByRunId` you put there yourself, stay ordinary payload data and prove nothing. The header records where the work came from. It gives the caller no extra permissions in the receiving routine.
 
-### Authentication
+Agents don't need the header when they call [Manual Run](#manual-run) with their own run credentials: Paperclip records the validated caller run on those calls automatically.
 
-This endpoint accepts bearer authentication only. The trigger's `signingMode` must be `bearer`. A trigger with any other signing mode gets `401`, even when the request carries a valid signature. Send the trigger's secret as `Authorization: Bearer <webhookSecret>`.
+### Routine-wide execution receipts
 
-`bearer` is the default when you create a webhook trigger through the API without a `signingMode`. If you set the trigger up in the UI, choose `bearer` under **Signing mode**.
+By default an `Idempotency-Key` is remembered per trigger. If the same event can reach one routine through more than one webhook trigger, add `X-Paperclip-Idempotency-Scope: routine` with a stable `Idempotency-Key`. A repeat of that key on any webhook trigger of the routine then returns the original run instead of starting a new one. That still holds after you delete the trigger that took the first delivery.
 
-### What the endpoint accepts
+| `X-Paperclip-Idempotency-Scope` | What the key is matched against |
+|---|---|
+| `trigger` (default) | Earlier deliveries to this trigger only. |
+| `routine` | Earlier webhook deliveries to any trigger on this routine. |
 
-The endpoint reads Sentry event-alert payloads. A delivery only counts when all of these hold:
+A few rules:
 
-- `action` is `"triggered"`
-- `data.event.tags` holds an `event_kind` tag set to `run_failure`, plus `run_id` and `task_id` tags that are UUIDs. Tags can arrive as pairs, as key/value objects, or as a dictionary.
-- if a `company_id` tag is present, it matches the routine's company
-- the run belongs to that task in the routine's company, and its status is `failed`, `timed_out`, or `cancelled`
-- the task and its project are open, not private, and the routine's assignee agent can read the task. The routine also needs an assignee agent.
-- neither the task nor anything it descends from was created by this routine or by any other Sentry run-failure repair routine. Paperclip follows task parents and the runs that created each task to check this. If it can't trace a task's history, or the history runs past 100 tasks, it treats the task as a repair and skips it.
+- Send the same key and the same scope on every retry of one event. Give a different event a different key.
+- Any other value returns `400` with `X-Paperclip-Idempotency-Scope must be trigger or routine`.
+- `hmac_sha256` triggers keep their trigger-scoped replay protection. Asking for `routine` scope there returns `400` with `Timestamped HMAC replay protection uses trigger-scoped receipts`.
+- The scope only affects deduplication. Concurrency policy, pausing, and the other routine controls still apply.
 
-Anything else returns `202` with `{ "status": "ignored", "routineStarted": false, "linkedIssueId": null }` and creates no work. The reason is written to the routine's activity log as `routine.webhook_ignored`. Possible reasons are `not_company_run_failure`, `source_run_unavailable`, `source_not_shareable`, `source_not_readable`, and `repair_automation_provenance`.
+Setup-pending triggers still create no runs, and their test receipts stay with the trigger you're setting up.
 
-Private and unreadable tasks are skipped on purpose. Routine history is visible across the company, and copying a private task's identifiers into it would leak them.
-
-### What the routine receives
-
-An accepted delivery passes the routine three variables: `task_identifier`, `task_id`, and `run_id`. Reference them as `{{task_identifier}}`, `{{task_id}}`, and `{{run_id}}` in the routine's title or instructions. See [variable templates](../../guides/projects-workflow/routines.md#variable-templates).
-
-Paperclip rebuilds the payload from the validated data. It keeps the task and run IDs, a short `errorCode` taken from the `error_code` tag, and the Sentry event ID when it is well formed. Any instructions or variables in the Sentry body are dropped. The rebuilt payload goes into the execution task's description as a fenced data block, labelled as external data the agent must not treat as instructions.
-
-### Deduplication
-
-Each failed run creates at most one repair. Retries, and repeated Sentry events for the same run, share one receipt, even when they arrive through different triggers on the same routine. This holds whatever the routine's concurrency policy is. A different failed run can create its own repair task.
-
-While the trigger is [setup-pending](#webhook-setup-and-test-deliveries), an authenticated delivery is recorded as a connection test and creates no work.
-
-### Setting up the Sentry side
-
-Paperclip has to be reporting failed runs to Sentry first. Set `PAPERCLIP_SENTRY_RUN_FAILURES` to `unexpected` or `all` (see [Error Monitoring (Sentry)](../deploy/environment-variables.md#error-monitoring-sentry)). Paperclip tags those events with `event_kind: run_failure`, `run_id`, `task_id`, `company_id`, and `error_code`.
-
-In Sentry:
-
-1. Create a custom integration whose webhook calls the `/sentry-run-failures` URL with the `Authorization: Bearer <webhookSecret>` header. Keep the secret private.
-2. Add an alert that fires when **An event is captured**.
-3. Filter on the `event_kind` tag equal to `run_failure`. Add environment or company filters if more than one Paperclip instance reports to the same Sentry project.
-4. Send the alert to your custom integration on every event, not only when a Sentry issue is created or regresses. Otherwise a repeat failure inside an existing Sentry issue never reaches the routine.
+For a worked example that combines a normal webhook with Sentry, see [Example: repair failed runs reported by Sentry](../../guides/projects-workflow/routines.md#example-repair-failed-runs-reported-by-sentry).
 
 ---
 
