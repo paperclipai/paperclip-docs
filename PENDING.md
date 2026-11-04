@@ -2,31 +2,41 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `8ea24021` (@ 2026-11-02T06:27Z). 24h quarantine applied (cutoff 2026-11-02T11:00Z).
-- **Compare truncation:** 0 truncated leaves (increment: 1 leaf, 6 commits, 101 files; cumulative: 82 leaves, 1087 commits, 6427 files).
+- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `7b8aa60b` (@ 2026-11-03T06:46Z). 24h quarantine applied (cutoff 2026-11-03T11:00Z).
+- **Compare truncation:** 0 truncated leaves (increment: 3 leaves, 76 commits, 566 files).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
-- **Already on nightly:** drafts for `1b4c8038..1d348bbe` from earlier runs. This run covers the 6 newer commits, `1d348bbe..8ea24021`.
-- **Verification:** every page changed this run was checked against `8ea24021` with `verify-edit` (`source: snapshot`, no warnings): 0 unverified, 0 suspicious. Every parent read was pinned to `8ea24021`.
+- **Already on nightly:** drafts for `1b4c8038..8ea24021` from earlier runs. This run covers the 76 newer commits, `8ea24021..7b8aa60b`.
+- **Verification:** every page changed this run was first checked against `7b8aa60b`. All of them were then re-verified against the **latest parent master `b891e69b`** (2026-11-04T13:19Z): `verify-edit` on every page (`source: snapshot`, no warnings) and an independent review of every added claim (UI labels, conditions, params, errors, links). 0 unverified in new text. `paperclip-runner.md` still shows its 10 known `adapter-config-field` misses on older lines (see carried-over notes).
 - **Auto-merge tier:** nothing this run.
+- **Heads-up — release imminent:** parent master has `docs(release): prepare v2026.1103.0 stable notes before publish` (#18842, 2026-11-03T22:49Z). The tag isn't out yet (`releases/latest` is still `v2026.1023.0`). When it lands, the next run should be release mode.
 
-## Applied this run (`1d348bbe..8ea24021`)
+## Applied this run (`8ea24021..7b8aa60b`)
 
-- **Refine-v2 agent page** (#18378). A full redesign of the agent page, with no flag to switch back.
-  - `guides/org/agents.md`: rewrote the agent page sections.
-    - The side menu now has two groups, Agent and Audit. Skills, Tools, Channels and API Keys are reachable only by URL, and `/instructions` redirects to `/identity`.
-    - The header: name and title edit in place, and **Assign task** (or **Finish setup**) is the main button. Run now, Pause/Resume, Clear error and Agent history moved to the `⋯` menu, and the crown button replaces **Set as my primary**.
-    - Overview has four tiles, plus Profile, Skills and Recent tasks panels.
-    - Instructions is now **Identity**: raw preview, pencil editor, the managed chip, and external Root path / Entry file / **Load profile**.
-    - Covers the Harness / Runtime panels, the Permissions / Trust cards with Allowed connectors, and the **Agent history** dialog that replaces Revisions.
-    - Runs, Activity, Costs and Budgets now render inside the agent. Also the save-bar dots and the leave guard.
-    - Old anchors are kept as `<a id>` tags. The `seo_description` was updated.
-  - **Reports to and heartbeat/run policy can't be edited in any form any more.** The page passes `hiddenSections={["identity","run-policy"]}`. The docs now route both through the **Advanced** YAML editor (`reportsTo`, `runtimeConfig.heartbeat.*`, `adapterConfig.timeoutSec`) or `PATCH /api/agents/{id}`. Updated pages: `org-structure.md`, `your-first-agent.md`, `watching-agents-work.md`, `routines.md`, `agent-adapters.md`, `delegation.md`, `debug-stuck-heartbeat.md`.
-  - Updated label and location text in `agent-configuration-yaml.md`, `skills.md`, `key-concepts.md`, `glossary.md`, `require-board-approval-before-spend.md`, `trust-and-low-trust-review.md` and `team-catalog.md`.
-  - `guides/org/agent-identity.md`: the UI no longer shows the agent's public key, because the Overview identity card was removed. The page points to `GET /api/agents/{id}/identity` and tells this apart from the new **Identity** (instructions) menu item.
-- **Instructions bundle API** (#18378): `reference/api/agents.md` gets a new "Changing the bundle location" section. It covers the optional `requireExistingEntry` flag (only for `external` bundles) and its 422 errors.
+- **Monitoring display status** (#18624). An in-progress task that's waiting on a scheduled monitor, with nothing running, now shows as **Monitoring** with a blue clock.
+  - `guides/day-to-day/issues.md`: new **Monitoring** entry in the status reference (display-only, stored status stays `in_progress`, usage-limit monitors excluded, can't drop cards into its board column), plus a link from the Monitor row.
+  - `reference/api/issues.md`: read-only `displayStatus` on issue records, the `displayStatus` list/count filter (values from `ISSUE_DISPLAY_STATUSES`), and the same filter on company search.
+  - `guides/welcome/glossary.md`: Monitoring added to the Task entry.
+- **Task sort kept in URLs** (946735d0). Sort choices write `sortField`/`sortDir` to the URL. The list API's `sortField` now accepts `created`. `sortField` and `sortDir` weren't documented before, so `reference/api/issues.md` now covers both, with their `400` errors. **View all tasks** on Routines opens newest first (`issues.md`, `routines.md`).
+- **Composer images** (#18689): rounded thumbnails above the text in both composers, and new-task files kept in the browser until the task is created (`issues.md`).
+- **Closing a task stops its native run first** (#18616): a short paragraph in `issues.md` under reviewing and closing.
+- **Sentry run-failure repairs** (#18714, then reworked upstream by #18772 after the quarantine cutoff). The dedicated `/sentry-run-failures` endpoint from #18714 was **removed** on master by #18772, so the docs follow `b891e69b` and never mention it.
+  - `reference/api/routines.md`: a privacy note that app-webhook sender JSON is copied as-is into history and the task. New sections **Verified creation provenance** (`X-Paperclip-Source-Run-Token`, recorded as `createdByRunId`, `401` on bad tokens) and **Routine-wide execution receipts** (`X-Paperclip-Idempotency-Scope: routine` with `Idempotency-Key`, and its `400`s).
+  - `guides/projects-workflow/routines.md`: "Example: repair failed runs reported by Sentry" uses the normal `/fire` webhook. The Sentry tags Paperclip sends include `automation_origin_status`, `automation_routine_ids` and `task_shareable`. Loops are prevented with a Sentry alert filter on `automation_routine_ids`.
+  - Pointers from `how-to/create-a-daily-routine.md` and `connectors/sentry.md`.
+- **AI account identity** (#18653).
+  - `connectors/anthropic.md`: new "See which account is connected" section (Claude account, Organization, Sign-in method, Access), the profile-denied message, **Retry**, and `GET /api/companies/{companyId}/ai-connections/{connectionId}/identity`.
+  - `connectors/openai.md`: shorter version.
+  - Both: fixed an outdated intro that said nothing appears on the **Permissions** tab.
+- **Slack: Open Slack stays after setup** (#18722): `connectors/slack.md`.
+- **Connection Review badge and routes** (#18688, #18687): `connectors/review-requests.md` (badge count, 30-second refresh, hidden when archived). `reference/api/tool-gateway.md` gains `GET /api/tool-connections/{connectionId}/review-counts` and `/profile-configuration`.
+- **Coordinator and chat** (#18703, #18615, #18174, #18636).
+  - `experimental/coordinator-workspace.md`: **New task** button above **Chat**.
+  - `experimental/task-chat.md`: agent names and avatars link to the agent overview, and the failed-attempt notice now stands out.
+- **Runner OOM protection** (#18730): `reference/adapters/paperclip-runner.md` gets a "Keep a runaway tool from taking down the machine" subsection on `paperclip-runnerd --oom-score-adj`.
 
 ## Applied in earlier runs (still on nightly, unreleased)
 
+- `1d348bbe..8ea24021` (#168): Refine-v2 agent page, YAML-only reporting line and heartbeat, instructions bundle `requireExistingEntry`.
 - `322fa6b6..1d348bbe` (#167): remote task workspaces, durable agent files, readiness probe.
 - `8035f8b2..322fa6b6` (#166): Kimi Code on Runner, send-to-chat, task document galleries, run logs in S3.
 - `8ac5a128..8035f8b2` (#164): Antigravity preview, compact agent YAML, plugin GitHub broker, skill package storage.
@@ -45,15 +55,26 @@ None. No entry left the cumulative window, and there are no revert commits in th
 
 ## Not documented this run
 
-- Volume-free controller admission and recovery (#18543), sessions kept with busy-overlap recovery deferred (#18552), and suspended sessions resumed after controller replacement (#18554): internal recovery work.
-- `maps/feature-map/agents.md` and `doc/DEVELOPING.md` (parent's own docs) and the chat completion TestOps pilot (#18516): developer and test tooling.
-- Tests: durable file assertions (#18533).
+- **Composer "New Task" heading removed** (#18604): no page claimed the heading existed.
+- **`download_artifact` Runner tool** (#18494) and **`create_task` assignment guidance** (#18704): `paperclip-runner.md` doesn't list the Runner's tools, so they have no home yet.
+- **Slack manager-grant fix** (#18707): a bug fix for an error the Slack page doesn't document.
+- **Plugin SDK internals:** environment-task `executionContext`, workspace-provider `recoveryPullRequest`/`destinationRef`. These are internal to sandbox and workspace providers, and the SDK page doesn't cover environment-task schemas.
+- Internal recovery, heartbeat, native-runtime, workspace-migration, S3 multipart, redaction and DB teardown fixes; Daytona lease tracing; performance work (inbox, profile projection, review counts); evals, TestOps, e2e and CI changes.
 
-## ⚠ Drift (checked against parent `8ea24021`)
+## ⚠ Drift (checked against parent `7b8aa60b` and latest master `b891e69b`)
 
-None. `check-drift` scanned a full parent snapshot (`source: snapshot`, no warnings) and found 0 drift candidates.
+At `7b8aa60b`: none (`source: snapshot`, no warnings). At `b891e69b`: two items, both from post-window commits. (1) The removed `/sentry-run-failures` route. The docs have since been rewritten, and the item is now cleared. (2) `agents:read` is undocumented in `roles-and-permissions.md` (#18766), which is left for the next run.
 
 ## Open questions from this run
+
+- **Sentry docs pulled forward to master:** the Sentry example and API sections describe `b891e69b` behaviour (#18772), which lands after this run's quarantine window. If #18772 is reverted, revert those sections too.
+- **Sentry prerequisite:** Paperclip only sends failed runs to Sentry with `PAPERCLIP_SENTRY_RUN_FAILURES=unexpected` or `all`, so the guide lists it as step 1. The parent tutorial's `fix-failed-paperclip-run` skill appears nowhere in the code, so it was left out. Sentry's own UI wording is described in general terms only.
+- **Follow-ups for the next run (post-window, found during re-verification):** `environment-variables.md` doesn't list the three new Sentry provenance tags. `roles-and-permissions.md` lacks the new `agents:read` permission (#18766; `check-drift` flags it at master). The Coordinator sidebar label is now "Needs you", but `coordinator-workspace.md` says **Needs You**.
+- **"Native run" wording:** the closing-a-task paragraph calls `runtimeMode === "native"` "the Paperclip Runner". That matches how existing pages use the term.
+- **AI identity route** is documented only on `anthropic.md`. It could also sit next to the `/usage` route in `connectors/ai-usage.md`.
+- **Runner OOM subsection** sits under "Running several Runners on one machine", because that's where `paperclip-runnerd` launch flags already live. A neutral heading might suit it better.
+
+### Earlier open questions (from the `8ea24021` run)
 
 - **Reports to and heartbeat are YAML-only now.** The parent PR lists this as an accepted risk ("Run policy and Reports to are no longer editable on the agent page"), and the org chart can't re-parent agents by dragging. Basic tasks like changing a manager or turning on a heartbeat now walk readers through YAML. If upstream adds a form back, revert those walkthroughs.
 - **The agent public key has no UI.** `agent-identity.md` now points to the API only. Check this is intended upstream.
@@ -90,12 +111,13 @@ None. `check-drift` scanned a full parent snapshot (`source: snapshot`, no warni
 - Placeholder values in the git-authorization response and plugin manifest examples are illustrative.
 - Older carry-overs: restore-point `.env` handling and the commit cap, 1Password labels, Unikraft host reachability, the Vercel overview link, Supabase token text, task-dismissal scope, onboarding wording, plugin SDK warm-session defaults, Artifacts V1 visuals, the Slack DM at-mention exemption that is only on master (#16151), Braintrust/Ditto qualification, the Cases tool-group toggle, plugin agent-view notices, the OpenCode missing-model error, budget stop latency, Copilot qualification wording.
 
-## Arriving next run (in quarantine, landed after 2026-11-02T11:00Z)
+## Arriving next run (in quarantine, landed after 2026-11-03T11:00Z)
 
-About 76 commits. Ones that likely affect the docs:
-- Coordinator sidebar gets **New task** above Chat (#18703). The New Task heading is removed from the composer (#18604).
-- Scheduled task waits show as **Monitoring** (#18624). Task sorting is kept in URLs, and routine tasks are listed newest first.
-- Chat message identities link to agent overviews (#18615). Connections show the AI account identity (#18653).
-- Runner: bounded startup lifetime contracts (#18490), verified API artifacts installed in execution workspaces (#18494).
-- Inherited remote workspace bindings (#18611, #18691) and Slack manager grants during bot setup (#18707).
-- Plus many internal fixes, performance work and eval/TestOps changes.
+About 100 commits. Ones that likely affect the docs:
+- **v2026.1103.0 stable notes** prepared (#18842). Expect the release tag soon, which means release mode.
+- Experimental Cursor Cloud on the native Runner (#18069), and API-only controllers on managed stacks (#18310).
+- Project concurrency policy and admission storage (#18746). Routine automation ancestry kept through webhooks (#18772).
+- Per-turn Runner sessions on ephemeral web servers (#18932). The agent is told the launcher's memory limit (#18801).
+- UI: confirmation prompts render as Markdown (#18851), Stop shown for failed native retries (#18899), coordinator navigation and task list defaults (#18831), Done closes a completed Slack setup (#18878), Slack workspace reconnect on setup errors (#18837), agent avatars in the chat picker (#18709), task identifiers in activity toasts (#18802).
+- Telemetry tracks the server OS (#18897). Owned sleep blocker diagnostics (#18632).
+- Plus many internal recovery, native-runtime, CI and eval changes.

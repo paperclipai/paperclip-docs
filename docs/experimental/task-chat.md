@@ -39,7 +39,7 @@ Everything is still there. It just moved.
 
 ### Bubbles
 
-Your own messages sit on the right in a solid accent bubble. Everyone else sits on the left with an author header. For an agent that's its icon, its name, and a small chip naming the mode the request ran in. For another person it's their name and profile picture, or their initials. So when a teammate comments on the same task, their message looks like theirs, not yours. System notices are centered and quiet. Hover a bubble to reveal its timestamp.
+Your own messages sit on the right in a solid accent bubble. Everyone else sits on the left with an author header. For an agent that's its icon, its name, and a small chip naming the mode the request ran in. For another person it's their name and profile picture, or their initials. So when a teammate comments on the same task, their message looks like theirs, not yours. Want to know more about an agent? Click its name or icon to open that agent's overview page. The name at the top of a turn works the same way. System notices are centered and quiet. Hover a bubble to reveal its timestamp.
 
 If your company has turned on fast responses, a short acknowledgement can appear from the agent right after you send, while the agent gets started. It carries an info button (**Message details**) that explains *Platform-generated acknowledgement. The agent’s substantive response follows separately.* It doesn't count as the agent's answer. See [Fast responses](../guides/day-to-day/costs.md#fast-responses).
 
@@ -155,6 +155,8 @@ Resume releases the hold. You can optionally wake eligible agents. **Wake affect
 
 - *Trying again in 30s…* (or in minutes, for a longer wait) while Paperclip has an automatic retry lined up. Your saved work and messages are kept while it repairs things.
 - *Couldn’t finish this attempt. Your message is saved.* once Paperclip has stopped retrying on its own.
+
+The retry countdown stays quiet. When Paperclip has stopped retrying, the line gets a lightly tinted panel with an error icon, so you can spot that it needs you. A failure the model provider reports (a rate limit, a sign-in problem, an unavailable model and so on) shows as a red banner naming the provider and the reason instead, even while a retry is lined up.
 
 If you can manage recovery on the board, the line also has a **Retry** button. Click it to have Paperclip try the task again, picking up the saved messages and the work the agent already preserved. Each click counts as a new request, so if the automatic retries had run out, Retry gives recovery a fresh set of attempts. If nothing seems to happen, the line changes to *Taking longer than usual…*. Your request is still saved, so clicking **Retry** again won't start a second attempt. Retry also won't start anything extra if the task has already moved on since you looked, for example because a newer run started or the task is done.
 

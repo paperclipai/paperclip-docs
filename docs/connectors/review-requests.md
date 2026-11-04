@@ -16,6 +16,8 @@ Two places, same queue:
 
 Pending items are labelled **Waiting for your OK**. The connector list flags the connection as **Needs attention** while something is pending.
 
+Inside a connector, the **Review** tab in its sidebar carries a badge so you can see at a glance how much is waiting. The number is the count of pending action requests, plus one if any of the connection's actions are quarantined. It refreshes every 30 seconds, and an archived connection shows no badge.
+
 The API equivalent is:
 
 ```http

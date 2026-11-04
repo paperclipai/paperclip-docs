@@ -67,6 +67,8 @@ Automatic setup has four steps: **Choose agent**, **App configuration access tok
 2. **Install Slack app.** Slack opens in a new tab so you can approve the install. If the tab was blocked or you closed it, click **Install in Slack**. Use your own Slack account: Paperclip links the account that approves the install to you, and the bot sends you a welcome DM ("Your Slack account is connected to Paperclip").
 3. **Send a message to your agent.** Click **Open Slack** and send the bot a message. Paperclip checks for it automatically and shows **Success** when it arrives. Click **Done**. If it keeps waiting, open **Didn't work?** for the **Event Subscriptions** and **Request URL** steps.
 
+After managed or automatic setup, the **Success** screen keeps an **Open Slack** link, so you can jump straight into the conversation. If Paperclip knows your workspace and your DM with the bot, and the linked Slack account is yours, it opens that DM. Otherwise it opens the app's saved Slack link, or Slack itself.
+
 Paperclip uploads the agent's avatar as the app icon. If the upload fails, setup carries on, and you can upload an icon in Slack later.
 
 #### Manual setup or an existing app
@@ -170,7 +172,7 @@ For something like "every weekday at 10am, post the standup summary in #team", u
 
 ### Settings and access
 
-The connection's page has **Settings**, **Access**, **Conversations**, and **Activity** tabs. **Open Slack configuration** at the top takes you straight to the app in Slack's settings.
+The connection's page has **Settings**, **Access**, **Conversations**, and **Activity** tabs. Once setup is finished, **Open Slack** at the top follows the same rule as the **Success** screen: your DM with the bot when Paperclip can open it, otherwise Slack. **Open Slack configuration** takes you straight to the app in Slack's settings.
 
 - **Send me a test message** checks the bot from Paperclip. It sends a DM to your linked Slack account. If your account isn't linked yet, pick it from the list and Paperclip sends you a connection invitation in Slack first; open it to link your account, and the test message follows.
 - **Settings** lists **Allowed Channels** (every channel the bot is in), the **Allow direct messages** and **Require at-mention** toggles, **Additional communication instructions**, and the **Slack tools** summary.

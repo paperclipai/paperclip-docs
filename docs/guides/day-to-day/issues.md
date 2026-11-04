@@ -51,7 +51,7 @@ Open **Tasks** to see the work across your company. The API calls these records 
 
    **Tasks created by agents are hidden by default.** Agent delegation and automatic routine runs can easily outnumber the requests people make, so the list starts with human-created work. To see everything, open **Filter** and tick **show agent-created tasks** under **Visibility**. Your choice is remembered for that list, and **Clear** in the filter menu hides them again. A hidden task still appears as a parent or as an expandable subtask of a task you can see, so trees stay intact. Tasks from chat channels count as agent-created, even when a person started the conversation. The same checkbox is on project task lists and in the Inbox.
 
-   On the main Tasks list, **Visibility** also has a **Routine tasks** checkbox. Tick it to show only the tasks your [routines](../projects-workflow/routines.md) created, agent-created or not. The filter lives in the URL as `originKind=routine_execution`, so you can bookmark or share it. The **View all tasks** button on the Routines page opens this view.
+   On the main Tasks list, **Visibility** also has a **Routine tasks** checkbox. Tick it to show only the tasks your [routines](../projects-workflow/routines.md) created, agent-created or not. The filter lives in the URL as `originKind=routine_execution`, so you can bookmark or share it. The **View all tasks** button on the Routines page opens this view with the newest-created tasks first.
 
    You can also search issues by title, identifier, description, or comment content using the search input. The URL `?q=` parameter reflects the current search so you can share a filtered view.
 
@@ -63,6 +63,8 @@ Open **Tasks** to see the work across your company. The API calls these records 
    - **Column picker** — choose which trailing columns are visible: **Responsible**, **Kicked off by**, **Project**, **Workspace**, **Parent task**, **Tags**, and **Last updated**.
 
    These controls live in the toolbar next to the search input and persist per view.
+
+   **Your sort order travels with the link.** When you sort a task view, Paperclip writes your choice into the URL as `sortField` and `sortDir` (for example `?sortField=created&sortDir=desc`). Reload the page, come back through a return link, or send the link to a teammate, and the list opens in the same order.
 
 4. **Live run indicators**
 
@@ -94,7 +96,9 @@ Implementation reference: [Tasks page and live updates](https://github.com/paper
 
 5. **Add files or images if they help.**
 
-   Use **Files and images** in the **+** menu, paste, or drop files into the composer. Resolve an upload error before submitting so the agent receives the material you intended.
+   Use **Files and images** in the **+** menu, paste, or drop files into the composer. Images you add show up as small, equal-size rounded thumbnails above the text, so you can keep typing and still see what you've attached. Click the **X** on a thumbnail to remove it. Resolve an upload error before submitting so the agent receives the material you intended.
+
+   Files you add here are saved in your browser until the task is created, so a reload doesn't lose them. Once you create the task, the saved copies are cleared.
 
 6. **Click Create task**, or press **⌘+Enter** (**Ctrl+Enter** on Windows and Linux).
 
@@ -162,6 +166,8 @@ Review the output, and if you want to provide feedback or request changes, post 
 
 If the issue is complete and you're satisfied, the done status is terminal — no further action is needed. The issue is part of your company's permanent record.
 
+You can also close a task yourself by setting it to **Done** or **Cancelled**. If an agent is still running on it through the [Paperclip Runner](../../reference/adapters/paperclip-runner.md), Paperclip stops that run first and only then releases the task, so the agent doesn't keep working on a task that's already closed. If the run can't be confirmed as stopped, the task stays open and you see an error instead.
+
 ---
 
 ## Issue Status Reference
@@ -176,6 +182,9 @@ The issue is ready to start. An agent has been assigned and is waiting to check 
 
 **In Progress**
 An agent has checked out the issue and is actively working on it. Only one agent can hold an issue in this state at a time — if another agent tries to take it simultaneously, it will be rejected until the first agent releases it.
+
+**Monitoring**
+A display-only label for an **In Progress** task that's waiting on a scheduled [monitor](#the-issue-detail-sidebar) check. You see it, with a blue clock icon, when the task is assigned to an agent, has a scheduled monitor, and nothing is running or queued on it right now (no active run and no recovery in progress). Monitoring appears in status icons, list groups, its own board column, status filters, and search filters. The task's stored status is still `in_progress`, and the label never gives the agent permission to run. As soon as a check starts, the task shows as **In Progress** again. A monitor waiting on provider usage limits doesn't show as Monitoring. You can't drag a card into the Monitoring board column; it only reflects what the monitor is doing.
 
 **In Review**
 The agent has completed the work and moved the issue to review. It's waiting for sign-off before being closed.
@@ -315,7 +324,7 @@ The fields are grouped into sections, in this order. Some rows only appear when 
 - **Approvers** — agents or users who must approve before the task can complete. Same runnable-stage behaviour as Reviewers, but for the approval stage, with a **Run approval now** button.
 - **Execution** — the current execution stage label, for example `Review pending with <participant>`. Read-only; it's driven by the execution policy.
 - **Pull requests** — the pull requests saved on this task, with the ones waiting on your review first and marked **Review requested**. Each links straight to the PR and, when Paperclip can read it, shows its live GitHub status. A saved PR stays listed even when Paperclip can't look it up — for example, a private repository without a token — so you never lose the link. See [Waiting on your pull request review](#waiting-on-your-pull-request-review).
-- **Monitor** — an optional date and time for a scheduled check-in on the task. When one is set, the row shows the next check time. Automatic checks only run while the task is in progress or in review. If the task moves to another status but keeps its monitor, the row, the task's monitor card, and the strip above the composer say **Automatic checks paused**. On a blocked task you can still click **Check now** to ask the agent for one manual check; the task's status doesn't change. (The exception is a monitor waiting on provider usage limits, which stays paused until you resume the task.) If that check can't start (for example, the previous run is still being recovered), you see a message explaining why instead of a silent success. On other statuses, **Check now** is hidden and the card says *Resume this task to continue checking.* You can also cancel a monitor from its card on the task page. Click the **X** (**Cancel monitor**) in the card's top-right corner, then confirm with **Cancel monitor**. Choose **Keep monitor** to leave it as it is. Once you cancel it, the agent no longer resumes from that monitor. Send a message when you want the task to continue. Agents on the Paperclip runner can set a monitor themselves with the `set_task_monitor` tool and then end their turn waiting on it. The task stays active, and Paperclip wakes the assignee at or after the scheduled check time instead of the agent polling.
+- **Monitor** — an optional date and time for a scheduled check-in on the task. When one is set, the row shows the next check time. Automatic checks only run while the task is in progress or in review. If the task moves to another status but keeps its monitor, the row, the task's monitor card, and the strip above the composer say **Automatic checks paused**. On a blocked task you can still click **Check now** to ask the agent for one manual check; the task's status doesn't change. (The exception is a monitor waiting on provider usage limits, which stays paused until you resume the task.) If that check can't start (for example, the previous run is still being recovered), you see a message explaining why instead of a silent success. On other statuses, **Check now** is hidden and the card says *Resume this task to continue checking.* You can also cancel a monitor from its card on the task page. Click the **X** (**Cancel monitor**) in the card's top-right corner, then confirm with **Cancel monitor**. Choose **Keep monitor** to leave it as it is. Once you cancel it, the agent no longer resumes from that monitor. Send a message when you want the task to continue. Agents on the Paperclip runner can set a monitor themselves with the `set_task_monitor` tool and then end their turn waiting on it. The task stays active, and Paperclip wakes the assignee at or after the scheduled check time instead of the agent polling. While an agent-assigned, in-progress task waits for its next check with nothing running, it shows as **Monitoring** in lists and on the board (see the [status reference](#issue-status-reference)).
 - **Watchdog** — the agent that watches this task's subtree for stalls. See [Task watchdogs](#task-watchdogs).
 
 **Workspace** (when the task has a workspace)
@@ -512,7 +521,7 @@ At the bottom of the conversation sits the composer. [Chat-Style Tasks](../../ex
 - **@mentions** — type `@` to open the mentions picker. Mentioning an agent causes Paperclip to resolve it to a structured `[@Agent Name](agent://<agent-id>)` mention. A mention is context only: it doesn't wake the agent, start a run, hand it the task, or forward your comment to another task. To bring another agent in, assign the task or request a review.
 - **Default recipient** — when an agent hands a task to you and you open it, the composer picks the agent that most recently assigned it to you. Your reply goes back to that agent without any extra clicks. If no agent assigned it to you, it falls back to the most recent other commenter. If there isn't one, no recipient is chosen. A recipient you pick yourself stays put when the page refreshes.
 - **Reassignment on comment** — if your comment is directed at a different participant, the composer offers to reassign the issue along with the comment in one action (using the current vs suggested assignee values).
-- **Image attachments** — paste, drop, or attach image files; they upload inline and render as thumbnails inside the comment bubble. Clicking a thumbnail opens the shared gallery modal.
+- **Image attachments** — paste, drop, or attach image files. While you write, each image appears as a small rounded thumbnail above the text rather than inside it; click its **X** to remove it, or the retry button if an upload fails. Once sent, images render as thumbnails inside the comment bubble. Clicking a thumbnail opens the shared gallery modal.
 - **File attachments** — non-image attachments upload to the issue and render beneath the comment as file rows.
 - **Voting** — each comment has up/down vote controls. Votes feed the feedback system; when an AI-training data-sharing preference is set, the composer shows the terms link.
 - **Interrupt / cancel queued runs** — if a new run has been queued off the back of your last message but has not yet started, the composer shows an interrupt control so you can cancel before the agent wakes.

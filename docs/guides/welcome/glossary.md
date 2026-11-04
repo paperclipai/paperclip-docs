@@ -160,7 +160,7 @@ The CEO agent's initial plan for achieving the company goal. After its first hea
 
 ### Task
 
-The unit of work in Paperclip. Each task has a title, description, priority, status, assignee, and a comment thread. Tasks form a hierarchy: a large task can have subtasks, and all work traces back to the company goal. Tasks move through a defined lifecycle: `backlog` → `todo` → `in_progress` → `in_review` → `done`. They can also be `blocked` or `cancelled`.
+The unit of work in Paperclip. Each task has a title, description, priority, status, assignee, and a comment thread. Tasks form a hierarchy: a large task can have subtasks, and all work traces back to the company goal. Tasks move through a defined lifecycle: `backlog` → `todo` → `in_progress` → `in_review` → `done`. They can also be `blocked` or `cancelled`. An `in_progress` task that's waiting on a scheduled monitor check shows as **Monitoring** in the UI, but its stored status is still `in_progress`.
 
 ---
 

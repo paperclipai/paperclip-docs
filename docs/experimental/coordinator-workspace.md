@@ -44,8 +44,10 @@ Turn the same switch off. The card tells you what to expect: *"Off by default. T
 The sidebar now has three main destinations:
 
 - **Chat** opens your conversations with agents.
-- **Tasks** opens the company task list. Hover the row for a **New task** button.
+- **Tasks** opens the company task list. Hover the row for a **New task** shortcut.
 - **Needs You** collects everything waiting on your decision. Its badge counts what's open.
+
+Want to hand off work right away? A **New task** button sits at the top, just above **Chat**, and opens the usual new-task form. It stays there when you collapse the sidebar too, as an icon you can hover to see its name.
 
 Other pages live under **More**: **Search**, **Inbox**, **Dashboard**, **Projects**, **Routines**, **Artifacts**, **Agents**, **Skills**, **Connectors**, **Audit**, and **Settings**. Hover any of them and click the pin to keep it in a **Pinned** section under the main three. Pins are saved in this browser, for your account.
 

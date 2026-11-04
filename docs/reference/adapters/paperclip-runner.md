@@ -279,6 +279,14 @@ If you build your own sandbox images, keep two things in mind when you upgrade:
 
 When a sandbox provider starts the Runner daemon (`paperclip-runnerd`) in listener mode, it listens on port `43127` by default. If you run more than one listening Runner on the same machine, give each its own port with `--listen-port` — any value from `1` to `65535`. The Runner still binds to `0.0.0.0`, accepts connections only on its run-specific path, and keeps the same authentication. A warm Runner that's reattached keeps the port it started with; asking it to switch ports is rejected.
 
+### Keep a runaway tool from taking down the machine
+
+On Linux, processes inherit the Runner's out-of-memory protection. So if your VM starts the Runner fully protected, a tool that uses up all the memory is protected too. The kernel can't stop it, and a small VM can panic. If you launch `paperclip-runnerd` yourself, pass `--oom-score-adj` with a value from `-1000` to `1000` to set how readily the kernel's out-of-memory killer picks the Runner. There's no default; leave the flag off and nothing changes.
+
+When you give the Runner a negative score, the processes it supervises (the provider harness and its tool commands) are set back to `0`. That way the kernel can stop the runaway tool process, and the Runner stays up to report the failure. A value outside the range stops the Runner from starting. A negative score needs the right privilege on the host. If the Runner can't apply the score, it logs a warning and keeps running without the extra protection. The flag only has an effect on Linux.
+
+If your launcher puts a task's processes in a memory cgroup, also pass `--task-memory-cgroup <path>`. The agent is then told its memory limit, and when the kernel kills a process for using too much memory, the agent can see that this is what happened instead of facing an unexplained exit.
+
 ## Local MCP tools on the execution host
 
 An execution host can hand a native session its own local stdio MCP servers, alongside the HTTP gateway. Set `PAPERCLIP_NATIVE_MCP_STDIO` on the execution host to a JSON array of bindings, and `PAPERCLIP_NATIVE_MCP_PROXY` to the assigned Runner executable:

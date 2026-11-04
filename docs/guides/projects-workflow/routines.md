@@ -154,7 +154,7 @@ Draft routines without a default agent are valid — they save and stay paused u
 
 ### Seeing every run
 
-To check on executions, click **View all tasks** in the toolbar. It opens the **Tasks** list filtered to the tasks your routines created (`/issues?view=all&originKind=routine_execution`), with the **Routine tasks** filter already ticked. It's the fastest way to answer "did all my morning routines run?" Untick **Routine tasks** under **Visibility** in the filter menu to go back to the full list.
+To check on executions, click **View all tasks** in the toolbar. It opens the **Tasks** list filtered to the tasks your routines created, newest first (`/issues?view=all&originKind=routine_execution&sortField=created&sortDir=desc`), with the **Routine tasks** filter already ticked. It's the fastest way to answer "did all my morning routines run?" Untick **Routine tasks** under **Visibility** in the filter menu to go back to the full list.
 
 If **Streamlined UI** is turned off in Experimental settings, the Routines page instead shows **Routines** and **Recent Runs** tabs. Recent Runs is a task list filtered to the execution tasks your routines created, with live-run indicators that refresh every few seconds.
 
@@ -333,6 +333,40 @@ Choose **GitHub** and Paperclip gives you GitHub-shaped steps:
 2. Paste the **Webhook URL** into **Payload URL**, and set **Content type** to **application/json**.
 3. Paste the **Secret** into GitHub's **Secret** field. GitHub signs each request with an **`X-Hub-Signature-256`** header, so you don't use Bearer authentication on this path.
 4. Choose the events that should start the routine, enable the webhook, and save.
+
+### Example: repair failed runs reported by Sentry
+
+If your Paperclip instance reports failed runs to Sentry, a routine can turn each failure into a repair task for one of your agents. You don't have to watch Sentry and file each one by hand. This is a regular webhook on the **Another app or script** path. Sentry decides which failures to send, and Paperclip gives it the tags it needs to decide.
+
+Every run-failure event Paperclip sends to Sentry carries an `event_kind` tag of `run_failure`, plus `run_id`, `task_id`, and `company_id`. It also gets three tags about where the failed work came from:
+
+- `automation_origin_status`: `complete` when Paperclip could trace how the task was created, `unknown` when it couldn't.
+- `automation_routine_ids`: the routine IDs found in that history, comma-separated. It's `none` when no routine was involved, and `unknown` when Paperclip couldn't check.
+- `task_shareable`: `true` when the failed task is visible across the company, `false` when it's private, `unknown` otherwise.
+
+The routine-ID tag is what keeps the setup from looping. It covers child tasks and follow-ups too, so when a repair task itself fails, its event still names the repair routine. Filter that routine out in Sentry and the error stays in Sentry without starting another repair.
+
+To set it up:
+
+1. Turn on run-failure reporting with `PAPERCLIP_SENTRY_RUN_FAILURES` (for example `unexpected`), and set `PAPERCLIP_PUBLIC_URL` so events link back to the task and run. See [Error Monitoring (Sentry)](../../reference/deploy/environment-variables.md#error-monitoring-sentry). Only new events get the tags, so check a fresh failure in Sentry before you go on.
+2. Create the repair routine, assign it to an agent, and set its concurrency policy to **Always enqueue** so every failure gets its own task. Keep the routine paused for now. Sentry's alert JSON is attached to the task, with the IDs inside `data.event.tags`. So in the instructions, ask the agent to read `task_id` and `run_id` from there, check the failed task and run before changing anything, and reuse an existing repair task or PR when the same failure shows up again. Don't add required `{{task_id}}`-style variables: Sentry doesn't send them as top-level fields.
+3. Copy the routine's ID from its page URL. You'll exclude it in Sentry.
+4. Add a webhook trigger, choose **Another app or script**, and copy the **Webhook URL** and **Secret key**.
+5. In Sentry, create an internal integration with an alert action that posts to the **Webhook URL**, with a custom header `Authorization: Bearer <secret key>`.
+6. Add an alert that fires on every captured event, not only new or regressed issues, so repeat failures still reach the routine. Require **all** of these tag conditions, then send it to your integration:
+   - `event_kind` equals `run_failure`
+   - `company_id` equals your company's ID
+   - `automation_origin_status` equals `complete`
+   - `task_shareable` equals `true`
+   - `automation_routine_ids` does not contain the repair routine's ID. Add one of these per repair routine if you have several.
+7. Send a Sentry test notification while the trigger is still in setup mode, check the connection, click **Finish setup**, and unpause the routine.
+
+Two things to keep in mind:
+
+- **Duplicates.** Sentry can't send a different `Idempotency-Key` for each event, and a fixed one would swallow every failure after the first. Leave it out and let the agent spot repeats, as in step 2.
+- **Privacy.** Paperclip copies the whole Sentry event into routine history and the repair task, and anyone in the company can read routine history. Set up data scrubbing in Sentry for credentials, request data, and other sensitive fields before you turn the alert on.
+
+The [Fire Public Trigger](../../reference/api/routines.md#fire-public-trigger) reference covers the webhook details, including [routine-wide execution receipts](../../reference/api/routines.md#routine-wide-execution-receipts) for senders that can provide a stable key per event.
 
 ### Is your webhook URL reachable?
 
