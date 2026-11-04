@@ -734,6 +734,60 @@ run = response.json()
 
 <!-- /tabs -->
 
+## Sentry Run-Failure Intake
+
+```http
+POST /api/routine-triggers/public/{publicId}/sentry-run-failures
+```
+
+Use this endpoint when you want a routine to pick up failed Paperclip runs automatically. Paperclip reports a failed run to Sentry, a Sentry alert calls this endpoint, and the routine opens a repair task for the failed work. The endpoint checks every alert against your own data first. It never starts a repair for a repair, so the routine can't loop on its own output.
+
+It is a second address for an ordinary webhook trigger. Create a webhook trigger on your repair routine, then replace `/fire` at the end of its `webhookUrl` with `/sentry-run-failures`. The body rules match the [fire endpoint](#fire-public-trigger): `Content-Type: application/json` and a JSON object.
+
+### Authentication
+
+This endpoint accepts bearer authentication only. The trigger's `signingMode` must be `bearer`. A trigger with any other signing mode gets `401`, even when the request carries a valid signature. Send the trigger's secret as `Authorization: Bearer <webhookSecret>`.
+
+`bearer` is the default when you create a webhook trigger through the API without a `signingMode`. If you set the trigger up in the UI, choose `bearer` under **Signing mode**.
+
+### What the endpoint accepts
+
+The endpoint reads Sentry event-alert payloads. A delivery only counts when all of these hold:
+
+- `action` is `"triggered"`
+- `data.event.tags` holds an `event_kind` tag set to `run_failure`, plus `run_id` and `task_id` tags that are UUIDs. Tags can arrive as pairs, as key/value objects, or as a dictionary.
+- if a `company_id` tag is present, it matches the routine's company
+- the run belongs to that task in the routine's company, and its status is `failed`, `timed_out`, or `cancelled`
+- the task and its project are open, not private, and the routine's assignee agent can read the task. The routine also needs an assignee agent.
+- neither the task nor anything it descends from was created by this routine or by any other Sentry run-failure repair routine. Paperclip follows task parents and the runs that created each task to check this. If it can't trace a task's history, or the history runs past 100 tasks, it treats the task as a repair and skips it.
+
+Anything else returns `202` with `{ "status": "ignored", "routineStarted": false, "linkedIssueId": null }` and creates no work. The reason is written to the routine's activity log as `routine.webhook_ignored`. Possible reasons are `not_company_run_failure`, `source_run_unavailable`, `source_not_shareable`, `source_not_readable`, and `repair_automation_provenance`.
+
+Private and unreadable tasks are skipped on purpose. Routine history is visible across the company, and copying a private task's identifiers into it would leak them.
+
+### What the routine receives
+
+An accepted delivery passes the routine three variables: `task_identifier`, `task_id`, and `run_id`. Reference them as `{{task_identifier}}`, `{{task_id}}`, and `{{run_id}}` in the routine's title or instructions. See [variable templates](../../guides/projects-workflow/routines.md#variable-templates).
+
+Paperclip rebuilds the payload from the validated data. It keeps the task and run IDs, a short `errorCode` taken from the `error_code` tag, and the Sentry event ID when it is well formed. Any instructions or variables in the Sentry body are dropped. The rebuilt payload goes into the execution task's description as a fenced data block, labelled as external data the agent must not treat as instructions.
+
+### Deduplication
+
+Each failed run creates at most one repair. Retries, and repeated Sentry events for the same run, share one receipt, even when they arrive through different triggers on the same routine. This holds whatever the routine's concurrency policy is. A different failed run can create its own repair task.
+
+While the trigger is [setup-pending](#webhook-setup-and-test-deliveries), an authenticated delivery is recorded as a connection test and creates no work.
+
+### Setting up the Sentry side
+
+Paperclip has to be reporting failed runs to Sentry first. Set `PAPERCLIP_SENTRY_RUN_FAILURES` to `unexpected` or `all` (see [Error Monitoring (Sentry)](../deploy/environment-variables.md#error-monitoring-sentry)). Paperclip tags those events with `event_kind: run_failure`, `run_id`, `task_id`, `company_id`, and `error_code`.
+
+In Sentry:
+
+1. Create a custom integration whose webhook calls the `/sentry-run-failures` URL with the `Authorization: Bearer <webhookSecret>` header. Keep the secret private.
+2. Add an alert that fires when **An event is captured**.
+3. Filter on the `event_kind` tag equal to `run_failure`. Add environment or company filters if more than one Paperclip instance reports to the same Sentry project.
+4. Send the alert to your custom integration on every event, not only when a Sentry issue is created or regresses. Otherwise a repeat failure inside an existing Sentry issue never reaches the routine.
+
 ---
 
 ## List Runs

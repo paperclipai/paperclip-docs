@@ -6,7 +6,7 @@ seo_description: Give agents OpenAI model access with a Codex subscription sign-
 
 # OpenAI
 
-An OpenAI connection gives agents the credential they use to run OpenAI models. It is model access, not a set of tools — there are no actions to permit.
+An OpenAI connection gives agents the credential they use to run OpenAI models. It is model access, not a set of tools — there are no actions to permit. Instead of an action list, the saved connection's **Permissions** tab shows which account is connected and who may use it.
 
 Two ways to authenticate: a subscription sign-in through the Codex CLI, or an OpenAI API key.
 
@@ -104,6 +104,12 @@ When you connect a brand-new account this way, you also see **Allow all agents i
 If a task shows an authentication card, select **Fix connection** to repair the selected account without leaving the task. The account owner signs in again; the card explains when another owner must do it. After setup completes, the task resumes through normal admission. Reconnecting preserves the account's audience and agent access.
 
 If you are the responsible person and simply haven't connected your own OpenAI account yet, the task chat shows **AI connection needed** instead of a failure, with a card titled **Connect your OpenAI account**. Select **Connect OpenAI**, connect your own account inside the card, and the task resumes automatically. Paperclip never borrows a teammate's credential to fill the gap.
+
+## See which account is connected
+
+Open the saved connection's **Permissions** tab and look under **Connected account**. It shows the **OpenAI account** label Paperclip saved for the credential (or **Not available**), the **Sign-in method** (**ChatGPT subscription** or **API key**), and **Access**: **Company shared**, or **Personal** with the owner's name.
+
+If the page can't load the account at all, it shows the error and a **Retry** button instead of waiting forever on *"Loading AI account…"*.
 
 ## Check your usage limits
 

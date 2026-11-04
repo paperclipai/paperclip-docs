@@ -320,6 +320,8 @@ curl -X POST "$WEBHOOK_URL" \
 
 Signing modes: `app_webhook`, `bearer` (the API default when you omit `signingMode`), `hmac_sha256`, `github_hmac`, or `none`. Pick `github_hmac` for GitHub, `app_webhook` for other apps, `hmac_sha256` for timestamped signatures you compute yourself, `bearer` for one-line scripts. Avoid `none` — the URL becomes anonymously fireable. The sender has to be able to reach the URL: public services need a publicly reachable HTTPS address, not `localhost` or a private network.
 
+Want a routine that repairs failed runs Paperclip reports to Sentry? Use a `bearer` trigger with its `/sentry-run-failures` address instead of `/fire`. See [Sentry run-failure intake](../reference/api/routines.md#sentry-run-failure-intake).
+
 ### Manual (`api`)
 
 Use when you want the routine in the run history but no automatic trigger. Useful for "run on demand from a button" or scripting from CI.

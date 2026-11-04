@@ -444,7 +444,11 @@ POST   /api/tool-connections/{connectionId}/reconnect
 POST   /api/tool-connections/{connectionId}/catalog/refresh
 GET    /api/tool-connections/{connectionId}/catalog
 GET    /api/tool-connections/{connectionId}/activity
+GET    /api/tool-connections/{connectionId}/review-counts
+GET    /api/tool-connections/{connectionId}/profile-configuration
 ```
+
+`review-counts` returns `pendingActionRequestCount` and `quarantinedCatalogEntryCount` for the connection; both are `0` once the connection is archived. The connector sidebar uses it for the **Review** badge. `profile-configuration` returns `{ profiles }`: the saved profiles behind the connection's Permissions tab, with their `entries` and `bindings`. It lists only the profiles you can see, and it describes saved configuration, not effective access.
 
 Deleting a connection archives it rather than dropping it, and if it was the last connection on its application, that application is archived too.
 

@@ -6,7 +6,7 @@ seo_description: Give agents Claude model access with a subscription or an Anthr
 
 # Anthropic
 
-An Anthropic connection gives agents the credential they use to run Claude models. It is model access, not a set of tools — there are no actions to permit and nothing appears on a **Permissions** tab.
+An Anthropic connection gives agents the credential they use to run Claude models. It is model access, not a set of tools — there are no actions to permit. Instead of an action list, the saved connection's **Permissions** tab shows which account is connected and who may use it.
 
 Two ways to authenticate: a Claude subscription, or an Anthropic API key.
 
@@ -106,6 +106,31 @@ When you connect a brand-new account this way, you also see **Allow all agents i
 If a task shows an authentication card, select **Fix connection** to repair the selected account without leaving the task. The account owner signs in again; the card explains when another owner must do it. After setup completes, the task resumes through normal admission. Reconnecting preserves the account's audience and agent access.
 
 If you are the responsible person and simply haven't connected your own Claude account yet, the task chat shows **AI connection needed** instead of a failure, with a card titled **Connect your Claude account**. Select **Connect Claude**, connect your own account inside the card, and the task resumes automatically. Paperclip never borrows a teammate's credential to fill the gap.
+
+## See which account is connected
+
+Two saved accounts can look alike, so the saved connection's **Permissions** tab tells you which Claude login a credential really belongs to. Look under **Connected account**:
+
+| Field | What it shows |
+| --- | --- |
+| **Claude account** | The email of the Claude account behind the credential, or **Not available** |
+| **Organization** | The Anthropic organization, when Anthropic reports one |
+| **Sign-in method** | **Claude subscription** or **API key** |
+| **Access** | **Company shared**, or **Personal** with the owner's name |
+
+For a connected Claude subscription, Paperclip asks Anthropic for the account details when you open the page and shows *"Checking account details…"* meanwhile. It uses this connection's own stored credential, never a `claude` CLI login on the machine. An API-key account has no profile to look up, so it shows the account label Paperclip saved, if any.
+
+The account details load on their own, separately from the controls below them. A slow or refused check never blocks **Make default**, reconnecting, or revoking. If the page can't load the account at all, it shows the error and a **Retry** button instead of waiting forever on *"Loading AI account…"*.
+
+| Message | What it means |
+| --- | --- |
+| *"Anthropic did not permit this connection to read the account email."* | Some Claude sign-in tokens can run models but aren't allowed to read the profile. The connection still works and is not marked disconnected; only the email is missing |
+| *"Anthropic limited this account check. Try again later."* | Anthropic rate-limited the lookup. Select **Retry account check** later |
+| *"Could not read the account details. Try again later."* | Anthropic didn't answer usefully. Select **Retry account check** |
+| *"Reconnect this account to check its account details."* | The stored credential was rejected. Reconnect the account |
+| *"Anthropic did not return an account email."* | Anthropic answered, but without a usable email |
+
+Over the API, you can read the same details with `GET /api/companies/{companyId}/ai-connections/{connectionId}/identity`. Add `?grantId={grantId}` to pick a specific credential grant. The response has `status` (`available`, `unavailable`, or `error`), `checkedAt`, `accountLabel`, `organizationLabel`, and, when something went wrong, an `errorCode` and `message`. Paperclip never returns tokens or Anthropic's raw response.
 
 ## Check your usage limits
 

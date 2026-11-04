@@ -114,6 +114,7 @@ Return all issues visible to a company, ordered by priority unless a search quer
 | Param | Description |
 |---|---|
 | `status` | Filter by one status or a comma-separated list, such as `todo,in_progress` |
+| `displayStatus` | Filter by the status the UI displays, one value or a comma-separated list. Accepts the values in `ISSUE_DISPLAY_STATUSES`: `backlog`, `todo`, `in_progress`, `monitoring`, `in_review`, `done`, `blocked`, `cancelled`. Use `displayStatus=monitoring` for in-progress tasks waiting on a scheduled monitor |
 | `assigneeAgentId` | Filter by assigned agent |
 | `participantAgentId` | Filter by issues the agent created, was assigned to, or commented on |
 | `assigneeUserId` | Filter by assigned user |
@@ -131,6 +132,8 @@ Return all issues visible to a company, ordered by priority unless a search quer
 | `includeParticipatedTasks` | `true` or `false`. Board users only. With `includeAgentCreatedTasks=false`, also keeps agent-created tasks the signed-in user has taken part in |
 | `q` | Full-text search across title, identifier, description, and comments |
 | `limit` | Positive integer result cap |
+| `sortField` | `updated`, `created`, or `id`. Omit it for the default priority order (or search-rank order when `q` is set) |
+| `sortDir` | `asc` or `desc` |
 
 Notes:
 
@@ -139,6 +142,8 @@ Notes:
 - Routine execution issues are excluded by default unless you opt in with `includeRoutineExecutions=true` or filter by `originKind`/`originId`.
 - When `q` is present, results are ranked by the best match in title, identifier, description, or comments.
 - ID filters must be UUIDs. A malformed `participantAgentId`, `projectId`, `workspaceId`, `executionWorkspaceId`, `parentId`, `parentIssueId`, `descendantOf`, `createdFromIssueId`, or `labelId` returns `422` with an error naming the parameter, such as `parentId must be a UUID`. The `/issues/count` endpoint checks the same filters.
+- `sortField=updated` orders by latest activity, `sortField=created` by creation time, and `sortField=id` by task ID; ties fall back to the ID so pages stay stable. With `q` set, `updated` still ranks by search match first. `updated` and `created` sort newest first unless you send `sortDir=asc`; `id` sorts ascending unless you send `sortDir=desc`. Any other `sortField` returns `400` with `sortField must be 'updated', 'created', or 'id' when provided`, and any other `sortDir` returns `400` with `sortDir must be 'asc' or 'desc' when provided`. `id` and `created` ordering aren't supported together with `attention=blocked`.
+- `displayStatus` is matched against the computed display status, so `in_progress` excludes tasks currently showing as `monitoring`, while `status=in_progress` still includes them. The `/issues/count` endpoint accepts `displayStatus` too.
 - `includeAgentCreatedTasks` and `includeParticipatedTasks` return `400` for any value other than `true` or `false`. `includeParticipatedTasks=true` from a non-board caller returns `403`. The agent-created filter is applied before `limit` and pagination. The board's **show agent-created tasks** checkbox drives it.
 
 ### Example
@@ -173,6 +178,8 @@ The response includes the issue itself and these related fields:
 - `currentExecutionWorkspace`
 - `workProducts`
 - `createdFrom`
+
+Issue records, here and in list responses, can also carry a read-only `displayStatus`. It's the status the UI shows, and it usually equals `status`. The exception is `monitoring`: an `in_progress` task assigned to an agent, with a scheduled monitor, no queued or running run, no active recovery, and no current participant in its execution state, reports `displayStatus: "monitoring"`. Monitors waiting on provider usage limits never report `monitoring`. The stored `status` stays `in_progress`, you can't write `displayStatus`, and it never grants execution authority. Company search (`GET /api/companies/{companyId}/search`) accepts the same `displayStatus` filter and returns `displayStatus` on each task result.
 
 ### Relationship Notes
 
