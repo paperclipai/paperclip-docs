@@ -46,9 +46,9 @@ const signature = sign(
 
 Your consumer must define the challenge, what a signature authorizes, and how authorization expires or is revoked. Paperclip does not provide a signing endpoint, private-key download, Git signing integration, rotation UI, or external-key import.
 
-> **Warning:** A managed runtime receives the private key, including managed remote runtimes such as Cursor Cloud. Choose a runtime host you trust with the agent's persistent identity. That host and the agent can retain the key and sign outside Paperclip.
+> **Warning:** A managed runtime receives the private key, including managed remote runtimes such as the direct Cursor Cloud adapter (`cursor_cloud`). Choose a runtime host you trust with the agent's persistent identity. That host and the agent can retain the key and sign outside Paperclip.
 
-Independently hosted HTTP and gateway agents, including API-hosted Claude Managed and AWS AgentCore, do not receive private keys in this version. New agent records still have stored identities; older records remain unprovisioned until a supported managed run.
+Independently hosted HTTP and gateway agents, including API-hosted Claude Managed, AWS AgentCore, and [Cursor Cloud on Paperclip Runner](../../reference/adapters/paperclip-runner.md#cursor-cloud-on-paperclip-runner-experimental), do not receive private keys in this version. New agent records still have stored identities; older records remain unprovisioned until a supported managed run.
 
 ## Preserve identity during recovery
 

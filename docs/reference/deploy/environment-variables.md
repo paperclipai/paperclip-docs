@@ -282,7 +282,7 @@ If neither variable is set, feedback submissions are stored locally and never le
 
 ### Turning off telemetry
 
-Paperclip ships anonymized usage telemetry (which adapters you run, and similar coarse signals) that helps the project understand how Paperclip is used. It carries no personal data, and you can turn it off completely by setting either of these variables. Both are checked for the exact value `1`, and either one on its own disables telemetry.
+Paperclip ships anonymized usage telemetry (which adapters you run, and similar coarse signals) that helps the project understand how Paperclip is used. When telemetry is on, the server also sends a `server.started` event at startup that records its operating system as `os_platform`. Telemetry carries no personal data, and you can turn it off completely by setting either of these variables. Both are checked for the exact value `1`, and either one on its own disables telemetry.
 
 | Variable | Meaning |
 |---|---|
@@ -324,6 +324,12 @@ To turn it on, set `SENTRY_DSN` and install the optional `@sentry/node` peer dep
 A native run that's waiting to retry inside the same run isn't reported. It's reported once, only if the retry ends in a real failure.
 
 Server events tied to a saved run carry links back to Paperclip, so you can jump from Sentry straight to the work. They get a `run_url` tag pointing at the run page, plus `task_url` and `task_identifier` tags when the run has a task. The links are built from `PAPERCLIP_PUBLIC_URL`, so they're left out when that variable is missing or unsafe. Opening one still needs normal Paperclip access, and only newly captured events get them.
+
+Run-failure events also say where the failed work came from, whether or not `PAPERCLIP_PUBLIC_URL` is set. The [Sentry repair routine](../../guides/projects-workflow/routines.md#example-repair-failed-runs-reported-by-sentry) uses these tags to decide which failures to act on:
+
+- `automation_origin_status`: `complete` when Paperclip could trace how the task was created, `unknown` when it couldn't.
+- `automation_routine_ids`: the routine IDs found in that history, comma-separated. It's `none` when no routine was involved, and `unknown` when Paperclip couldn't check.
+- `task_shareable`: `true` when the failed task is visible across the company, `false` when it's private, `unknown` otherwise.
 
 ---
 

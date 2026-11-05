@@ -48,13 +48,14 @@ A fifth option, **Unset**, appears in the role drop-down. It leaves the member w
 
 ## The permission keys
 
-There are twenty-one permission keys. Sixteen of them show up as defaults on one or more roles; five are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
+There are twenty-two permission keys. Sixteen of them show up as defaults on one or more roles; six are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
 
 | Permission key | What it allows | In which role by default |
 |---|---|---|
 | `agents:create` | Create (hire) new agents in the company | Owner, Admin, Operator |
-| `agents:configure` | Change an existing agent's setup — its adapter config, instructions, role, and budget | Owner, Admin, Operator |
-| `agents:suggest-changes` | Propose changes to an agent's setup for review, without applying them directly | — (explicit only) |
+| `agents:read` | Read an agent's redacted configuration, skill settings, instruction content, and configuration and instruction history. It can't change anything, roll back, or run an environment test | — (explicit only) |
+| `agents:configure` | Read and change an existing agent's setup — its adapter config, instructions, role, and budget | Owner, Admin, Operator |
+| `agents:suggest-changes` | Read an agent's setup and propose changes for review, without applying them directly | — (explicit only) |
 | `skills:create` | Create and manage company skills | Owner, Admin, Operator |
 | `skills:suggest-changes` | Propose changes to a company skill for review, without applying them directly | — (explicit only) |
 | `environments:manage` | Create, edit, and remove the execution environments agents run in | Owner, Admin, Operator |
@@ -78,19 +79,53 @@ There are twenty-one permission keys. Sixteen of them show up as defaults on one
 
 Two of the keys come in matched pairs — a *direct* key that applies a change immediately, and a *suggest* key that only proposes one for review:
 
-- **`agents:configure`** lets a member change an existing agent directly. **`agents:suggest-changes`** is the softer counterpart: a member who holds it (but not `agents:configure`) can *propose* a change to an agent's instructions or config, which then goes through review before it takes effect. This is what powers coaching flows like the built-in [Reflection Coach](../reference/api/built-in-agents.md#the-reflection-coach) — it can suggest an improvement to an agent's `AGENTS.md` without hot-swapping it.
+- **`agents:configure`** lets a member change an existing agent directly. **`agents:suggest-changes`** is the softer counterpart: a member who holds it (but not `agents:configure`) can *propose* a change to an agent's instructions or config, which then goes through review before it takes effect. This is what powers coaching flows like the built-in [Reflection Coach](../reference/api/built-in-agents.md#the-reflection-coach) — it can suggest an improvement to an agent's `AGENTS.md` without hot-swapping it. Both keys also let the holder read the agent's setup, so neither needs `agents:read` as well.
 - **`skills:create`** lets a member author and edit company skills directly. **`skills:suggest-changes`** lets a member propose an edit to a company skill for review instead of writing it straight in.
 
 ### About the explicit-only keys
 
-Five keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
+Six keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
 
+- **`agents:read`** is the read-only way to look at how an agent is set up. See [Reading agent configuration](#reading-agent-configuration).
 - **`agents:suggest-changes`** and **`skills:suggest-changes`** — the review-gated proposal keys described just above. Grant them to a member (or agent) you want proposing improvements without direct write access.
 - **`tasks:assign_scope`** is how you let someone delegate *within their lane* without giving them company-wide assignment power. When a member has `tasks:assign_scope` but not `tasks:assign`, Paperclip evaluates the grant against the scope attached to it and allows the assignment only if the target falls inside that scope. Set the scope in the grant payload (via the member editor's grant, or `member role-and-grants` on the CLI).
 - **`tasks:manage_active_checkouts`** is an escape hatch. Normally an issue that an agent has checked out is off-limits to others until it's released; this grant lets the holder reassign or clear that active checkout — handy when an agent has stalled mid-task.
 - **`inbox:manage`** governs *cross-user* inbox access. It matters most for agents: an agent may act on the inbox of the user it is responsible for without holding this key at all, but the moment it needs to touch someone else's inbox, Paperclip looks for an `inbox:manage` grant — and then checks that the grant's scope actually covers the user being acted on. Grant it, scoped, to an agent you want triaging inboxes beyond its own responsible user.
 
 > **`inbox:manage` and the low-trust preset.** Agents running under the low-trust review preset are denied `inbox:manage` by default, alongside the other company-wide and privileged actions. Raising an agent's trust preset is a separate decision from granting the key — a low-trust agent holding the grant is still refused.
+
+### Reading agent configuration
+
+Use `agents:read` when you want an agent to check how its teammates are set up without being able to change them. For example, an agent that hires a teammate can confirm the instructions were saved.
+
+Any one of these three keys lets an agent read another agent's setup:
+
+- **`agents:read`** only reads. The holder sees redacted configuration, skill settings, instruction content, and configuration and instruction history. It can't make changes, roll back a revision, or run an environment test.
+- **`agents:configure`** reads and changes directly.
+- **`agents:suggest-changes`** reads, and applies a change only after it's been accepted.
+
+A grant with a scope, such as `{ "agentIds": ["<agent-id>"] }`, covers only those agents. For an agent to list every agent's configuration at once, it needs a company-wide grant.
+
+**Who gets it by default:**
+
+- **People:** no role includes it. A company member can already read redacted configuration, skills, and configuration history through their membership alone.
+- **New standard agents:** they receive it when they're created or their hire is approved, along with `agents:configure` and `agents:suggest-changes`.
+- **Low-trust agents:** they don't receive it. Paperclip also refuses configuration reads from a low-trust agent that holds a grant.
+- **Managed built-in agents:** they don't receive it and keep their own narrower grants. The [Reflection Coach](../reference/api/built-in-agents.md#the-reflection-coach) reads through `agents:suggest-changes`.
+
+**Existing agents get one read-only grant on upgrade.** A one-time migration adds `agents:read`, and nothing else, to existing standard agents that are ready, pausing, paused, or resuming and have an active company membership. It adds the grant even if the agent has no `agents:configure` or `agents:suggest-changes` grant. It skips:
+
+- Managed built-in agents
+- Low-trust agents, and any agent with a non-standard trust policy
+- Agents that are pending approval or terminated
+- Agents still in setup
+- Agents with a scoped `agents:configure` or `agents:suggest-changes` grant
+
+An agent that already holds `agents:read` keeps its scope. Each addition appears in the activity log as `agent.permissions_updated`. If you remove the grant afterwards, it stays removed: ordinary updates and restarts don't add it back.
+
+**Agents can read themselves.** A standard agent can read its own redacted configuration, skills, and configuration history without any of these keys. A low-trust agent can't, and gets a narrower view of itself instead.
+
+**The responsible user still counts.** When an agent acts for a responsible user, that person needs one of the three keys too. Owners, Admins, and Operators have `agents:configure`. An agent working for a Viewer, or for a member with no role and no grant, is refused with `RESPONSIBLE_USER_UNAUTHORIZED`. Giving that person `agents:read` is enough to lift the limit for reads.
 
 ### About the tool, audit, and commentary keys
 

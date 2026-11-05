@@ -28,6 +28,10 @@ GET /api/companies/{companyId}/tools/action-requests?status=pending
 
 Review the action, connection, and request details shown in the card. The available details depend on the request type. If the preview does not establish what will change, inspect the task and ask the agent to clarify before approving.
 
+A pending request linked to a task also has an **Arguments and audit hash** section. Open it to read a redacted summary of the arguments and the hash that goes with them. This helps when the preview leaves out something you care about, such as a date at the end of a long proposal. Opening the section doesn't answer the request. If the details can't be shown, the card says **Request arguments are unavailable.**
+
+The buttons on that task card are worded a little differently from the review queue: **Approve & run** is the same as **Allow once**, and **Always allow** sits in the menu beside it when it's offered.
+
 ## The three answers
 
 | Answer | What happens |
@@ -52,7 +56,9 @@ An agent calling an Ask-first action does not get an error and does not get a re
 
 Approval means approve and run: Paperclip attempts the stored call using its saved arguments. Approval is not proof that the provider operation succeeded; check the execution result. An agent should not re-issue the call after an approval; if the wake says it executed, that result is the result.
 
-A declined request means the action did not happen. The agent is expected to change approach rather than retry the same call.
+A declined request means the action did not happen. The agent is expected to change approach rather than retry the same call. If it retries anyway, it gets the same decline back and no new request opens.
+
+Changed your mind after declining? Post a new comment on the task asking for the action again. When that comment wakes the agent on a new run, the same call can open a new **Ask first** review. Your earlier decline doesn't approve anything, so the call goes through your current action settings like any other. This only works for the person who declined: a later comment from someone else leaves the decline in place.
 
 Pending requests expire. After expiry the item reads **Expired — send it again**, and the agent has to make a fresh call to open a new request.
 

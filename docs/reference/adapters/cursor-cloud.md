@@ -8,6 +8,8 @@ seo_description: Run Cursor Cloud Agents through the official SDK so Cursor hand
 
 `cursor_cloud` runs Cursor Cloud Agents through the official Cursor SDK so Paperclip can keep task state while Cursor handles remote code execution. Use it when you want durable remote Cursor agent sessions that survive between Paperclip heartbeats.
 
+> **Note:** Cursor Cloud can now run two ways. This page covers the direct `cursor_cloud` adapter, which is what the **Legacy runner** uses. There's also an experimental native route, `paperclip_runner` with `provider: "cursor_cloud"`, which adds the Runner's task tools and recovery and needs no Paperclip computer. See [Cursor Cloud on Paperclip Runner](./paperclip-runner.md#cursor-cloud-on-paperclip-runner-experimental). Existing direct agents stay on this adapter until you change their **Runner**.
+
 ---
 
 ## When To Use
@@ -19,6 +21,7 @@ seo_description: Run Cursor Cloud Agents through the official SDK so Cursor hand
 ## When Not To Use
 
 - You want local execution on the same machine as Paperclip. Use [Cursor Local](./cursor-local.md).
+- You want the native Runner lifecycle with no Paperclip computer. Use [Cursor Cloud on Paperclip Runner](./paperclip-runner.md#cursor-cloud-on-paperclip-runner-experimental).
 - You do not have a Cursor API key or a Cursor account that allows cloud agents.
 - The work the agent needs to do cannot be expressed as a repository checkout.
 
@@ -91,4 +94,5 @@ Paperclip reuses the durable Cursor agent across heartbeats when the repo and ru
 ## Related
 
 - [Cursor Local](./cursor-local.md) — same agent vendor, local execution.
+- [Cursor Cloud on Paperclip Runner](./paperclip-runner.md#cursor-cloud-on-paperclip-runner-experimental) — the experimental native route.
 - [Creating An Adapter](./creating-an-adapter.md) — author your own adapter when none of the built-ins fit.

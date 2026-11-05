@@ -87,6 +87,8 @@ Where the adapter reports it, a second-tier readout shows concrete progress rath
 
 Plan confirmations, questions, and suggested-task cards stay inline in the thread, in the place in the conversation where they happened, with their accept and reject buttons intact. A confirmation that has since expired demotes to a plain divider — superseded asks are history, not something to act on.
 
+Confirmation prompts render as Markdown, so links, emphasis, code, lists, and paragraph breaks come through as written, and you can click straight through to whatever you're being asked to review. That applies to the card above the composer, the cards on the classic task page, checkbox confirmations, and receipts you expand afterwards. An image in a prompt shows as a text reference (*Image:* followed by its name and address) rather than the picture itself, and a diagram shows as its source text.
+
 When a plan document is written or revised, a divider marks the spot: **Plan created**, or **Plan updated · rev 3 — see the Plan tab**.
 
 When an agent saves a new company skill during the task, a **Skill created** card marks the spot with the skill's name and description. Click it to open the skill in its own side-pane tab — see [Skills your agents create during a task](../guides/org/skills.md#skills-your-agents-create-during-a-task).

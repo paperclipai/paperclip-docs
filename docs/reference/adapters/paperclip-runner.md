@@ -131,6 +131,7 @@ Pi also needs its pinned runtime installed on the execution host before it can r
 | **ACP agents → GitHub Copilot** (`acpx`, `copilot`) | Qualified Copilot runtime, pinned to Copilot CLI `1.0.88` and installed with Paperclip's packages on macOS and Linux x64. Connect a Copilot token through **Connectors → GitHub → Connect Copilot** and pick an explicit model. See [GitHub Copilot](../../connectors/github-copilot.md). |
 | **ACP agents → Kimi Code** (`acpx`, `kimi`) | Qualified Kimi Code runtime, pinned to `@moonshot-ai/kimi-code` `2.3.3`, on macOS ARM64 and Linux x64. Install it with `paperclipai runtime setup kimi`, bind a company secret as `KIMI_API_KEY`, and type an exact model ID. See [Kimi Code on Paperclip Runner](#kimi-code-on-paperclip-runner). |
 | **ACP agents → Pi** (`acpx`, `pi`) | Qualified Pi 1.0 runtime. Enter an explicit `provider/model` ID; Pi uses the company credentials bound to the agent's environment, such as `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY`. See [Pi on Paperclip Runner](#pi-on-paperclip-runner). |
+| **Cursor Cloud (experimental)** (`cursor_cloud`) | Cursor hosts the model and commands in its own cloud environment, so there's no Paperclip computer to choose. Needs an exact model, a `CURSOR_API_KEY`, and a GitHub repository or named Cursor cloud environment. See [Cursor Cloud on Paperclip Runner](#cursor-cloud-on-paperclip-runner-experimental). |
 | **Claude Managed** (`claude_managed`) | A company-qualified managed-agent profile, retention acknowledgement, and session spend ceiling. |
 | **AWS AgentCore** (`aws_agentcore`) | A company-qualified remote-agent profile, retention acknowledgement, and estimated session spend ceiling. |
 
@@ -142,8 +143,8 @@ Managed providers need operator-prepared profiles; they are not configured by pa
 
 1. Create or edit the agent and choose **Paperclip Runner**.
 2. Select **Harness**. For **ACP agents**, select the **ACP agent** too. When you pick a harness such as Claude or Pi directly in the agent form, that choice already sets the Runner profile, so there's no separate **ACP agent** selector to fill in.
-3. Select a model. When you edit a saved agent, choose a compatible **Connection** for Codex, OpenCode, Claude, Grok, or GitHub Copilot; Cursor and Kimi Code use their secret-backed credential environment instead.
-4. Choose the execution environment and review permissions.
+3. Select a model. When you edit a saved agent, choose a compatible **Connection** for Codex, OpenCode, Claude, Grok, or GitHub Copilot; Cursor, Cursor Cloud, and Kimi Code use their secret-backed credential environment instead.
+4. Choose the execution environment and review permissions. Cursor Cloud skips this step: Cursor hosts the execution environment, and the form doesn't show an environment picker.
 5. Save and use **Test Environment** before assigning work.
 
 A minimal Codex configuration uses:
@@ -169,6 +170,7 @@ The credential binding is configured separately. [Custom model providers](../../
 | OpenCode | `opencodePermissionMode` | `allow` (default), `ask`, or `deny`. |
 | ACP | `acpxPermissionMode` | `approve-all` (default), `approve-paperclip`, `approve-reads`, or `deny-all`. |
 | Managed providers | Provider-owned policy | Non-interactive execution under the qualified profile and Paperclip policy. |
+| Cursor Cloud | Provider-owned policy | Cursor manages commands and files in its cloud environment, so there's no permission mode to pick. Paperclip tools keep your company permissions. |
 
 Company permissions, governed approvals, and budgets still apply. Grok cannot automatically approve Paperclip tool calls under the narrower ACP modes; those requests wait for approval. Cursor session mode is a separate setting from ACP permission policy.
 
@@ -216,6 +218,71 @@ A passing test proves the key and model, not a full run. Your first real task is
 - Read-only Kimi work, such as planning, uses Paperclip's own scoped tools. Kimi's built-in file and shell tools are turned off for it.
 - Live steering, native child work, and per-run token and dollar accounting aren't available for Kimi Code on the Runner yet.
 
+### Cursor Cloud on Paperclip Runner (experimental)
+
+Use this when you want Cursor to host the whole agent. The model and its commands run in Cursor's cloud environment, so you don't need a Paperclip computer. Paperclip still owns the task, its tools, the completion check, and your budgets.
+
+This is a different thing from two similarly named options. **ACP agents → Cursor** runs a [pinned Cursor runtime](cursor-local.md#cursor-on-paperclip-runner) on your own machine. The direct [`cursor_cloud` adapter](cursor-cloud.md) reaches Cursor Cloud without the Runner, and it's what the Legacy runner uses.
+
+**Turn it on.** Your instance needs **Paperclip Runner** turned on under **Settings → Experimental**. The Paperclip server also needs a public HTTPS address that Cursor can call back to, because that's how the hosted agent reaches its Paperclip tools. **Run test** checks this for you.
+
+**Choose it.** Where you pick it depends on how you're setting up the agent:
+
+- **Self-hosted, new agent.** Choose the **Cursor Cloud** tile, open **Advanced**, and set **Runner** to **Paperclip Runner**. If you leave **Runner** alone, the tile creates a direct `cursor_cloud` agent.
+- **Paperclip Cloud, new agent.** The **Cursor Cloud** tile appears only when **Paperclip Runner** is on, and it always creates a Runner agent.
+- **Managed Environment Only.** When both **Managed Environment Only** and **Paperclip Runner** are on, a new **Cursor Cloud** setup uses the Runner by default, with no computer. It runs through Cursor's API, so your managed-environment rule stays in place for every other agent.
+- **An agent already on the Runner.** Set **Harness** to **Cursor Cloud (experimental)** in its settings.
+
+From the API or CLI, send `adapterType: "cursor_cloud"` with `runner: "paperclip"`. The agent is saved as `paperclip_runner` with `provider: "cursor_cloud"`.
+
+**Fill in the details.** New-agent setup asks for the first four fields below. The rest are on the agent's settings page after setup.
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| **Model** | Yes | Pick or type the exact Cursor model ID. There's no account default here. Leaving it blank stops setup with *"Enter the exact Cursor Cloud model ID."* |
+| **`CURSOR_API_KEY`** | Yes | Paste a key (the **get api key** link opens Cursor's dashboard), or pick one under **Or use an organization secret**. Without one, setup stops with *"Enter a Cursor API key."* |
+| **GitHub repository** | In setup, yes | An address like `https://github.com/your-org/repo`. Otherwise setup stops with *"Enter a GitHub repository URL."* |
+| **Branch** | No | The ref to start from. It's called **Starting ref** in settings, and it uses the repository's default when empty. |
+| **Pull request URL** | No | A pull request to attach the agent to. |
+| **Cursor cloud environment** | Instead of a repository | The name of an environment you've set up in Cursor. Clear **GitHub repository** when you use it. |
+| **Work on current branch**, **Auto-create pull request**, **Skip reviewer request** | No | Toggles, off by default. |
+
+In settings, you supply either a repository or a named environment, not both. **Starting ref** and **Pull request URL** only apply alongside a repository. If the combination isn't valid, or the repository isn't a plain HTTPS address, saving fails with *"Cursor Cloud requires an HTTPS repository or named Cursor cloud environment, cloud-hosted execution, and supported settings. Its timeout must be between 1 second and 1 hour."*
+
+`CURSOR_API_KEY` is the only variable you can set on the agent. Put anything else the hosted agent needs in your Cursor Cloud environment. Any other name fails with a message that starts *"Cursor Cloud with Paperclip Runner only supports CURSOR_API_KEY in agent environment settings."*
+
+**Where it can't run.** The API-only setup needs no computer, but it still has some limits:
+
+- **Kubernetes-only instances.** If the instance forces Kubernetes execution, the agent can't be saved or tested: *"Cursor Cloud API execution is unavailable under the Kubernetes-only policy."*
+- **Windows and other unsupported Paperclip hosts.** The Paperclip server has to run on macOS, or on Linux x64 or ARM64 with GNU libc `2.39` or newer. Windows, Alpine and other musl-based Linux, and older libc versions can't offer this option.
+- **A remote controller.** Paperclip's side of the run stays on the Paperclip host. Test reports *"Select a local Paperclip controller. Cursor hosts the execution environment."* if it's pointed elsewhere.
+
+**Test before you assign work.** **Run test** checks that your server's public callback address responds correctly, that the key can read its model catalog, and whether your model is listed. It doesn't send a prompt. A good result includes *"The bound Cursor Cloud API key can read its model catalog. No prompt was sent."* The result still comes with a warning, because Cursor doesn't confirm which model actually ran: *"This experimental integration forwards the selected model; Cursor does not acknowledge the effective model. Cloud commands use Cursor-managed permissions."*
+
+| Message | What to do |
+| --- | --- |
+| *"Bind a Cursor Cloud API key to CURSOR_API_KEY before testing."* | Add the key to the agent. |
+| *"Configure PAPERCLIP_PUBLIC_URL as a reachable HTTPS origin for /mcp/native-runs/. The callback must reject unauthenticated requests with HTTP 401. Expose only this callback path through the public proxy."* | Set `PAPERCLIP_PUBLIC_URL` to an HTTPS address Cursor can reach. If you use a proxy, forward only that path. |
+| *"Cursor Cloud could not validate the bound key. Check its Cloud Agents access and retry."* | Check the key and that the account can use Cloud Agents. |
+| *"The selected model is absent from the recommended catalog. Cursor will decide whether this exact model is available when it runs."* | This is a warning. Double-check the ID, or carry on if you know the model is available. |
+
+A passing test proves the key and the connection, not a full run. Your first real task is what confirms the rest.
+
+**What's different when it runs.**
+
+- **One turn at a time.** Cursor Cloud always uses the per-turn lifecycle, so there's no warm session setting. A follow-up continues on the same Cursor agent as a new run. Live steering isn't available.
+- **A time limit on each turn.** A turn gets 15 minutes by default. Paperclip stops it when the time runs out. To change that, set `cursorCloudTimeoutMs` in the adapter config, from 1 second to 1 hour.
+- **Cursor manages command permissions.** You don't get a permission mode or per-command approvals. Paperclip's own tools still follow your company permissions, and Paperclip's questions and plan documents still work. Tasks run in Cursor's agent mode, so there's no Plan or Ask session setting here.
+- **Settings it can't honor are rejected.** Things like `command`, `extraArgs`, `promptTemplate`, `bootstrapPromptTemplate`, effort fields, `modelParams`, and `cwd` fail with *"Cursor Cloud cannot honor these settings: …"*.
+- **Instructions and skills are text only.** They're sent along with the prompt, so they have to be UTF-8 text and fit in 1 MiB together. Binary skill files aren't supported.
+- **No usage or cost totals.** Cursor bills you directly, and Paperclip records these runs as unpriced rather than as zero. That can block further work: if a budget policy has **Block new work when usage has no reliable price** on, an unpriced run stops new work under that policy. To accept unknown charges, clear it under **Advanced settings** on both the company and the agent policy. Spend limits still apply to known costs, but they can't cap charges Cursor doesn't report. See [Costs](../../guides/day-to-day/costs.md).
+- **Stop waits for Cursor.** Stop cancels that exact run in Cursor, and Paperclip only treats it as stopped once Cursor confirms it. If that takes too long, you see *"The stop was requested, but work is still stopping. Try Stop again if it continues."* Paperclip won't start new work on the session while the outcome is unknown.
+- **Don't count on attachments.** Paperclip sends Cursor the task as text, and attachments on this route haven't been qualified yet. Put anything the agent needs to read in the repository.
+- **Files come back as deliverables.** The agent creates a file in Cursor's artifacts folder and registers it, and Paperclip downloads it, checks its size and SHA-256, and adds it to the task. Paperclip caps these imports at 256 MiB and 256 files. Past that, imports fail with *"Cursor Cloud artifact staging budget is exhausted or cannot be verified"*.
+- **No agent identity key.** Unlike the direct adapter, this setup doesn't give the hosted agent its private key. See [Agent identity](../../guides/org/agent-identity.md).
+
+**Agents already on the direct adapter.** Saved `cursor_cloud` agents keep their runtime, settings, and history, and Paperclip doesn't convert them or offer an upgrade notice. To move one, set **Runner** to **Paperclip Runner** on its settings page and pick an exact model. Remove `promptTemplate` and `bootstrapPromptTemplate` first, or the save fails with `agent_runner_config_incompatible`. Move any other environment variables into your Cursor Cloud environment too. The Runner only supports the `cloud` environment type, so a `pool` or `machine` target has to stay on the direct adapter.
+
 ### Google Antigravity on Paperclip Runner (preview)
 
 > **Note:** Google Antigravity is an operator-gated preview, not a generally available provider. It runs only on a macOS ARM64 Paperclip host, and only for a company the instance operator has authorized.
@@ -247,11 +314,12 @@ By default the Runner gives each session a private, isolated provider home and s
 
 Environment variables you configure for a task's agent, project, environment, or routine reach the native provider process and its tool commands, including custom `PAPERCLIP_*` names. When you add, change, or remove one, the Runner replaces its retained provider process at the next run boundary, so the next turn sees the new value. Unchanged variables let the warm process be reused. Only names are passed through the Runner's launch path; the secret values stay in the child environment. Ambient secrets on the host are never forwarded. A native launch carries up to 128 configured variable names.
 
-Existing `cursor`, `grok_local`, `claude_local`, `codex_local`, `kimi_local`, `opencode_local`, and `pi_local` agents remain direct adapters until you explicitly choose Runner. For Claude Code, Codex, and Grok Build agents, the [upgrade notice](#upgrade-an-existing-claude-or-codex-agent) is the quickest way. A saved obsolete native-runner toggle on a direct adapter does not switch fresh runs to this path.
+Existing `cursor`, `cursor_cloud`, `grok_local`, `claude_local`, `codex_local`, `kimi_local`, `opencode_local`, and `pi_local` agents remain direct adapters until you explicitly choose Runner. For Claude Code, Codex, and Grok Build agents, the [upgrade notice](#upgrade-an-existing-claude-or-codex-agent) is the quickest way. A saved obsolete native-runner toggle on a direct adapter does not switch fresh runs to this path.
 
 ## Current limits
 
 - Cursor requires an explicit model. Its partial native counters are diagnostic observations; authoritative per-run token totals and dollar cost are unavailable.
+- Cursor Cloud reports no usage or cost totals through the Runner, and Paperclip records its runs as unpriced. See [Cursor Cloud on Paperclip Runner](#cursor-cloud-on-paperclip-runner-experimental).
 - Grok's native Runner usage accounting is not qualified. Do not infer zero spend from a missing cost.
 - ACP live steering is unsupported. Follow-up work uses the controller's queue instead of claiming provider-native queueing.
 - Native session capabilities differ by provider. Session load does not imply native fork or resume methods are available.
@@ -323,6 +391,7 @@ If you build on the Runner protocol (PRP), you can ask to hear when a provider r
 ## Next steps
 
 - [Cursor Local and native Cursor](cursor-local.md)
+- [Cursor Cloud adapter](cursor-cloud.md)
 - [Grok Local and native Grok](grok-local.md)
 - [Runtime setup command](../cli/runtime.md)
 - [Adapters overview](overview.md)

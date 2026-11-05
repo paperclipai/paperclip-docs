@@ -65,7 +65,7 @@ This card sits above the instance-wide sections, and only affects you.
 
 | Feature | What it adds |
 | --- | --- |
-| [Coordinator workspace](coordinator-workspace.md) | **Personal, off by default.** A workspace built around **Chat**, **Tasks**, and **Needs You**, with task proposals, decision cards and receipts, and decision history. Turn it off to return to the classic workspace. Chat still needs Agent Chat to be on for the instance. |
+| [Coordinator workspace](coordinator-workspace.md) | **Personal, off by default.** A workspace built around **Chat**, **Tasks**, and **Needs you**, with task proposals, decision cards and receipts, and decision history. Turn it off to return to the classic workspace. Chat still needs Agent Chat to be on for the instance. |
 
 ### Experimental features
 

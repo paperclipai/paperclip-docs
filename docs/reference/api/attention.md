@@ -316,7 +316,7 @@ The preference itself isn't tied to a company: it applies across every company o
 ## Where to go next
 
 - [Decisions](../../guides/day-to-day/decisions.md) — use the built-in operator workflow.
-- [Coordinator workspace](../../experimental/coordinator-workspace.md) — the opt-in workspace built on decision history and Needs You.
+- [Coordinator workspace](../../experimental/coordinator-workspace.md) — the opt-in workspace built on decision history and Needs you.
 - [Decisions API](./decisions.md) — decision records, queues, and triage.
 - [Approvals](./approvals.md) — act on approval records in the queue.
 - [Issues](./issues.md) — work with issue-thread interactions and the issues behind many attention items.

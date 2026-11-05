@@ -155,7 +155,7 @@ Agents that draft hires with the bundled `paperclip-create-agent` skill now writ
 
 A new agent can help set up its teammates straight away, without you adding grants by hand. When a standard agent is created — or when its hire is approved — Paperclip gives it these permission keys:
 
-- **Agents and skills:** `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`
+- **Agents and skills:** `agents:read`, `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`
 - **Tools:** `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `tools:use`, `tools:manage_runtime`
 - **Audit and inbox:** `audit:view_agent_actions`, `inbox:manage` (limited to the inbox of the user the agent is responsible for)
 - **Tasks:** `tasks:assign`, `tasks:assign_scope` (limited to the agent's own reporting subtree), `tasks:manage_active_checkouts`
@@ -166,7 +166,7 @@ A few things keep this in check:
 
 - **Its responsible user still bounds it.** Grants don't let an agent do anything the person it acts for couldn't do, and approval gates and protected-change checks still apply.
 - **Low-trust and built-in agents are left out.** Agents on the [low-trust review preset](../../administration/trust-and-low-trust-review.md) and Paperclip's managed built-in agents keep their narrower permissions.
-- **Existing agents are unchanged.** The defaults apply to new agents only. Nothing is backfilled when you upgrade, and a grant you remove stays removed.
+- **Existing agents only pick up a read grant.** The other defaults apply to new agents only. Upgrading adds `agents:read` once to eligible existing standard agents, so they can check a teammate's setup without being able to change it. See [Reading agent configuration](../../administration/roles-and-permissions.md#reading-agent-configuration) for who it skips. A grant you remove stays removed.
 
 See [Roles & Permissions](../../administration/roles-and-permissions.md#the-permission-keys) for what each key allows.
 
@@ -378,7 +378,7 @@ Agents that existed before this change keep their files. Paperclip brings their 
 
 Implementation reference: [runtime file instructions](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instruction-working-copies.ts) and [file storage limits and synchronization](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-file-store.ts).
 
-**Who can change the files.** An agent can edit its own folder, but only within what its responsible user is currently allowed to change. Reading or editing *another* agent's files needs permission to configure that agent; being in the same company isn't enough. A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't change its own instructions from ordinary work — the one exception is when its user asks it to, directly, in their own Agent Chat. See [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
+**Who can change the files.** An agent can edit its own folder, but only within what its responsible user is currently allowed to change. Being in the same company isn't enough to touch *another* agent's files: reading them needs `agents:read`, `agents:configure`, or `agents:suggest-changes`, and editing them needs permission to configure that agent. A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't change its own instructions from ordinary work — the one exception is when its user asks it to, directly, in their own Agent Chat. See [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 
 ### Recommended bundle structure: AGENTS / SOUL / HEARTBEAT / TOOLS
 

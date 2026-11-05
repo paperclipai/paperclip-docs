@@ -29,6 +29,8 @@ Paperclip will not let a reconnect quietly change the identity. On resume the st
 
 For a personal connection, the person who owns it reconnects it. Paperclip proves the caller is the connection's retained subject before it will create OAuth state — a manager cannot re-consent on your behalf.
 
+Setting up a new personal connection is different from reconnecting one. If a personal connection with the same name was removed earlier, fresh setup leaves it alone and creates a separate connection under the next available name, such as `GitHub (2)`. This is true whoever owned the old one, including you.
+
 ## Replace an API key
 
 For a key-based connection where the key was rotated at the provider.

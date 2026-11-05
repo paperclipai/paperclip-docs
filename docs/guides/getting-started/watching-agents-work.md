@@ -144,7 +144,7 @@ A heartbeat that takes longer than expected is usually caused by one of three th
 
 **Agent status shows "error"**
 
-Open the agent's **Runs** (under **Audit** in its side menu) and click the failed run. The transcript will show the error message. Common causes are an expired API key, an invalid model name, or a file permission issue in the working directory.
+Open the agent's **Runs** (under **Audit** in its side menu) and click the failed run. The transcript will show the error message. Common causes are an expired API key, an invalid model name, or a file permission issue in the working directory. If the model provider reported the failure, the run shows a [red notice](../../how-to/debug-stuck-heartbeat.md#8-run-fails-with-a-red-provider-notice) with the provider, the reason, and its message.
 
 > **Warning:** An agent in "error" status won't fire new heartbeats until the underlying issue is resolved. Check and fix the error, then open the **⋯** actions menu at the top right of the agent's page and choose **Clear error** to return it to idle.
 
