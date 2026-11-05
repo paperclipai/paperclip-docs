@@ -1,13 +1,13 @@
 ---
 seo_title: Coordinator Workspace (Experimental)
-seo_description: A personal, opt-in workspace built around Chat, Tasks, and Needs You, so a conversation leads straight to assigned tasks and the decisions they raise.
+seo_description: A personal, opt-in workspace built around Chat, Tasks, and Needs you, so a conversation leads straight to assigned tasks and the decisions they raise.
 ---
 
 # Coordinator workspace
 
 Working with agents usually means hopping between surfaces. You talk a goal through in a chat, jump to the task list to find what got created, then open the Decisions queue to answer a question that one of those tasks raised — and by then the conversation that started it all is three clicks away.
 
-The **Coordinator workspace** pulls those surfaces into one path. The sidebar comes down to three places — **Chat**, **Tasks**, and **Needs You** — and each one links back to the others. Tasks you start from a conversation show up in that conversation. Questions those tasks raise show up there too, and in Needs You. Answers leave a small receipt you can follow back to the exact work you reviewed.
+The **Coordinator workspace** pulls those surfaces into one path. The sidebar comes down to three places — **Chat**, **Tasks**, and **Needs you** — and each one links back to the others. Tasks you start from a conversation show up in that conversation. Questions those tasks raise show up there too, and in Needs you. Answers leave a small receipt you can follow back to the exact work you reviewed.
 
 It is a different presentation of the same records. Your tasks, conversations, documents, and decisions don't move or change when you switch it on or off.
 
@@ -41,19 +41,21 @@ Turn the same switch off. The card tells you what to expect: *"Off by default. T
 
 ## The sidebar
 
-The sidebar now has three main destinations:
+Your three main destinations sit together in one group, between the **New task** button and **More**:
 
 - **Chat** opens your conversations with agents.
 - **Tasks** opens the company task list. Hover the row for a **New task** shortcut.
-- **Needs You** collects everything waiting on your decision. Its badge counts what's open.
+- **Needs you** collects everything waiting on your decision. Its badge counts what's open.
 
 Want to hand off work right away? A **New task** button sits at the top, just above **Chat**, and opens the usual new-task form. It stays there when you collapse the sidebar too, as an icon you can hover to see its name.
 
+Looking for something? Click the search icon beside the organization menu, at the very top of the sidebar. It's there when the sidebar is collapsed too, and it opens the same quick search as ⌘K (Ctrl+K), covering tasks, agents, and projects.
+
 Other pages live under **More**: **Search**, **Inbox**, **Dashboard**, **Projects**, **Routines**, **Artifacts**, **Agents**, **Skills**, **Connectors**, **Audit**, and **Settings**. Hover any of them and click the pin to keep it in a **Pinned** section under the main three. Pins are saved in this browser, for your account.
 
-Below that, **Recents** mixes the tasks you've opened, your agent conversations, and projects you've visited in this session, newest first. Expand a project there to see its most recently updated tasks without leaving the page.
+Below that, **Recents** mixes the tasks you've opened, your agent conversations, and projects you've visited in this session, newest first. Expand a project there to see its most recently updated tasks without leaving the page. The section only appears once it has something to list, and it's hidden while the sidebar is collapsed.
 
-On a phone, the bottom bar carries **Chat**, **Tasks**, **Needs You**, and **New task**.
+On a phone, the bottom bar carries **Chat**, **Tasks**, **Needs you**, and **New task**.
 
 The workspace uses the streamlined interface even if **Streamlined UI** is off for your instance. It also uses the chat-style task page regardless of **Classic Task Interface**, and it ignores **Combined Inbox + Task List** — **Inbox** lives under **More** instead.
 
@@ -61,7 +63,7 @@ The workspace uses the streamlined interface even if **Streamlined UI** is off f
 
 You still get [one conversation per agent](agent-chat.md#one-conversation-per-agent). What changes is how it's laid out.
 
-- The separate agent rail is gone. To talk to someone else, click the chevron next to the agent's name in the conversation header (**Switch agent**) and pick an agent. Switching just opens that agent's conversation. Paperclip doesn't create a new chat until you actually send something.
+- The separate agent rail is gone. To talk to someone else, click the agent in the conversation header. The avatar, name, and caret are one control (hover it and the tooltip reads *Switch agent*), and clicking any part opens the **Chat with an agent** picker, where each agent shows its avatar. Switching just opens that agent's conversation. Paperclip doesn't create a new chat until you actually send something.
 - The side panel starts closed. Open it when you want it, and it remembers the tabs you chose.
 - The panel's **Tasks** tab lists only the tasks *created from this conversation*, with a search box, a status filter, and sort options (**Newest first**, **Oldest first**, **Title**). They stay listed even if someone reassigns them.
 - A link to another chat in a message shows up as **Chat with** followed by the agent's name, and opens that conversation.
@@ -78,7 +80,7 @@ Unless you name someone else, a task created from a conversation is assigned to 
 
 Decisions follow the task wherever it shows up:
 
-- **Questions in the chat.** When a task created from a conversation needs your input, the question appears in that conversation: *"[agent] needs your input on [task]."* You can answer it right there. It's the same question that's in the task and in Needs You, so you only answer it once.
+- **Questions in the chat.** When a task created from a conversation needs your input, the question appears in that conversation: *"[agent] needs your input on [task]."* You can answer it right there. It's the same question that's in the task and in Needs you, so you only answer it once.
 - **Receipts.** Once a decision is recorded, the chat keeps a one-line receipt, such as **Approved**, **Changes requested**, or **Answers recorded**, with the task ID, the title, and how long ago it happened. Click it to jump back to the decision in the task.
 - **Exact review targets.** If you approved a specific revision of a document, the receipt opens that revision rather than the latest one. If that revision can't be found anymore, the task says *"The reviewed revision is unavailable."*
 
@@ -90,14 +92,24 @@ Documents an agent writes or links don't take over the thread. They show up as c
 
 ## The Tasks page
 
-**Tasks** opens a company-wide task list with two views:
+**Tasks** opens a company-wide task list, and the view menu at the start of the toolbar narrows it to what you care about right now. It has four views:
 
-- **All tasks** — every task, most recently updated first. Search, filter, switch between list and board, and use **Load more tasks** to pull in more.
-- **Needs attention** — just the tasks that have a decision waiting on you, taken from the same queue as Needs You.
+- **Inbox** — tasks you created or that are assigned to you. This isn't the same thing as the **Inbox** page under **More**.
+- **Unread** — tasks that are unread for you.
+- **Needs attention** — just the tasks that have a decision waiting on you, taken from the same queue as Needs you.
+- **All tasks** — every task you can see in the company.
 
-## Needs You
+The first time you open **Tasks**, you start on **Inbox**. After that, Paperclip reopens the last view you used. Your choice is saved in this browser, for your account, and it applies across companies.
 
-**Needs You** replaces the classic Decisions page while the workspace is on. It lives at the same address, `/decisions`, and lists everything waiting on you, from questions and confirmations to agent decisions and reviews.
+A link can choose the view for you. A link that names one of these four views opens that view, and a link that filters the company's tasks without naming one opens **All tasks**. Either way, that view becomes the one Paperclip remembers. An older link to a former Inbox tab, such as Mine or Recent, opens the **Inbox** page instead.
+
+In every view you can search, filter, and switch between list and board. The list shows the most recently updated tasks first until you choose another sort. In **Inbox**, **Unread**, and **All tasks**, a matching subtask also shows its parent tasks for context once they're loaded. **Needs attention** lists only the tasks with a decision waiting.
+
+Every view except **Needs attention** loads in pages, so use **Load more tasks** to pull in more. **Inbox** picks from the tasks loaded so far, so if you expect a task you can't see, load more. If **Inbox** or **Unread** comes up empty, or a search or filter matches nothing in any view, you'll see *"No tasks match this view"*. **Clear filters** then takes you to **All tasks**, except in **Needs attention**, where it clears the filters and keeps you there.
+
+## Needs you
+
+**Needs you** replaces the classic Decisions page while the workspace is on. It lives at the same address, `/decisions`, and lists everything waiting on you, from questions and confirmations to agent decisions and reviews.
 
 Most items can be resolved right on the card. A task stuck in review with no one to pick it up asks you to **Choose how this task continues**: send it back to work, request changes, or **Mark task done**. Anything that can't be handled in place has an **Open to review** button. Cards tied to a task link back to it.
 
@@ -120,7 +132,7 @@ History only includes decisions on tasks you're allowed to read. The [Attention 
 
 - This is an experiment under active iteration. Expect the layout, labels, and navigation to change between releases.
 - Task proposals depend on the chat agent running on Paperclip Runner. Other agents still hand work off by creating tasks directly.
-- Pinned pages are stored in your browser, so they don't follow you to another device.
+- Pinned pages and your last task view are stored in your browser, so they don't follow you to another device.
 
 ## Where to go next
 

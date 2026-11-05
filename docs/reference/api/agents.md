@@ -824,7 +824,10 @@ The `permissionKey` field on a grant is one of:
 
 | Key | What it allows |
 |---|---|
-| `agents:create` | Hire or create new agents in the company, and run mutations or environment probes against agent configuration. Still satisfies `agent_config:read` and `agent_config:update` checks — but board (human) company members no longer need it to read agent configuration, skills, or config-revisions. Those reads are gated only on company membership. Agent (non-human) actors still need `agents:create` (or the legacy `canCreateAgents` flag) to read peer agents' configurations. |
+| `agents:create` | Hire or create new agents in the company, and run adapter environment tests. It doesn't let an agent read a peer's configuration. |
+| `agents:read` | Read an agent's redacted configuration, skill settings, instruction content, and configuration and instruction history. It doesn't allow changes, rollback, or environment tests. |
+| `agents:configure` | Read and directly change an agent's configuration. |
+| `agents:suggest-changes` | Read an agent's configuration, and apply a change once it's been accepted. |
 | `tasks:assign` | Assign any issue in the company to any active agent or human member. |
 | `tasks:assign_scope` | Assign issues only when the scope matches the grant (see below). Requires a structured scope on the grant. |
 | `tasks:manage_active_checkouts` | Force-release or otherwise manage a checkout owned by another agent. |
@@ -833,7 +836,7 @@ The `permissionKey` field on a grant is one of:
 | `users:manage_permissions` | Edit roles and grants for other members. |
 | `joins:approve` | Approve pending join requests. |
 
-A new standard agent gets `canCreateAgents: true` and `canCreateSkills: true` when it is created; low-trust agents get `canCreateAgents: false`. Stored agents without an explicit `canCreateAgents` value are treated as `false`. An agent with the `ceo` role can always create agents, whatever its flag says. New standard agents also receive fourteen direct grants when they are created or their hire is approved: `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`, `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `audit:view_agent_actions`, `tools:use`, `tools:manage_runtime`, `inbox:manage` (scoped `{ "responsibleUserOnly": true }`), `tasks:assign`, `tasks:assign_scope` (scoped `{ "subtreeRootAgentId": "<the new agent's id>" }`), and `tasks:manage_active_checkouts`. Low-trust agents and managed built-in agents don't receive them, and existing agents aren't backfilled.
+A new standard agent gets `canCreateAgents: true` and `canCreateSkills: true` when it is created; low-trust agents get `canCreateAgents: false`. Stored agents without an explicit `canCreateAgents` value are treated as `false`. An agent with the `ceo` role can always create agents, whatever its flag says. New standard agents also receive fifteen direct grants when they are created or their hire is approved: `agents:read`, `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`, `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `audit:view_agent_actions`, `tools:use`, `tools:manage_runtime`, `inbox:manage` (scoped `{ "responsibleUserOnly": true }`), `tasks:assign`, `tasks:assign_scope` (scoped `{ "subtreeRootAgentId": "<the new agent's id>" }`), and `tasks:manage_active_checkouts`. Low-trust agents and managed built-in agents don't receive them. Existing agents aren't backfilled, with one exception: a one-time migration adds only `agents:read` to eligible existing standard agents. See [Reading agent configuration](../../administration/roles-and-permissions.md#reading-agent-configuration) for who it skips. A company's single root CEO agent and the Reflection Coach have separate default grants, which Paperclip keeps in place.
 
 Role-default human grants are applied automatically when a user joins. `owner` and `admin` receive the agent, skill, environment, invite, task-assignment, join-approval, and four tool keys (`owner` adds `users:manage_permissions`). `operator` receives company editing, invite, tool, and audit keys, but not `joins:approve` or `users:manage_permissions`. All four roles, `viewer` included, receive `commentary:view`, and it's added to accepted invites whose saved grant list leaves it out. The exact lists are in [Roles & Permissions](../../administration/roles-and-permissions.md#the-four-company-roles).
 
@@ -1299,7 +1302,7 @@ These routes inspect and sync the skills attached to an agent.
 `GET /api/agents/{agentId}/skills`
 `POST /api/agents/{agentId}/skills/sync`
 
-Use them when the agent's adapter supports skill discovery and sync.
+Use them when the agent's adapter supports skill discovery and sync. The `GET` route follows the same read rules as [Configuration](#configuration). `/skills/sync` is a change, so a read grant alone isn't enough.
 
 ### Sync request
 
@@ -1382,7 +1385,11 @@ Use them when you need to:
 Important notes:
 
 - `GET /api/agents/{agentId}/configuration` and each entry from `GET /api/companies/{companyId}/agent-configurations` include a `configurationRevision`. Pass it as `expectedConfigurationRevision` on [Update Agent](#update-agent) to reject stale writes with `409`.
-- If you are a board (human) member of the company, configuration and config-revision reads need only your company membership — no `agents:create` permission is required. Agent (non-human) actors still need `agents:create` (granted, or the legacy `canCreateAgents` flag on their own record) to read these. Mutations and environment probes always require `agents:create`.
+- If you are a board (human) member of the company, configuration and config-revision reads need only your company membership.
+- An agent needs no grant of its own to read its own configuration and config revisions, unless it's [low-trust](../../administration/trust-and-low-trust-review.md). To read a peer, it needs `agents:read`, `agents:configure`, or `agents:suggest-changes`, and that grant's scope has to cover the target agent. A target outside the agent's company returns `404`.
+- For an agent, `GET /api/companies/{companyId}/agent-configurations` needs a company-wide grant. A grant scoped to certain agents returns `403`.
+- If the agent acts for a responsible user, that person needs one of the same three keys, even when the agent is reading itself, or the read returns `403` with code `RESPONSIBLE_USER_UNAUTHORIZED`. See [Reading agent configuration](../../administration/roles-and-permissions.md#reading-agent-configuration).
+- `agents:read` doesn't cover changes. Rollback needs permission to update the agent, and `POST /api/companies/{companyId}/adapters/{type}/test-environment` needs permission to create agents. Testing a saved agent by passing `agentId` also needs permission to change it.
 - Revisions redact secret-bearing fields before returning them, so reads never expose secrets regardless of who you are.
 - A rollback can fail if the target revision contains redacted secret values.
 
@@ -1494,8 +1501,9 @@ These exist for compatibility with instances that saved instruction revisions be
 
 Notes:
 
-- The target agent or an ancestor manager can manage the instructions path.
-- An agent can read and save its own files within what its responsible user is currently allowed to do. Reading or saving another agent's files needs permission to configure that agent.
+- Changing the instructions path needs `agents:configure`, or `agents:suggest-changes` with an accepted change. Being the target agent or its manager isn't enough.
+- An agent can read its own files and save its own entry file within what its responsible user is currently allowed to do. Saving or deleting its other files through these routes needs `agents:configure`, or `agents:suggest-changes` with an accepted change. Reading another agent's files and instruction history needs `agents:read`, `agents:configure`, or `agents:suggest-changes`. Saving them or restoring a revision needs `agents:configure`, or `agents:suggest-changes` with an accepted change.
+- Agents need a current responsible user to read instruction files, including their own.
 - A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't save its own instructions from ordinary work. The exception is an edit its user asks for directly in their own Agent Chat — see [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 - Relative instructions paths require `adapterConfig.cwd`.
 - External bundles keep their existing behaviour; `download=true` and the `baseHash` rules above apply to managed bundles.

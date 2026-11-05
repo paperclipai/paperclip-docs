@@ -26,7 +26,7 @@ The chat area has its own sidebar, headed **Chat**, beside the conversation:
 
 - **Teammates** lists your existing conversations first, followed by the other agents you can chat with. Each row shows the agent's avatar, name, and title. An agent that's replying right now reads **Working…**; a paused or terminated agent says so. A small dot beside a name means that agent has sent you something you haven't read yet.
 - **Find an agent** filters the list by name or role.
-- **Add chat** (the **+** button) opens **Chat with an agent**, a searchable list of every agent in the company. Each one is marked **Open chat** if you already have a conversation with it, or **New chat** if you don't. Pick one and its conversation opens straight away.
+- **Add chat** (the **+** button) opens **Chat with an agent**, a searchable list of every agent in the company. Each one shows the agent's avatar and is marked **Open chat** if you already have a conversation with it, or **New chat** if you don't. Pick one and its conversation opens straight away.
 - **Browse all agents** at the bottom takes you to the full agent list.
 
 The **Chat** entry in the main navigation also carries a count of how many of your chats have unread agent messages. A message counts as read once you've scrolled to it at the bottom of the conversation while the window is in focus.

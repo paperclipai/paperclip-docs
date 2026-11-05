@@ -682,6 +682,8 @@ While paused, the composer says **Task is paused.** or **Subtree is paused.**, p
 
 If a run stops for a reason Paperclip can repair itself, the task shows one short status line instead of a stack of warnings: *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* once it has stopped retrying. **Retry** asks Paperclip to try the task again with your saved messages. If the provider rejected the selected model, choose a supported model or clear the task override, then retry. A provider sign-in request needs your authentication step before the run can continue. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention).
 
+When the model provider reports the failure on a [Paperclip Runner](../../reference/adapters/paperclip-runner.md) run, you get a red notice instead, unless a **Retry** is still waiting on cleanup or checks. Its title gives the provider and the reason, such as **Claude: Rate limit reached**. It shows the provider's message and whether the run *Failed before work started* or *Failed during work*, plus the HTTP status, provider code, and request ID when they're available. While an automatic retry is lined up, it adds *Paperclip will retry automatically.* The notice itself only explains what happened. Separately, when a run fails during startup and the provider reported a rate limit or usage limit, Paperclip waits that out before its next attempt. The run's page shows the same provider, reason, message, and details, but the notice there has no retry line or **Retry** button of its own. If a failed run still has a retry pending and no accepted result, that page also offers **Stop**. See [Debug a stuck heartbeat](../../how-to/debug-stuck-heartbeat.md#8-run-fails-with-a-red-provider-notice).
+
 A low-trust agent can also be stopped because the task's project isn't one of its allowed projects. Then the task shows a **Project access** notice instead: the agent hasn't started, and your message is saved. Choose **Manage project access** (or **View agent access** if you can't change it) to open the agent's settings and add the project. Saving access doesn't restart anything. Back on the task, the notice reads **Project access is ready**, and **Retry task** picks the work up again. See [Allowed projects](../../administration/trust-and-low-trust-review.md#allowed-projects).
 
 ## Recovery actions
@@ -703,6 +705,21 @@ A recovery action carries:
 You'll see recovery indicators surface in four places: on rows in the **Issues** list, on the issue **detail surface**, on **active run** panels in the Chat tab, and inside **blocker notices** on issues that escalated.
 
 When Paperclip itself owns the repair, task rows in the Issues list and the inbox stay quiet: they don't show a recovery label at all, so the list stays easy to scan. Open the task to see how the repair is going and to click **Retry** once retrying has stopped. Automatic repair keeps trying only a limited number of times. After that, a **Retry** click starts a new round of attempts, so you don't have to clear old recovery records first.
+
+### Recovering saved files
+
+A Paperclip Runner run can end with its work files still waiting to be saved back. Paperclip won't start another attempt until those files are safe, so the task hides **Retry** and its Chat tab says *The saved files need recovery before work can continue.*
+
+To move things along, click **Recover saved files**. Paperclip checks that the earlier run has stopped, restores the recorded files, and records proof that they're saved. No agent starts during this. The status line follows along:
+
+- *File recovery is queued. Waiting for verified saved files.*
+- *Recovering saved files. Work remains paused until recovery is verified.*
+- *Saved files recovered. Task recovery is still being checked.*
+- *File recovery has not finished. The saved source remains protected.*
+
+The task stays on hold until the server has recorded verified copies of the files. If you lose your connection, click **Check file recovery status**. Trying again reuses the same request, so it can't start a second recovery. If a confirmed attempt failed and another one can help, you'll see **Try file recovery again**. When an attempt has failed or can't be retried, the task also says *File recovery has not finished. The saved source remains protected; service assistance is needed.*
+
+You need board access to this task to request recovery. Company members with the viewer role can't, and they see *A board member with task access can request file recovery.* You can do the same thing from the failed run's page: click **Inspect recovery** and the recovery controls appear with the run's recorded failure.
 
 ### Resolution outcomes
 

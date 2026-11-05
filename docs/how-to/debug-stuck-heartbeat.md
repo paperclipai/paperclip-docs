@@ -96,6 +96,26 @@ Two things to keep in mind while you watch it:
 
 If you would rather not pay for these wakes at all, the cure is upstream: have your agents record a status before they finish. A comment describing progress is not a disposition — Paperclip is looking at the task's status and path, not its prose.
 
+---
+
+## 8. Run fails with a red provider notice
+
+**Symptom.** A task or run on [Paperclip Runner](../reference/adapters/paperclip-runner.md) shows a red notice such as **Claude: Rate limit reached** instead of a generic failure.
+
+**Cause.** The model provider reported a problem. The title gives the provider and one of these reasons: *Rate limit reached*, *Usage allowance exhausted*, *Authentication failed*, *Access denied*, *Model unavailable*, *Request rejected*, *Provider at capacity*, *Provider timed out*, or *Provider error*. Below that you get the provider's own message, *Failed before work started* or *Failed during work*, and the HTTP status, provider code, and request ID when they're available.
+
+**Fix.** Act on the message: wait out a rate limit, add allowance, reconnect the account, or pick another model. The notice itself only explains the failure. Separately, when a run fails during startup and the provider reported a rate limit or usage limit, Paperclip waits that out before its next attempt. If it says *Paperclip will retry automatically.*, you can leave it alone. If **Retry** is there, click it once you've fixed the cause.
+
+---
+
+## 9. A failed run still offers Stop
+
+**Symptom.** A run's status is `failed`, but its page has a **Stop** button.
+
+**Cause.** The Paperclip Runner run failed and still owns a pending automatic retry, and no result has been accepted for it. Runs without such a retry don't show the button, and neither do failed Grok Bot runs.
+
+**Fix.** Let the retry happen, or click **Stop** to cancel it if you don't want another attempt. The button reads **Stopping…** while Paperclip works on it, and the run moves to `cancelled` once the stop is confirmed. You can click again safely if the response gets lost, because Paperclip reuses the same request. To continue from saved work afterwards, send a new message on the task. If you see *Stop was not accepted because the run changed.*, reload the run and check its status. *This Stop request belongs to another operator.* means someone else already asked to stop it.
+
 ## Where to look first
 
 - **Run logs.** Agent detail → **Audit → Runs** → click any run for the full transcript and exit code.
