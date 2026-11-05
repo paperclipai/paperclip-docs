@@ -1,6 +1,6 @@
 ---
 seo_title: Coordinator Workspace (Experimental)
-seo_description: A personal, opt-in workspace built around Chat, Tasks, and Needs You, so a conversation leads straight to assigned tasks and the decisions they raise.
+seo_description: A personal, opt-in workspace built around Chat, Tasks, and Needs you, so a conversation leads straight to assigned tasks and the decisions they raise.
 ---
 
 # Coordinator workspace
@@ -97,15 +97,15 @@ Documents an agent writes or links don't take over the thread. They show up as c
 - **Inbox** — tasks you created or that are assigned to you. This isn't the same thing as the **Inbox** page under **More**.
 - **Unread** — tasks that are unread for you.
 - **Needs attention** — just the tasks that have a decision waiting on you, taken from the same queue as Needs you.
-- **All tasks** — every task in the company.
+- **All tasks** — every task you can see in the company.
 
 The first time you open **Tasks**, you start on **Inbox**. After that, Paperclip reopens the last view you used. Your choice is saved in this browser, for your account, and it applies across companies.
 
-A link can choose the view for you. A link that names a view opens that view, and a link that filters the company's tasks without naming one opens **All tasks**. Either way, that view becomes the one Paperclip remembers.
+A link can choose the view for you. A link that names one of these four views opens that view, and a link that filters the company's tasks without naming one opens **All tasks**. Either way, that view becomes the one Paperclip remembers. An older link to a former Inbox tab, such as Mine or Recent, opens the **Inbox** page instead.
 
-In every view you can search, filter, and switch between list and board. The list shows the most recently updated tasks first until you choose another sort, and a matching subtask keeps its parent tasks visible for context.
+In every view you can search, filter, and switch between list and board. The list shows the most recently updated tasks first until you choose another sort. In **Inbox**, **Unread**, and **All tasks**, a matching subtask also shows its parent tasks for context once they're loaded. **Needs attention** lists only the tasks with a decision waiting.
 
-Every view except **Needs attention** loads in pages, so use **Load more tasks** to pull in more. **Inbox** picks from the tasks loaded so far, so if you expect a task you can't see, load more. If **Inbox** or **Unread** comes up empty you'll see *"No tasks match this view"*, and **Clear filters** takes you to **All tasks**.
+Every view except **Needs attention** loads in pages, so use **Load more tasks** to pull in more. **Inbox** picks from the tasks loaded so far, so if you expect a task you can't see, load more. If **Inbox** or **Unread** comes up empty, or a search or filter matches nothing in any view, you'll see *"No tasks match this view"*. **Clear filters** then takes you to **All tasks**, except in **Needs attention**, where it clears the filters and keeps you there.
 
 ## Needs you
 

@@ -340,9 +340,9 @@ If your Paperclip instance reports failed runs to Sentry, a routine can turn eac
 
 Every run-failure event Paperclip sends to Sentry carries an `event_kind` tag of `run_failure`, plus `run_id`, `task_id`, and `company_id`. It also gets three tags about where the failed work came from:
 
-- `automation_origin_status`: `complete` when Paperclip could trace how the task was created, `unknown` when it couldn't.
-- `automation_routine_ids`: the routine IDs found in that history, comma-separated. It's `none` when no routine was involved, and `unknown` when Paperclip couldn't check.
-- `task_shareable`: `true` when the failed task is visible across the company, `false` when it's private, `unknown` otherwise.
+- `automation_origin_status`: `complete` when Paperclip could trace how the task was created and found at most five routines in that history, `unknown` otherwise.
+- `automation_routine_ids`: up to five routine IDs found in that history, comma-separated. `none` means no routine ID was found, which only rules out a routine when `automation_origin_status` is `complete`. It's `unknown` when the lookup didn't return an answer.
+- `task_shareable`: `false` when the failed task or a task it came from is private. `true` when none that Paperclip could read is private, which covers the full history only when `automation_origin_status` is `complete`. `unknown` otherwise.
 
 The routine-ID tag is what keeps the setup from looping. It covers child tasks and follow-ups too, so when a repair task itself fails, its event still names the repair routine. Filter that routine out in Sentry and the error stays in Sentry without starting another repair.
 

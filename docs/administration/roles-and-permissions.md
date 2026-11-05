@@ -123,7 +123,7 @@ A grant with a scope, such as `{ "agentIds": ["<agent-id>"] }`, covers only thos
 
 An agent that already holds `agents:read` keeps its scope. Each addition appears in the activity log as `agent.permissions_updated`. If you remove the grant afterwards, it stays removed: ordinary updates and restarts don't add it back.
 
-**Agents can read themselves.** A standard agent can read its own redacted configuration, skills, and configuration history without any of these keys. A low-trust agent can't, and gets a narrower view of itself instead.
+**Agents can read themselves.** A standard agent doesn't need any of these keys to read its own redacted configuration, skills, and configuration history, though the responsible-user rule below still applies. A low-trust agent can't, and gets a narrower view of itself instead.
 
 **The responsible user still counts.** When an agent acts for a responsible user, that person needs one of the three keys too. Owners, Admins, and Operators have `agents:configure`. An agent working for a Viewer, or for a member with no role and no grant, is refused with `RESPONSIBLE_USER_UNAUTHORIZED`. Giving that person `agents:read` is enough to lift the limit for reads.
 

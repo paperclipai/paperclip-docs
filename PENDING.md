@@ -82,10 +82,14 @@ Remaining `verify-edit` misses, all on lines this run didn't write:
 ## Open questions from this run
 
 - **Cursor Cloud attachments:** the page says not to count on them, because the driver sends text and the parent's plan marks inbound media as unverified. No test settles it.
-- **Cursor Cloud artifact caps:** 256 MiB and 256 files apply per artifact root in code, and the page gives them without a scope.
+- **Cursor Cloud artifact caps:** the parent's Runner README says the budget "survives session changes", but the ledger sits under a state root keyed to `normalizedSessionId`. The page follows the code and says later runs on a session share the total. Check this if upstream clarifies it.
 - **Search in the Coordinator sidebar:** #18831 implies search moved, but `Search` is still under **More** at `84aa989b`, as well as the new icon. The page documents both.
-- **"Needs You" vs "Needs you":** the settings card still says "Needs You", so that quote stays verbatim while the sidebar label is "Needs you". The `seo_description` also keeps the old casing.
+- **"Needs You" vs "Needs you":** the settings card still says "Needs You", so that quote stays verbatim while the sidebar label is "Needs you".
 - **Low-trust self-reads:** the page says a low-trust agent can't read its own configuration, from `authorization.ts`. Tests cover the peer read and the self `instructions-bundle` read, not `/configuration` directly.
+- **Responsible-user limit on self-reads:** the pages say a Viewer's agent is refused its own configuration read. That comes from tracing `applyResponsibleUserIntersection` in `authorization.ts`, which has no self exemption. No test covers this exact case.
+- **"An agent can edit its own folder" in `guides/org/agents.md`:** the API page now says only the entry file falls back to a self-edit. The guide keeps the broader wording, which holds for agents with `agents:configure`. Check whether to narrow it.
+- **Remote mentioned-project switches:** `PAPERCLIP_MULTI_PROJECT_WORKSPACE_SYNC_REMOTE=false` makes a task with a mentioned project stop with *Referenced remote workspace access is disabled.* It's on by default and isn't documented.
+- **Shadow mode:** `PAPERCLIP_RESPONSIBLE_USER_AUTHZ_MODE=shadow` logs responsible-user refusals instead of enforcing them. It's non-default, so the permission pages don't mention it.
 - **`PAPERCLIP_EPHEMERAL_SERVER`** and the disposable-server deployment profile aren't documented anywhere in our docs. It's worth a dedicated page once upstream settles.
 - **Existing doc gaps found, not fixed:**
   - `connectors/reauthorize-and-disconnect.md` says Delete removes the credential, but the route archives the connection.

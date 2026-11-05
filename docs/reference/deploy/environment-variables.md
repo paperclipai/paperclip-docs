@@ -325,11 +325,11 @@ A native run that's waiting to retry inside the same run isn't reported. It's re
 
 Server events tied to a saved run carry links back to Paperclip, so you can jump from Sentry straight to the work. They get a `run_url` tag pointing at the run page, plus `task_url` and `task_identifier` tags when the run has a task. The links are built from `PAPERCLIP_PUBLIC_URL`, so they're left out when that variable is missing or unsafe. Opening one still needs normal Paperclip access, and only newly captured events get them.
 
-Run-failure events also say where the failed work came from, whether or not `PAPERCLIP_PUBLIC_URL` is set. The [Sentry repair routine](../../guides/projects-workflow/routines.md#example-repair-failed-runs-reported-by-sentry) uses these tags to decide which failures to act on:
+Run-failure events also say where the failed work came from, whether or not `PAPERCLIP_PUBLIC_URL` is set. The alert behind the [Sentry repair routine](../../guides/projects-workflow/routines.md#example-repair-failed-runs-reported-by-sentry) filters on these tags to decide which failures start a repair:
 
-- `automation_origin_status`: `complete` when Paperclip could trace how the task was created, `unknown` when it couldn't.
-- `automation_routine_ids`: the routine IDs found in that history, comma-separated. It's `none` when no routine was involved, and `unknown` when Paperclip couldn't check.
-- `task_shareable`: `true` when the failed task is visible across the company, `false` when it's private, `unknown` otherwise.
+- `automation_origin_status`: `complete` when Paperclip could trace how the task was created and found at most five routines in that history, `unknown` otherwise.
+- `automation_routine_ids`: up to five routine IDs found in that history, comma-separated. `none` means no routine ID was found, which only rules out a routine when `automation_origin_status` is `complete`. It's `unknown` when the lookup didn't return an answer.
+- `task_shareable`: `false` when the failed task or a task it came from is private. `true` when none that Paperclip could read is private, which covers the full history only when `automation_origin_status` is `complete`. `unknown` otherwise.
 
 ---
 

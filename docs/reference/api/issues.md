@@ -1494,7 +1494,7 @@ A retry is a new, durable request. If automatic repair had used up its attempts,
 | `observedRunId` | The latest run; send it back as `observedRunId` when you retry |
 | `sourceRunIds`, `intentId` | The runs and the pending retry request behind the summary |
 | `providerFailure` | Present when a model provider reported the failure on a Paperclip Runner run. Holds `schema`, `provider`, `phase` (`startup` or `turn`), `category` (`rate_limit`, `quota_exhausted`, `authentication`, `permission`, `model_unavailable`, `invalid_request`, `overloaded`, `timeout`, or `unknown`), `message`, and `retryability` (`transient`, `requires_action`, or `unknown`), plus `providerCode`, `httpStatus`, `requestId`, and `retryAt` when available. |
-| `workspaceFailure` | Present as `{ "message": "..." }` when the run failed with `workspace_validation_failed`. |
+| `workspaceFailure` | Present as `{ "message": "..." }` when the run failed, or is waiting on a retry, with `workspace_validation_failed`. |
 
 Both messages are redacted and limited to 4,000 characters. If Paperclip can't redact them, it leaves both fields out.
 

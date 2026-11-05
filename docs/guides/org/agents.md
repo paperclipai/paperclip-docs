@@ -166,7 +166,7 @@ A few things keep this in check:
 
 - **Its responsible user still bounds it.** Grants don't let an agent do anything the person it acts for couldn't do, and approval gates and protected-change checks still apply.
 - **Low-trust and built-in agents are left out.** Agents on the [low-trust review preset](../../administration/trust-and-low-trust-review.md) and Paperclip's managed built-in agents keep their narrower permissions.
-- **Existing agents only pick up a read grant.** The other defaults apply to new agents only. Upgrading adds `agents:read` once to eligible existing standard agents, so they can check a teammate's setup without being able to change it. See [Reading agent configuration](../../administration/roles-and-permissions.md#reading-agent-configuration) for who it skips. A grant you remove stays removed.
+- **Existing agents only pick up a read grant.** The other defaults apply to new agents only. Upgrading adds `agents:read` once to eligible existing standard agents, so they can check a teammate's setup without being able to change it. See [Reading agent configuration](../../administration/roles-and-permissions.md#reading-agent-configuration) for who it skips. A grant you remove stays removed. Two separate sets of defaults are the exception, and Paperclip re-applies them: `agents:configure` and `skills:create` on a company's single root CEO agent, and the suggest-change grants on the Reflection Coach.
 
 See [Roles & Permissions](../../administration/roles-and-permissions.md#the-permission-keys) for what each key allows.
 
