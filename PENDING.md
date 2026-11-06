@@ -6,7 +6,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Compare truncation:** 0 truncated leaves (increment: 10 leaves, 146 commits, 972 files).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
 - **Already on nightly:** drafts for `1b4c8038..84aa989b` from earlier runs. This run covers the 146 newer commits, `84aa989b..56517dda`.
-- **Verification:** authors and reviewers read only a checkout pinned to `56517dda`. Every changed page was checked with `verify-edit` at that SHA (`source: snapshot`, no warnings). Two fresh reviewers then checked the edits against code, and their confirmed defects are fixed. Nothing was run against a live instance.
+- **Verification:** authors and reviewers read only a checkout pinned to `56517dda`. Every changed page was checked with `verify-edit` at that SHA (`source: snapshot`, no warnings). Two rounds of fresh reviewers then checked every edit against code, and their confirmed defects are fixed. The second round's fixes were checked against code by hand, not by a third round. Nothing was run against a live instance.
 - **Auto-merge tier:** nothing this run. `.env.example` and `server/src/config.ts` didn't change in the window.
 - **Heads-up — release imminent:** parent master carries the `v2026.1103.0` stable notes (#18842), but `releases/latest` is still `v2026.1023.0` at 2026-11-06T11:00Z. When the tag lands, the next run should be release mode.
 
@@ -23,7 +23,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **API** (#16352, #19158, #19203, #18923): `file-resources` accepts task identifiers and returns `404` for unknown ones, tool gateway rejections keep their status, parent goals must be in the same company, and team catalog installs return `resourceLinks`. Also fixed an older wrong claim: `file-resources` routes are board-only, so agents get `403`.
 - **Operators and adapters:** `KillMode=mixed` and how an existing install picks it up (#18598, `reference/cli/service.md`). Claude sandbox tool commands go first under memory pressure (#16844, `reference/adapters/claude-code.md`). Codex credential rejections go to sign-in recovery (#19146, `reference/adapters/codex.md`).
 - **Small UI:** pinned pages above **More** (#18915, `coordinator-workspace.md`), and reloading during an outage (#18825, `how-to/update-paperclip.md`).
-- **Corrections to existing text, found in review:** the Artifacts empty-state quotes, the file viewer's entry points (file chips and links, not artifact tiles), and a CEO rule the code doesn't enforce (`org-structure.md`).
+- **Corrections to existing text, found in review:** the Artifacts empty-state quotes, the file viewer's entry points (file chips and links, not artifact tiles), a CEO rule the code doesn't enforce and where a terminated agent's reports appear (`org-structure.md`), and the fields in the **Create project** dialog (`projects.md`).
 
 ## Applied in earlier runs (still on nightly, unreleased)
 
@@ -69,7 +69,9 @@ None (`source: snapshot`, no warnings). This check ran before the edits.
 
 ## Open questions from this run
 
-- **Background worker calls under `plugins.enabledCompanies`:** the docs say they still need a saved configuration, from `plugin-loader.ts:2357` (`proactiveCompanyScopes` lists configured companies only). One reviewer pointed out that `ensurePluginAvailableForCompany` is a no-op and `config.get` returns `{}`. Those don't contradict the scope check, so the text stayed. Nothing ran this live.
+- **Environment-variable reference:** background calls under `plugins.enabledCompanies` are settled. Calls naming the company are refused until a saved configuration exists, per `proactiveCompanyScopes` and `host-client-factory.ts`. The parent's `DISTRIBUTION-PLUGINS.md` says the same more loosely.
+- **Slack managed setup after sign-in:** whether the popup or fallback tab finishes setup first, or the original page needs another **Continue**, wasn't settled from code. `slack.md` covers both.
+- **Authorization error wording:** whether a provider still waiting on an administrator can produce *Authorization did not complete* (older text in `verify-and-troubleshoot.md`) can't be settled from this repo.
 - **Spent export repair text:** the server's `nextAction` says "Retry recovery", but **Retry** is hidden in that state and the control is **Recover saved files**. The debug guide maps one to the other. This looks like a wording bug upstream. The `Inbox.tsx:1946` retry path wasn't checked for this state.
 - **Connector sign-in, original page:** the docs say to finish sign-in in the new window. How the original page updates on **Reconnect** and on Slack's search connect wasn't traced, and popup blocking wasn't tested live. Whether task-bound setup closes the window itself is also unconfirmed, so the docs don't claim it.
 - **Outage reload:** the "usually" on a stopped server comes from reading `sw.js`. End-to-end tests only cover an API failing while the page still loads. `local_trusted` mode wasn't confirmed.

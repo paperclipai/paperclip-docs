@@ -237,7 +237,7 @@ Say the fleet provisions a plugin that needs a service address to do its job, an
 }
 ```
 
-Both are maps keyed by plugin key, and every key must also be listed in `plugins.autoInstall`. A key that isn't, an empty list, or a duplicate entry refuses startup. So does any document carrying these keys on a build too old to know them, because `plugins` rejects unknown keys.
+Both are maps keyed by the same catalog key you list in `plugins.autoInstall`, not the plugin's manifest ID, and every key must also be listed there. A key that isn't, an empty list, or a duplicate entry refuses startup. So does any document carrying these keys on a build too old to know them, because `plugins` rejects unknown keys.
 
 #### `plugins.workerEnv`: variables for one plugin
 
@@ -262,7 +262,7 @@ Normally a plugin only gets [lifecycle events](../plugins/sdk.md#automatic-deliv
 
 Each entry must be a lowercase company UUID. A few limits are worth knowing:
 
-- **Background worker calls aren't included.** Calls from the plugin's own timers and loops still need a saved configuration for that company.
+- **Background worker calls aren't included.** A call from the plugin's `setup()`, timers, loops, or scheduled jobs that names this company is refused, usually with `company context is required`, until the plugin has a saved configuration for it. Read this company's events through lifecycle delivery instead. Calls that don't name a company aren't affected, such as `ctx.companies.list()`.
 - **A company can still turn the plugin off.** A company that has disabled the plugin gets no events.
 - **Unknown companies are ignored.** A valid UUID for a company that doesn't exist doesn't stop the server.
 - **The document is the only record.** Like the rest of the document, the list is never saved, so a database restore can't bring back access the document removed. Adding a new company takes a new document and a restart.

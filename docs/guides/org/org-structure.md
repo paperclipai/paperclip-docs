@@ -209,7 +209,7 @@ The lines between cards are not just decorative — they encode the company's de
 - Every line points from a **manager** (top) to a **direct report** (bottom). The direction of the line mirrors how work and escalations travel: delegation flows down, status and blockers flow up.
 - **Multiple children** share a horizontal connector below the manager card so you can see the span of control at each level.
 - **Separate subtrees** mean separate reporting lines. If you ever end up with more than one root, it usually means an agent lost its manager (for example, after a termination) — fix it by choosing a new manager with the **Reports to:** picker on its **Overview** page (see [Changing an agent's manager](#changing-an-agents-manager)).
-- **Terminated agents** don't appear on the chart. If a terminated agent had reports, they move up and show directly under the next visible manager — a cue to give them a new manager.
+- **Terminated agents** don't appear on the chart. If a terminated agent had reports, they show as their own separate roots at the top of the chart — a cue to give them a new manager.
 
 Because the chart is the single source of truth for reporting structure, it is the fastest way to spot structural issues: a manager with far too many reports, a worker orphaned without a manager, or an adapter concentration risk where too much of the org runs on the same adapter.
 

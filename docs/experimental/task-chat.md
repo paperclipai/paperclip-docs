@@ -184,7 +184,7 @@ The panel has a **+** menu for opening task surfaces and documents in tabs. The 
 
 - **Properties** — the same task properties as always: assignee, project, blockers, and the rest.
 - **Plan** — appears once the task has a plan document. It shows the revision number and last-updated time above the accepted-plan history.
-- **Artifacts** — the task's work products, documents, and attachments, as a flat list of compact rows, newest first. Use the upload icon or drop files on the panel to add your own. Click a row to open it: images and videos open in the gallery viewer, and text files open in a tab of their own in this pane. Empty, it reads *"No artifacts yet. Work products, documents, and agent-produced files will appear here."* See [Artifacts](../guides/day-to-day/artifacts.md#reaching-artifacts-from-a-task).
+- **Artifacts** — the task's work products, attachments, and plan document, as a flat list of compact rows, newest first, below a **Documents** section for its other documents. Use the upload icon or drop files on the panel to add your own. Click a row to open it: images and videos open in the gallery viewer, and text files open in a tab of their own in this pane. Empty, it reads *"No artifacts yet. Work products, documents, and agent-produced files will appear here."* See [Artifacts](../guides/day-to-day/artifacts.md#reaching-artifacts-from-a-task).
 
 You can also open **Tasks** to follow the ancestors, subtasks, and tasks created from this work, and a skill card can open its own named tab. Panels remember the tabs you opened. [Agent Chat](agent-chat.md) uses the same panel with agent-wide Tasks and Artifacts instead.
 

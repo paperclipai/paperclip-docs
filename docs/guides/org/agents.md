@@ -47,7 +47,7 @@ Every agent row shows the same pieces of information, just arranged differently 
 
 - **Character** on the far left — the agent's illustrated figure (an amber warning icon replaces it if the agent's reporting chain is broken)
 - **Name, role, and title** (e.g. "Ada" with "Engineer - Backend Engineer" underneath). A small crown next to the name marks [your primary agent](#your-primary-agent).
-- **Chat button** (list view, when [Agent Chat](../../experimental/agent-chat.md) is on) — a speech-bubble icon that opens a chat with this agent. Hover it to see *chat with this agent*.
+- **Chat button** (list view in the streamlined UI, when [Agent Chat](../../experimental/agent-chat.md) is on) — a speech-bubble icon that opens a chat with this agent. Hover it to see *chat with this agent*.
 - **Live run pill** — a pulsing blue "Live" badge when the agent has a run currently in flight; click it to jump straight into the live transcript
 - **Harness**, **Connection**, and **Default model** columns (list view) — which AI runtime powers the agent, which AI connection it signs in with, and the model it uses when a task doesn't ask for another. **Harness default** means no model is pinned; **Managed externally** means the adapter handles its own connection.
 - **Last heartbeat** — a relative time like "4m ago"

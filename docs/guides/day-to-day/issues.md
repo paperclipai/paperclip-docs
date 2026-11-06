@@ -354,7 +354,7 @@ On the default chat-style task page, you can read the task's plan and outputs be
 
 - **Properties** — the task fields above.
 - **Plan** — the task's plan document and accepted-plan history.
-- **Artifacts** — work products, documents, and attachments, in one list, newest first.
+- **Artifacts** — work products, attachments, and the plan document in one list, newest first, below a **Documents** section for general documents.
 - **Tasks** — ancestors from the root down to the immediate parent, then subtasks and tasks created from this work, grouped by project.
 
 A skill or a text attachment can open a named tab of its own. Tabs remember what you opened, so you can return to a document without losing the thread. Clicking a **Skill created** card opens the live company skill — see [Skills your agents create during a task](../org/skills.md#skills-your-agents-create-during-a-task).
@@ -386,7 +386,7 @@ If either action fails, the bar tells you plainly — *"Couldn't confirm — try
 
 #### The Artifacts tab
 
-**Artifacts** gathers what this task produced in one flat list of compact rows, newest first. Click a row to open what it holds: images and videos open in the gallery viewer, text files open in a tab of their own, and a CSV loads a table when you click **Preview data**. A Markdown output expands in place, and **Open in tab** moves it to its own tab. See [Artifacts](./artifacts.md#reaching-artifacts-from-a-task) for what each row does.
+**Artifacts** gathers what this task produced in one flat list of compact rows, newest first, below the task's general documents. Click a row to open what it holds: images and videos open in the gallery viewer, text files open in a tab of their own, and a CSV loads a table when you click **Preview data**. A Markdown output expands in place, and **Open in tab** moves it to its own tab. See [Artifacts](./artifacts.md#reaching-artifacts-from-a-task) for what each row does.
 
 It's there to answer "what did this task produce?" without scrolling the thread. You can also add files here: use the upload icon, or drop files anywhere on the panel. They're saved straight to the task without sending a message, so a paused task stays paused. See [Uploading files to a task](./artifacts.md#uploading-files-to-a-task). The tab's **Documents** section, with its **New document** button, is where you write and edit the task's general documents; see [Writing and editing task documents](./artifacts.md#writing-and-editing-task-documents). The company-wide view of every output still lives on the [Artifacts page](./artifacts.md).
 
@@ -684,7 +684,7 @@ If a run stops for a reason Paperclip can repair itself, the task shows one shor
 
 When the model provider reports the failure on a [Paperclip Runner](../../reference/adapters/paperclip-runner.md) run, you get a red notice instead, unless a **Retry** is still waiting on cleanup or checks. Its title gives the provider and the reason, such as **Claude: Rate limit reached**. It shows the provider's message and whether the run *Failed before work started* or *Failed during work*, plus the HTTP status, provider code, and request ID when they're available. While an automatic retry is lined up, it adds *Paperclip will retry automatically.* The notice itself only explains what happened. Separately, when a run fails during startup and the provider reported a rate limit or usage limit, Paperclip waits that out before its next attempt. The run's page shows the same provider, reason, message, and details, but the notice there has no retry line or **Retry** button of its own. If a failed run still has a retry pending and no accepted result, that page also offers **Stop**. See [Debug a stuck heartbeat](../../how-to/debug-stuck-heartbeat.md#8-run-fails-with-a-red-provider-notice).
 
-If another live run holds a workspace this task shares, the task shows **Waiting for workspace** and starts by itself when the workspace is free. You don't need to retry. See [Debug a stuck heartbeat](../../how-to/debug-stuck-heartbeat.md#11-task-says-waiting-for-workspace).
+If another run holds a workspace this task shares, or has ended but is still saving it, the task shows **Waiting for workspace** and starts by itself when the workspace is free. You don't need to retry. See [Debug a stuck heartbeat](../../how-to/debug-stuck-heartbeat.md#11-task-says-waiting-for-workspace).
 
 A low-trust agent can also be stopped because the task's project isn't one of its allowed projects. Then the task shows a **Project access** notice instead: the agent hasn't started, and your message is saved. Choose **Manage project access** (or **View agent access** if you can't change it) to open the agent's settings and add the project. Saving access doesn't restart anything. Back on the task, the notice reads **Project access is ready**, and **Retry task** picks the work up again. See [Allowed projects](../../administration/trust-and-low-trust-review.md#allowed-projects).
 

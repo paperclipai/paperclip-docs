@@ -41,7 +41,7 @@ Archived projects are filtered out of this list. You can still reach them by fol
 
 To find a project quickly, type in the **Search projects…** box. It matches words in each project's name and description; if nothing matches, you'll see *"No projects match your search."* There are no other filters, but you can change the order. Click **Sort: Name** and choose **Name**, **Updated**, **Created**, or **Target date**. Click the active option again to flip between ascending and descending.
 
-The **Create project** button opens the New Project dialog, where you can set the name, description, target date, initial status, and color. The Configuration tab is where you come back later to change repository bindings, environment variables, and execution workspace behaviour — the create dialog only covers the minimum a project needs to exist.
+The **Create project** button opens the **Create project** dialog. Give the project a name and, if you want, pick source repositories or connect GitHub. Paperclip assigns a random color and starts the project in `planned` status. The Configuration tab is where you come back later to change repository bindings, environment variables, and execution workspace behaviour — the create dialog only covers the minimum a project needs to exist.
 
 If the company has no projects yet, the list is replaced with a large illustration, the message *No projects yet.*, and its own **Create project** button.
 

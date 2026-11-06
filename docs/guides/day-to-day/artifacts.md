@@ -80,14 +80,14 @@ Under each one you see its name, the task's identifier, and when it was last upd
 
 The Artifacts page is the company-wide shelf. Sometimes you're already inside one task and just want to see what *this* task produced — without going back out to the shelf and filtering your way in.
 
-The task's properties panel has an **Artifacts** tab for exactly that. It's one flat list of compact rows, newest first. Each row shows the artifact's name and a few details, such as its size and date, so you can scan what came out of the task and open what you need:
+The task's properties panel has an **Artifacts** tab for exactly that. It's one flat list of compact rows, newest first, below a **Documents** section for the task's general documents. Each row shows the artifact's name and a few details, such as its size and date, so you can scan what came out of the task and open what you need:
 
 | Row | Click it to | Beside the name |
 |---|---|---|
 | **Image or video** | Open the gallery viewer. | Open and download buttons. |
 | **Text file**, including CSV and HTML | Open it in a tab in the side pane. | Open and download buttons. A CSV also has **Preview data**. |
 | **Markdown output** | Expand it in place into its review surface, where document comments work. | **Open in tab**, open, and download buttons. |
-| **Task document**, such as the plan | Open it in a tab in the side pane. | Nothing. |
+| **Plan document** | Open it in a tab in the side pane. | Nothing. |
 | **Any other file** | Open it in a new tab. | Open and download buttons. |
 | **Pull request, link, or other output** | Open it in a new tab. A branch with no remote link doesn't open anything. | Its status. |
 
@@ -267,7 +267,7 @@ Markdown and plain-text attachments get an **Open in tab** button. When an agent
 - **Stacks** — artifacts grouped by their task (or rolled up by parent task), so related outputs stay together.
 - **Tiles** — a sheet or print for each artifact, linking back to the issue it came from.
 - **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from an inline file chip or file link an agent left in its writing.
-- **Artifacts tab on a task** — one task's outputs in its properties panel, as a flat list of compact rows, newest first. You can upload or drop your own files here too. The task thread uses the same rows.
+- **Artifacts tab on a task** — one task's outputs in its properties panel, as a flat list of compact rows, newest first, below a **Documents** section for general documents. You can upload or drop your own files here too. The task thread uses the same rows.
 - **Document comments** — inline, Google-Docs-style threads anchored to a passage in a Plan or Artifact document; open or resolved, authored by people or agents, and shareable by deep link.
 
 You now know how to find, filter, and review everything your agents have made. When you want to dig into the work behind a given artifact, follow its link back to the issue and pick up the thread there.

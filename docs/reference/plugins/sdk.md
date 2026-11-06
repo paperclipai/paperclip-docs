@@ -529,9 +529,9 @@ The move only goes one way. A Core / local project can move to a plugin, but a r
 
 Whichever owner is picked, Paperclip reserves the execution workspace record and binds the task to it *before* calling your hook. The choice stays fixed while that task's workspace is being prepared. Tasks that don't need a project source don't prepare project storage at all.
 
-A project with no repository or folder ignores its saved storage when a task runs, and its tasks use a plain task directory. It can still be attached to you, for example through the default below, so you can receive lifecycle events for a project you'll never get workspace operations for.
+A project with no repository or folder ignores its saved storage when a task runs, and its tasks use a plain task directory. On a remote environment, this only applies if the project has no other saved workspace settings. It can still be attached to you, for example through the default below, so you can receive lifecycle events for a project you'll never get workspace operations for.
 
-Operators can make the same choice in the project's configuration, under **Workspace storage**. It offers **Core / local** and each installed storage plugin. The picker is locked on a plugin-backed project, and any configuration error shows below it.
+Operators can make the same choice in the project's configuration, under **Workspace storage**. It offers **Core / local** and each storage plugin available to this company. The picker is locked on a plugin-backed project, and any configuration error shows below it.
 
 #### Becoming the default for projects
 
@@ -1038,7 +1038,7 @@ The worker attaches the error data for you on `environmentStopLease` through `en
 
 `onEnvironmentResumeLease` picks a preserved sandbox back up for a follow-up run. It has two different ways to say no, and they lead to very different results.
 
-**The sandbox is gone.** Return `{ providerLeaseId: null, metadata: { expired: true } }`. That's the explicit not-found signal the host needs before it considers replacing the sandbox.
+**The sandbox is gone.** Return `{ providerLeaseId: null, metadata: { expired: true } }`. A null `providerLeaseId` tells the host the sandbox can't be resumed, so the host replaces it. `expired: true` records the reason as not found.
 
 **You can't resume it right now.** Throw. A common case is a follow-up that arrives while the provider is auto-stopping an idle sandbox. A refusal doesn't prove the sandbox is lost, so the host preserves the lease and never creates a replacement. The run's setup fails with `reusable_sandbox_resume_failed` and retries with a small, bounded budget, resuming the same recorded sandbox each time.
 
@@ -1047,7 +1047,7 @@ There's no special error class to throw. The worker reads safe fields from whate
 - An HTTP status from `status`, `statusCode`, or `response.status`, as an integer from 100 to 599.
 - An error `code`, if it's one of `ECONNRESET`, `ECONNREFUSED`, `ETIMEDOUT`, `EPIPE`, `ENOTFOUND`, `EAI_AGAIN`, `ENETUNREACH`, `ABORT_ERR`, `UND_ERR_CONNECT_TIMEOUT`, or `UND_ERR_SOCKET`.
 
-Provider text and identifiers never cross, so keep the original error as `cause` if you wrap it, and the run record can show why the provider refused. These fields are for diagnosis only and never authorize cleanup or replacement. `environmentResumeErrorData(error)` and `readEnvironmentResumeErrorDiagnostic(error)` are the worker and host sides of this, and you don't need to call either yourself.
+The diagnostic carries only those two fields, and the run record shows only a closed label with the status and code. Your error's message still travels to the host as the RPC error message, so don't put secrets in it. Keep the original error as `cause` if you wrap it, so the run record can show why the provider refused. These fields are for diagnosis only and never authorize cleanup or replacement. `environmentResumeErrorData(error)` and `readEnvironmentResumeErrorDiagnostic(error)` are the worker and host sides of this, and you don't need to call either yourself.
 
 #### Running a command outside the persistent session
 

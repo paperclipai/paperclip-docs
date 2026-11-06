@@ -136,7 +136,7 @@ A [Paperclip Runner](../reference/adapters/paperclip-runner.md) task can also st
 
 **Symptom.** The task shows **Waiting for workspace** and *Another task is using this workspace. Work starts automatically when it is available.*
 
-**Cause.** Another live run holds a workspace this task shares, usually a parent task's sandbox, and only one run can write there at a time.
+**Cause.** Another run holds a workspace this task shares, or has ended but hasn't finished saving it, and only one run can write there at a time.
 
 **Fix.** Usually nothing. The waiting run stays as a single retry instead of adding a cancelled run for every check, so the agent's **Runs** list stays readable. When the holder ends, the waiting runs go next, one at a time, in the order they arrived. If it seems stuck, look at the run holding the workspace.
 

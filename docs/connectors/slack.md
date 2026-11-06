@@ -55,7 +55,7 @@ You can leave any setup with **Save & exit** and come back through **Finish setu
 Managed setup has two steps: **Choose agent** and **Connect**.
 
 1. On **Connect to Slack**, Paperclip shows which agent it will add to which workspace. If you have authorized more than one workspace, choose it from **Choose a Slack workspace**. To use a workspace you haven't authorized yet, click **Connect another Slack workspace**.
-2. Click **Continue**. The first time, Slack opens in a separate tab or window so you can authorize Paperclip for that workspace, and your setup page stays open. If nothing opens, click **Open sign-in in a new tab**. Paperclip then creates your agent's app, installs it, uploads the agent's avatar, links your Slack account, and sends you a welcome DM.
+2. With several workspaces, choose one and click **Continue**. With one workspace, or none authorized yet, setup starts by itself when you leave **Choose agent**. The first time, Slack opens in a separate tab or window so you can authorize Paperclip for that workspace, and your setup page stays open. If nothing opens, click **Open sign-in in a new tab**. If you're back on the connect screen afterwards, click **Continue**. Paperclip then creates your agent's app, installs it, uploads the agent's avatar, links your Slack account, and sends you a welcome DM.
 
 If your workspace requires an administrator to approve new apps, Slack's install page opens in a separate tab or window instead. Come back to the saved setup once the app is approved.
 
