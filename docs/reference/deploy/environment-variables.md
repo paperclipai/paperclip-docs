@@ -133,7 +133,7 @@ A malformed value (a stray sign, leading zeros, or an unrecognised token) makes 
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `PAPERCLIP_MANAGED_CONFIG` | unset (self-hosted) | Set only by the Paperclip Cloud harness. Holds one JSON document describing which experimental feature flags the harness manages for this instance, the plugin keys it declares for auto-install, and optionally the sandbox environment it provisions for you at boot. **Absent** means self-hosted: no overlay, no behavior change. **Present but blank, or malformed, makes the server refuse to start.** |
+| `PAPERCLIP_MANAGED_CONFIG` | unset (self-hosted) | Set only by the Paperclip Cloud harness. Holds one JSON document describing which experimental feature flags the harness manages for this instance, the plugin keys it declares for auto-install, and optionally the sandbox environment it provisions for you at boot, the process variables a plugin may read, and the companies a plugin serves without saved configuration. **Absent** means self-hosted: no overlay, no behavior change. **Present but blank, or malformed, makes the server refuse to start.** |
 
 You don't set this variable yourself. It exists so that a hosted instance gets its feature configuration from the fleet that runs it rather than from its own database, and it's documented here so you can recognise it in a running container's environment.
 
@@ -168,6 +168,7 @@ Only an **absent** variable means self-hosted. Everything else is treated as a h
 - missing `features` or `plugins.autoInstall`
 - naming a feature key this build doesn't have, or one whose feature-catalog tier isn't `managed`
 - giving a non-boolean value for a feature, or a blank/duplicate plugin key
+- carrying a malformed `plugins.workerEnv` or `plugins.enabledCompanies` section — see [Plugin variables and company access](#plugin-variables-and-company-access)
 - carrying a malformed `environments` section — more than one entry, an unknown key inside an entry, a blank `name` or `provider`, a `provider` that isn't also listed in `plugins.autoInstall`, a `config` that sets `provider` itself, or a `config` key that looks like a credential
 
 ### What it can and can't reach
@@ -213,6 +214,60 @@ Two rules shape what this section is allowed to declare.
 **At most one entry.** The database enforces a single Paperclip-managed sandbox row per instance (a partial unique index named `environments_managed_sandbox_idx`), and every entry in the list provisions that one row — so a longer list could never be satisfied and is rejected at parse time. For the same reason, a **non-empty** `environments` section and a forced `PAPERCLIP_EXECUTION_MODE` are mutually exclusive: both claim the same row, and configuring both stops the server rather than letting boot order pick a winner. An empty `"environments": []` declares nothing, so it sits alongside a forced execution mode without complaint.
 
 **No secrets, ever.** A managed-config document carries no credentials, so any `config` key that *looks* like one — matching `api_key`, `apiKey`, `token`, `secret`, `password`, or `credential`, at any nesting depth — is treated as a misrouted credential and refuses startup. Provider credentials reach a managed instance as ordinary process environment variables instead: every bundled sandbox provider falls back to its own documented variable, such as `DAYTONA_API_KEY`, when `config` leaves the key out.
+
+### Plugin variables and company access
+
+Say the fleet provisions a plugin that needs a service address to do its job, and you want it working in a company where nobody has ever opened its settings. Two optional keys under `plugins` cover that:
+
+```json
+{
+  "v": 1,
+  "mode": "cloud",
+  "catalogVersion": "2026.720.0",
+  "features": {},
+  "plugins": {
+    "autoInstall": ["daytona", "example-extension"],
+    "workerEnv": {
+      "example-extension": ["EXAMPLE_ORIGIN", "EXAMPLE_CAPABILITY"]
+    },
+    "enabledCompanies": {
+      "example-extension": ["3f2b8c1e-7a4d-4e9b-9c55-1d2e3f4a5b6c"]
+    }
+  }
+}
+```
+
+Both are maps keyed by the same catalog key you list in `plugins.autoInstall`, not the plugin's manifest ID, and every key must also be listed there. A key that isn't, an empty list, or a duplicate entry refuses startup. So does any document carrying these keys on a build too old to know them, because `plugins` rejects unknown keys.
+
+#### `plugins.workerEnv`: variables for one plugin
+
+Plugin workers run with a scrubbed environment. `workerEnv` lets one named plugin read specific variables from the server's process environment. The document holds **names only**, so you set the values on the server as usual, and they stay out of the document and the database.
+
+- Only the plugin with that key receives them.
+- A variable that's unset or blank on the server is skipped, and the worker simply doesn't get it.
+- Workers read the values when the server starts them, so a new value reaches the worker after a server restart.
+- A grant gives the plugin no access to any company. That's what `enabledCompanies` is for.
+
+Each name must match `^[A-Z][A-Z0-9_]*$`. The server also refuses to start, with `must not grant host credential or loader variable`, if a name:
+
+- **Has a credential word in it.** That's any of `AWS`, `CREDENTIAL`, `CREDENTIALS`, `DATABASE`, `DSN`, `JWT`, `KEY`, `KEYS`, `PASSWORD`, `POSTGRES`, `PRIVATE`, `SECRET`, `SECRETS`, `SIGNING`, or `TOKEN` as a whole word, meaning at the start or end of the name or between underscores. `API_KEY`, `DATABASE_URL`, `AWS_REGION`, and `SENTRY_DSN` are refused. `MONKEY` and `TOKENS` aren't, because the match is on whole words.
+- **Starts with a loader or database prefix.** That's `DB_`, `DYLD_`, `LD_`, or `NODE_`, which rules out `NODE_OPTIONS`, `LD_PRELOAD`, and `DB_HOST`.
+- **Is exactly** `PATH` or `PAPERCLIP_MANAGED_CONFIG`.
+
+The check catches mistakes, but it can't tell whether a value is sensitive. The plugin receives the real value in its own process, so only grant what you'd trust that plugin with. Give each variable a name of its own rather than reusing one the host already has.
+
+#### `plugins.enabledCompanies`: serving a company with no saved config
+
+Normally a plugin only gets [lifecycle events](../plugins/sdk.md#automatic-delivery-with-onresourcelifecycle) and [project instance secrets](../plugins/sdk.md#private-per-project-credentials) in companies where its configuration has been saved. Name a company here and both work there without that step.
+
+Each entry must be a lowercase company UUID. A few limits are worth knowing:
+
+- **Background worker calls aren't included.** A call from the plugin's `setup()`, timers, loops, or scheduled jobs that names this company is refused, usually with `company context is required`, until the plugin has a saved configuration for it. Read this company's events through lifecycle delivery instead. Calls that don't name a company aren't affected, such as `ctx.companies.list()`.
+- **A company can still turn the plugin off.** A company that has disabled the plugin gets no events.
+- **Unknown companies are ignored.** A valid UUID for a company that doesn't exist doesn't stop the server.
+- **The document is the only record.** Like the rest of the document, the list is never saved, so a database restore can't bring back access the document removed. Adding a new company takes a new document and a restart.
+
+Self-hosted instances have no managed document, so neither setting applies there.
 
 ### When the provider isn't ready
 

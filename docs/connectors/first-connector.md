@@ -37,7 +37,7 @@ The line above the button updates to match, for example *"Connects as you, avail
 
 ## 3. Sign in
 
-Select **Continue to Hugging Face**. Paperclip registers itself with Hugging Face's authorization server and opens the provider's consent screen. Approve it there.
+Select **Continue to Hugging Face**. Paperclip registers itself with Hugging Face's authorization server and opens the provider's consent screen in its own tab or window. Approve it there.
 
 You do not create an OAuth app, and you do not paste a token. If the provider ever refuses that automatic registration, Paperclip stops and asks you for a client instead of silently failing — that path is in [Connect a custom MCP server](custom-mcp-servers.md).
 

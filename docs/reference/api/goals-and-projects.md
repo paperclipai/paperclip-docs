@@ -139,6 +139,8 @@ PATCH /api/goals/{goalId}
 
 This is a partial update. Any field you omit stays unchanged.
 
+On create and update, `parentId` must point at a goal in the same company. Otherwise you get `422` with `Parent goal not found in this company`. A plugin that patches a goal gets the same check, and is refused with `Invalid goal update` for a bad patch or `Goal company cannot be changed` if it tries to move the goal to another company.
+
 ### Delete Goal
 
 ```
@@ -172,7 +174,7 @@ Projects have a few important implementation details:
 - `goalIds` is preferred for new code.
 - `workspace` can be supplied during create to seed the first workspace in the same request.
 - `env` is the project environment binding config. Secret bindings are normalized before storage.
-- `executionWorkspacePolicy` is an advanced runtime policy object. Set its `storageProviderPluginId` to an installed plugin's ID to let that plugin own the project's storage and task workspaces (see [Plugins that store your project's code](../../administration/plugins.md#plugins-that-store-your-projects-code)); leave it unset or `null` to keep Paperclip's local behavior.
+- `executionWorkspacePolicy` is an advanced runtime policy object. Set its `storageProviderPluginId` to an installed plugin's ID to let that plugin own the project's storage and task workspaces (see [Plugins that store your project's code](../../administration/plugins.md#plugins-that-store-your-projects-code)); set it to `null` to keep Paperclip's local behavior. If you leave it unset when you create a project, the installed default applies when one plugin claims it, and more than one claim fails with a conflict. A plugin-backed project can't change its storage later: that request fails with a conflict too.
 - `archivedAt` can be set when archiving a project.
 
 Project statuses are:

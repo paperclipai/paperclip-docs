@@ -72,7 +72,6 @@ This card sits above the instance-wide sections, and only affects you.
 | Feature | What it adds |
 | --- | --- |
 | [Agent Chat](agent-chat.md) | One ongoing conversation per agent. **Chat** leads the **Work** group; agents clarify your goal, hand real work off to tasks, and report back when those tasks are done. |
-| [Artifacts V1](../guides/day-to-day/artifacts.md#the-artifacts-v1-presentation-experimental) | A new presentation for artifacts: paper stacks and tiles on the **Artifacts** page, compact rows in a task's **Artifacts** tab, and grouped rows in the task thread. Presentation only; turning it off restores the current cards. |
 | [Assistant connections (MCP)](assistant-connections.md) | Connect an external assistant as your user through OAuth, with separate read, write, and configuration scopes. |
 | Beta skills | Lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill without removing saved pins. |
 | [Built-in Agents](../reference/api/built-in-agents.md) | Paperclip-managed built-in agent surfaces: roster badges and setup controls. |
@@ -128,6 +127,7 @@ These have pages in this section but no toggle in this release:
 | --- | --- |
 | [Task-pinned AI routing](task-pinned-ai-routing.md) | Experimental and off by default, but the `enableAiConnectionRouters` flag has no card on the Experimental page. Needs a router plugin. |
 | [Task Watchdogs](task-watchdogs.md) | **No flag any more.** Watchdog controls are always available on tasks. |
+| [Artifacts V1](../guides/day-to-day/artifacts.md) | **No toggle any more.** Stacks, tiles, and compact rows are how artifacts look on every instance. A hosting operator can still [hold the older cards in place](../guides/day-to-day/artifacts.md#if-your-instance-shows-the-older-cards). |
 | [Auto-Create Recovery Tasks](auto-create-recovery-tasks.md) | **Retired**, along with its toggle and its preview and run actions. |
 | [Cloud Sync](cloud-sync.md) | **Retired**, toggle included. Use [company Import/Export](../how-to/back-up-and-restore-a-company.md) to move a company between instances. |
 

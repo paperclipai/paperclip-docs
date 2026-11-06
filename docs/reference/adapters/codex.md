@@ -240,6 +240,7 @@ Each `codex_local` agent runs against its own managed Codex home, so one agent c
 - **You inherit the host Codex login by default.** If you are already signed in to Codex on the Paperclip host (a ChatGPT-subscription login), Paperclip links that login into the agent's managed home automatically. You do not have to log in again per company or per agent.
 - **A per-agent API key wins when you set one.** If the agent's `env` carries an `OPENAI_API_KEY`, Paperclip writes that key into the managed home as API-key auth instead of borrowing the host login. On the ACP engine, `CODEX_API_KEY` works the same way as an alternative name for that key.
 - **Your own `CODEX_HOME` is left alone.** If you point the adapter at a `CODEX_HOME` outside Paperclip's managed company tree, Paperclip treats it as self-managed and never seeds or overwrites it.
+- **A rejected credential on ACP asks you to sign in.** When the provider rejects Codex's credential with an error such as `401 Unauthorized` or `invalid_api_key`, the run fails with `acpx_auth_required` so it follows sign-in recovery instead of a generic failure. If the task escalates, its notice reads **Error: agent login required**.
 - **No silent credential-less runs.** If a managed home ends up with no usable login and no configured API key, the run fails fast with a clear adapter error instead of starting Codex and hitting a `401` from the provider.
 
 ### Signing in inside a sandbox

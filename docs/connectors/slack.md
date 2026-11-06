@@ -55,16 +55,16 @@ You can leave any setup with **Save & exit** and come back through **Finish setu
 Managed setup has two steps: **Choose agent** and **Connect**.
 
 1. On **Connect to Slack**, Paperclip shows which agent it will add to which workspace. If you have authorized more than one workspace, choose it from **Choose a Slack workspace**. To use a workspace you haven't authorized yet, click **Connect another Slack workspace**.
-2. Click **Continue**. The first time, Slack asks you to authorize Paperclip for that workspace. Paperclip then creates your agent's app, installs it, uploads the agent's avatar, links your Slack account, and sends you a welcome DM.
+2. With several workspaces, choose one and click **Continue**. With one workspace, or none authorized yet, setup starts by itself when you leave **Choose agent**. The first time, Slack opens in a separate tab or window so you can authorize Paperclip for that workspace, and your setup page stays open. If nothing opens, click **Open sign-in in a new tab**. If you're back on the connect screen afterwards, click **Continue**. Paperclip then creates your agent's app, installs it, uploads the agent's avatar, links your Slack account, and sends you a welcome DM.
 
-If your workspace requires an administrator to approve new apps, Paperclip sends you to Slack's install page instead. Come back to the saved setup once the app is approved.
+If your workspace requires an administrator to approve new apps, Slack's install page opens in a separate tab or window instead. Come back to the saved setup once the app is approved.
 
 #### Automatic setup with your own app
 
 Automatic setup has four steps: **Choose agent**, **App configuration access token**, **Install Slack app**, and **Send a message**.
 
 1. **App configuration access token.** Click **Get your App configuration access token**. In Slack app settings, find **Your App Configuration Tokens**, choose **Generate Token**, and pick the workspace for your bot. Copy the **Access Token** (not the refresh token) and paste it into the field. Click **Create Slack app**. Paperclip uses this token once to create and configure the app, then throws it away.
-2. **Install Slack app.** Slack opens in a new tab so you can approve the install. If the tab was blocked or you closed it, click **Install in Slack**. Use your own Slack account: Paperclip links the account that approves the install to you, and the bot sends you a welcome DM ("Your Slack account is connected to Paperclip").
+2. **Install Slack app.** Slack opens in a new tab so you can approve the install. If the tab was blocked or you closed it, click **Install in Slack**. If that's blocked too, click the **Open sign-in in a new tab** link that appears. Use your own Slack account: Paperclip links the account that approves the install to you, and the bot sends you a welcome DM ("Your Slack account is connected to Paperclip").
 3. **Send a message to your agent.** Click **Open Slack** and send the bot a message. Paperclip checks for it automatically and shows **Success** when it arrives. Click **Done**. If it keeps waiting, open **Didn't work?** for the **Event Subscriptions** and **Request URL** steps.
 
 After managed or automatic setup, the **Success** screen keeps an **Open Slack** link, so you can jump straight into the conversation. If Paperclip knows your workspace and your DM with the bot, and the linked Slack account is yours, it opens that DM. Otherwise it opens the app's saved Slack link, or Slack itself.

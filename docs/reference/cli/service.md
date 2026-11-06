@@ -28,6 +28,10 @@ Non-default instances get their own service so they never collide: instance `dev
 
 The service is started with `PAPERCLIP_SERVICE_MANAGED=1`, `PAPERCLIP_INSTANCE_ID`, and `PAPERCLIP_HOME` set, so the server knows it is running under a supervisor and which instance and home directory to use.
 
+On Linux the unit also sets `KillMode=mixed`. When systemd stops or restarts the service, only the main server process gets the first `SIGTERM`, so the server can shut down its embedded PostgreSQL in order. systemd then kills anything left in the service.
+
+An existing install gets this the next time the CLI writes the unit. `service install`, `service start`, and `service restart` each compare the unit with what the current CLI generates, and rewrite it and run `systemctl --user daemon-reload` if they differ. To check after updating, run `paperclipai doctor`: an old unit shows up as `Missing or drifted definition at <path>`, and running `paperclipai service install` fixes it. `service install` and `service start` don't restart a running service, so the new setting applies from its next stop or restart; `service restart` applies it straight away. Unless you pass `--no-start-now` or `--no-start-on-login`, `service install` also starts a stopped service and enables start on login.
+
 ---
 
 ## Install the service

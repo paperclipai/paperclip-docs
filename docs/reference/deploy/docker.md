@@ -79,6 +79,8 @@ Paperclip publishes a second image alongside the regular one: the **cloud varian
 
 The only difference is what is pre-built inside it. The cloud variant is the production image plus a small set of sandbox-provider plugins that have already been compiled. Managed instances receive a `plugins.autoInstall` list through `PAPERCLIP_MANAGED_CONFIG` and install those plugins from the bundled catalog at boot, which works only when each plugin's `dist/` output is already present in the image. The default image ships the plugin source but not the build output, so auto-install skips those plugins and logs that the bundle is not present.
 
+If one of those plugins needs deployment values, the same document can name them in `plugins.workerEnv`, and you set the values in the container's environment. See [Plugin variables and company access](./environment-variables.md#plugin-variables-and-company-access).
+
 Cloud images are published under the same tag set as the regular image, each tag carrying a `-cloud` suffix:
 
 - `sha-<short>-cloud`

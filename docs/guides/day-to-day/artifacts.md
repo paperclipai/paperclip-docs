@@ -20,7 +20,7 @@ An artifact is something an agent produced in the course of doing work. Papercli
 - **Attachments** — files attached directly to an issue, whether by an agent or by a person: images, PDFs, videos, CSVs, JSON, and so on.
 - **Work products** — results an agent handed back as the formal output of a task, including ones that point at an attached file.
 
-Each artifact carries the context you need to make sense of it: the issue it came from, the project (when there is one), the agent that created it, and when it was last updated. Every card links straight back to the exact spot on the originating issue, so one click takes you from the shelf to the source.
+Each artifact carries the context you need to make sense of it: the issue it came from, the project (when there is one), the agent that created it, and when it was last updated. Each one links straight back to the exact spot on the originating issue, so one click takes you from the shelf to the source.
 
 Artifacts are scoped to the company you're viewing. Switch companies and you see that company's shelf instead.
 
@@ -28,24 +28,21 @@ Artifacts are scoped to the company you're viewing. Switch companies and you see
 
 ## Opening the Artifacts page
 
-Open **Artifacts** from the left sidebar. By default it shows your company's artifacts grouped into stacks (more on that below), most recently updated first, and it loads more as you scroll.
+Open **Artifacts** from the left sidebar. By default it shows your company's artifacts grouped by task (more on that below), most recently updated first, and it loads more as you scroll.
 
-When there's nothing to show yet, the page says so plainly — for a brand-new company you'll see "No artifacts yet. Outputs attached to issues will appear here." Once your agents start completing work, the shelf fills in on its own.
+When there's nothing to show yet, the page says so plainly — for a brand-new company, **Tasks** says "No artifact stacks yet." and **All files** says "No artifacts yet. Outputs attached to tasks will appear here." Once your agents start completing work, the shelf fills in on its own.
 
 ---
 
-## Filtering by type
+## Choosing a view
 
-A row of type filters lets you narrow the shelf to one kind of output at a time:
+A single row of views decides what the shelf shows:
 
-- **All** — everything (the default)
-- **Images**
-- **Videos**
-- **Documents**
-- **Text**
-- **Files** — anything that isn't an image, video, or text-like file
+- **Tasks** — one tile per task (the default).
+- **All files** — every artifact as its own tile, with no grouping.
+- **Images**, **Videos**, **Documents**, **Text**, **Files** — the same flat list, narrowed to one type. **Files** is anything that isn't an image, video, or text-like file.
 
-Pick a filter to focus. For example, switch to **Videos** when you want to review every recorded result an agent produced, or **Documents** when you're catching up on written deliverables.
+Pick a view to focus. For example, switch to **Videos** when you want to review every recorded result an agent produced, or **Documents** when you're catching up on written deliverables.
 
 There's also a search box at the top. Type a few words and the list narrows to artifacts whose title, summary, or originating issue match — and the search is reflected in the page URL, so a filtered view is easy to share or bookmark.
 
@@ -53,28 +50,29 @@ There's also a search box at the top. Type a few words and the list narrows to a
 
 ## Stacks: artifacts grouped by task
 
-A single task can produce several artifacts, and a big piece of work can fan out across many sub-tasks. To keep that from becoming an undifferentiated wall of cards, Artifacts groups outputs into **stacks**.
+A single task can produce several artifacts, and a big piece of work can fan out across many sub-tasks. To keep that from becoming an undifferentiated wall of files, the **Tasks** view groups outputs into **stacks**.
 
-Use the grouping control (the layered-squares button next to the filters) to choose how artifacts are bundled:
+A task with several artifacts shows as a paper stack with its newest artifact on top. Under it you see the task's title, its identifier, how many artifacts it holds (for example "3 Artifacts"), and when it was last updated. Click the stack to see just that task's artifacts; an **All stacks** link takes you back to the overview. A task with just one artifact is a single tile that opens that artifact directly.
 
-- **Task** — group everything by the individual task that produced it. This is the default view.
+Use the grouping control (the layered-squares button next to the search box) to choose how artifacts are bundled:
+
+- **Task** — group everything by the individual task that produced it. This is the default.
 - **Parent task** — roll sub-task artifacts up under their top-level parent, so all the outputs from one larger initiative land in a single stack.
 - **None** — turn grouping off and see a flat grid of every artifact.
 
-In a grouped view, each stack is a card showing the task it belongs to, how many artifacts it holds, and a small preview of the first few. Click a stack to open it and see just that task's artifacts; an **All stacks** link takes you back to the overview. Your active type filter and search stay applied as you move in and out of a stack, and the grouping you choose is preserved in the URL so the view is shareable.
+Picking a type view always shows the flat list, and picking any view closes an open stack. Choosing **Task** or **Parent task** from the grouping control switches the page back to **Tasks**. Your search stays applied as you move in and out of a stack, and the grouping you choose is preserved in the URL so the view is shareable.
 
 ---
 
 ## Viewing artifacts
 
-Cards are built to let you understand an artifact at a glance, without downloading it first:
+Tiles let you tell artifacts apart at a glance, without downloading anything:
 
-- **Documents** show a clean text preview — markdown formatting is stripped down to readable plain text so you can skim the gist.
-- **Text files** (and text-like files such as JSON or XML) show a short preview of their contents.
-- **Images and videos** render as visual previews, so a generated video shows a thumbnail right on the card rather than an anonymous file row.
-- **Other files** appear as a card with their type, ready to open or download.
+- **Documents with text** appear as a sheet of paper with the title set on it.
+- **Images and videos** appear as bordered prints of the picture or clip, and videos carry a play button.
+- **Other files** appear as a sheet with the file type's icon and its type in capitals, such as PDF or CSV.
 
-Where an artifact came from a real file, the card gives you the means to open it inline or download it. And because every card deep-links back to its originating issue, you can always jump to the full context — the conversation, the run that produced it, and any related work — straight from the shelf.
+Under each one you see its name, the task's identifier, and when it was last updated. Click a tile to jump to that artifact on its originating issue, where you have the full context: the conversation, the run that produced it, and any related work.
 
 ---
 
@@ -82,26 +80,23 @@ Where an artifact came from a real file, the card gives you the means to open it
 
 The Artifacts page is the company-wide shelf. Sometimes you're already inside one task and just want to see what *this* task produced — without going back out to the shelf and filtering your way in.
 
-The task's properties panel has an **Artifacts** tab for exactly that. Outputs are grouped by the run that produced them, newest run first, under the name of the agent that ran it. Each output gets its own full-width card, shaped to what it actually is, so you can tell a merged pull request from a draft report at a glance:
+The task's properties panel has an **Artifacts** tab for exactly that. It's one flat list of compact rows, newest first, below a **Documents** section for the task's general documents. Each row shows the artifact's name and a few details, such as its size and date, so you can scan what came out of the task and open what you need:
 
-| Card | What it shows | How you open it |
+| Row | Click it to | Beside the name |
 |---|---|---|
-| **Pull request** | The PR number, repository, source and target branch, whether it's **Open**, **Draft**, **Merged**, or **Closed**, its checks (**Checks passed**, **Checks failed**, **Checks pending**), and the lines and files it changed. | **Open pull request** |
-| **Commit** | The short SHA, repository, branch, and lines changed. | **View commit** |
-| **Document** | A preview of a document the agent wrote. | **Read document** expands it in place; **Close document** folds it back. |
-| **Image** | The picture itself. | **View image** opens the gallery viewer. |
-| **Video** | A still from the clip. | **Open video** plays it. |
-| **Link preview** | A preview URL the agent published — a deployed preview site, for example — with its image when there is one. | **Open link** |
-| **Data** | A CSV file. The table isn't loaded until you ask for it. | **Preview data** loads the first rows into a table; **Download file** saves the original. |
-| **File** | Anything else, with its type and size. | **Open file**, or download it. |
+| **Image or video** | Open the gallery viewer. | Open and download buttons. |
+| **Text file**, including CSV and HTML | Open it in a tab in the side pane. | Open and download buttons. A CSV also has **Preview data**. |
+| **Markdown output** | Expand it in place into its review surface, where document comments work. | **Open in tab**, open, and download buttons. |
+| **Plan document** | Open it in a tab in the side pane. | Nothing. |
+| **Any other file** | Open it in a new tab. | Open and download buttons. |
+| **Pull request, link, or other output** | Open it in a new tab. A branch with no remote link doesn't open anything. | Its status. |
 
 A few details worth knowing:
 
-- **Images and videos share a gallery.** Open an image or video card to review it in the task's media viewer. Use **Previous** and **Next**, or the left and right arrow keys, when more than one item is available. Videos have playback controls; the header offers download, and **Esc** closes the viewer.
-- **CSV previews are on request.** Click **Preview data** to load a table for files up to 1 MiB. The preview shows at most 200 data rows and accepts up to 50 columns. Larger or unsupported previews explain why they cannot load and leave download available; a failed fetch offers a retry.
-- **Text files open in a tab.** Markdown and plain-text attachments get an **Open in tab** button. It opens the file in a tab in the same side pane, so the conversation stays in view. Clicking a text attachment in the conversation opens the same tab, and the tab is reused as you open the next file. A download button always gives you the original file.
+- **Images and videos share a gallery.** Click an image or video row to review it in the task's media viewer. Use **Previous** and **Next**, or the left and right arrow keys, when more than one item is available. Videos have playback controls; the header offers download, and **Esc** closes the viewer.
+- **CSV previews are on request.** Click **Preview data** to load a table right under the row, for files up to 1 MiB. The preview shows at most 200 data rows and accepts up to 50 columns. Larger or unsupported previews explain why they cannot load and leave download available; a failed fetch offers a retry.
+- **Text files open in a tab.** The tab sits in the same side pane, so the conversation stays in view. Clicking a text attachment in the conversation opens the same tab, and the tab is reused as you open the next file. A download button always gives you the original file.
 - **Markdown, CSV, and HTML open rendered.** Next to the download button, the eye icon (**Rendered**) and the code icon (**Raw**) switch between the formatted view and the source. A CSV opens as a table, as described in [CSV files as tables](#csv-files-as-tables), and an HTML report opens as a working page, as described in [HTML reports](#html-reports).
-- **Branches without a link say so.** When an agent records a branch but no remote URL, the card reads **Branch · no remote link** rather than implying there's somewhere to click through to. Use **Show details** to see its provider, its status, and when it was last updated. If the agent saved a description, it's tucked under **Saved description**.
 - **Unhealthy outputs are flagged** with an **Unhealthy** badge, so a broken preview link doesn't pass for a working one.
 
 The tab is a quick answer to "what came out of this task?" It's also where you add files of your own. See [Uploading files to a task](#uploading-files-to-a-task). You can't delete outputs from it.
@@ -112,9 +107,15 @@ Implementation reference: [artifact cards](https://github.com/paperclipai/paperc
 
 Either way, the Artifacts page remains the place to see everything at once, across every task and project. See [Issues](./issues.md#tabs-in-the-properties-panel) for the rest of what those tabs hold.
 
+### Files in the task thread
+
+Files a message produced appear as compact rows under the message. Pictures and videos open the gallery, text files open a text tab, and anything else opens in a new tab.
+
+A deliverable, document, or attachment shown on its own in the thread is a single full-width row. Registered files get the same buttons as in the Artifacts tab, and other deliverables open in a new tab with their status beside them.
+
 ### Writing and editing task documents
 
-The task's **Artifacts** tab is also where you write documents of your own. A **New document** button sits above the output cards, under a **Documents** heading once the task has documents. Give the document a **Document key** (lowercase letters, numbers, `-`, or `_`, starting with a letter or number), an optional title, and a Markdown body, then click **Create document**. Existing documents open in the same editor, so you can revise them in place, and every save becomes a new revision.
+The task's **Artifacts** tab is also where you write documents of your own. A **New document** button sits above the output rows, under a **Documents** heading once the task has documents. Give the document a **Document key** (lowercase letters, numbers, `-`, or `_`, starting with a letter or number), an optional title, and a Markdown body, then click **Create document**. Existing documents open in the same editor, so you can revise them in place, and every save becomes a new revision.
 
 Unfinished work is kept for you. If you switch to another tab in the panel, or reload the page, before saving, your draft is still there when you come back. Drafts are stored in this browser for your account and that task. This editor is for general documents; the plan is still created and revised through the task conversation, and you read it in the **Plan** tab. In **Classic Task Interface**, documents stay in their section on the task page.
 
@@ -131,7 +132,7 @@ The open image is part of the page address, so you can share a link to it. The l
 Sometimes you want to hand an agent material before it starts, such as a brief, a spreadsheet, or a screenshot, without sending a message that wakes it up. You can add files straight to the task from the **Artifacts** tab.
 
 - Click the upload icon (**Upload files**) in the tab's header and pick one or more files.
-- Or drop files anywhere on the open panel, including its header and the cards already there.
+- Or drop files anywhere on the open panel, including its header and the rows already there.
 
 An empty tab invites you to *Add files to this task*. Each file shows *Uploading…* while it saves. A file that fails shows the error with **Retry** and a dismiss button, and the files that did save stay saved.
 
@@ -145,7 +146,7 @@ When you open a CSV file in a tab, or in the workspace file viewer, it shows as 
 
 The table shows up to 500 rows and 100 columns. A bigger file says so and shows the first part. Download the file to get everything. Switch to **Raw** to see the original text, which is also the place to look when a file has a broken quoted field.
 
-This is separate from the **Preview data** button on a CSV card in the Artifacts tab, which loads a smaller preview right inside the card.
+This is separate from the **Preview data** button on a CSV row in the Artifacts tab, which loads a smaller preview right under the row.
 
 ### HTML reports
 
@@ -159,7 +160,7 @@ Implementation reference: [upload controls](https://github.com/paperclipai/paper
 
 ## Reading a file in the in-app viewer
 
-When an artifact is a real file from an issue's workspace, you can read it without downloading anything. Click the file and Paperclip opens an **in-app file viewer** — a slide-over sheet that loads the file's contents right there in the app.
+When an agent's writing links a real file from an issue's workspace, you can read it without downloading anything. Click the file chip or link and Paperclip opens an **in-app file viewer** — a slide-over sheet that loads the file's contents right there in the app.
 
 What you see depends on the file type:
 
@@ -232,48 +233,41 @@ Every comment is addressable. Open a thread and use **Copy link** to grab a deep
 
 ---
 
-## The Artifacts V1 presentation (experimental)
+## If your instance shows the older cards
 
-Paperclip is trying out a refreshed look for artifacts across the three places you meet them: the **Artifacts** page, a task's **Artifacts** tab, and the task thread. It's off by default. To try it, an instance admin opens **Settings → Experimental** and turns on **Artifacts V1**. See [Experimental features](../../experimental/overview.md).
+Every instance gets the tiles and rows described above, and there's no setting for them under **Settings → Experimental**. The one exception is a hosting operator holding the previous cards in place, by setting `enableArtifactsV1` to `false` in [`PAPERCLIP_MANAGED_CONFIG`](../../reference/deploy/environment-variables.md#cloud-managed-instances). Only that managed value counts, and it isn't honored on Cloud staging. If you run Paperclip yourself and don't set that variable, you won't see the older cards. To change it, ask whoever runs your instance.
 
-It changes how artifacts look, not what they are. Your artifacts, search, and links stay the same, and turning the setting off brings the current cards straight back.
+It changes how artifacts look, not what they are. Your artifacts, search, and links stay the same. Here's what differs.
 
-### On the Artifacts page
+**On the Artifacts page**, a row of type filters (**All**, **Images**, **Videos**, **Documents**, **Text**, **Files**) stands in for the views, and the grouping control alone decides between stacks and a flat grid. Each stack is a card showing its task, how many artifacts it holds, and a small preview of the first few. Your type filter stays applied as you move in and out of a stack. Cards preview their contents: documents as readable plain text, text files as a short excerpt, images and videos visually, and other files by type. A card from a real file also lets you open it inline or download it.
 
-The type filters and the stack view merge into one row of views:
+**In a task's Artifacts tab**, outputs are grouped by the run that produced them, newest run first, under the name of the agent that ran it. Each output gets its own full-width card:
 
-- **Tasks** — one tile per task (the default).
-- **All files** — every artifact as its own tile, with no grouping.
-- **Images**, **Videos**, **Documents**, **Text**, **Files** — the flat view, narrowed to one type.
+| Card | What it shows | How you open it |
+|---|---|---|
+| **Pull request** | The PR number, repository, source and target branch, whether it's **Open**, **Draft**, **Merged**, or **Closed**, its checks (**Checks passed**, **Checks failed**, **Checks pending**), and the lines and files it changed. | **Open pull request** |
+| **Commit** | The short SHA, repository, branch, and lines changed. | **View commit** |
+| **Document** | A preview of a document the agent wrote. | **Read document** expands it in place; **Close document** folds it back. |
+| **Image** | The picture itself. | **View image** opens the gallery viewer. |
+| **Video** | A still from the clip. | **Open video** plays it. |
+| **Link preview** | A preview URL the agent published — a deployed preview site, for example — with its image when there is one. | **Open link** |
+| **Data** | A CSV file. The table isn't loaded until you ask for it. | **Preview data** loads the first rows into a table; **Download file** saves the original. |
+| **File** | Anything else, with its type and size. | **Open file**, or download it. |
 
-In the **Tasks** view, a task with several artifacts shows as a paper stack with its newest artifact on top. Under it you see the task's title, its identifier, how many artifacts it holds (for example "3 Artifacts"), and when it was last updated. Click the stack to open it, the same as before. A task with just one artifact is a single tile that opens that artifact directly.
+Markdown and plain-text attachments get an **Open in tab** button. When an agent records a branch but no remote URL, the card reads **Branch · no remote link** rather than implying there's somewhere to click through to. Use **Show details** to see its provider, its status, and when it was last updated. If the agent saved a description, it's tucked under **Saved description**.
 
-Picking a type view always shows the flat list. If you pick a grouping from the grouping control, the page switches back to **Tasks**. Search works as it always has.
-
-### In a task's Artifacts tab
-
-The tab becomes one flat list of compact rows, newest first, with no run sections. Each row shows the artifact's name and a few details, such as its size and date. The rows behave the way the cards did:
-
-- Images and videos open the gallery, and text files open in a tab in the side pane.
-- Every file row has open and download buttons beside the name, and other files open in a new tab when you click the row.
-- A Markdown document still expands into its review surface, and document comments still work.
-- Pull requests, links, and other outputs open in a new tab, with their status (such as **Unhealthy**) beside them.
-
-### In the task thread
-
-Files a message produced appear as a row of compact file rows under the message, in place of the image grid and file chips. Pictures and videos open the gallery, text files open a text tab, and anything else opens in a new tab. Deliverables, documents, and attachments in the thread each show as a single row and open where they used to.
+**In the task thread**, a message's files appear as an image grid and file chips, and deliverables appear as cards.
 
 ---
 
 ## A quick mental model
 
 - **Artifacts page** — every output your agents produced, company-wide, in one place.
-- **Type filters** — narrow to images, videos, documents, text, or files.
+- **Views** — one tile per task, every file, or just images, videos, documents, text, or files.
 - **Stacks** — artifacts grouped by their task (or rolled up by parent task), so related outputs stay together.
-- **Cards** — previews you can read or watch in place, each linking back to the issue it came from.
-- **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from a file artifact or from an inline file chip an agent left in its writing.
-- **Artifacts tab on a task** — one task's outputs in its properties panel, each on a card shaped to what it is: pull request, commit, document, image, video, link preview, CSV data, or file. You can upload or drop your own files here too.
-- **Artifacts V1** — an opt-in experimental look: stacks and tiles on the page, compact rows in the tab and the thread.
+- **Tiles** — a sheet or print for each artifact, linking back to the issue it came from.
+- **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from an inline file chip or file link an agent left in its writing.
+- **Artifacts tab on a task** — one task's outputs in its properties panel, as a flat list of compact rows, newest first, below a **Documents** section for general documents. You can upload or drop your own files here too. The task thread uses the same rows.
 - **Document comments** — inline, Google-Docs-style threads anchored to a passage in a Plan or Artifact document; open or resolved, authored by people or agents, and shareable by deep link.
 
 You now know how to find, filter, and review everything your agents have made. When you want to dig into the work behind a given artifact, follow its link back to the issue and pick up the thread there.

@@ -16,9 +16,9 @@ This guide walks through the project list, then the tabs you see when you open a
 
 ## Project List
 
-The Projects page lists every active (non-archived) project in the currently selected company. A toolbar across the top holds a **Search projects…** box, a **Sort: Name** control, and an **Add Project** button.
+The Projects page lists every active (non-archived) project in the currently selected company. A toolbar across the top holds a **Search projects…** box, a **Sort: Name** control, and a **Create project** button.
 
-![The Projects page with the Sort: Name control, a My Projects section listing two projects, and the Add Project button](../../user-guides/screenshots/light/projects/list.png)
+![The Projects page with the Sort: Name control, a My Projects section listing two projects, and the create button under its earlier name (screenshot from an earlier label)](../../user-guides/screenshots/light/projects/list.png)
 
 Projects are grouped into **My Projects** and, if you've left any, **Other Projects** (shown dimmed). Each section header shows how many projects it holds.
 
@@ -41,9 +41,9 @@ Archived projects are filtered out of this list. You can still reach them by fol
 
 To find a project quickly, type in the **Search projects…** box. It matches words in each project's name and description; if nothing matches, you'll see *"No projects match your search."* There are no other filters, but you can change the order. Click **Sort: Name** and choose **Name**, **Updated**, **Created**, or **Target date**. Click the active option again to flip between ascending and descending.
 
-The **Add Project** button opens the New Project dialog, where you can set the name, description, target date, initial status, and color. The Configuration tab is where you come back later to change repository bindings, environment variables, and execution workspace behaviour — the create dialog only covers the minimum a project needs to exist.
+The **Create project** button opens the **Create project** dialog. Give the project a name and, if you want, pick source repositories or connect GitHub. Paperclip assigns a random color and starts the project in `planned` status. The Configuration tab is where you come back later to change repository bindings, environment variables, and execution workspace behaviour — the create dialog only covers the minimum a project needs to exist.
 
-If the company has no projects yet, the list is replaced with an empty state prompting you to add the first one.
+If the company has no projects yet, the list is replaced with a large illustration, the message *No projects yet.*, and its own **Create project** button.
 
 ### Keeping projects (and agents) in your sidebar
 

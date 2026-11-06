@@ -141,6 +141,8 @@ Paperclip checks the catalog before it runs any plugin code. The folder's conten
 
 Upgrading the image upgrades these plugins in place, but with one safeguard: if the new version asks for capabilities the installed one didn't have, the plugin lands in `upgrade_pending` and stays offline until an operator approves it on the plugin's detail page — exactly like any other upgrade. Disabled plugins stay disabled, and a plugin someone deliberately uninstalled stays uninstalled on a self-hosted instance.
 
+On a managed instance, the fleet's document can also give one of these plugins named process variables and let it serve specific companies without saved configuration. See [Plugin variables and company access](../reference/deploy/environment-variables.md#plugin-variables-and-company-access) for the keys and the variable names the server refuses.
+
 ---
 
 ## Enabling and disabling
@@ -171,6 +173,8 @@ This matters for plugins that integrate with billed services. Disabling stops th
 
 Some plugins are a required part of an agent's setup — they prepare something the agent can't work without (a sandbox, say) and clean it up when the agent is terminated. Paperclip remembers which of these plugins each agent needs from the moment the agent is first set up.
 
+A plugin whose non-sandbox environment has to prepare something for each agent is only required for agents on that environment: the agent's default environment, or the instance default if it has none. Sandbox-provider plugins are required for every agent. If an agent later moves onto one, the plugin is added the next time the agent is prepared or resumed. A `ready` agent has to be paused first, so you'll see *"This environment needs setup for the agent. Pause the agent, change its environment, and then resume it."* An agent that moves away keeps the plugin until it's terminated. Saving an environment or the instance default can stop the same way, with *"Agents that use this environment need setup first. Pause those agents, save this change, and then resume them."*
+
 If you disable or uninstall one of those plugins, the agents that rely on it can't finish setting up, pausing, resuming, or being cleaned up. Their page shows a failed step with the message *"A required plugin is unavailable. Check the plugin's status in Settings. Paperclip will retry automatically."* Re-enable the plugin and the step completes on its own (or click **Retry now** on the agent's page). See [Setup checks before a new agent starts work](../guides/org/agents.md#setup-checks-before-a-new-agent-starts-work).
 
 An environment plugin can also bring skills its agents need, such as instructions for a desktop or browser it provides. Agents using that environment get those skills automatically, and newly installed ones appear in your skill library with names starting `plugin-`. If an agent also has a company skill with the same name, the plugin's skill is used for the run and the run log notes which skill was skipped; nothing in your library or the agent's assignments changes.
@@ -179,20 +183,29 @@ An environment plugin can also bring skills its agents need, such as instruction
 
 A plugin can also take over where a project's repository lives. Instead of Paperclip keeping the code on its own disk and making each task's checkout there, the plugin keeps the project's storage — inside remote agent computers, for example — and prepares a checkout there for each task.
 
-To choose where a project's code lives, open the project's configuration and use **Workspace storage**:
+A project stays on the storage it got when it was created. Installing or disabling a storage plugin later never moves an existing project somewhere else.
 
-- **Inherit installed default** — use the storage plugin that claims the default, or Core / local storage if none does.
-- **Core / local** — keep the code on the Paperclip host, even if a plugin is the default.
-- **A specific plugin** — use that plugin. The one that claims the default is marked "(default)".
+**When a project is created,** Paperclip settles its storage once and saves the answer:
 
-Under the picker, the project shows *"Inherited default: …"* or *"Selected: …"* so you can tell which one applies. The same setting is `executionWorkspacePolicy.storageProviderPluginId` in the [projects API](../reference/api/goals-and-projects.md): a plugin ID, `null` for Core / local, or left out to inherit.
+- **One plugin claims the default.** The new project goes on that plugin, unless the plugin is turned off for that company.
+- **No plugin claims it.** The new project uses Core / local storage on the Paperclip host.
+- **More than one enabled plugin claims it.** A project with no explicit choice is refused, with *"Multiple workspace storage plugins claim the project default: …. Select a storage provider in project configuration or disable a conflicting provider."* Disable one of them for the company, or create the project through the [projects API](../reference/api/goals-and-projects.md) with an explicit choice. The same refusal applies to a person's **My private tasks** project, which Paperclip creates for them.
 
-A storage plugin can claim the default when you install it. Unless it's turned off for a company, every project there that's still set to inherit starts using it, including projects that existed before. If two enabled plugins both claim the default, inheriting projects show an error naming both until you pick a provider for the project or disable one of them. If the default plugin is enabled but not running, runs fail instead of quietly falling back to local storage; if you disable or uninstall it, inheriting projects go back to Core / local for new workspaces. Changing the default never moves or recreates workspaces that already exist.
+**After that,** open the project's configuration and use **Workspace storage**. It lists **Core / local** and each storage plugin available to this company.
+
+- **A Core / local project can move to a plugin.** Pick the plugin in the list. The move is one way, so the note under the picker warns you: *"A project moved to a storage plugin stays on that plugin."*
+- **A plugin-backed project stays on its plugin.** The picker is locked, and the note reads *"This project stays on …."* A request to change it through the API is refused with *"A plugin-backed project stays attached to its storage plugin"*, while an update that leaves the field out keeps it attached.
+- **There's no fallback.** If the plugin is disabled, uninstalled, or turned off for the company, the picker shows **Unavailable provider** and runs fail with *"The workspace storage plugin is unavailable"* until you restore it. If the plugin is enabled but not running, runs fail too.
+
+The same setting is `executionWorkspacePolicy.storageProviderPluginId` in the [projects API](../reference/api/goals-and-projects.md): a plugin ID, or `null` for Core / local. If you leave it out when you create a project, the installed default applies.
+
+> **Upgrading from a version where projects inherited the default?** A project that used a plugin only through the installed default, with no saved choice, is Core / local after the upgrade. New tasks use Core / local, and a task that already has a plugin task workspace stays on it. To put the project back on the plugin, pick it in **Workspace storage**. If the plugin still has task workspaces for that project, the move is refused with *"Retire managed execution workspaces before changing their storage owner or repository source"* until they've been removed, so tasks start with new workspaces after the move.
 
 A few things behave differently for those projects:
 
 - **Files stay with the plugin.** Paperclip has no local folder for these workspaces, so file browsing and other host-side file actions aren't available for them.
-- **The owner is locked while work is live.** You can't change the project's repository source or its storage plugin while task workspaces still depend on them. Existing workspaces keep the owner they were created with.
+- **The repository source is locked while work is live.** You can't change it while task workspaces still depend on it. Existing workspaces keep the owner they were created with.
+- **Projects with nothing to store skip the plugin.** A project with no repository or folder ignores its saved storage when a task runs, and its tasks use a plain task directory. On a remote environment, this only applies if the project has no other saved workspace settings.
 - **Cleanup is careful.** Paperclip only asks the plugin to remove a task's checkout once it's clean and its work is recoverable or merged.
 - **Agents run through the same plugin.** To run agents against that storage, the project's [environment](../experimental/environments.md) must come from the same plugin.
 - **Some workspace options don't apply.** When a Paperclip Runner agent works in a plugin environment, the plugin owns the task's workspace. Workspace services and Paperclip-made Git worktrees aren't available there, and a workspace stays with the agent and environment that created it. Retrying a task in a fresh workspace only works if the plugin supports it; the failed attempt's workspace is kept either way. Paperclip shows an error explaining which one blocked the run.

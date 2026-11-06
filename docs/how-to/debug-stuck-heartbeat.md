@@ -42,6 +42,8 @@ A handful of symptoms that cover almost every "this agent isn't working right" r
 2. Tighten context — prefer `GET /api/issues/{issueId}/heartbeat-context` over full-repo reads.
 3. Move long single-shot work to a routine off the heartbeat path.
 
+In a Paperclip-managed sandbox, the Claude Code adapter makes tool commands the first thing the kernel kills when memory runs out, so the agent usually sees one failed command instead of losing the whole run. See [Sandbox memory limits](../reference/adapters/claude-code.md#sandbox-memory-limits).
+
 ---
 
 ## 4. Issue cancelled mid-run, agent keeps acting
@@ -96,6 +98,8 @@ Two things to keep in mind while you watch it:
 
 If you would rather not pay for these wakes at all, the cure is upstream: have your agents record a status before they finish. A comment describing progress is not a disposition — Paperclip is looking at the task's status and path, not its prose.
 
+A [Paperclip Runner](../reference/adapters/paperclip-runner.md) task can also stay open for a different reason: it asked for a document or file, and the agent called it done without publishing one. Paperclip checks for the published output before it marks the task `done`. If it's missing, the task stays open and the agent gets another turn with instructions to publish it, so a final message about a local file doesn't close the task.
+
 ---
 
 ## 8. Run fails with a red provider notice
@@ -115,6 +119,65 @@ If you would rather not pay for these wakes at all, the cure is upstream: have y
 **Cause.** The Paperclip Runner run failed and still owns a pending automatic retry, and no result has been accepted for it. Runs without such a retry don't show the button, and neither do failed Grok Bot runs.
 
 **Fix.** Let the retry happen, or click **Stop** to cancel it if you don't want another attempt. The button reads **Stopping…** while Paperclip works on it, and the run moves to `cancelled` once the stop is confirmed. You can click again safely if the response gets lost, because Paperclip reuses the same request. To continue from saved work afterwards, send a new message on the task. If you see *Stop was not accepted because the run changed.*, reload the run and check its status. *This Stop request belongs to another operator.* means someone else already asked to stop it.
+
+---
+
+## 10. Stop says the session is still starting
+
+**Symptom.** You click **Stop** on a Paperclip Runner run and see *Stop is recorded; the native session is still starting and will stop when it opens.*
+
+**Cause.** The run is still opening its provider session, so nothing can acknowledge the stop yet. Your request is saved. The API answers `409` with the code `native_stop_pending`.
+
+**Fix.** Nothing. You don't need to click again. When the session opens, Paperclip stops it and the run settles as `cancelled`, not as a provider failure.
+
+---
+
+## 11. Task says Waiting for workspace
+
+**Symptom.** The task shows **Waiting for workspace** and *Another task is using this workspace. Work starts automatically when it is available.*
+
+**Cause.** Another run holds a workspace this task shares, or has ended but hasn't finished saving it, and only one run can write there at a time.
+
+**Fix.** Usually nothing. The waiting run stays as a single retry instead of adding a cancelled run for every check, so the agent's **Runs** list stays readable. When the holder ends, the waiting runs go next, one at a time, in the order they arrived. If it seems stuck, look at the run holding the workspace.
+
+---
+
+## 12. Saved workspace can't be restored
+
+**Symptom.** A run on a remote workspace fails before the agent starts, with an error like `remote_workspace_restore_failed: step=sandbox_restore; ...`. The task may show a notice titled **Saved workspace could not be restored**.
+
+**Cause.** Paperclip couldn't put the task's saved workspace into a new sandbox. The step says where it stopped: `snapshot_lookup`, `snapshot_download`, or `sandbox_restore`. A sandbox failure adds short fields such as `reason=occupied_root`. They never include command output or paths. A failed restore doesn't change the saved version.
+
+**Fix.** Paperclip retries a limited number of times when that's safe. Otherwise it leaves a recovery action owned by the board that reads *Open the failed run to see which restore step failed. The saved workspace version was kept. If the sandbox folder is already occupied, inspect and move it aside, then retry the task.*
+
+---
+
+## 13. Run fails after the agent finished
+
+**Symptom.** On a Paperclip Runner run, the agent did its work, but the run ends `failed`. The run's page shows the reason in red, with its code in brackets.
+
+**Cause.** Something went wrong after the agent's turn, usually while saving the workspace. When nothing more specific was recorded, you'll see one of these:
+
+| Code | Message |
+|---|---|
+| `native_workspace_sync_out_retry_exhausted` | *Saving the workspace failed after 3 attempts. The agent's result is kept; follow the run's recovery action to repair the workspace.* It adds *Last cause:* when the failing step is known, for example `remote_workspace_capture_failed: stage=archive`. |
+| `native_workspace_sync_out_unrecoverable` | *The sandbox holding unexported workspace changes is unavailable, so its files could not be saved.* |
+| `native_finalization_retry_exhausted` | *Native run finalization failed after 3 attempts.* |
+| `native_run_failed` | *The native run ended in a failed state without a classified provider error. Inspect the run events for the last recorded step.* |
+
+**Fix.** Follow the recovery action on the task. See [Recovering saved files](../guides/day-to-day/issues.md#recovering-saved-files). If Paperclip's own attempts to export the files run out, the action moves to the board, and through the API its `nextAction` starts with *Automatic recovery of saved work stopped after* the attempt count and last failure code. That text says "Retry recovery", but on the task the control is **Recover saved files**, or **Try file recovery again** if your earlier request failed. It starts a new round of attempts without starting a provider turn.
+
+---
+
+## 14. Run can't attach to its provider session
+
+**Symptom.** A Paperclip Runner run's log says *This run could not attach to its provider session:* followed by the cause and *A later run may start a new provider thread.* Through the run events API, that event's `payload.code` is `native_run_attach_failed`.
+
+**Cause.** The run couldn't rejoin the provider session it expected to continue.
+
+**Fix.** Read the cause in the message. If a later run does start a new provider thread, it won't have that thread's earlier conversation, so check that the agent still has what it needs from the task.
+
+---
 
 ## Where to look first
 

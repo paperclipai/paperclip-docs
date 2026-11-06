@@ -47,19 +47,20 @@ Every agent row shows the same pieces of information, just arranged differently 
 
 - **Character** on the far left — the agent's illustrated figure (an amber warning icon replaces it if the agent's reporting chain is broken)
 - **Name, role, and title** (e.g. "Ada" with "Engineer - Backend Engineer" underneath). A small crown next to the name marks [your primary agent](#your-primary-agent).
+- **Chat button** (list view in the streamlined UI, when [Agent Chat](../../experimental/agent-chat.md) is on) — a speech-bubble icon that opens a chat with this agent. Hover it to see *chat with this agent*.
 - **Live run pill** — a pulsing blue "Live" badge when the agent has a run currently in flight; click it to jump straight into the live transcript
 - **Harness**, **Connection**, and **Default model** columns (list view) — which AI runtime powers the agent, which AI connection it signs in with, and the model it uses when a task doesn't ask for another. **Harness default** means no model is pinned; **Managed externally** means the adapter handles its own connection.
 - **Last heartbeat** — a relative time like "4m ago"
-- **Status badge** — the agent's current status, such as `idle`, `running`, or `paused`
+- **Status badge** — the agent's current status, such as `idle`, `running`, or `paused`. In the list view it sits under the **Status** heading, next to the live run pill.
 
-Clicking anywhere on the row opens the agent's detail page. Clicking the live pill opens the run directly.
+In the list view, the whole row highlights as you move across it. Click the agent's character or name to open its detail page, or click the live pill to open the run directly. In the org chart, click the agent's card.
 
 ### Change the connection or model for several agents at once
 
 When you switch providers or want a whole team on a newer model, you don't have to open every agent. In the list view you can update the AI connection, the default model, or both for a group of agents in one go.
 
 1. Tick the checkbox at the start of each agent you want to change, or use the checkbox in the header row to select every editable agent you can see. The filter helps here — pick a **Harness** first to select, say, all your Claude Code agents.
-2. A bar appears showing how many agents are selected. Click **Edit connection & model**. If your selection mixes harnesses, the bar says **Choose a harness to edit** and shows one button per harness (for example **Edit 3 Codex**), because each harness has its own connections and models. Agents of the other harnesses stay selected but won't change.
+2. A card floats up at the bottom of the screen showing how many agents are selected, and the list stays where it is. Click **Edit connection & model**. If your selection mixes harnesses, the card says **Choose a harness to edit** and shows one button per harness (for example **Edit 3 Codex**), because each harness has its own connections and models. Agents of the other harnesses stay selected but won't change.
 3. In the panel that opens, tick **Change connection**, **Change default model**, or both, and make your choice. The model list only offers models available on every selected agent's connection; when no connection restricts the models, you can also type a model ID your harness supports.
 4. Check the **Changes to apply** preview, which lists each agent with its old and new settings. If a model isn't available on an agent's connection, Paperclip names that agent and tells you what to change before you can save.
 5. Click **Update** (the button shows how many agents will change, for example **Update 4 agents**).
@@ -124,7 +125,7 @@ If your company requires approval for new agents, the computer isn't created unt
 
 ### What Paperclip fills in for you
 
-The setup flow keeps things short, so a few settings are chosen for you. You can change all of them afterwards: the title in the agent's [header](#the-header), and the role, reporting line, and heartbeat on its [Advanced](#advanced) page.
+The setup flow keeps things short, so a few settings are chosen for you. You can change all of them afterwards: the title in the agent's [header](#the-header), the reporting line on its [Overview](#profile-and-skills) page, and the role and heartbeat on its [Advanced](#advanced) page.
 
 - **Role** — the very first agent in a company is always the CEO. Everyone after that starts with the `general` role.
 - **Reports to** — new agents report to your CEO. The CEO reports to you.
@@ -215,7 +216,7 @@ The header sits at the top of every agent page. From left to right you'll see:
 
 **Rename an agent or change its title right in the header.** Click the name or the title, type, and press Enter (or click away) to save. Press Escape to cancel. If the save fails, the old value comes back and the reason appears under the header. Renaming an agent also updates the page address, because agent URLs are based on the name. If you have unsaved changes on the page you're on, the edit isn't saved. A message under the header asks you to save or discard those changes first, so nothing gets lost.
 
-The manager is shown as a link only. To change who an agent reports to, edit `reportsTo` on the [Advanced](#advanced) page.
+The manager in the header is a link only. To change who an agent reports to, use the **Reports to:** picker in the **Profile** panel on [Overview](#profile-and-skills).
 
 ### Header actions
 
@@ -282,7 +283,7 @@ When the agent is in `pending_approval` status, a banner at the top of the page 
 
 Two amber banners can also appear near the top of the page, and they mean different things:
 
-- **Invalid reporting chain** — the agent's reporting chain is broken (a terminated manager, a manager that no longer exists, or a loop). This one blocks work: you can't assign to the agent until you repair the chain, and the banner tells you how.
+- **Invalid reporting chain** — the agent's reporting chain is broken (a terminated manager, a manager that no longer exists, or a loop). This one blocks work: you can't assign to the agent until you repair the chain, and the banner tells you how. To give the agent a new manager, use the **Reports to:** picker on [Overview](#profile-and-skills).
 - **Escalation path is paused** — the agent can run perfectly well, but somewhere up its `reports_to` chain sits a **paused** agent. This one is a warning only. Nothing is blocked; the agent just has nowhere useful to escalate to, and any escalation an agent tries to route there is refused rather than accepted. The banner text names the paused manager and gives you the two fixes: unpause that manager, or change who this agent reports to.
 
 The escalation warning only shows for agents that can themselves receive and run work. If the agent is itself paused or terminated, its escalation path doesn't matter yet, so the banner stays quiet. And if the chain is outright invalid, you see the invalid-chain banner instead — fixing that is the more urgent job.
@@ -316,7 +317,7 @@ The counts look at a limited number of recent items. When the agent is very busy
 
 Below the tiles, two panels sit side by side:
 
-- **Profile** — **Created** shows the date the agent was added. In a company with two or more people, it reads **Created by** with the name of the person who added it, so you know who to ask about it. If that person has since left the company, it reads **Former member**. Agents created by other agents, or before Paperclip started recording creators, show only the date. Under **Direct reports** you see the agents that report to this one, each linking to its own page. If there are more than fit on two lines, a **+N more** button (for example **+3 more**) shows the rest, and **Show less** folds them away again.
+- **Profile** — **Created** shows the date the agent was added. In a company with two or more people, it reads **Created by** with the name of the person who added it, so you know who to ask about it. If that person has since left the company, it reads **Former member**. Agents created by other agents, or before Paperclip started recording creators, show only the date. **Reports to:** shows the agent's manager, linking to its page, with a pencil button (**Change manager**) beside it that opens the manager picker — see [Changing an agent's manager](./org-structure.md#changing-an-agents-manager). If the agent has no manager, the button reads **No manager**; if its saved manager can't be shown, for example because that manager was terminated, it reads **Manager unavailable**. Under **Direct reports:** you see the agents that report to this one, each linking to its own page. If there are more than fit on two lines, a **+N more** button (for example **+3 more**) shows the rest, and **Show less** folds them away again.
 - **Skills** — the skills enabled for this agent, with a count such as **3 enabled**, or **No skills enabled.**
 
 ### Recent tasks
@@ -546,7 +547,7 @@ Adapter-specific fields only affect this agent — changing them has no effect o
 These aren't on the Harness / Runtime page:
 
 - **Name and title** — edit them in place in the [header](#the-header).
-- **Reports to** — the header shows the manager as a link. To move the agent to a different manager, change `reportsTo` on the [Advanced](#advanced) page.
+- **Reports to** — the header shows the manager as a link. To move the agent to a different manager, use the **Reports to:** picker on [Overview](#profile-and-skills), or change `reportsTo` on the [Advanced](#advanced) page.
 - **Heartbeat and run policy** — change these on the [Advanced](#advanced) page too. Whether the agent wakes on a timer (`enabled`), how often (`intervalSec`), `wakeOnDemand`, `cooldownSec`, `maxConcurrentRuns`, and the automatic continuation after a max-turn stop (`maxTurnContinuation`) live under `runtimeConfig.heartbeat`. A run's time limit (`timeoutSec`) and interrupt grace period (`graceSec`) live in `adapterConfig`. When you save one of those maps, it replaces the whole map, so keep every key you want. See [Edit an agent as YAML](agent-configuration-yaml.md) for an example and the save rules.
 
 New agents start with the heartbeat timer switched off, so they wake only when something needs them — an assignment, an approval, a comment on their task — or when you choose **Run now**. @-mentions don't wake an agent; they're context only.
@@ -617,7 +618,7 @@ When you click **Restore**, Paperclip asks **Restore this version?** and shows t
 
 The **Advanced** page shows the agent's own settings — profile, runtime, instructions, skills, tools, channels, permissions — as one compact, editable `paperclip/v1` YAML document. Settings you leave out stay as they are when you save. You can also use it to create or revoke API keys, create or rotate secrets, and restore a revision, all from the same editor.
 
-It's also where you change the settings that have no form elsewhere on the agent's page, such as who the agent reports to (`reportsTo`), its capability summary (`capabilities`), and its heartbeat schedule (`runtimeConfig.heartbeat`) — see [Name, title, reporting line, and heartbeat](#name-title-reporting-line-and-heartbeat).
+It's also where you change the settings that have no form elsewhere on the agent's page, such as its capability summary (`capabilities`) and its heartbeat schedule (`runtimeConfig.heartbeat`). You can set who the agent reports to here too (`reportsTo`), though the picker on [Overview](#profile-and-skills) is quicker — see [Name, title, reporting line, and heartbeat](#name-title-reporting-line-and-heartbeat).
 
 Before you save, a summary lists every change that will be applied, in order. If someone else changed the agent while you were editing, the save stops and asks you to click **Reload saved**. Secret values are never shown.
 
