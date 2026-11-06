@@ -86,7 +86,9 @@ Checking the grant's recorded scopes can help, but read them with care: some pro
 
 ### Authorization never completes
 
-*"Authorization did not complete. Finish setup in the sign-in window or try again."* usually means the popup was closed early or the provider is waiting on an administrator. For providers whose authorization needs tenant approval, the warning on the provider page says so.
+*"Authorization did not complete. Finish setup in the sign-in window or try again."* usually means the sign-in was declined or failed at the provider, or the provider is waiting on an administrator. For providers whose authorization needs tenant approval, the warning on the provider page says so.
+
+Provider sign-in opens in its own tab or window. If you close it early, Paperclip tells you *"The sign-in window closed."* and you can try again. If your browser blocks it, you'll see *"Paperclip couldn’t open the sign-in window. Open sign-in in a new tab to continue."* Click **Open sign-in in a new tab**, or allow pop-ups for your Paperclip address and try again.
 
 ### The action is refused
 

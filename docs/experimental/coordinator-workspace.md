@@ -51,7 +51,7 @@ Want to hand off work right away? A **New task** button sits at the top, just ab
 
 Looking for something? Click the search icon beside the organization menu, at the very top of the sidebar. It's there when the sidebar is collapsed too, and it opens the same quick search as ⌘K (Ctrl+K), covering tasks, agents, and projects.
 
-Other pages live under **More**: **Search**, **Inbox**, **Dashboard**, **Projects**, **Routines**, **Artifacts**, **Agents**, **Skills**, **Connectors**, **Audit**, and **Settings**. Hover any of them and click the pin to keep it in a **Pinned** section under the main three. Pins are saved in this browser, for your account.
+Other pages live under **More**: **Search**, **Inbox**, **Dashboard**, **Projects**, **Routines**, **Artifacts**, **Agents**, **Skills**, **Connectors**, **Audit**, and **Settings**. Hover any of them and click the pin to add it to the main navigation, right above **More**, in the order you pinned them. To take one back off, hover it and click its unpin icon. Pins are saved in this browser, for your account.
 
 Below that, **Recents** mixes the tasks you've opened, your agent conversations, and projects you've visited in this session, newest first. Expand a project there to see its most recently updated tasks without leaving the page. The section only appears once it has something to list, and it's hidden while the sidebar is collapsed.
 

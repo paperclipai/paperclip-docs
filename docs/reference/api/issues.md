@@ -1293,6 +1293,8 @@ POST /api/issues/{issueId}/interactions/{interactionId}/respond
 
 After a terminal action, the interaction is sealed — further responses are rejected.
 
+Accepting a card that gates a tool call can fail if the tool or connection changed after the review. You get `409` with `code: "approved_tool_target_changed"` and an `error` such as `Tool definition or connection changed; request a new review`. Other `4xx` rejections from the [tool gateway](./tool-gateway.md) also keep their status, code, and `details`. Gateway server failures still return `500` with `Internal server error`.
+
 ### Set a card aside: dismiss
 
 When you don't want to answer a card right now but don't want it nagging you either, a person can **dismiss** it. This is what the task conversation calls when you close a request's form above the composer.
@@ -1685,7 +1687,7 @@ POST /api/issues/{issueId}/file-resources/availability
 
 Before offering to open a workspace file an agent referenced on an issue, the UI checks whether that file can actually be opened right now. This endpoint answers that question for a batch of paths in one call, returning an availability outcome per path (openable, denied, or unavailable) rather than the file contents.
 
-The caller must be on the board or an agent with access to the issue's company. The request carries the file paths to check, and the number of paths per request is capped — oversized requests are rejected. The endpoint is rate-limited per company, actor, and issue, so a burst of checks backs off rather than hammering the workspace.
+`{issueId}` takes a task's UUID or identifier, such as `ABC-230`, as do the other `file-resources` routes. A malformed or unknown value returns `404` with `Issue not found`. These routes are board-only, so an agent gets `403` with `Board access required`. The request carries the file paths to check, and the number of paths per request is capped — oversized requests are rejected. The endpoint is rate-limited per company, actor, and issue, so a burst of checks backs off rather than hammering the workspace.
 
 ---
 

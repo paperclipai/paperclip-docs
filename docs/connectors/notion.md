@@ -21,7 +21,7 @@ Notion's hosted connection lets agents search your workspace, read pages and dat
 1. Open **Connectors** and select **Notion**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity or narrow the agents, select **Change**. Then select **Continue to Notion**.
 3. Sign in as the Notion account you chose above, and pick the workspace you want to connect. Everything that account can open in that workspace becomes reachable.
-4. Approve the authorization. Notion returns you to Paperclip and the connection becomes **Ready**.
+4. Approve the authorization. Notion's sign-in runs in its own tab or window while Paperclip waits on the setup page. When you finish, the connection becomes **Ready**.
 
 Paperclip registers its client with Notion automatically, so there is nothing to set up in a developer console.
 

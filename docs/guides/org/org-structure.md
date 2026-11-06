@@ -121,14 +121,29 @@ The CTO can now delegate subtasks to Jordan. If Jordan gets blocked on a task, t
 
 You can reassign an agent to a different manager at any time — after a reorg, or when you want to move someone to a different workstream.
 
-The agent's page shows who it **Reports to** under its name, but that's a link, not a picker. To change it, you edit the agent's `reportsTo` setting, which takes the new manager's agent ID:
+1. **Open the agent you're moving.** Its **Overview** page opens first. If you're on another of its pages, click **Overview** in the side menu.
+2. **Find Reports to: in the Profile panel.** It shows the current manager, linking to their page.
+3. **Click the pencil button** (**Change manager**) beside the manager. If the agent has no manager yet, the button reads **No manager** instead.
+4. **Pick the new manager.** The list shows the company's agents with their roles, leaving out anyone terminated. To have the agent report straight to the board, choose **No manager** at the top of the list.
+
+There's no save button: the change takes effect the moment you pick, and the **Reports to** link under the agent's name updates to the new manager. It's also recorded in the agent's [Agent history](./agents.md#agent-history). Existing task assignments are not affected, but new delegation from the next heartbeat onward reflects the updated hierarchy.
+
+A few things to know about the picker:
+
+- **Some agents are greyed out.** You can't choose the agent itself or anyone below it in the chart, at any depth. Hover one of them to see *Would create a reporting loop*.
+- **Paused agents can be picked.** An agent that can run work then shows an **Escalation path is paused** warning until that manager is resumed — see [Banners at the top of the page](./agents.md#banners-at-the-top-of-the-page).
+- **You need permission to configure the agent** (`agents:configure`). The picker still appears without it, but your choice is refused. When a change is refused for any reason, the reason appears under the picker and the agent keeps its current manager. See [Roles & Permissions](../../administration/roles-and-permissions.md#the-permission-keys).
+
+### Change it in YAML or through the API
+
+The picker saves the same `reportsTo` setting you can edit by hand, through the same permission checks and rules. To change it as YAML, for example alongside other settings in one save:
 
 1. **Copy the new manager's ID.** Open the manager's page, open the **⋯** actions menu at the top right, and click **Copy agent ID**.
 2. **Open the agent you're moving.** In its side menu, under **Agent**, click **Advanced**. This opens the agent's settings as a YAML document.
 3. **Set `reportsTo`.** Under `spec`, add or change the line `reportsTo: <manager's agent ID>`. To have the agent report straight to the board, write `reportsTo: null`.
 4. **Click Save changes.**
 
-The change takes effect immediately, and the **Reports to** link under the agent's name updates to the new manager. Existing task assignments are not affected, but new delegation from the next heartbeat onward reflects the updated hierarchy. See [Edit an agent as YAML](./agent-configuration-yaml.md) for more on the editor.
+Nothing is greyed out in the editor, so a bad choice is refused when you save, with *Agent cannot report to itself* or *Reporting relationship would create cycle*. See [Edit an agent as YAML](./agent-configuration-yaml.md) for more on the editor.
 
 If you'd rather script it, send the same field to the API: `PATCH /api/agents/{agentId}` with `{"reportsTo": "<manager's agent ID>"}` — see [Update Agent](../../reference/api/agents.md#update-agent).
 
@@ -174,17 +189,16 @@ For a text-only view, switch to **List view**. It shows the same agents as a fla
 
 The chart is the quickest way to get to the agents you want to rearrange. You can't drag cards between managers, but you can start a reassignment from it:
 
-1. **Click the card of the new manager** to open its page, then copy its ID from the **⋯** actions menu (**Copy agent ID**).
-2. **Go back to the chart and click the card of the agent you want to move.** The chart opens the agent's page.
-3. **Click Advanced** in the agent's side menu, set `reportsTo` to the manager's ID, and click **Save changes**. The reporting line is updated immediately, and when you return to the org chart, the card re-parents under the new manager. Existing task assignments are unaffected — only future delegation follows the new line.
+1. **Click the card of the agent you want to move.** The chart opens the agent's **Overview** page.
+2. **Click the pencil button** beside **Reports to:** in the **Profile** panel, and pick the new manager. The reporting line is updated immediately, and when you return to the org chart, the card re-parents under the new manager. Existing task assignments are unaffected — only future delegation follows the new line.
 
 A few guardrails apply:
 
-- You cannot assign an agent to a manager that reports to it (no cycles).
-- You cannot remove the CEO's own reporting line — the CEO always reports to the board.
+- You cannot assign an agent to a manager that reports to it (no cycles). The picker greys those agents out.
+- A CEO starts with no manager, which means it reports to the board. Everyone below it is greyed out in its picker.
 - Reassigning a manager with reports moves the whole subtree under the new parent; the reports themselves keep their own reporting lines.
 
-> **Tip:** If you are doing a bigger reorg (swapping teams between two managers, for example), open the Agents page's org chart view in one browser tab and the agent's **Advanced** page in another. The chart refreshes automatically when you save, so you can use it as a live preview of the new structure.
+> **Tip:** If you are doing a bigger reorg (swapping teams between two managers, for example), open the Agents page's org chart view in one browser tab and the agent's **Overview** page in another. The chart refreshes automatically when a change saves, so you can use it as a live preview of the new structure.
 
 ---
 
@@ -194,7 +208,7 @@ The lines between cards are not just decorative — they encode the company's de
 
 - Every line points from a **manager** (top) to a **direct report** (bottom). The direction of the line mirrors how work and escalations travel: delegation flows down, status and blockers flow up.
 - **Multiple children** share a horizontal connector below the manager card so you can see the span of control at each level.
-- **Separate subtrees** mean separate reporting lines. If you ever end up with more than one root, it usually means an agent lost its manager (for example, after a termination) — fix it by setting the agent's `reportsTo` again on its **Advanced** page (see [Changing an agent's manager](#changing-an-agents-manager)).
+- **Separate subtrees** mean separate reporting lines. If you ever end up with more than one root, it usually means an agent lost its manager (for example, after a termination) — fix it by choosing a new manager with the **Reports to:** picker on its **Overview** page (see [Changing an agent's manager](#changing-an-agents-manager)).
 - **Terminated agents** don't appear on the chart. If a terminated agent had reports, they move up and show directly under the next visible manager — a cue to give them a new manager.
 
 Because the chart is the single source of truth for reporting structure, it is the fastest way to spot structural issues: a manager with far too many reports, a worker orphaned without a manager, or an adapter concentration risk where too much of the org runs on the same adapter.

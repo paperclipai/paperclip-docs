@@ -21,7 +21,7 @@ For an OAuth connection whose token expired or was revoked at the provider.
 
 1. Open the connector. It shows **Reconnect required — sign in again to restore access.**
 2. Select **Reconnect**.
-3. Complete the provider sign-in.
+3. Complete the provider sign-in in the tab or window that opens.
 
 The connection keeps its identity, its agent access, and every action setting. Only the stored token changes.
 

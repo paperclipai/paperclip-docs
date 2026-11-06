@@ -221,7 +221,6 @@ Open **Settings → Experimental**. The page groups its toggles into up to three
 **Experimental features** — *"Optional product features that are still being evaluated."*
 
 - **[Agent Chat](../experimental/agent-chat.md)** — one ongoing conversation per agent. **Chat** leads the **Work** group and opens an agent rail beside the nav; agents clarify your goal and hand real work off to tasks.
-- **[Artifacts V1](../guides/day-to-day/artifacts.md#the-artifacts-v1-presentation-experimental)** — a new look for artifacts: paper stacks and tiles on the **Artifacts** page, compact rows in a task's **Artifacts** tab, and grouped rows in the task thread. Presentation only — turning it off restores the current cards, and no data changes.
 - **[Assistant connections (MCP)](../experimental/assistant-connections.md)** — connect Codex, Claude, and other assistants to your Paperclip organization so people can review work, delegate tasks, and add feedback. Needs an authenticated instance with a configured public URL.
 - **Beta skills** — lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill, without removing the pins you saved.
 - **[Built-in Agents](../reference/api/built-in-agents.md)** — shows Paperclip-managed built-in agent surfaces (built-in roster badges and the built-in agent setup controls) and makes the built-in-agent API available. Turn it on before you provision `briefs`, `learning`, or `reflection-coach`; with it off, the built-in-agent routes return `404 Not Found`.
@@ -266,6 +265,7 @@ Open **Settings → Experimental**. The page groups its toggles into up to three
 If you're coming from an older release, a few toggles you may remember are gone:
 
 - **[Task Watchdogs](../experimental/task-watchdogs.md)** — no flag any more. Watchdog controls are always available on tasks.
+- **[Artifacts V1](../guides/day-to-day/artifacts.md)** — no toggle any more. Stacks, tiles, and compact rows are how artifacts look on every instance. A hosting operator can still [hold the older cards in place](../guides/day-to-day/artifacts.md#if-your-instance-shows-the-older-cards).
 - **[Auto-Create Recovery Tasks](../experimental/auto-create-recovery-tasks.md)** — retired, along with its preview and run actions.
 - **[Cloud Sync](../experimental/cloud-sync.md)** — retired, toggle included. To move a company between instances, use [company Import/Export](../how-to/back-up-and-restore-a-company.md).
 - **Streamlined Left Navigation Bar** — replaced by **Streamlined UI**.

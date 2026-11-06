@@ -2,40 +2,32 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `84aa989b` (@ 2026-11-04T10:43Z). 24h quarantine applied (cutoff 2026-11-04T11:00Z).
-- **Compare truncation:** 0 truncated leaves (increment: 13 leaves, 120 commits, 1,452 files).
+- **Window (cumulative):** base release tag `v2026.1023.0` (`1b4c8038`, on master) → parent master `56517dda` (@ 2026-11-05T09:23Z). 24h quarantine applied (cutoff 2026-11-05T11:00Z).
+- **Compare truncation:** 0 truncated leaves (increment: 10 leaves, 146 commits, 972 files).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
-- **Already on nightly:** drafts for `1b4c8038..7b8aa60b` from earlier runs. This run covers the 120 newer commits, `7b8aa60b..84aa989b`.
-- **Verification:** every changed page was checked with `verify-edit` against `84aa989b` (`source: snapshot`, no warnings), and authors read only a checkout pinned to that SHA. 0 unverified in new text. The misses that remain are all on older lines: see Verification notes.
-- **Auto-merge tier:** nothing this run.
-- **Heads-up — release imminent:** parent master carries `docs(release): prepare v2026.1103.0 stable notes before publish` (#18842). The tag still isn't out (`releases/latest` is `v2026.1023.0` at 2026-11-05T11:00Z). When it lands, the next run should be release mode.
+- **Already on nightly:** drafts for `1b4c8038..84aa989b` from earlier runs. This run covers the 146 newer commits, `84aa989b..56517dda`.
+- **Verification:** authors and reviewers read only a checkout pinned to `56517dda`. Every changed page was checked with `verify-edit` at that SHA (`source: snapshot`, no warnings). Two fresh reviewers then checked the edits against code, and their confirmed defects are fixed. Nothing was run against a live instance.
+- **Auto-merge tier:** nothing this run. `.env.example` and `server/src/config.ts` didn't change in the window.
+- **Heads-up — release imminent:** parent master carries the `v2026.1103.0` stable notes (#18842), but `releases/latest` is still `v2026.1023.0` at 2026-11-06T11:00Z. When the tag lands, the next run should be release mode.
 
-## Applied this run (`7b8aa60b..84aa989b`)
+## Applied this run (`84aa989b..56517dda`)
 
-- **`agents:read` permission** (#18766). A read-only grant for an agent's redacted configuration, skill settings, instructions and history.
-  - `administration/roles-and-permissions.md`: new catalog row, key counts, and a **Reading agent configuration** section (the three keys that allow a read, scopes, defaults, the one-time grant to existing agents and who it skips, self-reads, the responsible-user rule).
-  - `reference/api/agents.md`: corrected read rules. It used to say peer reads need `agents:create`, which the code doesn't do.
-  - `guides/org/agents.md`: default grants, and "nothing is backfilled" narrowed to what's still true.
-- **Cursor Cloud on Paperclip Runner, experimental** (#18068, #18069, #18310).
-  - `reference/adapters/paperclip-runner.md`: provider and permission rows, plus a full **Cursor Cloud on Paperclip Runner (experimental)** section (choosing it, fields, where it can't run, **Run test** messages, runtime differences, moving a direct agent).
-  - `reference/adapters/cursor-cloud.md`, `reference/adapters/overview.md`, `guides/org/agent-adapters.md`: direct adapter vs Runner, with pointers.
-  - `guides/org/agent-identity.md`: the private-key warning now names the direct adapter, and the Runner route joins the no-key list.
-- **Coordinator navigation and task views** (#18831, #18708, #18709).
-  - `experimental/coordinator-workspace.md`: four task views (**Inbox**, **Unread**, **Needs attention**, **All tasks**), starts on **Inbox**, remembers your last view, search icon beside the organization menu, **Recents** only when it has entries, and the header avatar, name and caret as one control.
-  - **Needs you** casing fixed across `coordinator-workspace.md`, `experimental/overview.md` and `reference/api/attention.md`.
-  - `experimental/agent-chat.md`: avatars in the picker.
-- **Confirmation prompts render Markdown** (#18851): `experimental/task-chat.md`.
-- **Provider failure notices** (#18622): red notice on task and run pages, in `guides/day-to-day/issues.md`, `how-to/debug-stuck-heartbeat.md` §8, and `guides/getting-started/watching-agents-work.md`. `reference/api/issues.md` gains `providerFailure` and `workspaceFailure` on `interruption`.
-- **Mentioned projects are writable in remote workspaces, and the task page explains preparation failures** (#18770): `guides/projects-workflow/workspaces.md`.
-- **Stop on a failed run with a pending retry** (#18899): `how-to/debug-stuck-heartbeat.md` §9, with a pointer from `issues.md`.
-- **Recovering saved files from the UI** (#18848): new **Recovering saved files** section in `issues.md`.
-- **Connector reviews** (#18734, #18742): `connectors/review-requests.md` gains **Arguments and audit hash**, the rule that a new comment from the person who declined can open a fresh review, and a note that **Approve & run** on task cards is the queue's **Allow once**.
-- **Slack setup recovery** (#18837, #18878): **Reconnect Slack workspace** and **Done** on a finished setup, in `connectors/slack.md`.
-- **Fresh personal connections** (#18902): `connectors/reauthorize-and-disconnect.md`.
-- **Environment reference** (carried over, #18897): Sentry provenance tags, and the `server.started` telemetry event with `os_platform`, in `reference/deploy/environment-variables.md`.
+- **Artifacts V1 is the default** (#19164). `guides/day-to-day/artifacts.md` now describes tiles and rows throughout, and the old cards move to **If your instance shows the older cards**, for instances a hosting operator holds back with managed config. The row leaves the feature table in `experimental/overview.md` and the toggle leaves `administration/settings.md`. The Artifacts tab text in `issues.md` and `task-chat.md` follows.
+- **Manager picker returns** (#18716). **Reports to:** in the agent's **Profile** panel is now the main way to change a manager, in `guides/org/org-structure.md`, `guides/org/agents.md` and `your-first-agent.md`. YAML stays as the alternative.
+- **Agent roster, Projects, connector sign-in** (#18716). Roster row anatomy, the **Status** heading and the floating bulk card in `agents.md`. **Create project** and the new empty state in `projects.md`. Sign-in in its own tab or window, with the **Open sign-in in a new tab** fallback, in `connectors.md`, `slack.md`, `notion.md`, `first-connector.md`, `reauthorize-and-disconnect.md` and `verify-and-troubleshoot.md`.
+- **Managed plugin config** (#19049). `plugins.workerEnv` and `plugins.enabledCompanies`, with the full refused-name rule, in a new section of `reference/deploy/environment-variables.md`, plus a pointer in `docker.md`.
+- **Project storage is settled at creation** (#19036). Rewritten in `administration/plugins.md`, `reference/plugins/sdk.md`, `guides/projects-workflow/workspaces.md` and `reference/api/goals-and-projects.md`, with an upgrade note for projects that inherited the default.
+- **Plugin delivery and SDK errors** (#19170, #19173, #19195). Filtered lifecycle events, per-environment plugin selection, `PluginEnvironmentStopError`, `PluginEnvironmentRunnerIngressError` and a section on sandboxes that can't be resumed, in `sdk.md` and `plugins.md`.
+- **Failed and waiting runs** (#19207, #19187, #19152, #19208, #19189, #19143, #19091, #19063, #19052, #19190, #19130). `how-to/debug-stuck-heartbeat.md` gains sections 10–14: Stop during startup, the workspace wait, restore failures, failures after the agent finished, and attach failures. `issues.md` gains the model rejection stop, the workspace wait, and the board handoff for saved files.
+- **File drops** (#18849): drop anywhere on the default task page, with priority rules and disabled states, in `issues.md` and `task-chat.md`.
+- **API** (#16352, #19158, #19203, #18923): `file-resources` accepts task identifiers and returns `404` for unknown ones, tool gateway rejections keep their status, parent goals must be in the same company, and team catalog installs return `resourceLinks`. Also fixed an older wrong claim: `file-resources` routes are board-only, so agents get `403`.
+- **Operators and adapters:** `KillMode=mixed` and how an existing install picks it up (#18598, `reference/cli/service.md`). Claude sandbox tool commands go first under memory pressure (#16844, `reference/adapters/claude-code.md`). Codex credential rejections go to sign-in recovery (#19146, `reference/adapters/codex.md`).
+- **Small UI:** pinned pages above **More** (#18915, `coordinator-workspace.md`), and reloading during an outage (#18825, `how-to/update-paperclip.md`).
+- **Corrections to existing text, found in review:** the Artifacts empty-state quotes, the file viewer's entry points (file chips and links, not artifact tiles), and a CEO rule the code doesn't enforce (`org-structure.md`).
 
 ## Applied in earlier runs (still on nightly, unreleased)
 
+- `7b8aa60b..84aa989b` (#170): Cursor Cloud on Runner, `agents:read`, Coordinator task views, provider failure notices, connector reviews, Slack setup recovery.
 - `8ea24021..7b8aa60b` (#169): Monitoring status, task sort URLs, Sentry run-failure repairs, AI account identity, Slack, Connection Review badge, Coordinator **New task**, Runner OOM protection.
 - `1d348bbe..8ea24021` (#168): Refine-v2 agent page, YAML-only reporting line and heartbeat, instructions bundle `requireExistingEntry`.
 - `322fa6b6..1d348bbe` (#167): remote task workspaces, durable agent files, readiness probe.
@@ -52,34 +44,42 @@ Everything after the `v2026.1023.0` tag is master-only, so release review must k
 
 ## ↻ Reconcile
 
-None. No entry left the cumulative window, and there are no revert commits in the increment. The Sentry sections pulled forward last run are now inside the window and match #18772.
+None. No entry left the cumulative window, and there are no revert commits in the increment. `reportsTo` YAML walkthroughs from `8ea24021` stay accurate, but they're no longer the main path.
 
 ## Not documented this run
 
-- **Project concurrency policy** (#18746, #18871): storage only. No route writes a limit and no claim path enforces it yet.
-- **Idle sleep work** (#18632, #18639, #18656, #18646): Cloud-internal, and our docs don't cover idle sleep.
-- **Per-turn Runner sessions on ephemeral web servers** (#18932): see open questions.
-- **`GET /api/companies/{companyId}/inbox/mine`** (#18790): a board-only startup snapshot for the UI, so it was left out of the API reference. It is registered in OpenAPI, so this is a judgement call.
-- **API discovery and tool wording** (#18747, #18757, #18717): agent-facing text only. `guides/org/agents.md` already covers **Set as my primary**.
-- **Toast task identifiers** (#18802): no page describes toasts.
-- **Plugin SDK** `PluginEnvironmentWorkspaceAllocationFiles` and Daytona file streaming (#18712): internal to sandbox and workspace providers.
-- **Saving agent settings without a runtime probe** (#18690): no page claimed that saving runs a probe.
-- CLI `run` and `test-drive` internals (no user-facing change), internal recovery, heartbeat, native-runtime, workspace-migration and backup fixes, performance work, evals, e2e and CI changes.
+- **Interrupt comment as the user's Stop** (#19149): only internal fields change, and the UI doesn't read them.
+- **Automatic recovery with nothing to see:** continuing from a retired sandbox's backup (#19208), full-disk cache reclaim (#19192), and reassignment of recovered holds (#19184).
+- **Secure human entry in native discovery** (#18927): OpenAPI and agent guidance text only.
+- **Stop route `409`** (#19189): `/heartbeat-runs/{runId}/cancel` isn't on any API page, so the message is only in the debug guide.
+- **OpenCode upstream failure messages** (#19166): `opencode.md` doesn't cover error handling, and section 8 of the debug guide already covers provider messages.
+- **Control-size polish in #18716**, Artifacts hover motion (#17263), paste behaviour (#18796), and the Runner host control channel (#19129), which is private.
+- Internal recovery, native-runtime, Daytona, accounting, evals, e2e and CI changes.
 
-## ⚠ Drift (checked against `84aa989b`)
+## ⚠ Drift (checked against master `253bf071`)
 
-None (`source: snapshot`, no warnings). The `agents:read` item from the first check at master HEAD `56517dda` is fixed by this run. Master HEAD itself wasn't re-checked after the edits.
+None (`source: snapshot`, no warnings). This check ran before the edits.
 
 ## Verification notes
 
-Remaining `verify-edit` misses, all on lines this run didn't write:
+`verify-edit` at `56517dda` (`source: snapshot`, no warnings):
 
-- `reference/adapters/paperclip-runner.md`: the 10 known `adapter-config-field` and `adapter-config-value` misses.
-- `reference/adapters/cursor-cloud.md`: `secret-id`, a placeholder in the example.
-- `guides/projects-workflow/workspaces.md` and `reference/deploy/environment-variables.md`: `_DRY_RUN` and `_ENABLED`, name fragments the scanner picks up.
-- `environment-variables.md:402`: `PAPERCLIP_CLOUD_PROD_PROVIDER_RAILWAY_TOKEN`, which only appears in parent release notes. It's an existing example of a user-named binding.
+- **In new text:** `MONKEY`, `TOKENS`, `DB_`, `DB_HOST` at `environment-variables.md:253-254`. These are false alarms: they're example names in the refused-name rule, and the rule was run against the real parser.
+- **On older lines:** `_DRY_RUN` (`workspaces.md`), `_ENABLED` and `_DRY_RUN` (`environment-variables.md`), `PAPERCLIP_CLOUD_PROD_PROVIDER_RAILWAY_TOKEN` (`environment-variables.md`), the placeholders `secret-id` and `my-gateway` (`claude-code.md`, `codex.md`), and the scanner fragment `paperclipai payload and` (`service.md`).
 
 ## Open questions from this run
+
+- **Background worker calls under `plugins.enabledCompanies`:** the docs say they still need a saved configuration, from `plugin-loader.ts:2357` (`proactiveCompanyScopes` lists configured companies only). One reviewer pointed out that `ensurePluginAvailableForCompany` is a no-op and `config.get` returns `{}`. Those don't contradict the scope check, so the text stayed. Nothing ran this live.
+- **Spent export repair text:** the server's `nextAction` says "Retry recovery", but **Retry** is hidden in that state and the control is **Recover saved files**. The debug guide maps one to the other. This looks like a wording bug upstream. The `Inbox.tsx:1946` retry path wasn't checked for this state.
+- **Connector sign-in, original page:** the docs say to finish sign-in in the new window. How the original page updates on **Reconnect** and on Slack's search connect wasn't traced, and popup blocking wasn't tested live. Whether task-bound setup closes the window itself is also unconfirmed, so the docs don't claim it.
+- **Outage reload:** the "usually" on a stopped server comes from reading `sw.js`. End-to-end tests only cover an API failing while the page still loads. `local_trusted` mode wasn't confirmed.
+- **Multiple default storage plugins:** the docs tell readers to disable a plugin or use the API, because `NewProjectDialog.tsx` has no storage field. Onboarding and import paths weren't checked.
+- **`paperclipai update` and the systemd unit:** it wasn't confirmed that the update path runs the new CLI code when it restarts, so `service.md` tells readers to run `doctor` afterwards.
+- **Manager chip quirk, not documented:** with a terminated manager, the Profile chip says **Manager unavailable** while the header link says **Board**.
+- **Sandbox-provider authors:** the terminal stop failure is described as a server log warning, and the search for a UI surface was incomplete. The `ctx.config.get` default in the `sdk.md` warning was inferred, not read from the handler.
+- **Screenshots now out of date in pages touched this run:** `projects/list.png` shows **Add Project**, `agents/list.png` shows the old roster, and `agents/dashboard.png` predates the picker. Artifact screenshots may show the older cards. All are listed in `SCREENSHOTS_PENDING.md` or should be reshot at the next release refresh.
+
+### Earlier open questions (from the `84aa989b` run)
 
 - **Cursor Cloud attachments:** the page says not to count on them, because the driver sends text and the parent's plan marks inbound media as unverified. No test settles it.
 - **Cursor Cloud artifact caps:** the parent's Runner README says the budget "survives session changes", but the ledger sits under a state root keyed to `normalizedSessionId`. The page follows the code and says later runs on a session share the total. Check this if upstream clarifies it.
@@ -100,7 +100,7 @@ Remaining `verify-edit` misses, all on lines this run didn't write:
 
 ### Earlier open questions (from the `8ea24021` run)
 
-- **Reports to and heartbeat are YAML-only now.** The parent PR lists this as an accepted risk ("Run policy and Reports to are no longer editable on the agent page"), and the org chart can't re-parent agents by dragging. Basic tasks like changing a manager or turning on a heartbeat now walk readers through YAML. If upstream adds a form back, revert those walkthroughs.
+- **Heartbeat is still YAML-only.** Basic tasks like turning on a heartbeat walk readers through YAML, and the org chart can't re-parent agents by dragging. **Reports to** got its picker back in #18716, and those walkthroughs were rewritten this run. If upstream adds a heartbeat form back, revert those walkthroughs too.
 - **The agent public key has no UI.** `agent-identity.md` now points to the API only. Check this is intended upstream.
 - **Removed screenshot references** (files and registry entries kept, for the next release refresh to decide): `agents/new-agent-reports-to-field.png`, `org/reassign.png`, `agents/budget-and-heartbeat-fields.png`, `agents/heartbeat-toggle-disabled.png`, `agents/heartbeat-toggle-enabled.png`. These capture targets no longer exist in the UI.
 - **Kept but out of date:** `agents/dashboard.png`, `agents/configuration.png`, `agents/instructions.png`, `agents/runs.png`, `agents/budget.png`, `agents/agent-detail-idle.png`, `agents/agent-detail-run-history.png`, `agents/run-history-in-progress.png`, `costs/agent-budget-bar.png`. All of them are already in `SCREENSHOTS_PENDING.md`.
@@ -135,13 +135,13 @@ Remaining `verify-edit` misses, all on lines this run didn't write:
 - Placeholder values in the git-authorization response and plugin manifest examples are illustrative.
 - Older carry-overs: restore-point `.env` handling and the commit cap, 1Password labels, Unikraft host reachability, the Vercel overview link, Supabase token text, task-dismissal scope, onboarding wording, plugin SDK warm-session defaults, Artifacts V1 visuals, the Slack DM at-mention exemption that is only on master (#16151), Braintrust/Ditto qualification, the Cases tool-group toggle, plugin agent-view notices, the OpenCode missing-model error, budget stop latency, Copilot qualification wording.
 
-## Arriving next run (in quarantine, landed after 2026-11-04T11:00Z)
+## Arriving next run (in quarantine, landed after 2026-11-05T11:00Z)
 
-146 commits up to master `56517dda` (@ 2026-11-05T09:23Z). Ones that likely affect the docs:
+157 commits up to master `253bf071` (@ 2026-11-06T10:20Z). Ones that likely affect the docs:
 - **v2026.1103.0:** still not tagged. When it lands, the next run is release mode.
-- **Artifacts V1 on for every instance, with its toggle hidden** (#19164). The experimental pages will need updating.
-- **Plugins:** managed config can grant worker variables to a plugin (#19049), and agent runtime events go only to the owning plugin (#19170).
-- **UI:** pinned pages sit above **More** (#18915), file drops work across task and new-task views (#18849), and connector, toolbar, empty-state and agent roster fixes (#18716).
-- **Tasks and recovery:** interrupt comments count as the user's Stop (#19149), remote restore failures leave a board recovery action (#19207), and copy-back failures are named on the run (#19187, #19152).
-- **Other:** generated systemd units gain `KillMode=mixed` (#18598), `file-resources` routes accept issue identifiers (#16352), tool gateway rejections return their own status (#19158), and projects stay on the storage chosen at creation (#19036).
+- **Coordinator and Agent Chat become standard** (#19360). The experimental pages will need moving or rewriting.
+- **Navigation:** **Needs you** is renamed **Inbox** and **Mine** moves into **Tasks** (#19363), and **Tasks** defaults to **All tasks** (#19393). This undoes the casing fix from last run.
+- **Task chat:** plan as a task list (#19252), web search and other dedicated rows (#19262), Codex reasoning summaries (#19271), inline diffs (#19269), status chips (#19267), Claude subagent tree (#19264), tool rows (#19265), governance rows (#19266), MCP start warnings (#19289), approving harness plans (#19291), and Enter to submit by default (#19272).
+- **Task properties:** provider usage limit (#19246, #19270), context window (#19273), and compacting context (#19378).
+- **Other:** agent-created task trees limited to parent and child (#19312), Google Workspace connector behind an experimental toggle (#19247), **Paperclip Sandbox** rename (#19296), `membershipRole` in the user directory (#15183), agent purge refused when cost history references it (#19022), unified sign-in actions (#19336), and aggregator Slack sign-in on Cloud (#19328).
 - Plus many internal recovery, native-runtime, CI and eval changes.

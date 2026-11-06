@@ -50,6 +50,8 @@ Which methods you actually see depends on your instance. **Connect with Papercli
 
 Connecting a catalog app is one screen. Paperclip picks the recommended method for you and asks only for what proves who you are: a provider sign-in, a key, or an address. A catalog card that says **Add key** means you will paste a key; every other card says **Connect**.
 
+A provider sign-in opens in its own tab or window, and your setup page stays open behind it, so you keep your place. Finish signing in there and Paperclip carries on. If your browser blocks the new window, use the sign-in link on the setup page, usually **Open sign-in in a new tab**. See [Authorization never completes](connectors/verify-and-troubleshoot.md#authorization-never-completes) if it doesn't finish.
+
 Above the main button, one line states the access Paperclip will use, such as *"Connects for everyone in your organization, available to all agents."* When an agent asked for the connection from a task, it reads *"available to the agent that asked for it"* instead. Select **Change** to pick a different identity, narrow the agents, or choose another method or capability; everything there can also be changed afterwards. Individual actions are set on the **Permissions** tab once you are connected — see [Set action permissions](connectors/action-permissions.md).
 
 ## The catalog

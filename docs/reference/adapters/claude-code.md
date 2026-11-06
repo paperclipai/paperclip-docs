@@ -117,6 +117,12 @@ You can keep `engine` on `auto` when this agent runs in a Paperclip sandbox envi
 
 An environment that only runs one-shot commands cannot host an ACP session, so an `auto` run there fails with a setup error rather than switching to the Claude CLI. Set `engine: "cli"` when you want the CLI lane — for example on such environments.
 
+### Sandbox memory limits
+
+A sandbox has a fixed memory limit, and a heavy tool command such as a type check or a dependency install can use most of it. When memory runs out, the kernel kills a process, and you don't want that to be Claude Code itself.
+
+So in a managed sandbox, Paperclip installs a small `tool-shell-prefix.sh` script and points `CLAUDE_CODE_SHELL_PREFIX` at it. The script raises each tool command's `oom_score_adj` to `1000`, which makes the command the kernel's first choice. Claude sees a failed command it can recover from, and the run carries on. If you set `CLAUDE_CODE_SHELL_PREFIX` in the adapter's `env` yourself, Paperclip keeps your value and doesn't install the script.
+
 ---
 
 ## Model Discovery

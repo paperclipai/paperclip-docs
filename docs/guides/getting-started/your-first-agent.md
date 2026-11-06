@@ -37,7 +37,7 @@ You'll need:
 
    ![The "Meet your next agent" dialog with the Agent name field](../../user-guides/screenshots/light/agents/new-agent-name-role.png)
 
-   There's no role to pick. The first agent in a company is always the **CEO**, and Paperclip sets that for you. The CEO reports directly to the board — to you. Agents you hire later start with a general role and report to the CEO; you can change both afterwards by editing `role` and `reportsTo` on the agent's **Advanced** page (see [Changing an agent's manager](../org/org-structure.md#changing-an-agents-manager)).
+   There's no role to pick. The first agent in a company is always the **CEO**, and Paperclip sets that for you. The CEO reports directly to the board — to you. Agents you hire later start with a general role and report to the CEO; you can change both afterwards. Pick a new manager with **Reports to:** in the agent's **Profile** panel (see [Changing an agent's manager](../org/org-structure.md#changing-an-agents-manager)), and edit `role` on the agent's **Advanced** page.
 
 3. **Choose an adapter**
 
