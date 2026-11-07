@@ -53,7 +53,7 @@ A case also has these core fields:
 | `workIssueId` | The case's primary task, if it has one. Every handoff reuses this same task. Set by the handoff routes, not by create or update. |
 | `workflowId` | The [reusable workflow](#workflows) the case currently follows, or `null` when it runs on its own case instructions. Set by the handoff routes. |
 | `phase` | The current phase name, as set by the last applied handoff (for example `triage` or `verification`). A free-form label — Paperclip doesn't enforce phase order. |
-| `handoffVersion` | A counter that increases with each applied handoff. Send it back as `expectedHandoffVersion` so a handoff fails cleanly if someone else routed the case first. |
+| `handoffVersion` | A counter that increases each time a handoff is accepted. Send it back as `expectedHandoffVersion` so a handoff fails cleanly if someone else routed the case first. |
 
 ### Status values
 
@@ -452,7 +452,7 @@ There are two shapes. An **agent handoff** sends the primary task to an agent:
 | `workflow_document_text` | when creating the primary task, unless `workflowId` is set | The workflow description, saved verbatim as the task's `workflow` document (titled **Workflow**). Up to 200,000 characters and not blank. Not accepted on later handoffs, and can't be combined with `workflowId`. |
 | `workflowId` | no | A [reusable workflow](#workflows) to adopt, or `null` to detach. Can stand in for `workflow_document_text` when creating the primary task. See [Adopting a workflow](#adopting-a-workflow). |
 | `expectedHandoffVersion` | for an existing case | The case's current `handoffVersion`. |
-| `expectedIssueStatusVersion` | with `bindIssueId` | The bound task's current status version. |
+| `expectedIssueStatusVersion` | when the task already exists: a case with a primary task, or `bindIssueId` | That task's current status version. A missing value returns `422`. |
 | `bindIssueId` | no | Use an existing task as the primary task instead of creating one. Only for a case that has no primary task yet. |
 | `initialDocuments` | no | Up to 20 `{ key, title, body }` documents seeded on a newly created primary task. The key `workflow` is reserved, keys must be unique, and all bodies together (including the workflow text or an adopted workflow's prompt) are capped at 200,000 characters. |
 
@@ -466,7 +466,7 @@ There are two shapes. An **agent handoff** sends the primary task to an agent:
 | a workflow ID | Adopt that workflow's latest prompt into the task's `workflow` document. Send the case's current `workflowId` to refresh it. |
 | `null` | Detach. The case's `workflowId` becomes `null`; the `workflow` document is kept as it is. |
 
-The prompt is captured when the handoff is accepted, together with the `workflow` document's current revision — later edits to the shared definition don't affect this handoff. The new workflow, the new `phase`, and the document revision are applied together when the handoff is applied, after the outgoing run settles. If the `workflow` document changed after acceptance, Paperclip doesn't overwrite it: the handoff stays pending with `lastError` set to `Document was updated by someone else`. [Cancel it](#retry-or-cancel-a-pending-handoff) and hand off again.
+The prompt is captured when the handoff is accepted, together with the `workflow` document's current revision — later edits to the shared definition don't affect this handoff. The new workflow, the new `phase`, and the document revision are applied together when the handoff is applied, after the outgoing run settles. If the `workflow` document changed after acceptance, Paperclip doesn't overwrite it: the handoff moves to `cancelled` with `lastError` set to `Document was updated by someone else`, and the task, phase, and workflow stay as they were. Reload the case and hand off again.
 
 A **done handoff** asks Paperclip to close the case when its primary task completes:
 
@@ -508,7 +508,8 @@ curl -sS -X POST \
     "toAgentId": "{verifierAgentId}",
     "phase": "verification",
     "instructions": "The export is implemented and the checks pass. Verify it against the brief.",
-    "expectedHandoffVersion": 2
+    "expectedHandoffVersion": 2,
+    "expectedIssueStatusVersion": 5
   }'
 ```
 

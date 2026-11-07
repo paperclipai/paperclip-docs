@@ -120,9 +120,9 @@ If the bind mount is removed, the instance starts fresh on the next run.
 
 ### File ownership on startup
 
-The entrypoint makes sure the container's `node` user owns everything under `PAPERCLIP_HOME` before the app starts. To keep boots fast on volumes with lots of agent worktrees and `node_modules` trees, it walks the whole tree only once for each volume and node UID/GID. After that it records the result in `.paperclip-ownership-verified` at the top of the data directory, and later boots run only a quick shallow check. Delete that file if you want the next boot to run the full check again.
+The entrypoint makes sure the container's `node` user owns everything under `PAPERCLIP_HOME` before the app starts. To keep boots fast on volumes with lots of agent worktrees and `node_modules` trees, it walks the whole tree only once for each volume and node UID/GID. After that it records the result in `.paperclip-ownership-verified` at the top of the data directory, and later boots run only a quick shallow check. Delete that file if you want the next boot to run the full check again. If the container starts as a non-root user, the entrypoint can't change ownership, so it skips all of this.
 
-If you set `USER_UID` or `USER_GID` to something other than the image default (`1000`), the container now remaps the `node` user without walking the data volume, so even large volumes start in seconds. Any files that really do have the wrong owner are still fixed by the ownership check above.
+If you set `USER_UID` or `USER_GID` to something other than the image default (`1000`), the container remaps the `node` user without walking the data volume. The first boot with new IDs still runs the ownership check above, which repairs the whole tree if anything has the wrong owner. Once that's recorded, later boots start in seconds, even on large volumes.
 
 ---
 

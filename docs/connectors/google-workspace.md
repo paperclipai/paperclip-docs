@@ -19,7 +19,7 @@ Google Workspace is the connector the **Connectors** page offers for new Google 
 Pick Google Workspace when you want:
 
 - **One account for several services.** One sign-in covers mail, files, and calendar, instead of a separate connection for each.
-- **Access you can change later.** Your service choices are saved with the connection. When you reconnect, the picker opens with them already filled in, so you can widen or narrow access without starting over.
+- **Access set per service.** You choose read-only or read and write for each service in one place, and your choices are saved with the connection, so a reconnect asks Google for the same access again.
 
 Some things are only on the older connectors. Google Workspace does not offer Google Chat, contacts and directory lookups, cross-service search, or archiving in Gmail. If you already rely on [Google Chat](google-chat.md), [Google People](google-people.md), [Google Workspace Search](google-workspace-search.md), or a [Gmail](gmail.md) archive connection, keep that connection.
 
@@ -91,7 +91,9 @@ An agent that calls an action you have not granted gets *"This Google action nee
 
 The same limit applies the other way. If your Google account already granted Paperclip broader access in the past, the connection still stops at what you picked this time.
 
-To change access, select **Reconnect** on the connection. The picker opens with your saved choices; adjust them and go through Google's consent again. If Paperclip cannot load your saved choices, it stops and offers to try again rather than falling back to the defaults, so a reconnect never quietly asks for more than you had.
+**Reconnect** signs you in again with the access you saved. It does not open the picker, so you cannot widen or narrow access there. If Paperclip cannot find your saved choices, it stops rather than falling back to the defaults, so a reconnect never quietly asks for more than you had.
+
+To change access, select **Add account** on the **Google Workspace** row in **Connectors**, make your choices in the picker, and complete Google's consent. That creates a new connection, so set its actions on the **Permissions** tab, then remove the old connection.
 
 ## Try it
 
@@ -111,8 +113,8 @@ Expect your next event, which you can confirm in Google Calendar. This checks th
 | The Paperclip-managed sign-in is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not offering the Google Workspace profile | Use your own Google OAuth app, or ask an administrator about enrollment |
 | A new Paperclip-managed Google Workspace sign-in is rejected | New Google Workspace requests rely on an updated Paperclip-hosted OAuth broker, and an older broker may reject them | Try again later, or use your own Google OAuth app. Existing single-service Google connections keep working |
 | **Continue** is greyed out in the picker | Every service is switched off | Switch on at least one service |
-| A whole service's actions are missing | The service was switched off in the picker, or you declined its permissions at Google | Select **Reconnect** and pick it again |
-| Read actions work but write actions are missing | The service is on **Read only** | Reconnect with **Read & write** and approve the new permissions at Google |
+| A whole service's actions are missing | The service was switched off in the picker, or you declined its permissions at Google | Select **Add account** on the **Google Workspace** row, switch the service on, approve it at Google, then remove the old connection |
+| Read actions work but write actions are missing | The service is on **Read only** | Select **Add account** on the **Google Workspace** row, choose **Read & write**, approve the new permissions at Google, then remove the old connection |
 | You need Google Chat, contacts, or cross-service search | Not offered by Google Workspace | Use an existing [Google Chat](google-chat.md), [Google People](google-people.md), or [Google Workspace Search](google-workspace-search.md) connection |
 | **Needs attention** | The Google token expired or was revoked | Select **Reconnect** |
 

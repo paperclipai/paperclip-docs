@@ -8,11 +8,11 @@ seo_description: Configure Paperclip Runner for native agent sessions. Choose a 
 
 Use `paperclip_runner` when you want Paperclip's native run lifecycle, durable session recovery, and built-in task tools. You select the provider separately from the adapter, then configure model access and the execution environment.
 
-Paperclip Runner is experimental. Native Codex, native OpenCode, **ACP agents → Claude**, **ACP agents → Pi**, and **ACP agents → GitHub Copilot** are the exceptions to the rollout switch. Copilot agents keep running when the switch is off, and first-run setup offers **GitHub Copilot** either way. New Codex, Claude, OpenCode, and Pi agents also use the Runner by default on supported machines (see [New Codex and Claude agents use the Runner](#new-codex-and-claude-agents-use-the-runner)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
+Paperclip Runner is experimental. Native Codex, native OpenCode, **ACP agents → Claude**, **ACP agents → Pi**, and **ACP agents → GitHub Copilot** are the exceptions to the rollout switch. Copilot agents keep running when the switch is off, and first-run setup offers **GitHub Copilot** either way. New Codex, Claude, OpenCode, and Pi agents also use the Runner by default on supported machines (see [New Codex and Claude agents use the Runner](#new-codex-and-claude-agents-use-the-runner)). OpenAI Dot has its own switch instead (see [Experimental external providers](#experimental-external-providers)). Every other provider needs the `enableNativeRunner` setting, which is **on by default for self-hosted instances** and **off by default for Cloud-managed instances**. Deployment settings can override those defaults. Turning the setting on doesn't convert your existing agents. Saved agents keep the runner they were created with.
 
 ## Before you start
 
-- For providers other than Codex, OpenCode, ACP Claude, ACP Pi, and ACP GitHub Copilot, an instance with **Paperclip Runner** enabled under **Settings → Experimental**.
+- For providers other than Codex, OpenCode, ACP Claude, ACP Pi, ACP GitHub Copilot, and OpenAI Dot, an instance with **Paperclip Runner** enabled under **Settings → Experimental**.
 - An active agent and a task in standard, planning, or ask work mode.
 - A prepared execution environment and compatible model credential.
 - The pinned runtime required by the selected provider.

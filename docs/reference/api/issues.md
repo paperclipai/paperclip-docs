@@ -1301,7 +1301,7 @@ There's no request body. Dismissal only changes attention state; the card is not
 
 The call is idempotent: dismissing a card that's already dismissed, or no longer `pending`, returns it unchanged.
 
-Who may dismiss a card: a signed-in board user who can read the issue and who is in the card's resolver audience. For confirmation cards on an issue that's `in_review`, the issue's current review policy is checked too. Agent callers get `403` (`Board access required`), and a board caller with no user gets `403` (`Only a human can dismiss a request`).
+Who may dismiss a card: a signed-in board user who can read the issue and who is in the card's resolver audience. For confirmation cards on an issue that's `in_review`, the issue's current review policy is checked too. Agent callers get `403` (`Board access required`).
 
 Dismissal is written to the audit trail as `issue.thread_interaction_dismissed`, with the interaction id and kind attached.
 

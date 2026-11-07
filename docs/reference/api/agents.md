@@ -322,7 +322,7 @@ Creates a new agent in a company.
 
 `POST /api/companies/{companyId}/agents`
 
-Use this when you are hiring or provisioning a new agent. In the current implementation, this route is board-only.
+Use this when you are hiring or provisioning a new agent. The caller needs permission to create agents in the company.
 
 Important behavior:
 
@@ -336,7 +336,7 @@ Important behavior:
 - If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
 - For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds a short default `AGENTS.md`: a one-line role description for `role: "ceo"`, or a one-line generic placeholder for every other role. Keep it short — Paperclip's runtime and installed skills already supply the operating procedures. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
-- The optional `runner` field picks how a Codex, Claude Code, OpenCode, or Pi agent runs: `auto` (the default), `paperclip`, or `legacy`. With `adapterType: "codex_local"`, `auto` stores the agent as `paperclip_runner` with `provider: "codex"` when the target environment qualifies for Paperclip Runner (macOS on Apple Silicon or Intel, or Linux x64/ARM64 with GNU libc 2.39 or newer), and keeps `codex_local` otherwise. With `adapterType: "claude_local"`, `auto` stores `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"` on the same targets, except that a macOS host reached over SSH, or a target whose platform can't be detected, keeps `claude_local`. A blank Claude `model` resolves to `claude-opus-5-5`. With `adapterType: "opencode_local"`, `auto` stores `paperclip_runner` with `provider: "opencode"`, and with `adapterType: "pi_local"` it stores `provider: "acpx"` and `acpxAgent: "pi"`; both keep the classic adapter on Linux ARM64. `legacy` always keeps the classic adapter. See [New Codex and Claude agents use the Runner](../adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
+- The optional `runner` field picks how a Codex, Claude Code, OpenCode, or Pi agent runs: `auto` (the default), `paperclip`, or `legacy`. With `adapterType: "codex_local"`, `auto` stores the agent as `paperclip_runner` with `provider: "codex"` when the target environment qualifies for Paperclip Runner (macOS on Apple Silicon or Intel, or Linux x64/ARM64 with GNU libc 2.39 or newer), and keeps `codex_local` otherwise. With `adapterType: "claude_local"`, `auto` stores `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"` on the same targets, except that a macOS host reached over SSH, or a target whose platform can't be detected, keeps `claude_local`. A blank Claude `model` resolves to `ANTHROPIC_MODEL` from the agent's `env` if it's set, otherwise to `claude-opus-5-5`. With Bedrock or Vertex settings in `env` and no model, the request fails with `422` and code `agent_runner_config_incompatible`, because those providers use their own model IDs. With `adapterType: "opencode_local"`, `auto` stores `paperclip_runner` with `provider: "opencode"`, and with `adapterType: "pi_local"` it stores `provider: "acpx"` and `acpxAgent: "pi"`; both keep the classic adapter on Linux ARM64. `legacy` always keeps the classic adapter. See [New Codex and Claude agents use the Runner](../adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
 - Asking for `paperclip` on a target that doesn't qualify fails with `422` and code `agent_runner_unavailable`. Legacy-only settings that Paperclip Runner can't honour (for example `extraArgs` on a Codex agent, or `chrome` or `maxTurnsPerRun` on a Claude agent) fail with `422` and code `agent_runner_config_incompatible`, listing the offending `fields` — remove them or choose `legacy`.
 - Only an operator can set `adapterConfig.homeMode`. An agent caller that includes it gets `403` with `Only an operator can configure Runner homeMode.`
 - To save an agent before setup is finished (the way the **New Agent** dialog does when you submit a name), send a fresh uuid as `setupId`. The server creates the agent with that ID, `status: "paused"`, and `pauseReason: "setup"`, and skips the board-approval check, which happens when the hire is finished. Sending the same `setupId` again returns the same agent. Only a signed-in board user can do this. While setup is unfinished, `POST /api/agents/{agentId}/resume` returns `409` with `Finish agent setup before resuming`, and creating an API key returns `409` with `Finish agent setup before creating keys`.
@@ -631,10 +631,23 @@ The `permissionKey` field on a grant is one of:
 | Key | What it allows |
 |---|---|
 | `agents:create` | Hire or create new agents in the company, and run adapter environment tests. It doesn't let an agent read a peer's configuration; that takes `agents:configure` or `agents:suggest-changes`. |
+| `agents:configure` | Change another agent's configuration, instructions, and profile, and read peers' configurations. |
+| `agents:suggest-changes` | Read peers' configurations. An agent holding it can also apply an accepted change to instructions or profile fields (`name`, `role`, `title`, `capabilities`). |
+| `skills:create` | Create and manage company skills. Skill writes are decided by the [company skill policy](./company-skill-policy.md), where this grant counts as a compatibility allow under a default-deny policy. |
+| `skills:suggest-changes` | Propose changes to company skills. It counts toward the same compatibility allow as `skills:create`. |
+| `tools:admin` | Set up shared tool plumbing, such as MCP gateways and their tokens. Board members only. |
+| `tools:manage_connections` | Manage company connections, including which agents and projects a tool connection is installed on. |
+| `tools:manage_profiles` | Reserved. You can grant it, but no route checks it in this release. |
+| `tools:view_audit` | Read the tool gateway's audit trail. Board members only. |
+| `audit:view_agent_actions` | Read the company's audit feed of agent actions and export it. Board members only. |
+| `commentary:view` | Read agent [commentary](../../administration/agent-commentary.md#read-commentary-through-the-api). Board members only. |
+| `tools:use` | Try a connection's tools from the board. In tool access decisions, it also counts as an explicit allow for the tools its scope covers, once no policy has already decided the call. |
+| `tools:manage_runtime` | Inspect, stop, and restart tool runtime slots. Board members only. |
+| `inbox:manage` | Let an agent act on the inbox of a user other than its responsible user, when the grant's scope covers that user. New standard agents hold it scoped with `responsibleUserOnly`, which doesn't reach other users. |
 | `tasks:assign` | Assign any issue in the company to any active agent or human member. |
 | `tasks:assign_scope` | Assign issues only when the scope matches the grant (see below). Requires a structured scope on the grant. |
 | `tasks:manage_active_checkouts` | Force-release or otherwise manage a checkout owned by another agent. |
-| `environments:manage` | Manage execution workspaces and environments. |
+| `environments:manage` | Reserved for managing execution environments. Roles carry it, but the environment routes don't check it yet: they need instance admin access. |
 | `users:invite` | Invite new humans to the company. |
 | `users:manage_permissions` | Edit roles and grants for other members. |
 | `joins:approve` | Approve pending join requests. |
@@ -1187,7 +1200,7 @@ Use them when you need to:
 
 Important notes:
 
-- If you are a board (human) member of the company, configuration and config-revision reads need only your company membership. An agent needs `agents:configure` or `agents:suggest-changes` to read these; `agents:create` and the legacy `canCreateAgents` flag don't help. Changing a configuration needs `agents:configure`, or `agents:suggest-changes` with an accepted change. `POST /api/companies/{companyId}/adapters/{type}/test-environment` needs permission to create agents.
+- If you are a board (human) member of the company, configuration and config-revision reads need only your company membership. An agent needs `agents:configure` or `agents:suggest-changes` to read these; `agents:create` and the legacy `canCreateAgents` flag don't help. Changing or rolling back another agent's configuration needs `agents:configure`; `agents:suggest-changes` isn't enough, even with an accepted change. An agent can change or roll back its own configuration without a grant, subject to its responsible user's access and the limits on what agents may set; a low-trust agent can't. `POST /api/companies/{companyId}/adapters/{type}/test-environment` needs permission to create agents.
 - Revisions redact secret-bearing fields before returning them, so reads never expose secrets regardless of who you are.
 - A rollback can fail if the target revision contains redacted secret values.
 
@@ -1230,10 +1243,10 @@ curl -s -o notes.png \
 |---|---|
 | `path` | File path inside the bundle, e.g. `AGENTS.md` or `notes/today.md`. |
 | `content` | The full text content, up to 1 MiB. |
-| `baseHash` | The `contentHash` you read. Send `null` when you're creating a new file. Required for managed bundles. |
+| `baseHash` | The `contentHash` you read. Send `null` when you're creating a new file. Required for the entry file and for managed bundles. |
 | `clearLegacyPromptTemplate` | Optional. `true` also clears the agent's old inline prompt template. Needs permission to manage the instructions path. |
 
-Saves are guarded against lost updates: if the file changed since you read it, the save is rejected with `409 Conflict` and nothing is written. Read the file again, reapply your change, and retry with the new hash. A save with no `baseHash` on a managed bundle returns `422`.
+Saves are guarded against lost updates: if the file changed since you read it, the save is rejected with `409 Conflict` and nothing is written. Read the file again, reapply your change, and retry with the new hash. A save with no `baseHash` returns `422` for the entry file in any bundle mode, and for any file in a managed bundle.
 
 ```bash
 curl -s -X PUT http://localhost:3100/api/agents/{agentId}/instructions-bundle/file \
@@ -1275,7 +1288,7 @@ Notes:
 - An agent can read its own files and save its own entry file within what its responsible user is currently allowed to do. Saving or deleting its other files through these routes needs `agents:configure`, or `agents:suggest-changes` with an accepted change. Reading another agent's files needs `agents:configure` or `agents:suggest-changes`.
 - A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't save its own instructions from ordinary work. The exception is an edit its user asks for directly in their own Agent Chat — see [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 - Relative instructions paths require `adapterConfig.cwd`.
-- External bundles keep their existing behaviour; `download=true` and the `baseHash` rules above apply to managed bundles.
+- External bundles keep their existing behaviour, apart from the entry file, which always needs `baseHash`. `download=true` and the other `baseHash` rules above apply to managed bundles.
 
 ---
 
@@ -1372,9 +1385,3 @@ AWS AgentCore authenticates through the runner environment's workload identity, 
 ---
 
 ## Notes
-
-This page was rewritten to match the current agent routes, auth rules, lifecycle behavior, and docs-site markdown conventions.
-
-Changed file:
-
-- `docs/api/agents.md`

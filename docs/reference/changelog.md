@@ -16,7 +16,7 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 <summary>Docs for v2026.1106.0 <span class="accordion-meta">November 6, 2026</span></summary>
 <div class="accordion-body">
 
-This release is about agents starting in the right place and workspaces looking after themselves. New Claude, Codex, OpenCode and Pi agents start on the Paperclip Runner on supported hosts. Repositories attached to a project become skill sources, and finished workspaces clean up after themselves, with restore points for unsaved work. Before you upgrade, read the changes to run history, Sentry reporting and custom Docker images below.
+This release is about agents starting in the right place and workspaces looking after themselves. New Claude, Codex, OpenCode and Pi agents start on the Paperclip Runner on supported hosts. Repositories attached to a project become skill sources, and finished workspaces clean up after themselves, with optional restore points for unsaved work. Before you upgrade, read the changes to run history, Sentry reporting and custom Docker images below.
 
 **New pages**
 
@@ -34,7 +34,7 @@ This release is about agents starting in the right place and workspaces looking 
 - [Agents](../guides/org/agents.md) — edit the connection and default model of many agents at once, and the roster's new columns and **Harness** filter. Raw tracing now lives in the agent's **Debugging** card.
 - [Issues](../guides/day-to-day/issues.md), [Task chat](../experimental/task-chat.md) and [Issues API](api/issues.md) — agent-created tasks hidden by default, a stricter Inbox **Mine**, dismissals that stick, one task-level **Retry**, and `expectedStatusVersion`.
 - [Artifacts](../guides/day-to-day/artifacts.md) — the experimental Artifacts V1 look, and uploading files straight into the panel.
-- [Environment variables](deploy/environment-variables.md), [Docker](deploy/docker.md) and [Database](deploy/database.md) — new cleanup, restore point and Sentry settings, the new Docker entrypoint for custom images, and migrations that take longer on large instances.
+- [Environment variables](deploy/environment-variables.md), [Docker](deploy/docker.md) and [Database](deploy/database.md) — new cleanup, restore point and Sentry settings, the new Docker start command for custom images, and migrations that take longer on large instances.
 - [Costs API](api/costs.md) — the run history list now returns 200 runs by default and at most 1,000.
 - [Agents API](api/agents.md) — corrected which permissions let an agent read a peer's configuration and manage instructions, plus the `runtimeSettings` update.
 - [Plugin SDK](plugins/sdk.md) and [Plugins](../administration/plugins.md) — plugins as the default workspace provider for projects, fresh retry workspaces, durable agent lifecycle hooks, and owned secrets.
@@ -44,7 +44,7 @@ This release is about agents starting in the right place and workspaces looking 
 
 **Removed**
 
-- The Pipelines experiment, which Paperclip removed in this release, along with its routes, CLI commands and `pipelines:write` permission.
+- `pipelines:write` from [Roles and Permissions](../administration/roles-and-permissions.md). Paperclip removed the Pipelines experiment in this release, along with its routes, CLI commands and that permission.
 
 </div>
 </details>

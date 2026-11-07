@@ -33,7 +33,7 @@ Before testing, check the recording and retention settings in your Speko workspa
 
 On a task assigned to an agent with an active Speko connection, click **Talk to** followed by the agent's name. If the agent has more than one voice persona, pick one under **Voice persona** first.
 
-During a call you can mute, **Repeat answer**, start a **New conversation**, or **Continue conversation**. Click **End call** when you're done. Ending the call doesn't stop the work: accepted tasks keep running in Paperclip. Calls are limited to ten minutes.
+During a call you can mute or use **Repeat answer**. Click **End call** when you're done. Ending the call doesn't stop the work: accepted tasks keep running in Paperclip. Calls are limited to ten minutes.
 
 ## Phone calls
 
@@ -65,7 +65,7 @@ The **Access** tab explains who can use voice:
 - Outgoing calls use your saved callback number and opt-in.
 - Incoming calls without approval can only start a new low-trust task.
 
-The **Activity** tab lists **Your calls**: browser conversations, incoming calls, and outgoing calls, with their status, duration, Speko charge, and transcript once Speko finishes its call report. Agent costs are tracked separately, and recordings stay in Speko.
+The **Activity** tab lists your calls under **Recent activity**: browser conversations, incoming calls, and outgoing calls, with their status, duration, Speko charge, and transcript once Speko finishes its call report. Agent costs are tracked separately, and recordings stay in Speko.
 
 ## Company Phone Agent
 

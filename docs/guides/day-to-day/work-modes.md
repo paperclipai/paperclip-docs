@@ -24,7 +24,7 @@ The mode is applied when you send. Changing the chip alone does not interrupt th
 
 Auto is the default. Plan focuses the agent on clarifying the goal and writing a plan document. Ask keeps the request read-only, so it suits a lookup, comparison, or explanation.
 
-Each agent reply shows the mode that request ran under. Read that chip when looking back through the thread: it describes that turn rather than promising that every message in the task used the same mode.
+Replies in the thread don't show which mode they ran under. The chip beside the plus button only tells you the mode your next message will use.
 
 ## How it behaves
 

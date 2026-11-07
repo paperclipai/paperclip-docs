@@ -338,7 +338,7 @@ A few rules shape how this works:
 - **Patch, not replace.** A `null` value removes a key; keys you leave out stay as they are. Each result can change up to 16 keys, each matching `[a-z][a-z0-9_]{0,63}`, with non-empty string values up to 128 KiB.
 - **Owned by your plugin and that project.** Each company, project, and installed plugin combination has its own set. Automatic project callbacks receive the current values in `event.instanceSecrets`.
 - **Stale replies are refused.** If your plugin's configuration, the project's sources, its lifecycle state, or the stored secrets changed while your callback ran, Paperclip rejects the reply and the event comes back. A repeated reply to an event that's already acknowledged can't overwrite credentials.
-- **Deleted projects can only remove.** A `delete` event can clear keys but not write them, and the secrets are deleted along with the project anyway.
+- **Archived and deleted projects can only remove.** Callbacks for them receive an empty `event.instanceSecrets`, and your result can clear keys but not write them. A deleted project's secrets are deleted along with it anyway.
 
 Outside a lifecycle callback, trusted worker code can read the values with `ctx.projects.getInstanceSecrets(projectId, companyId)` during a call scoped to that company. Archived or missing projects can't be read this way.
 
@@ -358,7 +358,7 @@ The `PluginAgentRuntimeState` it returns holds:
 
 - `revision` — the agent's current runtime revision. A queued event can be older than this, so compare revisions at your destination and skip stale writes.
 - `agent` — the normalized agent record.
-- `instructionsRootPath` and `instructionsEntryFile` — where the agent's instruction files live on the host, and the entry file's name. Your worker reads them through its own filesystem access; this call grants no extra file access.
+- `instructionsRootPath` and `instructionsEntryFile` — where the agent's instruction files live on the host, and the entry file's name. Your worker reads them through its own filesystem access; this call grants no extra file access. If the agent has no instructions folder, `instructionsRootPath` is `null` and `instructionsEntryContent` holds the default entry content.
 - `instanceSecrets` — your plugin's own [private credentials](#required-agent-lifecycle-work) for this agent. Never put these in UI data, logs, plugin state, or agent files.
 - `skills` — the agent's assigned skills as `PluginAgentRuntimeSkill` entries: `key`, `runtimeName`, `source`, and, where available, `versionId`, `currentVersionId`, `sourceStatus` (`"available"` or `"missing"`), and `missingDetail`.
 - `connectionAssignments` — a `PluginAgentConnectionAssignments` snapshot: `features` (whether `publicMcp` and `chatConnectors` are switched on), the assigned `connections` (each with `id`, `name`, `transport`, `enabled`, and `status`), and active `profileIds`. It covers company-wide assignments plus this agent's own, never another agent's, and contains no credentials, grant details, or tool schemas. A snapshot over 512 connections or 128 active profiles is refused rather than returned partially.
@@ -475,7 +475,7 @@ To opt in, declare:
 - `freshWorkspaceVersion: 1` in your `describe` result.
 - `workspaceProvider.freshWorkspaceVersion: 1` on the storage provider, if the project uses your storage.
 
-If the storage provider or the environment driver hasn't opted in, the retry fails with the "fresh attempt is unavailable" error above, and the existing workspace is kept. If your `describe` result doesn't report `freshWorkspaceVersion: 1`, the task call fails with "Plugin-provided fresh workspace preparation unavailable".
+If the storage provider or the environment driver hasn't opted in, the retry fails with the "fresh attempt is unavailable" error above, and the existing workspace is kept. If your `describe` result doesn't report `freshWorkspaceVersion: 1`, the task call fails with "Plugin-provided Runner execution operation unavailable; reconcile the same task before retrying".
 
 Paperclip then sends a `fresh` object (a `PluginFreshWorkspace`) on the workspace `prepare` operation and as `PluginEnvironmentTaskParams.fresh` on the launch-related task calls. It holds:
 
@@ -1044,7 +1044,7 @@ The SDK ships a first-class test harness so you do not have to spin up a real ho
 - `createTestHarness` — base harness for unit-testing a plugin against in-memory host stubs.
 - `createEnvironmentTestHarness` — harness for testing environment-driver plugins. Its driver options accept an `onStopLease` hook, and the harness exposes a matching `stopLease(params)` call so you can exercise stop-and-retain without a real provider.
 - `createFakeEnvironmentDriver` — synthesised driver implementation for assertions.
-- `createWorkspaceProviderHarness(handler)` — wraps your `onWorkspaceOperation` handler and runs the same input and result validation as the real worker boundary, so you can test a storage provider without allocating an execution environment. Call its `operation(params)` method.
+- `createWorkspaceProviderHarness(handler)` — wraps your `onWorkspaceOperation` handler and runs the same input and result validation as the real worker boundary, so you can test a storage provider without allocating an execution environment. Call its `operation(params)` method. Import it from `@paperclipai/plugin-sdk/testing`; the package root doesn't export it.
 - `filterEnvironmentEvents`, `assertEnvironmentEventOrder`, `assertLeaseLifecycle`, `assertWorkspaceRealizationLifecycle`, `assertExecutionLifecycle`, `assertEnvironmentError` — assertion helpers for the environment-driver flow.
 
 Types: `TestHarness`, `TestHarnessOptions`, `TestHarnessLogEntry`, `EnvironmentTestHarness`, `EnvironmentTestHarnessOptions`, `EnvironmentEventRecord`, `FakeEnvironmentDriverOptions`.
@@ -1059,7 +1059,7 @@ To test the interaction, approval, and attachment paths, seed them through `harn
 
 To exercise a lifecycle consumer, seed journal entries with `harness.seed({ lifecycleEvents: [...] })` (a `ResourceLifecycleEvent[]`). The harness's `ctx.events.listLifecycle` and `ctx.events.acknowledgeLifecycle` follow the same rules as the host: the `events.subscribe` capability check, the `1`–`100` limit, creation-first and one-event-per-resource delivery, and the error when you acknowledge out of order.
 
-To test [per-project credentials](#private-per-project-credentials), seed them with `harness.seed({ projectInstanceSecrets: [{ companyId, projectId, values }] })`. The harness's `ctx.projects.getInstanceSecrets` checks for the `projects.instance-secrets` capability and returns a copy of the seeded values (or an empty object).
+To test [per-project credentials](#private-per-project-credentials), seed them with `harness.seed({ projectInstanceSecrets: [{ companyId, projectId, values }] })`. The harness's `ctx.projects.getInstanceSecrets` applies the same scope as the host: it needs the `projects.instance-secrets` and `events.subscribe` capabilities, `"project"` in `resourceLifecycle`, and a seeded, unarchived project in that company. It then returns a copy of the seeded values (or an empty object).
 
 `ctx.agents.getRuntime` checks for the `agents.lifecycle.manage` capability in the harness but has no built-in data — it throws "Agent runtime state requires a host service fixture" — so stub it when your tests need runtime inputs.
 

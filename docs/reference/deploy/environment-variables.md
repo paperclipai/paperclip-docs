@@ -85,7 +85,7 @@ These variables matter most once you move beyond a default local install.
 | `PAPERCLIP_AGENT_JWT_TTL_SECONDS` | Agent JWT lifetime in seconds. |
 | `PAPERCLIP_AGENT_JWT_ISSUER` | Agent JWT issuer. |
 | `PAPERCLIP_AGENT_JWT_AUDIENCE` | Agent JWT audience. |
-| `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` | Signing secret for tool action approvals. Unlike `BETTER_AUTH_SECRET` it has no fallback — if it is unset, the server cannot issue signed tool action approvals and raises `ToolActionSigningSecretMissingError`. Set it in the instance's own environment; worktrees inherit it from `.paperclip/.env`. For local development the `.env.example` ships `paperclip-dev-tool-action-signing-secret-change-me`. Both shipped Docker Compose files pass it through to the container. |
+| `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` | Signing secret for tool action approvals. Unlike `BETTER_AUTH_SECRET` it has no fallback — if it is unset, the server cannot issue signed tool action approvals and raises `ToolActionSigningSecretMissingError`. Set it in the instance's own environment; worktrees inherit it from `.paperclip/.env`. For local development the `.env.example` ships `paperclip-dev-tool-action-signing-secret-change-me`. `docker-compose.quickstart.yml` and `docker-compose.yml` pass it through to the container. |
 
 Related deployment variables:
 
@@ -308,7 +308,7 @@ To turn it on, set `SENTRY_DSN_BACKEND` and install the optional `@sentry/node` 
 | `SENTRY_DSN` | unset | Legacy fallback for whichever of the two variables above is unset. It still works, but the server logs a startup warning whenever it fills in for either one. With no DSN for the server, no Sentry is loaded there. |
 | `PAPERCLIP_SENTRY_RUN_FAILURES` | `off` | Whether failed agent runs are also reported to Sentry. `off` sends none. `unexpected` sends failed, timed-out, and unexpectedly cancelled runs, leaving out known configuration, quota, and external-connection failures. `all` sends every one of those runs, known failures included. Missing or unrecognized values count as `off`. |
 
-> **Note:** Before this variable existed, a DSN on its own also reported failed runs. If you relied on that, set `PAPERCLIP_SENTRY_RUN_FAILURES=unexpected` to keep the same behaviour.
+> **Note:** Before this variable existed, a DSN on its own also reported failed runs. If you relied on that, set `PAPERCLIP_SENTRY_RUN_FAILURES=unexpected` to keep getting those reports.
 
 A native run that's waiting to retry inside the same run isn't reported. It's reported once, only if the retry ends in a real failure.
 

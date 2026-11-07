@@ -29,7 +29,7 @@ The settings take effect right away, with no restart. If you turn one off later,
 1. Start a new agent. In the **Meet your next agent** dialog, click **Invite an external agent**.
 2. Pick **Dot**, **Grok Bot**, or **Muse — Personal agent**. **Hermes** and **Other** use the regular invite flow described in [Bring your own agent](../how-to/bring-your-own-agent.md).
 
-A choice stays disabled until its experimental settings are on, and the dialog tells you which settings are missing. **Muse — Personal agent** only appears once Muse is enabled.
+A choice stays disabled until its experimental settings are on, and the dialog tells you which settings are missing. **Muse — Personal agent** only appears once both **Muse — Personal agent** and **Paperclip Runner** are on.
 
 If your company requires approval for new agents, setup pauses until an admin approves the hire. Your progress is saved and picks up again after approval.
 

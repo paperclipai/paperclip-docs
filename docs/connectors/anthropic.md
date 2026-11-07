@@ -6,7 +6,7 @@ seo_description: Give agents Claude model access with a subscription or an Anthr
 
 # Anthropic
 
-An Anthropic connection gives agents the credential they use to run Claude models. It is model access, not a set of tools — there are no actions to permit. Instead of an action list, the saved connection's **Permissions** tab holds its account controls, such as **Make default**.
+An Anthropic connection gives agents the credential they use to run Claude models. It is model access, not a set of tools — there are no actions to permit. Instead of an action list, the saved connection's **Permissions** tab holds its account controls, such as **Reconnect** and, on your own personal connection, **Make default**.
 
 Two ways to authenticate: a Claude subscription, or an Anthropic API key.
 

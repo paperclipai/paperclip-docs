@@ -57,7 +57,7 @@ There are twenty-one permission keys. Sixteen of them show up as defaults on one
 | `agents:suggest-changes` | Propose changes to an agent's setup for review, without applying them directly | — (explicit only) |
 | `skills:create` | Create and manage company skills | Owner, Admin, Operator |
 | `skills:suggest-changes` | Propose changes to a company skill for review, without applying them directly | — (explicit only) |
-| `environments:manage` | Create, edit, and remove the execution environments agents run in | Owner, Admin, Operator |
+| `environments:manage` | Reserved for managing execution environments. Roles carry it, but the environment routes don't check it yet: creating and editing environments needs instance admin access. | Owner, Admin, Operator |
 | `tools:admin` | Set up the tool plumbing a company shares — the stdio command templates behind tool apps, and the MCP gateways agents connect through (including minting and revoking gateway tokens) | Owner, Admin, Operator |
 | `tools:manage_connections` | Choose which agents and projects a tool connection is installed on | Owner, Admin, Operator |
 | `tools:manage_profiles` | Reserved for tool profile management. It is grantable today but nothing checks it yet — see the note below | Operator |
@@ -78,14 +78,14 @@ There are twenty-one permission keys. Sixteen of them show up as defaults on one
 
 Two of the keys come in matched pairs — a *direct* key that applies a change immediately, and a *suggest* key that only proposes one for review:
 
-- **`agents:configure`** lets a member change an existing agent directly. **`agents:suggest-changes`** is the softer counterpart: a member who holds it (but not `agents:configure`) can *propose* a change to an agent's instructions or config, which then goes through review before it takes effect. This is what powers coaching flows like the built-in [Reflection Coach](../reference/api/built-in-agents.md#the-reflection-coach) — it can suggest an improvement to an agent's `AGENTS.md` without hot-swapping it.
-- **`skills:create`** lets a member author and edit company skills directly. **`skills:suggest-changes`** lets a member propose an edit to a company skill for review instead of writing it straight in.
+- **`agents:configure`** lets a member change an existing agent directly. **`agents:suggest-changes`** is the softer counterpart: an agent that holds it (but not `agents:configure`) can *propose* a change to another agent's instructions or profile, which takes effect only once the change is accepted. This is what powers coaching flows like the built-in [Reflection Coach](../reference/api/built-in-agents.md#the-reflection-coach) — it can suggest an improvement to an agent's `AGENTS.md` without hot-swapping it.
+- **`skills:create`** lets a member author and edit company skills directly. **`skills:suggest-changes`** is meant for proposing a skill edit for review, but neither key decides on its own: the [company skill policy](../reference/api/company-skill-policy.md) governs who can edit company skills.
 
 ### About the explicit-only keys
 
 Five keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
 
-- **`agents:suggest-changes`** and **`skills:suggest-changes`** — the review-gated proposal keys described just above. Grant them to a member (or agent) you want proposing improvements without direct write access.
+- **`agents:suggest-changes`** and **`skills:suggest-changes`** — the review-gated proposal keys described just above. Grant them to an agent you want proposing improvements without direct write access.
 - **`tasks:assign_scope`** is how you let someone delegate *within their lane* without giving them company-wide assignment power. When a member has `tasks:assign_scope` but not `tasks:assign`, Paperclip evaluates the grant against the scope attached to it and allows the assignment only if the target falls inside that scope. Set the scope in the grant payload (via the member editor's grant, or `member role-and-grants` on the CLI).
 - **`tasks:manage_active_checkouts`** is an escape hatch. Normally an issue that an agent has checked out is off-limits to others until it's released; this grant lets the holder reassign or clear that active checkout — handy when an agent has stalled mid-task.
 - **`inbox:manage`** governs *cross-user* inbox access. It matters most for agents: an agent may act on the inbox of the user it is responsible for without holding this key at all, but the moment it needs to touch someone else's inbox, Paperclip looks for an `inbox:manage` grant — and then checks that the grant's scope actually covers the user being acted on. Grant it, scoped, to an agent you want triaging inboxes beyond its own responsible user.

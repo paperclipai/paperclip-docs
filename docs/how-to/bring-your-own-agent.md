@@ -40,7 +40,7 @@ If your external runtime is Hermes Agent, the Hermes-specific walkthrough is [He
 
 Start a new agent (the **Meet your next agent** dialog you use for local and managed agents), then:
 
-1. Click **Invite an external agent**. The dialog shows a grid of agent types: **Dot**, **Grok Bot**, **Hermes**, and **Other** (plus **Muse — Personal agent** when that experiment is on).
+1. Click **Invite an external agent**. The dialog shows a grid of agent types: **Dot**, **Grok Bot**, **Hermes**, and **Other** (plus **Muse — Personal agent** when that experiment and Paperclip Runner are on).
 2. Pick **Other** for OpenClaw or a custom agent, or **Hermes** for a Hermes agent. Paperclip generates the onboarding prompt straight away.
 3. Click **Copy invitation prompt**. **Back** returns you to the agent types if you change your mind.
 
