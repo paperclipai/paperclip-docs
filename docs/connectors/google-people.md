@@ -37,9 +37,9 @@ Two distinct sources of people, and it is worth knowing which one an answer came
 
 | Source | What it covers | Operation |
 | --- | --- | --- |
-| Your contacts | The personal contact list on the authorizing account | `search-contacts` |
-| The organization directory | Workspace colleagues, subject to your administrator's directory settings | `search-directory-people` |
-| Your own profile | The authorizing account's own profile | `get-user-profile` |
+| Your contacts | The personal contact list on the authorizing account | `search_contacts` |
+| The organization directory | Workspace colleagues, subject to your administrator's directory settings | `search_directory_people` |
+| Your own profile | The authorizing account's own profile | `get_user_profile` |
 
 Directory reach is Google's decision, not Paperclip's. A Workspace administrator can limit or disable directory sharing, in which case directory searches return little or nothing even though authorization succeeded.
 
