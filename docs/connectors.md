@@ -12,7 +12,7 @@ A **connector** is a saved connection to an outside service: a Gmail mailbox, a 
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** New Google accounts connect through the single [Google Workspace](connectors/google-workspace.md) connector, where you choose Gmail, Drive, and Calendar access in one setup. The nine single-service Google connectors are no longer listed for new setup. Each one still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running with their access and permissions.
+> **Note:** New Google accounts connect through the single [Google Workspace](connectors/google-workspace.md) connector, where you choose Gmail, Drive, and Calendar access in one setup. The nine single-service Google connectors are no longer listed for new setup. Each one still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running with their access and permissions. An agent that needs one of those services can still ask you for it with a connection card on its task.
 
 ## Start here
 
@@ -204,6 +204,7 @@ These hold the credential Paperclip uses to run models. They publish no actions 
 | [Anthropic](connectors/anthropic.md) | Run Claude models. A subscription signs in with your Claude plan; an API key can be scoped and rotated separately. | Claude subscription · API key |
 | [OpenAI](connectors/openai.md) | Run OpenAI models. | OpenAI subscription · API key |
 | [OpenRouter](connectors/openrouter.md) | Run models from many vendors through one credential and one bill. | API key |
+| [GitHub Copilot](connectors/github-copilot.md) | Run agents on your Copilot plan through Paperclip Runner. Model access only; set it up with **Connect Copilot** on the **GitHub** row. | Personal access token |
 | [Grok](connectors/xai.md) | Run xAI's Grok models. | Grok subscription · API key |
 | [Custom model providers](connectors/custom-model-providers.md) | Use a compatible custom or local endpoint through a supported agent harness. Compatibility depends on the API route. | API key · Endpoint URL |
 

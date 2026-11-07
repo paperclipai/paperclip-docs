@@ -8,7 +8,7 @@ seo_description: Keep a long-running piece of work on one task while agents pass
 
 Some work outlives a single agent's turn. A software change gets triaged, built, verified, sent back for fixes, and verified again. A blog post gets researched, drafted, and edited. If you create a new task for every step, the goal, the discussion, the workspace, and the review rules end up scattered across a handful of tickets.
 
-A **case** keeps that work together. It holds the durable facts — a type, a title, a summary, structured fields, and links to related tasks — while one **primary task** moves from agent to agent. Each move is a **handoff**: the current agent saves its work, names the next agent and phase, writes instructions, and steps aside. The next agent picks up the *same* task, with the same thread and workspace.
+A **case** keeps that work together. It holds the durable facts — a type, a title, an optional key (such as `<release>/<slug>`), a summary, structured fields, labels, attachments, and links to related tasks — while one **primary task** moves from agent to agent. Each move is a **handoff**: the current agent saves its work, names the next agent and phase, writes instructions, and steps aside. The next agent picks up the *same* task, with the same thread and workspace. Cases can also have a parent case and children, so a campaign can hold its individual posts.
 
 You follow all of this from the **Cases** pages. Agents do the writing; the pages are there for you to read.
 
@@ -31,6 +31,8 @@ You start a case workflow by asking an agent to create one — for example, by t
 - **Optional starting documents** — a brief, a spec, anything the first agent needs.
 
 Paperclip saves the workflow text as the task's **Workflow** document, so every agent that picks up the task reads the same instructions. You can revise it later like any other task document.
+
+The Paperclip skill's `references/cases.md` explains the API your agents use.
 
 > **The workflow is guidance, not a rulebook.** Paperclip stores the workflow and the phase names, but it doesn't execute the diagram or enforce the transitions. Your existing controls still decide what happens: reviews, approvals, budgets, private-task boundaries, and normal task completion all apply exactly as they do on any other task. A phase called `review` is just a label — it isn't a review verdict.
 
@@ -81,7 +83,7 @@ The list shows 50 cases at a time. Use **Previous** and **Next** to page through
 
 ## Reading a case
 
-Click a case to open it. The header shows its identifier (such as `PAP-C12`), type, status, title, summary, and labels. Below that:
+Click a case to open it. The header shows its identifier (such as `PAP-C12`) and key, type, status, title, summary, and labels. Below that:
 
 - **Work** — the primary **Task**, the **Workflow** it follows (the saved workflow's name, or **Case instructions** when the case uses its own), the current **Phase**, the **Agent** who holds it, and the **Task status**. While a handoff is in flight you'll see what's next and why it's waiting: *Waiting for … to finish.* while the previous agent wraps up (with *Next: …* naming the workflow and phase that come next), *Waiting for … to start.* once the next agent has been woken, or a note if the next agent is paused. A "done" handoff reads *Case will close when the task is complete.*
 - **Details** — the case's structured fields in a compact table.
@@ -106,7 +108,7 @@ A case never widens access. Paperclip keeps the case inside the permissions of t
 - The Cases pages are read-only. You can't create or edit cases there. Agents make those changes, or you can use the [Cases API](../reference/api/cases.md).
 - Reusable workflows can only be created and edited by agents or through the API — there's no screen for them yet, and no way to delete one.
 - Phase names and the workflow diagram are advisory. Don't rely on them to enforce review or approval — use the real review and approval controls.
-- A handoff accepted by Paperclip means the next agent has been queued to wake. It doesn't mean that agent has run yet.
+- A handoff accepted by Paperclip is only a recorded intent, and a delivered one means the next agent has been queued to wake. Neither means that agent has run yet.
 
 ## Where to go next
 

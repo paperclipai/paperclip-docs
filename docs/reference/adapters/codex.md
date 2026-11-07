@@ -78,6 +78,8 @@ You stay in control when you say otherwise. Paperclip skips the bypass — keepi
 - Your `extraArgs` set an `approval_policy=` override, or switch network access off with `sandbox_workspace_write.network_access=false`.
 - The execution target denies network access.
 
+This bypass applies to the classic Codex CLI lane (`engine: "cli"`). The ACP engine keeps Codex in its writable workspace sandbox, with network access switched on for each turn.
+
 > **Heads-up:** Earlier versions kept Codex in the workspace sandbox unless you opted in to the bypass. If you relied on that, set `dangerouslyBypassApprovalsAndSandbox` to `false` explicitly.
 
 ---

@@ -120,7 +120,7 @@ Pi also needs its pinned runtime installed on the execution host before it can r
 | **Claude Managed** (`claude_managed`) | A company-qualified managed-agent profile, retention acknowledgement, and session spend ceiling. |
 | **AWS AgentCore** (`aws_agentcore`) | A company-qualified remote-agent profile, retention acknowledgement, and estimated session spend ceiling. |
 
-Copilot needs a specific model from your account's model list. If the model is empty, `auto`, or `default`, saving fails with *"Select an available Copilot model before saving."* Selecting an arbitrary executable does not create a qualified profile. Historical ACP Codex settings normalize to the native Codex provider when saved.
+Copilot needs a specific model from your account's model list. If the model is empty, `auto`, or `default`, saving fails with *"Select an available Copilot model before saving."* The **Harness** list also offers **Grok Build** directly, which saves the same `acpx` provider with `acpxAgent: "grok"`. Selecting an arbitrary executable does not create a qualified profile. Historical ACP Codex settings normalize to the native Codex provider when saved.
 
 Managed providers need operator-prepared profiles; they are not configured by pasting a general model API key into the provider selector. See [Managed and remote agent profiles](../api/agents.md#managed-and-remote-agent-profiles).
 
@@ -128,7 +128,7 @@ Managed providers need operator-prepared profiles; they are not configured by pa
 
 1. Create or edit the agent and choose **Paperclip Runner**.
 2. Select **Harness**. For **ACP agents**, select the **ACP agent** too.
-3. Select a model. When you edit a saved agent, choose a compatible **Connection** for Codex, OpenCode, Claude, Grok, or GitHub Copilot; Cursor uses its secret-backed credential environment instead.
+3. Select a model. When you edit a saved agent, choose a compatible **Connection** for Codex, OpenCode, Claude, Grok, Pi, or GitHub Copilot; Cursor uses its secret-backed credential environment instead.
 4. Choose the execution environment and review permissions.
 5. Save and use **Test Environment** before assigning work.
 
@@ -166,7 +166,7 @@ In a plugin environment, the plugin chooses the working directory, not Paperclip
 
 For Claude, the Runner loads three task tools up front — `set_task_title`, `paperclip_finish`, and `paperclip_block` — so Claude doesn't have to search for them before it can name or finish a simple task. Its other Paperclip tools load on demand, with the same access checks.
 
-Runner agents can also manage their own task workspace. `get_workspace` shows the current folder, any pending selection, and what the agent can prepare. `list_workspaces` lists the existing folders it may use, and `list_project_repositories` lists its repository choices. `select_workspace` and `prepare_repository` only request a change: Paperclip validates and prepares it, and a different workspace applies at the task's next normal start rather than interrupting the current run. Grok Bot agents don't get these tools.
+Runner agents can also manage their own task workspace. `get_workspace` shows the current folder, any pending selection, and what the agent can prepare. `list_workspaces` lists the existing folders it may use, and `list_project_repositories` lists its repository choices. `select_workspace` and `prepare_repository` only request a change: Paperclip validates and prepares it, and a different workspace applies at the task's next normal start rather than interrupting the current run. Grok Bot and Muse agents don't get `get_workspace`, `list_workspaces`, `select_workspace`, or `prepare_repository`.
 
 When an assigned tool returns more than about 500 KB, the Runner saves the full result and hands the agent a reference instead. The agent reads it in pages with `read_tool_result`, passing `artifactId` and then each `responseText.nextOffsetBytes` until it's `null`, so the original action never has to run twice.
 
@@ -174,7 +174,7 @@ Standard, planning, and ask tasks are supported. Cursor additionally has `acpxSe
 
 ### Pi on Paperclip Runner
 
-A new Pi agent lands here automatically on a supported machine. You can also pick it yourself: choose **ACP agents**, then **Pi**. Pi accepts any `provider/model` ID, so type the exact model you want. A **Pi thinking level** field appears with `off`, `low` (the default), `high`, and `max`; it's saved as `piThinkingLevel`. The Runner checks that exact level before each session can prompt, and changing it starts a new session. To install the pinned Pi runtime on a host, use [`paperclipai runtime setup pi`](../cli/runtime.md#set-up-pi). You can connect an OpenRouter, OpenAI, Anthropic, or Google API-key account. The model ID should start with that account's provider, for example `openrouter/…` for an OpenRouter account. For custom Pi providers, set `PAPERCLIP_PI_PROVIDERS` as described on the [Pi adapter page](pi.md#custom-providers--gateway-routing). Don't combine it with a Paperclip-managed account: that fails with *"The configured provider routing is incompatible with this AI connection"*.
+A new Pi agent lands here automatically on a supported machine. You can also pick it yourself: choose **ACP agents**, then **Pi**. Pi accepts any `provider/model` ID, so type the exact model you want. A **Pi thinking level** field appears with `off`, `low` (the default), `high`, and `max`; it's saved as `piThinkingLevel`. The Runner checks that exact level before each session can prompt, and changing it starts a new session. To install the pinned Pi runtime on a host, use [`paperclipai runtime setup pi`](../cli/runtime.md#set-up-pi). You can connect an OpenRouter, OpenAI, Anthropic, or Google API-key account. The model ID should start with that account's provider, for example `openrouter/…` for an OpenRouter account. Pi can also read a key from the secrets bound to the agent's execution environment, such as `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY`. For custom Pi providers, set `PAPERCLIP_PI_PROVIDERS` as described on the [Pi adapter page](pi.md#custom-providers--gateway-routing). Don't combine it with a Paperclip-managed account: that fails with *"The configured provider routing is incompatible with this AI connection"*.
 
 ### Keep working in your own provider home
 
@@ -244,7 +244,7 @@ Three more Runner providers connect an assistant that runs outside Paperclip, ra
 | Provider | Setting | Also needs | Notes |
 | --- | --- | --- | --- |
 | **Grok Bot** (`grok_bot`) | `enableGrokBot` | **Assistant connections (MCP)** and **Paperclip Runner** | An existing Grok Bot joins as an agent. It isn't the [Grok Build](grok-local.md#grok-build-on-paperclip-runner) coding runtime. Usage isn't reported. |
-| **OpenAI Dot** (`openai_dot`) | `enableOpenAiDot` | **Assistant connections (MCP)** | A standalone agent choice that wakes your existing Dot. It doesn't need the general **Paperclip Runner** setting and doesn't turn on other Runner providers. |
+| **OpenAI Dot** (`openai_dot`) | `enableOpenAiDot` | **Assistant connections (MCP)** | A standalone agent choice that wakes your existing Dot. It doesn't need the general **Paperclip Runner** setting and doesn't turn on other Runner providers. Pair your Dot and verify event delivery before assigning work. Dot doesn't report token usage or cost, so Paperclip can't enforce a provider spend ceiling, though known company and agent budget limits still apply. |
 | **Muse — Personal agent** (`muse`) | `enableMuse` | **Paperclip Runner** | Your personal Meta Muse. Muse runs report no usage or cost, so Paperclip can't enforce a spend ceiling for Muse, though known company and agent budget limits still apply. The Costs page says *"Paperclip cannot enforce a Muse spend ceiling."* |
 
 All three need an authenticated instance with a public HTTPS URL. Trying to save one while its switch is off fails with `paperclip_runner_grok_disabled`, `paperclip_runner_dot_disabled`, or `paperclip_runner_muse_disabled`. Their permission policy belongs to the provider, so there's no Runner permission mode to pick. Live steering, provider transcripts, and stopping remote work are unavailable or best effort. Stopping the Paperclip work revokes the session's Paperclip access, but the assistant may keep going on its own side.

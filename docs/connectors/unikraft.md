@@ -18,7 +18,7 @@ Agents can manage resources in your own Unikraft Cloud organization — creating
 
 There is no browser sign-in; the token is the only way in. A token acts for its whole organization in every metro, and Unikraft does not offer narrower token permissions. That makes your choice of agents and your action permissions the real boundary, so plan those before you connect.
 
-## Connect Unikraft
+## Add your Unikraft key
 
 1. Open **Connectors** and select **Unikraft**. The card says **Add key**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to narrow the agents or to reach the advanced setting below.

@@ -73,7 +73,7 @@ Use this when you want tight control over the container lifecycle or are embeddi
 
 ### Custom images
 
-The shipped image starts with `node server/dist-runtime/index.mjs`, a precompiled bundle that loads faster than compiling at boot. If your custom image runs `server/dist/index.js` through tsx, switch to the bundle. When you build from source, `pnpm --filter @paperclipai/server build:runtime` produces it.
+The shipped image starts with `node server/dist-runtime/index.mjs`, a precompiled bundle that loads faster than compiling at boot. If your custom image runs `server/dist/index.js` through tsx, switch to the bundle. When you build from source, run `pnpm --filter @paperclipai/server build` first, then `pnpm --filter @paperclipai/server build:runtime` to produce it.
 
 ---
 

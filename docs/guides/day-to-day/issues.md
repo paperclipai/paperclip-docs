@@ -78,7 +78,7 @@ Implementation reference: [Tasks page and live updates](https://github.com/paper
 
 2. **Choose a project.**
 
-   Click **Project** above the text box. Search for a project, choose a recent one, or select **No project**. The project sets where the task belongs; the model picker below controls how the agent answers.
+   Click **Project** above the text box. Search for a project, choose a recent one, or select **No project**. The project sets where the task belongs; the model picker below controls how the agent answers. Paperclip remembers the last project you picked in this company and starts the next new task there.
 
 3. **Pick a work mode.**
 
@@ -210,7 +210,7 @@ Automatic work stays out of Mine by default. That covers tasks that come in from
 
 - the task is assigned to you;
 - you comment on it directly in Paperclip, or change it yourself;
-- an agent has an open question or request addressed to you on it. Once you answer it, the task needs another of these reasons to stay.
+- an agent has an open question or request addressed to you on it. Answering or accepting it counts as taking part, so the task stays.
 
 The same rules decide your unread counts, the Inbox badge, and task notifications.
 
@@ -596,7 +596,7 @@ Implementation reference: [privacy actions](https://github.com/paperclipai/paper
 
 ## Live task notifications
 
-When something changes on a task while you're looking at another page, a notification can pop up in the corner. In a company with several people, you only get these for tasks you're part of: tasks you created, commented on, are assigned to, or were @-mentioned in. Just viewing a task, or being its responsible user, doesn't count. Activity on other people's work still updates your lists, but quietly.
+When something changes on a task while you're looking at another page, a notification can pop up in the corner. You only get these for tasks you're part of: tasks you created, commented on, are assigned to, or were @-mentioned in. Just viewing a task, or being its responsible user, doesn't count. Activity on other people's work still updates your lists, but quietly.
 
 Each notification shows who made the change, with their name and avatar, whether it was a person or an agent. You don't get notifications for your own actions.
 
@@ -664,7 +664,7 @@ An empty composer shows **Stop** while the task is running and you can manage ta
 
 While paused, the composer says **Task is paused.** or **Subtree is paused.**, preserves your draft, and offers **Resume task** or **Resume subtree**. Resume releases the hold; waking agents is optional. If an interrupted run has uncertain outcomes, a resume that also tries to wake it is refused and the pause remains. Inspect the stopped run and follow its recovery instructions before continuing. See [Stop, pause, and resume](../../experimental/task-chat.md#stop-pause-and-resume) for the complete flow.
 
-If a run stops for a reason Paperclip can repair itself, the task shows one short status line instead of a stack of warnings: *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* once it has stopped retrying. **Retry** asks Paperclip to try the task again with your saved messages. If the provider rejected the selected model, choose a supported model or clear the task override, then retry. A provider sign-in request needs your authentication step before the run can continue. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention).
+If a run stops for a reason Paperclip can repair itself, the task shows one short status line instead of a stack of warnings: *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* once it has stopped retrying. **Retry** asks Paperclip to try the task again with your saved messages. If the provider rejected the selected model, the task reads **Model unavailable**: choose a supported model or clear the task override, then retry. A provider sign-in request needs your authentication step before the run can continue. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention).
 
 ## Recovery actions
 

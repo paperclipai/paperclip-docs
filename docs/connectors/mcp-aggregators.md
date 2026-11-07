@@ -48,7 +48,7 @@ Two provider-specific notes from the setup screen: for Arcade headers, use an AP
 
 ### If sign-in does not finish
 
-Closing the provider window or declining consent does not lose your work. Paperclip shows that the connection could not connect, keeps your saved setup, and offers **Try again**. If you need to stop partway, you can leave and pick it up later — the connection shows **Resume setup** with your access choices intact.
+Cancelling the sign-in or declining consent does not lose your work. Paperclip shows *"Connection cancelled. Your setup details are preserved; try again when you are ready."* and the button becomes **Try again**. If sign-in fails instead, Paperclip says the connection couldn't connect, keeps your saved setup, and offers **Try again** too. If you need to stop partway, you can leave and pick it up later — the connection shows **Resume setup** with your access choices intact.
 
 ## When an agent asks for an app
 

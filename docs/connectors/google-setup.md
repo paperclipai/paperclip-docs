@@ -8,7 +8,7 @@ seo_description: One reusable procedure for connecting any Google Workspace conn
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** New Google accounts connect through the single [Google Workspace](google-workspace.md) connector. The nine single-service Google connectors are no longer listed for new setup; each still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running unchanged.
+> **Note:** New Google accounts connect through the single [Google Workspace](google-workspace.md) connector. The nine single-service Google connectors are no longer listed for new setup; each still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running unchanged. An agent that needs one of those services can still ask you for it with a connection card on its task.
 
 Connecting Google with **your own** OAuth client follows the shared steps below, and this page is that procedure. It covers the [Google Workspace](google-workspace.md) connector, which is what you set up for a new Google account, and the nine single-service connectors (Gmail, Calendar, Chat, Docs, Drive, People, Sheets, Slides, and Workspace Search) that existing connections use.
 

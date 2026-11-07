@@ -150,7 +150,7 @@ You'll find it through **Import from GitHub** and **Manage sources** in the Skil
 
 1. On the **Skill sources** page, click **Import from GitHub**.
 2. Pick a repository from the list. It combines repositories from every GitHub connection you can use in **Apps**, so you don't have to remember which account owns what. Private repositories show a lock icon.
-   - Haven't connected GitHub yet? Click **Connect GitHub to see your repos**. **Add repos** does the same when you need a repository that isn't listed. Either one takes you through the normal setup in Apps and then brings you straight back to the importer with your draft intact.
+   - Haven't connected GitHub yet? Click **Connect GitHub to see your repos**. **Add repos** does the same when you need a repository that isn't listed. Either one takes you through the normal setup in Connectors and then brings you straight back to the importer with your draft intact.
    - Want a public repository you haven't connected? Click **... or add public repo by URL** and paste it into **Repository URL**. A plain repository URL follows the default branch; paste a branch URL such as `https://github.com/owner/repository/tree/my-branch` to follow a different branch.
 3. Click **Find skills**. Paperclip scans the whole repository — hidden and nested folders included — and shows its progress as it goes. You can **Cancel scan** at any point; nothing is imported until you say so.
 4. Review what it found. Every skill starts out checked, with the folders that hold them already expanded. Untick any skill you don't want in your library. **Search skills or files…** narrows a long list.
@@ -177,7 +177,7 @@ The row's **⋯** menu has the rest:
 - **Choose connection** and **Choose a new branch** — see [Change the branch or connection](#change-the-branch-or-connection) below.
 - **Disconnect source** removes the repository from Sources — see [Remove a source](#remove-a-source).
 
-The **⋯** button at the top of the page, next to **Import from GitHub**, holds **Manage GitHub connection**, which takes you to your GitHub connection in Apps.
+The **⋯** button at the top of the page, next to **Import from GitHub**, holds **Manage GitHub connection**, which takes you to **Connectors**.
 
 An update keeps each skill's identity, folder, assignments, and history, and creates a new version only when the files actually changed. Agents already mid-run, and agents pinned to a specific version, keep what they had; the next run picks up the new version. If an update fails, your agents keep the last good version, and the row shows the error with when it last tried and a **Review source** link. When the fix is a different connection or branch, a **Choose connection** or **Choose a new branch** button appears right under the error. A skill that was deleted upstream stays installed and is marked **Removed from source · installed copy kept**.
 

@@ -22,7 +22,7 @@ One connection links one Speko voice persona to one Paperclip agent.
 
 1. In Speko, open your agents (**Open Speko agents** links there). Create a dedicated agent for Paperclip and choose its voice. Keep only Speko's default tools; Paperclip adds its own task tools to the persona.
 2. Copy the agent's ID and create a Speko API key.
-3. In Paperclip, open **Connectors**, select **Speko**, then **Talk with an agent**.
+3. In Paperclip, open **Connectors**, find **Speko**, and select **Connect**.
 4. Choose the Paperclip agent this voice will speak for. It stays fixed for the connection.
 5. Paste the **Speko agent ID** and **Speko API key**, then click **Connect Speko**. Paperclip saves both, plus a generated callback signing secret, in the company vault.
 6. On **Test your Speko voice connection**, start a conversation. Ask the agent to do some work, add a spoken follow-up, and listen for its result. Then click **Verify test conversation**.
@@ -55,7 +55,7 @@ Click **Save incoming call setting**.
 
 ### Approve a caller for an existing task
 
-A caller who wants to discuss an existing task needs your approval first. When a call is waiting, **Review phone intake** shows it. Enter the six-digit code spoken on the call, choose the **Conversation task**, and click **Approve live call**. Only approve the call you're on: approval gives that call your access to the selected task. Click **Deny call** to refuse it.
+A caller who wants to discuss an existing task needs your approval first. When a call is waiting, an approval card appears on the connection's **Settings** tab, with a **Review phone intake** link when the call has an intake task. Enter the six-digit code spoken on the call, choose the **Conversation task**, and click **Approve live call**. Only approve the call you're on: approval gives that call your access to the selected task. Click **Deny call** to refuse it.
 
 ## Access and history
 

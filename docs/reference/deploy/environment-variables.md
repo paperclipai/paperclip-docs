@@ -306,7 +306,7 @@ To turn it on, set `SENTRY_DSN_BACKEND` and install the optional `@sentry/node` 
 | `SENTRY_DSN_BACKEND` | unset | Sentry DSN for the server. Setting it, with `@sentry/node` installed, enables server-side error capture. An empty value counts as unset. |
 | `SENTRY_DSN_FRONTEND` | unset | Sentry DSN handed to the browser for client-side reporting. An empty value counts as unset. |
 | `SENTRY_DSN` | unset | Legacy fallback for whichever of the two variables above is unset. It still works, but the server logs a startup warning whenever it fills in for either one. With no DSN for the server, no Sentry is loaded there. |
-| `PAPERCLIP_SENTRY_RUN_FAILURES` | `off` | Whether failed agent runs are also reported to Sentry. `off` sends none. `unexpected` sends failed and timed-out runs, leaving out known configuration, quota, and external-connection failures. `all` sends every failed or timed-out run. Missing or unrecognized values count as `off`. |
+| `PAPERCLIP_SENTRY_RUN_FAILURES` | `off` | Whether failed agent runs are also reported to Sentry. `off` sends none. `unexpected` sends failed, timed-out, and unexpectedly cancelled runs, leaving out known configuration, quota, and external-connection failures. `all` sends every one of those runs, known failures included. Missing or unrecognized values count as `off`. |
 
 > **Note:** Before this variable existed, a DSN on its own also reported failed runs. If you relied on that, set `PAPERCLIP_SENTRY_RUN_FAILURES=unexpected` to keep the same behaviour.
 

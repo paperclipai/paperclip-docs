@@ -30,10 +30,10 @@ Running a self-hosted Braintrust? Use [Custom MCP servers](custom-mcp-servers.md
 
    | Method | Region | How you sign in |
    | --- | --- | --- |
-   | `mcp-oauth` | US | Browser sign-in (the default) |
-   | `mcp-api-key` | US | API key |
-   | `mcp-eu-oauth` | EU | Browser sign-in |
-   | `mcp-eu-api-key` | EU | API key |
+   | **Sign in with Braintrust (US)** | US | Browser sign-in (the default) |
+   | **Use a Braintrust API key (US)** | US | API key |
+   | **Sign in with Braintrust (EU)** | EU | Browser sign-in |
+   | **Use a Braintrust API key (EU)** | EU | API key |
 
 4. Before you sign in, Paperclip shows a summary of what the connection can do, including the costs, permanent deletes, and automation risks covered below. Read it.
 5. Complete browser sign-in, or paste your API key. For browser sign-in, Paperclip registers its client with Braintrust automatically, so there is nothing to set up in a developer console.

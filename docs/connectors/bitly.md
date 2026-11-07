@@ -8,7 +8,7 @@ seo_description: Let agents read Bitly links, QR codes, and click analytics, whi
 
 Agents can work with your Bitly account — looking up short links and QR codes, reading click analytics, and, where you allow it, creating and managing links.
 
-Bitly is back in the catalog on every instance; no experimental setting is needed.
+Bitly appears in the catalog on every instance; no experimental setting is needed.
 
 > **Warning:** Bitly's tool list includes permanent short-link deletion, Bitly Sites publishing and deletion, and custom-domain changes. A deleted short link stops redirecting everyone who has it. Keep write and destructive actions **Off** until you need one.
 

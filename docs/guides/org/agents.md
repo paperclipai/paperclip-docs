@@ -102,7 +102,7 @@ Paperclip saves the agent as soon as you submit its name, so your setup has a pl
 
 ### Step 2: Adapter
 
-The dialog switches to **Choose an adapter** and asks how your agent should work. Pick one of the adapter cards — this decides which AI runtime powers the agent (Claude Code, Codex, OpenCode, a remote gateway, and so on). If you pick Paperclip Runner, a **Runner** dropdown appears so you can choose which runtime it drives.
+The dialog switches to **Choose an adapter** and asks how your agent should work. Pick one of the adapter cards — this decides which AI runtime powers the agent (Claude Code, Codex, OpenCode, a remote gateway, and so on). Paperclip Runner isn't a card of its own: the Claude, Codex, OpenCode and Pi cards start on the Runner on supported hosts. When the **Paperclip Runner** experimental setting is on, **Advanced** adds an **Experimental harness** picker with Grok Build and OpenCode on the Runner.
 
 Click **Configure agent** to move on, or **Back** to change the name.
 
@@ -193,7 +193,7 @@ The actions in the header work on every page:
 - **Set as my primary** — a small link under the agent's name that makes this agent your personal default. See [Your primary agent](#your-primary-agent).
 - **Assign Task** — opens the new-task dialog with this agent pre-selected as assignee
 - **Run now** — wakes the agent for a heartbeat right away and takes you to the new run (useful for testing instruction changes)
-- **Raw tracing on** — a small label at the start of the header actions (on wider screens) when the agent is recording the exact traffic to its model provider. There's no separate trace button. To capture traces, turn on **Capture raw provider traces** in the **Debugging** card on the agent's [Harness / Runtime](#harness-runtime) page and save. Tracing then applies to every future run until you switch it off, and each trace is deleted after 24 hours.
+- **Raw tracing on** — a small label at the start of the header actions (on wider screens) when the agent is recording the exact traffic to its model provider. There's no trace button in the header, though instance administrators get **Re-run with provider trace** on a finished run's page. To capture traces on every run, turn on **Capture raw provider traces** in the **Debugging** card on the agent's [Harness / Runtime](#harness-runtime) page and save. Tracing then applies to every future run until you switch it off, and each trace is deleted after 24 hours.
 - **Pause / Resume** — toggles the agent between `paused` and `active`. An agent whose setup isn't finished shows **Finish setup** instead of **Resume**.
 - **Clear error** — appears when the agent is in `error`, and returns it to idle
 - **More actions (`⋯`)** — Duplicate Agent, Copy Agent ID, Reset Sessions, Terminate

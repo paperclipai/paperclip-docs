@@ -67,7 +67,7 @@ The tables follow the page's own sections and order. Where a feature has a page 
 | Beta skills | Lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill without removing saved pins. |
 | [Built-in Agents](../reference/api/built-in-agents.md) | Paperclip-managed built-in agent surfaces: roster badges and setup controls. |
 | [Cases](cases.md) | Durable work products that tasks create and iterate on, with one primary task that agents hand off phase by phase. Adds the **Cases** tab and the agent case API ([API reference](../reference/api/cases.md)). |
-| [Chat connectors](../connectors.md#chat-channels-experimental) | Connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations. Existing chat connections keep running when it's off. |
+| [Chat connectors](../connectors.md#chat-channels-experimental) | Connect agents to Slack, Discord, Microsoft Teams, and Telegram conversations. Existing chat connections keep running when it's off. |
 | [Combined Inbox + Task List](task-chat.md#an-optional-combined-task-list) | Reach inbox and task views from one **Tasks** navigation entry. |
 | [Decisions](../guides/day-to-day/decisions.md) | Shows the **Decisions** item in the main sidebar, where the tasks awaiting your input collect. |
 | [Enable Environments](environments.md) | Environment management in settings, plus project and agent environment assignment — including custom sandbox images. |
