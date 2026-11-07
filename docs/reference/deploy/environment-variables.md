@@ -20,6 +20,12 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `HOST` | `127.0.0.1` | Server host binding |
 | `DATABASE_URL` | embedded PostgreSQL | PostgreSQL connection string |
 | `DATABASE_MIGRATION_URL` | falls back to `DATABASE_URL` | Optional PostgreSQL URL used only when running migrations — useful when your runtime user lacks DDL rights and a separate role applies schema changes. |
+| `DATABASE_PREPARED_STATEMENTS` | unset | Controls prepared statements on Paperclip's database connections. `false` turns them off, which you need behind a transaction-mode pooler that doesn't support named statements. Unset keeps the normal behavior. See [Database → Hosted PostgreSQL](database.md#hosted-postgresql). |
+| `DATABASE_POOL_MAX` | `10` | Most connections the server's database pool opens at once. See [Database → Connection pool settings](database.md#connection-pool-settings) for how to size PostgreSQL's `max_connections`. |
+| `DATABASE_IDLE_TIMEOUT_SECONDS` | `60` | Seconds an idle pooled connection stays open before it's closed. `0` keeps idle connections open indefinitely. |
+| `DATABASE_CONNECT_TIMEOUT_SECONDS` | `30` | Seconds to wait for a new database connection before giving up. |
+| `DATABASE_MAX_LIFETIME_SECONDS` | random, 30–60 minutes | Seconds a pooled connection is reused before it's replaced. |
+| `DATABASE_APPLICATION_NAME` | `paperclip` | Name Paperclip's connections report in PostgreSQL's `pg_stat_activity`. |
 | `PAPERCLIP_HOME` | `~/.paperclip` | Base directory for all Paperclip data |
 | `PAPERCLIP_INSTANCE_ID` | `default` | Instance identifier for multiple local instances |
 | `PAPERCLIP_DEPLOYMENT_MODE` | `local_trusted` | Runtime mode override |
