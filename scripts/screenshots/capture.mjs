@@ -41,6 +41,7 @@ import {
   openInstanceDb,
 } from "./config.mjs";
 import { CAPTURE_TARGETS, resolveRoute } from "./routes.mjs";
+import { pruneUnpricedDemoUsage } from "./seed.mjs";
 
 const execFileAsync = promisify(execFile);
 
@@ -92,7 +93,10 @@ async function parentRefName() {
   if (branch) return branch;
 
   // Detached. A tag pointing exactly at HEAD is the best answer.
-  const tag = (await parentGit(["tag", "--points-at", "HEAD"])).split("\n")[0];
+  // One commit often carries several tags (v2026.1106.0 also has beta/, canary/
+  // and nightly/ tags, which sort first), so a stable release tag wins.
+  const tags = (await parentGit(["tag", "--points-at", "HEAD"])).split("\n").filter(Boolean);
+  const tag = tags.find((t) => /^v\d+\.\d+\.\d+$/.test(t)) ?? tags[0];
   if (tag) return tag;
 
   // Otherwise the nearest tag-ish description (e.g. "beta/v2026.811.0-beta.0-4-g213dabab4").
@@ -172,6 +176,7 @@ function envPathReplacements() {
     pairs.push([`${t}/paperclip-docs-shots-worktree`, "~/acme/website-worktrees"]);
   }
   for (const t of variants(tmp)) pairs.push([`${t}/paperclip-docs-shots-wiki`, "~/acme/wiki"]);
+  for (const t of variants(tmp)) pairs.push([`${t}/paperclip-docs-shots-website`, "~/acme/website"]);
   for (const r of variants(PARENT_REPO)) pairs.push([r, "~/paperclip"]);
   // The seeded project workspace cwd (a path that need not exist).
   pairs.push(["/srv/acme/website", "~/acme/website"]);
@@ -181,6 +186,8 @@ function envPathReplacements() {
   pairs.push(["/T/paperclip-docs-shots-worktree", "/acme/website-worktrees"]);
   pairs.push(["paperclip-docs-shots-worktree", "website-worktrees"]);
   pairs.push(["paperclip-docs-shots-home", ".paperclip"]);
+  pairs.push(["/T/paperclip-docs-shots-website", "/acme/website"]);
+  pairs.push(["paperclip-docs-shots-website", "website"]);
   pairs.push(["/docs-screenshots/", "/default/"]);
   // Longest first so a nested prefix wins over its parent.
   return pairs.sort((a, b) => b[0].length - a[0].length);
@@ -286,6 +293,8 @@ const CAPTURE_NOISE_ACTIONS = [
   "instance.settings.experimental_updated",
   "provider_trace.metadata_listed",
   "issue.read_marked",
+  "issue.recovery_action_resolved",
+  "issue.execution_recovery_settled",
 ];
 
 async function pruneCaptureActivity(captureStartedAt) {
@@ -300,8 +309,39 @@ async function pruneCaptureActivity(captureStartedAt) {
       delete from activity_log
       where action in ${sql(CAPTURE_NOISE_ACTIONS)}
          or (actor_type = 'user' and created_at >= ${captureStartedAt})`;
+    await pruneUnpricedDemoUsage(sql);
+    // "Choose adapter" in the new-agent dialog saves a real draft agent, which
+    // inflated the agent counts and the "Riley 2 identity created" feed row in
+    // every later shot. Retire them.
+    const drafts = await sql`select id from agents where name like 'Riley%' and status <> 'terminated'`;
+    if (drafts.length) {
+      const ids = drafts.map((d) => d.id);
+      await sql`update agents set status = 'terminated' where id in ${sql(ids)}`;
+      await sql`delete from activity_log where agent_id in ${sql(ids)} or entity_id in ${sql(ids.map(String))}`;
+    }
   } catch (err) {
     console.warn("capture:   could not prune capture activity:", err.message);
+  } finally {
+    await sql.end().catch(() => {});
+  }
+}
+
+/**
+ * Show the seeded handoffs for one Work Timeline shot: the timeline draws a
+ * connector from the agent that created a task. Agent-created tasks drop out of
+ * the default task lists, so the marks are removed again right after the shot.
+ */
+async function setTimelineKicks(kicks, applied) {
+  if (!kicks?.length) return;
+  const sql = openInstanceDb();
+  try {
+    for (const { issueId, agentId, userId } of kicks) {
+      await sql`
+        update issues set
+          created_by_agent_id = ${applied ? agentId : null},
+          created_by_user_id = ${applied ? null : userId}
+        where id = ${issueId}`;
+    }
   } finally {
     await sql.end().catch(() => {});
   }
@@ -420,6 +460,37 @@ async function runSteps(page, steps, label) {
   }
 }
 
+/**
+ * Wait until the page has stopped showing loading placeholders. The UI is served
+ * through vite dev middleware, so route chunks and queries can land long after
+ * `networkidle`, and a fixed settle time let blank panes and skeleton rows through.
+ * Logs instead of throwing: a slow page is worth a look, not an aborted run.
+ */
+async function waitForPageSettled(page, label) {
+  const deadline = Date.now() + 15_000;
+  while (Date.now() < deadline) {
+    const settled = await page.evaluate(() => {
+      const main = document.querySelector("main");
+      if (!main) return true;
+      if ((main.innerText || "").trim().length < 20) return false;
+      // Agent avatars render on the server and can arrive after everything else.
+      const inView = (el) => {
+        const box = el.getBoundingClientRect();
+        return box.width > 0 && box.height > 0 && box.bottom > 0 && box.top < window.innerHeight;
+      };
+      if ([...document.images].some((img) => inView(img) && !img.complete)) return false;
+      const placeholders = document.querySelectorAll('[data-slot="skeleton"], main .animate-pulse');
+      return ![...placeholders].some((el) => {
+        const box = el.getBoundingClientRect();
+        return box.width > 40 && box.height > 8 && box.bottom > 0 && box.top < window.innerHeight;
+      });
+    }).catch(() => false);
+    if (settled) return;
+    await page.waitForTimeout(300);
+  }
+  console.warn(`capture:   ${label} still showed loading placeholders after 15s`);
+}
+
 // ── Core capture function ─────────────────────────────────────────────────────
 
 /**
@@ -536,10 +607,23 @@ export default async function capture(opts = {}) {
       const page = await context.newPage();
       const restoreFlags = await applyExperimentalFlags(baseUrl, target.experimental);
       if (phase !== "pre-seed") await pruneCaptureActivity(captureStartedAt);
+      if (target.timelineKickers) await setTimelineKicks(seedIds.timelineKicks, true);
       try {
       if (target.githubReviewStage) {
         const { installGitHubReviewFixture } = await import("./github-review-fixture.mjs");
         await installGitHubReviewFixture(page, seedIds, target.githubReviewStage);
+      }
+
+      // The Budget Demo agents exist for the budget shots, and their incidents put
+      // a red banner across the dashboard. Pages that are not about budgets get
+      // the same dashboard without it, in the browser only.
+      if (target.hideBudgetBanner) {
+        await page.route(/\/api\/companies\/[^/]+\/dashboard(\?|$)/, async (route) => {
+          const response = await route.fetch();
+          const summary = await response.json();
+          summary.budgets = { ...summary.budgets, activeIncidents: 0, pausedAgents: 0, pausedProjects: 0, pendingApprovals: 0 };
+          await route.fulfill({ response, json: summary });
+        });
       }
 
       const wait = target.wait ?? 1200;
@@ -578,6 +662,8 @@ export default async function capture(opts = {}) {
         await page.waitForTimeout(600);
       }
 
+      await waitForPageSettled(page, target.name);
+
       // Optional interaction steps (open a dialog, switch a tab, fill a field…).
       if (Array.isArray(target.steps) && target.steps.length) {
         await runSteps(page, target.steps, target.name);
@@ -589,6 +675,7 @@ export default async function capture(opts = {}) {
         await page.getByText(target.requiredText, { exact: true }).first().waitFor({ state: "visible", timeout: 10_000 });
       }
 
+      await waitForPageSettled(page, target.name);
       await maskEnvPaths(page);
 
       // `clip` captures a single element (e.g. one dashboard panel) instead of
@@ -641,6 +728,7 @@ export default async function capture(opts = {}) {
       stampedFiles.add(file);
       } finally {
         await restoreFlags();
+        if (target.timelineKickers) await setTimelineKicks(seedIds.timelineKicks, false);
       }
 
       await context.close();

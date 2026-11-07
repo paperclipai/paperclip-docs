@@ -9,7 +9,10 @@ export async function installGitHubReviewFixture(page, ids, stage) {
   const endpointId = "github-review-docs-demo";
   const endpoint = {
     id: endpointId, companyId: ids.companyId, connectionId: "demo-bot-connection",
-    provider: "github", publicId: "demo-public-id", status: "verifying",
+    provider: "github", publicId: "demo-public-id",
+    // The wizard stages are drafts; repositories and prompts live on the
+    // connected bot's Access and Settings tabs since v2026.1106.0.
+    status: stage === "connect" || stage === "identity" ? "verifying" : "active",
     deploymentMode: "direct", assignedAgentId: ids.agentId,
     assignedAgentName: "Storybook Bot", sponsorUserId: null,
     providerAccountId: "1000", providerAccountLabel: "acme",
@@ -51,7 +54,7 @@ export async function installGitHubReviewFixture(page, ids, stage) {
       // gated surface (Decisions, Status) from the sidebar in these shots.
       const response = await route.fetch();
       const flags = response.ok() ? await response.json() : {};
-      return send(route, { ...flags, enableChatConnectors: true, enableIsolatedWorkspaces: true });
+      return send(route, { ...flags, enableChatConnectors: true, enableGitHubReviewBots: true, enableIsolatedWorkspaces: true });
     }
     if (path === `/api/companies/${ids.companyId}/agents`) {
       const response = await route.fetch();
@@ -60,6 +63,14 @@ export async function installGitHubReviewFixture(page, ids, stage) {
     }
     if (path === `/api/chat-endpoints/${endpointId}`) return send(route, endpoint);
     if (path === `/api/chat-endpoints/${endpointId}/resources`) return send(route, {resources});
+    // GitHubChatSetup renders from this wizard state, not from setup.github.stage.
+    if (path === `/api/chat-endpoints/${endpointId}/github/setup`) return send(route, stage === "identity"
+      ? { endpointId, state: "identity", identityMethod: "existing_connection" }
+      : { endpointId, state: "create" });
+    if (path === `/api/chat-endpoints/${endpointId}/github/repositories`) return send(route, {
+      items: resources, nextOffset: null, totalCount: resources.length,
+      enabledCount: resources.filter(resource => resource.enabled).length, availableCount: resources.length,
+    });
     if (path === `/api/chat-endpoints/${endpointId}/github/registration`) return send(route, { registrationUrl: "https://github.com/settings/apps/new", expiresAt: new Date(Date.now() + 600000).toISOString(), manifest: {} });
     if (path === `/api/chat-endpoints/${endpointId}/github/configuration`) return send(route, configuration);
     if (path === `/api/chat-endpoints/${endpointId}/github/personal-connections`) return send(route, [{ connectionId: "demo-personal", name: "My GitHub", login: "octocat", enabled: true, status: "active" }]);

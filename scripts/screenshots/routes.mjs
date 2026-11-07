@@ -105,22 +105,22 @@ export function resolveRoute(target, ids) {
 export const CAPTURE_TARGETS = [
   // Real GitHub setup UI with browser-only demo API responses; never contacts GitHub.
   ...[
-    { name: "connect", stage: "connect", heading: "Create App on GitHub", steps: [
-      { fill: { label: "GitHub App name" }, value: "acme-storybook" },
-      { click: { role: "button", name: "Prepare registration" } },
+    { name: "connect", stage: "connect", heading: "Continue to GitHub", steps: [
+      // Fill only: "Continue to GitHub" submits the manifest form to github.com.
+      { fill: { label: "App name" }, value: "acme-storybook" },
     ] },
-    { name: "repositories", stage: "repositories", heading: "Select repositories" },
-    { name: "identity", stage: "identity", heading: "@octocat", steps: [
-      { select: { label: "Your GitHub connection" }, value: "demo-personal" },
-      { click: { role: "button", name: "Verify my account" } },
+    { name: "repositories", stage: "repositories", heading: "acme/storybook-demo", path: "github-review-docs-demo/access" },
+    { name: "identity", stage: "identity", heading: "Confirm my account", steps: [
+      { select: { label: "Existing GitHub connection" }, value: "demo-personal" },
+      { click: { role: "button", name: "Check my account" } },
     ] },
-    { name: "prompts", stage: "behavior", heading: "Review instructions", steps: [
-      { scrollToTop: { text: "Automatic review events", exact: true } },
+    { name: "prompts", stage: "behavior", heading: "When to run", path: "github-review-docs-demo/settings", steps: [
+      { scrollToTop: { text: "Instructions", exact: true } },
       { scrollBy: -90 },
     ] },
-  ].map(({ name, stage, heading, steps }) => ({
+  ].map(({ name, stage, heading, steps, path }) => ({
     name: `github-review/${name}`,
-    route: "/{prefix}/apps/chat/connect?provider=github&resume=github-review-docs-demo",
+    route: `/{prefix}/apps/chat/${path ?? "connect?provider=github&resume=github-review-docs-demo"}`,
     githubReviewStage: stage,
     requiredText: heading,
     // The sidebar's gated entries (Decisions, Status) paint after the
@@ -129,9 +129,9 @@ export const CAPTURE_TARGETS = [
     steps,
     dependsOn: [
       "ui/src/pages/apps/chat/GitHubChatSetup.tsx",
+      "ui/src/pages/apps/chat/GitHubBotManagement.tsx",
       "ui/src/pages/apps/chat/GitHubBotConfiguration.tsx",
-      "ui/src/pages/apps/chat/GitHubSetupPrompt.tsx",
-      "packages/shared/src/types/chat-github.ts",
+      "packages/shared/src/types/github-app-setup.ts",
     ],
   })),
   // ── Company settings ───────────────────────────────────────────────────────
@@ -273,18 +273,23 @@ export const CAPTURE_TARGETS = [
     // Finn (claude_local): the process adapter has no instruction bundle, so
     // Bob's page only says "not available for this adapter".
     route: "/{prefix}/agents/{claudeAgentId}/instructions",
+    readyText: "AGENTS.md",
     dependsOn: ["ui/src/pages/AgentDetail.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "agents/skills",
     route: "/{prefix}/agents/{claudeAgentId}/skills",
+    readyText: "Code Review",
     dependsOn: ["ui/src/pages/AgentDetail.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "agents/configuration",
-    route: "/{prefix}/agents/{agentId}/configuration",
+    // /configuration redirects to /runtime; the redirect let a skeleton through.
+    route: "/{prefix}/agents/{agentId}/runtime",
+    readyText: "Agent identity",
+    wait: 2000,
     dependsOn: ["ui/src/pages/AgentDetail.tsx"],
     themes: ["light", "dark"],
   },
@@ -313,8 +318,7 @@ export const CAPTURE_TARGETS = [
     dependsOn: ["ui/src/pages/Costs.tsx"],
     themes: ["light", "dark"],
     wait: 2000,
-    // Past the budget-incident cards to the ledgers and the By agent breakdown.
-    steps: [{ scrollToTop: { text: "Inference ledger", exact: true } }, { scrollBy: -40 }],
+    readyText: "By agent",
   },
   // Costs moved under Audit: /costs redirects to /activity/costs, whose
   // Overview / Providers / Billers / Finance sub-views are buttons; Budgets is
@@ -339,12 +343,14 @@ export const CAPTURE_TARGETS = [
   {
     name: "issues/list",
     route: "/{prefix}/issues",
+    readyText: "Design the homepage hero section",
     dependsOn: ["ui/src/pages/IssueDetail.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "issues/inbox",
     route: "/{prefix}/inbox/mine",
+    readyText: "Write onboarding docs",
     dependsOn: ["ui/src/pages/Inbox.tsx"],
     themes: ["light", "dark"],
   },
@@ -407,12 +413,17 @@ export const CAPTURE_TARGETS = [
   {
     name: "projects/issues",
     route: "/{prefix}/projects/{projectId}/issues",
+    readyText: "Design the homepage hero section",
     dependsOn: ["ui/src/pages/ProjectDetail.tsx"],
     themes: ["light", "dark"],
   },
   {
     name: "projects/workspaces",
     route: "/{prefix}/projects/{projectId}/workspaces",
+    wait: 2000,
+    // The URL alone sometimes lands on the Tasks tab, so select the tab as well.
+    steps: [{ click: { role: "tab", name: "Workspaces" } }, { waitFor: { text: "Hero section worktree" } }, { waitMs: 600 }],
+    requiredText: "Hero section worktree",
     dependsOn: ["ui/src/pages/ProjectDetail.tsx"],
     themes: ["light", "dark"],
   },
@@ -539,16 +550,22 @@ export const CAPTURE_TARGETS = [
   // ════════════════════════════════════════════════════════════════════════
 
   // ── Dashboard ───────────────────────────────────────────────────────────────
-  { name: "dashboard/dashboard-overview", route: "/{prefix}/dashboard", dependsOn: ["ui/src/pages/Dashboard.tsx"] },
+  // readyText: the first dashboard load paints "No tasks yet" and "No recent agent
+  // runs" while its queries are in flight.
+  { name: "dashboard/dashboard-overview", route: "/{prefix}/dashboard", dependsOn: ["ui/src/pages/Dashboard.tsx"], readyText: "Recent Activity", wait: 2500, hideBudgetBanner: true },
   {
     name: "dashboard/agent-status-panel",
     route: "/{prefix}/dashboard",
+    readyText: "Recent Activity",
+    wait: 2500,
     dependsOn: ["ui/src/pages/Dashboard.tsx"],
     clip: { css: 'xpath=(//*[contains(text(),"Active agents") or contains(text(),"Agents Enabled")]/ancestor::div[contains(@class,"rounded")])[1]' },
   },
   {
     name: "dashboard/activity-feed",
     route: "/{prefix}/dashboard",
+    readyText: "Recent Activity",
+    wait: 2500,
     dependsOn: ["ui/src/pages/Dashboard.tsx"],
     // The heading's Card is a sibling now, not an ancestor — the old
     // ancestor-div[rounded] xpath matched nothing and fell back to full page.
@@ -557,14 +574,16 @@ export const CAPTURE_TARGETS = [
   {
     name: "dashboard/task-breakdown-panel",
     route: "/{prefix}/dashboard",
+    readyText: "Recent Activity",
+    wait: 2500,
     dependsOn: ["ui/src/pages/Dashboard.tsx"],
     clip: { css: 'xpath=//h3[contains(.,"Recent Tasks")]/parent::div' },
   },
 
   // ── Tasks / inbox ─────────────────────────────────────────────────────────
-  { name: "tasks/inbox-view", route: "/{prefix}/inbox/mine", dependsOn: ["ui/src/pages/Inbox.tsx"] },
+  { name: "tasks/inbox-view", readyText: "Write onboarding docs", route: "/{prefix}/inbox/mine", dependsOn: ["ui/src/pages/Inbox.tsx"] },
   // The guide says "click Tasks in the sidebar": the Tasks list.
-  { name: "tasks/inbox-newly-created-tasks", route: "/{prefix}/issues", dependsOn: ["ui/src/pages/Issues.tsx"] },
+  { name: "tasks/inbox-newly-created-tasks", readyText: "Design the homepage hero section", route: "/{prefix}/issues", dependsOn: ["ui/src/pages/Issues.tsx"] },
   {
     name: "issues/inbox-blocked",
     route: "/{prefix}/inbox/blocked",
@@ -576,7 +595,7 @@ export const CAPTURE_TARGETS = [
   { name: "tasks/task-detail-with-comments", readyText: "Kicking this off", route: "/{prefix}/issues/{issueId}", dependsOn: ["ui/src/pages/IssueDetail.tsx"] },
 
   // ── Issues ──────────────────────────────────────────────────────────────────
-  { name: "issues/my-issues", route: "/{prefix}/inbox/mine", dependsOn: ["ui/src/pages/Inbox.tsx"] },
+  { name: "issues/my-issues", readyText: "Write onboarding docs", route: "/{prefix}/inbox/mine", dependsOn: ["ui/src/pages/Inbox.tsx"] },
   {
     name: "issues/detail-sidebar", readyText: "Kicking this off",
     route: "/{prefix}/issues/{issueId}",
@@ -621,8 +640,11 @@ export const CAPTURE_TARGETS = [
   // route). The former org/execution-workspaces-list duplicate was removed.
   {
     name: "org/reassign",
-    route: "/{prefix}/agents/{agentId}/configuration",
+    // /configuration redirects to /runtime, and the redirect's re-render closes
+    // the picker straight after the click.
+    route: "/{prefix}/agents/{agentId}/runtime",
     dependsOn: ["ui/src/components/AgentConfigForm.tsx"],
+    wait: 2000,
     steps: [{ click: { role: "button", name: /Reports to/i } }, { waitMs: 600 }],
   },
 
@@ -814,6 +836,7 @@ export const CAPTURE_TARGETS = [
   // ── Onboarding ──────────────────────────────────────────────────────────────
   {
     name: "onboarding/sidebar-new-company-button",
+    hideBudgetBanner: true,
     route: "/{prefix}/dashboard",
     dependsOn: ["ui/src/components/SidebarCompanyMenu.tsx"],
     // The switcher is labelled "Open <Company> organization switcher" (was
@@ -846,7 +869,7 @@ export const CAPTURE_TARGETS = [
     dependsOn: ["ui/src/components/transcript/RunTranscriptView.tsx", "ui/src/pages/AgentDetail.tsx"],
     wait: 2000,
     // The transcript sits below the run summary and workspace cards.
-    steps: [{ scrollToTop: { text: /^Transcript \(/ } }, { waitMs: 600 }],
+    steps: [{ waitFor: { text: /^Transcript \(/ } }, { waitMs: 1500 }, { scrollToTop: { text: /^Transcript \(/ } }, { waitMs: 600 }],
   },
   // {runnerAgentId} / {longRunnerAgentId} are the CEO (Ada): a finished heartbeat
   // and one left running for the whole capture (seed.mjs 14g).
@@ -901,6 +924,7 @@ export const CAPTURE_TARGETS = [
   // hovers an agent-kicked bar so the handoff connector draws.
   {
     name: "work-timeline/work-timeline-overview",
+    timelineKickers: true,
     // /timeline redirects to Audit → Timeline. "Today" frames the work periods
     // seed.mjs lays out over the last few hours (14h-quater).
     route: "/{prefix}/activity/timeline",
@@ -920,6 +944,7 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "work-timeline/work-timeline-handoff",
+    timelineKickers: true,
     route: "/{prefix}/activity/timeline",
     wait: 2000,
     // Hovering an agent-kicked bar draws the handoff connector from the
@@ -996,19 +1021,13 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "experimental/file-viewer-browse",
-    // Landing on ?browse=1 directly leaves the thread as skeletons; open the
-    // Files panel the way a user does, with the "G F" shortcut, once the thread
-    // has rendered.
-    route: "/{prefix}/issues/{issueId}",
-    dependsOn: ["ui/src/components/FileViewerSheet.tsx", "ui/src/components/WorkspaceFileBrowser.tsx"],
+    // At v2026.1106.0 the Files tab crashes the app ("Maximum update depth
+    // exceeded" in SidePanelTabs) from g f, ?browse=1 and the + menu alike, so this
+    // opens a workspace file in its side-panel tab, which works.
+    route: "/{prefix}/issues/{issueId}?file=README.md&workspace=execution&workspaceId={executionWorkspaceId}",
+    dependsOn: ["ui/src/components/task-side-panel/TaskWorkspaceFilePanel.tsx", "ui/src/components/WorkspaceFileBrowser.tsx"],
     wait: 3000,
-    steps: [
-      { waitFor: { text: "Kicking this off" } },
-      { press: "g" },
-      { press: "f" },
-      { waitFor: { text: "README.md", exact: true } },
-      { waitMs: 800 },
-    ],
+    requiredText: "Acme Website",
   },
   {
     name: "experimental/external-objects",
@@ -1018,6 +1037,7 @@ export const CAPTURE_TARGETS = [
   },
   {
     name: "experimental/server-info",
+    hideBudgetBanner: true,
     route: "/{prefix}/dashboard",
     dependsOn: ["ui/src/components/SidebarServerInfo.tsx", "ui/src/components/SidebarAccountMenu.tsx"],
     steps: [{ click: { role: "button", name: "Open account menu" } }, { waitMs: 800 }],
