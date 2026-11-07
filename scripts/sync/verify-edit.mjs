@@ -33,6 +33,17 @@ import {
 } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  collectStringConstants,
+  ensureParentSnapshot,
+  inlineRouteConstants,
+  isTestPath,
+  normalizeRoute,
+  readSnapshotEnvSources,
+  routeIsDefined as routeIsDefinedNormalized,
+  snapshotContents,
+  snapshotFiles,
+} from "./lib/parent-source.mjs";
 
 const SELF_DIR = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(SELF_DIR, "../..");
@@ -41,6 +52,17 @@ const FIXTURE_DIR = process.env.PAPERCLIP_SYNC_FIXTURE_DIR || null;
 // Optional local checkout of the parent repo at the --against ref. Reading
 // from disk avoids the GitHub API entirely (no rate limit, much faster).
 const LOCAL_SRC = process.env.PAPERCLIP_SYNC_LOCAL_SRC || null;
+// Full parent snapshot at the pinned SHA (lib/parent-source.mjs). Set in
+// main(): PAPERCLIP_SYNC_LOCAL_SRC when given, otherwise a one-time tarball
+// download per commit. null means "use the contents API" (fixture mode,
+// PAPERCLIP_SYNC_NO_SNAPSHOT, or a failed download).
+let SNAPSHOT = null;
+const API_ENV_SOURCE_CAP = 700;
+const warnings = [];
+function warn(msg) {
+  warnings.push(msg);
+  process.stderr.write(`${msg}\n`);
+}
 
 // --- gh wrapper (mirrors check-drift.mjs) ---------------------------------
 
@@ -48,25 +70,9 @@ function pathSlug(p) {
   return p.replace(/[/]/g, "__");
 }
 
-function localContents(path) {
-  const full = join(LOCAL_SRC, path);
-  if (!existsSync(full)) return { status: 404 };
-  const st = statSync(full);
-  if (st.isDirectory()) {
-    const list = readdirSync(full, { withFileTypes: true })
-      .filter((d) => d.name !== ".git")
-      .map((d) => ({
-        name: d.name,
-        path: path ? `${path.replace(/\/$/, "")}/${d.name}` : d.name,
-        type: d.isDirectory() ? "dir" : "file",
-      }));
-    return { status: 200, list };
-  }
-  return { status: 200, content: readFileSync(full, "utf8") };
-}
 
 function ghContents(repo, path, ref) {
-  if (LOCAL_SRC) return localContents(path);
+  if (SNAPSHOT) return snapshotContents(SNAPSHOT, path);
   if (FIXTURE_DIR) {
     const file = join(FIXTURE_DIR, `contents-${pathSlug(path)}-${ref}.json`);
     if (!existsSync(file)) return { status: 404 };
@@ -169,14 +175,10 @@ function ghDefaultBranch(repo) {
 }
 
 function ghTreeFiles(repo, ref) {
-  if (LOCAL_SRC) {
-    const r = spawnSync("git", ["-C", LOCAL_SRC, "ls-files"], {
-      encoding: "utf8",
-      maxBuffer: 128 * 1024 * 1024,
-    });
-    if (r.status !== 0) return null;
-    return r.stdout.split("\n").filter(Boolean);
-  }
+  // Walks the directory, so a `git archive` extract (no .git) works too. The
+  // old `git ls-files` path returned nothing for extracts, which silently
+  // dropped the run back to a handful of env source files.
+  if (SNAPSHOT) return snapshotFiles(SNAPSHOT);
   if (FIXTURE_DIR) {
     const file = join(FIXTURE_DIR, `tree-${ref}.json`);
     if (!existsSync(file)) return null;
@@ -224,10 +226,20 @@ function ghResolveSha(repo, ref) {
   return r.stdout.trim().slice(0, 7) || null;
 }
 
+// Full 40-char SHA for pinning the snapshot (ghResolveSha returns a short one
+// for display). null in fixture mode or when the ref can't be resolved.
+function resolveFullSha(repo, ref) {
+  if (/^[0-9a-f]{40}$/i.test(ref)) return ref.toLowerCase();
+  if (FIXTURE_DIR) return null;
+  const r = spawnSync("gh", ["api", `repos/${repo}/commits/${ref}`, "-q", ".sha"], { encoding: "utf8" });
+  if (r.status !== 0) return null;
+  return r.stdout.trim() || null;
+}
+
 // --- caching ---------------------------------------------------------------
 
 function cacheGet(refSlug, key) {
-  if (FIXTURE_DIR || LOCAL_SRC) return null;
+  if (FIXTURE_DIR || SNAPSHOT) return null;
   const dir = join(CACHE_ROOT, `verify-${refSlug}`);
   const file = join(dir, `${pathSlug(key)}.json`);
   if (!existsSync(file)) return null;
@@ -242,7 +254,7 @@ function cacheGet(refSlug, key) {
 }
 
 function cacheSet(refSlug, key, value) {
-  if (FIXTURE_DIR || LOCAL_SRC) return;
+  if (FIXTURE_DIR || SNAPSHOT) return;
   const dir = join(CACHE_ROOT, `verify-${refSlug}`);
   try {
     mkdirSync(dir, { recursive: true });
@@ -830,6 +842,8 @@ function fetchAdapterFiles(repo, adapter, ref, refSlug, adapterDocSources) {
 }
 
 function fetchEnvSources(repo, ref, refSlug) {
+  // Snapshot mode: every non-test source file, no cap.
+  if (SNAPSHOT) return readSnapshotEnvSources(SNAPSHOT);
   const out = {};
   const sources = [".env.example", "server/src/config.ts"];
   try {
@@ -851,7 +865,14 @@ function fetchEnvSources(repo, ref, refSlug) {
       if (shouldFetchEnvSource(p) && !sources.includes(p)) sources.push(p);
     }
   }
-  for (const s of sources.slice(0, 700)) {
+  if (sources.length > API_ENV_SOURCE_CAP) {
+    warn(
+      `warning: env-var scan was capped at ${API_ENV_SOURCE_CAP} of ${sources.length} parent files (GitHub API mode). ` +
+        `Unverified env-var claims may be false positives. Unset PAPERCLIP_SYNC_NO_SNAPSHOT or set ` +
+        `PAPERCLIP_SYNC_LOCAL_SRC to scan everything.`
+    );
+  }
+  for (const s of sources.slice(0, API_ENV_SOURCE_CAP)) {
     const res = cachedContents(repo, s, ref, refSlug);
     if (res.status === 200 && typeof res.content === "string") {
       out[s] = res.content;
@@ -898,7 +919,7 @@ function fetchRouteFiles(repo, ref, refSlug) {
         acc.push({ path: p, content: res.content });
       }
     }
-    return acc;
+    return withInlinedRouteConstants(acc, tree);
   }
   function visit(dir) {
     if (seen.has(dir)) return;
@@ -916,85 +937,39 @@ function fetchRouteFiles(repo, ref, refSlug) {
     }
   }
   visit("server/src/routes");
-  return acc;
+  return withInlinedRouteConstants(acc, null);
 }
 
-function normalizeRoute(p) {
-  let s = p.split("?")[0].split("#")[0];
-  s = s.replace(/[.,;:`)\]]+$/g, "");
-  s = s.replace(/\{[^}]+\}/g, ":id");
-  s = s.replace(/:[A-Za-z][A-Za-z0-9_]*/g, ":id");
-  return s;
-}
-
-function candidateToPattern(v) {
-  const PARAM_TOKEN = /(:id|\{id\})/g;
-  const parts = v.split(PARAM_TOKEN);
-  let out = "";
-  for (const part of parts) {
-    if (part === ":id" || part === "{id}") {
-      out += `(?::[A-Za-z][A-Za-z0-9_]*|\\{[A-Za-z][A-Za-z0-9_]*\\})`;
-    } else {
-      out += escapeRegex(part);
+// Inline string-constant route paths (`router.post(IMPORT_PATH, …)`,
+// `${IMPORT_PATH}/:id`) so the matcher sees literal paths. Constants come from
+// the route files and, in snapshot mode, packages/shared.
+function withInlinedRouteConstants(routeFiles, tree) {
+  const sources = [...routeFiles];
+  if (tree && SNAPSHOT) {
+    for (const p of tree) {
+      if (!/^packages\/shared\/src\/.+\.ts$/.test(p) || isTestPath(p)) continue;
+      const res = snapshotContents(SNAPSHOT, p);
+      if (res.status === 200 && typeof res.content === "string") sources.push({ path: p, content: res.content });
     }
   }
-  return out;
+  const constants = collectStringConstants(sources);
+  return routeFiles.map((f) => ({ ...f, content: inlineRouteConstants(f.content, constants) }));
 }
 
+
+
+
+// Shared matcher (lib/parent-source.mjs) — handles array registration,
+// router[method] loops, and `{param}.ext` doc paths.
 function routeIsDefined(method, rawPath, routeContent, surface) {
-  if (!routeContent) return false;
-  const m = method.toLowerCase();
-  const normalized = normalizeRoute(rawPath);
-  const candidates = new Set();
-  candidates.add(normalized);
-  if (normalized.startsWith("/api/")) candidates.add(normalized.slice(4));
-  const apiSegMatch = normalized.match(/^\/api\/([a-zA-Z0-9_-]+)(\/.*)?$/);
-  if (apiSegMatch) {
-    const rest = apiSegMatch[2] || "/";
-    candidates.add(rest);
-  }
-  if (surface) {
-    const surfacePrefix = `/api/${surface}`;
-    if (normalized === surfacePrefix) candidates.add("/");
-    else if (normalized.startsWith(`${surfacePrefix}/`)) {
-      candidates.add(normalized.slice(surfacePrefix.length));
-    }
-  }
-  for (const cand of candidates) {
-    const variants = new Set([cand, cand.replace(/:id/g, "{id}")]);
-    for (const v of [...variants]) variants.add(v.replace(/\/$/, ""));
-    for (const v of variants) {
-      if (!v) continue;
-      const pattern = candidateToPattern(v);
-      const reMethod = new RegExp(
-        `\\.${m}\\(\\s*["'\`]${pattern}(?:[?#]|["'\`])`,
-        "i"
-      );
-      if (reMethod.test(routeContent)) return true;
-      const reFastify = new RegExp(
-        `method\\s*:\\s*["'\`]${method}["'\`][^}]*url\\s*:\\s*["'\`]${pattern}(?:[?#]|["'\`])`,
-        "is"
-      );
-      if (reFastify.test(routeContent)) return true;
-      const reFastifyRev = new RegExp(
-        `url\\s*:\\s*["'\`]${pattern}(?:[?#]|["'\`])[^}]*method\\s*:\\s*["'\`]${method}["'\`]`,
-        "is"
-      );
-      if (reFastifyRev.test(routeContent)) return true;
-    }
-  }
-  return false;
+  return routeIsDefinedNormalized(method, normalizeRoute(rawPath), routeContent, surface);
 }
 
-function envVarPresent(name, envSources) {
+function envVarPresent(name, envSources, tokens = null) {
   if (isExternallySuppliedEnvVar(name) || isRuntimeInjectedEnvVar(name)) return true;
   const envExample = envSources[".env.example"];
   if (envExample && new RegExp(`^${name}\\b`, "m").test(envExample)) return true;
-  for (const [path, content] of Object.entries(envSources)) {
-    if (path === ".env.example") continue;
-    if (content && content.includes(name)) return true;
-  }
-  return false;
+  return (tokens || new Set(extractEnvIdentifiers(envSources))).has(name);
 }
 
 function isExternallySuppliedEnvVar(name) {
@@ -1113,6 +1088,13 @@ function main() {
   const repo = args.repo || readDefaultRepo();
   const against = args.against || ghDefaultBranch(repo);
   const refSlug = pathSlug(against);
+  SNAPSHOT = ensureParentSnapshot({
+    repo,
+    sha: LOCAL_SRC || FIXTURE_DIR ? null : resolveFullSha(repo, against),
+    cacheRoot: CACHE_ROOT,
+    fixtureMode: !!FIXTURE_DIR,
+    log: (msg) => process.stderr.write(`${msg}\n`),
+  });
 
   // Determine doc kind (drives which extractors are valid).
   DOC_KIND_HINT = sniffDocKind(docRel, docContent);
@@ -1148,8 +1130,12 @@ function main() {
     return adapterFilesCache[adapter];
   };
   let envSources = null;
+  let envTokens = null;
   const getEnvSources = () => {
-    if (envSources === null) envSources = fetchEnvSources(repo, against, refSlug);
+    if (envSources === null) {
+      envSources = fetchEnvSources(repo, against, refSlug);
+      envTokens = new Set(extractEnvIdentifiers(envSources));
+    }
     return envSources;
   };
   let routeFiles = null;
@@ -1205,7 +1191,9 @@ function main() {
       // track per-claim command context, so we search across all cli files.
       const files = getCliFiles();
       const flag = claim.value.slice(2); // strip --
-      const re = new RegExp(`\\.option\\(\\s*["'][^"']*--${escapeRegex(flag)}\\b`);
+      // Commander declares flags with .option(), .requiredOption() and
+      // new Option(); all three are real flags.
+      const re = new RegExp(`(?:\\.(?:required)?[oO]ption|new\\s+Option)\\(\\s*["'][^"']*--${escapeRegex(flag)}\\b`);
       let hit = false;
       for (const f of files) {
         if (re.test(f.content)) { hit = true; break; }
@@ -1216,7 +1204,7 @@ function main() {
         // Collect all known long flags for fuzzy.
         const known = new Set();
         for (const f of files) {
-          const fre = /\.option\(\s*["'][^"']*--([a-z][a-z0-9-]*)\b/g;
+          const fre = /(?:\.(?:required)?[oO]ption|new\s+Option)\(\s*["'][^"']*--([a-z][a-z0-9-]*)\b/g;
           let m;
           while ((m = fre.exec(f.content))) known.add(m[1]);
         }
@@ -1237,16 +1225,16 @@ function main() {
 
     if (claim.kind === "env-var") {
       const sources = getEnvSources();
-      if (envVarPresent(claim.value, sources)) {
+      if (envVarPresent(claim.value, sources, envTokens)) {
         verified.push(claim);
       } else {
-        const known = extractEnvIdentifiers(sources);
+        const known = [...envTokens];
         const sug = closestMatch(claim.value, known);
         unverified.push({
           kind: claim.kind,
           value: claim.value,
           location: claim.location,
-          searched: Object.keys(sources),
+          searched: [SNAPSHOT ? "all non-test source files (snapshot)" : "selected env source files (GitHub API)"],
           evidence: `no literal match in ${Object.keys(sources).length} env source files`,
           suggest: sug
             ? `Closest match in parent: '${sug.match}'.`
@@ -1423,6 +1411,8 @@ function main() {
   const result = {
     doc: docRel,
     checked_against: checkedAgainst,
+    source: SNAPSHOT ? "snapshot" : "github-api",
+    warnings,
     claims_extracted: claims.length,
     verified: verified.length,
     unverified,

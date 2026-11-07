@@ -149,7 +149,11 @@ The script scans `docs/**` for four reference classes and verifies each one stil
 | env-var-missing | Rows in `docs/reference/deploy/environment-variables.md` | high |
 | rest-route-missing | `GET/POST/PUT/PATCH/DELETE /api/...` headers under `docs/reference/api/**` | medium |
 
-Output is structured JSON with a `drift` array of records: `kind`, `doc` (file:line), `documented`, `parent_searched`, `confidence`, `suggest`. The script always exits 0 — drift is a warning, never a hard failure. Results are cached under `/tmp/paperclip-sync/drift-<ref>/` so re-runs within a day are cheap.
+Output is structured JSON with a `drift` array of records: `kind`, `doc` (file:line), `documented`, `parent_searched`, `confidence`, `suggest`. The script always exits 0 — drift is a warning, never a hard failure.
+
+**Parent source — automatic, no setup.** Both `check-drift.mjs` and `verify-edit.mjs` read the parent from a full snapshot at the resolved commit SHA (`scripts/sync/lib/parent-source.mjs`). The first run for a SHA downloads the tarball once into `/tmp/paperclip-sync/src-<sha>/`; later runs reuse it, and only the four newest snapshots are kept. Every non-test source file is scanned (TypeScript/JS, Runner Rust, shell, `.env.example`, Dockerfiles), with no file cap. Set `PAPERCLIP_SYNC_LOCAL_SRC=<dir>` to point at an existing checkout or extract instead. The JSON reports `source` (`snapshot` or `github-api`) and a `warnings` array.
+
+**Read `source` and `warnings` before trusting the result.** The checker only falls back to the capped GitHub contents API when the download fails or `PAPERCLIP_SYNC_NO_SNAPSHOT` is set. If `source` is `github-api` or `warnings` is non-empty (for example `env-var scan was capped at 700 of N`), env-var findings are unconfirmed. Fix the snapshot and re-run before reporting them, and never write a standing "known false positives" list into `PENDING.md`. A drift item that repeats unchanged run after run is a checker bug to fix in `scripts/sync/`, with a regression test in `scripts/sync/test.mjs`, not a reviewer chore.
 
 **Where drift records go.** They join the change manifest as a separate **drift tier** — not `auto-merge`, not `pr`, not `context-only`. They have their own category because they're driven by what's missing from parent, not by what changed in a window.
 
@@ -278,7 +282,7 @@ node scripts/sync/verify-edit.mjs <doc-path> --against <parent-default>   # nigh
 node scripts/sync/verify-edit.mjs <doc-path> --against <release-tag>      # release mode
 ```
 
-Collect all `unverified` and `suspicious` records into a **Verification Report** for the run.
+Collect all `unverified` and `suspicious` records into a **Verification Report** for the run. `verify-edit` uses the same automatic parent snapshot as the drift check (see Phase 1.5). Check its `source` and `warnings` fields too: an `env-var` miss reported in `github-api` mode, or alongside a cap warning, is unconfirmed.
 
 Routing rules:
 
@@ -300,7 +304,7 @@ node scripts/sync/check-tag-accuracy.mjs --tag <release-tag> --base main --head 
 It reuses `verify-edit.mjs` per changed page and classifies each:
 
 - **`leaks`** — a page has ≥1 **high-confidence** claim (`file-path`, `env-var`, `cli-command`, `cli-flag`) that the release-tag code does not contain. These are mechanical identifiers the shipped code simply lacks. **Auto-quarantine** each: revert the page (or just the offending section) to its `main` state, and list it in the PR body under **`### ⚠ Post-tag leaks removed`**. Only added/changed lines are judged, so a pre-existing stale entry is left to the drift phase, not quarantined here.
-- **`review`** — new pages, or medium-confidence-only misses (`rest-route`, `adapter-config-field`). REST routes are medium because constant/prefix registration hides real matches (a known `verify-edit` false negative — do **not** auto-quarantine them). Surface under the PR's `### ⚠ Verification Failures` / review notes for a human to confirm against the tag.
+- **`review`** — new pages, or medium-confidence-only misses (`rest-route`, `adapter-config-field`). REST routes stay medium even though the matcher now resolves array registration, `router[method]` loops and string path constants: dynamic or prefix-mounted registration can still hide a real match, so do **not** auto-quarantine them. Surface under the PR's `### ⚠ Verification Failures` / review notes for a human to confirm against the tag.
 - **`clean`** — every added claim verifies at the tag.
 
 **Known limit — behavioural/prose leaks.** The gate only catches leaks that carry a checkable *identifier*. A pure prose/UI rewrite with no code identifier (the onboarding "mission step is gone" case) will read as `clean`. So release mode **also** keeps the adversarial nightly-draft check: spawn a small verification pass (per changed guide page, compare its user-visible claims against the tag's UI/flow) and treat a page describing behaviour absent at the tag as a leak — revert it to `main` and list it under `### ⚠ Post-tag leaks removed`.
