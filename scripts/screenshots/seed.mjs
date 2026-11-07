@@ -36,7 +36,8 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { writeFileSync, mkdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { resolve as resolvePath, dirname as dirnamePath } from "node:path";
 import os from "node:os";
 import { BASE_URL, COMPANY_NAME, SEED_IDS_PATH, mintAgentJwt, openInstanceDb } from "./config.mjs";
@@ -149,6 +150,57 @@ async function setWakeOnDemand(agentId, enabled, baseUrl) {
   );
 }
 
+/**
+ * Keep the demo company active while `process` agents run.
+ *
+ * A `process` run reports no cost, so since v2026.1106.0 each one that finishes
+ * records a $0 cost event with provider "unknown", billing "unknown", status
+ * "unpriced". Budget policies default to hard stop on with unpricedUsagePolicy
+ * "block", so the first such event, or any finished run still awaiting accounting,
+ * hard-stops the agent and the whole company at $0 observed spend: wakeups and
+ * status cards get 409 "Company is not active" and running runs are cancelled.
+ *
+ * So only the deliberate Budget Demo agents keep their hard stop. Neither setting
+ * shows on a budget card outside its collapsed Advanced settings.
+ */
+async function allowUnpricedUsage(companyId) {
+  const sql = openInstanceDb();
+  try {
+    await sql`
+      update budget_policies set unpriced_usage_policy = 'allow', hard_stop_enabled = false
+      where company_id = ${companyId}
+        and scope_id not in (select id from agents where company_id = ${companyId} and name like 'Budget Demo%')`;
+  } finally {
+    await sql.end().catch(() => {});
+  }
+}
+
+async function markAdapterAgentsReady(companyId) {
+  const sql = openInstanceDb();
+  try {
+    await sql`
+      update agents set status = 'idle', lifecycle_state = 'ready', lifecycle_error = null, lifecycle_operation = null
+      where company_id = ${companyId} and lifecycle_state in ('preparing', 'verifying')`;
+  } finally {
+    await sql.end().catch(() => {});
+  }
+}
+
+/**
+ * Drop those no-receipt events and their activity rows. Left alone they put a
+ * red "N usage events are unpriced" line on every budget card and a data-quality
+ * notice on Audit → Costs. capture.mjs repeats this before each shot, since
+ * process runs keep finishing during capture.
+ */
+export async function pruneUnpricedDemoUsage(sql) {
+  await sql`
+    delete from activity_log
+    where action = 'cost.reported' and details->>'costStatus' = 'unpriced'`;
+  await sql`
+    delete from cost_events
+    where cost_status = 'unpriced' and provider = 'unknown' and billing_type = 'unknown'`;
+}
+
 // ── Seed ──────────────────────────────────────────────────────────────────────
 
 export default async function seed({ baseUrl = BASE_URL } = {}) {
@@ -191,6 +243,11 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
       baseUrl,
     );
     console.log("[seed] set company brand color + monthly budget");
+    // Create the company policy now, not at 14b-bis: issue assignments below
+    // start runs, and see allowUnpricedUsage() for what those would do to it.
+    await post(C("/budgets/policies"), {
+      scopeType: "company", scopeId: companyId, amount: 750_000, unpricedUsagePolicy: "allow", hardStopEnabled: false,
+    }, baseUrl);
   });
 
   // ── 3. Company skills ───────────────────────────────────────────────────────
@@ -334,6 +391,8 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     }
   }
 
+  await step("allow unpriced usage (org agents)", () => allowUnpricedUsage(companyId));
+
   const managerAgentId = agents.Ada?.id ?? null;
   const workerAgentId = agents.Bob?.id ?? null;
   const agentList = Object.values(agents);
@@ -417,13 +476,26 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
       workspaceId = existingWs.id;
       console.log(`[seed] reusing workspace "main" (${workspaceId})`);
     } else {
+      // A real checkout. Since v2026.1106.0 a selected project workspace whose
+      // path is missing fails the run with workspace_validation_failed, so a
+      // made-up cwd leaves every Website task run red. capture.mjs masks the path.
+      const websiteDir = resolvePath(os.tmpdir(), "paperclip-docs-shots-website");
+      await step("create workspace checkout", () => {
+        rmSync(websiteDir, { recursive: true, force: true });
+        mkdirSync(websiteDir, { recursive: true });
+        writeFileSync(resolvePath(websiteDir, "README.md"), "# Acme Website\n\nMarketing site and customer portal.\n");
+        const git = (...args) => execFileSync("git", args, { cwd: websiteDir, stdio: "ignore" });
+        git("init", "-q");
+        git("add", "-A");
+        git("-c", "user.email=demo@acme.example", "-c", "user.name=Acme Demo", "commit", "-q", "-m", "Initial commit");
+      });
       const created = await step("create workspace", () =>
         post(
           `/api/projects/${projectId}/workspaces`,
           {
             name: "main",
             sourceType: "git_repo",
-            cwd: "/srv/acme/website",
+            cwd: websiteDir,
             repoUrl: "https://github.com/acme-robotics/website",
           },
           baseUrl,
@@ -867,8 +939,9 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
       icon: "terminal",
       adapterType: "claude_local",
       adapterConfig: {
+        // No maxTurnsPerRun: claude_local defaults to Paperclip Runner since
+        // v2026.1106.0, which rejects it with a 422 ("cannot honor these settings").
         model: "claude-sonnet-5-5",
-        maxTurnsPerRun: 80,
         timeoutSec: 1800,
         dangerouslySkipPermissions: true,
         env: { GITHUB_TOKEN: { type: "user_secret_ref", key: "GITHUB_TOKEN" } },
@@ -929,6 +1002,13 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
       console.log(`[seed] ${spec.adapterType} agent → ${agent.id}`);
     });
   }
+
+  // New agents on these adapters stay paused in lifecycle state "verifying" until
+  // a live provider check passes, which the isolated instance cannot do, and the
+  // failed check puts a red "Agent verification failed" banner on the agent's
+  // pages. Resume answers "Cannot resume an agent in state verifying". Their timer
+  // heartbeats are off, so mark them ready.
+  await step("mark adapter demo agents ready", () => markAdapterAgentsReady(companyId));
 
   // 14d. A company skill id (for the skill-detail / assign-to-agent shots).
   let skillId = null;
@@ -1236,6 +1316,7 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
   // run's kickoff — that is what draws a bar blue ("Delegated") with the
   // kicker's chip. The remaining near-instant runs from seeding are moved three
   // days back so the "Today" range is not a column of slivers.
+  const timelineKicks = [];
   if (!companyExisted) {
     await step("re-time runs for the work timeline", async () => {
       const sql = openInstanceDb();
@@ -1276,10 +1357,12 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
             update issues set created_at = ${new Date(startedAt.getTime() - 2 * 60_000)}
             where id = ${run.issue_id} and created_at > ${startedAt}`;
           const kickerId = kicker ? agents[kicker]?.id : null;
+          // Not written here: since v2026.1106.0 the Tasks and project lists hide
+          // agent-created tasks by default, so these would vanish from every list
+          // shot. capture.mjs applies them only around the `timelineKickers` targets.
           if (kickerId) {
-            await sql`
-              update issues set created_by_agent_id = ${kickerId}, created_by_user_id = null
-              where id = ${run.issue_id}`;
+            const [issue] = await sql`select created_by_user_id from issues where id = ${run.issue_id}`;
+            timelineKicks.push({ issueId: run.issue_id, agentId: kickerId, userId: issue?.created_by_user_id ?? null });
           }
           // Other runs on the same issue would sit closer to the moved kickoff
           // edge than this one; push them out of the window with the rest.
@@ -1388,7 +1471,7 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     await step("project budget", async () => {
       if (!projectId) return;
       await post(C("/budgets/policies"), {
-        scopeType: "project", scopeId: projectId, amount: 50_000, windowKind: "lifetime",
+        scopeType: "project", scopeId: projectId, amount: 50_000, windowKind: "lifetime", unpricedUsagePolicy: "allow", hardStopEnabled: false,
       }, baseUrl);
       await post(C("/cost-events"), {
         agentId: agents.Cleo?.id ?? workerAgentId, projectId, provider: "anthropic", model: "claude-sonnet-5-5",
@@ -1429,6 +1512,35 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     });
   }
 
+  // "Set up CI/CD pipeline" is created as done, which cancels the run its
+  // assignment queued, and that run is Bob's latest: agents/dashboard opened on
+  // "cancelled". Record it as a finished run, days back so no sliver lands on the
+  // Today range of the Work Timeline (its handoff hover picks a bar by position).
+  await step("settle cancelled seed run", async () => {
+    const sql = openInstanceDb();
+    try {
+      await sql`
+        update heartbeat_runs set status = 'succeeded', error = null, error_code = null,
+          created_at = created_at - interval '3 days',
+          started_at = coalesce(started_at, created_at) - interval '3 days',
+          finished_at = coalesce(finished_at, created_at) - interval '3 days'
+        where company_id = ${companyId} and error_code = 'issue_terminal_status'`;
+    } finally {
+      await sql.end().catch(() => {});
+    }
+  });
+
+  // Again: a verification still in flight at 14c-bis can have finished since.
+  await step("mark adapter demo agents ready (final)", () => markAdapterAgentsReady(companyId));
+  await step("prune unpriced demo usage", async () => {
+    const sql = openInstanceDb();
+    try {
+      await pruneUnpricedDemoUsage(sql);
+    } finally {
+      await sql.end().catch(() => {});
+    }
+  });
+
   // ── 15. Persist ids ─────────────────────────────────────────────────────────
   const ids = {
     companyPrefix,
@@ -1452,6 +1564,7 @@ export default async function seed({ baseUrl = BASE_URL } = {}) {
     runnerAgentId,
     runnerRunId,
     longRunnerAgentId,
+    timelineKicks,
     ...budgetIds,
     ...approvalIds,
     ...newSurfaceIds,

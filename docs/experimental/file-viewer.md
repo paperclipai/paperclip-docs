@@ -10,7 +10,7 @@ When an agent works on a task, the interesting output often isn't the comment th
 
 The Experimental File Viewer fixes that. It adds controls to every task detail page for **browsing and previewing the task's workspace files right in the browser** — search the tree, open a file, read rendered Markdown, view images and video, copy contents, download, and share deep links to an exact file and line.
 
-![Browsing workspace files from a task](../user-guides/screenshots/light/experimental/file-viewer-browse.png)
+![A workspace file open in a task's side panel](../user-guides/screenshots/light/experimental/file-viewer-browse.png)
 
 ## Turn it on
 

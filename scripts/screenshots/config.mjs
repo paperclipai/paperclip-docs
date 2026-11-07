@@ -136,6 +136,11 @@ export function instanceEnv(home) {
     DATABASE_URL: "",
     DATABASE_MIGRATION_URL: "",
     SERVE_UI: "true",
+    // The scheduler tick runs the stalled-work recovery sweep. Demo `process` runs
+    // never record a disposition, so each tick re-wakes tasks, which fails or
+    // re-blocks them and fills the activity feeds with recovery rows. Demo agents
+    // have no timer heartbeats to miss, so tick far less often than a run lasts.
+    HEARTBEAT_SCHEDULER_INTERVAL_MS: "14400000",
     // The server resolves its config by walking UP from cwd for a
     // `.paperclip/config.json` (see server/src/paths.ts) BEFORE honoring
     // PAPERCLIP_HOME. Since onboard runs with cwd = PARENT_REPO, a developer's
