@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Cases and Agent Handoffs
 seo_description: Keep a long-running piece of work on one task while agents pass it along phase by phase, and follow every handoff from the read-only Cases pages.
 ---

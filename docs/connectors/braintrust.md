@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Braintrust Connector
 seo_description: Let agents explore Braintrust traces, datasets, and evaluations. Pick the US or EU region, sign in or paste a key, and gate dataset edits and automations.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents explore Braintrust traces, datasets, and evaluations
 
 You can let agents work with your AI evaluation data in Braintrust: query traces with SQL, inspect experiments, manage datasets and scorers, and run evaluations. It is useful when a task needs to check how a model or prompt is actually behaving, not just how it was meant to behave.
 
-> **Nightly draft:** This guide covers the current master implementation. Braintrust appears in the catalog on every instance; no experimental setting is needed.
+Braintrust appears in the catalog on every instance; no experimental setting is needed.
 
 The connection uses Braintrust's hosted MCP server. Every method is read and write: agents can change data and start billable work as well as read.
 

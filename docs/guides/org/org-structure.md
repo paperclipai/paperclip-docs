@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Building Your Org Structure
 seo_description: Reporting lines tell each agent who manages them, who delegates work, and who to escalate to. Common structures, plus adding managers and workers.
 ---
@@ -146,7 +146,7 @@ The card itself surfaces everything you usually need at a glance:
 - The **adapter type** in a small mono font — useful when auditing which adapters your org relies on.
 - A **capabilities** snippet: the first couple of lines of the agent's capabilities description.
 
-The filter tabs above the chart (**All**, **Active**, **Paused**, **Error**, plus **Built-in** when the experimental **Built-in Agents** setting is on) work here too, so you can see just the paused part of your org, for example. To share or clone an org, use **Export** and **Import** in company settings — see [Export & import](../power/export-import.md).
+The **Search agents…** box works here too: the chart narrows to the agents that match, plus the managers above them. There are no status tabs, and the **Harness** filter is only in the list view. If nothing matches, the chart still says *"No agents match your search and selected status."*, even though there's no status to select any more. If there's nothing to chart at all, it says *"No organizational hierarchy defined."* To share or clone an org, use **Export** and **Import** in company settings — see [Export & import](../power/export-import.md).
 
 ![Interactive org chart showing the CEO at the top with managers and workers connected by reporting lines](../../user-guides/screenshots/light/org/chart.png)
 
@@ -176,7 +176,7 @@ You can reassign any agent to a different manager without leaving the chart. The
 A few guardrails apply:
 
 - You cannot assign an agent to a manager that reports to it (no cycles).
-- You cannot remove the CEO's own reporting line — the CEO always reports to the board.
+- A CEO starts with no manager, which means it reports to the board.
 - Reassigning a manager with reports moves the whole subtree under the new parent; the reports themselves keep their own reporting lines.
 
 > **Tip:** If you are doing a bigger reorg (swapping teams between two managers, for example), open the Agents page's org chart view in one browser tab and the agent's Harness / Runtime page in another. The chart refreshes automatically when you save, so you can use it as a live preview of the new structure.
@@ -190,7 +190,7 @@ The lines between cards are not just decorative — they encode the company's de
 - Every line points from a **manager** (top) to a **direct report** (bottom). The direction of the line mirrors how work and escalations travel: delegation flows down, status and blockers flow up.
 - **Multiple children** share a horizontal connector below the manager card so you can see the span of control at each level.
 - **Separate subtrees** mean separate reporting lines. If you ever end up with more than one root, it usually means an agent lost its manager (for example, after a termination) — fix it on the agent's **Harness / Runtime** page by setting **Reports to** again.
-- **Terminated agents** don't appear on the chart. If a terminated agent had reports, they move up and show directly under the next visible manager — a cue to give them a new **Reports to**.
+- **Terminated agents** don't appear on the chart. If a terminated agent had reports, they show as their own separate roots at the top of the chart — a cue to give them a new **Reports to**.
 
 Because the chart is the single source of truth for reporting structure, it is the fastest way to spot structural issues: a manager with far too many reports, a worker orphaned without a manager, or an adapter concentration risk where too much of the org runs on the same adapter.
 

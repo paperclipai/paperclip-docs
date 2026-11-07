@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.1106.0
 seo_title: Attention API
 seo_description: Read the board's ranked decision queue — the feed behind the Decisions screen, covering approvals, agent questions, and blocked work in one call.
 ---
@@ -50,7 +50,7 @@ The response is an `AttentionFeed` with these top-level fields:
 | `companyId` | The company that owns the feed. |
 | `generatedAt` | When Paperclip generated this view. |
 | `totalCount` | The number of items in the whole filtered feed, before paging. |
-| `decideNowCount` | How many of those are due today, by their decide-by deadline. This is the number behind the sidebar badge. |
+| `deskBadgeCount` | How many of those either surfaced today or have a decide-by deadline that's due today or already past. This is the number behind the sidebar badge. |
 | `nextCursor` | Pass this back as `cursor` for the next page, or `null` when you have reached the end. |
 | `countsBySourceKind` | Counts grouped by each attention source. |
 | `items` | The ranked `AttentionItem` records for this page. |

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Cognee Cloud Memory Connector
 seo_description: Connect an active Cognee Cloud workspace with its tenant URL and API key, then choose how agents recall, save, or forget memory through Paperclip.
 ---

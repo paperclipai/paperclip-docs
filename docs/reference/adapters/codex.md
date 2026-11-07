@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Codex Adapter
 seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding agent, with persistent session state and a managed CODEX_HOME per agent.
 ---
@@ -50,6 +50,20 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 | `workspaceRuntime` | no | Reserved workspace runtime metadata. |
 
 > **Note:** Codex sends the prompt through stdin and uses `codex exec --json`. The adapter's environment test checks both the command and the auth path before you try to run a real heartbeat.
+
+### Service secrets in shell commands
+
+Say your agent needs to post to Slack from a script. Codex normally hides any variable whose name contains `KEY`, `SECRET`, or `TOKEN` from the shell commands it runs, but a credential you deliberately assign, such as a `SLACK_BOT_TOKEN` secret ref in `env`, does reach them.
+
+On the `codex_local` adapter, a variable you set in the agent's `env` reaches Codex's shell commands by name, even when its name contains one of those words. This works the same on the ACP and CLI engines. A few things stay out regardless:
+
+- **Codex's own login keys** (`OPENAI_API_KEY` and `CODEX_API_KEY`), plus managed provider keys, observability credentials, and Paperclip's own `PAPERCLIP_GITHUB_*`, `PAPERCLIP_RUNNER_*`, `PAPERCLIP_NATIVE_*`, and `PAPERCLIP_ACPX_*` secrets, even if you set them in `env`.
+- **Host secrets you didn't assign.** Only variables in the agent's own configuration are opted in; nothing is pulled from the Paperclip host's environment.
+- **Names with wildcard characters.** A name has to be a plain environment variable name, so one entry can't match other credentials.
+
+`PAPERCLIP_API_KEY` and the agent's identity variables are delivered as before. Remove a variable from `env` and the shell loses access to it at the next launch.
+
+> **Warning:** Assigning a credential this way gives the run's shell commands real access to it, and a command the model chooses to run can read it. Only assign credentials the agent is meant to use, with no more service permissions than it needs.
 
 ---
 

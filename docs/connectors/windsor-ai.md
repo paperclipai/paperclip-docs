@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Windsor.ai Marketing Data Connector
 seo_description: Let agents query marketing, analytics, CRM, and warehouse data through Windsor.ai, and hold back any action that changes campaigns, budgets, or posts.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents query marketing, analytics, CRM, and warehouse data 
 
 Agents can query the data you connected in Windsor.ai — advertising, analytics, CRM, and warehouse sources — through one connection. It is a fast way to answer "how did last week's campaigns do?" without a connector for each ad platform.
 
-> **Nightly draft:** This guide covers the current master implementation. Windsor.ai appears in the catalog on every instance; no experimental setting is needed.
+Windsor.ai appears in the catalog on every instance; no experimental setting is needed.
 
 > **Warning:** Windsor.ai's server also exposes write actions on some connected ad and commerce platforms: campaigns, budgets, posts, and listings. Connecting a data source in Windsor.ai does not mean an agent should change it. Keep those actions **Off** or **Ask first**.
 

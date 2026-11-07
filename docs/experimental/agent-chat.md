@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Agent Chat (Experimental)
 seo_description: Keep one ongoing conversation with each agent, talk a goal through, and let the agent hand the real work off to tasks and report back when they're done.
 ---

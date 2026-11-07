@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Firecrawl Web Scraping Connector
 seo_description: Let agents search, scrape, and parse public web pages with Firecrawl. Keyless, sign-in, and API key methods compared, credit-using jobs, a test, and fixes.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents search, scrape, and parse public web pages with Fire
 
 Agents can search the web, scrape a page into clean text, and parse documents through Firecrawl. With an account connected, they can also run larger crawl and research jobs.
 
-> **Nightly draft:** This guide covers the current master implementation. Firecrawl appears in the catalog on every instance; no experimental setting is needed.
+Firecrawl appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 

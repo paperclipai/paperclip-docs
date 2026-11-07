@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Claude Code Adapter
 seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with session persistence, skills injection, and configuration managed from your agent.
 ---
@@ -48,6 +48,10 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 | `workspaceRuntime` | no | Reserved workspace runtime metadata. |
 
 > **Note:** Claude Code is a headless adapter. The environment test is more important here than in a normal CLI session because Paperclip needs to know the command, path, auth mode, and model all work together.
+
+### OpenRouter requests
+
+When `ANTHROPIC_BASE_URL`, from the agent's environment or the server's, points at OpenRouter, Paperclip keeps your `ANTHROPIC_CUSTOM_HEADERS` and adds its own app attribution headers (`HTTP-Referer`, `X-Title`, `X-OpenRouter-Title`, and `X-OpenRouter-Categories`). Your authentication and routing headers stay as they are, but attribution headers with those names are replaced.
 
 ---
 
@@ -142,6 +146,8 @@ Discovered models are cached for about a minute (keyed to the API key and base U
 > - Claude Fable 5.1 (`claude-fable-5-1`, or `us.anthropic.claude-fable-5-1` on Bedrock) needs Claude Code `2.1.251` or newer.
 >
 > If the installed CLI is older, the environment test and the run both fail fast with `claude_cli_version_incompatible` instead of launching against an unsupported binary — upgrade Claude Code on the target host to use the model.
+>
+> In a sandbox environment there's usually nothing for you to upgrade. When the sandbox's default `claude` command is too old for the selected model, Paperclip installs the exact minimum version into a private folder in the workspace (`.paperclip-runtime/claude-cli/<version>`), verifies it, and uses it for both the environment test and normal runs, reusing it next time. The image's own CLI, your model, your account, and your engine stay as they are. If the install or the version check fails, you still get `claude_cli_version_incompatible`. Local and SSH targets and custom `command` values stay yours to upgrade.
 
 ---
 
@@ -195,7 +201,7 @@ The UI's `Test Environment` button validates Claude Code before the adapter is s
 - Auth is configured through `ANTHROPIC_API_KEY`, Bedrock settings, or Claude subscription login.
 - The hello probe can run `claude --print - --output-format stream-json --verbose` with the prompt `Respond with hello.`
 
-If the test fails, fix the command, path, or auth signal before trying again.
+If the test fails, fix the command, path, or auth signal before trying again. On Paperclip Cloud, onboarding doesn't show shell commands you couldn't run: it keeps the check results and asks you to try connecting again.
 
 ---
 

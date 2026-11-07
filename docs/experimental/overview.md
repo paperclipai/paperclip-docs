@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Experimental Features
 seo_description: Real, working features shipped behind opt-in flags while they are evaluated against live usage. What lives here, and what turning one on commits you to.
 ---
@@ -62,9 +62,10 @@ The tables follow the page's own sections and order. Where a feature has a page 
 | Feature | What it adds |
 | --- | --- |
 | [Agent Chat](agent-chat.md) | One ongoing conversation per agent. **Chat** leads the **Work** group; agents clarify your goal, hand real work off to tasks, and report back when those tasks are done. |
+| [Artifacts V1](../guides/day-to-day/artifacts.md#the-artifacts-v1-presentation-experimental) | Off by default. A new presentation for artifacts: paper stacks and tiles on the **Artifacts** page, compact rows in a task's **Artifacts** tab, and grouped rows in the task thread. Presentation only; turning it off restores the current cards. |
 | [Assistant connections (MCP)](assistant-connections.md) | Connect an external assistant as your user through OAuth, with separate read, write, and configuration scopes. |
 | Beta skills | Lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill without removing saved pins. |
-| [Built-in Agents](../reference/api/built-in-agents.md) | Paperclip-managed built-in agent surfaces: roster badges, the **Built-in agents** tab, and setup controls. |
+| [Built-in Agents](../reference/api/built-in-agents.md) | Paperclip-managed built-in agent surfaces: roster badges and setup controls. |
 | [Cases](cases.md) | Durable work products that tasks create and iterate on, with one primary task that agents hand off phase by phase. Adds the **Cases** tab and the agent case API ([API reference](../reference/api/cases.md)). |
 | [Chat connectors](../connectors.md#chat-channels-experimental) | Connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations. Existing chat connections keep running when it's off. |
 | [Combined Inbox + Task List](task-chat.md#an-optional-combined-task-list) | Reach inbox and task views from one **Tasks** navigation entry. |
@@ -80,7 +81,7 @@ The tables follow the page's own sections and order. Where a feature has a page 
 | [Memory connectors](../connectors/memory-connectors.md) | Set up Mem0, Zep, Supermemory, Cognee, or Honcho for agents. Existing connections keep running when setup is hidden. |
 | [Muse — Personal agent](external-agents.md) | Connect your personal Meta Muse and verify a background reply before assigning tasks. Needs Paperclip Runner and an authenticated instance with a public HTTPS URL. |
 | [OpenAI Dot](external-agents.md) | Adds OpenAI Dot as a standalone agent choice. Needs Assistant connections (MCP) and an authenticated instance with a public HTTPS URL. |
-| [Paperclip Runner](../reference/adapters/paperclip-runner.md) | Native agent execution, on by default for self-hosted instances and off by default on Cloud. The switch controls the Runner's other providers (Muse and Grok Bot need it, for example). New Codex and Claude Code agents resolve to the Runner on supported macOS and Linux hosts even when it's off, unless you pick **Legacy runner** as the runner override. First-run setup offers qualified GitHub Copilot, and Copilot agents keep running when the switch is off; turning it off only hides the **Paperclip Runner** choice. See [GitHub Copilot](../connectors/github-copilot.md) and [Experimental external providers](../reference/adapters/paperclip-runner.md#experimental-external-providers). |
+| [Paperclip Runner](../reference/adapters/paperclip-runner.md) | Native agent execution, on by default for self-hosted instances and off by default on Cloud. The switch controls the Runner's other providers (Muse and Grok Bot need it, for example). New Codex, Claude Code, OpenCode, and Pi agents resolve to the Runner on supported macOS and Linux hosts even when it's off (OpenCode and Pi stay on the Legacy runner on Linux ARM64), unless you pick **Legacy runner** as the runner override. First-run setup offers qualified GitHub Copilot, and Copilot agents keep running when the switch is off; turning it off only hides the **Paperclip Runner** choice. See [GitHub Copilot](../connectors/github-copilot.md) and [Experimental external providers](../reference/adapters/paperclip-runner.md#experimental-external-providers). |
 | [Simplified English Interactions](../reference/skills/optional/content/simplified-english.md) | Agents write confirmations, questions, and suggested tasks in ASD-STE100 Simplified Technical English. |
 | [Status Cards](status-cards.md) | A shared board of living summaries, kept current by the Summarizer. Enabling it also enables Summaries. |
 | Streamlined UI | **On by default.** The simplified sidebar, focused task detail layout, and contextual navigation. Turning it off restores the legacy shell and navigation. |

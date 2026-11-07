@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Blocked Inbox: Triaging Stalled Work
 seo_description: The Blocked tab surfaces issues waiting on a decision, a recovery run, an external person, or a paused owner — and shows who owns each unblock.
 ---
@@ -105,7 +105,7 @@ So if you have long-stalled rows in the Blocked tab with no owner to show, that'
 The Blocked tab reuses the same filter and search machinery as the rest of the Issues UI, so anything you've learned about the [Issues page](./issues.md) carries over.
 
 - **Search** — the toolbar search input matches against issue title, identifier, owner label, action label and detail, reason label, and any linked leaf or recovery issue. If nothing matches, you'll see *"No stopped items match your search."*
-- **Filters popover** — narrow by assignee, creator, project, labels, routine visibility, and (when isolated workspaces are enabled) workspace.
+- **Filters popover** — narrow by assignee, creator, project, labels, routine visibility, and (when isolated workspaces are enabled) workspace. Agent-created tasks stay out of this tab until you tick **show agent-created tasks**.
 - **Column picker** — the trailing columns (status, identifier, updated time) can be toggled the same way as elsewhere.
 
 ---

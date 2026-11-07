@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Bitly Connector
 seo_description: Let agents read Bitly links, QR codes, and click analytics, while keeping link deletion, Sites publishing, and custom-domain changes switched off.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents read Bitly links, QR codes, and click analytics, whi
 
 Agents can work with your Bitly account — looking up short links and QR codes, reading click analytics, and, where you allow it, creating and managing links.
 
-> **Nightly draft:** This guide covers the current master implementation. Bitly is back in the catalog on every instance; no experimental setting is needed.
+Bitly is back in the catalog on every instance; no experimental setting is needed.
 
 > **Warning:** Bitly's tool list includes permanent short-link deletion, Bitly Sites publishing and deletion, and custom-domain changes. A deleted short link stops redirecting everyone who has it. Keep write and destructive actions **Off** until you need one.
 

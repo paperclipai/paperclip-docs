@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Parallel Search Connector
 seo_description: Give agents keyless public web search and page reading through Parallel Search. No account needed, what the two actions do, and a quick test to run first.
 ---
@@ -7,7 +8,7 @@ seo_description: Give agents keyless public web search and page reading through 
 
 Agents can search the public web and pull the text of source pages through Parallel Search. It needs no account, so it is a quick way to give an agent up-to-date information from outside your company.
 
-> **Nightly draft:** This guide covers the current master implementation. Parallel Search appears in the catalog on every instance; no experimental setting is needed.
+Parallel Search appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 

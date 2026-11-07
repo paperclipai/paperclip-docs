@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Ditto Connector
 seo_description: Let agents search approved product copy in Ditto, follow your style guide, and edit or translate text. Set deletes and link actions to Ask first.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents search approved product copy in Ditto, follow your s
 
 You can let agents work with your product copy in Ditto: search approved text, check new wording against your style guide, and create, edit, and translate text, components, and variants. It is useful when a task writes UI text and should reuse what your team already approved instead of inventing new strings.
 
-> **Nightly draft:** This guide covers the current master implementation. Ditto appears in the catalog on every instance; no experimental setting is needed.
+Ditto appears in the catalog on every instance; no experimental setting is needed.
 
 The connection uses Ditto's hosted MCP server. Every method is read and write, and Ditto's tools include permanent deletes.
 

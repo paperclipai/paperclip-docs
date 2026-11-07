@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Zep Memory Connector
 seo_description: Connect Zep Memory MCP with your work identity, choose agent access, and use personal memory or shared graphs authorized by your Zep administrator.
 ---

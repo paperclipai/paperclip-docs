@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Environments: Remote Execution Targets
 seo_description: Run agents somewhere other than the Paperclip host. Define named targets over SSH or a provider sandbox, and assign them per instance, project, or agent.
 ---

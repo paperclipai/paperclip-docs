@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Hire Your First Agent
 seo_description: An agent is a role, an AI system, a budget, and a set of wake-up rules. Choose each when hiring, plus fixes for the snags that trip people up.
 ---

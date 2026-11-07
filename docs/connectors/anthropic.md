@@ -1,12 +1,12 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Anthropic Connector
 seo_description: Give agents Claude model access with a subscription or an Anthropic API key. Runtime requirements, credential assignment, a test run, and fixes.
 ---
 
 # Anthropic
 
-An Anthropic connection gives agents the credential they use to run Claude models. It is model access, not a set of tools — there are no actions to permit and nothing appears on a **Permissions** tab.
+An Anthropic connection gives agents the credential they use to run Claude models. It is model access, not a set of tools — there are no actions to permit. Instead of an action list, the saved connection's **Permissions** tab holds its account controls, such as **Make default**.
 
 Two ways to authenticate: a Claude subscription, or an Anthropic API key.
 

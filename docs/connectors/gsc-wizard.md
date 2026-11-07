@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: GSC Wizard Search Console Connector
 seo_description: Let agents read Google Search Console, Bing Webmaster, and analytics data through GSC Wizard, and keep URL submission actions behind your review.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents read Google Search Console, Bing Webmaster, and anal
 
 Agents can read search performance for your sites through GSC Wizard — Google Search Console, Bing Webmaster, and analytics data for the properties you connected there. It suits SEO tasks like "which pages lost clicks this week?"
 
-> **Nightly draft:** This guide covers the current master implementation. GSC Wizard appears in the catalog on every instance; no experimental setting is needed.
+GSC Wizard appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 

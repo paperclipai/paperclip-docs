@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Daytona Sandbox Connector
 seo_description: Let agents manage your Daytona account's sandboxes, files, commands, Git, snapshots, and volumes with an organization API key and per-action controls.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents manage your Daytona account's sandboxes, files, comm
 
 Agents can manage resources in your own Daytona account — creating and stopping sandboxes, reading and writing files, running commands, working with Git, and handling snapshots and volumes.
 
-> **Nightly draft:** This guide covers the current master implementation. Daytona appears in the catalog on every instance; no experimental setting is needed. It has not yet been qualified against a live Daytona account.
+Daytona appears in the catalog on every instance; no experimental setting is needed. It has not yet been qualified against a live Daytona account.
 
 > **Note:** This is not the Daytona sandbox provider. Paperclip can also *run agents* inside Daytona sandboxes; that is configured separately, with its own credential, and is covered in [Sandbox providers](../reference/adapters/sandbox-providers.md). This connector is a tool: it lets agents work with your Daytona account the way you would from its dashboard or API. The two never share a credential.
 

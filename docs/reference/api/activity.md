@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Activity API
 seo_description: Paperclip's audit trail: what changed, who changed it, which object, and when. Two reads of the same underlying log, for auditing and for debugging.
 ---

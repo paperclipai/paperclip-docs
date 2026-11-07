@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Issues API
 seo_description: The core work objects: hierarchy, blockers, approvals, agent checkout, comments, and keyed extensions. Endpoints for creating, reading, and moving issues.
 ---
@@ -322,6 +322,8 @@ Behavior to know:
 - `hiddenAt` hides or unhides the issue from list responses.
 - `visibility` switches the issue between `open` and `private`. An agent that can update the task may make it `private`; any other change needs someone who can manage the task's privacy (see [Privacy and access grants](#privacy-and-access-grants)). Making a task public fails with `422` while it inherits privacy from a parent or a shared private project (`A task cannot be made public while it inherits private access`, `Move this task out of its private project before making it public`). In a personal private project, making the task public moves it out of that project instead. Existing private children stay private.
 - `expectedExecutionPolicy` is an optional snapshot of the `executionPolicy` you last read. When you send it, the update must change only `executionPolicy` (otherwise `422`, `expectedExecutionPolicy requires a policy-only update`), and the server rejects it with `409` and code `execution_policy_changed` if the stored policy changed since. The board uses this when you cancel a monitor from its card.
+- `expectedStatusVersion` guards promoting a prepared task from `backlog` to `todo`. Send only `status: "todo"` and the `statusVersion` you last read; anything else returns `422` (`expectedStatusVersion requires a status-only backlog-to-todo promotion`). If the task's status or assignment changed, or it's no longer in `backlog`, the server returns `409` with code `issue_status_version_changed`.
+- A `PATCH` that replaces `executionPolicy` and sets `status: "done"` during a live review cycle (pending, or changes requested) returns `422` with code `unexecuted_review_stage`. Resolve the review first. Any other status keeps the normal behavior of clearing the cycle.
 
 ### Blocking Links
 
@@ -1282,6 +1284,27 @@ POST /api/issues/{issueId}/interactions/{interactionId}/respond
 
 After a terminal action, the interaction is sealed — further responses are rejected.
 
+### Set a card aside: dismiss
+
+When you don't want to answer a card right now but don't want it nagging you either, a person can **dismiss** it. This is what the task conversation calls when you close a request's form above the composer.
+
+```
+POST /api/issues/{issueId}/interactions/{interactionId}/dismiss
+```
+
+There's no request body. Dismissal only changes attention state; the card is not resolved:
+
+- `status` stays `pending`, and `result` and `resolvedAt` stay empty. Nothing is answered, accepted, or rejected, and the assignee is not woken.
+- `dismissedAt` and `dismissedByUserId` are set on the interaction, which is returned in the response.
+- The card drops out of the composer's pending reminders, and the agent is told the request is deferred so it doesn't repeat it. An ordinary dismissed card no longer holds up completion. When the task completes, a dismissed card that isn't a question expires.
+- Dismissal never counts as approval. Requests that gate a tool action, a secret, a connection, or a plan document keep their gate until someone actually decides them, and so do requests whose resolver was set by company or review policy.
+
+The call is idempotent: dismissing a card that's already dismissed, or no longer `pending`, returns it unchanged.
+
+Who may dismiss a card: a signed-in board user who can read the issue and who is in the card's resolver audience. For confirmation cards on an issue that's `in_review`, the issue's current review policy is checked too. Agent callers get `403` (`Board access required`), and a board caller with no user gets `403` (`Only a human can dismiss a request`).
+
+Dismissal is written to the audit trail as `issue.thread_interaction_dismissed`, with the interaction id and kind attached.
+
 ### Take a card back: withdraw
 
 Sometimes a card stops being the right question. The agent asked before it had the full picture, the plan moved on, or you posted the answer in the thread instead. Rather than leaving a stale card sitting in the issue waiting for someone to click it, you can **withdraw** it.
@@ -1649,7 +1672,7 @@ POST /api/issues/{issueId}/file-resources/availability
 
 Before offering to open a workspace file an agent referenced on an issue, the UI checks whether that file can actually be opened right now. This endpoint answers that question for a batch of paths in one call, returning an availability outcome per path (openable, denied, or unavailable) rather than the file contents.
 
-The caller must be on the board or an agent with access to the issue's company. The request carries the file paths to check, and the number of paths per request is capped — oversized requests are rejected. The endpoint is rate-limited per company, actor, and issue, so a burst of checks backs off rather than hammering the workspace.
+This route is board-only, so an agent gets `403` with `Board access required`. The request carries the file paths to check, and the number of paths per request is capped — oversized requests are rejected. The endpoint is rate-limited per company, actor, and issue, so a burst of checks backs off rather than hammering the workspace.
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Sandbox Providers
 seo_description: Provider plugins that let Paperclip provision external compute as the execution environment for agent runs, instead of running them on the host.
 ---
@@ -253,7 +253,7 @@ For the default `sandbox-cr` backend:
 2. The [`kubernetes-sigs/agent-sandbox`](https://github.com/kubernetes-sigs/agent-sandbox) controller installed in the cluster. It's alpha and installs the `sandboxes.agents.x-k8s.io/v1alpha1` CRD plus its controller:
 
    ```bash
-   kubectl apply -f https://github.com/kubernetes-sigs/agent-sandbox/releases/latest/download/install.yaml
+   kubectl apply -f https://github.com/kubernetes-sigs/agent-sandbox/releases/latest/download/sandbox.yaml
    ```
 
 3. Paperclip-server with access to the cluster — either in-cluster (`inCluster: true`) or external via a `kubeconfig`.

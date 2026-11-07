@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Slack Connector
 seo_description: Connect a Slack bot so people can work with an agent from Slack: guided setup, account linking, Slack tools, approvals, scheduled messages, and fixes.
 ---
@@ -112,10 +112,6 @@ Paperclip acknowledges with a reaction so people can see a message was picked up
 
 If you stop the agent's run from the Slack thread, the current response ends. Your next message in the thread starts a fresh turn on the same task.
 
-**Require at-mention** is on for new Slack connections. It keeps ordinary chatter from starting agent work: the agent only responds to messages that @mention it, including replies in a thread it's already in. The setting applies to direct messages as well as channels. Turn it off in **Settings** if you want any reply in a followed thread to reach the agent. Connections made before this setting existed keep their previous behavior.
-
-If you stop the agent's run from the Slack thread, the current response ends. Your next message in the thread starts a fresh turn on the same task.
-
 **Idle** means the agent answered and is waiting for the next message. It is not a request for review, so an answered Slack thread does not clutter your review queue or active work counts. You can still find it under the connection's **Conversations** tab, in search, and in recent tasks. A new message in the thread, or one you send from Paperclip, picks the task straight back up. If delivery failed, a decision is pending, or more work is queued, the task stays active instead.
 
 ### Reply from Paperclip
@@ -154,6 +150,8 @@ The connection's page has **Settings**, **Access**, **Conversations**, and **Act
 - **Send me a test message** checks the bot from Paperclip. It sends a DM to your linked Slack account. If your account isn't linked yet, pick it from the list and Paperclip sends you a connection invitation in Slack first; open it to link your account, and the test message follows.
 - **Settings** lists **Allowed Channels** (every channel the bot is in), the **Allow direct messages** and **Require at-mention** toggles, **Additional communication instructions**, and the **Slack tools** summary.
 - **Access** holds linked people, **Invite people**, and two optional sections: **Guest access** and **Personal Slack search**.
+
+**Task defaults**, also on **Settings**, chooses the **Project** and **Workspace** for new conversations. Existing tasks keep their files and project. Paperclip checks project and workspace access for each task, and a shared folder must also be allowed by the agent's execution policy.
 
 **Allowed Channels** controls where the agent replies and writes, not what it can read. To add a channel, invite the bot to it in Slack. Channels you invite the bot to start enabled, and the list refreshes by itself while you have it open. If you switch one off, it stays off until someone turns it back on in Paperclip; a new mention or invitation does not re-enable it.
 

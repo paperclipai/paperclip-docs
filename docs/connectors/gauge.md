@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Gauge AI Visibility Connector
 seo_description: Let agents read Gauge AI visibility, SEO, and traffic data and run content workflows, with publish actions held behind Ask first before any CMS goes live.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents read Gauge AI visibility, SEO, and traffic data and 
 
 Agents can work with your Gauge organization — checking how AI answer engines mention and cite your brand, researching keywords and traffic, and running Gauge's content workflows.
 
-> **Nightly draft:** This guide covers the current master implementation. Gauge appears in the catalog on every instance; no experimental setting is needed.
+Gauge appears in the catalog on every instance; no experimental setting is needed.
 
 > **Warning:** Gauge content tools can publish to the CMS you connected in Gauge, including straight to your live site. Set publish actions to **Ask first** before any agent runs unattended.
 

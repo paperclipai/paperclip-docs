@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1106.0
 seo_title: Set Up the Gmail Connector
 seo_description: Get Google Developer Preview access, connect Gmail with the read, draft, or archive capability group, and restrict which agents can search your mail.
 ---

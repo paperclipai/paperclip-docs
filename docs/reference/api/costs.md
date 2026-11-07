@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Costs API
 seo_description: Company-scoped endpoints for the four spend questions: what was spent, by whom, against which budget, and how close the company is to its cap.
 ---
@@ -164,6 +164,8 @@ The run keeps both numbers. The heartbeat run's `usageJson` carries `costUsd` wh
 
 - `GET /api/companies/{companyId}/heartbeat-runs`
 - `GET /api/heartbeat-runs/{runId}`
+
+The company list returns 200 runs by default. Pass `limit` to ask for more, up to 1,000; larger values are capped. If your client expected every run in one response, add an explicit `limit`.
 
 > **Note:** `cacheAdjustedCostUsd` and `costUsd` are in dollars, while `costCents` on cost events is in cents. Don't mix the two units when you reconcile a run against its ledger entry.
 

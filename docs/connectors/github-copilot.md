@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: GitHub Copilot Agents in Paperclip
 seo_description: Run agents on your GitHub Copilot plan. Save a Copilot token through the GitHub connector, pick a model, and test the runtime before you assign any work.
 ---

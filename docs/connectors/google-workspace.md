@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Google Workspace Connector
 seo_description: Connect Gmail, Drive, and Calendar with one Google account, choose read-only or read and write per service, and see what agents can do with each.
 ---
@@ -108,6 +109,7 @@ Expect your next event, which you can confirm in Google Calendar. This checks th
 | --- | --- | --- |
 | Google refuses before the consent screen | Developer Preview registration is incomplete for the account or Cloud project | Finish registration and retry |
 | The Paperclip-managed sign-in is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not offering the Google Workspace profile | Use your own Google OAuth app, or ask an administrator about enrollment |
+| A new Paperclip-managed Google Workspace sign-in is rejected | New Google Workspace requests rely on an updated Paperclip-hosted OAuth broker, and an older broker may reject them | Try again later, or use your own Google OAuth app. Existing single-service Google connections keep working |
 | **Continue** is greyed out in the picker | Every service is switched off | Switch on at least one service |
 | A whole service's actions are missing | The service was switched off in the picker, or you declined its permissions at Google | Select **Reconnect** and pick it again |
 | Read actions work but write actions are missing | The service is on **Read only** | Reconnect with **Read & write** and approve the new permissions at Google |

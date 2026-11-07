@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1106.0
 seo_title: Gmail Connector
 seo_description: Let agents search and read Gmail, and optionally draft replies or archive threads. Sending is not reachable. Setup choices, scope, a test, and fixes.
 ---

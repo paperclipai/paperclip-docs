@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Paperclip Connectors
 seo_description: Every service Paperclip can connect, grouped by what it is for, with the access model, action permissions, and a setup guide behind each one.
 ---
@@ -8,7 +8,7 @@ seo_description: Every service Paperclip can connect, grouped by what it is for,
 
 A **connector** is a saved connection to an outside service: a Gmail mailbox, a GitHub organization, a Notion workspace, a PostHog project. You set one up once, decide who and what it is for, and Paperclip carries that decision into every run.
 
-> **Note:** This nightly draft includes unreleased connector changes from Paperclip master. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
+> **Note:** These guides cover the connector model in Paperclip **v2026.1106.0**. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
@@ -117,7 +117,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
 | [Braintrust](connectors/braintrust.md) | AI evaluation and observability. Agents query traces, manage datasets and scorers, and run evaluations, in the US or EU region. Dataset row edits and automation activation are destructive, and evaluations can use credits. | Sign in with Braintrust · API key |
-| [Browser Use Cloud](connectors/browser-use-cloud.md) | Run browser tasks in Browser Use Cloud, open a live browser session from the task, and reuse a browser profile. These master changes are not yet in the stable release. | API key |
+| [Browser Use Cloud](connectors/browser-use-cloud.md) | Run browser tasks in Browser Use Cloud, open a live browser session from the task, and reuse a browser profile. | API key |
 | [Cloudflare](connectors/cloudflare.md) | DNS, CDN, and edge compute. Agents work with the account your Cloudflare sign-in can reach. | Sign in with Cloudflare · API key |
 | [Context7](connectors/context7.md) | Up-to-date public library documentation and code examples. Read-only and keyless; anonymous rate limits apply, and private repositories are out of reach. | No credential |
 | [Daytona](connectors/daytona.md) | Manage your own Daytona account: sandboxes, files, commands, Git, snapshots, and volumes, across 274 actions. Separate from the Daytona sandbox provider that runs agents. Gate deletions and commands. | API key |
@@ -128,6 +128,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | [Railway](connectors/railway.md) | Infrastructure work in consented workspaces, including service, deployment, and bounded log actions when API access is accepted. Live qualification is pending; container commands require separate SSH setup. | Sign in with Railway |
 | [Sentry](connectors/sentry.md) | Error and performance monitoring. Agents investigate errors, releases, and production issues in the Sentry organization you authorize. | Sign in with Sentry |
 | [Superagent](connectors/superagent.md) | Security platform. Agents review security findings, start red-team reports, and score content and packages. Some actions use credits or delete permanently, so gate them. | API key |
+| [Unikraft](connectors/unikraft.md) | Manage your Unikraft Cloud organization: instances, services, autoscaling, volumes, images, certificates, and sandbox commands and files, across 105 actions in five metros. Gate deletions and sandbox commands. | API key |
 
 ### Data and analytics
 

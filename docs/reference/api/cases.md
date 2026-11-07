@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1106.0
 seo_title: Cases API
 seo_description: Cases handle document-heavy work that will not fit one issue — research write-ups, investigations, proposals, legal and compliance material.
 ---

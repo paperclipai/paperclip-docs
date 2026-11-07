@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Goals and Projects API
 seo_description: Goals form the higher-level intent tree; projects group the concrete deliverables under them. Endpoints for both, and how the two link together.
 ---
@@ -172,7 +172,8 @@ Projects have a few important implementation details:
 - `goalIds` is preferred for new code.
 - `workspace` can be supplied during create to seed the first workspace in the same request.
 - `env` is the project environment binding config. Secret bindings are normalized before storage.
-- `executionWorkspacePolicy` is an advanced runtime policy object. Set its `storageProviderPluginId` to an installed plugin's ID to let that plugin own the project's storage and task workspaces (see [Plugins that store your project's code](../../administration/plugins.md#plugins-that-store-your-projects-code)); leave it unset or `null` to keep Paperclip's local behavior.
+- `executionWorkspacePolicy` is an advanced runtime policy object. Its `storageProviderPluginId` decides who owns the project's storage and task workspaces (see [Plugins that store your project's code](../../administration/plugins.md#plugins-that-store-your-projects-code)): an installed plugin's ID for that plugin, `null` for Core / local, or leave it out to inherit the installed default, if there is one.
+- Project responses return the saved `executionWorkspacePolicy` as is, plus a separate `workspaceProvider` object showing what applies: `source` (`project` when the policy holds a choice, including `null`; `default` when it inherits from a plugin; `core` otherwise), the selected `pluginId` and `displayName`, the available `providers` (each with `id`, `displayName`, and `isDefault`), the resulting `effectivePolicy`, and any `error`, such as two plugins both claiming the default.
 - `archivedAt` can be set when archiving a project.
 
 Project statuses are:

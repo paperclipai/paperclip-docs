@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Environment Variables Reference
 seo_description: Every variable Paperclip reads for server configuration, plus the ones it injects into agent processes at runtime — the list to wire deployments from.
 ---
@@ -43,7 +43,7 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `PAPERCLIP_RUNNER_API_TOOLS_ENABLED` | on (unset) | Whether Paperclip Runner agents get the broad Paperclip API tools (`search_api`, `call_api`, and `hire_agent`). They're on by default; set the variable to anything other than `true` to switch them off for every company. |
 | `PAPERCLIP_RUNNER_API_TOOLS_COMPANY_IDS` | unset (all companies) | Comma-separated company IDs. When set, only those companies' Runner agents get the API tools. It can only narrow access — it has no effect if `PAPERCLIP_RUNNER_API_TOOLS_ENABLED` turns the tools off. |
 | `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_ENABLED` | on (unset) | Whether the server deletes old failover copies of native agent sessions. A session that runs in a remote sandbox keeps a copy of its harness state on the Paperclip host so a replacement sandbox can resume it, and one copy can reach several gigabytes. An hourly sweep deletes a copy once every task the session worked on has been done or cancelled for longer than `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_DAYS` and nothing still uses it. Reopening such a task starts a fresh agent session instead of resuming the old conversation. Set to `false` to keep every copy. |
-| `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_DAYS` | `7` | How many days a native session's tasks must have been closed before its failover copy can be deleted. Values below `1` are raised to `1`; an empty or non-numeric value falls back to the default. |
+| `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_DAYS` | `7` | How many days a native session's tasks must have been closed before its failover copy can be deleted. `0` is raised to `1`; a negative, empty, or non-numeric value falls back to the default. |
 | `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_DRY_RUN` | `false` | Set to `true` to have the sweep find and count the copies it would delete, and log the totals, without deleting anything or ending any session. |
 | `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` | `1` | How many days the terminal-workspace reaper waits after an issue tree becomes terminal before archiving its workspace. Someone can reopen the work inside this window. `0` disables the cooldown and restores immediate reaping; a negative or non-numeric value falls back to the default. (The default was `7` before workspace compaction arrived.) |
 | `PAPERCLIP_WORKSPACE_COMPACTION_DELAY_HOURS` | `1` | How many hours after an issue tree becomes terminal the reaper removes regenerable files (installed dependencies, build output, tool caches) from its isolated worktree. The worktree, branch, and every source file stay. `0` compacts on the next sweep; a negative, empty, or non-numeric value falls back to the default. See [Workspaces → Automatic cleanup of finished work](../../guides/projects-workflow/workspaces.md#automatic-cleanup-of-finished-work). |
@@ -51,6 +51,10 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED` | off | Set to `true` to let Paperclip remove Paperclip-owned isolated Git worktrees 24 hours after every task in their tree is done or cancelled, once it has proved their commits can be fetched again from upstream. A reopened task rebuilds the worktree at the exact saved commit. |
 | `PAPERCLIP_GIT_CACHE_EXPIRATION_DRY_RUN` | on | While on, Git expiration only logs what it would remove. Set to `false` to let it actually delete. |
 | `PAPERCLIP_GIT_BASE_EXPIRATION_ENABLED` | off | Set to `true` to also remove a task's private source clone once every workspace using it has expired and its contents are verified reproducible. Shared project clones are never removed. |
+| `PAPERCLIP_GIT_RESTORE_POINTS_ENABLED` | off | Set to `true` to let Git expiration save a worktree's unsaved work (uncommitted changes, untracked files, and unpushed commits, but never untracked `.env` files) as an encrypted restore point before removing it, and to expire idle worktrees of open tasks. Only takes effect while `PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED` is `true`. With S3 storage, `PAPERCLIP_SECRETS_MASTER_KEY` must be set, or worktrees that need a restore point stay on disk. See [Workspaces → Restore points for unsaved work](../../guides/projects-workflow/workspaces.md#restore-points-for-unsaved-work). |
+| `PAPERCLIP_GIT_RESTORE_POINT_TERMINAL_DELAY_DAYS` | `3` | How many days every task in the tree must have been done or cancelled before a worktree that needs a restore point is saved and removed. `0` means no delay beyond the 24 hours Git expiration already waits; a negative, empty, or non-numeric value falls back to the default. |
+| `PAPERCLIP_GIT_RESTORE_POINT_IDLE_DAYS` | `7` | How many days an open task's isolated worktree can sit with no task, workspace, or run activity before it's removed, with a restore point if it has unsaved work. `0` turns idle expiration off; a negative, empty, or non-numeric value falls back to the default. |
+| `PAPERCLIP_GIT_RESTORE_POINT_RETENTION_DAYS` | `90` | How many days after the task tree was last done or cancelled a restore point is kept before it's deleted. A task reopened after that gets a fresh worktree on its branch and a warning comment. `0` is raised to `1`; a negative, empty, or non-numeric value falls back to the default. |
 | `PAPERCLIP_SKILL_VERSION_RETENTION_ENABLED` | on | Set to `false` to stop the sweep that removes unused materialized skill version directories from disk. Removed versions are written again from their saved version on next use. |
 | `PAPERCLIP_SKILL_VERSION_RETENTION_DRY_RUN` | off | Set to `true` to have the skill version sweep only report what it would remove. |
 | `PAPERCLIP_SKILL_VERSION_RETENTION_KEEP` | `0` | How many of the newest materialized versions of each skill to keep on disk as a warm cache. A negative, empty, or non-numeric value falls back to the default. |
@@ -295,11 +299,13 @@ A bad endpoint or an unreachable collector never takes the server down — the S
 
 Paperclip can report server-side errors to [Sentry](https://sentry.io). It is **opt-in and off by default**, and everything about it fails open — no DSN, no package, no Sentry, no problem.
 
-To turn it on, set `SENTRY_DSN` and install the optional `@sentry/node` peer dependency. The DSN also rides the authenticated session response to the browser, so the web UI reports its own errors (behind a React error boundary) once the server has one configured.
+To turn it on, set `SENTRY_DSN_BACKEND` and install the optional `@sentry/node` peer dependency. To report web UI errors as well, set `SENTRY_DSN_FRONTEND`. That DSN rides the authenticated session response to the browser, so the web UI reports its own errors (behind a React error boundary) once the server has one configured.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `SENTRY_DSN` | unset | Sentry DSN. Setting it, with `@sentry/node` installed, enables server-side error capture and hands the DSN to the browser for client-side reporting. Unset means no Sentry is loaded at all. |
+| `SENTRY_DSN_BACKEND` | unset | Sentry DSN for the server. Setting it, with `@sentry/node` installed, enables server-side error capture. An empty value counts as unset. |
+| `SENTRY_DSN_FRONTEND` | unset | Sentry DSN handed to the browser for client-side reporting. An empty value counts as unset. |
+| `SENTRY_DSN` | unset | Legacy fallback for whichever of the two variables above is unset. It still works, but the server logs a startup warning whenever it fills in for either one. With no DSN for the server, no Sentry is loaded there. |
 | `PAPERCLIP_SENTRY_RUN_FAILURES` | `off` | Whether failed agent runs are also reported to Sentry. `off` sends none. `unexpected` sends failed and timed-out runs, leaving out known configuration, quota, and external-connection failures. `all` sends every failed or timed-out run. Missing or unrecognized values count as `off`. |
 
 > **Note:** Before this variable existed, a DSN on its own also reported failed runs. If you relied on that, set `PAPERCLIP_SENTRY_RUN_FAILURES=unexpected` to keep the same behaviour.

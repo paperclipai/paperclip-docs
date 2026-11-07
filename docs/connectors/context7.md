@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Context7 Library Docs Connector
 seo_description: Let agents look up current, public library documentation and code examples through Context7's hosted server. No account, key, or sign-in needed.
 ---
@@ -7,7 +8,7 @@ seo_description: Let agents look up current, public library documentation and co
 
 Agents can look up up-to-date documentation and code examples for public libraries through Context7. It helps when a task depends on how a library works *today*, not how it worked when a model was trained.
 
-> **Nightly draft:** This guide covers the current master implementation. Context7 appears in the catalog on every instance; no experimental setting is needed.
+Context7 appears in the catalog on every instance; no experimental setting is needed.
 
 Context7 is read-only and public. It does not see your code or repositories, and it cannot change anything anywhere. That makes it one of the easiest connectors to try.
 

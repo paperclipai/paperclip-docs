@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Browser Use Cloud Connector
 seo_description: Delegate website tasks to Browser Use Cloud, watch the live browser in Paperclip, and choose saved profiles, agent access, and spending limits.
 ---
@@ -7,7 +8,7 @@ seo_description: Delegate website tasks to Browser Use Cloud, watch the live bro
 
 You can give an agent website work and watch the hosted browser in the task's **Browser** tab. Browser Use Cloud runs the browsing task; Paperclip controls access, action approvals, and the recorded run costs.
 
-> **Nightly draft:** This guide covers the current master implementation. Browser Use Cloud does not require an experimental setting.
+Browser Use Cloud does not require an experimental setting.
 
 ## Before you connect
 

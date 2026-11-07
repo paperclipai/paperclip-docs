@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.626.0
+paperclip_version: v2026.1106.0
 seo_title: Hermes Adapter
 seo_description: Run Hermes Agent by Nous Research on the Paperclip host, with persistent memory and a 30-plus tool suite available to the agent on every run.
 ---

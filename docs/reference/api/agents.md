@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Agents API
 seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate keys, sync skills, trigger runs, and register managed and remote agent profiles.
 ---
@@ -499,6 +499,37 @@ Important behavior:
 - Terminated agents cannot be resumed through a status patch.
 - Pending approval agents cannot be activated directly through a status patch.
 
+### Change only the connection or default model (`runtimeSettings`)
+
+The **Edit connection & model** bulk action on the agent list (see [Agents → Change the connection or model for several agents at once](../../guides/org/agents.md#change-the-connection-or-model-for-several-agents-at-once)) uses a narrower form of this route. Instead of sending `adapterConfig` and `runtimeConfig`, you send a single `runtimeSettings` object, and the server merges just the model and AI connection into the agent's latest configuration. Every other setting is left untouched.
+
+| Field | Notes |
+|---|---|
+| `harness` | Required. The harness you expect the agent to be on, such as `codex_local` or `claude_local`. An agent on Paperclip Runner counts as the harness it runs, so a Runner Codex agent is `codex_local`. If the agent's harness changed, the call fails with `409` and `This agent's harness changed. Refresh the roster and select it again.` |
+| `model` | Optional. The new default model, up to 512 characters. |
+| `aiConnection` | Optional. The new AI connection binding: `{ "mode": "shared" \| "delegated", "provider", "method", "connectionId", "grantId" }` or `{ "mode": "responsible_user", "provider", "method" }`. |
+| `expected` | Required. `{ "model": <string or null>, "aiConnection": <binding or null> }` — the values you saw before editing. If either no longer matches, the call fails with `409` and `This agent's connection or model changed. Refresh the roster and review the changes again.` |
+
+Send at least one of `model` or `aiConnection`; otherwise validation fails with `Choose a connection or default model to change`.
+
+```json
+{
+  "runtimeSettings": {
+    "harness": "codex_local",
+    "model": "gpt-5.5",
+    "expected": { "model": "gpt-5.4", "aiConnection": null }
+  }
+}
+```
+
+Rules to know:
+
+- `runtimeSettings` can't be combined with any other field in the same request (`422` with `Runtime settings cannot be combined with other agent changes`).
+- The caller needs permission to configure the agent, the same check used for agent setup. The update is still recorded as a configuration revision.
+- `process` and `http` agents, and agents that are `terminated` or `pending_approval`, are refused with `422` and `This agent cannot be updated from the roster`.
+- Connection pools can't be set or changed this way. Sending a `router` binding, or targeting an agent already on a pool, fails with `422` and `Edit connection pool members on the agent's configuration page`.
+- When the selected connection lists specific models, the model must be one of them; otherwise the call fails with `422` and `Choose a default model available on the selected connection`.
+
 ### Example
 
 <!-- tabs: cURL, JavaScript, Python -->
@@ -599,7 +630,7 @@ The `permissionKey` field on a grant is one of:
 
 | Key | What it allows |
 |---|---|
-| `agents:create` | Hire or create new agents in the company, and run mutations or environment probes against agent configuration. Still satisfies `agent_config:read` and `agent_config:update` checks — but board (human) company members no longer need it to read agent configuration, skills, or config-revisions. Those reads are gated only on company membership. Agent (non-human) actors still need `agents:create` (or the legacy `canCreateAgents` flag) to read peer agents' configurations. |
+| `agents:create` | Hire or create new agents in the company, and run adapter environment tests. It doesn't let an agent read a peer's configuration; that takes `agents:configure` or `agents:suggest-changes`. |
 | `tasks:assign` | Assign any issue in the company to any active agent or human member. |
 | `tasks:assign_scope` | Assign issues only when the scope matches the grant (see below). Requires a structured scope on the grant. |
 | `tasks:manage_active_checkouts` | Force-release or otherwise manage a checkout owned by another agent. |
@@ -1156,7 +1187,7 @@ Use them when you need to:
 
 Important notes:
 
-- If you are a board (human) member of the company, configuration and config-revision reads need only your company membership — no `agents:create` permission is required. Agent (non-human) actors still need `agents:create` (granted, or the legacy `canCreateAgents` flag on their own record) to read these. Mutations and environment probes always require `agents:create`.
+- If you are a board (human) member of the company, configuration and config-revision reads need only your company membership. An agent needs `agents:configure` or `agents:suggest-changes` to read these; `agents:create` and the legacy `canCreateAgents` flag don't help. Changing a configuration needs `agents:configure`, or `agents:suggest-changes` with an accepted change. `POST /api/companies/{companyId}/adapters/{type}/test-environment` needs permission to create agents.
 - Revisions redact secret-bearing fields before returning them, so reads never expose secrets regardless of who you are.
 - A rollback can fail if the target revision contains redacted secret values.
 
@@ -1240,8 +1271,8 @@ These exist for compatibility with instances that saved instruction revisions be
 
 Notes:
 
-- The target agent or an ancestor manager can manage the instructions path.
-- An agent can read and save its own files within what its responsible user is currently allowed to do. Reading or saving another agent's files needs permission to configure that agent.
+- Changing the instructions path needs `agents:configure`, or `agents:suggest-changes` with an accepted change. Being the target agent or its manager isn't enough.
+- An agent can read its own files and save its own entry file within what its responsible user is currently allowed to do. Saving or deleting its other files through these routes needs `agents:configure`, or `agents:suggest-changes` with an accepted change. Reading another agent's files needs `agents:configure` or `agents:suggest-changes`.
 - A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't save its own instructions from ordinary work. The exception is an edit its user asks for directly in their own Agent Chat — see [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 - Relative instructions paths require `adapterConfig.cwd`.
 - External bundles keep their existing behaviour; `download=true` and the `baseHash` rules above apply to managed bundles.

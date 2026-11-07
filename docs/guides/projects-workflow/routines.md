@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Heartbeats and Routines: Scheduling Work
 seo_description: Why timer heartbeats are opt-in, and how routines schedule recurring work without paused agents, surprise token bills, or a dashboard you fight with.
 ---
@@ -79,12 +79,7 @@ When the trigger fires, Paperclip creates a task, assigns it to the agent, and t
 
 ### Routine policies worth knowing
 
-Two policies control what happens when schedules overlap or the scheduler has been offline:
-
-- **Concurrency policy** — what to do if the routine is still running when the next tick arrives. Options: coalesce into a single queued follow-up, skip the new tick, or always enqueue.
-- **Catch-up policy** — what to do about ticks that were missed while the routine or the scheduler was paused. Options: skip the missed windows, or catch up in capped batches.
-
-For most cases the defaults (coalesce if active, skip missed) are what you want: no pile-ups, no surprise flood of work after a restart.
+Two policies control what happens when schedules overlap or the scheduler has been offline. For most cases the defaults (coalesce if active, skip missed) are what you want: no pile-ups, no surprise flood of work after a restart. See [Catch-up behaviour](#catch-up-behaviour) for the options.
 
 ---
 

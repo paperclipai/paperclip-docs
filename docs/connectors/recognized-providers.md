@@ -20,7 +20,7 @@ What we can confirm at this commit: the definitions below are present, Paperclip
 
 None of these have connector pages, and none can be added from the catalog.
 
-In this nightly snapshot, Bitly, Context7, and Make have left this list and are back in the catalog — see [Bitly](bitly.md), [Context7](context7.md), and [Make](make.md). ClickUp, Klaviyo, and monday.com have joined it: their definitions exist, but sign-in has not yet been proven end to end, so they stay out of the list you browse.
+As of Paperclip v2026.1023.0, Bitly, Context7, and Make have left this list and are back in the catalog — see [Bitly](bitly.md), [Context7](context7.md), and [Make](make.md). ClickUp, Klaviyo, and monday.com have joined it: their definitions exist, but sign-in has not yet been proven end to end, so they stay out of the list you browse.
 
 | Provider | Slug |
 | --- | --- |

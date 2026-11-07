@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Paperclip Runner Setup and Providers
 seo_description: Configure Paperclip Runner for native agent sessions. Choose a supported provider, set permissions and model access, and understand runtime limits.
 ---
@@ -161,7 +162,13 @@ Company permissions, governed approvals, and budgets still apply. Grok cannot au
 
 The Runner records native session identity and recovers through the provider's supported session-load path. Recovery rechecks the saved provider, environment, credential, and task authority; a durable run is not a guarantee that every interrupted provider operation can resume.
 
+In a plugin environment, the plugin chooses the working directory, not Paperclip. The Runner records the directory the plugin prepared with the session, and recovery fails rather than resuming the session somewhere else.
+
 For Claude, the Runner loads three task tools up front — `set_task_title`, `paperclip_finish`, and `paperclip_block` — so Claude doesn't have to search for them before it can name or finish a simple task. Its other Paperclip tools load on demand, with the same access checks.
+
+Runner agents can also manage their own task workspace. `get_workspace` shows the current folder, any pending selection, and what the agent can prepare. `list_workspaces` lists the existing folders it may use, and `list_project_repositories` lists its repository choices. `select_workspace` and `prepare_repository` only request a change: Paperclip validates and prepares it, and a different workspace applies at the task's next normal start rather than interrupting the current run. Grok Bot agents don't get these tools.
+
+When an assigned tool returns more than about 500 KB, the Runner saves the full result and hands the agent a reference instead. The agent reads it in pages with `read_tool_result`, passing `artifactId` and then each `responseText.nextOffsetBytes` until it's `null`, so the original action never has to run twice.
 
 Standard, planning, and ask tasks are supported. Cursor additionally has `acpxSessionMode`: `agent` (default), `plan`, or `ask`. Selecting Plan or Ask changes native Cursor session behavior, while Paperclip permissions and environment boundaries remain in force.
 

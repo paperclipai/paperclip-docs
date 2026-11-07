@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Adapters Overview
 seo_description: Adapters connect Paperclip's control plane to the runtime that does the work. Start here to compare the options and pick one per agent you hire.
 ---
@@ -81,7 +81,7 @@ These adapters ship with Paperclip and are always available in the host:
 
 Choose **Paperclip Runner** when you want the native run lifecycle and built-in task tools. Then pick its **Harness** — for **ACP agents**, choose the **ACP agent** too. Existing direct adapters keep their own paths; enabling the feature does not migrate them.
 
-New Codex and Claude Code agents get the Runner automatically on macOS and on Linux x64/ARM64 with GNU libc `2.39` or newer; choose **Legacy runner** under **Advanced → Runner** to keep `codex_local` or `claude_local`. For the other providers except GitHub Copilot, the `enableNativeRunner` default is on for self-hosted instances and off for Cloud-managed instances. **ACP agents** now include qualified **Pi** and **GitHub Copilot** runtimes; Copilot runs on your Copilot plan through a token you connect under **Connectors → GitHub → Connect Copilot** (see [GitHub Copilot](../../connectors/github-copilot.md)). Cursor uses a pinned runtime you prepare with `paperclipai runtime setup cursor`, an explicit model, and Agent, Plan, or Ask session mode. Grok has a separately pinned native runtime. See [Paperclip Runner](paperclip-runner.md), [Cursor](cursor-local.md#cursor-on-paperclip-runner), and [Grok](grok-local.md#grok-build-on-paperclip-runner).
+New Codex, Claude Code, OpenCode, and Pi agents get the Runner automatically on macOS and on Linux x64/ARM64 with GNU libc `2.39` or newer (OpenCode and Pi stay on the Legacy runner on Linux ARM64); choose **Legacy runner** under **Advanced → Runner** to keep `codex_local`, `claude_local`, `opencode_local`, or `pi_local`. For the other providers except GitHub Copilot, the `enableNativeRunner` default is on for self-hosted instances and off for Cloud-managed instances. **ACP agents** now include qualified **Pi** and **GitHub Copilot** runtimes; Copilot runs on your Copilot plan through a token you connect under **Connectors → GitHub → Connect Copilot** (see [GitHub Copilot](../../connectors/github-copilot.md)). Cursor uses a pinned runtime you prepare with `paperclipai runtime setup cursor`, an explicit model, and Agent, Plan, or Ask session mode. Grok has a separately pinned native runtime. See [Paperclip Runner](paperclip-runner.md), [Cursor](cursor-local.md#cursor-on-paperclip-runner), and [Grok](grok-local.md#grok-build-on-paperclip-runner).
 
 ---
 

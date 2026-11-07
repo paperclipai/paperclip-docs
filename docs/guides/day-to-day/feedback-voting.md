@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Feedback and Voting
 seo_description: Rate agent comments and documents Helpful or Needs work. Votes stay on your own machine by default; export or share them only if you choose to.
 ---
