@@ -95,19 +95,6 @@ Point your load balancer or deploy platform here to decide when a new server can
 
 ---
 
-## Liveness probe
-
-```
-GET  /api/liveness
-HEAD /api/liveness
-```
-
-A lightweight, anonymous check that the server process is up. It doesn't resolve a session or touch the database, so frequent monitoring won't keep an idle database awake, and it still answers during an idle hold. It returns `200` with `{ "status": "ok", "commit": "<sha or null>" }` once startup recovery has finished, and `503` with `"status": "starting"` until then. Responses are never cached.
-
-Use `/api/liveness` for routine "is it running?" probes. Keep `/api/health` for real readiness checks: it's the one that tests the database and reports bootstrap state.
-
----
-
 ## Cloud lifecycle
 
 These two routes exist for instances managed by Paperclip Cloud, so the Cloud control plane can keep its view of your organization's archive state in step with the instance. On a self-hosted instance both return `404` with `{ "error": "not_cloud_managed" }`. Both require instance-admin.

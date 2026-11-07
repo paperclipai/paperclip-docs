@@ -7,7 +7,7 @@ seo_description: Let agents explore Braintrust traces, datasets, and evaluations
 
 You can let agents work with your AI evaluation data in Braintrust: query traces with SQL, inspect experiments, manage datasets and scorers, and run evaluations. It is useful when a task needs to check how a model or prompt is actually behaving, not just how it was meant to behave.
 
-> **Nightly draft:** This guide covers the current master implementation. Braintrust appears in the catalog on every instance; no experimental setting is needed.
+Braintrust appears in the catalog on every instance; no experimental setting is needed.
 
 The connection uses Braintrust's hosted MCP server. Every method is read and write: agents can change data and start billable work as well as read.
 
@@ -29,10 +29,10 @@ Running a self-hosted Braintrust? Use [Custom MCP servers](custom-mcp-servers.md
 
    | Method | Region | How you sign in |
    | --- | --- | --- |
-   | `mcp-oauth` | US | Browser sign-in (the default) |
-   | `mcp-api-key` | US | API key |
-   | `mcp-eu-oauth` | EU | Browser sign-in |
-   | `mcp-eu-api-key` | EU | API key |
+   | **Sign in with Braintrust (US)** | US | Browser sign-in (the default) |
+   | **Use a Braintrust API key (US)** | US | API key |
+   | **Sign in with Braintrust (EU)** | EU | Browser sign-in |
+   | **Use a Braintrust API key (EU)** | EU | API key |
 
 4. Before you sign in, Paperclip shows a summary of what the connection can do, including the costs, permanent deletes, and automation risks covered below. Read it.
 5. Complete browser sign-in, or paste your API key. For browser sign-in, Paperclip registers its client with Braintrust automatically, so there is nothing to set up in a developer console.

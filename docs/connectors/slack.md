@@ -42,7 +42,7 @@ Every agent gets its own Slack app, so it shows up in Slack with its own name an
 
 | Setup | Where you see it | What you do |
 | --- | --- | --- |
-| **Managed setup** | Paperclip Cloud, when managed Slack setup is available | Pick a Slack workspace and click **Continue**. Paperclip creates and installs the app for you. |
+| **Managed setup** | Paperclip Cloud, when managed Slack setup is available | Click **Continue** on the agent step. Paperclip creates and installs the app for you, and only asks you to choose a workspace if you have authorized more than one. |
 | **Automatic setup** | Self-hosted instances, or **Use your own app** on Cloud | Paste a temporary Slack token. Paperclip creates the app, and you approve the install. |
 | **Manual setup** | **Advanced** → **Create manually** or **Use an existing app** | Create the app from Paperclip's manifest yourself and paste its credentials. |
 
@@ -176,7 +176,7 @@ For something like "every weekday at 10am, post the standup summary in #team", u
 
 The connection's page has **Settings**, **Access**, **Conversations**, and **Activity** tabs. Once setup is finished, **Open Slack** at the top follows the same rule as the **Success** screen: your DM with the bot when Paperclip can open it, otherwise Slack. **Open Slack configuration** takes you straight to the app in Slack's settings.
 
-- **Send me a test message** checks the bot from Paperclip. It sends a DM to your linked Slack account. If your account isn't linked yet, pick it from the list and Paperclip sends you a connection invitation in Slack first; open it to link your account, and the test message follows.
+- **Send me a test message** checks the bot from Paperclip. It sends a DM to your linked Slack account, so **Allow direct messages** must be on. If your account isn't linked yet, pick it from the list and Paperclip sends you a connection invitation in Slack first; open it to link your account, and the test message follows.
 - **Settings** lists **Allowed Channels** (every channel the bot is in), the **Allow direct messages** and **Require at-mention** toggles, **Additional communication instructions**, and the **Slack tools** summary.
 - **Access** holds linked people, **Invite people**, and two optional sections: **Guest access** and **Personal Slack search**.
 

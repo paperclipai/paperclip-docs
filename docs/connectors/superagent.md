@@ -7,7 +7,7 @@ seo_description: Let agents review Superagent security findings, start red-team 
 
 You can let agents work with Superagent, a security platform: review security findings, start red-team reports, and score content and packages before an agent trusts them. It suits tasks like "triage this week's findings" or "check this package before we add it".
 
-> **Nightly draft:** This guide covers the current master implementation. Superagent appears in the catalog on every instance; no experimental setting is needed.
+Superagent appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 

@@ -7,7 +7,7 @@ seo_description: Let agents manage your Daytona account's sandboxes, files, comm
 
 Agents can manage resources in your own Daytona account — creating and stopping sandboxes, reading and writing files, running commands, working with Git, and handling snapshots and volumes.
 
-> **Nightly draft:** This guide covers the current master implementation. Daytona appears in the catalog on every instance; no experimental setting is needed. It has not yet been qualified against a live Daytona account.
+Daytona appears in the catalog on every instance; no experimental setting is needed. It has not yet been qualified against a live Daytona account.
 
 > **Note:** This is not the Daytona sandbox provider. Paperclip can also *run agents* inside Daytona sandboxes; that is configured separately, with its own credential, and is covered in [Sandbox providers](../reference/adapters/sandbox-providers.md). This connector is a tool: it lets agents work with your Daytona account the way you would from its dashboard or API. The two never share a credential.
 
@@ -23,7 +23,7 @@ There is no browser sign-in; the key is the only way in. Be aware that any valid
 
 1. Open **Connectors** and select **Daytona**. The card says **Add key**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to narrow the agents or to reach the advanced setting below.
-3. Paste the key into **Daytona API key** and select **Connect Daytona**.
+3. Paste the key into **Your Daytona key** and select **Connect**.
 
 Paperclip checks the key with Daytona before saving it. The key stays in Paperclip's vault and is sent to Daytona as a Bearer header; agents never see it.
 
@@ -45,7 +45,7 @@ Paperclip sorts the actions into three groups:
 | Write | Creating resources, changing files or Git, starting and stopping, configuration changes |
 | Destructive | Deleting anything, running commands or code, resets and restores, reading secrets or credentials, signed access links, account access changes |
 
-New actions start as **Allowed**, so set the policy before you hand the connection to an agent:
+Every action starts as **Allowed** when setup finishes, so set the policy before you hand the connection to an agent:
 
 > **Danger:** Set destructive actions — deleting sandboxes and running commands especially — to **Ask first** or **Off**. A command runs inside your Daytona sandbox with whatever that sandbox can reach, and a deletion cannot be undone.
 

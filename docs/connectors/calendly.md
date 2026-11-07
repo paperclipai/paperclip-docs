@@ -7,7 +7,7 @@ seo_description: Let agents review Calendly event types and availability, and de
 
 Agents can look at your Calendly account — your event types, your availability, who you are signed in as — and, where you allow it, use Calendly's scheduling actions such as booking or creating links.
 
-> **Nightly draft:** This guide covers the current master implementation. Calendly appears in the catalog on every instance; no experimental setting is needed.
+Calendly appears in the catalog on every instance; no experimental setting is needed.
 
 Scheduling actions reach real people. A booking lands in someone's calendar and usually sends them an email, so treat writes here the way you would treat sending mail.
 

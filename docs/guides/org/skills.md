@@ -177,7 +177,7 @@ The row's **⋯** menu has the rest:
 - **Choose connection** and **Choose a new branch** — see [Change the branch or connection](#change-the-branch-or-connection) below.
 - **Disconnect source** removes the repository from Sources — see [Remove a source](#remove-a-source).
 
-The **⋯** button at the top of the page, next to **Import from GitHub**, holds **Manage GitHub connection**, which takes you to your GitHub connection in Apps.
+The **⋯** button at the top of the page, next to **Import from GitHub**, holds **Manage GitHub connection**, which takes you to **Connectors**.
 
 An update keeps each skill's identity, folder, assignments, and history, and creates a new version only when the files actually changed. Agents already mid-run, and agents pinned to a specific version, keep what they had; the next run picks up the new version. If an update fails, your agents keep the last good version, and the row shows the error with when it last tried and a **Review source** link. When the fix is a different connection or branch, a **Choose connection** or **Choose a new branch** button appears right under the error. A skill that was deleted upstream stays installed and is marked **Removed from source · installed copy kept**.
 

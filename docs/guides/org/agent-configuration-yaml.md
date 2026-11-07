@@ -64,7 +64,7 @@ A few things aren't settings you can describe as an end state — creating a key
 | `channelOperations` | `create` a new channel for this agent, run a `setup` action on an existing one, or `revokeIdentityLinks` for a linked person. |
 | `revisions` | `restore` a configuration revision by ID. A restore must be the only change in its save — restore first, then edit the result. |
 
-After the save, Paperclip reloads the document and the command sections are gone again. You only need to list the actions you want; you don't have to fill in the others. Existing keys, revisions, secrets, and pending proposals are listed on the agent's [API Keys](agents.md#api-keys) page (it isn't in the side menu — add `/api-keys` to the end of the agent's address), in its [Agent history](agents.md#revisions) (open the **⋯** actions menu in the agent's header and choose **Agent history**), and on its [Secrets & variables](agents.md#secrets-tools-and-channels) page. Those don't show full API key or revision IDs, so get those from the API: `GET /api/agents/{agentId}/keys` and `GET /api/agents/{agentId}/config-revisions` — see [Agents API](../../reference/api/agents.md#api-keys).
+After the save, Paperclip reloads the document and the command sections are gone again. You only need to list the actions you want; you don't have to fill in the others. Existing keys, revisions, secrets, and pending proposals are listed on the agent's [API Keys](agents.md#api-keys) page (it isn't in the side menu — add `/api-keys` to the end of the agent's address), in its [Agent history](agents.md#agent-history) (open the **⋯** actions menu in the agent's header and choose **Agent history**), and on its [Secrets & variables](agents.md#secrets-tools-and-channels) page. Those don't show full API key or revision IDs, so get those from the API: `GET /api/agents/{agentId}/keys` and `GET /api/agents/{agentId}/config-revisions` — see [Agents API](../../reference/api/agents.md#api-keys).
 
 ### Older exports with an `observed` section
 
@@ -214,5 +214,5 @@ The document never shows secret values.
 ## Related
 
 - [Agents](agents.md) — the agent detail page and each settings page in detail
-- [Agent history](agents.md#revisions) — the history you can restore with `revisions.restore`
+- [Agent history](agents.md#agent-history) — the history you can restore with `revisions.restore`
 - [Agents API — Guard against stale writes](../../reference/api/agents.md#guard-against-stale-writes-expectedconfigurationrevision) — `configurationRevision` and the stale-write check for API clients

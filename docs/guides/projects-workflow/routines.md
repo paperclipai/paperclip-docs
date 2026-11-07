@@ -99,7 +99,7 @@ Two policies control what happens when schedules overlap or the scheduler has be
 
 ![Routines list](../../user-guides/screenshots/light/routines/list.png)
 
-The Routines page is reached from **Routines** in the sidebar. There are no tabs: a single toolbar across the top holds a **Search routines…** box, the **Sort** and **Group** menus, and the **View all tasks** and **Create routine** buttons. The routine list sits right below.
+The Routines page is reached from **Routines** in the sidebar. There are no tabs: a single toolbar across the top holds a **Search routines…** box, the **Sort** and **Group** menus, and the **View all tasks** and **Create routine** buttons. The routine list sits right below. When you group by folder and have folders, a header above the list shows how many routines are in view.
 
 ### List rows and badges
 

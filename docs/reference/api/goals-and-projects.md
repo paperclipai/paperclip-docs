@@ -175,6 +175,7 @@ Projects have a few important implementation details:
 - `workspace` can be supplied during create to seed the first workspace in the same request.
 - `env` is the project environment binding config. Secret bindings are normalized before storage.
 - `executionWorkspacePolicy` is an advanced runtime policy object. Set its `storageProviderPluginId` to an installed plugin's ID to let that plugin own the project's storage and task workspaces (see [Plugins that store your project's code](../../administration/plugins.md#plugins-that-store-your-projects-code)); set it to `null` to keep Paperclip's local behavior. If you leave it unset when you create a project, the installed default applies when one plugin claims it, and more than one claim fails with a conflict. A plugin-backed project can't change its storage later: that request fails with a conflict too.
+- Project responses return the saved `executionWorkspacePolicy` as is, plus a separate `workspaceProvider` object showing what applies: `source` (`project` when the policy holds a saved choice, including `null`, or `core` when it holds none), the selected `pluginId` and `displayName`, the available `providers` (each with `id`, `displayName`, and `isDefault`), the resulting `effectivePolicy`, and any `error`.
 - `archivedAt` can be set when archiving a project.
 
 Project statuses are:

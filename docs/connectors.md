@@ -8,11 +8,11 @@ seo_description: Every service Paperclip can connect, grouped by what it is for,
 
 A **connector** is a saved connection to an outside service: a Gmail mailbox, a GitHub organization, a Notion workspace, a PostHog project. You set one up once, decide who and what it is for, and Paperclip carries that decision into every run.
 
-> **Note:** This nightly draft includes unreleased connector changes from Paperclip master. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
+> **Note:** These guides include connector changes that can be newer than your installed version. Available methods depend on your installed version, instance configuration, and provider approval. A catalog listing does not by itself establish that provider sign-in is available.
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** New Google accounts connect through the single [Google Workspace](connectors/google-workspace.md) connector, where you choose Gmail, Drive, and Calendar access in one setup. The nine single-service Google connectors are no longer listed for new setup. Each one still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running with their access and permissions.
+> **Note:** New Google accounts connect through the single [Google Workspace](connectors/google-workspace.md) connector, where you choose Gmail, Drive, and Calendar access in one setup. The nine single-service Google connectors are no longer listed for new setup. Each one still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running with their access and permissions. An agent that needs one of those services can still ask you for it with a connection card on its task.
 
 ## Start here
 
@@ -120,7 +120,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | --- | --- | --- |
 | [1Password](connectors/1password.md) | Read and manage items and secrets in the vaults a service account can reach. Item reads return secret values to the agent; archive and delete are destructive. | API key |
 | [Braintrust](connectors/braintrust.md) | AI evaluation and observability. Agents query traces, manage datasets and scorers, and run evaluations, in the US or EU region. Dataset row edits and automation activation are destructive, and evaluations can use credits. | Sign in with Braintrust · API key |
-| [Browser Use Cloud](connectors/browser-use-cloud.md) | Run browser tasks in Browser Use Cloud, open a live browser session from the task, and reuse a browser profile. These master changes are not yet in the stable release. | API key |
+| [Browser Use Cloud](connectors/browser-use-cloud.md) | Run browser tasks in Browser Use Cloud, open a live browser session from the task, and reuse a browser profile. | API key |
 | [Cloudflare](connectors/cloudflare.md) | DNS, CDN, and edge compute. Agents work with the account your Cloudflare sign-in can reach. | Sign in with Cloudflare · API key |
 | [Context7](connectors/context7.md) | Up-to-date public library documentation and code examples. Read-only and keyless; anonymous rate limits apply, and private repositories are out of reach. | No credential |
 | [Daytona](connectors/daytona.md) | Manage your own Daytona account: sandboxes, files, commands, Git, snapshots, and volumes, across 274 actions. Separate from the Daytona sandbox provider that runs agents. Gate deletions and commands. | API key |
@@ -130,10 +130,10 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | [Postman](connectors/postman.md) | API development and testing workspace. Agents work with the collections and APIs your Postman account can reach. Choose a toolset: Minimal, Code, or Full. Minimal is not read-only; set action permissions separately. | Sign in with Postman · API key |
 | [Railway](connectors/railway.md) | Infrastructure work in consented workspaces, including service, deployment, and bounded log actions when API access is accepted. Live qualification is pending; container commands require separate SSH setup. | Sign in with Railway |
 | [Sentry](connectors/sentry.md) | Error and performance monitoring. Agents investigate errors, releases, and production issues in the Sentry organization you authorize. | Sign in with Sentry |
-| [Supabase](connectors/supabase.md) | Deploy Edge Functions and configure Auth and the Data API for a Supabase project. Also listed under Data and analytics. These master changes are not yet in the stable release. | Sign in with Supabase · Personal access token · Deploy and configure with an access token |
+| [Supabase](connectors/supabase.md) | Deploy Edge Functions and configure Auth and the Data API for a Supabase project. Also listed under Data and analytics. | Sign in with Supabase · Personal access token · Deploy and configure with an access token |
 | [Superagent](connectors/superagent.md) | Security platform. Agents review security findings, start red-team reports, and score content and packages. Some actions use credits or delete permanently, so gate them. | API key |
 | [Unikraft](connectors/unikraft.md) | Manage your Unikraft Cloud organization: instances, services, autoscaling, volumes, images, certificates, and sandbox commands and files, across 105 actions in five metros. Gate deletions and sandbox commands. | API key |
-| [Vercel](connectors/vercel.md) | Website hosting and deploys. Agents deploy projects and manage build settings, environment variables, and domains in one Vercel team. Deploys are previews unless production is requested; gate deploys and deletions. These master changes are not yet in the stable release. | Access token |
+| [Vercel](connectors/vercel.md) | Website hosting and deploys. Agents deploy projects and manage build settings, environment variables, and domains in one Vercel team. Deploys are previews unless production is requested; gate deploys and deletions. | Access token |
 
 ### Data and analytics
 
@@ -148,7 +148,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | [Mixpanel](connectors/mixpanel.md) | Product analytics for user and event behaviour. Agents work with the events and reports your Mixpanel account can reach. | Sign in with Mixpanel |
 | [Neon](connectors/neon.md) | Serverless Postgres with branching. Agents manage projects and branches, run SQL, and inspect schemas, optionally pinned to one project. Use a development project. | Sign in with Neon · API key |
 | [PostHog](connectors/posthog.md) | Product analytics with session replay, feature flags, and experiments. Agents analyse product usage, errors, flags, and experiments. | Sign in with PostHog · API key |
-| [Supabase](connectors/supabase.md) | Hosted Postgres with authentication, storage, and edge functions. Agents create projects, run database work, deploy Edge Functions, and configure Auth and the Data API, organization-wide or pinned to one project. Use a development project. Also listed under Developer tools. These master changes are not yet in the stable release. | Sign in with Supabase · Personal access token · Deploy and configure with an access token |
+| [Supabase](connectors/supabase.md) | Hosted Postgres with authentication, storage, and edge functions. Agents create projects, run database work, deploy Edge Functions, and configure Auth and the Data API, organization-wide or pinned to one project. Use a development project. Also listed under Developer tools. | Sign in with Supabase · Personal access token · Deploy and configure with an access token |
 | [Windsor.ai](connectors/windsor-ai.md) | Marketing, analytics, CRM, and warehouse data across the sources you linked in Windsor.ai. Sign-in always includes the provider's delete scope, and some tools change campaigns or budgets. | Sign in with Windsor.ai · API key |
 
 Google Sheets is the other common home for tabular data; it sits under [Google Workspace](#google-workspace) with the rest of the suite.

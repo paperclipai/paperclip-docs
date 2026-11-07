@@ -21,7 +21,7 @@ One connection links one Speko voice persona to one Paperclip agent.
 
 1. In Speko, open your agents (**Open Speko agents** links there). Create a dedicated agent for Paperclip and choose its voice. Keep only Speko's default tools; Paperclip adds its own task tools to the persona.
 2. Copy the agent's ID and create a Speko API key.
-3. In Paperclip, open **Connectors**, select **Speko**, then **Talk with an agent**.
+3. In Paperclip, open **Connectors**, find **Speko**, and select **Connect**.
 4. Choose the Paperclip agent this voice will speak for. It stays fixed for the connection.
 5. Paste the **Speko agent ID** and **Speko API key**, then click **Connect Speko**. Paperclip saves both, plus a generated callback signing secret, in the company vault.
 6. On **Test your Speko voice connection**, start a conversation. Ask the agent to do some work, add a spoken follow-up, and listen for its result. Then click **Verify test conversation**.
@@ -32,7 +32,7 @@ Before testing, check the recording and retention settings in your Speko workspa
 
 On a task assigned to an agent with an active Speko connection, click **Talk to** followed by the agent's name. If the agent has more than one voice persona, pick one under **Voice persona** first.
 
-During a call you can mute, **Repeat answer**, start a **New conversation**, or **Continue conversation**. Click **End call** when you're done. Ending the call doesn't stop the work: accepted tasks keep running in Paperclip. Calls are limited to ten minutes.
+During a call you can mute or use **Repeat answer**. Click **End call** when you're done. Ending the call doesn't stop the work: accepted tasks keep running in Paperclip. Calls are limited to ten minutes.
 
 ## Phone calls
 
@@ -54,7 +54,7 @@ Click **Save incoming call setting**.
 
 ### Approve a caller for an existing task
 
-A caller who wants to discuss an existing task needs your approval first. When a call is waiting, **Review phone intake** shows it. Enter the six-digit code spoken on the call, choose the **Conversation task**, and click **Approve live call**. Only approve the call you're on: approval gives that call your access to the selected task. Click **Deny call** to refuse it.
+A caller who wants to discuss an existing task needs your approval first. When a call is waiting, an approval card appears on the connection's **Settings** tab, with a **Review phone intake** link when the call has an intake task. Enter the six-digit code spoken on the call, choose the **Conversation task**, and click **Approve live call**. Only approve the call you're on: approval gives that call your access to the selected task. Click **Deny call** to refuse it.
 
 ## Access and history
 
@@ -64,7 +64,7 @@ The **Access** tab explains who can use voice:
 - Outgoing calls use your saved callback number and opt-in.
 - Incoming calls without approval can only start a new low-trust task.
 
-The **Activity** tab lists **Your calls**: browser conversations, incoming calls, and outgoing calls, with their status, duration, Speko charge, and transcript once Speko finishes its call report. Agent costs are tracked separately, and recordings stay in Speko.
+The **Activity** tab lists your calls under **Recent activity**: browser conversations, incoming calls, and outgoing calls, with their status, duration, Speko charge, and transcript once Speko finishes its call report. Agent costs are tracked separately, and recordings stay in Speko.
 
 ## Company Phone Agent
 

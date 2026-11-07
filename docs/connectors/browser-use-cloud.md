@@ -7,7 +7,7 @@ seo_description: Delegate website tasks to Browser Use Cloud, watch the live bro
 
 You can give an agent website work and watch the hosted browser in the task's **Browser** tab. Browser Use Cloud runs the browsing task; Paperclip controls access, action approvals, and the recorded run costs.
 
-> **Nightly draft:** This guide covers the current master implementation. Browser Use Cloud does not require an experimental setting.
+Browser Use Cloud does not require an experimental setting.
 
 ## Before you connect
 

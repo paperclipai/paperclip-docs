@@ -8,7 +8,7 @@ seo_description: One reusable procedure for connecting any Google Workspace conn
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** New Google accounts connect through the single [Google Workspace](google-workspace.md) connector. The nine single-service Google connectors are no longer listed for new setup; each still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running unchanged.
+> **Note:** New Google accounts connect through the single [Google Workspace](google-workspace.md) connector. The nine single-service Google connectors are no longer listed for new setup; each still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running unchanged. An agent that needs one of those services can still ask you for it with a connection card on its task.
 
 Connecting Google with **your own** OAuth client follows the shared steps below, and this page is that procedure. It covers the [Google Workspace](google-workspace.md) connector, which is what you set up for a new Google account, and the nine single-service connectors (Gmail, Calendar, Chat, Docs, Drive, People, Sheets, Slides, and Workspace Search) that existing connections use.
 
@@ -84,7 +84,7 @@ In the Cloud console, open the **Chat API** → **Configuration** and complete t
 
 1. Open **Connectors** and select the connector.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it.
-3. On **Google Workspace**, skip this step: you choose services and access in a picker after you start the connection, and you can change them later with **Reconnect**. On a single-service connector, check the **capability group**. Most of them offer a read group and a write group, and setup starts on the write (or draft) group. To connect read-only instead, select **Change** and pick the read group under **What should Paperclip be able to do?**. **The group is fixed for the life of the connection**: to change it you make a new connection, because **Reconnect** re-runs sign-in for the same group.
+3. On **Google Workspace**, skip this step: you choose services and access in a picker after you start the connection. **Reconnect** keeps those choices; to change them, add a new connection. On a single-service connector, check the **capability group**. Most of them offer a read group and a write group, and setup starts on the write (or draft) group. To connect read-only instead, select **Change** and pick the read group under **What should Paperclip be able to do?**. **The group is fixed for the life of the connection**: to change it you make a new connection, because **Reconnect** re-runs sign-in for the same group.
 4. Select **Use your own Google OAuth app** and supply the client ID and secret from step 3.
 5. Complete Google's consent screen **signed in as the registered Workspace account**. On Google Workspace, the service picker opens first; choose services and access, then select **Continue**.
 

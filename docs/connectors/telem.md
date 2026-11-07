@@ -7,7 +7,7 @@ seo_description: Give agents web search and page reading across many search prov
 
 Agents can search the web and read pages through Telem.AI — useful when a task needs current information from outside your company. Telem.AI sends each search to many search providers behind one API key, so you do not have to sign up for each one.
 
-> **Nightly draft:** This guide covers the current master implementation. Telem.AI appears in the catalog on every instance; no experimental setting is needed.
+Telem.AI appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 

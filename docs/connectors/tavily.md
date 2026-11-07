@@ -7,7 +7,7 @@ seo_description: Give agents web search and page extraction through your Tavily 
 
 Agents can search the public web and extract the content of pages through Tavily, using your own Tavily account. It suits bounded research tasks where you want the agent to cite where each fact came from.
 
-> **Nightly draft:** This guide covers the current master implementation. Tavily appears in the catalog on every instance; no experimental setting is needed.
+Tavily appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 

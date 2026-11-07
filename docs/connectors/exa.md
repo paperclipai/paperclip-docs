@@ -7,7 +7,7 @@ seo_description: Give agents public web search and page reading through Exa's fr
 
 Agents can search the public web and read the pages they find through Exa. It is a quick way to give an agent current information from outside your company, and it needs no account at all.
 
-> **Nightly draft:** This guide covers the current master implementation. Exa appears in the catalog on every instance; no experimental setting is needed.
+Exa appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 

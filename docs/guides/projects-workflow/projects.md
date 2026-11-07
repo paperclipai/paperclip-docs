@@ -208,7 +208,7 @@ When isolated workspaces are enabled, the Configuration tab shows an **Execution
 
 Click **Show advanced checkout settings** for the rest:
 
-- **Environment** — which environment isolated runs use (only shown when environments are enabled and more than one is available).
+- **Environment** — saves an environment choice on the project, and the task's workspace card shows it (only shown when environments are enabled and more than one is available). It doesn't pick where runs go: a run uses the agent's override, then the instance default. See [Environments](../../experimental/environments.md).
 - **Base ref** — the git ref (branch, tag, or commit) new isolated workspaces branch from.
 - **Branch template** — the naming convention Paperclip uses for new branches (for example, a template that includes the task identifier).
 - **Worktree parent dir** — where Paperclip places new git worktrees on disk.

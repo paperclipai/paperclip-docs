@@ -396,7 +396,7 @@ A few rules shape how this works:
 - **Patch, not replace.** A `null` value removes a key; keys you leave out stay as they are. Each result can change up to 16 keys, each matching `[a-z][a-z0-9_]{0,63}`, with non-empty string values up to 128 KiB.
 - **Owned by your plugin and that project.** Each company, project, and installed plugin combination has its own set. Automatic project callbacks receive the current values in `event.instanceSecrets`.
 - **Stale replies are refused.** If your plugin's configuration, the project's sources, its lifecycle state, or the stored secrets changed while your callback ran, Paperclip rejects the reply and the event comes back. A repeated reply to an event that's already acknowledged can't overwrite credentials.
-- **Deleted projects can only remove.** A `delete` event can clear keys but not write them, and the secrets are deleted along with the project anyway.
+- **Archived and deleted projects can only remove.** Callbacks for them receive an empty `event.instanceSecrets`, and your result can clear keys but not write them. A deleted project's secrets are deleted along with it anyway.
 
 Outside a lifecycle callback, trusted worker code can read the values with `ctx.projects.getInstanceSecrets(projectId, companyId)` during a call scoped to that company. Archived or missing projects can't be read this way.
 
@@ -437,7 +437,7 @@ The `PluginAgentRuntimeState` it returns holds:
 
 - `revision` — the agent's current runtime revision. A queued event can be older than this, so compare revisions at your destination and skip stale writes.
 - `agent` — the normalized agent record.
-- `instructionsRootPath` and `instructionsEntryFile` — where the agent's instruction files live on the host, and the entry file's name. Your worker reads them through its own filesystem access; this call grants no extra file access.
+- `instructionsRootPath` and `instructionsEntryFile` — where the agent's instruction files live on the host, and the entry file's name. Your worker reads them through its own filesystem access; this call grants no extra file access. If the agent has no instructions folder, `instructionsRootPath` is `null` and `instructionsEntryContent` holds the default entry content.
 - `instanceSecrets` — your plugin's own [private credentials](#required-agent-lifecycle-work) for this agent. Never put these in UI data, logs, plugin state, or agent files.
 - `skills` — the agent's assigned skills as `PluginAgentRuntimeSkill` entries: `key`, `runtimeName`, `source`, and, where available, `versionId`, `currentVersionId`, `sourceStatus` (`"available"` or `"missing"`), and `missingDetail`. This includes any [skills the agent's environment brings](#skills-that-come-with-an-environment).
 - `shadowedSkills` — present only when a selected company skill was left out because a required environment skill has the same name. Each entry gives the omitted `key` and the `shadowedBy` key that won.
@@ -607,9 +607,9 @@ Repository preparation is also unavailable for workspaces your environment owns.
 
 When a task fails, an operator can retry it in a fresh workspace while keeping the failed attempt's files. Your plugin can support that on its own storage. You choose how — Paperclip doesn't require a particular Git or filesystem layout.
 
-To opt in, declare all three:
+To opt in, declare:
 
-- `workspaceProvider.freshWorkspaceVersion: 1` on the storage provider.
+- `workspaceProvider.freshWorkspaceVersion: 1` on the storage provider, if the project uses your storage.
 - `freshWorkspaceVersion: 1` on the task-capable entry in `environmentDrivers`.
 - `freshWorkspaceVersion: 1` in your `describe` result.
 
@@ -619,7 +619,7 @@ Paperclip then sends a `fresh` object (a `PluginFreshWorkspace`) on the workspac
 
 - `attemptId` — stays the same if preparation is interrupted and retried.
 - `sourceRunId` — the failed run.
-- `previousWorkspaceId` — the retained workspace. This tells you what to leave alone, not permission to change or remove it.
+- `previousWorkspaceId` — the retained workspace, or `null` if there isn't one. This tells you what to leave alone, not permission to change or remove it.
 - `recoverySnapshots` — verified copies of the failed attempt's work that Paperclip has staged for you. Each has an `operationId`, a `sourceRunId`, and an `archive` and `manifest` file, each described by a host `path`, a `sha256`, and a `byteSize`.
 
 What your provider does with it:
@@ -1174,7 +1174,7 @@ The SDK validates every operation and result for you. Each result must carry the
 | `operation.kind` | Return `kind` | What you do |
 |---|---|---|
 | `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. Add `freshWorkspaceVersion: 1`, `workspaceFileReadVersion: 1`, `warmTaskVersion: 1`, or `githubCredentialBrokerVersion: 1` for the optional features below. |
-| `prepare` | `prepared` | Build the provider configuration for the exact `requirements` (schema `paperclip.runner.launch-requirements.v1`) without starting a process. Return a `launch` with a `configurationId`, a `requirementsDigest`, and a `provider` descriptor. You can add `projectAuthCheckAtSubmit: true` to skip the separate `check_project_auth` step (see below). A warm handoff also sends `priorIdentity` and `accountIdentity`. If you advertise the GitHub broker, it can also carry a `githubBroker` (see below). |
+| `prepare` | `prepared` | Build the provider configuration for the exact `requirements` (schema `paperclip.runner.launch-requirements.v1`) without starting a process. Return a `launch` with a `configurationId`, a `requirementsDigest`, and a `provider` descriptor. For a provider that works in a filesystem directory, the descriptor's `cwd` sets the working directory (see below). You can add `projectAuthCheckAtSubmit: true` to skip the separate `check_project_auth` step (see below). A warm handoff also sends `priorIdentity` and `accountIdentity`. If you advertise the GitHub broker, it can also carry a `githubBroker` (see below). |
 | `check_project_auth` | `project_auth` | Check that nothing in the prepared configuration for these projects can replace or redirect the selected account. Return `allowed: true` only if the checks pass. |
 | `read_file` | `file` | Only sent if you advertise `workspaceFileReadVersion: 1`. Read one file from the active task — see [Reading task output files](#reading-task-output-files). |
 | `submit` | `accepted` | Start the task at most once, using the structured launch inputs — the Runner protocol range, Runner identity, `bootstrapTicket`, and optional `preparedLaunchId`, `credential`, and `launch` limits. Paperclip never sends a command line or a guest path. |
@@ -1193,6 +1193,7 @@ A few rules keep this safe:
 - **Credentials are transient.** A `credential` is either `codex-auth-json` or `claude-env` (exactly one of `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`). Don't write it into task metadata or logs. A `null` credential result means cancellation stopped the task before it started — never that an export failed.
 - **Checking authentication at submit is a promise.** Returning `projectAuthCheckAtSubmit: true` from `prepare` tells Paperclip to skip `check_project_auth` and leave that check to your `submit` handler. It doesn't mean preparation already checked anything. Inside `submit`, validate the effective configuration and the current project grants *before* you install credentials or start the task, and reject anything that conflicts or has changed since preparation. Paperclip pins the configuration, provider, and projects on the lease and checks them again at dispatch; a new preparation clears that. Leave the flag off to keep the separate check. Older Paperclip versions reject the flag.
 - **Preparation is idempotent.** The same task and requirements must give the same configuration, and a late preparation result must not authorize anything after a cancellation.
+- **You choose the working directory.** Paperclip doesn't supply one. Resolve the assignment into mounts and a `cwd`, which must be a normalized absolute path that isn't a filesystem root. Runner checks the directory on its own filesystem, and the session records it. Keep it the same for recovery: a different directory fails the recovery, and Paperclip won't substitute a folder of its own.
 
 This also powers the agent environment test: when an agent uses a task-capable plugin environment, the test prepares a launch on a short-lived private lease, checks authentication routing, and verifies the Runner hello exchange. It passes only once cleanup is confirmed.
 
@@ -1237,7 +1238,7 @@ Some environment-driver work is a live, bidirectional stream rather than a one-s
 
 The four worker-to-host notification method names are exported as constants: `LOGIN_PTY_OUTPUT_NOTIFICATION`, `LOGIN_PTY_EXIT_NOTIFICATION`, `DUPLEX_CHANNEL_DATA_NOTIFICATION`, and `DUPLEX_CHANNEL_EXIT_NOTIFICATION`. The per-hook parameter shapes (`PluginLoginPtyOpenParams`, `PluginDuplexChannelOpenParams`, and friends) live in the SDK's `protocol.ts` but are reachable through the hook signatures rather than re-exported as names.
 
-Runner task and storage-provider exports: `MAX_ENVIRONMENT_TASK_FILE_BYTES`, `environmentTaskOperationSchema`, `environmentTaskResultSchema`, `environmentTaskCredentialSchema`, `environmentRunnerLaunchRequirementsSchema`, and `parseEnvironmentTaskResult`, with the types `PluginEnvironmentTaskOperation`, `PluginEnvironmentTaskParams`, `PluginEnvironmentTaskResult`, and `PluginEnvironmentTaskCredential`; plus `workspaceProviderOperationSchema`, `workspaceProviderResultSchema`, `pluginWorkspaceParamsSchema`, and `parseWorkspaceProviderResult`, with the types `PluginWorkspaceOperation`, `PluginWorkspaceResult`, and `PluginWorkspaceParams`. The host-to-worker methods behind them are `environmentTask` and `workspaceOperation`.
+Runner task and storage-provider exports: `MAX_ENVIRONMENT_TASK_FILE_BYTES`, `environmentTaskOperationSchema`, `environmentTaskResultSchema`, `environmentTaskCredentialSchema`, `environmentRunnerLaunchRequirementsSchema`, and `parseEnvironmentTaskResult`, with the types `PluginEnvironmentTaskOperation`, `PluginEnvironmentTaskParams`, `PluginEnvironmentTaskResult`, and `PluginEnvironmentTaskCredential`; plus `workspaceProviderOperationSchema`, `workspaceProviderResultSchema`, `pluginWorkspaceParamsSchema`, `freshWorkspaceSchema`, and `parseWorkspaceProviderResult`, with the types `PluginWorkspaceOperation`, `PluginWorkspaceResult`, `PluginWorkspaceParams`, and `PluginFreshWorkspace`. The host-to-worker methods behind them are `environmentTask` and `workspaceOperation`.
 
 Environment failure exports: `PluginEnvironmentRunnerIngressError`, `environmentRunnerIngressErrorData`, and `readEnvironmentRunnerIngressFailure`, with the type `PluginEnvironmentRunnerIngressFailure`; `PluginEnvironmentStopError`, `environmentStopErrorData`, and `readEnvironmentStopFailure`, with the types `PluginEnvironmentStopFailure` and `PluginEnvironmentStopFailureReason`; and `environmentResumeErrorData` and `readEnvironmentResumeErrorDiagnostic`, with the type `PluginEnvironmentResumeErrorDiagnostic`.
 
@@ -1273,7 +1274,7 @@ The SDK ships a first-class test harness so you do not have to spin up a real ho
 - `createTestHarness` — base harness for unit-testing a plugin against in-memory host stubs.
 - `createEnvironmentTestHarness` — harness for testing environment-driver plugins. Its driver options accept an `onStopLease` hook, and the harness exposes a matching `stopLease(params)` call so you can exercise stop-and-retain without a real provider.
 - `createFakeEnvironmentDriver` — synthesised driver implementation for assertions.
-- `createWorkspaceProviderHarness(handler)` — wraps your `onWorkspaceOperation` handler and runs the same input and result validation as the real worker boundary, so you can test a storage provider without allocating an execution environment. Call its `operation(params)` method.
+- `createWorkspaceProviderHarness(handler)` — wraps your `onWorkspaceOperation` handler and runs the same input and result validation as the real worker boundary, so you can test a storage provider without allocating an execution environment. Call its `operation(params)` method. Import it from `@paperclipai/plugin-sdk/testing`; the package root doesn't export it.
 - `filterEnvironmentEvents`, `assertEnvironmentEventOrder`, `assertLeaseLifecycle`, `assertWorkspaceRealizationLifecycle`, `assertExecutionLifecycle`, `assertEnvironmentError` — assertion helpers for the environment-driver flow.
 
 Types: `TestHarness`, `TestHarnessOptions`, `TestHarnessLogEntry`, `EnvironmentTestHarness`, `EnvironmentTestHarnessOptions`, `EnvironmentEventRecord`, `FakeEnvironmentDriverOptions`.
@@ -1288,7 +1289,7 @@ To test the interaction, approval, and attachment paths, seed them through `harn
 
 To exercise a lifecycle consumer, seed journal entries with `harness.seed({ lifecycleEvents: [...] })` (a `ResourceLifecycleEvent[]`). The harness's `ctx.events.listLifecycle` and `ctx.events.acknowledgeLifecycle` follow the same rules as the host: the `events.subscribe` capability check, the `1`–`100` limit, creation-first and one-event-per-resource delivery, and the error when you acknowledge out of order.
 
-To test [per-project credentials](#private-per-project-credentials), seed them with `harness.seed({ projectInstanceSecrets: [{ companyId, projectId, values }] })`. The harness's `ctx.projects.getInstanceSecrets` checks for the `projects.instance-secrets` capability and returns a copy of the seeded values (or an empty object). `ctx.projects.resolveGitCredential` checks for `projects.git-credentials` and then always throws "Git credentials require a matching host project operation", since the harness never runs a host project operation; stub it if your tests need a token.
+To test [per-project credentials](#private-per-project-credentials), seed them with `harness.seed({ projectInstanceSecrets: [{ companyId, projectId, values }] })`. The harness's `ctx.projects.getInstanceSecrets` applies the same scope as the host: it needs the `projects.instance-secrets` and `events.subscribe` capabilities, `"project"` in `resourceLifecycle`, and a seeded, unarchived project in that company. It then returns a copy of the seeded values (or an empty object). `ctx.projects.resolveGitCredential` checks for `projects.git-credentials` and then always throws "Git credentials require a matching host project operation", since the harness never runs a host project operation; stub it if your tests need a token.
 
 `ctx.agents.getRuntime` checks for the `agents.lifecycle.manage` capability in the harness but has no built-in data — it throws "Agent runtime state requires a host service fixture" — so stub it when your tests need runtime inputs. `ctx.agents.getRuntimeIdentity` works the same way and throws "Agent runtime identity requires a host service fixture".
 

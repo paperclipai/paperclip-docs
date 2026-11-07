@@ -36,13 +36,15 @@ A Copilot token represents one person's paid account, so a new connection starts
 
 ## Set up a Copilot agent
 
-1. Create or edit the agent and choose **Paperclip Runner**.
+1. Create or edit the agent. When you create one, you can pick **GitHub Copilot** directly in the new-agent dialog and skip to step 3. Otherwise choose **Paperclip Runner**.
 2. Set **Harness** to **ACP agents**, then set **ACP agent** to **GitHub Copilot**.
 3. Choose your Copilot connection.
 4. Pick a **Model**. The list comes from your account, so you only see models you're allowed to use. Select **Refresh models** if you just changed plans.
 5. Save, then select **Test** to check the setup before assigning work.
 
-You have to pick a specific model. If the model is empty, or set to `auto` or `default`, saving fails with *"Select an available Copilot model before saving."* Paperclip also rejects a model your account can no longer use, rather than switching to a different one.
+You have to pick a specific model. If the model is empty, or set to `auto` or `default`, Paperclip won't save the agent. Saving fails with a message such as *"Select an available Copilot model before saving."* The new-agent dialog asks you to *"Refresh Copilot models and select an available model before creating this agent."* Paperclip also rejects a model your account can no longer use, rather than switching to a different one.
+
+If the account has no usable models, the lookup fails rather than showing an empty list, and you see the error instead, such as *"Copilot access is denied by the account entitlement or organization policy."* or *"Copilot metadata verification failed."* Select **Refresh models** after you fix the account.
 
 The saved configuration looks like this:
 
@@ -68,7 +70,7 @@ Looking up Copilot models starts the Copilot runtime in your chosen environment.
 - reconnect the account, or
 - select **Refresh models**.
 
-Reconnecting the same account refreshes the list and clears the old model, so pick a model again afterwards.
+Reconnecting the same account refreshes the list.
 
 To load models for an existing agent, you need permission to change that agent's configuration. People with read-only access don't trigger a lookup, and the token stays locked.
 
@@ -103,11 +105,11 @@ Some Copilot features aren't part of this release: detached background work, Cop
 
 ### Usage and cost
 
-Usage is attributed to **GitHub**. Copilot reports credits and model multipliers, and Paperclip shows them as notices. They aren't dollar receipts. When GitHub doesn't send a dollar amount, the cost shows as unknown rather than as zero.
+Usage is attributed to **GitHub**. Copilot reports AI units and model multipliers, and Paperclip shows them as notices. They aren't dollar receipts. When GitHub doesn't send a dollar amount, the cost shows as unknown rather than as zero.
 
 ## Copilot and the Paperclip Runner switch
 
-Like Codex and ACP Claude, Copilot agents run even when the **Paperclip Runner** experimental switch is off. Turning the switch off hides **Paperclip Runner** as a choice in the agent form, but it doesn't stop your existing Copilot agents. See [Experimental features](../experimental/overview.md).
+Like Codex and ACP Claude, Copilot agents run even when the **Paperclip Runner** experimental switch is off. Turning the switch off hides **Paperclip Runner** as a choice in the agent form, but the new-agent dialog still offers **GitHub Copilot**, and your existing Copilot agents keep running. See [Experimental features](../experimental/overview.md).
 
 ## Try it
 
@@ -127,7 +129,7 @@ A reply proves the token was accepted, the runtime started in the agent's enviro
 | --- | --- | --- |
 | The token is rejected | It's a classic token, owned by an organization, or missing **Copilot Requests** | Create a personal fine-grained token with **Copilot Requests** and reconnect |
 | *"Select an available Copilot model before saving."* | No model is set, or it's `auto` or `default` | Pick a specific model from the list |
-| The model list is empty | The account has no Copilot access, or policy blocks every model | Check the account's Copilot plan on GitHub, then select **Refresh models** |
+| Loading the model list fails with *"Copilot metadata verification failed."* or an access-denied message | The account has no Copilot access, or policy blocks every model | Check the account's Copilot plan on GitHub, then select **Refresh models** |
 | The test passes locally but runs fail in a sandbox | The sandbox image doesn't match the release, or it was never tested | Use the matching image and run the test against that environment |
 | *"Install the verified Copilot runtime in this environment."* on a self-installed server | Install scripts were skipped during installation | Reinstall with install scripts turned on |
 

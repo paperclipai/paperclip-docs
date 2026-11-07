@@ -8,7 +8,7 @@ seo_description: Let agents create Supabase projects, deploy Edge Functions, and
 
 Agents can build on Supabase for you — creating projects, running database work, deploying Edge Functions, and configuring Auth and the Data API for an app.
 
-> **Nightly draft:** This guide covers the current master implementation. The **Deploy and configure with an access token** method and the optional project pin are not yet in the stable release; there, the project reference is still required.
+> **Note:** The **Deploy and configure with an access token** method and the optional project pin need a Paperclip version newer than v2026.1106.0. On v2026.1106.0 and earlier, the project reference is still required.
 
 > **Warning:** Use a development project. Supabase connections can reach real data and, without read-only mode, change schema, database contents, deployed functions, and how users sign in to your app. Do not connect a production project unless you have read Supabase's own MCP security guidance and accepted the risk deliberately.
 

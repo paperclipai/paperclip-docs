@@ -53,18 +53,19 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 
 ### Service secrets in shell commands
 
-Codex normally hides any variable whose name contains `KEY`, `SECRET`, or `TOKEN` from the shell commands it runs. That's a sensible default, but it used to mean a service credential you'd deliberately given the agent — say a `SLACK_BOT_TOKEN` secret ref in `env` — never reached the `curl` or script that needed it.
+Say your agent needs to post to Slack from a script. Codex normally hides any variable whose name contains `KEY`, `SECRET`, or `TOKEN` from the shell commands it runs, but a credential you deliberately assign, such as a `SLACK_BOT_TOKEN` secret ref in `env`, does reach them.
 
-Now, a variable you set in the agent's `env` reaches Codex's shell commands by name, even when its name contains one of those words. This works the same on the ACP and CLI engines. A few things stay out regardless:
+On the `codex_local` adapter, a variable you set in the agent's `env` reaches Codex's shell commands by name, even when its name contains one of those words. This works the same on the ACP and CLI engines. A few things stay out regardless:
 
-- **Codex's own login keys** — `OPENAI_API_KEY` and `CODEX_API_KEY` — plus managed provider keys, observability credentials, and Paperclip's own `PAPERCLIP_GITHUB_*`, `PAPERCLIP_RUNNER_*`, `PAPERCLIP_NATIVE_*`, and `PAPERCLIP_ACPX_*` secrets, even if you set them in `env`.
+- **Codex's own login keys** (`OPENAI_API_KEY` and `CODEX_API_KEY`), plus managed provider keys, observability credentials, and Paperclip's own `PAPERCLIP_GITHUB_*`, `PAPERCLIP_RUNNER_*`, `PAPERCLIP_NATIVE_*`, and `PAPERCLIP_ACPX_*` secrets, even if you set them in `env`.
 - **Host secrets you didn't assign.** Only variables in the agent's own configuration are opted in; nothing is pulled from the Paperclip host's environment.
+- **Names with wildcard characters.** A name has to be a plain environment variable name, so one entry can't match other credentials.
 
 `PAPERCLIP_API_KEY` and the agent's identity variables are delivered as before. Remove a variable from `env` and the shell loses access to it at the next launch.
 
 When the agent has a [managed GitHub connection](../../connectors/github.md), Paperclip also passes the run's GitHub broker capability (`PAPERCLIP_GITHUB_BROKER_TOKEN` and `PAPERCLIP_GITHUB_BRIDGE_TOKEN`, whichever the run has) into the shell, so Paperclip's managed `git` and `gh` commands can fetch the run's GitHub credential. Earlier versions kept it out, and those commands printed `Paperclip: GitHub capability_missing; continuing without managed credentials.` and ran unauthenticated. You don't set these; Paperclip injects them for each run, and any value you put in `env` is dropped. The capability works only while the run is live. Without a managed GitHub connection, nothing is added.
 
-> **Warning:** Assigning a credential this way gives the run's shell commands real access to it — a command the model chooses to run can read it. Only assign credentials the agent is meant to use, with no more service permissions than it needs.
+> **Warning:** Assigning a credential this way gives the run's shell commands real access to it, and a command the model chooses to run can read it. Only assign credentials the agent is meant to use, with no more service permissions than it needs.
 
 ---
 

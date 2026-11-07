@@ -68,7 +68,7 @@ A few things to know:
 
 - **New runs only.** Changes apply to runs that start after you save. Work that's already running keeps the settings it started with.
 - **Agents can see the credential.** Paperclip stores your key or header values in an encrypted, Paperclip-managed company secret and never shows them again. The agent's runtime still needs them to send records, so use a key that can only ingest telemetry, never a broad admin key.
-- **Records carry content.** With capture on, exported records can include prompts, responses, and tool output. Each record is tagged with `paperclip.company.id` and `paperclip.agent.id` so you can filter by agent.
+- **Records carry content.** With capture on, exported records can include prompts, responses, and tool output. Traces, and Claude Code's logs too, are tagged with `paperclip.company.id` and `paperclip.agent.id` so you can filter by agent.
 - **Export never blocks work.** If the saved settings are invalid or a credential can't be read, the run goes ahead without export and the run log notes an `agent_observability.unavailable` warning. A slow or failing destination doesn't fail the task either.
 - **Changing the endpoint.** If you move a Custom OTLP URL to a different host, port, or scheme, you have to re-enter every header value. Otherwise, leaving a value blank keeps the saved one.
 
@@ -118,9 +118,9 @@ The **Members** page is where you manage human memberships: who belongs to the o
 
 Paperclip uses four human membership roles. The role determines a set of implicit permission grants:
 
-- **Owner** — full company access. Includes creating agents and skills, managing execution environments, inviting humans and agents, managing members and grants, assigning tasks, approving join requests, and managing the tool and MCP setup — connections, runtime slots, gateways, and test calls.
-- **Admin** — an operator with invite and approval powers. Can create agents and skills, manage execution environments, invite users, assign tasks, approve join requests, and manage the tool and MCP setup (connections, runtime, gateways, and test calls) just like an Owner. The one thing an Admin cannot do that an Owner can is manage other members' permissions.
-- **Operator** — a hands-on member who helps run work. Can edit the company's work — create agents and skills, manage execution environments, invite people, assign tasks, and use and manage tool connections — but cannot approve join requests or manage member permissions.
+- **Owner** — full company access. Includes creating agents and skills, inviting humans and agents, managing members and grants, assigning tasks, approving join requests, and managing the tool and MCP setup — connections, runtime slots, gateways, and test calls.
+- **Admin** — an operator with invite and approval powers. Can create agents and skills, invite users, assign tasks, approve join requests, and manage the tool and MCP setup (connections, runtime, gateways, and test calls) just like an Owner. The one thing an Admin cannot do that an Owner can is manage other members' permissions.
+- **Operator** — a hands-on member who helps run work. Can edit the company's work — create agents and skills, invite people, assign tasks, use and manage tool connections, and view the agent-action audit feed — but cannot approve join requests or manage member permissions.
 - **Viewer** — read-only access. The only built-in grant is `commentary:view`, so Viewers can read agent commentary in Audit.
 
 The role drop-down in the edit dialog also accepts **Unset**, which leaves the member without any implicit grants.

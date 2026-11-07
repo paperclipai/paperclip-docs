@@ -7,7 +7,7 @@ seo_description: Let agents ask Enterpret about customer feedback and pull cited
 
 You can let agents ask questions about your customer feedback in Enterpret — themes, sentiment, and verbatim quotes with citations back to the original records. It is useful when a task needs the customer's own words, not a guess about what customers think.
 
-> **Nightly draft:** This guide covers the current master implementation. Enterpret appears in the catalog on every instance; no experimental setting is needed.
+Enterpret appears in the catalog on every instance; no experimental setting is needed.
 
 The connection uses Enterpret's official read-only MCP server. Enterpret runs a separate Agent MCP service that can make changes; this connector does not reach it.
 

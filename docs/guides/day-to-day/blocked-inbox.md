@@ -105,7 +105,7 @@ So if you have long-stalled rows in the Blocked tab with no owner to show, that'
 The Blocked tab reuses the same filter and search machinery as the rest of the Issues UI, so anything you've learned about the [Issues page](./issues.md) carries over.
 
 - **Search** — the toolbar search input matches against issue title, identifier, owner label, action label and detail, reason label, and any linked leaf or recovery issue. If nothing matches, you'll see *"No stopped items match your search."*
-- **Filters popover** — narrow by assignee, creator, project, and labels. Agent-created tasks stay out of this tab until you tick **show agent-created tasks**.
+- **Filters popover** — narrow by assignee, creator, project, and labels. Agent-created tasks stay out of this tab until you tick **Show agent-created tasks**.
 - **Column picker** — the trailing columns (status, identifier, updated time) can be toggled the same way as elsewhere.
 
 ---

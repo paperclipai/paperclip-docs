@@ -8,7 +8,7 @@ seo_description: Get Google Developer Preview access, connect Gmail with the rea
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** This connector is no longer listed on the **Connectors** page for new setup; it appears there only when you have a saved connection to it, which keeps running unchanged. For a new Google account, use [Google Workspace](google-workspace.md).
+> **Note:** This connector is no longer listed on the **Connectors** page for new setup; it appears there only when you have a saved connection to it, which keeps running unchanged. For a new Google account, use [Google Workspace](google-workspace.md). An agent that needs this service can still ask you for it with a connection card on its task.
 
 Two phases: get Google to register you for Developer Preview, then connect. The first phase is the slow one and happens entirely at Google.
 
@@ -72,8 +72,8 @@ Setup is one screen. Paperclip fills in a default for who the connection belongs
 Open the **Permissions** tab.
 
 - Leave the reads **Allowed**.
-- If you connected the archive group, `unlabel-thread` already starts on **Ask first**, so each archive waits for a person's approval. Keep it there while you learn how the agent decides a thread is done.
-- If you connected the draft group, consider setting `create-draft` to **Ask first**. Drafts land in a real mailbox, and the connector's own guidance recommends approval for them. This is advice, not something Paperclip enforces — unlike sending, which is blocked outright whatever you set.
+- If you connected the archive group, `unlabel_thread` already starts on **Ask first**, so each archive waits for a person's approval. Keep it there while you learn how the agent decides a thread is done.
+- If you connected the draft group, consider setting `create_draft` to **Ask first**. Drafts land in a real mailbox, and the connector's own guidance recommends approval for them. This is advice, not something Paperclip enforces — unlike sending, which is blocked outright whatever you set.
 
 ## 6. Verify with a read
 

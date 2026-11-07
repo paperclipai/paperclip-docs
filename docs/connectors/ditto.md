@@ -7,7 +7,7 @@ seo_description: Let agents search approved product copy in Ditto, follow your s
 
 You can let agents work with your product copy in Ditto: search approved text, check new wording against your style guide, and create, edit, and translate text, components, and variants. It is useful when a task writes UI text and should reuse what your team already approved instead of inventing new strings.
 
-> **Nightly draft:** This guide covers the current master implementation. Ditto appears in the catalog on every instance; no experimental setting is needed.
+Ditto appears in the catalog on every instance; no experimental setting is needed.
 
 The connection uses Ditto's hosted MCP server. Every method is read and write, and Ditto's tools include permanent deletes.
 
@@ -25,8 +25,8 @@ Know what a key reaches before you choose it. A Ditto API key is not scoped: it 
 1. Open **Connectors** and select **Ditto**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. Select **Change** to narrow the agents or to switch the method.
 3. Pick how to connect:
-   - **Browser sign-in** is the default. Paperclip registers its client with Ditto automatically, so there is nothing to set up in a developer console.
-   - **API key** — paste the key you created in Ditto.
+   - **Sign in with Ditto** is the default. Paperclip registers its client with Ditto automatically, so there is nothing to set up in a developer console.
+   - **Use an API key** — paste the key you created in Ditto.
 4. Before you connect, Paperclip shows what the connection can do, including the warning about deletes and links. Read it.
 5. Finish setup and open **Permissions** to review the action list.
 

@@ -221,7 +221,7 @@ Automatic work stays out of Mine by default. That covers tasks that come in from
 
 - the task is assigned to you;
 - you comment on it directly in Paperclip, or change it yourself;
-- an agent has an open question or request addressed to you on it. Once you answer it, the task needs another of these reasons to stay.
+- an agent has an open question or request addressed to you on it. Answering or accepting it counts as taking part, so the task stays.
 
 GitHub review bots follow the same rule. After a bot publishes its review, the task can wait in review for the next GitHub event without asking you anything, so a low score, pending or failed CI, or an unmerged pull request doesn't put it in Mine. If the same bot later publishes a newer review that doesn't need your input itself, it withdraws the completion request its earlier review left behind. The task only shows up in Mine when the bot needs something real from you, such as repository access.
 
@@ -519,7 +519,7 @@ When an agent creates a subtask or a separate follow-up task from this task, a c
 At the bottom of the conversation sits the composer. [Chat-Style Tasks](../../experimental/task-chat.md#the-composer) covers its mode, model, effort, project, and pending-card controls. It also supports:
 
 - **@mentions** — type `@` to open the mentions picker. Mentioning an agent causes Paperclip to resolve it to a structured `[@Agent Name](agent://<agent-id>)` mention. A mention is context only: it doesn't wake the agent, start a run, hand it the task, or forward your comment to another task. To bring another agent in, assign the task or request a review.
-- **Default recipient** — when an agent hands a task to you and you open it, the composer picks the agent that most recently assigned it to you. Your reply goes back to that agent without any extra clicks. If no agent assigned it to you, it falls back to the most recent other commenter. If there isn't one, no recipient is chosen. A recipient you pick yourself stays put when the page refreshes.
+- **Default recipient** — when an agent hands a task to you and you open it, the composer picks the agent that most recently assigned it to you. Your reply goes back to that agent without any extra clicks. If no agent assigned it to you, it falls back to the most recent other commenter. If there isn't one, no recipient is chosen. A recipient you pick yourself stays put while new activity comes in. It isn't saved, though, so reloading the page goes back to the default.
 - **Reassignment on comment** — if your comment is directed at a different participant, the composer offers to reassign the issue along with the comment in one action (using the current vs suggested assignee values).
 - **Image attachments** — paste, drop, or attach image files. On the default chat-style task page you can drop files anywhere on the screen; see [the composer guide](../../experimental/task-chat.md#the-composer) for the exceptions. In the classic interface, drop them on the composer. While you write, each image appears as a small rounded thumbnail above the text rather than inside it; click its **X** to remove it, or the retry button if an upload fails. Once sent, images render as thumbnails inside the comment bubble. Clicking a thumbnail opens the shared gallery modal.
 - **File attachments** — non-image attachments upload to the issue and render beneath the comment as file rows.
@@ -612,7 +612,7 @@ Implementation reference: [privacy actions](https://github.com/paperclipai/paper
 
 ## Live task notifications
 
-When something changes on a task while you're looking at another page, a notification can pop up in the corner. In a company with several people, you only get these for tasks you're part of: tasks you created, commented on, are assigned to, or were @-mentioned in. Just viewing a task, or being its responsible user, doesn't count. Activity on other people's work still updates your lists, but quietly.
+When something changes on a task while you're looking at another page, a notification can pop up in the corner. You only get these for tasks you're part of: tasks you created, commented on, are assigned to, or were @-mentioned in. Just viewing a task, or being its responsible user, doesn't count. Activity on other people's work still updates your lists, but quietly.
 
 Each notification shows who made the change, with their name and avatar, whether it was a person or an agent. You don't get notifications for your own actions.
 

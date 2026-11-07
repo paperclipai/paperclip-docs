@@ -7,7 +7,7 @@ seo_description: Let agents manage Unikraft Cloud instances, services, volumes, 
 
 Agents can manage resources in your own Unikraft Cloud organization — creating, starting, and stopping instances, working with services, autoscaling, volumes, images, and certificates, and running commands and handling files inside sandbox instances.
 
-> **Nightly draft:** This guide covers the current master implementation. Unikraft appears in the catalog on every instance; no experimental setting is needed. It has not yet been qualified against a live Unikraft Cloud account.
+> **Note:** Unikraft appears in the catalog on every instance; no experimental setting is needed. It has not yet been qualified against a live Unikraft Cloud account.
 
 > **Warning:** This connection can run commands in sandboxes, read and write sandbox files, start and stop instances, and delete instances, volumes, and other resources. Choose trusted agents and set action permissions before anyone uses it.
 
@@ -21,7 +21,7 @@ There is no browser sign-in; the token is the only way in. A token acts for its 
 
 1. Open **Connectors** and select **Unikraft**. The card says **Add key**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to narrow the agents or to reach the advanced setting below.
-3. Paste your API token and connect.
+3. Paste your API token into **Your Unikraft key** and select **Connect**.
 
 Paperclip checks the token with Unikraft before saving it, by reading your quotas in the default metro. The token stays in Paperclip's vault and is sent to Unikraft as a Bearer header; agents never see it.
 
@@ -45,7 +45,7 @@ Paperclip sorts the actions into three groups:
 | Write | Creating and updating resources, starting instances, attaching and cloning volumes, pinning images, writing and uploading sandbox files |
 | Destructive | Deleting anything, stopping or suspending instances, detaching volumes, unpinning images, running sandbox commands, sending signals or input to a command |
 
-New actions start as **Allowed**, so set the policy before you hand the connection to an agent:
+Every action starts as **Allowed** when setup finishes, so set the policy before you hand the connection to an agent:
 
 > **Danger:** Set destructive actions — deletions and sandbox commands especially — to **Ask first** or **Off**. A command runs inside your sandbox with whatever that sandbox can reach, and a deletion cannot be undone.
 
@@ -69,11 +69,12 @@ Compare the list with the Unikraft Cloud console.
 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
-| The token is rejected at setup | The token was revoked, belongs to another organization, or was copied incompletely | Create a new token in the console and reconnect |
+| The token is rejected at setup | The token was revoked or copied incompletely | Create a new token in the console and reconnect |
+| An action says Unikraft denied access | The token belongs to a different organization or has been revoked | Check the token in the console, then reconnect with one for the right organization |
 | An action is refused for its metro | The metro is not one of the five published metros | Use `dal`, `fra`, `sfo`, `sin`, or `was` |
 | A command or write timed out | Calls time out after 10 seconds by default and never run longer than 30, and the work may still be running in Unikraft | Check the instance before retrying; Paperclip never retries changes automatically |
 | A request or response fails on size | Bodies are limited to 8 MiB | Use smaller files or narrower requests |
-| Actions changed after an update | Paperclip refreshed the catalog | Open the connection and review the **Permissions** tab; new actions need review |
+| Actions changed after an update | Paperclip refreshed the catalog | Open the connection and review the **Permissions** tab; new and changed actions need review |
 | **Needs attention** | The token was revoked | Select **Reconnect** with a valid token |
 
 Limitations: one Unikraft organization token per connection. API token only; there is no OAuth sign-in. The audit event stream is not offered as an action. Older `kraft.cloud` hosts are not reachable through this connection. The connector never touches files or runs commands on the Paperclip server itself, and it does not reuse a Unikraft CLI login on the host.

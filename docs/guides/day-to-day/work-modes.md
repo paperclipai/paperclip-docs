@@ -30,6 +30,8 @@ Each agent reply shows the mode that request ran under. Read that chip when look
 
 Use the **+** menu in the new-task or task composer to choose **Plan mode** or **Ask mode**. The selected mode appears beside the plus button. Click the chip to return to Auto, or choose the other mode to replace it. You can also cycle modes with **⌘+.** (**Ctrl+.** on Windows and Linux) or **Shift+Tab** while the text box is focused.
 
+Replies in the thread don't show which mode they ran under. The chip beside the plus button only tells you the mode your next message will use.
+
 Choose the agent, model, and effort separately. Those settings determine who answers and how the model runs; the work mode determines the kind of result you requested. See [The composer](../../experimental/task-chat.md#the-composer) for the full control layout.
 
 Pending questions and confirmations remain visible above the composer until you answer them or the request's own expiration rules apply. Selecting Auto or sending a new message does not automatically accept a plan. Use the confirmation card's choices to make that decision.

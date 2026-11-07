@@ -7,7 +7,7 @@ seo_description: Let agents read and manage items in the 1Password vaults you ch
 
 You can let agents read and manage items in your 1Password vaults: list vaults and items, read an item or a single `op://` secret reference, and create, update, archive, or delete items. It is useful when a task needs a credential that lives in 1Password, or needs to store a new one there, without you copying secrets around by hand.
 
-> **Nightly draft:** This guide covers the current master implementation. 1Password appears in the catalog on every instance; no experimental setting is needed.
+1Password appears in the catalog on every instance; no experimental setting is needed.
 
 > **Warning:** Authorized agents can read secret values and change or delete items in the vaults the service account can reach. Grant access only to trusted agents.
 

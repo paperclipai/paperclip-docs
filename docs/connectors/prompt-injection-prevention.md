@@ -52,7 +52,7 @@ If the saved connection stops working — revoked, deleted, or needing attention
 
 A flagged result is **blocked**: your agent never sees the content. The tool call fails with the message *"Tool result contained prompt-injection instructions and was blocked"* and the reason code `prompt_injection_blocked`, so the agent knows the call didn't go through and can try another route.
 
-The block is recorded in the company's activity log as a failed tool call (`tool_gateway.call_failed`), along with the findings and which detector made the call — `model` or `regex` — plus the model and the fallback reason when built-in detection stepped in. That gives you a trail to review if an agent starts hitting blocks.
+The block is recorded in the company's activity log as a failed tool call (`tool_gateway.call_failed`), along with which detector made the call — `model` or `regex` — plus the model and the fallback reason when built-in detection stepped in. The findings themselves go back to the agent with the error and stay on the tool call's own audit event. That gives you a trail to review if an agent starts hitting blocks.
 
 Results that would hide something from the model — for example, content tucked inside a field Paperclip redacts as sensitive before sending — skip the model and go straight to built-in detection. Paperclip won't accept a "safe" verdict on text the model never saw.
 

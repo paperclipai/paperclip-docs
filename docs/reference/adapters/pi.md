@@ -66,12 +66,6 @@ Pi repeats the full message so far in every streaming update, so a long run's lo
 
 Set `stdoutLogMode` to `"raw"` when you need Pi's untouched output, for example to investigate a problem. In compact mode, if a run stops before a tool finishes, that tool's partial output isn't kept. An unrecognized value falls back to `raw`.
 
-### Run log size
-
-Pi repeats the full message so far in every streaming update, so a long run's log can grow very quickly. By default (`stdoutLogMode: "compact"`), Paperclip drops those repeated copies before writing to the run log and turns tool progress updates into small progress events. Streaming text still arrives as it's written, so the live transcript looks the same.
-
-Set `stdoutLogMode` to `"raw"` when you need Pi's untouched output, for example to investigate a problem. In compact mode, if a run stops before a tool finishes, that tool's partial output isn't kept. An unrecognized value falls back to `raw`.
-
 ---
 
 ## Custom Providers / Gateway Routing

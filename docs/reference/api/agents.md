@@ -413,8 +413,8 @@ Important behavior:
 - If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
 - For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds a short default `AGENTS.md`: a one-line role description for `role: "ceo"`, or a one-line generic placeholder for every other role. Keep it short — Paperclip's runtime and installed skills already supply the operating procedures. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
-- The optional `runner` field picks how a Codex, Claude Code, OpenCode, or Pi agent runs: `auto` (the default), `paperclip`, or `legacy`. With `adapterType: "codex_local"`, `auto` stores the agent as `paperclip_runner` with `provider: "codex"` when the target environment qualifies for Paperclip Runner (macOS on Apple Silicon or Intel, or Linux x64/ARM64 with GNU libc 2.39 or newer), and keeps `codex_local` otherwise. With `adapterType: "claude_local"`, `auto` stores `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"` on the same targets, except that a macOS host reached over SSH, or a target whose platform can't be detected, keeps `claude_local`. A blank Claude `model` resolves to `claude-opus-5-5`. With `adapterType: "opencode_local"`, `auto` stores `paperclip_runner` with `provider: "opencode"`, and with `adapterType: "pi_local"` it stores `provider: "acpx"` and `acpxAgent: "pi"`; both keep the classic adapter on Linux ARM64. `legacy` always keeps the classic adapter. See [New Codex and Claude agents use the Runner](../adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
-- Asking for `paperclip` on a target that doesn't qualify fails with `422` and code `agent_runner_unavailable`. Legacy-only settings that Paperclip Runner can't honour (for example a `codexPermissionMode` other than `never`) fail with `422` and code `agent_runner_config_incompatible`, listing the offending `fields` — remove them or choose `legacy`.
+- The optional `runner` field picks how a Codex, Claude Code, OpenCode, or Pi agent runs: `auto` (the default), `paperclip`, or `legacy`. With `adapterType: "codex_local"`, `auto` stores the agent as `paperclip_runner` with `provider: "codex"` when the target environment qualifies for Paperclip Runner (macOS on Apple Silicon or Intel, or Linux x64/ARM64 with GNU libc 2.39 or newer), and keeps `codex_local` otherwise. With `adapterType: "claude_local"`, `auto` stores `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"` on the same targets, except that a macOS host reached over SSH, or a target whose platform can't be detected, keeps `claude_local`. A blank Claude `model` resolves to `ANTHROPIC_MODEL` from the agent's `env` if it's set, otherwise to `claude-opus-5-5`. With Bedrock or Vertex settings in `env` and no model, the request fails with `422` and code `agent_runner_config_incompatible`, because those providers use their own model IDs. With `adapterType: "opencode_local"`, `auto` stores `paperclip_runner` with `provider: "opencode"`, and with `adapterType: "pi_local"` it stores `provider: "acpx"` and `acpxAgent: "pi"`; both keep the classic adapter on Linux ARM64. `legacy` always keeps the classic adapter. See [New Codex and Claude agents use the Runner](../adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
+- Asking for `paperclip` on a target that doesn't qualify fails with `422` and code `agent_runner_unavailable`. Legacy-only settings that Paperclip Runner can't honour (for example `extraArgs` on a Codex or Claude agent) fail with `422` and code `agent_runner_config_incompatible`, listing the offending `fields` — remove them or choose `legacy`.
 - A few obsolete Claude options — `maxTurnsPerRun`, `chrome`, `warmHandleIdleMs`, and `acpWarmHandleIdleMs` — don't block a Claude agent on Paperclip Runner. The server drops them and the response includes a `configurationWarnings` array, with one `{ "code": "runner_option_ignored", "field", "message" }` entry per ignored option. The agent can still run. The array is left out when nothing was ignored. See [Configuration warnings](#configuration-warnings).
 - Only an operator can set `adapterConfig.homeMode`. An agent caller that includes it gets `403` with `Only an operator can configure Runner homeMode.`
 - To save an agent before setup is finished (the way the **New Agent** dialog does when you submit a name), send a fresh uuid as `setupId`. The server creates the agent with that ID, `status: "paused"`, and `pauseReason: "setup"`, and skips the board-approval check, which happens when the hire is finished. Sending the same `setupId` again returns the same agent. Only a signed-in board user can do this. While setup is unfinished, `POST /api/agents/{agentId}/resume` returns `409` with `Finish agent setup before resuming`, and creating an API key returns `409` with `Finish agent setup before creating keys`.
@@ -612,37 +612,6 @@ The create, hire, and update responses add a `configurationWarnings` array only 
 | `message` | A readable explanation you can show to people, ending with "The agent can still run." |
 
 In the agent's settings, these messages appear in the **Agent saved** toast.
-
-### Change only the connection or default model (`runtimeSettings`)
-
-The **Edit connection & model** bulk action on the agent list (see [Agents → Change the connection or model for several agents at once](../../guides/org/agents.md#change-the-connection-or-model-for-several-agents-at-once)) uses a narrower form of this route. Instead of sending `adapterConfig` and `runtimeConfig`, you send a single `runtimeSettings` object, and the server merges just the model and AI connection into the agent's latest configuration. Every other setting is left untouched.
-
-| Field | Notes |
-|---|---|
-| `harness` | Required. The harness you expect the agent to be on, such as `codex_local` or `claude_local`. If the agent's harness changed, the call fails with `409` and `This agent's harness changed. Refresh the roster and select it again.` |
-| `model` | Optional. The new default model, up to 512 characters. |
-| `aiConnection` | Optional. The new AI connection binding: `{ "mode": "shared" \| "delegated", "provider", "method", "connectionId", "grantId" }` or `{ "mode": "responsible_user", "provider", "method" }`. |
-| `expected` | Required. `{ "model": <string or null>, "aiConnection": <binding or null> }` — the values you saw before editing. If either no longer matches, the call fails with `409` and `This agent's connection or model changed. Refresh the roster and review the changes again.` |
-
-Send at least one of `model` or `aiConnection`; otherwise validation fails with `Choose a connection or default model to change`.
-
-```json
-{
-  "runtimeSettings": {
-    "harness": "codex_local",
-    "model": "gpt-5.5",
-    "expected": { "model": "gpt-5.4", "aiConnection": null }
-  }
-}
-```
-
-Rules to know:
-
-- `runtimeSettings` can't be combined with any other field in the same request (`422` with `Runtime settings cannot be combined with other agent changes`).
-- The caller needs permission to configure the agent — the same check used for agent setup. The update is still recorded as a configuration revision.
-- `process` and `http` agents, and agents that are `terminated` or `pending_approval`, are refused with `422` and `This agent cannot be updated from the roster`.
-- Connection pools can't be set or changed this way: `aiConnection` only accepts the `shared`, `delegated`, and `responsible_user` shapes, and an agent that's already on a pool can't be described in `expected`. Edit pool members on the agent's configuration page instead.
-- When the selected connection lists specific models, the model must be one of them; otherwise the call fails with `422` and `Choose a default model available on the selected connection`.
 
 ### Change only the connection or default model (`runtimeSettings`)
 
@@ -855,10 +824,21 @@ The `permissionKey` field on a grant is one of:
 
 | Key | What it allows |
 |---|---|
-| `agents:create` | Hire or create new agents in the company, and run adapter environment tests. It doesn't let an agent read a peer's configuration. |
+| `agents:create` | Hire or create new agents in the company, and run adapter environment tests. It doesn't let an agent read a peer's configuration; that takes `agents:read`, `agents:configure`, or `agents:suggest-changes`. |
 | `agents:read` | Read an agent's redacted configuration, skill settings, instruction content, and configuration and instruction history. It doesn't allow changes, rollback, or environment tests. |
-| `agents:configure` | Read and directly change an agent's configuration. |
-| `agents:suggest-changes` | Read an agent's configuration, and apply a change once it's been accepted. |
+| `agents:configure` | Read and directly change another agent's configuration, instructions, and profile. |
+| `agents:suggest-changes` | Read an agent's configuration. An agent holding it can also apply an accepted change to instructions or profile fields (`name`, `role`, `title`, `capabilities`). |
+| `skills:create` | Create and manage company skills. Skill writes are decided by the [company skill policy](./company-skill-policy.md), where this grant counts as a compatibility allow under a default-deny policy. |
+| `skills:suggest-changes` | Propose changes to company skills. It counts toward the same compatibility allow as `skills:create`. |
+| `tools:admin` | Set up shared tool plumbing, such as MCP gateways and their tokens. Board members only. |
+| `tools:manage_connections` | Manage company connections, including which agents and projects a tool connection is installed on. |
+| `tools:manage_profiles` | Edit tool profiles, company tool policies, and trust rules. Together with `tools:manage_connections`, it also turns a connection's company-wide install on or off. |
+| `tools:view_audit` | Read the tool gateway's audit trail and a connection's activity history. |
+| `audit:view_agent_actions` | Read the company's audit feed of agent actions and export it. Board members only. |
+| `commentary:view` | Read agent [commentary](../../administration/agent-commentary.md#read-commentary-through-the-api). Board members only. |
+| `tools:use` | Try a connection's tools from the board. In tool access decisions, it also counts as an explicit allow for the tools its scope covers, once no policy has already decided the call. |
+| `tools:manage_runtime` | Inspect, stop, and restart tool runtime slots. |
+| `inbox:manage` | Let an agent act on the inbox of a user other than its responsible user, when the grant's scope covers that user. New standard agents hold it scoped with `responsibleUserOnly`, which doesn't reach other users. |
 | `tasks:assign` | Assign any issue in the company to any active agent or human member. |
 | `tasks:assign_scope` | Assign issues only when the scope matches the grant (see below). Requires a structured scope on the grant. |
 | `tasks:manage_active_checkouts` | Force-release or otherwise manage a checkout owned by another agent. |
@@ -985,7 +965,7 @@ Every hire, pause, resume, and termination runs through a short sequence of step
 
 `preparing` gives any required [plugins](../plugins/sdk.md#required-agent-lifecycle-work) a chance to set up resources; `verifying` tests the agent's saved runtime configuration. Messages and tasks accepted before the agent reaches `ready` stay queued and dispatch once it does.
 
-If a step fails, `lifecycleError` names it and suggests a fix — for example `Execution configuration check failed. The selected model is unavailable. Choose a model supported by the agent's AI connection in Configuration, then retry.` Paperclip retries failed steps automatically. To try again immediately (for example after you've fixed the configuration):
+If a step fails, `lifecycleError` names it and suggests a fix — for example `Execution configuration check failed. The selected model is unavailable. Choose a model supported by the agent's AI connection in Configuration, then retry.` Paperclip retries failed steps automatically about a minute later. To try again immediately (for example after you've fixed the configuration):
 
 `POST /api/agents/{agentId}/lifecycle/retry`
 
@@ -1420,7 +1400,7 @@ Important notes:
 - An agent needs no grant of its own to read its own configuration and config revisions, unless it's [low-trust](../../administration/trust-and-low-trust-review.md). To read a peer, it needs `agents:read`, `agents:configure`, or `agents:suggest-changes`, and that grant's scope has to cover the target agent. A target outside the agent's company returns `404`.
 - For an agent, `GET /api/companies/{companyId}/agent-configurations` needs a company-wide grant. A grant scoped to certain agents returns `403`.
 - If the agent acts for a responsible user, that person needs one of the same three keys, even when the agent is reading itself, or the read returns `403` with code `RESPONSIBLE_USER_UNAUTHORIZED`. See [Reading agent configuration](../../administration/roles-and-permissions.md#reading-agent-configuration).
-- `agents:read` doesn't cover changes. Rollback needs permission to update the agent, and `POST /api/companies/{companyId}/adapters/{type}/test-environment` needs permission to create agents. Testing a saved agent by passing `agentId` also needs permission to change it.
+- `agents:read` doesn't cover changes. Changing or rolling back another agent's configuration needs `agents:configure`; `agents:suggest-changes` with an accepted change covers only instructions and profile fields. An agent can change or roll back its own configuration without a grant, subject to its responsible user's access and the limits on what agents may set; a low-trust agent can't. `POST /api/companies/{companyId}/adapters/{type}/test-environment` needs permission to create agents. Testing a saved agent by passing `agentId` also needs permission to change it.
 - Revisions redact secret-bearing fields before returning them, so reads never expose secrets regardless of who you are.
 - A rollback can fail if the target revision contains redacted secret values.
 
@@ -1532,7 +1512,7 @@ These exist for compatibility with instances that saved instruction revisions be
 
 Notes:
 
-- Changing the instructions path needs `agents:configure`, or `agents:suggest-changes` with an accepted change. Being the target agent or its manager isn't enough.
+- `PATCH /api/agents/{agentId}/instructions-path` is board-only and needs `agents:configure`. `PATCH /api/agents/{agentId}/instructions-bundle` needs `agents:configure` too, or, for an agent, `agents:suggest-changes` with an accepted change. Being the target agent or its manager isn't enough.
 - An agent can read its own files and save its own entry file within what its responsible user is currently allowed to do. Saving or deleting its other files through these routes needs `agents:configure`, or `agents:suggest-changes` with an accepted change. Reading another agent's files and instruction history needs `agents:read`, `agents:configure`, or `agents:suggest-changes`. Saving them or restoring a revision needs `agents:configure`, or `agents:suggest-changes` with an accepted change.
 - Agents need a current responsible user to read instruction files, including their own.
 - A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't save its own instructions from ordinary work. The exception is an edit its user asks for directly in their own Agent Chat — see [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
@@ -1630,7 +1610,3 @@ AWS AgentCore authenticates through the runner environment's workload identity, 
 - Pause and resume are not available for terminated agents.
 - A heartbeat-run route called with a run ID that isn't a valid UUID returns `400 Bad Request` (`Invalid heartbeat run ID`).
 - Wakeup can be skipped even when the request is accepted, especially when policy or execution state blocks it.
-
----
-
-## Notes
