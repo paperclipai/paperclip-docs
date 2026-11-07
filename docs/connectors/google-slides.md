@@ -45,15 +45,15 @@ Reviewed operations:
 
 | Operation | Group |
 | --- | --- |
-| `read-presentation` | Both |
-| `update-presentation` | **Read & edit** only |
+| `read_presentation` | Both |
+| `update_presentation` | **Read & edit** only |
 
-Be realistic about what editing means here. The whole write surface is one operation, `update-presentation`, which applies changes through the Slides API rather than driving the Slides editor. Two consequences follow, and only the first is a capability statement:
+Be realistic about what editing means here. The whole write surface is one operation, `update_presentation`, which applies changes through the Slides API rather than driving the Slides editor. Two consequences follow, and only the first is a capability statement:
 
 - **Supported edits depend on the connector's operation schema.** Do not assume the operation exposes every Slides API request. Inspect its current input schema before relying on a particular edit.
 - **What it cannot supply is design judgement.** Even where the API accepts a change, an agent placing elements without seeing the result will not arrange a slide the way a person would. Treat agent edits as a first draft that someone opens in Slides afterwards.
 
-> **Note:** The connector's guidance is that presentation updates should be approved. Leave `update-presentation` on **Ask first**.
+> **Note:** The connector's guidance is that presentation updates should be approved. Leave `update_presentation` on **Ask first**.
 
 ## Try it
 
@@ -66,7 +66,7 @@ Read this presentation — https://docs.google.com/presentation/d/YOUR_DECK_ID/e
 
 Compare the titles against the deck.
 
-> **Warning:** Do not test with "the presentation called X". The reviewed operation is `read-presentation`, which takes a presentation identifier — this connector has no deck-search tool, so a title-based request tests discovery rather than your connection. Title search belongs to [Google Drive](google-drive.md) or [Google Workspace Search](google-workspace-search.md).
+> **Warning:** Do not test with "the presentation called X". The reviewed operation is `read_presentation`, which takes a presentation identifier — this connector has no deck-search tool, so a title-based request tests discovery rather than your connection. Title search belongs to [Google Drive](google-drive.md) or [Google Workspace Search](google-workspace-search.md).
 
 If you want to confirm editing, do it on a copy rather than the deck someone is about to present.
 
@@ -79,7 +79,7 @@ If you want to confirm editing, do it on a copy rather than the deck someone is 
 | Google refuses before the consent screen | Developer Preview registration is incomplete | Finish registration and retry |
 | **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Slides profile | Use your own Google OAuth app |
 | A presentation cannot be found | It is not shared with the authorizing account | Share it in Google Drive; no reconnect needed |
-| `update-presentation` is missing | The connection was made with **Read only** | Make a connection with **Read & edit** |
+| `update_presentation` is missing | The connection was made with **Read only** | Make a connection with **Read & edit** |
 | An edit landed but looks wrong | The Slides API does not cover every layout and design feature | Adjust it in Google Slides |
 | **Needs attention** | The Google token expired or was revoked | Select **Reconnect** |
 

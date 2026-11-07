@@ -58,10 +58,10 @@ Reviewed operations:
 
 | Operation | Group |
 | --- | --- |
-| `search-conversations`, `list-messages`, `search-messages` | Both |
-| `send-message` | **Read & send** only |
+| `search_conversations`, `list_messages`, `search_messages` | Both |
+| `send_message` | **Read & send** only |
 
-> **Warning:** A sent message is visible to everyone in the space and arrives under the authorizing account's name, not an agent's. The connector's guidance is that sending should be approved — leave `send-message` on **Ask first**.
+> **Warning:** A sent message is visible to everyone in the space and arrives under the authorizing account's name, not an agent's. The connector's guidance is that sending should be approved — leave `send_message` on **Ask first**.
 
 [How connector access works](access-model.md) covers identity and agent selection.
 
@@ -88,7 +88,7 @@ If you must confirm sending, post to a space created for the purpose that contai
 | Authorization fails on a self-managed client | No Google Chat app is configured in the Cloud project | Configure the Chat app, then retry |
 | **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Chat profile | Use your own Google OAuth app |
 | A space is missing from results | The authorizing account is not a member of it | Join the space in Google Chat; no reconnect needed |
-| `send-message` is absent | The connection was made with **Read only** | Make a connection with **Read & send** |
+| `send_message` is absent | The connection was made with **Read only** | Make a connection with **Read & send** |
 | People expect to message an agent and get no reply | Google Chat is not a Paperclip conversation channel | Use a supported channel instead |
 | **Needs attention** | The Google token expired or was revoked | Select **Reconnect** |
 
