@@ -29,7 +29,7 @@ When you create a Codex, Claude Code, OpenCode, or Pi agent, Paperclip picks the
 | OpenCode | `provider: "opencode"` | [`opencode_local`](opencode.md) |
 | Pi | `provider: "acpx"`, `acpxAgent: "pi"` | [`pi_local`](pi.md) |
 
- This applies to new agents created through onboarding, **New agent**, hires, built-in agents, plugins, imports, and the API or CLI. Other harnesses keep their current defaults.
+ This applies to new agents created through onboarding, **New agent**, hires, built-in agents, plugins, imports, and the API or CLI. New Grok Build agents also resolve to the Runner on Apple Silicon macOS and on Linux x64 with GNU libc 2.39 or newer, but they only run while **Paperclip Runner** is on. Choose **Legacy runner** if you keep that setting off. Other harnesses keep their current defaults.
 
 Paperclip Runner is chosen automatically when the agent's execution environment is one of these:
 
