@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1106.0
 seo_title: CLI Agent Commands
 seo_description: Hire, inspect, configure, and steer the AI workers doing your company's work, including adapters, budgets, and lifecycle changes.
 ---
@@ -63,6 +63,13 @@ paperclipai agent hire --company-id <company-id> \
 | `agent hire` | Create an agent *hire request* (`POST /api/companies/{id}/agent-hires`). Use this when hiring is governed and must pass through the board approval flow rather than landing as a live agent. |
 
 Both require `-C, --company-id <id>` and `--payload-json <json>`. The JSON is validated before it is sent, so a malformed payload fails locally with a clear error instead of a server round-trip.
+
+Both also accept `--runner <runner>`, which picks how the new agent executes: `auto` (the default), `paperclip`, or `legacy`. With `auto`, the server decides. A new Codex or Claude Code agent, for example, uses Paperclip Runner on supported macOS and Linux hosts. Pass `legacy` to keep the classic adapter. The flag overrides any `runner` field in your payload.
+
+```sh
+paperclipai agent create --company-id <company-id> --runner legacy \
+  --payload-json '{"name":"Builder","adapterType":"codex_local"}'
+```
 
 > **Tip:** Building the payload by hand is error-prone. The `paperclip-create-agent` skill inspects adapter options and drafts a valid config for you. The board can review and resolve a hire request with the [approval](./approval.md) commands.
 
@@ -218,8 +225,8 @@ paperclipai agent instructions-bundle <agent-id>
 paperclipai agent instructions-bundle:update <agent-id> --payload-json '{"mode":"managed"}'
 
 paperclipai agent instructions-file:get <agent-id> --path AGENTS.md
-paperclipai agent instructions-file:put <agent-id> --path AGENTS.md --content-file ./AGENTS.md
-paperclipai agent instructions-file:delete <agent-id> --path AGENTS.md
+paperclipai agent instructions-file:put <agent-id> --path notes.md --content-file ./notes.md
+paperclipai agent instructions-file:delete <agent-id> --path notes.md --yes
 ```
 
 | Command | Use |
@@ -229,7 +236,9 @@ paperclipai agent instructions-file:delete <agent-id> --path AGENTS.md
 | `agent instructions-bundle:update` | Update the bundle from an `UpdateAgentInstructionsBundle` JSON payload — for example switching `mode` to `managed`. |
 | `agent instructions-file:get` | Read one bundle-relative file. `--path <path>` is required. |
 | `agent instructions-file:put` | Create or update one bundle-relative file. Provide content inline with `--content <text>` or from disk with `--content-file <path>`; add `--clear-legacy-prompt-template` to drop an old prompt template in the same write. |
-| `agent instructions-file:delete` | Delete one bundle-relative file by `--path`. |
+| `agent instructions-file:delete` | Delete one bundle-relative file by `--path`. Because deleting an instructions file changes how the agent behaves from then on, the command refuses to run without `--yes`. |
+
+> **Warning:** `instructions-file:put` and `instructions-file:delete` can't send the base hash the server asks for, so they only work on supporting files in an external bundle. In a managed bundle, which is what a new agent gets by default, they return `422`. Saving the entry file (`AGENTS.md` by default) returns `422` in every mode, and you can't delete it. For those cases, use the [instructions file API](../api/agents.md#saving-files).
 
 > **Tip:** Prefer `--content-file` over `--content` for anything multi-line. It keeps shell quoting out of the way and lets you version the instructions file in your own repo.
 

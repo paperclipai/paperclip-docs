@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Sandbox Providers
 seo_description: Provider plugins that let Paperclip provision external compute as the execution environment for agent runs, instead of running them on the host.
 ---
@@ -73,7 +73,7 @@ Daytona counts a *stopped* sandbox against your org's storage quota — only an 
 
 These defaults only apply when you leave a field unset — an explicit value (including `0` or `-1`) is forwarded to Daytona unchanged. Auto-archive is reversible: resuming an archived reusable sandbox restores it, so warm reuse still works under these defaults. If you genuinely need long-lived warm sandboxes, raise or disable the intervals.
 
-When Paperclip keeps a sandbox for later inspection or repair instead of deleting it, it first turns off Daytona's auto-delete and rereads the sandbox to confirm the change took. Once the change is confirmed, Paperclip stops the sandbox unless it's already stopped.
+When Paperclip keeps a sandbox for later inspection or repair instead of deleting it, it first turns off Daytona's auto-delete and rereads the sandbox to confirm the change took. A sandbox that's already archived stays archived; it has no running process and keeps its files. Once the change is confirmed, Paperclip stops the sandbox unless it's already stopped or archived.
 
 ### Resource overrides need an image
 
@@ -100,6 +100,7 @@ Daytona streams a command's output to Paperclip over a log socket, and occasiona
 
 - **It waits for a real exit.** A command only counts as complete once Daytona records its exit. After a clean close, the driver reconnects the stream once, then checks the command's status and log snapshot at most once a second until the exit shows up.
 - **Quiet sockets switch to polling sooner.** If the socket delivers no output for 15 seconds — even if it never finished connecting — the driver stops waiting on it and moves straight to polling.
+- **Finished commands return right away.** The driver checks the command's status first, allowing up to 500 ms for Daytona to answer. If the command has already exited, it returns the exit code and output without waiting on the log stream.
 - **Nothing runs twice.** The command is never sent again, output you've already seen isn't repeated in the run log, and a final snapshot fills in anything written after the socket closed.
 - **A timeout stays honest.** If reading the logs times out, you keep the partial output, and the log says whether the command's exit is still unconfirmed. It isn't reported as a success.
 
@@ -252,7 +253,7 @@ For the default `sandbox-cr` backend:
 2. The [`kubernetes-sigs/agent-sandbox`](https://github.com/kubernetes-sigs/agent-sandbox) controller installed in the cluster. It's alpha and installs the `sandboxes.agents.x-k8s.io/v1alpha1` CRD plus its controller:
 
    ```bash
-   kubectl apply -f https://github.com/kubernetes-sigs/agent-sandbox/releases/latest/download/install.yaml
+   kubectl apply -f https://github.com/kubernetes-sigs/agent-sandbox/releases/latest/download/sandbox.yaml
    ```
 
 3. Paperclip-server with access to the cluster — either in-cluster (`inCluster: true`) or external via a `kubeconfig`.

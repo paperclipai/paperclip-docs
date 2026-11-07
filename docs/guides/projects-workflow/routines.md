@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Heartbeats and Routines: Scheduling Work
 seo_description: Why timer heartbeats are opt-in, and how routines schedule recurring work without paused agents, surprise token bills, or a dashboard you fight with.
 ---
@@ -79,12 +79,7 @@ When the trigger fires, Paperclip creates a task, assigns it to the agent, and t
 
 ### Routine policies worth knowing
 
-Two policies control what happens when schedules overlap or the scheduler has been offline:
-
-- **Concurrency policy** — what to do if the routine is still running when the next tick arrives. Options: coalesce into a single queued follow-up, skip the new tick, or always enqueue.
-- **Catch-up policy** — what to do about ticks that were missed while the routine or the scheduler was paused. Options: skip the missed windows, or catch up in capped batches.
-
-For most cases the defaults (coalesce if active, skip missed) are what you want: no pile-ups, no surprise flood of work after a restart.
+Two policies control what happens when schedules overlap or the scheduler has been offline. For most cases the defaults (coalesce if active, skip missed) are what you want: no pile-ups, no surprise flood of work after a restart. See [Catch-up behaviour](#catch-up-behaviour) for the options.
 
 ---
 
@@ -92,7 +87,7 @@ For most cases the defaults (coalesce if active, skip missed) are what you want:
 
 ![Routines list](../../user-guides/screenshots/light/routines/list.png)
 
-The Routines page is reached from **Routines** in the sidebar. There are no tabs: the header carries a **View all runs** button and a **Create routine** button, and the routine list sits right below, with a count of how many routines are in view.
+The Routines page is reached from **Routines** in the sidebar. There are no tabs: a single toolbar across the top holds a **Search routines…** box, the **Sort** and **Group** menus, and the **View all runs** and **Create routine** buttons. The routine list sits right below. When you group by folder and have folders, a header above the list shows how many routines are in view.
 
 ### List rows and badges
 
@@ -114,14 +109,14 @@ Routines can live in folders. By default the list is grouped by folder, and rout
 
 Once you have folders, a folder rail lets you jump between **All routines**, each folder, and **Unfiled**. Use a folder's menu to **Rename** it, **Edit color**, or **Delete** it — deleting a folder moves its routines to Unfiled rather than deleting them. To file several routines at once, click **Select**, tick the routines, and use **Move to...**; click **Done** when you're finished.
 
-Two controls sit above the list:
+Two menus in the toolbar shape the list:
 
 - **Sort** — order routines by **Updated**, **Created**, **Last run**, or **Title**. Click the active option again to flip between ascending and descending.
 - **Group** — group by **Folder** (the default), **Project**, **Agent**, or **None**. Project grouping puts routines without one under "No project"; Agent grouping puts drafts under "Unassigned".
 
 Group headers are collapsible, and your sort, grouping, and collapsed groups are remembered per company, so reloading keeps your view.
 
-The list doesn't have a separate text search — folders, grouping, and the collapsible groups are the main way to navigate larger libraries.
+To find a routine by name, type in the **Search routines…** box. It matches words in each routine's title and description, and works alongside your folder, sort, and grouping choices. If nothing matches, the list reads *"No routines match your search."* Clear the box to see everything again.
 
 ### Creating a routine from the list
 
@@ -142,7 +137,7 @@ Draft routines without a default agent are valid — they save and stay paused u
 
 ### Seeing every run
 
-To check on executions, click **View all runs** in the page header. It takes you to the **Runs** section of the Audit area (`/activity/runs`), where every heartbeat run is listed with its status and links to the work it produced. It's the fastest way to answer "did all my morning routines run?"
+To check on executions, click **View all runs** in the toolbar. It takes you to the **Runs** section of the Audit area (`/activity/runs`), where every heartbeat run is listed with its status and links to the work it produced. It's the fastest way to answer "did all my morning routines run?"
 
 If **Streamlined UI** is turned off in Experimental settings, the Routines page instead shows **Routines** and **Recent Runs** tabs. Recent Runs is a task list filtered to the execution tasks your routines created, with live-run indicators that refresh every few seconds.
 

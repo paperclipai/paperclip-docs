@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.1106.0
 seo_title: Adapters API
 seo_description: The control-plane surface for the server-side adapter registry: which agent runtimes Paperclip can reach, how each is configured, and how packages install.
 ---
@@ -21,6 +21,8 @@ GET /api/adapters
 ```
 
 Returns the registry of server-side adapters Paperclip currently knows about: built-in adapter types plus any external adapters installed on the instance.
+
+Each entry also carries `supportedRunners` and `defaultRunner`, which tell you which runners (`paperclip`, `legacy`) a new agent of that type can use and which one `runner: "auto"` would pick. Pass `companyId`, and optionally `environmentId`, as query parameters to check against a specific execution environment instead of the Paperclip server itself. `environmentId` requires `companyId`. Today `codex_local`, `claude_local`, `opencode_local`, and `pi_local` can resolve to `paperclip`.
 
 ## Install an external adapter
 

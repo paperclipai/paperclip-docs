@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Claude Code Adapter
 seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with session persistence, skills injection, and configuration managed from your agent.
 ---
@@ -7,6 +7,8 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 # Claude Code
 
 `claude_local` runs Anthropic's Claude Code CLI on the same machine as Paperclip. Use it when you want a local coding agent with session persistence, skills injection, and full access to the configured working directory.
+
+> **Heads-up:** New Claude Code agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer (a Mac reached over SSH stays on the Legacy runner unless you pick the Runner yourself). Those agents are saved as `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"`, and a blank model resolves to `claude-opus-5-5`. To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
 
 ---
 
@@ -46,6 +48,10 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 | `workspaceRuntime` | no | Reserved workspace runtime metadata. |
 
 > **Note:** Claude Code is a headless adapter. The environment test is more important here than in a normal CLI session because Paperclip needs to know the command, path, auth mode, and model all work together.
+
+### OpenRouter requests
+
+When `ANTHROPIC_BASE_URL`, from the agent's environment or the server's, points at OpenRouter, Paperclip keeps your `ANTHROPIC_CUSTOM_HEADERS` and adds its own app attribution headers (`HTTP-Referer`, `X-Title`, `X-OpenRouter-Title`, and `X-OpenRouter-Categories`). Your authentication and routing headers stay as they are, but attribution headers with those names are replaced.
 
 ---
 
@@ -98,6 +104,14 @@ When the engine resolves to ACP (`auto` or `acp`), these extra fields apply:
 | `nonInteractivePermissions` | `deny` | What to do if the ACP agent asks for input outside an interactive session — `deny` the request or `fail` the run. |
 | `stateDir` | Paperclip-managed | Optional ACP session-state directory. Defaults to Paperclip's company- and agent-scoped storage. |
 | `warmHandleIdleMs` | `0` | How long to keep the ACP process warm between runs, in milliseconds. `0` closes it after each run while still retaining persistent session state. |
+| `stalledToolTimeoutSec` | `1800` | Ends the turn as failed with `acpx_tool_stalled` when a pending tool call gets no ACP update for this many seconds. `0` turns the watchdog off. |
+
+### Tool calls that stop responding
+
+On ACP, a tool call that goes quiet can't hold a run open forever:
+
+- **Stalled tool calls end the turn.** If a pending tool call gets no updates for 30 minutes, Paperclip ends the turn as failed with `acpx_tool_stalled`. The default always stays at least 15 minutes longer than any `MCP_TOOL_TIMEOUT` or `BASH_MAX_TIMEOUT_MS` you set in `env`, so Claude's own limits fire first. Set `stalledToolTimeoutSec` to change the bound, or `0` to turn it off. The run result also notes whether the stalled call had asked for permission.
+- **MCP tool calls get a deadline.** When a run attaches runtime MCP servers, Paperclip sets `MCP_TOOL_TIMEOUT` to 15 minutes (`900000` ms) for Claude, so one hung MCP tool can't stall the turn. A value you set yourself in `env` wins.
 
 > **Heads-up:** ACP is where the old standalone `acpx_local` adapter's capabilities now live. That adapter has been retired — pick `claude_local` (or `codex_local` / `gemini_local`) and leave `engine` on `auto` to get ACP by default.
 
@@ -132,6 +146,8 @@ Discovered models are cached for about a minute (keyed to the API key and base U
 > - Claude Fable 5.1 (`claude-fable-5-1`, or `us.anthropic.claude-fable-5-1` on Bedrock) needs Claude Code `2.1.251` or newer.
 >
 > If the installed CLI is older, the environment test and the run both fail fast with `claude_cli_version_incompatible` instead of launching against an unsupported binary — upgrade Claude Code on the target host to use the model.
+>
+> In a sandbox environment there's usually nothing for you to upgrade. When the sandbox's default `claude` command is too old for the selected model, Paperclip installs the exact minimum version into a private folder in the workspace (`.paperclip-runtime/claude-cli/<version>`), verifies it, and uses it for both the environment test and normal runs, reusing it next time. The image's own CLI, your model, your account, and your engine stay as they are. If the install or the version check fails, you still get `claude_cli_version_incompatible`. Local and SSH targets and custom `command` values stay yours to upgrade.
 
 ---
 
@@ -185,7 +201,7 @@ The UI's `Test Environment` button validates Claude Code before the adapter is s
 - Auth is configured through `ANTHROPIC_API_KEY`, Bedrock settings, or Claude subscription login.
 - The hello probe can run `claude --print - --output-format stream-json --verbose` with the prompt `Respond with hello.`
 
-If the test fails, fix the command, path, or auth signal before trying again.
+If the test fails, fix the command, path, or auth signal before trying again. On Paperclip Cloud, onboarding doesn't show shell commands you couldn't run: it keeps the check results and asks you to try connecting again.
 
 ---
 

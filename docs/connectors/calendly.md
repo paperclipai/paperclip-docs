@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Calendly Scheduling Connector
 seo_description: Let agents review Calendly event types and availability, and decide which booking actions they may take. Browser sign-in, scopes, a safe test, and fixes.
 ---
@@ -74,5 +74,5 @@ Limitations: one Calendly account per connection, and browser sign-in is the onl
 
 ## Sources
 
-- [Calendly definition](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions/calendly.json) — method, scopes, guidance, and warnings.
-- [Default action policy](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions.ts) — new connections reach all agents with actions Allowed.
+- [Calendly definition](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions/calendly.json) — method, scopes, guidance, and warnings.
+- [Default action policy](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions.ts) — new connections reach all agents with actions Allowed.

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Task Work Modes: Auto, Plan, and Ask
 seo_description: Choose Auto to do the work, Plan to review an approach first, or Ask for an answer. Pick a mode in the task composer before you send each message.
 ---
@@ -23,6 +23,8 @@ The mode is applied when you send. Changing the chip alone does not interrupt th
 | **Ask mode** | An answer without implementation changes. The API calls this `ask`. | “Which adapters support this runtime?” |
 
 Auto is the default. Plan focuses the agent on clarifying the goal and writing a plan document. Ask keeps the request read-only, so it suits a lookup, comparison, or explanation.
+
+Replies in the thread don't show which mode they ran under. The chip beside the plus button only tells you the mode your next message will use.
 
 ## How it behaves
 

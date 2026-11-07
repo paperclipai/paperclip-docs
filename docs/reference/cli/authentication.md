@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1106.0
 seo_title: CLI Authentication and Tokens
 seo_description: The identity reference for the CLI: how it knows who it is, which instance it talks to, and what that identity is allowed to do.
 ---
@@ -185,6 +185,8 @@ paperclipai auth login --no-browser
 | `--no-browser` | Don't try to open a browser — just print the approval URL so you can open it yourself. Handy on headless hosts or over SSH. |
 
 If you cancel in the browser, the CLI exits with `CLI auth challenge was cancelled.`; if you wait too long, `CLI auth challenge expired before approval.` Either way, just re-run the command.
+
+If the server rate-limits the polling (`429`), the CLI waits as long as the server's `Retry-After` header asks and keeps polling. It never waits past the challenge's original expiry and never extends it.
 
 ### `auth whoami`
 

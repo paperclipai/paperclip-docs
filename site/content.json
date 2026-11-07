@@ -159,6 +159,10 @@
           "file": "../docs/connectors/access-model.md"
         },
         {
+          "title": "Prompt Injection Prevention",
+          "file": "../docs/connectors/prompt-injection-prevention.md"
+        },
+        {
           "title": "Shared Guides",
           "pages": [
             {
@@ -251,6 +255,10 @@
               "file": "../docs/connectors/box.md"
             },
             {
+              "title": "Braintrust",
+              "file": "../docs/connectors/braintrust.md"
+            },
+            {
               "title": "Browser Use Cloud",
               "file": "../docs/connectors/browser-use-cloud.md"
             },
@@ -283,8 +291,16 @@
               "file": "../docs/connectors/context7.md"
             },
             {
+              "title": "Daytona",
+              "file": "../docs/connectors/daytona.md"
+            },
+            {
               "title": "Discord",
               "file": "../docs/connectors/discord.md"
+            },
+            {
+              "title": "Ditto",
+              "file": "../docs/connectors/ditto.md"
             },
             {
               "title": "Enterpret",
@@ -328,6 +344,10 @@
                 {
                   "title": "Set Up a Review Bot",
                   "file": "../docs/connectors/github-review-bot-setup.md"
+                },
+                {
+                  "title": "GitHub Copilot",
+                  "file": "../docs/connectors/github-copilot.md"
                 }
               ]
             },
@@ -366,6 +386,10 @@
             {
               "title": "Google Slides",
               "file": "../docs/connectors/google-slides.md"
+            },
+            {
+              "title": "Google Workspace",
+              "file": "../docs/connectors/google-workspace.md"
             },
             {
               "title": "Google Workspace Search",
@@ -476,6 +500,10 @@
               "file": "../docs/connectors/slack.md"
             },
             {
+              "title": "Speko",
+              "file": "../docs/connectors/speko.md"
+            },
+            {
               "title": "Stripe",
               "file": "../docs/connectors/stripe.md"
             },
@@ -506,6 +534,10 @@
             {
               "title": "Todoist",
               "file": "../docs/connectors/todoist.md"
+            },
+            {
+              "title": "Unikraft",
+              "file": "../docs/connectors/unikraft.md"
             },
             {
               "title": "Webflow",

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: OpenRouter Connector
 seo_description: Give agents model access through OpenRouter with an API key. Harness and model ID rules, assignment, a bounded test, and fixes.
 ---
@@ -59,6 +59,10 @@ Checking is read-only. It does not move work to another account, stop runs at a 
 
 Board users can run the same check over the API with `GET /api/companies/{companyId}/ai-connections/{connectionId}/usage`.
 
+### How your requests appear in OpenRouter
+
+When an agent calls OpenRouter through Paperclip, the request names Paperclip as the app that sent it, so your OpenRouter activity shows the traffic under **Paperclip**. Paperclip adds the `HTTP-Referer`, `X-Title`, `X-OpenRouter-Title`, and `X-OpenRouter-Categories` headers for this. They carry only Paperclip's public product details (its name, website, and app categories) — never your company, user, run, or key. If you set any of those four headers yourself, Paperclip's values replace them; your key, model, and other routing headers are left as they are.
+
 ## Try it
 
 ```txt
@@ -95,4 +99,5 @@ Limitations: one connection is one OpenRouter account, and it grants no tool acc
 - [Custom model providers](custom-model-providers.md)
 - [Check AI account usage](ai-usage.md)
 - [How connector access works](access-model.md)
+- [Prompt injection prevention](prompt-injection-prevention.md) — use a shared OpenRouter connection to check tool results for injected instructions.
 - [OpenRouter documentation](https://openrouter.ai/docs)

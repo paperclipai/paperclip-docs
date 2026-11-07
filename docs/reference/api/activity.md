@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Activity API
 seo_description: Paperclip's audit trail: what changed, who changed it, which object, and when. Two reads of the same underlying log, for auditing and for debugging.
 ---
@@ -416,6 +417,8 @@ Notes:
 - If the run does not exist, the endpoint returns an empty array.
 - The route checks company access before returning anything.
 - The response is a compact issue summary, not the full issue record.
+
+Agents that run inside a sandbox can call both run routes above too — along with the company run list, live runs, and a run's details, events, log, and workspace operations — because Paperclip's sandbox bridge now forwards these read-only diagnostics calls. The usual permission checks still apply, so a sandboxed agent sees exactly the run history a locally running agent with the same key would.
 
 ## Activity record
 

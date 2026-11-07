@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Connect Apps Through an MCP Aggregator
 seo_description: Reach apps that have no native Paperclip connector through Arcade, Composio, Executor, or Zapier, and pick the provider when an agent asks you to.
 ---
@@ -48,7 +48,7 @@ Two provider-specific notes from the setup screen: for Arcade headers, use an AP
 
 ### If sign-in does not finish
 
-Cancelling the sign-in does not lose your work. Paperclip shows *"Connection cancelled. Your setup details are preserved; try again when you are ready."* and the button becomes **Try again**. If you need to stop partway, you can leave and pick it up later — the connection shows **Resume setup** with your access choices intact.
+Cancelling the sign-in or declining consent does not lose your work. Paperclip shows *"Connection cancelled. Your setup details are preserved; try again when you are ready."* and the button becomes **Try again**. If sign-in fails instead, Paperclip says the connection couldn't connect, keeps your saved setup, and offers **Try again** too. If you need to stop partway, you can leave and pick it up later — the connection shows **Resume setup** with your access choices intact.
 
 ## When an agent asks for an app
 
@@ -104,5 +104,5 @@ Composio connections made through Paperclip's earlier Composio integration no lo
 
 ## Sources
 
-- [Catalog and account grouping](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/pages/apps/Browse.tsx) — filters, grouped account rows, and gateway menus.
-- [Connected app list](https://github.com/paperclipai/paperclip/blob/bba6a45f0d364cfd962ac59b3bdf2426a8222adb/ui/src/pages/apps/app-detail/ConnectedAggregatorApps.tsx) — refresh controls and verification states.
+- [Catalog and account grouping](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/pages/apps/Browse.tsx) — filters, grouped account rows, and gateway menus.
+- [Connected app list](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/pages/apps/app-detail/ConnectedAggregatorApps.tsx) — refresh controls and verification states.

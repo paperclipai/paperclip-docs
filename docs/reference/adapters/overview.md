@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Adapters Overview
 seo_description: Adapters connect Paperclip's control plane to the runtime that does the work. Start here to compare the options and pick one per agent you hire.
 ---
@@ -67,7 +67,7 @@ These adapters ship with Paperclip and are always available in the host:
 | [Pi](./pi.md) | `pi_local` | Selectable | Pi CLI runs with its built-in tool set and provider/model routing. |
 | [Hermes](./hermes.md) | `hermes_local` | Selectable | Hermes Agent runs with persistent memory, 30+ tools, 80+ skills, and multi-provider routing. |
 | [Grok Local](./grok-local.md) | `grok_local` | Selectable | Grok Build CLI runs with `--resume` session continuity, streaming reasoning output, and skills staged into `.claude/skills`. |
-| [Paperclip Runner](./paperclip-runner.md) | `paperclip_runner` | Experimental; instance setting applies | Native run lifecycle, durable session recovery, and qualified Codex, OpenCode, Claude, Grok, Cursor, and Pi providers. |
+| [Paperclip Runner](./paperclip-runner.md) | `paperclip_runner` | Experimental; instance setting applies | Native run lifecycle, durable session recovery, and qualified Codex, OpenCode, Claude, Grok, Cursor, GitHub Copilot, and Pi providers. |
 | [Kimi Code](./kimi-local.md) | `kimi_local` | Selectable | Kimi Code CLI runs on the shared ACP engine with headless-CLI fallback, session resume, and per-run skills injection. |
 | [OpenClaw Gateway](./openclaw-gateway.md) | `openclaw_gateway` | **Coming soon** (use OpenClaw invite flow) | Remote OpenClaw instances reached over the WebSocket gateway protocol. |
 | [Process](./process.md) | `process` | **Coming soon** (API / import only) | Shell commands, scripts, and custom local runtimes. |
@@ -81,7 +81,7 @@ These adapters ship with Paperclip and are always available in the host:
 
 Choose **Paperclip Runner** when you want the native run lifecycle and built-in task tools. Then pick its **Harness** — for **ACP agents**, choose the **ACP agent** too. Existing direct adapters keep their own paths; enabling the feature does not migrate them.
 
-The `enableNativeRunner` default is on for self-hosted instances and off for Cloud-managed instances. **ACP agents** now include qualified **Cursor** and **Pi** runtimes. Cursor uses a pinned runtime you prepare with `paperclipai runtime setup cursor`, an explicit model, and Agent, Plan, or Ask session mode; Pi uses `paperclipai runtime setup pi` and an explicit `provider/model` ID. Grok has a separately pinned native runtime. See [Paperclip Runner](paperclip-runner.md), [Cursor](cursor-local.md#cursor-on-paperclip-runner), and [Grok](grok-local.md#grok-build-on-paperclip-runner).
+New Codex, Claude Code, OpenCode, and Pi agents get the Runner automatically on macOS and on Linux x64/ARM64 with GNU libc `2.39` or newer (OpenCode and Pi stay on the Legacy runner on Linux ARM64); choose **Legacy runner** under **Advanced → Runner** to keep `codex_local`, `claude_local`, `opencode_local`, or `pi_local`. For the other providers except GitHub Copilot and OpenAI Dot, the `enableNativeRunner` default is on for self-hosted instances and off for Cloud-managed instances. **ACP agents** now include qualified **Cursor**, **Pi**, and **GitHub Copilot** runtimes; Copilot runs on your Copilot plan through a token you connect under **Connectors → GitHub → Connect Copilot** (see [GitHub Copilot](../../connectors/github-copilot.md)). Cursor uses a pinned runtime you prepare with `paperclipai runtime setup cursor`, an explicit model, and Agent, Plan, or Ask session mode; Pi uses `paperclipai runtime setup pi` and an explicit `provider/model` ID. Grok has a separately pinned native runtime. See [Paperclip Runner](paperclip-runner.md), [Cursor](cursor-local.md#cursor-on-paperclip-runner), and [Grok](grok-local.md#grok-build-on-paperclip-runner).
 
 ---
 

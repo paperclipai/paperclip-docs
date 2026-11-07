@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Make Automation Connector
 seo_description: Let agents run the Make scenarios you expose to MCP. Connect with browser sign-in or a scoped MCP token, choose a zone, and gate the actions that change data.
 ---
@@ -8,7 +8,7 @@ seo_description: Let agents run the Make scenarios you expose to MCP. Connect wi
 
 Agents can work with your Make automations — looking up your organization and teams, and running the scenarios you have made available to MCP. If your team already wires apps together in Make, this lets an agent use that work instead of rebuilding it.
 
-> **Note:** Make appears in the catalog on every instance; no experimental setting is needed.
+Make appears in the catalog on every instance; no experimental setting is needed.
 
 ## Before you connect
 
@@ -74,5 +74,5 @@ Limitations: one Make identity per connection. Which scenarios are available is 
 
 ## Sources
 
-- [Make definition](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions/make.json) — methods, labels, zone validation, and token placement.
-- [Catalog visibility](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions.ts) — Make is no longer hidden from the store; default action policy.
+- [Make definition](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions/make.json) — methods, labels, zone validation, and token placement.
+- [Catalog visibility](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions.ts) — Make is no longer hidden from the store; default action policy.

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: CLI Service Commands
 seo_description: Move Paperclip off a terminal window that dies when you close it, and run it as a managed background service that survives logout and reboot.
 ---
@@ -52,6 +53,8 @@ paperclipai service install --enable-linger
 On Linux, a user service normally stops when you log out — which is not what you want on a headless box you only ever SSH into. "Lingering" is the systemd setting that keeps it running anyway. In an interactive terminal the CLI asks whether to enable it; `--enable-linger` answers yes up front. Enabling it runs `loginctl enable-linger` for your user and may request system authorization.
 
 The command reports whether the definition changed, the platform, the service name, the path to the definition file, and whether lingering was enabled.
+
+The service always launches the managed `paperclipai` install's command shim, so `service install` checks that the shim exists before it writes anything, the same way onboarding does. Unless you pass `--json`, the CLI repairs a missing shim. When the recorded install is still present, it smoke-tests that install and rewrites only the shim. Otherwise it reinstalls: a git install gets the exact revision it recorded, and anything else gets the version of the CLI you're running. Either way, you'll see `Installed the managed paperclipai payload and command shim for the service.` With `--json` it never installs anything. If the shim still isn't available, the command stops with an error like ``Background service not installed: <reason>. Run `paperclipai install`, then `paperclipai service install`.`` That way it never reports success for a service that can't start, for example after a global npm install.
 
 > **Tip:** Rerunning `service install` is safe and is the normal way to repair a service whose definition has drifted — for example after moving your install. It rewrites the definition only if the contents actually changed.
 

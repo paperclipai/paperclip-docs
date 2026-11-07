@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Context7 Library Docs Connector
 seo_description: Let agents look up current, public library documentation and code examples through Context7's hosted server. No account, key, or sign-in needed.
 ---
@@ -62,5 +62,5 @@ Limitations: public documentation only. No API key, so rate limits are low and p
 
 ## Sources
 
-- [Context7 definition](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions/context7.json) — public method, server URL, and warnings.
-- [Catalog visibility](https://github.com/paperclipai/paperclip/blob/1b4c803816e82b0265c8422e1a804327a7ed8c54/packages/shared/src/app-definitions.ts) — Context7 is connectable and listed in the catalog; default action policy.
+- [Context7 definition](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions/context7.json) — public method, server URL, and warnings.
+- [Catalog visibility](https://github.com/paperclipai/paperclip/blob/8de28c12e4c77b5fe0089ddeaf9ea18d216344c9/packages/shared/src/app-definitions.ts) — Context7 is connectable and no longer hidden from the store; default action policy.

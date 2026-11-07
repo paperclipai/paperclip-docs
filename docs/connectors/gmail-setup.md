@@ -1,14 +1,14 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1106.0
 seo_title: Set Up the Gmail Connector
-seo_description: Get Google Developer Preview access, connect Gmail with the read or draft capability group, and restrict which agents can search your mail.
+seo_description: Get Google Developer Preview access, connect Gmail with the read, draft, or archive capability group, and restrict which agents can search your mail.
 ---
 
 # Set up the Gmail connector
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** While verification is pending, the Google Workspace connectors and any saved Google accounts are temporarily hidden from the **Connectors** page. This hides them from the list only. Existing Google connections keep running with their access and permissions unchanged, and an agent that needs a Google service can still ask you for it with a connection card on its task.
+> **Note:** This connector is no longer listed on the **Connectors** page for new setup; it appears there only when you have a saved connection to it, which keeps running unchanged. For a new Google account, use [Google Workspace](google-workspace.md). An agent that needs this service can still ask you for it with a connection card on its task.
 
 Two phases: get Google to register you for Developer Preview, then connect. The first phase is the slow one and happens entirely at Google.
 
@@ -44,8 +44,11 @@ This is the decision that matters, and it is fixed for the life of the connectio
 | --- | --- | --- |
 | **Read only** | `gmail.readonly` | Agents need to find and read mail. Nothing is written to the mailbox. |
 | **Read & create drafts** | `gmail.readonly`, `gmail.compose` | An agent should leave a draft for a person to review and send. |
+| **Read & archive** | `gmail.readonly`, `gmail.modify` | An agent should clear processed threads out of the inbox. Archiving removes only the Inbox label; nothing is deleted. |
 
-Neither group makes sending reachable. Setup starts on **Read & create drafts**. If agents only need to read, switch to **Read only** while you connect (step 4) — it is the safer choice unless you have a concrete reason for drafts.
+No group makes sending reachable. Setup starts on **Read & create drafts**. If agents only need to read, switch to **Read only** while you connect (step 4) — it is the safer choice unless you have a concrete reason for drafts. **Read & archive** is opt-in; you only get it by choosing it. If you use your own OAuth app for it, add `gmail.modify` alongside `gmail.readonly` under **Data Access** — see [Set up your own Google OAuth app](google-setup.md).
+
+Even though `gmail.modify` allows more at Google's end, an archive connection can only remove the Inbox label. Trashing, marking spam, and other label changes stay unavailable — see [Gmail](gmail.md#how-archiving-stays-narrow).
 
 To change groups later, create a second connection with the group you want and remove the first. The group is part of the connection, so **Reconnect** re-runs sign-in for the same group rather than changing it.
 
@@ -54,7 +57,7 @@ To change groups later, create a second connection with the group you want and r
 Setup is one screen. Paperclip fills in a default for who the connection belongs to and which agents may use it, and you change anything that does not fit before you sign in.
 
 1. Select **Connectors** in the sidebar.
-2. Find **Gmail** and select **Connect**.
+2. Find **Gmail** and select **Add account**. The row is there only when you already have a saved Gmail connection. Without one, start from the connection card an agent posts on its task.
 3. Read the access line above the main button. It says who the connection signs in as and which agents can use it. For a mailbox, the default is rarely what you want, so select **Change**:
    - Under **Which humans can use this credential?**, **Just me** is the usual answer for a mailbox — agents use the credential only on runs where you are the responsible person. **Any human in the organization** makes one mailbox available on runs started by anyone in its **human audience**, which you set on the connection's identity card as either **Any human in the company** or **Humans I pick** with a named list. Narrow that audience for a mailbox: leaving it open means any colleague's run can read the inbox. It requires the connection-manager permission and suits a genuinely shared inbox, not a person's mail.
    - Under **Which agents can use this connection**, choose **Just agents I pick** and name them. A mailbox is not something to hand to every agent by default.
@@ -69,7 +72,8 @@ Setup is one screen. Paperclip fills in a default for who the connection belongs
 Open the **Permissions** tab.
 
 - Leave the reads **Allowed**.
-- If you connected the draft group, consider setting `create-draft` to **Ask first**. Drafts land in a real mailbox, and the connector's own guidance recommends approval for them. This is advice, not something Paperclip enforces — unlike sending, which is blocked outright whatever you set.
+- If you connected the archive group, `unlabel_thread` already starts on **Ask first**, so each archive waits for a person's approval. Keep it there while you learn how the agent decides a thread is done.
+- If you connected the draft group, consider setting `create_draft` to **Ask first**. Drafts land in a real mailbox, and the connector's own guidance recommends approval for them. This is advice, not something Paperclip enforces — unlike sending, which is blocked outright whatever you set.
 
 ## 6. Verify with a read
 

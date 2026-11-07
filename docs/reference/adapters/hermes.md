@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.626.0
+paperclip_version: v2026.1106.0
 seo_title: Hermes Adapter
 seo_description: Run Hermes Agent by Nous Research on the Paperclip host, with persistent memory and a 30-plus tool suite available to the agent on every run.
 ---
@@ -57,7 +57,7 @@ seo_description: Run Hermes Agent by Nous Research on the Paperclip host, with p
 | `verbose` | no | `false` | Verbose output. |
 | `quiet` | no | `true` | Clean output — no banner or spinner. |
 | `promptTemplate` | no | built-in | Custom prompt template (see below). |
-| `paperclipApiUrl` | no | — | Optional API base override. Defaults to `PAPERCLIP_API_URL`. |
+| `paperclipApiUrl` | no | — | Optional API base override. When unset, the prompt uses `PAPERCLIP_API_URL` from the adapter's `env` if you set one there, then the server's `PAPERCLIP_API_URL`. |
 
 ---
 

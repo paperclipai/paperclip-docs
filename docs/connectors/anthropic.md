@@ -1,12 +1,12 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Anthropic Connector
 seo_description: Give agents Claude model access with a subscription or an Anthropic API key. Runtime requirements, credential assignment, a test run, and fixes.
 ---
 
 # Anthropic
 
-An Anthropic connection gives agents the credential they use to run Claude models. It is model access, not a set of tools — there are no actions to permit and nothing appears on a **Permissions** tab.
+An Anthropic connection gives agents the credential they use to run Claude models. It is model access, not a set of tools — there are no actions to permit. Instead of an action list, the saved connection's **Permissions** tab holds its account controls, such as **Reconnect** and, on your own personal connection, **Make default**.
 
 Two ways to authenticate: a Claude subscription, or an Anthropic API key.
 
@@ -114,6 +114,7 @@ Before you hand an agent a long task, you can see how much of the provider's all
 Paperclip reads the limits only when you ask. Opening the account, listing connections, and starting a run never trigger a check. Each limit window shows how much is used and when it resets, and is marked **Limit reached** or **Blocked** when the provider says so. **Overage** shows whether extra paid usage is available. Anything the provider leaves out shows as **Not reported**, never as zero. After a successful check, the button becomes **Refresh**.
 
 Some Claude subscription credentials are allowed to run models but not to read usage. In that case you see *"Usage access denied."* That is a limit of the stored sign-in, not a sign that your plan is exhausted, and signing in again for model access alone does not change it.
+
 
 Checking is read-only. It does not move work to another account, stop runs at a limit, refresh the credential, or buy credit.
 

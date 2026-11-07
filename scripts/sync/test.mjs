@@ -36,6 +36,13 @@ function placeScript(fixture, srcPath) {
   return dest;
 }
 
+// check-drift / verify-edit import ./lib/parent-source.mjs, so any fixture
+// root that runs a copy of them needs the lib next to it.
+function copySyncLib(root) {
+  mkdirSync(join(root, "scripts/sync/lib"), { recursive: true });
+  copyFileSync(join(SELF_DIR, "lib/parent-source.mjs"), join(root, "scripts/sync/lib/parent-source.mjs"));
+}
+
 function writeFile(fixture, relPath, contents) {
   const p = join(fixture, relPath);
   mkdirSync(dirname(p), { recursive: true });
@@ -482,6 +489,7 @@ function makeDriftFixture() {
   mkdirSync(join(dir, "scripts/sync"), { recursive: true });
   // Copy the script.
   copyFileSync(DRIFT_SCRIPT, join(dir, "scripts/sync/check-drift.mjs"));
+  copySyncLib(dir);
   // Copy real anchor-map.json so envVarSourcesToCheck() resolves consistently.
   copyFileSync(join(SELF_DIR, "anchor-map.json"), join(dir, "scripts/sync/anchor-map.json"));
   // Fixture dir for gh stubs.
@@ -840,6 +848,7 @@ function makeVerifyFixture() {
   const dir = mkdtempSync(join(tmpdir(), "verify-test-"));
   mkdirSync(join(dir, "scripts/sync"), { recursive: true });
   copyFileSync(VERIFY_SCRIPT, join(dir, "scripts/sync/verify-edit.mjs"));
+  copySyncLib(dir);
   copyFileSync(join(SELF_DIR, "anchor-map.json"), join(dir, "scripts/sync/anchor-map.json"));
   const fixDir = join(dir, "_fixtures");
   mkdirSync(fixDir, { recursive: true });
@@ -1302,6 +1311,7 @@ function makeTagAccFixture() {
   const dir = makeFixture();
   copyFileSync(TAGACC_SCRIPT, join(dir, "scripts/sync/check-tag-accuracy.mjs"));
   copyFileSync(VERIFY_SCRIPT, join(dir, "scripts/sync/verify-edit.mjs"));
+  copySyncLib(dir);
   copyFileSync(join(SELF_DIR, "anchor-map.json"), join(dir, "scripts/sync/anchor-map.json"));
 
   const g = (...args) => {
@@ -1376,6 +1386,179 @@ test("check-tag-accuracy: flags a post-tag leak, keeps in-tag page clean, scopes
   assert(!vals.includes("packages/stale/pre.ts"), `pre-existing path must be scoped out of the leak; got ${JSON.stringify(vals)}`);
 
   rmSync(dir, { recursive: true, force: true });
+});
+
+
+// ----------------------------------------------------------------------------
+// Parent snapshot mode (PAPERCLIP_SYNC_LOCAL_SRC) — regression tests for the
+// 2026-11 drift false positives: a capped env scan, prose CLI mentions, and
+// route registrations the matcher couldn't read.
+// ----------------------------------------------------------------------------
+
+const SNAP_SHA = "0123456789abcdef0123456789abcdef01234567";
+
+function makeSnapshot(files) {
+  const dir = mkdtempSync(join(tmpdir(), "parent-snap-"));
+  for (const [rel, body] of Object.entries(files)) writeFile(dir, rel, body);
+  return dir;
+}
+
+function runDriftSnapshot(scriptInRoot, snapDir) {
+  const env = { ...process.env, PAPERCLIP_SYNC_LOCAL_SRC: snapDir };
+  delete env.PAPERCLIP_SYNC_FIXTURE_DIR;
+  const r = spawnSync(process.execPath, [scriptInRoot, "--json", "--against", SNAP_SHA], { encoding: "utf8", env });
+  assert(r.status === 0, `expected exit 0, got ${r.status}; stderr=${r.stderr}`);
+  return JSON.parse(r.stdout);
+}
+
+test("check-drift snapshot: env vars anywhere in product code count, test-only mentions don't, no cap", () => {
+  const { root, scriptInRoot } = makeDriftFixture();
+  writeFile(root, "docs/reference/deploy/environment-variables.md", [
+    "| Variable | Default | Meaning |",
+    "|---|---|---|",
+    "| `DEEP_SERVICE_VAR` | none | read deep in server/src/services |",
+    "| `DB_PACKAGE_VAR` | none | read in packages/db |",
+    "| `RUST_RUNNER_VAR` | none | read by the Rust runner |",
+    "| `TEST_ONLY_VAR` | none | only mentioned in a test |",
+    "| `DOC_ONLY_VAR` | none | only mentioned in parent prose |",
+    "",
+  ].join("\n"));
+  const files = { ".env.example": "PORT=3100\n" };
+  // 800 filler files ahead of the real reader: the old 700-file cap would
+  // have cut the reader off.
+  for (let i = 0; i < 800; i++) files[`server/src/services/a-filler-${String(i).padStart(3, "0")}.ts`] = "export {};\n";
+  files["server/src/services/z/deep.ts"] = "const v = envInteger(env, 'DEEP_SERVICE_VAR');\n";
+  files["packages/db/src/client.ts"] = "process.env.DB_PACKAGE_VAR;\n";
+  files["packages/paperclip-runner/runner/crates/core/src/lib.rs"] = 'std::env::var("RUST_RUNNER_VAR")\n';
+  files["server/src/__tests__/x.test.ts"] = "process.env.TEST_ONLY_VAR;\n";
+  files["doc/OPERATIONS.md"] = "Set DOC_ONLY_VAR.\n";
+  const snap = makeSnapshot(files);
+
+  const out = runDriftSnapshot(scriptInRoot, snap);
+  assert(out.source === "snapshot", `expected snapshot source, got ${out.source}`);
+  assert(out.stats.env_sources_scanned >= 803, `expected every source scanned, got ${out.stats.env_sources_scanned}`);
+  const missing = out.drift.filter((d) => d.kind === "env-var-missing").map((d) => d.documented).sort();
+  assert(JSON.stringify(missing) === JSON.stringify(["DOC_ONLY_VAR", "TEST_ONLY_VAR"]), `got ${JSON.stringify(missing)}`);
+  assert(out.warnings.length === 0, `snapshot mode must not warn: ${JSON.stringify(out.warnings)}`);
+
+  rmSync(root, { recursive: true, force: true });
+  rmSync(snap, { recursive: true, force: true });
+});
+
+test("check-drift: API-mode env cap is reported, never silent", () => {
+  const { root, fixtures, scriptInRoot } = makeDriftFixture();
+  writeFile(root, "docs/reference/deploy/environment-variables.md", "| Variable |\n|---|\n| `PORT` |\n");
+  const tree = [".env.example"];
+  for (let i = 0; i < 750; i++) tree.push(`server/src/f${i}.ts`);
+  writeFileSync(join(fixtures, "tree-master.json"), JSON.stringify(tree));
+  writeFixtureContents(fixtures, ".env.example", "master", { status: 200, content_base64: Buffer.from("PORT=1\n").toString("base64") });
+  const r = spawnSync(process.execPath, [scriptInRoot, "--json", "--against", "master"], {
+    encoding: "utf8",
+    env: { ...process.env, PAPERCLIP_SYNC_FIXTURE_DIR: fixtures },
+  });
+  const out = JSON.parse(r.stdout);
+  assert(out.source === "github-api", `expected github-api, got ${out.source}`);
+  assert(out.warnings.some((w) => /capped at 700 of 75\d/.test(w)), `expected cap warning, got ${JSON.stringify(out.warnings)}`);
+  rmSync(root, { recursive: true, force: true });
+});
+
+test("check-drift snapshot: CLI commands come from code, not quoted prose", () => {
+  const { root, scriptInRoot } = makeDriftFixture();
+  writeFile(root, "docs/reference/cli/service.md", [
+    "# Service",
+    "",
+    "You'll see `Installed the managed paperclipai payload and command shim.`",
+    "Run `paperclipai service install` to install it.",
+    "",
+    "```sh",
+    "paperclipai ghostcmd --now",
+    "```",
+    "",
+  ].join("\n"));
+  const snap = makeSnapshot({
+    "cli/src/commands/service.ts": 'program.command("service");\n',
+    "cli/src/index.ts": "\n",
+  });
+  const out = runDriftSnapshot(scriptInRoot, snap);
+  const cli = out.drift.filter((d) => d.kind === "cli-command-missing").map((d) => d.documented);
+  assert(JSON.stringify(cli) === JSON.stringify(["paperclipai ghostcmd"]), `got ${JSON.stringify(cli)}`);
+  rmSync(root, { recursive: true, force: true });
+  rmSync(snap, { recursive: true, force: true });
+});
+
+test("check-drift snapshot: routes via arrays, router[method], path constants and {file}.png", () => {
+  const { root, scriptInRoot } = makeDriftFixture();
+  writeFile(root, "docs/reference/api/companies.md", [
+    "# Companies",
+    "",
+    "| Endpoint | Purpose |",
+    "|---|---|",
+    "| `GET /api/mcp/requests/{id}` | array registration |",
+    "| `POST /api/companies/{companyId}/chats/{agentRef}` | router[method] loop |",
+    "| `POST /api/companies/import/transfers` | shared path constant |",
+    "| `GET /api/companies/import/transfers/{transferId}` | constant in a template literal |",
+    "| `GET /api/agent-avatars/{version}/{pose}.png` | one param with an extension |",
+    "| `DELETE /api/companies/{companyId}/gone` | really missing |",
+    "",
+  ].join("\n"));
+  const snap = makeSnapshot({
+    "packages/shared/src/company-import-transfer.ts": 'export const IMPORT_TRANSFERS_PATH = "/import/transfers";\n',
+    "server/src/routes/companies.ts": [
+      'import { IMPORT_TRANSFERS_PATH } from "@paperclipai/shared";',
+      'router.get(["/mcp/requests/:id", "/dot-mcp/requests/:id"], h);',
+      'for (const method of ["get", "post"]) router[method]("/companies/:companyId/chats/:agentRef", h);',
+      "router.post(IMPORT_TRANSFERS_PATH, h);",
+      "router.get(`${IMPORT_TRANSFERS_PATH}/:transferId`, h);",
+      'router.get("/agent-avatars/:version/:file", h);',
+      "",
+    ].join("\n"),
+  });
+  const out = runDriftSnapshot(scriptInRoot, snap);
+  const rr = out.drift.filter((d) => d.kind === "rest-route-missing").map((d) => d.documented);
+  assert(JSON.stringify(rr) === JSON.stringify(["DELETE /api/companies/{companyId}/gone"]), `got ${JSON.stringify(rr)}`);
+  rmSync(root, { recursive: true, force: true });
+  rmSync(snap, { recursive: true, force: true });
+});
+
+test("verify-edit snapshot: .requiredOption() flags verify, unknown flags don't", () => {
+  const { root, scriptInRoot } = makeVerifyFixture();
+  writeFile(root, "docs/reference/cli/runtime.md", "# Runtime\n\n```sh\npaperclipai runtime import-remote ./dir --sha256 abc --bogus\n```\n");
+  const snap = makeSnapshot({
+    "cli/src/commands/runtime.ts": 'program.command("runtime").command("import-remote <d>").requiredOption("--sha256 <digest>", "x");\n',
+    "cli/src/index.ts": "\n",
+  });
+  const env = { ...process.env, PAPERCLIP_SYNC_LOCAL_SRC: snap };
+  delete env.PAPERCLIP_SYNC_FIXTURE_DIR;
+  const r = spawnSync(process.execPath, [scriptInRoot, "docs/reference/cli/runtime.md", "--json", "--against", SNAP_SHA], { cwd: root, encoding: "utf8", env });
+  assert(r.status === 0, `exit ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  const flags = out.unverified.filter((u) => u.kind === "cli-flag").map((u) => u.value);
+  assert(JSON.stringify(flags) === JSON.stringify(["--bogus"]), `got ${JSON.stringify(flags)}`);
+  rmSync(root, { recursive: true, force: true });
+  rmSync(snap, { recursive: true, force: true });
+});
+
+test("verify-edit snapshot: a git-archive extract (no .git) is fully scanned", () => {
+  const { root, scriptInRoot } = makeVerifyFixture();
+  writeFile(root, "docs/reference/adapters/kimi.md", "# Kimi\n\n## Environment\n\nSet the environment variable `KIMI_API_KEY`, and optionally `MADE_UP_VAR`.\n");
+  const files = { ".env.example": "PORT=1\n" };
+  for (let i = 0; i < 800; i++) files[`server/src/a${String(i).padStart(3, "0")}.ts`] = "export {};\n";
+  files["server/src/services/kimi-connection-probe.ts"] = 'const key = env["KIMI_API_KEY"];\n';
+  const snap = makeSnapshot(files);
+  const env = { ...process.env, PAPERCLIP_SYNC_LOCAL_SRC: snap };
+  delete env.PAPERCLIP_SYNC_FIXTURE_DIR;
+  const r = spawnSync(process.execPath, [scriptInRoot, "docs/reference/adapters/kimi.md", "--json", "--against", SNAP_SHA], {
+    cwd: root,
+    encoding: "utf8",
+    env,
+  });
+  assert(r.status === 0, `exit ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  assert(out.source === "snapshot", `expected snapshot, got ${out.source}`);
+  const un = out.unverified.filter((u) => u.kind === "env-var").map((u) => u.value);
+  assert(JSON.stringify(un) === JSON.stringify(["MADE_UP_VAR"]), `got ${JSON.stringify(un)}`);
+  rmSync(root, { recursive: true, force: true });
+  rmSync(snap, { recursive: true, force: true });
 });
 
 // ----------------------------------------------------------------------------

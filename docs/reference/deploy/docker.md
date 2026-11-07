@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Deploy Paperclip with Docker
 seo_description: Run a self-contained instance without installing Node or pnpm on the host. Covers the quickstart image, manual builds, and configuration.
 ---
@@ -40,6 +40,15 @@ PAPERCLIP_PORT=3200 PAPERCLIP_DATA_DIR=../data/pc \
 
 > **Note:** `PAPERCLIP_DATA_DIR` is resolved relative to the compose file in `docker/`, so `../data/pc` maps to `data/pc` in the repository root.
 
+### Set your secrets once
+
+Before the first start, put two secrets in `docker/.env`, each its own value from `openssl rand -hex 32`:
+
+- `BETTER_AUTH_SECRET` signs sessions. Compose refuses to start without it.
+- `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` signs approvals for approval-gated tools. It's separate from the session secret. Both Compose files (`docker-compose.quickstart.yml` and `docker-compose.yml`) pass it into the container. If you leave it empty, the instance still starts, but it can't issue signed tool-action approvals.
+
+Keep the same values across restarts. Don't generate new ones for an existing deployment.
+
 Both Compose files give the container a `stop_grace_period` of `90s`. That leaves time for running agents to settle and for final cleanup when you stop the stack.
 
 ---
@@ -61,6 +70,10 @@ docker run --name paperclip \
 Use this when you want tight control over the container lifecycle or are embedding Paperclip into a larger Docker workflow.
 
 > **Note:** Name the `production` stage explicitly. The Dockerfile declares a `cloud` stage *after* `production`, and a build with no `--target` picks the last stage in the file — so leaving it off would quietly give you the cloud variant instead. Paperclip's own published image is pinned the same way.
+
+### Custom images
+
+The shipped image starts with `node server/dist-runtime/index.mjs`, a precompiled bundle that loads faster than compiling at boot. If your custom image runs `server/dist/index.js` through tsx, switch to the bundle. When you build from source, run `pnpm --filter @paperclipai/server build` first, then `pnpm --filter @paperclipai/server build:runtime` to produce it.
 
 ---
 
@@ -104,6 +117,12 @@ All persistent data lives under the bind mount:
 - agent workspace data
 
 If the bind mount is removed, the instance starts fresh on the next run.
+
+### File ownership on startup
+
+The entrypoint makes sure the container's `node` user owns everything under `PAPERCLIP_HOME` before the app starts. To keep boots fast on volumes with lots of agent worktrees and `node_modules` trees, it walks the whole tree only once for each volume and node UID/GID. After that it records the result in `.paperclip-ownership-verified` at the top of the data directory, and later boots run only a quick shallow check. Delete that file if you want the next boot to run the full check again. If the container starts as a non-root user, the entrypoint can't change ownership, so it skips all of this.
+
+If you set `USER_UID` or `USER_GID` to something other than the image default (`1000`), the container remaps the `node` user without walking the data volume. The first boot with new IDs still runs the ownership check above, which repairs the whole tree if anything has the wrong owner. Once that's recorded, later boots start in seconds, even on large volumes.
 
 ---
 

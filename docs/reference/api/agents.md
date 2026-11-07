@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Agents API
 seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate keys, sync skills, trigger runs, and register managed and remote agent profiles.
 ---
@@ -40,8 +40,9 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `budgetMonthlyCents` | Monthly budget in cents. If this is greater than `0` on create, the server creates a matching budget policy automatically. |
 | `status` | Lifecycle state. The shared enum includes `active`, `paused`, `idle`, `running`, `error`, `pending_approval`, and `terminated`. While setup, pause, or resume is in progress the agent reports `paused`; while termination or cleanup is in progress it reports `terminated`. Read `lifecycleState` for the precise step. |
 | `lifecycleState` | Read-only. Where the agent is in its hire-to-termination lifecycle: `pending_approval`, `preparing`, `verifying`, `ready`, `pausing`, `paused`, `resuming`, `terminating`, `cleaning_up`, `terminated`, or `rejected`. Only `ready` admits work; work assigned earlier stays queued. See [Lifecycle Steps and Retry](#lifecycle-steps-and-retry). |
-| `lifecycleError` | Read-only. A short, credential-free message when a lifecycle step failed, or `null`. |
+| `lifecycleError` | Read-only. A fixed, credential-free message naming the step that failed and what to fix, or `null`. |
 | `lifecycleVersion` | Read-only. A counter that increases with each lifecycle operation. |
+| `createdByUserId` | Read-only. The human user who created the agent, or `null` when an agent or the system created it. The server sets this from the authenticated user; a value in the request body is ignored. |
 | `permissions` | Agent-level permissions: `canCreateAgents` and `canCreateSkills` (defaults to `true`). |
 
 ---
@@ -155,7 +156,7 @@ Use the agent UUID and the same authorization required to read that agent. The r
 
 This read does not create an identity. New agents receive one at creation; older agents receive one on their next supported managed run. The endpoint never returns a private key. See [Agent cryptographic identity](../../guides/org/agent-identity.md) for signing and recovery. These keys do not replace agent API tokens.
 
-For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api).
+For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api). Board users read that feedback through the [commentary read routes](../../administration/agent-commentary.md#read-commentary-through-the-api).
 
 ---
 
@@ -321,7 +322,7 @@ Creates a new agent in a company.
 
 `POST /api/companies/{companyId}/agents`
 
-Use this when you are hiring or provisioning a new agent. In the current implementation, this route is board-only.
+Use this when you are hiring or provisioning a new agent. The caller needs permission to create agents in the company.
 
 Important behavior:
 
@@ -335,6 +336,10 @@ Important behavior:
 - If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
 - For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds a short default `AGENTS.md`: a one-line role description for `role: "ceo"`, or a one-line generic placeholder for every other role. Keep it short — Paperclip's runtime and installed skills already supply the operating procedures. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
+- The optional `runner` field picks how a Codex, Claude Code, OpenCode, or Pi agent runs: `auto` (the default), `paperclip`, or `legacy`. With `adapterType: "codex_local"`, `auto` stores the agent as `paperclip_runner` with `provider: "codex"` when the target environment qualifies for Paperclip Runner (macOS on Apple Silicon or Intel, or Linux x64/ARM64 with GNU libc 2.39 or newer), and keeps `codex_local` otherwise. With `adapterType: "claude_local"`, `auto` stores `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"` on the same targets, except that a macOS host reached over SSH, or a target whose platform can't be detected, keeps `claude_local`. A blank Claude `model` resolves to `ANTHROPIC_MODEL` from the agent's `env` if it's set, otherwise to `claude-opus-5-5`. With Bedrock or Vertex settings in `env` and no model, the request fails with `422` and code `agent_runner_config_incompatible`, because those providers use their own model IDs. With `adapterType: "opencode_local"`, `auto` stores `paperclip_runner` with `provider: "opencode"`, and with `adapterType: "pi_local"` it stores `provider: "acpx"` and `acpxAgent: "pi"`; both keep the classic adapter on Linux ARM64. `legacy` always keeps the classic adapter. See [New Codex and Claude agents use the Runner](../adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
+- Asking for `paperclip` on a target that doesn't qualify fails with `422` and code `agent_runner_unavailable`. Legacy-only settings that Paperclip Runner can't honour (for example `extraArgs` on a Codex agent, or `chrome` or `maxTurnsPerRun` on a Claude agent) fail with `422` and code `agent_runner_config_incompatible`, listing the offending `fields` — remove them or choose `legacy`.
+- Only an operator can set `adapterConfig.homeMode`. An agent caller that includes it gets `403` with `Only an operator can configure Runner homeMode.`
+- To save an agent before setup is finished (the way the **New Agent** dialog does when you submit a name), send a fresh uuid as `setupId`. The server creates the agent with that ID, `status: "paused"`, and `pauseReason: "setup"`, and skips the board-approval check, which happens when the hire is finished. Sending the same `setupId` again returns the same agent. Only a signed-in board user can do this. While setup is unfinished, `POST /api/agents/{agentId}/resume` returns `409` with `Finish agent setup before resuming`, and creating an API key returns `409` with `Finish agent setup before creating keys`.
 
 ### Example
 
@@ -465,11 +470,12 @@ Use this when the company may require board approval for new agents, or when you
 
 Important behavior:
 
-- The request body accepts the same core agent fields as create.
+- The request body accepts the same core agent fields as create, including `runner`.
 - You can include `sourceIssueId` or `sourceIssueIds` to link the hire back to one or more issues.
 - An agent on the `paperclip_runner` adapter can send `"inheritRuntimeFrom": "caller"` to give the new hire the calling agent's runner settings and default environment. The new agent must also use `adapterType: "paperclip_runner"`, and you can't combine this with `adapterConfig`, `runtimeConfig`, or `defaultEnvironmentId` — the server copies the adapter config and default environment from the calling agent. Board users can't use this option; it's rejected with `403 Forbidden`.
 - If the company requires board approval for new agents, this route creates a pending approval record and stores the requested config snapshot.
 - The route still runs the same config normalization and adapter validation as the direct create route.
+- To finish an agent saved with `setupId` on the create route, send its ID as `setupAgentId`. The hire completes that same agent instead of creating a new one, and any board-approval requirement applies here. Repeating the call for an agent whose setup is already finished returns the agent and its approval with `idempotent: true`. An unknown ID returns `404` with `Agent setup not found`.
 
 ---
 
@@ -492,6 +498,37 @@ Important behavior:
 - Renaming an agent can fail with `409 Conflict` if the new shortname would collide with another non-terminated agent in the company.
 - Terminated agents cannot be resumed through a status patch.
 - Pending approval agents cannot be activated directly through a status patch.
+
+### Change only the connection or default model (`runtimeSettings`)
+
+The **Edit connection & model** bulk action on the agent list (see [Agents → Change the connection or model for several agents at once](../../guides/org/agents.md#change-the-connection-or-model-for-several-agents-at-once)) uses a narrower form of this route. Instead of sending `adapterConfig` and `runtimeConfig`, you send a single `runtimeSettings` object, and the server merges just the model and AI connection into the agent's latest configuration. Every other setting is left untouched.
+
+| Field | Notes |
+|---|---|
+| `harness` | Required. The harness you expect the agent to be on, such as `codex_local` or `claude_local`. An agent on Paperclip Runner counts as the harness it runs, so a Runner Codex agent is `codex_local`. If the agent's harness changed, the call fails with `409` and `This agent's harness changed. Refresh the roster and select it again.` |
+| `model` | Optional. The new default model, up to 512 characters. |
+| `aiConnection` | Optional. The new AI connection binding: `{ "mode": "shared" \| "delegated", "provider", "method", "connectionId", "grantId" }` or `{ "mode": "responsible_user", "provider", "method" }`. |
+| `expected` | Required. `{ "model": <string or null>, "aiConnection": <binding or null> }` — the values you saw before editing. If either no longer matches, the call fails with `409` and `This agent's connection or model changed. Refresh the roster and review the changes again.` |
+
+Send at least one of `model` or `aiConnection`; otherwise validation fails with `Choose a connection or default model to change`.
+
+```json
+{
+  "runtimeSettings": {
+    "harness": "codex_local",
+    "model": "gpt-5.5",
+    "expected": { "model": "gpt-5.4", "aiConnection": null }
+  }
+}
+```
+
+Rules to know:
+
+- `runtimeSettings` can't be combined with any other field in the same request (`422` with `Runtime settings cannot be combined with other agent changes`).
+- The caller needs permission to configure the agent, the same check used for agent setup. The update is still recorded as a configuration revision.
+- `process` and `http` agents, and agents that are `terminated` or `pending_approval`, are refused with `422` and `This agent cannot be updated from the roster`.
+- Connection pools can't be set or changed this way. Sending a `router` binding, or targeting an agent already on a pool, fails with `422` and `Edit connection pool members on the agent's configuration page`.
+- When the selected connection lists specific models, the model must be one of them; otherwise the call fails with `422` and `Choose a default model available on the selected connection`.
 
 ### Example
 
@@ -593,18 +630,31 @@ The `permissionKey` field on a grant is one of:
 
 | Key | What it allows |
 |---|---|
-| `agents:create` | Hire or create new agents in the company, and run mutations or environment probes against agent configuration. Still satisfies `agent_config:read` and `agent_config:update` checks — but board (human) company members no longer need it to read agent configuration, skills, or config-revisions. Those reads are gated only on company membership. Agent (non-human) actors still need `agents:create` (or the legacy `canCreateAgents` flag) to read peer agents' configurations. |
+| `agents:create` | Hire or create new agents in the company, and run adapter environment tests. It doesn't let an agent read a peer's configuration; that takes `agents:configure` or `agents:suggest-changes`. |
+| `agents:configure` | Change another agent's configuration, instructions, and profile, and read peers' configurations. |
+| `agents:suggest-changes` | Read peers' configurations. An agent holding it can also apply an accepted change to instructions or profile fields (`name`, `role`, `title`, `capabilities`). |
+| `skills:create` | Create and manage company skills. Skill writes are decided by the [company skill policy](./company-skill-policy.md), where this grant counts as a compatibility allow under a default-deny policy. |
+| `skills:suggest-changes` | Propose changes to company skills. It counts toward the same compatibility allow as `skills:create`. |
+| `tools:admin` | Set up shared tool plumbing, such as MCP gateways and their tokens. Board members only. |
+| `tools:manage_connections` | Manage company connections, including which agents and projects a tool connection is installed on. |
+| `tools:manage_profiles` | Reserved. You can grant it, but no route checks it in this release. |
+| `tools:view_audit` | Read the tool gateway's audit trail. Board members only. |
+| `audit:view_agent_actions` | Read the company's audit feed of agent actions and export it. Board members only. |
+| `commentary:view` | Read agent [commentary](../../administration/agent-commentary.md#read-commentary-through-the-api). Board members only. |
+| `tools:use` | Try a connection's tools from the board. In tool access decisions, it also counts as an explicit allow for the tools its scope covers, once no policy has already decided the call. |
+| `tools:manage_runtime` | Inspect, stop, and restart tool runtime slots. Board members only. |
+| `inbox:manage` | Let an agent act on the inbox of a user other than its responsible user, when the grant's scope covers that user. New standard agents hold it scoped with `responsibleUserOnly`, which doesn't reach other users. |
 | `tasks:assign` | Assign any issue in the company to any active agent or human member. |
 | `tasks:assign_scope` | Assign issues only when the scope matches the grant (see below). Requires a structured scope on the grant. |
 | `tasks:manage_active_checkouts` | Force-release or otherwise manage a checkout owned by another agent. |
-| `environments:manage` | Manage execution workspaces and environments. |
+| `environments:manage` | Reserved for managing execution environments. Roles carry it, but the environment routes don't check it yet: they need instance admin access. |
 | `users:invite` | Invite new humans to the company. |
 | `users:manage_permissions` | Edit roles and grants for other members. |
 | `joins:approve` | Approve pending join requests. |
 
 A new standard agent gets `canCreateAgents: true` and `canCreateSkills: true` when it is created; low-trust agents get `canCreateAgents: false`. Stored agents without an explicit `canCreateAgents` value are treated as `false`. An agent with the `ceo` role can always create agents, whatever its flag says. New standard agents also receive fourteen direct grants when they are created or their hire is approved: `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`, `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `audit:view_agent_actions`, `tools:use`, `tools:manage_runtime`, `inbox:manage` (scoped `{ "responsibleUserOnly": true }`), `tasks:assign`, `tasks:assign_scope` (scoped `{ "subtreeRootAgentId": "<the new agent's id>" }`), and `tasks:manage_active_checkouts`. Low-trust agents and managed built-in agents don't receive them, and existing agents aren't backfilled.
 
-Role-default human grants are applied automatically when a user joins. `owner` and `admin` receive the agent, skill, environment, invite, task-assignment, join-approval, and four tool keys (`owner` adds `users:manage_permissions`). `operator` receives the same agent, skill, environment, invite, and task-assignment keys plus `pipelines:write`, the tool keys (including `tools:manage_profiles` and `tools:view_audit`), and `audit:view_agent_actions`, but not `joins:approve` or `users:manage_permissions`. `viewer` gets none. The exact lists are in [Roles & Permissions](../../administration/roles-and-permissions.md#the-four-company-roles).
+Role-default human grants are applied automatically when a user joins. `owner` and `admin` receive the agent, skill, environment, invite, task-assignment, join-approval, and four tool keys (`owner` adds `users:manage_permissions`). `operator` receives company editing, invite, tool, and audit keys, but not `joins:approve` or `users:manage_permissions`. All four roles, `viewer` included, receive `commentary:view`, and it's added to accepted invites whose saved grant list leaves it out. The exact lists are in [Roles & Permissions](../../administration/roles-and-permissions.md#the-four-company-roles).
 
 ### Grant scope
 
@@ -720,7 +770,7 @@ Every hire, pause, resume, and termination runs through a short sequence of step
 
 `preparing` gives any required [plugins](../plugins/sdk.md#required-agent-lifecycle-work) a chance to set up resources; `verifying` tests the agent's saved runtime configuration. Messages and tasks accepted before the agent reaches `ready` stay queued and dispatch once it does.
 
-If a step fails, `lifecycleError` reads `The lifecycle step failed. Retry the operation.` Paperclip retries failed steps automatically about a minute later. To try again immediately (for example after you've fixed the configuration):
+If a step fails, `lifecycleError` names it and suggests a fix — for example `Execution configuration check failed. The selected model is unavailable. Choose a model supported by the agent's AI connection in Configuration, then retry.` Paperclip retries failed steps automatically about a minute later. To try again immediately (for example after you've fixed the configuration):
 
 `POST /api/agents/{agentId}/lifecycle/retry`
 
@@ -1150,7 +1200,7 @@ Use them when you need to:
 
 Important notes:
 
-- If you are a board (human) member of the company, configuration and config-revision reads need only your company membership — no `agents:create` permission is required. Agent (non-human) actors still need `agents:create` (granted, or the legacy `canCreateAgents` flag on their own record) to read these. Mutations and environment probes always require `agents:create`.
+- If you are a board (human) member of the company, configuration and config-revision reads need only your company membership. An agent needs `agents:configure` or `agents:suggest-changes` to read these; `agents:create` and the legacy `canCreateAgents` flag don't help. Changing or rolling back another agent's configuration needs `agents:configure`; `agents:suggest-changes` isn't enough, even with an accepted change. An agent can change or roll back its own configuration without a grant, subject to its responsible user's access and the limits on what agents may set; a low-trust agent can't. `POST /api/companies/{companyId}/adapters/{type}/test-environment` needs permission to create agents.
 - Revisions redact secret-bearing fields before returning them, so reads never expose secrets regardless of who you are.
 - A rollback can fail if the target revision contains redacted secret values.
 
@@ -1193,10 +1243,10 @@ curl -s -o notes.png \
 |---|---|
 | `path` | File path inside the bundle, e.g. `AGENTS.md` or `notes/today.md`. |
 | `content` | The full text content, up to 1 MiB. |
-| `baseHash` | The `contentHash` you read. Send `null` when you're creating a new file. Required for managed bundles. |
+| `baseHash` | The `contentHash` you read. Send `null` when you're creating a new file. Required for the entry file and for managed bundles. |
 | `clearLegacyPromptTemplate` | Optional. `true` also clears the agent's old inline prompt template. Needs permission to manage the instructions path. |
 
-Saves are guarded against lost updates: if the file changed since you read it, the save is rejected with `409 Conflict` and nothing is written. Read the file again, reapply your change, and retry with the new hash. A save with no `baseHash` on a managed bundle returns `422`.
+Saves are guarded against lost updates: if the file changed since you read it, the save is rejected with `409 Conflict` and nothing is written. Read the file again, reapply your change, and retry with the new hash. A save with no `baseHash` returns `422` for the entry file in any bundle mode, and for any file in a managed bundle.
 
 ```bash
 curl -s -X PUT http://localhost:3100/api/agents/{agentId}/instructions-bundle/file \
@@ -1234,11 +1284,11 @@ These exist for compatibility with instances that saved instruction revisions be
 
 Notes:
 
-- The target agent or an ancestor manager can manage the instructions path.
-- An agent can read and save its own files within what its responsible user is currently allowed to do. Reading or saving another agent's files needs permission to configure that agent.
+- `PATCH /api/agents/{agentId}/instructions-path` is board-only and needs `agents:configure`. `PATCH /api/agents/{agentId}/instructions-bundle` needs `agents:configure` too, or, for an agent, `agents:suggest-changes` with an accepted change. Being the target agent or its manager isn't enough.
+- An agent can read its own files and save its own entry file within what its responsible user is currently allowed to do. Saving or deleting its other files through these routes needs `agents:configure`, or `agents:suggest-changes` with an accepted change. Reading another agent's files needs `agents:configure` or `agents:suggest-changes`.
 - A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't save its own instructions from ordinary work. The exception is an edit its user asks for directly in their own Agent Chat — see [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 - Relative instructions paths require `adapterConfig.cwd`.
-- External bundles keep their existing behaviour; `download=true` and the `baseHash` rules above apply to managed bundles.
+- External bundles keep their existing behaviour, apart from the entry file, which always needs `baseHash`. `download=true` and the other `baseHash` rules above apply to managed bundles.
 
 ---
 
@@ -1335,9 +1385,3 @@ AWS AgentCore authenticates through the runner environment's workload identity, 
 ---
 
 ## Notes
-
-This page was rewritten to match the current agent routes, auth rules, lifecycle behavior, and docs-site markdown conventions.
-
-Changed file:
-
-- `docs/api/agents.md`
