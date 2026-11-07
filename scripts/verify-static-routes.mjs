@@ -111,7 +111,7 @@ try {
     "footer Integrations link should point to the adapters docs route",
   );
   assert(
-    rootHtml.includes("paperclip/blob/main/CONTRIBUTING.md"),
+    rootHtml.includes("paperclip/blob/master/CONTRIBUTING.md"),
     "footer Contributing link should point to the repo contributing file",
   );
 
