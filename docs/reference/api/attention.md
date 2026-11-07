@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.824.0
+paperclip_version: v2026.1106.0
 seo_title: Attention API
 seo_description: Read the board's ranked decision queue — the feed behind the Decisions screen, covering approvals, agent questions, and blocked work in one call.
 ---

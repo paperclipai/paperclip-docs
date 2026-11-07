@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Instance Admin API
 seo_description: Instance-scoped endpoints that fit nowhere else: general and experimental settings, on-demand database backups, and the LLM reflection endpoint.
 ---
@@ -92,6 +92,19 @@ HEAD /api/ready
 ```
 
 Point your load balancer or deploy platform here to decide when a new server can take traffic. Like the liveness probe, it's anonymous, never cached, and doesn't touch the database. It returns `200` with `{ "status": "ready" }` once startup recovery has finished. While the server is starting, recovering, or draining, it returns `503` with the current phase in `status` and a `Retry-After: 1` header.
+
+---
+
+## Liveness probe
+
+```
+GET  /api/liveness
+HEAD /api/liveness
+```
+
+A lightweight, anonymous check that the server process is up. It doesn't resolve a session or touch the database, so frequent monitoring won't keep an idle database awake, and it still answers during an idle hold. It returns `200` with `{ "status": "ok", "commit": "<sha or null>" }` once startup recovery has finished, and `503` with `"status": "starting"` until then. Responses are never cached.
+
+Use `/api/liveness` for routine "is it running?" probes. Keep `/api/health` for real readiness checks: it's the one that tests the database and reports bootstrap state.
 
 ---
 

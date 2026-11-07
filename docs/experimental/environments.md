@@ -1,12 +1,12 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Environments: Remote Execution Targets
-seo_description: Run agents somewhere other than the Paperclip host. Define named targets over SSH or a provider sandbox, and assign them per instance, project, or agent.
+seo_description: Run agents somewhere other than the Paperclip host. Define named targets over SSH or a provider sandbox, and assign them per instance or per agent.
 ---
 
 # Environments
 
-By default, agent runs execute on the Paperclip host itself. **Environments** let you define named, reusable execution targets — a remote machine over SSH, or a sandbox from a provider plugin — and assign them per instance, per project, or per agent. Each environment carries its own configuration and, for sandbox environments, supports connection probing and reusable custom images.
+By default, agent runs execute on the Paperclip host itself. **Environments** let you define named, reusable execution targets — a remote machine over SSH, or a sandbox from a provider plugin — and assign them per instance or per agent. Each environment carries its own configuration and, for sandbox environments, supports connection probing and reusable custom images.
 
 ![Environment management in instance settings](../user-guides/screenshots/light/experimental/environments.png)
 
@@ -34,7 +34,7 @@ The **Environments** tab in **Settings** is always visible, but until you flip t
 Then route work onto it:
 
 - **Per agent** — the agent configuration form gains an **Environment override** picker (*"Default: …"* plus each environment as `name · driver`).
-- **Per project** — project configuration's execution-workspace settings gain an **Environment** dropdown. This one lives inside the isolated-workspaces controls, so it also needs [Isolated Workspaces](isolated-workspaces.md) enabled and more than one selectable environment.
+- **Per project** — project configuration's execution-workspace settings gain an **Environment** dropdown. This one lives inside the isolated-workspaces controls, so it also needs [Isolated Workspaces](isolated-workspaces.md) enabled and more than one selectable environment. The dropdown saves the project's choice and the task's workspace card shows it, but it doesn't pick where runs go: a run uses the agent's override, then the instance default.
 
 ### Custom sandbox images
 

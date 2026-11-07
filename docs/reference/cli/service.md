@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: CLI Service Commands
 seo_description: Move Paperclip off a terminal window that dies when you close it, and run it as a managed background service that survives logout and reboot.
 ---

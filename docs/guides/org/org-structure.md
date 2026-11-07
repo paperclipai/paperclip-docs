@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Building Your Org Structure
 seo_description: Reporting lines tell each agent who manages them, who delegates work, and who to escalate to. Common structures, plus adding managers and workers.
 ---
@@ -168,7 +168,7 @@ The card itself surfaces everything you usually need at a glance:
 - The **adapter type** in a small mono font — useful when auditing which adapters your org relies on.
 - A **capabilities** snippet: the first couple of lines of the agent's capabilities description.
 
-The filter tabs above the chart (**All**, **Active**, **Paused**, **Error**, plus **Built-in** when the experimental **Built-in Agents** setting is on) work here too, so you can see just the paused part of your org, for example. To share or clone an org, use **Export** and **Import** in company settings — see [Export & import](../power/export-import.md).
+The **Search agents…** box works here too: the chart narrows to the agents that match, plus the managers above them. There are no status tabs, and the **Harness** filter is only in the list view. If nothing matches, the chart still says *"No agents match your search and selected status."*, even though there's no status to select any more. If there's nothing to chart at all, it says *"No organizational hierarchy defined."* To share or clone an org, use **Export** and **Import** in company settings — see [Export & import](../power/export-import.md).
 
 ![Interactive org chart showing the CEO at the top with managers and workers connected by reporting lines](../../user-guides/screenshots/light/org/chart.png)
 

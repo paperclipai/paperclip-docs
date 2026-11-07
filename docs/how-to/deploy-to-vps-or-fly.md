@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Deploy Paperclip to a VPS or Fly.io
 seo_description: A pragmatic recipe for a working URL with persistent data. Fly.io is the fast path, a single VPS the boring backup, both from the same Docker image.
 ---

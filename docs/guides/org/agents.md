@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Agents: Your AI Employees
 seo_description: Hire agents, browse the agent list, and work the agent page — overview, identity, harness, history, and audit — for the AI employees doing your work.
 ---
@@ -74,6 +74,25 @@ A few things to know:
 - **Each change is recorded.** Every updated agent gets a new entry in its [Agent history](#agent-history).
 - Bulk editing lives in the list view only; the org chart doesn't have checkboxes.
 
+### Change the connection or model for several agents at once
+
+When you switch providers or want a whole team on a newer model, you don't have to open every agent. In the list view you can update the AI connection, the default model, or both for a group of agents in one go.
+
+1. Tick the checkbox at the start of each agent you want to change, or use the checkbox in the header row to select every editable agent you can see. The filter helps here: pick a **Harness** first to select, say, all your Claude Code agents.
+2. A bar appears showing how many agents are selected, and how many of them the filters are hiding (they're still selected). Click **Edit connection & model**. If your selection mixes harnesses, the bar says **Choose a harness to edit** and shows one button per harness (for example **Edit 3 Codex**), because each harness has its own connections and models. Agents of the other harnesses stay selected but won't change.
+3. In the panel that opens, tick **Change connection**, **Change default model**, or both, and make your choice. The model list only offers models available on every selected agent's connection. When no connection restricts the models, you can also type a model ID your harness supports.
+4. Check the **Changes to apply** preview, which lists each agent with its old and new settings. If a model isn't available on an agent's connection, Paperclip names that agent and tells you what to change before you can save.
+5. Click **Update** (the button shows how many agents will change, for example **Update 4 agents**).
+
+Each agent is saved on its own. If some can't be saved, the panel shows which ones and why, and a **Retry** button (for example **Retry 2 agents**) tries only those. If an agent's connection or model changed since you opened the panel, Paperclip refuses that one rather than overwrite it. Close the panel and select the agent again to review its latest settings.
+
+A few things to know:
+
+- **Changes apply to future runs.** Running work keeps its current settings, and model overrides you've set on individual tasks stay in place. A model change may start a fresh session, and existing sessions may keep their connection until you reset them.
+- **Some agents can't be bulk edited.** Their checkbox is disabled; hover it to see why. Agents whose connection and model are managed externally (such as HTTP or process agents) and agents on a connection pool are edited on their own [Harness / Runtime](#harness-runtime) page instead. You can't pick a connection pool in the panel either.
+- **Each change is recorded.** Every updated agent gets a new entry on its [Revisions](#revisions) page.
+- **It's list view only.** The org chart doesn't have checkboxes.
+
 ### Creating a new agent from the list
 
 The **New Agent** button at the end of the toolbar opens the hiring flow described in the next section.
@@ -103,7 +122,7 @@ Paperclip saves the agent as soon as you submit its name, so your setup has a pl
 
 ### Step 2: Adapter
 
-The dialog switches to **Choose an adapter** and asks how your agent should work. Pick one of the adapter cards — this decides which AI runtime powers the agent (Claude Code, Codex, OpenCode, a remote gateway, and so on). If you pick Paperclip Runner, a **Runner** dropdown appears so you can choose which runtime it drives.
+The dialog switches to **Choose an adapter** and asks how your agent should work. Pick one of the adapter cards — this decides which AI runtime powers the agent (Claude Code, Codex, OpenCode, a remote gateway, and so on). Paperclip Runner isn't a card of its own: the Claude, Codex, OpenCode and Pi cards start on the Runner on supported hosts. When the **Paperclip Runner** experimental setting is on, **Advanced** adds an **Experimental harness** picker with Grok Build and OpenCode on the Runner.
 
 Click **Configure agent** to move on, or **Back** to change the name.
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Issues API
 seo_description: The core work objects: hierarchy, blockers, approvals, agent checkout, comments, and keyed extensions. Endpoints for creating, reading, and moving issues.
 ---
@@ -330,6 +330,8 @@ Behavior to know:
 - `hiddenAt` hides or unhides the issue from list responses.
 - `visibility` switches the issue between `open` and `private`. An agent that can update the task may make it `private`; any other change needs someone who can manage the task's privacy (see [Privacy and access grants](#privacy-and-access-grants)). Making a task public fails with `422` while it inherits privacy from a parent or a shared private project (`A task cannot be made public while it inherits private access`, `Move this task out of its private project before making it public`). In a personal private project, making the task public moves it out of that project instead. Existing private children stay private.
 - `expectedExecutionPolicy` is an optional snapshot of the `executionPolicy` you last read. When you send it, the update must change only `executionPolicy` (otherwise `422`, `expectedExecutionPolicy requires a policy-only update`), and the server rejects it with `409` and code `execution_policy_changed` if the stored policy changed since. The board uses this when you cancel a monitor from its card.
+- `expectedStatusVersion` guards promoting a prepared task from `backlog` to `todo`. Send only `status: "todo"` and the `statusVersion` you last read; anything else returns `422` (`expectedStatusVersion requires a status-only backlog-to-todo promotion`). If the task's status or assignment changed, or it's no longer in `backlog`, the server returns `409` with code `issue_status_version_changed`.
+- A `PATCH` that replaces `executionPolicy` and sets `status: "done"` during a live review cycle (pending, or changes requested) returns `422` with code `unexecuted_review_stage`. Resolve the review first. Any other status keeps the normal behavior of clearing the cycle.
 
 ### Blocking Links
 

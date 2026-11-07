@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Paperclip Connectors
 seo_description: Every service Paperclip can connect, grouped by what it is for, with the access model, action permissions, and a setup guide behind each one.
 ---
@@ -209,6 +209,7 @@ These hold the credential Paperclip uses to run models. They publish no actions 
 | [Anthropic](connectors/anthropic.md) | Run Claude models. A subscription signs in with your Claude plan; an API key can be scoped and rotated separately. | Claude subscription · API key |
 | [OpenAI](connectors/openai.md) | Run OpenAI models. | OpenAI subscription · API key |
 | [OpenRouter](connectors/openrouter.md) | Run models from many vendors through one credential and one bill. | API key |
+| [GitHub Copilot](connectors/github-copilot.md) | Run agents on your Copilot plan through Paperclip Runner. Model access only; set it up with **Connect Copilot** on the **GitHub** row. | Personal access token |
 | [Grok](connectors/xai.md) | Run xAI's Grok models. | Grok subscription · API key |
 | [Custom model providers](connectors/custom-model-providers.md) | Use a compatible custom or local endpoint through a supported agent harness. Compatibility depends on the API route. | API key · Endpoint URL |
 

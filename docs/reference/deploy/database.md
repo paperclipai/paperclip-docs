@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Database Configuration
 seo_description: Paperclip runs PostgreSQL through Drizzle ORM. One schema across every supported mode — what differs is where Postgres runs and how it is reached.
 ---
@@ -159,6 +159,10 @@ Paperclip closes its pools when the server shuts down, and when startup fails af
 | `postgres://...supabase.com...` | Hosted PostgreSQL |
 
 The Drizzle schema under `packages/db/src/schema/` stays the same in every case.
+
+## Upgrading
+
+Upgrading to v2026.1106.0 can take longer on instances with large run histories, because migration `0343` backfills who created each agent from the activity log, and `0345` and `0369` build indexes on large tables. Those index builds run `CONCURRENTLY`, outside a transaction, and are safe to rerun if interrupted.
 
 ## What a database backup preserves
 

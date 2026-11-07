@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Chat-Style Tasks
 seo_description: Read what an agent said and what it actually did in one stream — thinking, commands, and diffs inline, instead of a comment thread beside a transcript.
 ---
@@ -31,7 +31,7 @@ The thread *is* the page. Open any task and you'll notice:
 - The **Chat / Activity / Related work** tab strip is gone. Chat is the only surface, and it fills the center column with its own scroll viewport.
 - The breadcrumb, title, and header badges scroll away with the messages instead of staying pinned above them.
 - The description, sub-tasks table, Documents, work products, attachments, and workspace sections no longer sit in the center column — the plan and the artifacts live in the side pane instead.
-- The work-mode badge disappears from the header. Mode is now something you pick per message in the composer, and each agent reply carries the mode it ran under, so a task-wide badge would be misleading.
+- The work-mode badge disappears from the header. Mode is now something you pick per message in the composer, so a task-wide badge would be misleading.
 
 Everything is still there. It just moved.
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Agents API
 seo_description: Create agents, inspect and update configuration, manage lifecycle, rotate keys, sync skills, trigger runs, and register managed and remote agent profiles.
 ---
@@ -399,7 +399,7 @@ Creates a new agent in a company.
 
 `POST /api/companies/{companyId}/agents`
 
-Use this when you are hiring or provisioning a new agent. In the current implementation, this route is board-only.
+Use this when you are hiring or provisioning a new agent. The caller needs permission to create agents in the company.
 
 Important behavior:
 
@@ -644,6 +644,37 @@ Rules to know:
 - Connection pools can't be set or changed this way: `aiConnection` only accepts the `shared`, `delegated`, and `responsible_user` shapes, and an agent that's already on a pool can't be described in `expected`. Edit pool members on the agent's configuration page instead.
 - When the selected connection lists specific models, the model must be one of them; otherwise the call fails with `422` and `Choose a default model available on the selected connection`.
 
+### Change only the connection or default model (`runtimeSettings`)
+
+The **Edit connection & model** bulk action on the agent list (see [Agents → Change the connection or model for several agents at once](../../guides/org/agents.md#change-the-connection-or-model-for-several-agents-at-once)) uses a narrower form of this route. Instead of sending `adapterConfig` and `runtimeConfig`, you send a single `runtimeSettings` object, and the server merges just the model and AI connection into the agent's latest configuration. Every other setting is left untouched.
+
+| Field | Notes |
+|---|---|
+| `harness` | Required. The harness you expect the agent to be on, such as `codex_local` or `claude_local`. An agent on Paperclip Runner counts as the harness it runs, so a Runner Codex agent is `codex_local`. If the agent's harness changed, the call fails with `409` and `This agent's harness changed. Refresh the roster and select it again.` |
+| `model` | Optional. The new default model, up to 512 characters. |
+| `aiConnection` | Optional. The new AI connection binding: `{ "mode": "shared" \| "delegated", "provider", "method", "connectionId", "grantId" }` or `{ "mode": "responsible_user", "provider", "method" }`. |
+| `expected` | Required. `{ "model": <string or null>, "aiConnection": <binding or null> }` — the values you saw before editing. If either no longer matches, the call fails with `409` and `This agent's connection or model changed. Refresh the roster and review the changes again.` |
+
+Send at least one of `model` or `aiConnection`; otherwise validation fails with `Choose a connection or default model to change`.
+
+```json
+{
+  "runtimeSettings": {
+    "harness": "codex_local",
+    "model": "gpt-5.5",
+    "expected": { "model": "gpt-5.4", "aiConnection": null }
+  }
+}
+```
+
+Rules to know:
+
+- `runtimeSettings` can't be combined with any other field in the same request (`422` with `Runtime settings cannot be combined with other agent changes`).
+- The caller needs permission to configure the agent, the same check used for agent setup. The update is still recorded as a configuration revision.
+- `process` and `http` agents, and agents that are `terminated` or `pending_approval`, are refused with `422` and `This agent cannot be updated from the roster`.
+- Connection pools can't be set or changed this way. Sending a `router` binding, or targeting an agent already on a pool, fails with `422` and `Edit connection pool members on the agent's configuration page`.
+- When the selected connection lists specific models, the model must be one of them; otherwise the call fails with `422` and `Choose a default model available on the selected connection`.
+
 ### Example
 
 <!-- tabs: cURL, JavaScript, Python -->
@@ -831,7 +862,7 @@ The `permissionKey` field on a grant is one of:
 | `tasks:assign` | Assign any issue in the company to any active agent or human member. |
 | `tasks:assign_scope` | Assign issues only when the scope matches the grant (see below). Requires a structured scope on the grant. |
 | `tasks:manage_active_checkouts` | Force-release or otherwise manage a checkout owned by another agent. |
-| `environments:manage` | Manage execution workspaces and environments. |
+| `environments:manage` | Reserved for managing execution environments. Roles carry it, but the environment routes don't check it yet: they need instance admin access. |
 | `users:invite` | Invite new humans to the company. |
 | `users:manage_permissions` | Edit roles and grants for other members. |
 | `joins:approve` | Approve pending join requests. |
@@ -1460,10 +1491,10 @@ curl -s -o notes.png \
 |---|---|
 | `path` | File path inside the bundle, e.g. `AGENTS.md` or `notes/today.md`. |
 | `content` | The full text content, up to 1 MiB. |
-| `baseHash` | The `contentHash` you read. Send `null` when you're creating a new file. Required for managed bundles. |
+| `baseHash` | The `contentHash` you read. Send `null` when you're creating a new file. Required for the entry file and for managed bundles. |
 | `clearLegacyPromptTemplate` | Optional. `true` also clears the agent's old inline prompt template. Needs permission to manage the instructions path. |
 
-Saves are guarded against lost updates: if the file changed since you read it, the save is rejected with `409 Conflict` and nothing is written. Read the file again, reapply your change, and retry with the new hash. A save with no `baseHash` on a managed bundle returns `422`.
+Saves are guarded against lost updates: if the file changed since you read it, the save is rejected with `409 Conflict` and nothing is written. Read the file again, reapply your change, and retry with the new hash. A save with no `baseHash` returns `422` for the entry file in any bundle mode, and for any file in a managed bundle.
 
 ```bash
 curl -s -X PUT http://localhost:3100/api/agents/{agentId}/instructions-bundle/file \
@@ -1506,7 +1537,7 @@ Notes:
 - Agents need a current responsible user to read instruction files, including their own.
 - A [low-trust](../../administration/trust-and-low-trust-review.md) agent can't save its own instructions from ordinary work. The exception is an edit its user asks for directly in their own Agent Chat — see [Instruction edits from your own chat](../../administration/trust-and-low-trust-review.md#instruction-edits-from-your-own-chat).
 - Relative instructions paths require `adapterConfig.cwd`.
-- External bundles keep their existing behaviour; `download=true` and the `baseHash` rules above apply to managed bundles.
+- External bundles keep their existing behaviour, apart from the entry file, which always needs `baseHash`. `download=true` and the other `baseHash` rules above apply to managed bundles.
 
 ---
 
@@ -1603,9 +1634,3 @@ AWS AgentCore authenticates through the runner environment's workload identity, 
 ---
 
 ## Notes
-
-This page was rewritten to match the current agent routes, auth rules, lifecycle behavior, and docs-site markdown conventions.
-
-Changed file:
-
-- `docs/api/agents.md`

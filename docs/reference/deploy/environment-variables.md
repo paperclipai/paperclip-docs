@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Environment Variables Reference
 seo_description: Every variable Paperclip reads for server configuration, plus the ones it injects into agent processes at runtime — the list to wire deployments from.
 ---
@@ -367,7 +367,7 @@ A bad endpoint or an unreachable collector never takes the server down — the S
 
 Paperclip can report server-side errors to [Sentry](https://sentry.io). It is **opt-in and off by default**, and everything about it fails open — no DSN, no package, no Sentry, no problem.
 
-To turn it on, set `SENTRY_DSN` and install the optional `@sentry/node` peer dependency. The DSN also rides the authenticated session response to the browser, so the web UI reports its own errors (behind a React error boundary) once the server has one configured.
+To turn it on, set `SENTRY_DSN_BACKEND` and install the optional `@sentry/node` peer dependency. To report web UI errors as well, set `SENTRY_DSN_FRONTEND`. That DSN rides the authenticated session response to the browser, so the web UI reports its own errors (behind a React error boundary) once the server has one configured.
 
 | Variable | Default | Meaning |
 |---|---|---|

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Roles and Permissions Reference
 seo_description: The lookup table behind company access: four roles, every permission key, how grants combine by precedence, and where instance admin sits above it all.
 ---
@@ -58,7 +58,7 @@ There are twenty-two permission keys. Sixteen of them show up as defaults on one
 | `agents:suggest-changes` | Read an agent's setup and propose changes for review, without applying them directly | — (explicit only) |
 | `skills:create` | Create and manage company skills | Owner, Admin, Operator |
 | `skills:suggest-changes` | Propose changes to a company skill for review, without applying them directly | — (explicit only) |
-| `environments:manage` | Create, edit, and remove the execution environments agents run in | Owner, Admin, Operator |
+| `environments:manage` | Reserved for managing execution environments. Roles carry it, but the environment routes don't check it yet: creating and editing environments needs instance admin access. | Owner, Admin, Operator |
 | `tools:admin` | Set up the tool plumbing a company shares — the stdio command templates behind tool apps, and the MCP gateways agents connect through (including minting and revoking gateway tokens) | Owner, Admin, Operator |
 | `tools:manage_connections` | Create, change, reconnect, and remove the company's connections — tools, chat endpoints, email inboxes, and AI accounts | Owner, Admin, Operator |
 | `tools:manage_profiles` | Edit tool profiles, company tool policies, and trust rules, and — together with `tools:manage_connections` — turn a connection's company-wide install on or off | Operator |

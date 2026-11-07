@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1106.0
 seo_title: Set Up the Gmail Connector
 seo_description: Get Google Developer Preview access, connect Gmail with the read, draft, or archive capability group, and restrict which agents can search your mail.
 ---
@@ -57,7 +57,7 @@ To change groups later, create a second connection with the group you want and r
 Setup is one screen. Paperclip fills in a default for who the connection belongs to and which agents may use it, and you change anything that does not fit before you sign in.
 
 1. Select **Connectors** in the sidebar.
-2. Find **Gmail** and select **Connect**.
+2. Find **Gmail** and select **Add account**. The row is there only when you already have a saved Gmail connection. Without one, start from the connection card an agent posts on its task.
 3. Read the access line above the main button. It says who the connection signs in as and which agents can use it. For a mailbox, the default is rarely what you want, so select **Change**:
    - Under **Which humans can use this credential?**, **Just me** is the usual answer for a mailbox — agents use the credential only on runs where you are the responsible person. **Any human in the organization** makes one mailbox available on runs started by anyone in its **human audience**, which you set on the connection's identity card as either **Any human in the company** or **Humans I pick** with a named list. Narrow that audience for a mailbox: leaving it open means any colleague's run can read the inbox. It requires the connection-manager permission and suits a genuinely shared inbox, not a person's mail.
    - Under **Which agents can use this connection**, choose **Just agents I pick** and name them. A mailbox is not something to hand to every agent by default.

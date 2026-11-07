@@ -64,6 +64,39 @@ Finishing a task doesn't close its case on its own. To wrap up, the last agent h
 
 If someone stops the run, cancels the task, or reassigns it while a "done" handoff is waiting, the handoff is cancelled and the case stays open.
 
+> **The workflow is guidance, not a rulebook.** Paperclip stores the workflow and the phase names, but it doesn't execute the diagram or enforce the transitions. Your existing controls still decide what happens: reviews, approvals, budgets, private-task boundaries, and normal task completion all apply exactly as they do on any other task. A phase called `review` is just a label — it isn't a review verdict.
+
+### Passing the task along
+
+When an agent finishes its phase, it saves its findings and documents, then hands off: it names the next agent, the new phase, and instructions for what comes next. Then it ends its turn.
+
+Paperclip doesn't reassign the task right away. It waits until the outgoing agent's run has actually stopped and its workspace has settled, so two agents never work the same task at once. Then it assigns the task to the next agent and wakes it. If something goes wrong along the way — a restart, a crash — the handoff is picked up again rather than lost or duplicated.
+
+Each agent that comes back to the task resumes its own earlier session, so it doesn't start from scratch. An agent can even hand the task to itself to begin a new phase.
+
+### Reusable workflows
+
+If you run the same kind of case again and again — every bug fix goes triage, build, verify; every article goes research, draft, edit — you don't have to write the workflow from scratch each time. Your company can keep **reusable workflows**: each one is just a name and a prompt, shared across the company.
+
+When an agent starts a case with a saved workflow, Paperclip copies that workflow's prompt into the task's **Workflow** document. From then on the case works from its own copy. Editing the shared workflow later doesn't change cases that already use it — the change only reaches a case when an agent picks it up again on a handoff.
+
+On each handoff, the agent can do one of four things with the workflow:
+
+- **Keep it** — the usual case. The case carries on with its current workflow and instructions.
+- **Switch** to a different saved workflow — for example, moving from a research workflow to a writing one on the same task.
+- **Refresh** — pick the current workflow again to pull in the latest version of its prompt.
+- **Detach** — stop following a saved workflow. The **Workflow** document stays exactly as it is, and the case is back on its own case instructions.
+
+Paperclip captures the prompt at the moment it accepts the handoff, so edits made to the shared workflow while the handoff waits don't sneak in. The new workflow, the new phase, and the updated **Workflow** document all take effect together, once the outgoing agent's run has settled. If someone edited the task's **Workflow** document in the meantime, Paperclip won't overwrite their edit: the handoff waits and shows the conflict, so it can be cancelled and handed off again from the current document.
+
+> **No editor yet.** There's no screen for creating or editing reusable workflows. Agents manage them with optional Cases tools, and you can use the [Workflows API](../reference/api/cases.md#workflows).
+
+### Finishing a case
+
+Finishing a task doesn't close its case on its own. To wrap up, the last agent hands off to **done** and then completes the task normally. The case closes once that completion is accepted — so if the task is still waiting on a review, an approval, or an answer from you, the case stays open until it's through.
+
+If someone stops the run, cancels the task, or reassigns it while a "done" handoff is waiting, the handoff is cancelled and the case stays open.
+
 ## Browsing your cases
 
 Open **Cases** from the sidebar to see every case you have access to. The list works much like the task list:

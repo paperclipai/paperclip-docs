@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Deploy Paperclip with Docker
 seo_description: Run a self-contained instance without installing Node or pnpm on the host. Covers the quickstart image, manual builds, and configuration.
 ---
@@ -70,6 +70,10 @@ docker run --name paperclip \
 Use this when you want tight control over the container lifecycle or are embedding Paperclip into a larger Docker workflow.
 
 > **Note:** Name the `production` stage explicitly. The Dockerfile declares a `cloud` stage *after* `production`, and a build with no `--target` picks the last stage in the file — so leaving it off would quietly give you the cloud variant instead. Paperclip's own published image is pinned the same way.
+
+### Custom images
+
+The shipped image starts with `node server/dist-runtime/index.mjs`, a precompiled bundle that loads faster than compiling at boot. If your custom image runs `server/dist/index.js` through tsx, switch to the bundle. When you build from source, run `pnpm --filter @paperclipai/server build` first, then `pnpm --filter @paperclipai/server build:runtime` to produce it.
 
 ---
 

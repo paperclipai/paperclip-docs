@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: OpenRouter Connector
 seo_description: Give agents model access through OpenRouter with an API key. Harness and model ID rules, assignment, a bounded test, and fixes.
 ---

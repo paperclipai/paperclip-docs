@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Documentation Changelog
 seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
@@ -13,6 +13,43 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.1106.0 <span class="accordion-meta">November 6, 2026</span></summary>
+<div class="accordion-body">
+
+This release is about agents starting in the right place and workspaces looking after themselves. New Claude, Codex, OpenCode and Pi agents start on the Paperclip Runner on supported hosts. Repositories attached to a project become skill sources, and finished workspaces clean up after themselves, with optional restore points for unsaved work. Before you upgrade, read the changes to run history, Sentry reporting and custom Docker images below.
+
+**New pages**
+
+- [Prompt injection prevention](../connectors/prompt-injection-prevention.md) — use a model on a shared OpenRouter connection to check tool results before they reach an agent.
+- [Google Workspace](../connectors/google-workspace.md) — one connection for Gmail, Drive and Calendar, with read-only choices for each.
+- [GitHub Copilot](../connectors/github-copilot.md) — connect Copilot with a saved GitHub token and run it through the Paperclip Runner.
+- [Speko (voice)](../connectors/speko.md) — talk to an agent by browser voice or phone from a task, while **Chat connectors** is on.
+- New connector guides: [Braintrust](../connectors/braintrust.md), [Daytona](../connectors/daytona.md), [Ditto](../connectors/ditto.md) and [Unikraft](../connectors/unikraft.md).
+
+**Updated pages**
+
+- [Agent adapters](../guides/org/agent-adapters.md), [Paperclip Runner](adapters/paperclip-runner.md) and [Adapters overview](adapters/overview.md) — the Runner as the default for new agents, the **Legacy runner** choice, **Upgrade runner** for existing agents, and the tools Runner agents use to manage their own workspace.
+- [Workspaces](../guides/projects-workflow/workspaces.md) — automatic cleanup of finished workspaces, optional Git expiration, and restore points that save unpushed and uncommitted work, including what happens when one has expired.
+- [Skills](../guides/org/skills.md) and [Skills reference](skills.md) — project repositories as skill sources, the branch picker, and repairing or disconnecting a source.
+- [Agents](../guides/org/agents.md) — edit the connection and default model of many agents at once, and the roster's new columns and **Harness** filter. Raw tracing now lives in the agent's **Debugging** card.
+- [Issues](../guides/day-to-day/issues.md), [Task chat](../experimental/task-chat.md) and [Issues API](api/issues.md) — agent-created tasks hidden by default, a stricter Inbox **Mine**, dismissals that stick, one task-level **Retry**, and `expectedStatusVersion`.
+- [Artifacts](../guides/day-to-day/artifacts.md) — the experimental Artifacts V1 look, and uploading files straight into the panel.
+- [Environment variables](deploy/environment-variables.md), [Docker](deploy/docker.md) and [Database](deploy/database.md) — new cleanup, restore point and Sentry settings, the new Docker start command for custom images, and migrations that take longer on large instances.
+- [Costs API](api/costs.md) — the run history list now returns 200 runs by default and at most 1,000.
+- [Agents API](api/agents.md) — corrected which permissions let an agent read a peer's configuration and manage instructions, plus the `runtimeSettings` update.
+- [Plugin SDK](plugins/sdk.md) and [Plugins](../administration/plugins.md) — plugins as the default workspace provider for projects, fresh retry workspaces, durable agent lifecycle hooks, and owned secrets.
+- [Agent complaints and suggestions](../administration/agent-commentary.md), [Company settings](../administration/company.md) and [Roles and Permissions](../administration/roles-and-permissions.md) — the **Commentary** tab in Audit, `commentary:view`, and sending agent logs and traces to your own observability backend.
+- [External agents](../experimental/external-agents.md) and [Cases](../experimental/cases.md) — Grok Bot and Muse, and cases that keep one primary task across handoffs with reusable workflows.
+- Smaller updates: [Slack](../connectors/slack.md) (direct messages never need a mention, and **Task defaults**), [Org structure](../guides/org/org-structure.md), [Projects](../guides/projects-workflow/projects.md) (the **Create project** dialog) and [Attention API](api/attention.md) (`deskBadgeCount`).
+
+**Removed**
+
+- `pipelines:write` from [Roles and Permissions](../administration/roles-and-permissions.md). Paperclip removed the Pipelines experiment in this release, along with its routes, CLI commands and that permission.
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.1023.0 <span class="accordion-meta">October 23, 2026</span></summary>
 <div class="accordion-body">
 

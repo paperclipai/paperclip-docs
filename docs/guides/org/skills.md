@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1106.0
 seo_title: Skills: Reusable Agent Procedures
 seo_description: Package a checklist, runbook, or template once and share it across agents. Covers adding skills, folders, Skill Studio, and the cost and performance payoff.
 ---
@@ -149,8 +149,8 @@ You'll find it through **Import from GitHub** and **Manage sources** in the Skil
 ### Add a repository
 
 1. On the **Skill sources** page, click **Import from GitHub**.
-2. Pick a repository from the list. It combines repositories from every GitHub connection you can use in **Apps**, so you don't have to remember which account owns what. Private repositories show a lock icon.
-   - Haven't connected GitHub yet? Click **Connect GitHub to see your repos**. **Add repos** does the same when you need a repository that isn't listed. Either one takes you through the normal setup in Apps and then brings you straight back to the importer with your draft intact.
+2. Pick a repository from the list. It combines repositories from every GitHub connection you can use in **Connectors**, so you don't have to remember which account owns what. Private repositories show a lock icon.
+   - Haven't connected GitHub yet? Click **Connect GitHub to see your repos**. **Add repos** does the same when you need a repository that isn't listed. Either one takes you through the normal setup in Connectors and then brings you straight back to the importer with your draft intact.
    - Want a public repository you haven't connected? Click **... or add public repo by URL** and paste it into **Repository URL**. A plain repository URL follows the default branch; paste a branch URL such as `https://github.com/owner/repository/tree/my-branch` to follow a different branch.
 3. Click **Find skills**. Paperclip scans the whole repository — hidden and nested folders included — and shows its progress as it goes. You can **Cancel scan** at any point; nothing is imported until you say so.
 4. Review what it found. Every skill starts out checked, with the folders that hold them already expanded. Untick any skill you don't want in your library. **Search skills or files…** narrows a long list.

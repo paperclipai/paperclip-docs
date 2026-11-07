@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: How Connector Access Works
 seo_description: Which access controls apply depends on the kind of connector. This explains the four gates on tool connections, and what governs channels and models.
 ---
@@ -128,7 +128,7 @@ One family of connectors has a limit that no permission setting can widen:
 
 **Google Workspace** connectors — Gmail, Drive, Docs, Sheets, Slides, Calendar, Chat, People, and Workspace Search — are limited to the reviewed read and write operations of the capability group you connected. A tool Google adds that is not on the reviewed list is switched off rather than allowed by default.
 
-This is why [Gmail](gmail.md) cannot send. Its draft group requests Google's `gmail.compose` scope, which does permit sending at Google's end, but the reviewed write list for that group contains exactly one operation, `create-draft`. The credential could send; the connector will not offer it. The same mechanism is why [Google Drive](google-drive.md) can copy and create files but has no delete or share operation.
+This is why [Gmail](gmail.md) cannot send. Its draft group requests Google's `gmail.compose` scope, which does permit sending at Google's end, but the reviewed write list for that group contains exactly one operation, `create_draft`. The credential could send; the connector will not offer it. The same mechanism is why [Google Drive](google-drive.md) can copy and create files but has no delete or share operation.
 
 [Set action permissions](action-permissions.md) is the how-to.
 

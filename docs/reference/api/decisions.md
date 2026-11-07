@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Decisions API
 seo_description: How an agent asks when it knows what should happen next but is not allowed to act alone: it writes the question, offers options, and waits for a person.
 ---

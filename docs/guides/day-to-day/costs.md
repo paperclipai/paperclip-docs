@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Costs and Budgets: Spend and Limits
 seo_description: Track API spend, subscription fees, and decision-model costs, and set budget limits Paperclip enforces automatically, from Audit's Costs and Budgets tabs.
 ---

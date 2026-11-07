@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1106.0
 seo_title: Gmail Connector
 seo_description: Let agents search and read Gmail, and optionally draft replies or archive threads. Sending is not reachable. Setup choices, scope, a test, and fixes.
 ---
@@ -55,7 +55,7 @@ Archiving does not delete anything. The thread stays in **All Mail** and you can
 | `create-draft` | **Read & create drafts** only |
 | `unlabel-thread` (Inbox label only) | **Read & archive** only |
 
-Operation names are normalized before matching, so a provider variant such as `google.gmail/get_message` resolves to the same entry. The live list for your connection is on its **Permissions** tab, and **Refresh actions** re-reads it. Anything Google adds that is not on the reviewed list comes back **disabled** — that block is what the reviewed list enforces, and it holds however the connection was created.
+Operation names are normalized before matching, so a provider variant such as `google.gmail/get_message` resolves to the same entry. The live list for your connection is on its **Permissions** tab, which shows an action's title if Google supplies one and otherwise the name above. **Refresh actions** re-reads it. Anything Google adds that is not on the reviewed list comes back **disabled** — that block is what the reviewed list enforces, and it holds however the connection was created.
 
 > **Note:** This is Paperclip's reviewed list, not a promise about Google's server. Google supplies the catalog and can change it; the reviewed list is what Paperclip will enable from it.
 

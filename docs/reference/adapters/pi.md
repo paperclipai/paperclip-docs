@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1106.0
 seo_title: Pi Adapter
 seo_description: Run the Pi coding agent CLI on the Paperclip host, with its built-in tool set — read, bash, edit, write, grep, find, ls — and provider configuration.
 ---
@@ -59,6 +59,12 @@ Pi sessions are stored under `~/.pi/paperclips/` and resumed with `--session` on
 - All tools (`read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`) are enabled by default.
 - If the model you configured isn't available, the error names the model and how many models Pi found, and suggests `pi --list-models`, instead of pasting Pi's whole model list.
 - Pi doesn't inherit the Paperclip server's own `PAPERCLIP_*` variables, such as `PAPERCLIP_AGENT_JWT_SECRET`, so server secrets never reach the agent. This applies to runs, the environment test, and `pi --list-models` model discovery. Only `PAPERCLIP_RUNTIME_API_URL`, `PAPERCLIP_LISTEN_HOST`, and `PAPERCLIP_LISTEN_PORT` pass through from the server. The run's own variables (such as `PAPERCLIP_AGENT_ID` and `PAPERCLIP_API_KEY`) and anything you set in `env` still reach Pi, so put a value in `env` if Pi needs it.
+
+### Run log size
+
+Pi repeats the full message so far in every streaming update, so a long run's log can grow very quickly. By default (`stdoutLogMode: "compact"`), Paperclip drops those repeated copies before writing to the run log and turns tool progress updates into small progress events. Streaming text still arrives as it's written, so the live transcript looks the same.
+
+Set `stdoutLogMode` to `"raw"` when you need Pi's untouched output, for example to investigate a problem. In compact mode, if a run stops before a tool finishes, that tool's partial output isn't kept. An unrecognized value falls back to `raw`.
 
 ### Run log size
 
