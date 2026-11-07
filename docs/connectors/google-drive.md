@@ -46,12 +46,12 @@ Reviewed operations:
 
 | Operation | Group |
 | --- | --- |
-| `search-files`, `list-recent-files` | Both |
-| `get-file-metadata`, `read-file-content`, `download-file-content` | Both |
-| `get-file-permissions` | Both |
-| `create-file`, `copy-file` | **Read & create** only |
+| `search_files`, `list_recent_files` | Both |
+| `get_file_metadata`, `read_file_content`, `download_file_content` | Both |
+| `get_file_permissions` | Both |
+| `create_file`, `copy_file` | **Read & create** only |
 
-Two distinctions worth keeping straight. Metadata and content are separate operations, so an agent can list a file it cannot usefully parse. And `get-file-permissions` reads the sharing list — it does not change it.
+Two distinctions worth keeping straight. Metadata and content are separate operations, so an agent can list a file it cannot usefully parse. And `get_file_permissions` reads the sharing list — it does not change it.
 
 > **Note:** The write group's `drive.file` scope only covers files the app itself created or opened, which is why creating and copying are available but editing arbitrary existing files is not. The connector's guidance is that file creation and copying should be approved; leave them on **Ask first**.
 

@@ -46,11 +46,11 @@ Reviewed operations for this connector:
 
 | Operation | Group |
 | --- | --- |
-| `list-calendars`, `list-events`, `search-events`, `get-event`, `suggest-time` | Both |
-| `create-event`, `update-event`, `respond-to-event` | **Read & manage** only |
-| `delete-event` | **Read & manage** only, classified destructive |
+| `list_calendars`, `list_events`, `search_events`, `get_event`, `suggest_time` | Both |
+| `create_event`, `update_event`, `respond_to_event` | **Read & manage** only |
+| `delete_event` | **Read & manage** only, classified destructive |
 
-> **Warning:** Event writes have side effects outside Paperclip. Creating or updating an event with attendees can send invitations and notifications from your account, and `respond-to-event` answers an invitation as you. The connector's own guidance is that all event mutations should be approved — leave them on **Ask first**.
+> **Warning:** Event writes have side effects outside Paperclip. Creating or updating an event with attendees can send invitations and notifications from your account, and `respond_to_event` answers an invitation as you. The connector's own guidance is that all event mutations should be approved — leave them on **Ask first**.
 
 [How connector access works](access-model.md) covers identity and agent selection; [Set action permissions](action-permissions.md) is the how-to.
 

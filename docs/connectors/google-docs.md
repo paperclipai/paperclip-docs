@@ -46,12 +46,12 @@ Reviewed operations:
 
 | Operation | Group |
 | --- | --- |
-| `read-doc` | Both |
-| `update-doc` | **Read & edit** only |
+| `read_doc` | Both |
+| `update_doc` | **Read & edit** only |
 
-This is a deliberately small surface: two operations, not a Docs editor. `update-doc` applies changes through the Docs API, so what it can express is whatever that API accepts — check the operation's schema on the **Permissions** tab before planning work that depends on a particular kind of edit. What is definitely absent is anything beyond these two operations: there is no separate tool here for comments, suggestions, or revision history.
+This is a deliberately small surface: two operations, not a Docs editor. `update_doc` applies changes through the Docs API, so what it can express is whatever that API accepts — check the operation's schema on the **Permissions** tab before planning work that depends on a particular kind of edit. What is definitely absent is anything beyond these two operations: there is no separate tool here for comments, suggestions, or revision history.
 
-> **Note:** The connector's guidance is that document updates should be approved. Leave `update-doc` on **Ask first**; an edit lands in a real document that other people may be working in.
+> **Note:** The connector's guidance is that document updates should be approved. Leave `update_doc` on **Ask first**; an edit lands in a real document that other people may be working in.
 
 [How connector access works](access-model.md) covers identity and agent selection.
 
@@ -66,7 +66,7 @@ tell me the text of its first heading. Do not edit it.
 
 Expect the heading you can see for yourself.
 
-> **Warning:** Do not test with "the document titled X". The reviewed operation here is `read-doc`, which takes a document identifier — there is no document-search tool on this connector. A title-based request makes the agent guess or fail for reasons that have nothing to do with your setup. If you genuinely need title search, that is [Google Drive](google-drive.md) or [Google Workspace Search](google-workspace-search.md).
+> **Warning:** Do not test with "the document titled X". The reviewed operation here is `read_doc`, which takes a document identifier — there is no document-search tool on this connector. A title-based request makes the agent guess or fail for reasons that have nothing to do with your setup. If you genuinely need title search, that is [Google Drive](google-drive.md) or [Google Workspace Search](google-workspace-search.md).
 
 If you want to confirm editing, do it on a scratch document you created for the purpose, not a live one.
 
@@ -79,7 +79,7 @@ If you want to confirm editing, do it on a scratch document you created for the 
 | Google refuses before the consent screen | Developer Preview registration is incomplete | Finish registration and retry |
 | **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Docs profile | Use your own Google OAuth app |
 | A document cannot be found | It is not shared with the authorizing account | Share it in Google Drive; no reconnect needed |
-| `update-doc` is missing | The connection was made with **Read only** | Make a connection with **Read & edit** |
+| `update_doc` is missing | The connection was made with **Read only** | Make a connection with **Read & edit** |
 | An edit did not produce the formatting you expected | The update goes through the Docs API, which does not cover every editor feature | Finish the formatting in Google Docs |
 | **Needs attention** | The Google token expired or was revoked | Select **Reconnect** |
 

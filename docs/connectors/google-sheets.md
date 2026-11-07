@@ -43,7 +43,7 @@ The robot account is the stronger boundary: Paperclip checks each call against t
 
 Neither group asks for Google Drive access. The Sheets scope alone is enough to read and edit spreadsheets the account can open, by spreadsheet ID. Connections made with an earlier version asked for more. If a **Connect with Paperclip** connection from before this change stops working, select **Reconnect** to sign in with the smaller set. A connection using your own OAuth app keeps its earlier grant until you reconnect it.
 
-Reviewed operations: `get-spreadsheet` and `get-values` in both groups; `update-spreadsheet`, `update-values`, `update-formulas`, and `insert-dimension` in the editing group only. There is no delete operation on this path.
+Reviewed operations: `get_spreadsheet` and `get_values` in both groups; `update_spreadsheet`, `update_values`, `update_formulas`, and `insert_dimension` in the editing group only. There is no delete operation on this path.
 
 ### Steps
 

@@ -34,7 +34,7 @@ The **Environments** tab in **Settings** is always visible, but until you flip t
 Then route work onto it:
 
 - **Per agent** — the agent configuration form gains an **Environment override** picker (*"Default: …"* plus each environment as `name · driver`).
-- **Per project** — project configuration's execution-workspace settings gain an **Environment** dropdown. This one lives inside the isolated-workspaces controls, so it also needs [Isolated Workspaces](isolated-workspaces.md) enabled and more than one selectable environment. The dropdown saves the project's choice and the task's workspace card shows it, but it doesn't pick where runs go: a run uses the agent's override, then the instance default.
+- **Per project** — project configuration's execution-workspace settings gain an **Environment** dropdown. This one lives inside the isolated-workspaces controls, so it also needs [Isolated Workspaces](isolated-workspaces.md) enabled and more than one selectable environment. The dropdown doesn't currently pick where runs go: a run uses the agent's override, then the instance default.
 
 ### Custom sandbox images
 
