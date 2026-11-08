@@ -47,7 +47,7 @@ Every agent row shows the same pieces of information, just arranged differently 
 
 - **Character** on the far left — the agent's illustrated figure (an amber warning icon replaces it if the agent's reporting chain is broken)
 - **Name, role, and title** (e.g. "Ada" with "Engineer - Backend Engineer" underneath). A small crown next to the name marks [your primary agent](#your-primary-agent).
-- **Chat button** (list view in the streamlined UI, when [Agent Chat](../../experimental/agent-chat.md) is on) — a speech-bubble icon that opens a chat with this agent. Hover it to see *chat with this agent*.
+- **Chat button** (list view in the streamlined UI) — a **Chat** button that appears when you hover over the row or tab to it, and opens a chat with this agent. Hover it to see *chat with this agent*.
 - **Live run pill** — a pulsing blue "Live" badge when the agent has a run currently in flight; click it to jump straight into the live transcript
 - **Harness**, **Connection**, and **Default model** columns (list view) — which AI runtime powers the agent, which AI connection it signs in with, and the model it uses when a task doesn't ask for another. **Harness default** means no model is pinned, **Local credentials** means no AI connection is assigned, and **Managed externally** means the adapter handles its own connection.
 - **Last heartbeat** — a relative time like "4m ago"
@@ -121,7 +121,9 @@ After the dialog, you land on a setup page with your agent's character and name 
 
 If your company requires approval for new agents, the computer isn't created until the hire is approved. The test tells you *"The selected account will be verified on the agent computer after hire approval."* and you can finish setup without it.
 
-**Coming back to an unfinished agent.** If you close setup part-way, the agent stays paused in your list. Its page header shows **Finish setup** as the main button, where **Assign task** would normally be. Click it to return to setup with your saved choices. An unfinished agent can't be resumed, and API keys can't be created for it, until setup is done.
+**Coming back to an unfinished agent.** If you close setup part-way, the agent stays paused in your list. Its page header shows **Finish setup** as the main button, where **New task** would normally be. Click it to return to setup with your saved choices. An unfinished agent can't be resumed, and API keys can't be created for it, until setup is done.
+
+A task already assigned to an unfinished agent says so in its chat: ***Agent* is still being set up.** While the agent's computer is being prepared, the notice adds *Its computer is being prepared. Runs start automatically when setup finishes.* Otherwise it reads *Its setup isn't finished yet. Finish setup to let it start runs.*, with a **Finish setup** button that takes you to the agent's page. You didn't pause the agent, so there's nothing to resume.
 
 ### What Paperclip fills in for you
 
@@ -209,24 +211,25 @@ If an installed plugin adds its own page to agents, it shows up under an **Apps*
 The header sits at the top of every agent page. From left to right you'll see:
 
 - **The agent's character** — see [Your agent's character](#your-agents-character) below.
-- **The agent's name**, with a **crown button** beside it. Click the crown to make this agent your primary agent — see [Your primary agent](#your-primary-agent).
-- **The harness** the agent runs on (for example Claude Code or Codex), on the line below the name.
-- **The title and manager** on the third line: the agent's title (or its role, if it has no title), then **Reports to** with a link to its manager's page, or **Board** if it reports straight to you.
+- **The agent's title** (or its role, if it has no title) as the page heading, with a **crown button** beside it. Click the crown to make this agent your primary agent — see [Your primary agent](#your-primary-agent).
+- **The harness and name** on the line below. The harness (for example Claude Code or Codex) is a link to the agent's [Harness / Runtime](#harness-runtime) page.
 - **The status line** while the agent is being set up, paused, resumed, or terminated — see [Setup checks before a new agent starts work](#setup-checks-before-a-new-agent-starts-work).
 
 **Rename an agent or change its title right in the header.** Click the name or the title, type, and press Enter (or click away) to save. Press Escape to cancel. If the save fails, the old value comes back and the reason appears under the header. Renaming an agent also updates the page address, because agent URLs are based on the name. If you have unsaved changes on the page you're on, the edit isn't saved. A message under the header asks you to save or discard those changes first, so nothing gets lost.
 
-The manager in the header is a link only. To change who an agent reports to, use the **Reports to:** picker in the **Profile** panel on [Overview](#profile-and-skills).
+To see or change who an agent reports to, use the **Reports to:** picker in the **Profile** panel on [Overview](#profile-and-skills).
 
 ### Header actions
 
-On the right of the header, you get one main button and an actions menu (`⋯`).
+On the right of the header, you get an actions menu (`⋯`), a chat button, and one main button.
 
-The main button is usually **Assign task**, which opens the new-task dialog with this agent already picked as the assignee. While the agent's setup isn't finished, the main button is **Finish setup** instead. Click it to return to setup with the same saved agent and your earlier choices; once setup finishes, **Assign task** comes back. If you have unsaved edits on the page, Paperclip asks before leaving.
+The chat button (*Chat with this agent*) opens a chat with this agent.
+
+The main button is usually **New task**, which opens the new-task dialog with this agent already picked as the assignee. While the agent's setup isn't finished, the main button is **Finish setup** instead. Click it to return to setup with the same saved agent and your earlier choices; once setup finishes, **New task** comes back. If you have unsaved edits on the page, Paperclip asks before leaving.
 
 The actions menu holds everything else:
 
-- **Run now** — wakes the agent for a heartbeat right away and takes you to the new run. Handy for testing an instruction change. While setup is unfinished, **Assign task** takes this spot.
+- **Run now** — wakes the agent for a heartbeat right away and takes you to the new run. Handy for testing an instruction change. While setup is unfinished, **New task** takes this spot.
 - **Pause** / **Resume** — switches the agent between `paused` and `active`. When the agent is in `error`, you see **Clear error** here instead, which returns it to idle. None of these show while setup is unfinished.
 - **Agent history** — every saved change to the agent, with a way to restore an earlier version. See [Agent history](#agent-history).
 - **Duplicate agent** — makes a copy of the agent, including its instruction files, after you confirm.
@@ -234,7 +237,7 @@ The actions menu holds everything else:
 - **Reset sessions** — clears the agent's saved conversation state so its next run starts fresh.
 - **Terminate** — shuts the agent down for good. It acts straight away, with no confirmation step, so be sure before you click it. Built-in agents don't have this item, and pausing one asks you to confirm first.
 
-If the agent's reporting chain is broken, **Assign task** and **Run now** stay disabled until you repair it (see [Banners at the top of the page](#banners-at-the-top-of-the-page)).
+If the agent's reporting chain is broken, **New task** and **Run now** stay disabled until you repair it (see [Banners at the top of the page](#banners-at-the-top-of-the-page)).
 
 When the agent is recording the exact traffic to its model provider, a small **Raw tracing on** label appears next to the actions (on wider screens). To trace a single run, open a finished run and click **Re-run with provider trace**, which starts a one-off traced copy of it. To trace every run, turn on **Capture raw provider traces** in the **Debugging** panel on the agent's [Harness / Runtime](#harness-runtime) page and save. Tracing then applies to every future run until you switch it off, and each trace is deleted after 24 hours.
 
@@ -256,7 +259,6 @@ On the agent detail page, the character in the header reacts to what the agent i
 |---|---|
 | Running | Working |
 | Error | Confused |
-| Paused, terminated, or awaiting approval | Resting |
 | Anything else | Idle |
 
 The character animates and turns to follow your cursor. If your system is set to reduce motion, you see a still image instead. If the image can't load, Paperclip shows the agent's initials.
@@ -317,7 +319,7 @@ The counts look at a limited number of recent items. When the agent is very busy
 
 Below the tiles, two panels sit side by side:
 
-- **Profile** — **Created** shows the date the agent was added. In a company with two or more people, it reads **Created by** with the name of the person who added it, so you know who to ask about it. If that person has since left the company, it reads **Former member**. Agents created by other agents, or before Paperclip started recording creators, show only the date. **Reports to:** shows the agent's manager, linking to its page, with a pencil button (**Change manager**) beside it that opens the manager picker — see [Changing an agent's manager](./org-structure.md#changing-an-agents-manager). If the agent has no manager, the button reads **No manager**; if its saved manager can't be shown, for example because that manager was terminated, it reads **Manager unavailable**. Under **Direct reports:** you see the agents that report to this one, each linking to its own page. If there are more than fit on two lines, a **+N more** button (for example **+3 more**) shows the rest, and **Show less** folds them away again.
+- **Profile** — the top of the panel shows when the agent was added, for example **Created** and the date. In a company with two or more people, it reads **Created by** with the name of the person who added it and the date, so you know who to ask about it. If that person has since left the company, it reads **Former member**. Agents created by other agents, or before Paperclip started recording creators, show only the date. **Reports to:** shows the agent's manager, linking to its page, with a pencil button (**Change manager**) beside it that opens the manager picker — see [Changing an agent's manager](./org-structure.md#changing-an-agents-manager). If the agent has no manager, the button reads **No manager**; if its saved manager can't be shown, for example because that manager was terminated, it reads **Manager unavailable**. When the agent has reports, **Direct reports:** lists them, each linking to its own page. If there are more than fit on two lines, a **+N more** button (for example **+3 more**) shows the rest, and **Show less** folds them away again.
 - **Skills** — the skills enabled for this agent, with a count such as **3 enabled**, or **No skills enabled.**
 
 ### Recent tasks
@@ -459,9 +461,9 @@ Existing agents keep whatever files they already have — Paperclip doesn't rewr
 
 ### Editing files
 
-The **Files** panel lists the agent's files and folders; the entry file is tagged **entry**, and other files show their size. Click a file to open it on the right. Add a file with the **+** button (**Add agent file**) at the top of the list — type a name such as `TOOLS.md`, or a path with folders, then click **Create**. The new file opens empty and is written when you click **Save changes** in the bar at the bottom. Rename is via delete + create for now.
+The **Files** panel lists the agent's files and folders; the entry file is tagged **entry**, and other files show their size. Click a file to open it on the right. Add a file with the **+** button (**Add agent file**) at the top of the list — type a name such as `TOOLS`, then click **Create**. Paperclip adds `.md` for you, and the name can use letters, numbers, hyphens, and underscores, so you can't create a file inside a folder from here. The new file opens empty and is written when you click **Save changes** in the bar at the bottom. Rename is via delete + create for now.
 
-A file opens as a read-only preview of its raw text, exactly as the agent sees it. Next to the file name you'll find three icon buttons:
+A file opens as a read-only preview of its raw text, exactly as the agent sees it. Under the file name, a date reads **Last updated** or **Date created** when Paperclip knows it, and **Date unavailable** when it doesn't. Next to the file name you'll find three icon buttons:
 
 - **Edit** (pencil) — switches the file into a plain text editor. Click the pencil again to go back to the preview.
 - **Copy as markdown** — copies the file's text to your clipboard.
@@ -547,7 +549,7 @@ Adapter-specific fields only affect this agent — changing them has no effect o
 These aren't on the Harness / Runtime page:
 
 - **Name and title** — edit them in place in the [header](#the-header).
-- **Reports to** — the header shows the manager as a link. To move the agent to a different manager, use the **Reports to:** picker on [Overview](#profile-and-skills), or change `reportsTo` on the [Advanced](#advanced) page.
+- **Reports to** — to move the agent to a different manager, use the **Reports to:** picker on [Overview](#profile-and-skills), or change `reportsTo` on the [Advanced](#advanced) page.
 - **Heartbeat and run policy** — change these on the [Advanced](#advanced) page too. Whether the agent wakes on a timer (`enabled`), how often (`intervalSec`), `wakeOnDemand`, `cooldownSec`, `maxConcurrentRuns`, and the automatic continuation after a max-turn stop (`maxTurnContinuation`) live under `runtimeConfig.heartbeat`. A run's time limit (`timeoutSec`) and interrupt grace period (`graceSec`) live in `adapterConfig`. When you save one of those maps, it replaces the whole map, so keep every key you want. See [Edit an agent as YAML](agent-configuration-yaml.md) for an example and the save rules.
 
 New agents start with the heartbeat timer switched off, so they wake only when something needs them — an assignment, an approval, a comment on their task — or when you choose **Run now**. @-mentions don't wake an agent; they're context only.
@@ -564,6 +566,8 @@ Edits are tracked as you make them, on Harness / Runtime, [Identity](#identity),
 - **Saving changes…** shows while Paperclip saves.
 - A **green dot** with **Changes saved** confirms the save went through.
 - **No unsaved changes** means there's nothing pending.
+
+The [Identity](#identity) page uses a lighter version: the bar only appears once you've changed something. After a save it reads **Saved changes** for a couple of seconds and then slides away.
 
 **Discard** puts every changed field back the way it was; **Save changes** saves them. Saving a change to the agent's settings (Harness / Runtime, Secrets, or the YAML on Advanced) adds an entry to its [Agent history](#agent-history). Instruction files on the Identity page have their own per-file history instead.
 
@@ -819,6 +823,16 @@ While an agent is going through setup, or is mid-pause or mid-resume, its status
 The status badge on every row and on the agent header reflects one of these values directly. `active`, `running`, and `idle` all mean "this agent is healthy and doing (or ready to do) work"; `paused` and `error` are the ones to watch for when you triage.
 
 **One thing to know about `paused`:** you can still assign work to a paused agent — staging a task for an agent you plan to resume later is a legitimate workflow, and the pause state is right there on screen so you know what you're doing. Other **agents** can't. When an agent tries to assign a task to a paused agent, Paperclip refuses it with `Cannot assign work to a paused agent. Assign an invokable agent, leave the issue unassigned, or escalate to a board operator instead.` Without that refusal, agent escalations to a paused manager would be accepted and then never run. See [Delegation → Guardrails on agent-to-agent delegation](./delegation.md#guardrails-on-agent-to-agent-delegation).
+
+### When a provider usage limit is reached
+
+Claude and Codex accounts come with usage allowances. When an agent's provider says its allowance has run out, Paperclip holds the agent's new work until the limit resets, so you don't get a string of runs that all fail the same way.
+
+- **The work waits.** Before any workspace or provider work starts, the queued run is cancelled with the code `provider_limit_wait` and a retry of the same wake is scheduled for the reset time. The run's record says when the limit is expected to reset. If the provider didn't report a reset time, Paperclip waits one hour.
+- **It tries again at the reset.** A wake that's still limited at its retry waits again.
+- **Some runs still start.** Manual runs, runs that are recovering, chat turns, and agents on a connection pool aren't held, so you can test a fix straight away.
+
+To continue sooner, restore the provider allowance or change the agent's AI connection, then start a manual run. The [**Usage limit** row](../day-to-day/issues.md#the-issue-detail-sidebar) on a task shows how close the assigned agent is to its limit.
 
 ### Why this matters day-to-day
 

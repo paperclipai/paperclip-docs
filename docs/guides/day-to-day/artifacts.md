@@ -95,7 +95,7 @@ A few details worth knowing:
 
 - **Images and videos share a gallery.** Click an image or video row to review it in the task's media viewer. Use **Previous** and **Next**, or the left and right arrow keys, when more than one item is available. Videos have playback controls; the header offers download, and **Esc** closes the viewer.
 - **CSV previews are on request.** Click **Preview data** to load a table right under the row, for files up to 1 MiB. The preview shows at most 200 data rows and accepts up to 50 columns. Larger or unsupported previews explain why they cannot load and leave download available; a failed fetch offers a retry.
-- **Text files open in a tab.** The tab sits in the same side pane, so the conversation stays in view. Clicking a text attachment in the conversation opens the same tab, and the tab is reused as you open the next file. A download button always gives you the original file.
+- **Text files open in a tab.** The tab sits in the same side pane, so the conversation stays in view. Clicking a text attachment in the conversation opens the same tab, and the tab is reused as you open the next file. A download button always gives you the original file. A `.patch` or `.diff` file shows added lines in green and removed lines in red.
 - **Markdown, CSV, and HTML open rendered.** Next to the download button, the eye icon (**Rendered**) and the code icon (**Raw**) switch between the formatted view and the source. A CSV opens as a table, as described in [CSV files as tables](#csv-files-as-tables), and an HTML report opens as a working page, as described in [HTML reports](#html-reports).
 - **Unhealthy outputs are flagged** with an **Unhealthy** badge, so a broken preview link doesn't pass for a working one.
 
@@ -252,7 +252,7 @@ It changes how artifacts look, not what they are. Your artifacts, search, and li
 | **Video** | A still from the clip. | **Open video** plays it. |
 | **Link preview** | A preview URL the agent published — a deployed preview site, for example — with its image when there is one. | **Open link** |
 | **Data** | A CSV file. The table isn't loaded until you ask for it. | **Preview data** loads the first rows into a table; **Download file** saves the original. |
-| **File** | Anything else, with its type and size. | **Open file**, or download it. |
+| **File** | Anything else, with its type and size. | **Open file**, or download it. A `.patch` or `.diff` file up to 512 KB also offers **Preview patch**, which shows the change in the card. |
 
 Markdown and plain-text attachments get an **Open in tab** button. When an agent records a branch but no remote URL, the card reads **Branch · no remote link** rather than implying there's somewhere to click through to. Use **Show details** to see its provider, its status, and when it was last updated. If the agent saved a description, it's tucked under **Saved description**.
 

@@ -144,6 +144,14 @@ These keys are no longer explicit-only, but they're spread unevenly across the r
 >
 > Agents use the same keys when they set up connections for someone, and they're also limited to what their responsible user could do. See [When an agent sets up a connection for you](../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you).
 
+### Checking a person's role
+
+An agent that needs to confirm who approved something, for example that the approver is an Owner, can read the company's user directory without any admin key:
+
+`GET /api/companies/{companyId}/user-directory`
+
+The response is `{ "users": [...] }`, with one entry per active person in the company: `principalId`, `status`, `membershipRole`, and `user` (`id`, `name`, `email`, `image`). `membershipRole` is the person's exact role, such as `owner`, or `null` if they have none. Any board user or agent in the company can read it. The member list and member changes still need `users:manage_permissions`.
+
 ---
 
 ## How grants combine (precedence)

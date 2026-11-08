@@ -133,7 +133,7 @@ A malformed value (a stray sign, leading zeros, or an unrecognised token) makes 
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `PAPERCLIP_MANAGED_CONFIG` | unset (self-hosted) | Set only by the Paperclip Cloud harness. Holds one JSON document describing which experimental feature flags the harness manages for this instance, the plugin keys it declares for auto-install, and optionally the sandbox environment it provisions for you at boot, the process variables a plugin may read, and the companies a plugin serves without saved configuration. **Absent** means self-hosted: no overlay, no behavior change. **Present but blank, or malformed, makes the server refuse to start.** |
+| `PAPERCLIP_MANAGED_CONFIG` | unset (self-hosted) | Set only by the Paperclip Cloud harness. Holds one JSON document describing which experimental feature flags the harness manages for this instance, the plugin keys it declares for auto-install, and optionally the environments it provisions for you at boot (one sandbox, plus any number of plugin environments), the process variables a plugin may read, and the companies a plugin serves without saved configuration. **Absent** means self-hosted: no overlay, no behavior change. **Present but blank, or malformed, makes the server refuse to start.** |
 
 You don't set this variable yourself. It exists so that a hosted instance gets its feature configuration from the fleet that runs it rather than from its own database, and it's documented here so you can recognise it in a running container's environment.
 
@@ -145,9 +145,17 @@ The value is a single JSON document:
   "mode": "cloud",
   "catalogVersion": "2026.720.0",
   "features": { "enableApps": false, "enableCases": true },
-  "plugins": { "autoInstall": ["daytona", "kubernetes"] },
+  "plugins": { "autoInstall": ["daytona", "remote-host"] },
   "environments": [
-    { "name": "Daytona", "provider": "daytona", "config": { "target": "us" } }
+    { "name": "Daytona", "provider": "daytona", "config": { "target": "us" } },
+    {
+      "name": "Remote Host",
+      "driver": "plugin",
+      "pluginKey": "example.remote-host-plugin",
+      "driverKey": "tasks",
+      "driverConfig": {},
+      "instanceDefault": true
+    }
   ]
 }
 ```
@@ -156,7 +164,7 @@ Six top-level keys are allowed — `v`, `mode`, `catalogVersion`, `features`, `p
 
 Five of them are required: `v`, `mode`, `catalogVersion`, `features`, and `plugins.autoInstall`, though `features` may be `{}` and `plugins.autoInstall` may be `[]`. `mode` is always `"cloud"`, and `catalogVersion` records the feature-catalog version the document was validated against.
 
-`environments` is the one **optional** section. It arrived later than the others, and documents delivered before it existed still have to boot on newer builds — a fleet image roll can't be lockstepped with a config re-delivery — so leaving it out simply means "this instance declares no managed environment". That's different from a missing `features` or `plugins.autoInstall`, where absence would silently drop a control the harness meant to be in force. When the section *is* present, it's validated just as strictly as everything else. [The sandbox environment it provisions](#the-sandbox-environment-it-provisions) below has the details.
+`environments` is the one **optional** section. It arrived later than the others, and documents delivered before it existed still have to boot on newer builds — a fleet image roll can't be lockstepped with a config re-delivery — so leaving it out simply means "this instance declares no managed environment". That's different from a missing `features` or `plugins.autoInstall`, where absence would silently drop a control the harness meant to be in force. When the section *is* present, it's validated just as strictly as everything else. [The sandbox environment it provisions](#the-sandbox-environment-it-provisions) and [Plugin environments](#plugin-environments) below have the details.
 
 ### It fails closed
 
@@ -169,7 +177,7 @@ Only an **absent** variable means self-hosted. Everything else is treated as a h
 - naming a feature key this build doesn't have, or one whose feature-catalog tier isn't `managed`
 - giving a non-boolean value for a feature, or a blank/duplicate plugin key
 - carrying a malformed `plugins.workerEnv` or `plugins.enabledCompanies` section — see [Plugin variables and company access](#plugin-variables-and-company-access)
-- carrying a malformed `environments` section — more than one entry, an unknown key inside an entry, a blank `name` or `provider`, a `provider` that isn't also listed in `plugins.autoInstall`, a `config` that sets `provider` itself, or a `config` key that looks like a credential
+- carrying a malformed `environments` section — more than one sandbox entry, a `driver` other than `"sandbox"` or `"plugin"` (an explicit `null` counts), an unknown key inside an entry, a blank or repeated `name`, a blank `provider`, a `provider` that isn't also listed in `plugins.autoInstall`, a `config` that sets `provider` itself, a `config` or `driverConfig` key that looks like a credential, or a plugin entry that breaks the rules in [Plugin environments](#plugin-environments)
 
 ### What it can and can't reach
 
@@ -191,7 +199,7 @@ If you open **Settings → Instance settings → Environments** on a hosted inst
 
 The feature overlay above is read-time only, but this part is different: an entry provisions a real environment row you can see in the UI, and the server re-applies it on every boot. That's safe to repeat — the step is idempotent, so a restart refreshes the row rather than piling up duplicates.
 
-Each entry looks like this:
+An entry with no `driver` key, or with `"driver": "sandbox"`, is the sandbox entry. It looks like this:
 
 ```json
 {
@@ -207,13 +215,55 @@ Each entry looks like this:
 - **`provider`** is the sandbox plugin's driver key — the same key the plugin uses in `plugins.autoInstall`, like `daytona` or `kubernetes`. It has to appear in that auto-install list too: on a managed instance the fleet is the only way a plugin gets installed, so an environment whose provider plugin isn't provisioned could never serve a run. That mismatch is caught at startup rather than at the first run.
 - **`config`** is stored verbatim on the environment row and validated by the provider plugin when it acquires a lease. See [Sandbox Providers](../adapters/sandbox-providers.md) for the fields each provider accepts.
 
-### One entry, and never any credentials
+### One sandbox entry, and never any credentials
 
 Two rules shape what this section is allowed to declare.
 
-**At most one entry.** The database enforces a single Paperclip-managed sandbox row per instance (a partial unique index named `environments_managed_sandbox_idx`), and every entry in the list provisions that one row — so a longer list could never be satisfied and is rejected at parse time. For the same reason, a **non-empty** `environments` section and a forced `PAPERCLIP_EXECUTION_MODE` are mutually exclusive: both claim the same row, and configuring both stops the server rather than letting boot order pick a winner. An empty `"environments": []` declares nothing, so it sits alongside a forced execution mode without complaint.
+**At most one sandbox entry.** The database enforces a single Paperclip-managed sandbox row per instance (a partial unique index named `environments_managed_sandbox_idx`), and every sandbox entry provisions that one row — so a second one could never be satisfied and is rejected at parse time. For the same reason, a sandbox entry and a forced `PAPERCLIP_EXECUTION_MODE` are mutually exclusive: both claim the same row, and configuring both stops the server rather than letting boot order pick a winner. Plugin entries don't use that row, so a section with only plugin entries, or an empty `"environments": []`, sits alongside a forced execution mode without complaint.
 
-**No secrets, ever.** A managed-config document carries no credentials, so any `config` key that *looks* like one — matching `api_key`, `apiKey`, `token`, `secret`, `password`, or `credential`, at any nesting depth — is treated as a misrouted credential and refuses startup. Provider credentials reach a managed instance as ordinary process environment variables instead: every bundled sandbox provider falls back to its own documented variable, such as `DAYTONA_API_KEY`, when `config` leaves the key out.
+**No secrets, ever.** A managed-config document carries no credentials, so any `config` or `driverConfig` key that *looks* like one — matching `api_key`, `apiKey`, `token`, `secret`, `password`, or `credential`, at any nesting depth, including inside arrays — is treated as a misrouted credential and refuses startup. Provider credentials reach a managed instance as ordinary process environment variables instead: every bundled sandbox provider falls back to its own documented variable, such as `DAYTONA_API_KEY`, when `config` leaves the key out.
+
+### Plugin environments
+
+This one is for hosting operators, the people running Paperclip instances for someone else. If your fleet's agents should run on a plugin's own environment driver, rather than in the single sandbox slot, you can declare it here and every instance gets it with no manual setup. Self-hosted instances have no managed document, so nothing here applies to them.
+
+A plugin entry sits beside the sandbox entry, and you can declare as many as you need:
+
+```json
+{
+  "name": "Remote Host",
+  "description": "Agent computers for this instance",
+  "driver": "plugin",
+  "pluginKey": "example.remote-host-plugin",
+  "driverKey": "tasks",
+  "driverConfig": {},
+  "instanceDefault": true
+}
+```
+
+| Key | Required | Meaning |
+|---|---|---|
+| `name` | yes | Display name of the instance-level environment row. Must be unique across the section. |
+| `description` | no | Non-empty text shown on the row. |
+| `driver` | yes | Always `"plugin"` for these entries. |
+| `pluginKey` | yes | The serving plugin's **manifest ID**, such as `example.remote-host-plugin`. This isn't its `plugins.autoInstall` catalog key. |
+| `driverKey` | yes | The plugin's environment driver key. It starts with a lowercase letter or digit and contains only lowercase letters, digits, dots, hyphens, and underscores. |
+| `driverConfig` | no | The driver's settings. Defaults to `{}`. The plugin validates it at boot with its own config check, and the [no-secrets rule](#one-sandbox-entry-and-never-any-credentials) applies. |
+| `instanceDefault` | no | `true` asks this environment to fill an unset instance default. See below. |
+
+The server refuses to start if a `pluginKey` isn't installed by any `plugins.autoInstall` catalog entry, if a `pluginKey` and `driverKey` pair appears twice, if more than one entry sets `instanceDefault`, or if a sandbox entry sets `instanceDefault`.
+
+**Check the release first.** A release that understands plugin entries carries `server/src/services/managed-config-capabilities.json` listing the `pluginEnvironments` capability: `{ "schemaVersion": 1, "capabilities": ["pluginEnvironments"] }`. Read that file at the release commit before you send a plugin entry, because a build that doesn't accept one refuses to start.
+
+**The instance default.** `instanceDefault: true` fills the default only when it's unset, names the local environment, or names one that's been deleted. A default that's already set is never changed, so existing instances keep theirs. The fill happens under a lock, right after that entry is provisioned at boot, and before the managed sandbox's own fill (which runs under `enableManagedSandboxOnly`). So on a new instance the plugin environment wins. If an active agent that follows the default hasn't been prepared by that plugin, the fill declines and the sandbox can fill as usual. Once filled, it's an ordinary setting that an admin can change, and nothing reverts it.
+
+**The row is locked.** Each entry owns one instance-level row, badged **Managed by Paperclip**. On a cloud-managed instance, nobody can edit or delete it, instance admins included; attempts fail with "Platform-provisioned environments are platform-managed on cloud-managed instances" (`environment_platform_managed`). Unlike the managed sandbox, its environment variables aren't editable either, and API responses return them empty.
+
+A few details about how the row is kept in step:
+
+- **First boot adopts.** An existing unmarked row for the same plugin and driver is taken over instead of duplicated, so agents pointing at a hand-made row keep working.
+- **Name clashes.** If no row can be adopted and another row already has the declared `name`, the entry fails and boot carries on without it. A row that's already this entry's keeps its current name when another row holds the declared one.
+- **Removing an entry** stops the refreshes but never deletes or archives the row. It stays locked until an instance admin clears its `managedByPaperclip` and `managedPluginEnvironment` markers, with a metadata-only update setting them to `null` or `false`.
 
 ### Plugin variables and company access
 
@@ -274,6 +324,12 @@ Self-hosted instances have no managed document, so neither setting applies there
 Provisioning waits for the bundled-plugin startup pass to finish, then checks that the entry's provider plugin is installed, `ready`, **and** running a live worker. A plugin whose record says `ready` but whose activation failed has no worker and can't serve a lease, so that check matters.
 
 If the provider isn't up, Paperclip skips the entry rather than writing an active row — and if an earlier boot already provisioned one, it archives that row so run scheduling stops selecting an environment whose leases would fail. The server logs the reason and keeps booting; the cost is that this one environment is unavailable, not a fleet stuck in a crash loop.
+
+Plugin entries follow the same path after the sandbox entry, with one more check: the plugin also has to declare the entry's driver. If the plugin is `ready` and declares the driver but its worker is down, the row comes back by itself the next time the worker reports ready, even if a restart replaced the worker. The exceptions are worth knowing:
+
+- **The plugin rejects `driverConfig`.** Trying again can't help, so Paperclip logs it and leaves any row from an earlier boot as it was. Fix the document and restart.
+- **The check fails while the worker is still running**, for example on a timeout. Any row from an earlier boot stays as it is, so agents keep a working environment, and Paperclip tries again.
+- **Recovery never touches the instance default.** Only a successful ensure during boot can fill it.
 
 Recovery is automatic in the common case. When the plugin record is `ready` and only its worker is down — a crash in restart-backoff — Paperclip listens for the worker manager to respawn it and re-runs the setup the moment it comes back, so the environment returns without anyone restarting the server. A missing or non-`ready` plugin needs the next healthy boot instead.
 

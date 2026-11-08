@@ -253,7 +253,7 @@ Don't cancel useful work just to look idle. The SDK already counts requests and 
 | `PluginDataClient` | Register data feeds the UI can query (`ctx.data.register(...)`). |
 | `PluginActionsClient` | Register host-invokable actions. |
 | `PluginStreamsClient` | Stream-style host APIs. |
-| `PluginToolsClient` | Register tool implementations declared in the manifest (`ToolRunContext`, `ToolResult`). |
+| `PluginToolsClient` | Register tool implementations declared in the manifest (`ToolRunContext`, `ToolResult`). `ToolRunContext.projectId` is an empty string when the run has no project, so check it before you use it as a project ID. |
 | `PluginMetricsClient`, `PluginTelemetryClient` | Emit metrics and telemetry. |
 | `PluginTracer`, `PluginSpan` | Open tracing spans around your plugin's work (`ctx.tracer.startSpan(...)`). |
 | `PluginLogger` | Structured logger (`ctx.logger.info/warn/error`). |
@@ -581,6 +581,30 @@ A few rules keep this safe:
 - **Removal is conservative.** Paperclip only asks you to remove a checkout that's clean and that you've reported as recoverable or merged.
 - **Bindings are addresses, not secrets.** The `binding` you return is a `WorkspaceProviderBinding` — your plugin's ID, the project, execution workspace, and project workspace IDs, the source revision, and an opaque `workspaceRef` of your own. Paperclip stores it durably. Never put credentials or host paths in it; Paperclip checks that the returned IDs match the request.
 
+When an operation can't go ahead, you can tell Paperclip why by throwing a `PluginWorkspaceOperationError` with a reason from the closed list below. Paperclip writes the message people see and decides whether trying the same workspace again can help, so your own error text never reaches the run, the log, or the API. Any error with its own `workspaceFailureReason` property set to one of these values works the same way.
+
+```ts
+import { PluginWorkspaceOperationError } from "@paperclipai/plugin-sdk";
+
+throw new PluginWorkspaceOperationError("storage_pending");
+```
+
+| Reason | Throw it when | Retrying the same workspace can help |
+|---|---|---|
+| `unsupported_operation` | You don't accept this operation or request shape. | No |
+| `configuration_unavailable` | Your provider's own settings are missing or invalid. | No |
+| `credential_unavailable` | A credential the operation needs, such as the project's Git credential, is unusable. | No |
+| `storage_grant_unavailable` | Saved storage access grants are missing or no longer match the project. | No |
+| `binding_mismatch` | The saved binding doesn't match this workspace or generation. | No |
+| `storage_pending` | Project storage is still being provisioned or reconciled. | Yes |
+| `runtime_unavailable` | The selected runtime isn't ready. | Yes |
+| `runtime_connection_invalid` | The selected runtime's saved connection is invalid. | No |
+| `remote_incomplete` | A remote storage or runtime request failed or returned an unusable result. | Yes |
+| `context_changed` | The runtime, grants, or binding changed while the operation ran. | Yes |
+| `deadline_exceeded` | The operation's deadline passed. | Yes |
+
+A failure with no reason shows as "Workspace storage provider reported a failure; retry the same workspace" and counts as retryable.
+
 Because the files don't live on the Paperclip host, Paperclip stores no local folder for these workspaces, and file browsing and other host-side file operations aren't available for them. Archive, reopen, and cleanup rules still apply. While live workspaces depend on it, a project's repository source and storage owner can't be changed, and your plugin should refuse to retire project storage while task workspaces still hold local data.
 
 #### Running agents in your workspaces
@@ -596,6 +620,7 @@ A plugin environment whose driver declares `supportsTasks: true` is Runner-only.
 Paperclip refuses a few combinations up front, so the problem shows up as a clear error instead of a half-started run:
 
 - **No environment task support.** If the environment's plugin doesn't provide Runner tasks, the run fails with "Plugin environment does not provide native Runner task execution".
+- **No managed AI connection.** A new run in a task-capable environment needs an AI connection chosen for the agent, because the account signed in on your host isn't a supported credential source. Paperclip refuses the run before it takes a lease or calls your plugin, with "This agent's environment requires a managed AI connection. Choose an AI connection for this agent in Configuration, then retry." A preconfigured Runner home doesn't use the agent's connection, so that's refused too, with "This agent's environment requires a managed AI connection, which a preconfigured Runner home does not use. Switch this agent to an isolated Runner home in Configuration, then retry." The stable reason for both is `ai_connection_required`, and the agent **Test** button reports the same thing.
 - **Core workspace services.** If the agent's workspace runtime configures services, you get "The selected plugin environment does not support Core workspace services."
 - **Core Git worktrees.** If the workspace would need a Git worktree that Paperclip makes itself, you get "The selected plugin environment does not support Core Git worktree preparation." or "The selected plugin environment cannot reuse a Core Git worktree."
 - **Another owner's workspace.** A workspace made for one agent, environment, or storage provider can't be reused by another. That fails with "The retained workspace belongs to a different agent, environment, or storage provider."
@@ -985,6 +1010,8 @@ When `environmentAcquireLease` (or `environmentDestroyLease`) fails after someth
 
 The worker sends only that validated record back to the host — never the provider exceptions themselves, since those can contain credentials. The host stores it as a pending cleanup and retries teardown of that exact, ownership-matched allocation, so it can never delete another attempt's resource. A record that fails validation is simply dropped. The acquisition still fails either way; a cleanup error never produces a lease.
 
+A provider that's only briefly down shouldn't strand a task, and you don't have to do anything special for that. When `onEnvironmentAcquireLease` throws, the worker copies the HTTP status and error code from what you threw and its `cause` chain, using the same rules as [a refused resume](#when-a-sandbox-cant-be-resumed). For a `PluginEnvironmentCreationCleanupError`, it reads only the first error in the list, the create call itself, never a later lookup or delete. Those two fields cross to the host. On the Legacy runner, an HTTP `408`, `425`, `429`, `500`, `502`, `503`, or `504`, or a connection-level code (`ECONNRESET`, `ECONNREFUSED`, `ETIMEDOUT`, `EPIPE`, `EAI_AGAIN`, `ENETUNREACH`, `UND_ERR_CONNECT_TIMEOUT`, `UND_ERR_SOCKET`) fails setup with `environment_provider_unavailable`, and Paperclip retries with a small, bounded budget. `ENOTFOUND` and `ABORT_ERR` aren't retried, because trying again can't fix either. `environmentAcquireErrorData(error)` and `readEnvironmentAcquireErrorDiagnostic(error)` are the worker and host sides of this, and you don't need to call either yourself.
+
 Two helpers round this out: `readEnvironmentCreationCleanupError(error)` returns the validated `PluginEnvironmentCreationCleanup` from an error (or `null`), and `environmentCreationCleanupErrorData(error)` builds the wire payload the worker attaches to the JSON-RPC error. Drivers that can't leak an allocation this way can ignore all of it.
 
 To help operators see *where* an acquisition went wrong, you can pass an optional fourth constructor argument, a `PluginEnvironmentAcquisitionDiagnostic`: the `phase` that failed first (`create`, `workspace`, `shell`, `expiry`, or `sentinel`), `elapsedMs` from the start of acquisition to that failure, the `budgetMs` you were working to, and optionally the `providerState` you observed once after a create deadline — one of the values in `ENVIRONMENT_ACQUISITION_PROVIDER_STATES` (`absent`, `creating`, `pending_build`, `building_snapshot`, `pulling_snapshot`, `starting`, `started`, `error`, `build_failed`, `other`, `unavailable`). The host keeps it only for failed acquisitions, revalidates it with `readEnvironmentAcquisitionDiagnostic(error)`, and drops an unknown `providerState` rather than the whole record. It describes the step, not the cause, and never authorizes cleanup.
@@ -1076,8 +1103,11 @@ Each params object carries the current `PluginEnvironmentLease` plus an ordered 
 | `targetPath` | `string` | Absolute path of the transfer target — a sandbox path for syncIn, a host path for syncOut. Sandbox paths are POSIX. |
 | `kind` | `"file" \| "directory"` | Whether the mapping moves a single regular file or a directory tree. |
 | `mode?` | `number` | POSIX file mode to apply at the target (e.g. `0o600` for secret material). When set, the target must be created with this mode and no world-readable window — create-with-mode or chmod-before-bytes, never after. |
-| `exclude?` | `string[]` | Glob patterns to skip when `kind` is `"directory"`. |
+| `exclude?` | `string[]` | Glob patterns to skip when `kind` is `"directory"`. With `preserveSourceEntries`, these are literal root-relative paths instead. |
 | `followSymlinks?` | `boolean` | Symlink handling for directory transfers. Falsy preserves symlinks as links; `true` dereferences them to their target bytes (mirrors tar's `-h`). |
+| `preserveSourceEntries?` | `boolean` | For outbound directory transfers: keep every source entry name, including `._*` and names that look like provider scratch files. Leave out only the `exclude` paths and scratch paths this exact transfer created. Your usual archive-member and symlink checks still apply. Ignored for sync-in and for single files. |
+
+`PluginEnvironmentSyncInParams` and `PluginEnvironmentSyncOutParams` can also carry `minimumTimeoutMs`, a lower bound in milliseconds for this one transfer. Treat it as a floor on your own transfer timeout, and keep command deadlines separate from it.
 
 Return a `PluginEnvironmentSyncResult`: an `operations` array echoing each `operationId` with its `filesTransferred` and `bytesTransferred` counts, for host-side observability.
 
@@ -1173,7 +1203,7 @@ The SDK validates every operation and result for you. Each result must carry the
 
 | `operation.kind` | Return `kind` | What you do |
 |---|---|---|
-| `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. Add `freshWorkspaceVersion: 1`, `workspaceFileReadVersion: 1`, `warmTaskVersion: 1`, or `githubCredentialBrokerVersion: 1` for the optional features below. |
+| `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. Add `freshWorkspaceVersion: 1`, `workspaceFileReadVersion: 1`, `warmTaskVersion: 1`, `releaseResumeVersion: 1`, or `githubCredentialBrokerVersion: 1` for the optional features below. Add `codexSourceRecoveryVersion: 1` or `acpxSourceRecoveryVersion: 1` only if your host can verify and restore a stopped session for that provider without starting another turn; the two are separate promises. |
 | `prepare` | `prepared` | Build the provider configuration for the exact `requirements` (schema `paperclip.runner.launch-requirements.v1`) without starting a process. Return a `launch` with a `configurationId`, a `requirementsDigest`, and a `provider` descriptor. For a provider that works in a filesystem directory, the descriptor's `cwd` sets the working directory (see below). You can add `projectAuthCheckAtSubmit: true` to skip the separate `check_project_auth` step (see below). A warm handoff also sends `priorIdentity` and `accountIdentity`. If you advertise the GitHub broker, it can also carry a `githubBroker` (see below). |
 | `check_project_auth` | `project_auth` | Check that nothing in the prepared configuration for these projects can replace or redirect the selected account. Return `allowed: true` only if the checks pass. |
 | `read_file` | `file` | Only sent if you advertise `workspaceFileReadVersion: 1`. Read one file from the active task — see [Reading task output files](#reading-task-output-files). |
@@ -1185,6 +1215,8 @@ The SDK validates every operation and result for you. Each result must carry the
 | `copilot_metadata` | `copilot_metadata` | Check a Copilot account and model on a private setup lease without sending a prompt. |
 | `stop` | `accepted` | Stop the task and everything it started. |
 | `complete` | `accepted` | Release the task's resources once Paperclip has saved what it needs. |
+| `release` | `released` | Only sent if you advertise `releaseResumeVersion: 1`. End active use of the exact, settled Runner session named by `identity` — see [Releasing and resuming a settled Runner](#releasing-and-resuming-a-settled-runner-gated). |
+| `resume` | `resume` | Only sent if you advertise `releaseResumeVersion: 1`. Ask for that same session back using `identity` and a fresh `bootstrapTicket`, and return an `outcome` of `resumed` or `unavailable`. |
 
 A few rules keep this safe:
 
@@ -1195,7 +1227,7 @@ A few rules keep this safe:
 - **Preparation is idempotent.** The same task and requirements must give the same configuration, and a late preparation result must not authorize anything after a cancellation.
 - **You choose the working directory.** Paperclip doesn't supply one. Resolve the assignment into mounts and a `cwd`, which must be a normalized absolute path that isn't a filesystem root. Runner checks the directory on its own filesystem, and the session records it. Keep it the same for recovery: a different directory fails the recovery, and Paperclip won't substitute a folder of its own.
 
-This also powers the agent environment test: when an agent uses a task-capable plugin environment, the test prepares a launch on a short-lived private lease, checks authentication routing, and verifies the Runner hello exchange. It passes only once cleanup is confirmed.
+This also powers the agent environment test: when an agent uses a task-capable plugin environment, the test prepares a launch on a short-lived private lease, checks authentication routing, and verifies the Runner hello exchange. It passes only once cleanup is confirmed. If the Runner can't be described at all, the test fails with "The selected plugin environment could not describe its Runner. Check the environment's computer and plugin status, then retry."
 
 ##### Reading task output files
 
@@ -1226,7 +1258,50 @@ By default, each run gets its own Runner task. A driver can instead keep a Codex
 - Declare `warmTaskVersion: 1` on the driver and return `warmTaskVersion: 1` from `describe`, but only when your host supports attaching a new run to a running task.
 - Implement `onEnvironmentResumeLease`. Its params now include the new run's `runId`. See [When a sandbox can't be resumed](#when-a-sandbox-cant-be-resumed) for how to report a failure.
 
-An agent gets warm reuse when it uses the Codex provider with the **Warm session** Runner lifecycle and a selected AI account. Paperclip then sends a `warm` `lifecyclePolicy` (with an `idleTimeoutMs`) in the `submit` launch limits. Each later run's `prepare` carries the exact `priorIdentity` and a stable `accountIdentity`. Record that handoff idempotently before letting the new run in. If anything that matters changes — the account, credentials, workspace, authorized projects, or runtime settings — Paperclip retires the old process first and recovers from its checkpoint. OpenCode and ACP providers stay per turn. A `runnerLifecycleMode` set on the environment's config overrides the agent's lifecycle.
+An agent gets warm reuse when it uses the Codex provider with the **Warm session** Runner lifecycle and a selected AI account. Paperclip then sends a `warm` `lifecyclePolicy` (with an `idleTimeoutMs`) in the `submit` launch limits. Each later run's `prepare` carries the exact `priorIdentity` and a stable `accountIdentity`. Record that handoff idempotently before letting the new run in. If anything that matters changes — the account, credentials, workspace, authorized projects, or runtime settings — Paperclip retires the old process first and recovers from its checkpoint. The agent form offers this lifecycle only for Codex, so OpenCode and ACP agents stay per turn unless the environment says otherwise: a `runnerLifecycleMode` set on the environment's config overrides the agent's lifecycle.
+
+##### Releasing and resuming a settled Runner (gated)
+
+Warm reuse keeps a Runner busy between runs. If your host would rather reclaim that capacity when it needs to, and still pick the same session up later when it can, you can offer release and resume. It's written for environment-driver authors, and it isn't on for anyone by default.
+
+Paperclip uses this pair only when all of these are true:
+
+- Your `describe` result returns `releaseResumeVersion: 1`. Return it only once both operations work. Warm or source-recovery support doesn't imply it, and older Paperclip versions reject the field, so ship it alongside a Paperclip version that accepts it.
+- The task has [warm reuse](#keeping-a-codex-task-warm) turned on (`warmTaskVersion: 1`).
+- An AI account is selected for the agent.
+
+If any of those is missing, the task keeps its ordinary warm lifecycle. No bundled plugin advertises the capability yet, and a host still needs provider recovery, bounded retention, and deployment qualification before it's ready to turn on, so treat it as early.
+
+**Releasing.** Paperclip sends `release` only after the turn's required events, tool results, journal writes, and cleanup have settled. Check the six-field `identity` and refuse anything stale, busy, or unsettled. A `released` result ends Paperclip's active use. It doesn't cancel work, and it doesn't replace `stop`, `complete`, `archive_state`, or your lease release. You can keep the resources or reclaim them under your own retention policy.
+
+**Resuming.** A later run sends `resume` with the source `identity` and a fresh `bootstrapTicket`. Refuse a null `runId`, and verify the source, account, workspace, and current authority before you install the ticket or reserve anything. Treat the ticket like the one on `submit`: never copy it into status, metadata, logs, results, or replay records. Then return one of two outcomes:
+
+- `resumed` — that same session is now reserved for this run alone, atomically against eviction and competing claims. Paperclip connects and attaches before any new turn can start.
+- `unavailable` — you know reuse is impossible, for example after eviction. Paperclip can then use its ordinary recovery. This doesn't prove the process has stopped.
+
+Anything else stays an error: a source mismatch, failed authentication, a conflicting claimant, a transport failure, or an ambiguous claim must never become `unavailable`.
+
+**Retries.** Replay the original result. A repeated `release` must not release a session that has since resumed, and a repeated `resume` with the same source, claimant, and ticket returns the original outcome. A changed claimant or ticket is a conflict. Keep your replay fencing even after you reclaim the resources, so a delayed request can't change a newer owner.
+
+If you evict a released session gracefully and save it as suspended first, a later run can still continue it through ordinary `resumeFrom` recovery once Paperclip has recorded the physical stop. Missing state, a foreign identity, or an unsettled checkpoint refuses the continuation rather than starting a replacement session.
+
+##### Telling Paperclip why a task failed
+
+Paperclip doesn't read the text of a task error, so a plain `Error` is an ordinary setup failure. Two structured signals are worth sending.
+
+**The installed Runner is the wrong revision.** Throw `PluginEnvironmentTaskError` from `describe` or `submit`, before you prepare or start anything:
+
+```ts
+import { PluginEnvironmentTaskError } from "@paperclipai/plugin-sdk";
+
+if (installed.revision !== expectedRevision) {
+  throw new PluginEnvironmentTaskError("runner_revision_mismatch");
+}
+```
+
+`runner_revision_mismatch` is the only code in `ENVIRONMENT_TASK_ERROR_CODES` so far. A run that hasn't started provider work waits and retries once a minute for up to 10 attempts instead of blocking the task, and the agent **Test** button reports "The remote Runner does not match this Paperclip version yet. Paperclip will check again after the Runner update."
+
+**A saved session can't be used.** When you refuse a `submit` that has `resumeFrom`, throw an error with `status: 409`, `code: "SESSION_STATE_UNAVAILABLE"`, and a `reason` of `unresolved_operation` or `source_state_unverified`. The worker sends only those three fields and replaces your message with "Plugin Runner source state unavailable". It's a diagnostic only, and never authorizes a retry, a replacement, or cleanup.
 
 #### Login PTY and duplex channel streaming (optional)
 
@@ -1240,7 +1315,7 @@ The four worker-to-host notification method names are exported as constants: `LO
 
 Runner task and storage-provider exports: `MAX_ENVIRONMENT_TASK_FILE_BYTES`, `environmentTaskOperationSchema`, `environmentTaskResultSchema`, `environmentTaskCredentialSchema`, `environmentRunnerLaunchRequirementsSchema`, and `parseEnvironmentTaskResult`, with the types `PluginEnvironmentTaskOperation`, `PluginEnvironmentTaskParams`, `PluginEnvironmentTaskResult`, and `PluginEnvironmentTaskCredential`; plus `workspaceProviderOperationSchema`, `workspaceProviderResultSchema`, `pluginWorkspaceParamsSchema`, `freshWorkspaceSchema`, and `parseWorkspaceProviderResult`, with the types `PluginWorkspaceOperation`, `PluginWorkspaceResult`, `PluginWorkspaceParams`, and `PluginFreshWorkspace`. The host-to-worker methods behind them are `environmentTask` and `workspaceOperation`.
 
-Environment failure exports: `PluginEnvironmentRunnerIngressError`, `environmentRunnerIngressErrorData`, and `readEnvironmentRunnerIngressFailure`, with the type `PluginEnvironmentRunnerIngressFailure`; `PluginEnvironmentStopError`, `environmentStopErrorData`, and `readEnvironmentStopFailure`, with the types `PluginEnvironmentStopFailure` and `PluginEnvironmentStopFailureReason`; and `environmentResumeErrorData` and `readEnvironmentResumeErrorDiagnostic`, with the type `PluginEnvironmentResumeErrorDiagnostic`.
+Environment failure exports: `PluginEnvironmentRunnerIngressError`, `environmentRunnerIngressErrorData`, and `readEnvironmentRunnerIngressFailure`, with the type `PluginEnvironmentRunnerIngressFailure`; `PluginEnvironmentStopError`, `environmentStopErrorData`, and `readEnvironmentStopFailure`, with the types `PluginEnvironmentStopFailure` and `PluginEnvironmentStopFailureReason`; `environmentResumeErrorData` and `readEnvironmentResumeErrorDiagnostic`, with the type `PluginEnvironmentResumeErrorDiagnostic`; `environmentAcquireErrorData` and `readEnvironmentAcquireErrorDiagnostic`, with the type `PluginEnvironmentAcquireErrorDiagnostic`; `ENVIRONMENT_TASK_ERROR_CODES`, `PluginEnvironmentTaskError`, `environmentTaskErrorCodeData`, and `readEnvironmentTaskErrorCode`, with the type `PluginEnvironmentTaskErrorCode`; `environmentTaskErrorData` and `readEnvironmentTaskErrorDiagnostic`, with the type `PluginEnvironmentTaskErrorDiagnostic`; and `WORKSPACE_OPERATION_FAILURE_REASONS`, `PluginWorkspaceOperationError`, `workspaceOperationErrorData`, and `readWorkspaceOperationFailureReason`, with the type `PluginWorkspaceOperationFailureReason`.
 
 Launcher render shapes: `PluginModalBoundsRequest`, `PluginRenderCloseEvent`, `PluginLauncherRenderContextSnapshot`.
 

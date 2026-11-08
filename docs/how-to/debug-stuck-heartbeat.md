@@ -134,11 +134,13 @@ A [Paperclip Runner](../reference/adapters/paperclip-runner.md) task can also st
 
 ## 11. Task says Waiting for workspace
 
-**Symptom.** The task shows **Waiting for workspace** and *Another task is using this workspace. Work starts automatically when it is available.*
+**Symptom.** The strip above the composer says **Waiting for workspace** and *Work starts automatically when the workspace is available.* The **Workspace** row in the task's properties says **Waiting for workspace** too. There's no banner and no **Retry**, because there's nothing for you to do.
 
 **Cause.** Another run holds a workspace this task shares, or has ended but hasn't finished saving it, and only one run can write there at a time.
 
-**Fix.** Usually nothing. The waiting run stays as a single retry instead of adding a cancelled run for every check, so the agent's **Runs** list stays readable. When the holder ends, the waiting runs go next, one at a time, in the order they arrived. If it seems stuck, look at the run holding the workspace.
+**Fix.** Usually nothing, and you can keep sending instructions while the agent waits. The waiting run stays as a single retry instead of adding a cancelled run for every check, so the agent's **Runs** list stays readable. When the holder ends, the waiting runs go next, one at a time, in the order they arrived. If it seems stuck, look at the run holding the workspace.
+
+Waits for a busy AI connection or a remote Runner update behave the same way: they aren't failed attempts, so they don't show *Couldn’t finish this attempt* or offer **Retry**.
 
 ---
 
@@ -176,6 +178,122 @@ A [Paperclip Runner](../reference/adapters/paperclip-runner.md) task can also st
 **Cause.** The run couldn't rejoin the provider session it expected to continue.
 
 **Fix.** Read the cause in the message. If a later run does start a new provider thread, it won't have that thread's earlier conversation, so check that the agent still has what it needs from the task.
+
+---
+
+## 15. Retry says it's waiting
+
+**Symptom.** You clicked **Retry**, and the task's status line now names something Retry is waiting for.
+
+**Cause.** Paperclip saved your Retry, but something has to finish before a new attempt can safely start. If you click **Retry** again while it waits, you join the same request instead of starting a second one.
+
+**Fix.** Most of these clear by themselves, and the Retry then starts without another click. The ones that need you say so:
+
+| Message | What to do |
+|---|---|
+| *Retry is waiting for Paperclip to recover the saved files. Your message is saved.* | Use the controls in [Recovering saved files](../guides/day-to-day/issues.md#recovering-saved-files). |
+| *Retry is waiting for the previous environment to stop. Your message is saved.* | Wait. |
+| *Retry is waiting for the previous execution to finish cleanup. Your message is saved.* | Wait. It starts when the cleanup finishes. |
+| *Retry is waiting for the previous execution to stop. Your message is saved.* | Wait. |
+| *Retry is waiting for the previous execution to finish recovery. Your message is saved.* | Wait. |
+| *Retry is waiting for Paperclip to verify that the previous execution stopped. Your message is saved.* | Wait. |
+| *Retry is waiting for the current run to finish. Your message is saved.* | Wait, or stop the current run. |
+| *Retry is waiting for a pending approval or question to be resolved. Your message is saved.* | Answer the approval or question on the task. |
+| *Retry is waiting for the budget to allow new work. Check Costs for unrecorded or unpriced usage.* | See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain). |
+| *Paperclip is finishing the saved result before Retry can continue.* | Wait. |
+| *Saving the agent's files failed after automatic retries. Retry to try again; the agent will not repeat its work.* | Click **Retry** to start a new round of attempts. |
+| *Retry is waiting for a board member to confirm that the previous server stopped copying files. The agent's result and your Retry are saved.* | See [section 17](#17-task-asks-you-to-confirm-the-previous-server-stopped). |
+| *Retry could not start with the requesting user's access. Press Retry to start it with yours.* | Click **Retry**. Your click replaces the old request. |
+| *Retry cannot continue because its saved message changed. Send a new message to continue from saved work.* | Send a new message. **Retry** is hidden. |
+| *Retry cannot continue this attempt. Send a new message after the previous execution has stopped.* | Send a new message. **Retry** is hidden. |
+| *This attempt was stopped. Send a new message to continue from saved work.* | Send a new message. **Retry** is hidden. |
+
+Any other wait reads *Retry is waiting for execution checks. Your message is saved.*
+
+---
+
+## 16. Task shows a countdown or a recovery step
+
+**Symptom.** The task reads *Trying again in …*, sometimes with no **Retry** button, or it names a step such as *Checking that the previous attempt stopped. Trying again in 30s…*
+
+**Cause.** Paperclip already has this in hand. There are two common cases:
+
+- **The same run is resuming by itself.** After a server restart, a Paperclip Runner run that couldn't rejoin its provider resumes automatically. The countdown shows when. Once that time arrives, the task shows as working for up to two minutes while the resume starts.
+- **Saved work is being recovered.** Before the task continues, Paperclip shows the step it's on: *Checking that the previous attempt stopped*, *Saving files from the previous attempt*, or *Finishing recovery of saved work*.
+
+**Fix.** Usually, wait. While a saved-work step is only counting down to its next attempt, **Retry** is still there if you want it sooner. **Retry** stays hidden during an automatic resume, because a manual one would compete with it, while a recovery step is running, and while a Retry is already being prepared. If an automatic resume ends or never starts, you get one working **Retry** back. When saved-work recovery runs out of attempts, the handoff to the board names the last cause it recorded, such as `sandbox_not_running` or `transport_timeout`.
+
+---
+
+## 17. Task asks you to confirm the previous server stopped
+
+**Symptom.** The task says *The previous server stopped while it was saving this task’s files, and Paperclip can’t verify that it stopped. The agent’s result is saved.* The Inbox row reads **Confirm the previous server stopped**.
+
+**Cause.** A restart killed the server while it was copying the agent's files back, and Paperclip can't prove that copy has stopped. Starting another one could overwrite the work.
+
+**Fix.** Make sure the old server process and its file copy really have ended. Then click **Confirm the previous server stopped**, answer *How did you confirm that the previous server and its file copy stopped?* in at least 20 characters, and click **Confirm and resume**. The task shows *Restoring saved work…* and a waiting Retry then carries on by itself, without another agent turn. If you can't confirm, you'll see *A company owner or administrator can confirm that the previous server stopped.*
+
+---
+
+## 18. Queued run says Waiting for server restart
+
+**Symptom.** A queued turn reads **Waiting for server restart**.
+
+**Cause.** The server is starting, recovering, or shutting down for an update. Depending on which, the run's next step reads *The server restarted and is finishing recovery. This turn starts automatically when recovery completes.* or *The server is restarting for an update. This turn starts automatically on the replacement server.*
+
+**Fix.** Wait. After a restart, turns that never started go first, as soon as plugins and adapters have loaded. A pause for maintenance reads **Waiting for maintenance** instead.
+
+---
+
+## 19. Task can't reach its sandbox provider or remote Runner
+
+**Symptom.** A task on a sandbox or plugin environment stops before the agent starts, with a red notice whose title starts **Sandbox provider:**, or a recovery notice titled **Environment provider was temporarily unavailable** or **Remote Runner is out of date**.
+
+**Cause.** These are usually short-lived:
+
+- The sandbox provider refused to create a sandbox with a temporary error, such as HTTP 429, 502, or 503, or a timeout. Paperclip retries a limited number of times, and while it does the notice adds *Paperclip will retry automatically.*
+- During a release, the app can update before the remote Runner does. Paperclip checks again every 60 seconds, up to 10 times, and this doesn't use up the task's normal retries. An agent going through verification keeps checking and isn't parked for it.
+
+**Fix.** Usually nothing. No agent work started, so nothing is lost. If the notice stays, check the provider's status, or that the Runner received this release's update, then click **Retry**.
+
+---
+
+## 20. New work waits on the budget
+
+**Symptom.** A new task sits in `todo` reading *Waiting for the budget to allow new work. The task starts automatically when it does.*, or an agent's wake is refused with *Company cannot start work while completed runs await accounting.* or *New work must wait while a native run recovers its unfinished accounting.*
+
+**Cause.** A finished run's cost isn't settled yet, often after a server restart. This is a temporary hold, not a hard stop: nothing is paused and running work carries on.
+
+**Fix.** Wait. Most holds clear within moments. A Paperclip Runner run that never proves it stopped settles once its recovery has finished and 10 minutes have passed since it ended. Held work then starts by itself. A run whose usage capture failed, or a run on another adapter with an incomplete report, has no such limit and keeps holding until its report is resolved. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain) for exactly what holds work and what stops it.
+
+---
+
+## 21. Workspace storage operation failed
+
+**Symptom.** A run on a project stored by a [storage plugin](../guides/projects-workflow/workspaces.md#when-a-plugin-stores-the-project) fails during setup with one of the messages below. The run's error code stays `setup_failed`.
+
+**Cause.** The message now tells you what failed and whether trying again can help.
+
+**Fix.** Messages that say *retry the same workspace* can clear on another try:
+
+- *Workspace storage provider is not running; retry the same workspace*
+- *Workspace storage operation timed out; retry the same workspace*
+- *Workspace storage provider stopped during the operation; retry the same workspace*
+- *Workspace storage operation is incomplete; retry the same workspace*
+- *Workspace storage provider reported a failure; retry the same workspace*
+- *Project storage is still being prepared; retry the same workspace shortly*
+- *The selected runtime is not ready; retry the same workspace once it is ready*
+- *Workspace storage changed during the operation; retry the same workspace*
+- *Workspace storage operation expired; retry the same workspace*
+
+The rest need a change first, because another try fails the same way:
+
+- *Workspace storage provider does not support this workspace operation*
+- *Workspace storage provider configuration is unavailable; an operator must fix it before retrying*
+- *Workspace storage provider cannot use the project's Git credential; reconnect it before retrying*
+- *Project storage access is unavailable or out of date; reconcile the project's storage before retrying*
+- *Saved workspace storage no longer matches this workspace; retrying the same workspace will not help*
+- *The selected runtime's saved connection is invalid; reprovision the runtime before retrying*
 
 ---
 

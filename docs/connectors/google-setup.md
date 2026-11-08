@@ -8,7 +8,7 @@ seo_description: One reusable procedure for connecting any Google Workspace conn
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** New Google accounts connect through the single [Google Workspace](google-workspace.md) connector. The nine single-service Google connectors are no longer listed for new setup; each still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running unchanged. An agent that needs one of those services can still ask you for it with a connection card on its task.
+> **Note:** The built-in [Google Workspace](google-workspace.md) connector is [off by default](google-workspace.md#turn-on-the-built-in-connector). Turn it on before you follow this page for a new Google account; while it's off, Google apps are offered through Composio and Arcade instead. New Google accounts connect through that single connector. The nine single-service Google connectors are no longer listed for new setup; each still appears on the **Connectors** page when you have a saved connection to it, and those connections keep running unchanged. An agent that needs one of those services can still ask you for it with a connection card on its task.
 
 Connecting Google with **your own** OAuth client follows the shared steps below, and this page is that procedure. It covers the [Google Workspace](google-workspace.md) connector, which is what you set up for a new Google account, and the nine single-service connectors (Gmail, Calendar, Chat, Docs, Drive, People, Sheets, Slides, and Workspace Search) that existing connections use.
 
@@ -23,7 +23,7 @@ Two paths exist, and it is worth knowing which you are on before spending time i
 | Path | What it needs from you | When it is offered |
 | --- | --- | --- |
 | **Connect with Paperclip** | Nothing in the Cloud console. Paperclip owns the OAuth client | Only when the instance is enrolled with Paperclip Cloud *and* Cloud advertises that connector's profile. If it is missing, ask an administrator to check enrollment and profile availability |
-| **Use your own Google OAuth app** | Everything on this page | Where the connector is available; provider approval and instance restrictions still apply |
+| **Use your own Google OAuth app** | Everything on this page | Where the connector is available, which for new Google Workspace setup means [the toggle is on](google-workspace.md#turn-on-the-built-in-connector); provider approval and instance restrictions still apply |
 
 Either way, **Google's Developer Preview registration in step 1 applies.** On the managed path Google still has to have registered the Workspace account that signs in; only the Cloud project differs.
 

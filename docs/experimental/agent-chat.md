@@ -1,5 +1,5 @@
 ---
-seo_title: Agent Chat (Experimental)
+seo_title: Agent Chat
 seo_description: Keep one ongoing conversation with each agent, talk a goal through, and let the agent hand the real work off to tasks and report back when they're done.
 ---
 
@@ -9,33 +9,33 @@ Not every conversation with an agent starts as a well-formed task. Sometimes you
 
 **Agent Chat** gives you one ongoing conversation with each agent. You talk the goal through, the agent asks what it needs to know, and when there's real work to do it hands it off to ordinary tasks. When those tasks finish, the agent comes back to the conversation and tells you what got done.
 
-## Turn it on
+## Available to everyone
 
-1. Go to **Settings → Experimental**.
-2. Turn on **Agent Chat**. It is experimental and off by default; enabling it adds persistent conversations with your agents.
+Agent Chat is a standard part of Paperclip. There's no toggle and nothing to enable, and it's built into the [Coordinator workspace](coordinator-workspace.md), which everyone uses by default.
 
-Like every flag on that page, it's instance-wide. On Paperclip Cloud this one may be managed for you, in which case it shows the **Managed by Paperclip Cloud** lock — see [If a toggle is locked](overview.md#if-a-toggle-is-locked).
+**If your instance had it off.** The old **Agent Chat** card is gone from **Settings → Experimental**, and a saved "off" value no longer counts, including one managed by Paperclip Cloud. After upgrading, **Chat** appears for everyone on that instance, and agents can post to chats again. Earlier conversations are still there. Company access and chat privacy rules apply as before.
 
 ## Opening a chat
 
-Once it's on, **Chat** leads the **Work** group in the streamlined sidebar. Your agents live in a separate rail beside the conversation, so you can switch chats without leaving the page. The older sidebar places Chat below Inbox instead.
+In the [Coordinator workspace](coordinator-workspace.md), **Chat** is the first destination in the main sidebar. If you've opted in to the [Classic workspace](coordinator-workspace.md#use-the-classic-workspace-instead), **Chat** leads the **Work** group in the streamlined sidebar, or sits below Inbox in the older sidebar.
 
-Click it and Paperclip takes you back to the last agent chat you had open in this company. If you haven't chatted with anyone yet, you land on a page asking *"Who would you like to talk to?"*, with a few of your agents to pick from and a **Browse all agents** link for the rest.
+Click it and Paperclip takes you back to the last agent chat you had open in this company. If you don't have one, it opens a chat with your [primary agent](../guides/org/agents.md#your-primary-agent). With no primary agent either, you land on a page asking *"Who would you like to talk to?"*, with a few of your agents to pick from and a **Browse all agents** link for the rest.
 
-The chat area has its own sidebar, headed **Chat**, beside the conversation:
+A contact list sits beside the conversation, so you can switch chats without leaving the page:
 
-- **Teammates** lists your existing conversations first, followed by the other agents you can chat with. Each row shows the agent's avatar, name, and title. An agent that's replying right now reads **Working…**; a paused or terminated agent says so. A small dot beside a name means that agent has sent you something you haven't read yet.
-- **Find an agent** filters the list by name or role.
-- **Add chat** (the **+** button) opens **Chat with an agent**, a searchable list of every agent in the company. Each one shows the agent's avatar and is marked **Open chat** if you already have a conversation with it, or **New chat** if you don't. Pick one and its conversation opens straight away.
-- **Browse all agents** at the bottom takes you to the full agent list.
+- Your existing conversations come first, most recent on top, followed by the other agents you can chat with in alphabetical order. Each row shows the agent's avatar, name, and title, and a terminated agent says **Terminated**.
+- **Search chats** filters the list by name, title, or role.
+- A number beside a name is how many messages from that agent you haven't read. You'll see a small dot instead when Paperclip knows there's something unread but doesn't have a count.
+- Hover a row and click the pin to add that agent to **Pinned** in the main sidebar, and click it again to remove it. See [The sidebar](coordinator-workspace.md#the-sidebar). You can pin from the **Agents** list too.
+- **Create a new agent**, at the end of the list, opens the new-agent form.
 
 The **Chat** entry in the main navigation also carries a count of how many of your chats have unread agent messages. A message counts as read once you've scrolled to it at the bottom of the conversation while the window is in focus.
 
-The sidebar and header stay in the same place whether or not you've picked an agent, so switching between conversations doesn't make the page jump around.
+The contact list and header stay in the same place whether or not you've picked an agent, so switching between conversations doesn't make the page jump around.
 
 ## One conversation per agent
 
-You get exactly one conversation with each agent. Adding a chat with an agent you've already talked to just reopens it — **"One conversation per agent. Pick up where you left off."** — so you never end up with duplicates to keep track of.
+You get exactly one conversation with each agent. Opening an agent you've already talked to just reopens it, so you never end up with duplicates to keep track of.
 
 A conversation is a task behind the scenes, so it uses the same composer, transcript, attachments, and documents as the ordinary task page. See [Chat-Style Tasks](task-chat.md) for those controls.
 
@@ -73,7 +73,6 @@ The message goes to the agent's chat with the task's responsible person — you 
 
 A few things have to be true for the message to go through. If one isn't, the agent's attempt fails with an explanation rather than going somewhere else:
 
-- Agent Chat is on.
 - The agent is actively running the task, in normal (not review or skill-test) mode, and the task isn't done, cancelled, or paused.
 - The task has a responsible person who is still an active member of the company and can open the chat.
 - The task isn't restricted. Chats follow ordinary company visibility, so restricted task content can't be sent into one.
@@ -88,13 +87,9 @@ Long conversations build up a lot of context. Send **/new** on its own — the c
 
 Pending questions from the previous session expire, so an old question does not keep occupying the composer. Updates about tasks handed off before a `/new` aren't posted into the new session. The tasks and their results are untouched — you can still open them from the conversation.
 
-## When it's off
-
-Turning **Agent Chat** off removes the **Chat** entry and stops new messages, but nothing is deleted. Turns that were already running are allowed to finish, and existing conversations stay readable through their task links. Opening a chat page while it's off tells you that Agent Chat is off for this instance and that an administrator can enable it in **Experimental settings**. Your personal [Coordinator workspace](coordinator-workspace.md) preference doesn't change that. Turn it back on and everything is where you left it.
-
 ## Caveats
 
-- This is an experimental feature under active iteration. Expect labels, layout, and how agents decide to hand off work to change between releases.
+- Agent Chat is still being refined. Expect labels, layout, and how agents decide to hand off work to change between releases.
 - How well an agent breaks a conversation into tasks depends on the agent and its model. Read the tasks it creates before relying on them.
 - Results come back only for tasks a chat hands off after your instance is on a release with this behaviour. Tasks handed off earlier aren’t reported retroactively.
 
@@ -106,5 +101,5 @@ Implementation reference: [session reset and handoff instructions](https://githu
 - [Work Modes](../guides/day-to-day/work-modes.md) — what Auto, Plan, and Ask modes change about a turn.
 - [Issues](../guides/day-to-day/issues.md) — the tasks your chats hand work off to.
 - [Agent Chat conversations API](../reference/api/issues.md#agent-chat-conversations) — finding and creating conversations programmatically.
-- [Coordinator workspace](coordinator-workspace.md) — a personal workspace that puts chat, task proposals, and decisions on one path.
+- [Coordinator workspace](coordinator-workspace.md) — the standard workspace that puts chat, task proposals, and decisions on one path.
 - [Experimental features overview](overview.md)

@@ -8,7 +8,7 @@ seo_description: Run Cursor Cloud Agents through the official SDK so Cursor hand
 
 `cursor_cloud` runs Cursor Cloud Agents through the official Cursor SDK so Paperclip can keep task state while Cursor handles remote code execution. Use it when you want durable remote Cursor agent sessions that survive between Paperclip heartbeats.
 
-> **Note:** Cursor Cloud can now run two ways. This page covers the direct `cursor_cloud` adapter, which is what the **Legacy runner** uses. There's also an experimental native route, `paperclip_runner` with `provider: "cursor_cloud"`, which adds the Runner's task tools and recovery and needs no Paperclip computer. See [Cursor Cloud on Paperclip Runner](./paperclip-runner.md#cursor-cloud-on-paperclip-runner-experimental). Existing direct agents stay on this adapter until you change their **Runner**.
+> **Note:** Cursor Cloud can now run two ways. This page covers the direct `cursor_cloud` adapter, which is what the **Legacy runner** uses. There's also an experimental native route, `paperclip_runner` with `provider: "cursor_cloud"`, which adds the Runner's task tools and recovery and needs no Paperclip computer. See [Cursor Cloud on Paperclip Runner](./paperclip-runner.md#cursor-cloud-on-paperclip-runner-experimental). Existing direct agents stay on this adapter until you change their runner through the API.
 
 ---
 

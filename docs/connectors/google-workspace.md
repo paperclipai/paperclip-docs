@@ -11,9 +11,28 @@ One Google account, one connection, and you choose which services it covers. Bef
 
 > **Warning:** Google Workspace needs Google Workspace Developer Preview registration before tools can run. Google must register the Workspace email that signs in, and the Cloud project that owns the OAuth client if you bring your own. Apply first at [Google Workspace Developer Preview](https://developers.google.com/workspace/preview).
 
+## Turn on the built-in connector
+
+The built-in Google Workspace connector stays switched off until someone turns it on, because Paperclip's Google app verification is still pending. This is the one place the rule is written down, and the other Google pages link here.
+
+- **Where it is:** open **Settings → Experimental** and find the **Google Workspace connector (Paperclip)** card.
+- **Default:** off, on self-hosted instances and on Paperclip Cloud.
+- **Who can turn it on:** on a self-hosted instance, an instance admin. On Paperclip Cloud, someone with the Admin role on the Cloud stack. If the card shows **Managed by Paperclip Cloud**, Cloud sets the value and the toggle is locked. [Experimental features](../experimental/overview.md#if-a-toggle-is-locked) explains the badge.
+
+**While it's off**, the **Connectors** page does not list Google Workspace. You get the Google apps from Composio and Arcade instead: Gmail, Google Calendar, Google Drive, Google Docs, Google Sheets, and Google Slides appear under the **Composio** or **Arcade** filter, or when you search, as cards that say *Connect through Composio or Arcade.* Google Chat comes through Composio only. Selecting **Connect** starts [the aggregator setup](mcp-aggregators.md), and you sign in to Google inside that provider. Agents can't find or request the built-in connector either.
+
+**Connections you already have** depend on which connector they use:
+
+| Saved connection | While the toggle is off |
+| --- | --- |
+| Built-in **Google Workspace** | Stays listed on **Connectors**, but stops working. Its actions disappear from agents' tool lists, direct calls are refused with `403` and `connector_unavailable`, and opening setup or **Reconnect** shows *"Google Workspace is not available on this instance."* Nothing is deleted: turn the toggle on and the connection is back |
+| Single-service, such as **Gmail** or **Google Drive** | Not affected. It stays listed and keeps working |
+
+> **Warning:** If your agents rely on a saved built-in Google Workspace connection, turn the toggle on after upgrading. The default is off, so those agents lose their Google tools until you do.
+
 ## When to pick this over the single-service connectors
 
-Google Workspace is the connector the **Connectors** page offers for new Google accounts. The nine single-service connectors (Gmail, Google Calendar, Google Chat, Google Docs, Google Drive, Google People, Google Sheets, Google Slides, and Google Workspace Search) are no longer listed for new setup. They still appear on the page if you already have a saved connection to one of them, and those connections keep working as before.
+With the toggle on, Google Workspace is the connector the **Connectors** page offers for new Google accounts. The nine single-service connectors (Gmail, Google Calendar, Google Chat, Google Docs, Google Drive, Google People, Google Sheets, Google Slides, and Google Workspace Search) are no longer listed for new setup. They still appear on the page if you already have a saved connection to one of them, and those connections keep working as before.
 
 Pick Google Workspace when you want:
 
@@ -24,6 +43,7 @@ Some things are only on the older connectors. Google Workspace does not offer Go
 
 ## Before you connect
 
+- The [Google Workspace connector (Paperclip) toggle](#turn-on-the-built-in-connector) switched on for your instance.
 - A Google Workspace account that can already open the mail, files, and calendars you want agents to use.
 - Developer Preview registration for that account, confirmed by Google.
 - If your instance is not enrolled with Paperclip Cloud, your own Google OAuth client. [Set up your own Google OAuth app](google-setup.md) is the complete procedure; enable the APIs listed there for each service you plan to select.
@@ -108,6 +128,8 @@ Expect your next event, which you can confirm in Google Calendar. This checks th
 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
+| **Google Workspace** is not on the **Connectors** page | The [toggle](#turn-on-the-built-in-connector) is off | Turn it on, or use the Google apps offered through Composio or Arcade |
+| A saved connection stopped working, and **Reconnect** says *"Google Workspace is not available on this instance."* | The [toggle](#turn-on-the-built-in-connector) is off | Turn it on. The connection was not deleted |
 | Google refuses before the consent screen | Developer Preview registration is incomplete for the account or Cloud project | Finish registration and retry |
 | The Paperclip-managed sign-in is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not offering the Google Workspace profile | Use your own Google OAuth app, or ask an administrator about enrollment |
 | A new Paperclip-managed Google Workspace sign-in is rejected | New Google Workspace requests rely on an updated Paperclip-hosted OAuth broker, and an older broker may reject them | Try again later, or use your own Google OAuth app. Existing single-service Google connections keep working |

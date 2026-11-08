@@ -350,7 +350,6 @@ Common failures:
 | `403` | There's no one to send to (`This task has no responsible human to receive the message`), or they've left (`The responsible human is no longer an active company member`) or can't open the chat (`The responsible human cannot access this chat`). The server never picks a different recipient. |
 | `403` | The task is restricted (`Restricted task content cannot be sent to a company-visible chat`). |
 | `403` | The run has already submitted its final result (`Send the message before finishing the run`). |
-| `404` | Agent Chat is turned off (`Agent Chat is disabled`). |
 | `409` | The `idempotencyKey` was already used for this task with different content (`Chat message retry key was already used with different content`). |
 | `429` | The agent has hit its limit on influencing tasks outside the one it's working on. |
 
@@ -938,7 +937,7 @@ Use them like this:
 - Pause when the agent should stop taking work temporarily.
 - Resume when the agent should become available again.
 - Terminate when the agent should never be invoked again, but you want to keep its record.
-- Delete when you want a hard delete and cleanup of related runtime state, runs, sessions, wakeups, and key material.
+- Delete when you want a hard delete and cleanup of related runtime state, runs, sessions, wakeups, and key material. Cost and finance history is never deleted, so an agent with any of that history stays terminated instead (see below).
 
 Important edge cases:
 
@@ -950,6 +949,7 @@ Important edge cases:
 - Pause, resume, and terminate record the request and return straight away. The external steps finish in the background — poll `GET /api/agents/{agentId}` and watch `lifecycleState`.
 - Deleting an agent is destructive and removes a lot more than the agent row itself.
 - You can only delete an agent once termination has fully finished (or its hire was rejected). Otherwise the call returns `409 Conflict` with `Complete termination before deleting the agent`.
+- An agent referenced by cost or finance events, directly or through one of its runs, can't be deleted. The call returns `409 Conflict` with code `agent_cost_history_retained` and `Cost history requires this agent record. Keep the agent terminated instead of permanently deleting it`. Nothing is deleted, and the agent stays terminated.
 - A lifecycle request that doesn't fit the agent's current step (for example resuming an agent that is still terminating) returns `409 Conflict` with a message like `Cannot resume an agent in state terminating`.
 
 ### Lifecycle Steps and Retry
@@ -1166,6 +1166,27 @@ Behavior is similar to wakeup, but the response is simpler:
 
 ---
 
+## Provider Usage Limits
+
+`GET /api/agents/{agentId}/runtime-state`
+
+Returns the agent's saved runtime state. It's board-only and needs permission to manage agents in the company.
+
+Once a Codex or Claude agent on Paperclip Runner has reported its provider's limits, `stateJson.providerRateLimits` holds the latest snapshot:
+
+| Field | Meaning |
+|---|---|
+| `schema` | `paperclip.provider.rate_limits.v1`. |
+| `provider` | `openai` or `anthropic`. |
+| `windows` | Up to eight windows, each with `id`, `label` (such as `5-hour window`), `shortLabel` (such as `5h`), `windowMinutes`, `usedPercent`, `resetsAt`, and `status` (`allowed`, `warning`, `rejected`, or `null`). |
+| `credits` | `hasCredits`, `unlimited`, and `balance`, or `null`. |
+| `limitReached` | `windowId`, `reason`, and `resetsAt` while the provider is refusing work, or `null`. |
+| `observedAt` | When this snapshot was reported. |
+
+While the provider's limit is active, a queued run for the agent is cancelled with `errorCode: "provider_limit_wait"` and retried at the reset. See [When a provider usage limit is reached](../../guides/org/agents.md#when-a-provider-usage-limit-is-reached). To compact an agent's context from a task, see [Context Window and Compaction](./issues.md#context-window-and-compaction).
+
+---
+
 ## Org Chart
 
 Returns the company org structure.
@@ -1303,6 +1324,7 @@ Important notes:
 - The server resolves secrets before running the test.
 - To test a saved agent, pass its `agentId` in the test-environment body. The server fills in any environment values that came back redacted from the saved config, so you don't have to re-enter them. If you're testing a switch to a different adapter, re-enter those values instead — the server won't carry hidden values across to an unrelated adapter.
 - If you leave `environmentId` out, the test runs in the saved agent's default environment (when you passed `agentId`), or else the instance's default environment. Send `environmentId: null` to test against the instance default explicitly.
+- A plugin environment that runs Runner tasks only accepts agents on a managed AI connection in an isolated Runner home. Testing a `paperclip_runner` config there without an AI connection, or with `homeMode: "preconfigured"`, returns `status: "fail"` with the check code `ai_connection_required`, before any secret is resolved or a computer is allocated. Choosing an AI connection for a preconfigured-home Runner agent on such an environment fails with `422` and the same code.
 
 ---
 
@@ -1453,7 +1475,7 @@ curl -s -X PATCH http://localhost:3100/api/agents/{agentId}/instructions-bundle 
 
 `GET /api/agents/{agentId}/instructions-bundle/file?path=AGENTS.md`
 
-The `path` query parameter is required. The response includes the file's `content` and its `contentHash` — keep the hash, because you need it to save or delete the file.
+The `path` query parameter is required. The response includes the file's `content` and its `contentHash` — keep the hash, because you need it to save or delete the file. It can also include `createdAt` or `updatedAt` when Paperclip knows when the file was last saved, so treat both as optional.
 
 For a managed bundle, add `download=true` to stream the raw bytes as an attachment instead. Use this for binary files, or files too large for the editor:
 

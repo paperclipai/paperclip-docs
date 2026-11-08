@@ -212,6 +212,8 @@ On the **Access** tab, **Personal Slack search** → **Your Slack search access*
 
 This route connects an agent to Slack's own hosted MCP server, using a personal Slack authorization instead of a bot.
 
+On Paperclip Cloud, this route needs a Slack OAuth app you create yourself, so new setup skips it when **Chat connectors** is off. Under the **Composio** or **Arcade** filter on the **Connectors** page, or in search, Slack appears as a card that says *Connect through Composio or Arcade.*, and **Connect** opens the provider choice. An agent that needs Slack asks you which provider to use. See [Connect apps through an MCP aggregator](mcp-aggregators.md). You keep the native route if you run Paperclip yourself, if **Chat connectors** is on, or if you already have a saved Slack connection.
+
 If what you want is an agent that reads and posts in Slack, the chat connection above already gives its agent governed Slack tools. You don't need this route as well for that.
 
 ### Agent-tool compatibility notice

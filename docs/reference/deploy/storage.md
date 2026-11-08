@@ -81,11 +81,11 @@ If you run S3 storage and want agent files to survive replacing the server, you 
 
 Things to know before you turn it on:
 
-- **Existing files need a one-time import.** Run it from the server that still has the original files, with ingress and agent work stopped. The command is read-only unless you add `--apply`:
+- **Existing files need a one-time import.** Run it from the server that still has the original files, with `PAPERCLIP_DURABLE_AGENT_FILES=true` set. The command is read-only unless you add `--apply`, and you don't have to stop Paperclip for it, because each agent is copied under the same lock as a normal file edit. An agent with a run queued or in flight and no imported copy yet, or with an unsettled local working copy, is skipped, so repeat the command once those have cleared:
 
   ```sh
   node server/dist-runtime/agent-files.mjs --phase=migration
-  node server/dist-runtime/agent-files.mjs --phase=migration --apply --writers-stopped
+  node server/dist-runtime/agent-files.mjs --phase=migration --apply
   ```
 
   From a source checkout, use `pnpm exec tsx server/src/maintenance/agent-files.ts` with the same flags. Follow each `next` cursor with `--after=<cursor>` until every page reports `pageReady: true`. A replacement server that has no imported copy and can't reach the old directory refuses to start the agent with `AGENT_FILES_MIGRATION_REQUIRED`, rather than handing it an empty folder.
@@ -111,7 +111,7 @@ A routine upgrade doesn't need any skill conversion or file copying. Two cases s
 - **Skills imported from a project** keep pointing at files in that project's working tree, so they only work where that checkout exists.
 - **`local_disk` storage** keeps saved versions on the server's own volume. It's fine for a self-hosted server that keeps its disk, but it doesn't survive replacing the server with an empty one. Use S3-compatible storage for that.
 
-> **Note:** Installations created before this change may still read skill content from directories on the server. Before you move them to servers with empty disks, convert them with the bounded maintenance script ([`server/scripts/migrate-skill-packages.ts`](https://github.com/paperclipai/paperclip/blob/322fa6b65cc707a726d50d84ce72aeb6282aa59e/server/scripts/migrate-skill-packages.ts)): run its `eligibility` and `installations` phases, stop skill writers before applying with `--apply --writers-stopped`, then run `verification`. After the conversion, only versions that read saved skill versions are safe rollback targets.
+> **Note:** Installations created before this change may still read skill content from directories on the server. Before you move them to servers with empty disks, convert them with the bounded maintenance script ([`server/scripts/migrate-skill-packages.ts`](https://github.com/paperclipai/paperclip/blob/322fa6b65cc707a726d50d84ce72aeb6282aa59e/server/scripts/migrate-skill-packages.ts)): run its `eligibility` phase, then its `installations` phase with `--apply`, and finish with `verification`. The conversion runs alongside normal skill writes, using the same locks, and it leaves the original directories in place. After the conversion, only versions that read saved skill versions are safe rollback targets.
 
 ### Run logs and provider traces
 

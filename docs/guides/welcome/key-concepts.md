@@ -59,7 +59,7 @@ Agents are organised in a strict hierarchy. Every agent reports to exactly one m
 **Why it exists:** Breaking work into tasks makes autonomous execution traceable and controllable. Rather than asking an AI to "do everything", you — and the CEO agent — break the company goal into discrete tasks that can be tracked, prioritised, and reassigned.
 
 **What you do with it:**
-- Review tasks created by the CEO in the Issues page or Inbox
+- Review tasks created by the CEO on the **Tasks** page, or in **Inbox** when one needs your decision
 - Create tasks manually when you want to direct work yourself
 - Check task status and comment threads to follow progress
 

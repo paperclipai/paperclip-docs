@@ -203,6 +203,10 @@ The `POST` speaks JSON-RPC. Authenticate with `Authorization: Bearer <gateway-to
 
 Anything else returns `404` with JSON-RPC error `-32601`, `Method not found`. When a call is refused, the JSON-RPC `error` object carries a `data.reasonCode` so you can tell a policy block apart from a broken upstream.
 
+A failure inside the provider is different: `tools/call` returns a normal result with `isError: true` and the message as text. That covers `tool_error` and `github_access_denied`, which is what you get when GitHub refuses a repository or account this connection can't reach. For GitHub, the text includes steps for repairing the connection's access. Don't retry the same call until that's done.
+
+Connectors behind an experimental setting that's off are refused with `403` and `connector_unavailable` (*"This connector is unavailable on this instance."*), and their tools don't appear in `tools/list`.
+
 Paperclip limits how many tool listings run at once. When that limit is reached and the waiting queue is full too, `tools/list` returns `503 Service Unavailable` with JSON-RPC error `-32603`, the message `Tool discovery is busy. Retry shortly.`, and `data.reasonCode` `tool_discovery_busy`. Nothing is wrong with your gateway or token — wait a moment and list again.
 
 ---
@@ -447,6 +451,8 @@ GET    /api/tool-connections/{connectionId}/activity
 GET    /api/tool-connections/{connectionId}/review-counts
 GET    /api/tool-connections/{connectionId}/profile-configuration
 ```
+
+`POST .../tools/connections` creates tool connections only. A `connectionPurpose` other than `tool` returns `422` with `Only tool connections can be created here`, and a `transport` of `chat_sdk` or `voice` returns `422` with `Chat and voice connections cannot be created here`. Neither writes anything. If you leave out `transportConfig`, the connection stores `config` there.
 
 `review-counts` returns `pendingActionRequestCount` and `quarantinedCatalogEntryCount` for the connection; both are `0` once the connection is archived. The connector sidebar uses it for the **Review** badge. `profile-configuration` returns `{ profiles }`: the saved profiles behind the connection's Permissions tab, with their `entries` and `bindings`. It lists only the profiles you can see, and it describes saved configuration, not effective access.
 

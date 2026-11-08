@@ -6,7 +6,7 @@ seo_description: The Blocked tab surfaces issues waiting on a decision, a recove
 
 # Blocked Inbox
 
-The **Blocked** tab in your Inbox is where stopped work goes to be triaged. The other tabs (Mine, Recent, Unread, All) show you what to look at next; the Blocked tab specifically surfaces issues that have stalled — they're waiting on a decision, a recovery run, an external person, or a paused owner — and gives you a single place to clear the jam.
+**Blocked** is where stopped work goes to be triaged. In the standard [Coordinator workspace](../../experimental/coordinator-workspace.md) it's a view under **Tasks**; in the [Classic workspace](../../experimental/coordinator-workspace.md#use-the-classic-workspace-instead) it's a tab in your Inbox. The other personal views (Mine, Recent, Unread, and Everything, called All in the Classic Inbox) show you what to look at next; Blocked specifically surfaces issues that have stalled — they're waiting on a decision, a recovery run, an external person, or a paused owner — and gives you a single place to clear the jam.
 
 If you've ever had an agent quietly sitting on `status = blocked` while you wondered why nothing was moving, this is the view that calls it out.
 
@@ -16,11 +16,12 @@ If you've ever had an agent quietly sitting on `status = blocked` while you wond
 
 ## Opening the Blocked tab
 
-The Blocked tab lives alongside the other Inbox tabs at `/inbox/blocked`. Switching to it navigates rather than hides content, so you can bookmark or share the URL.
+Switching to Blocked navigates rather than hides content, so you can bookmark or share the URL.
 
-1. **Click "Inbox" in the left sidebar**, then choose the **Blocked** tab in the toolbar.
+1. **Open Blocked for your workspace**
 
-   The tab list shows **Mine**, **Recent**, **Unread**, **Blocked**, and **All**. The badge next to **Blocked** shifts colour based on the highest severity in the list — muted when everything is calm, amber when something is high-severity, red when something is critical.
+   - **Coordinator (standard):** click **Tasks** in the left sidebar, open the view menu at the start of the toolbar, and choose **Blocked** under **My work**. The address is `/issues?view=blocked`, and an older `/inbox/blocked` link brings you to the same place.
+   - **Classic workspace:** click **Inbox** in the left sidebar, then choose the **Blocked** tab in the toolbar. The address is `/inbox/blocked`, and the tab list shows **Mine**, **Recent**, **Unread**, **Blocked**, and **All**. If [Combined Inbox + Task List](../../experimental/task-chat.md#an-optional-combined-task-list) is on, Blocked is under **Tasks → Views** instead.
 
 2. **Read the empty state if it's quiet**
 

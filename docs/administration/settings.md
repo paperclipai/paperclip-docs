@@ -218,16 +218,17 @@ Turning one on is not dangerous in the "this will break your data" sense — but
 
 Open **Settings → Experimental**. The page groups its toggles into up to three sections and lists the cards alphabetically within each one. Where a flag has its own page in the [Experimental](../experimental/overview.md) section (or elsewhere in these docs), the name links to it.
 
+Above those sections, and above the warning, sits one personal card. **[Classic workspace](../experimental/coordinator-workspace.md#use-the-classic-workspace-instead)** swaps the standard Coordinator workspace for the previous interface, for you only, across every company on the instance. It's off by default, and old Coordinator experiment settings don't turn it on.
+
 **Experimental features** — *"Optional product features that are still being evaluated."*
 
-- **[Agent Chat](../experimental/agent-chat.md)** — one ongoing conversation per agent. **Chat** leads the **Work** group and opens an agent rail beside the nav; agents clarify your goal and hand real work off to tasks.
 - **[Assistant connections (MCP)](../experimental/assistant-connections.md)** — connect Codex, Claude, and other assistants to your Paperclip organization so people can review work, delegate tasks, and add feedback. Needs an authenticated instance with a configured public URL.
 - **Beta skills** — lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill, without removing the pins you saved.
 - **[Built-in Agents](../reference/api/built-in-agents.md)** — shows Paperclip-managed built-in agent surfaces (built-in roster badges and the built-in agent setup controls) and makes the built-in-agent API available. Turn it on before you provision `briefs`, `learning`, or `reflection-coach`; with it off, the built-in-agent routes return `404 Not Found`.
 - **[Cases](../reference/api/cases.md)** — durable work products (blog posts, tweet storms…) that tasks create and iterate on. Adds the **Cases** tab and the agent case API. Turning it off hides the tab and blocks the API; existing case data is kept.
 - **[Chat connectors](../connectors.md#chat-channels-experimental)** — connect agents to Slack, Discord, Microsoft Teams, and Telegram conversations. Turning it off hides chat setup, but existing chat connections keep running. GitHub review bots have their own toggle below.
-- **[Combined Inbox + Task List](../experimental/task-chat.md#an-optional-combined-task-list)** — folds Inbox into **Tasks**: one Tasks row carries the unread badge, and a **Views** menu reaches every inbox and task view.
-- **[Decisions](../guides/day-to-day/decisions.md)** — shows the **Decisions** item in the main sidebar, the attention home that surfaces the tasks awaiting your input.
+- **[Combined Inbox + Task List](../experimental/task-chat.md#an-optional-combined-task-list)** — in the Classic workspace, folds Inbox into **Tasks**: one Tasks row carries the unread badge, and a **Views** menu reaches every personal and organization task view. Coordinator always includes personal views in Tasks.
+- **[Decisions](../guides/day-to-day/decisions.md)** — shows the **Decisions** item in the Classic workspace's main sidebar, the attention home that surfaces the tasks awaiting your input. Coordinator always has **Inbox**.
 - **[Enable Environments](../experimental/environments.md)** — environment management in company settings, plus project and agent environment assignment (including custom sandbox images).
 - **[Enable External Objects](../experimental/external-objects.md)** — detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects.
 - **[Enable Isolated Workspaces](../experimental/isolated-workspaces.md)** — execution-workspace controls in project configuration and isolated (git-worktree) checkouts for task runs. If you're not using isolated workspaces, leave this off. Once it's on, a **Use Isolated Workspaces By Default** card appears at the bottom of this section.
@@ -242,7 +243,7 @@ Open **Settings → Experimental**. The page groups its toggles into up to three
 - **[Paperclip Runner](../reference/adapters/paperclip-runner.md)** — lets agents select the experimental Rust Paperclip Runner. On by default on self-hosted instances and off by default on Cloud unless managed configuration changes it. Turning it off hides the choice without affecting existing native runs. Codex, Claude Code, OpenCode, and Pi are the exceptions: the server resolves new agents on those harnesses to the Runner on supported macOS and Linux hosts whether or not this card is on (OpenCode and Pi stay on the Legacy runner on Linux ARM64), unless you choose **Legacy runner** as the runner override. The card still gates the Runner's other providers, such as Muse and Grok Bot.
 - **[Simplified English Interactions](../reference/skills/optional/content/simplified-english.md)** — tells agents to write confirmations, questions, suggested tasks, and checkbox prompts in ASD-STE100 Simplified Technical English, with brief context on what each decision needs.
 - **[Status Cards](../experimental/status-cards.md)** — the shared status-card board and its gated API. Enabling Status Cards also enables Summaries.
-- **Streamlined UI** — **on by default**. The simplified main sidebar, shared Tasks and Inbox presentation, focused task detail layout, and contextual navigation across Agents, Routines, Skills, and Settings. Turning it off restores the legacy shell and navigation; task and page data are unchanged.
+- **Streamlined UI** — **on by default**. The simplified main sidebar, shared Tasks and Inbox presentation, focused task detail layout, and contextual navigation across Agents, Routines, Skills, and Settings. Turning it off restores the legacy shell and navigation for people in the Classic workspace; task and page data are unchanged. Coordinator always uses the streamlined shell, though a few page layouts still follow this setting there.
 - **[Summaries](../reference/api/summary-slots.md)** — Summarizer-generated status slots on project and workspace pages, with on-demand refresh and revision history. Status Cards requires Summaries, so disabling Summaries also disables Status Cards.
 
 **Paperclip Developer Mode** — *"Internal tools for developing, testing, and debugging Paperclip."* You won't need these for day-to-day use.
@@ -257,13 +258,15 @@ Open **Settings → Experimental**. The page groups its toggles into up to three
 
 **Legacy** — *"These features are going to be removed."*
 
-- **[Classic Task Interface](../experimental/task-chat.md)** — restores the previous task detail page: the page-level header, the plain comment thread, and the fixed Properties sidebar.
-- **[Goals Sidebar Link](../guides/projects-workflow/goals.md)** — restores the **Goals** item in the main sidebar while the goals surface is being evaluated.
+- **[Classic Task Interface](../experimental/task-chat.md)** — restores the previous task detail page for people in the Classic workspace: the page-level header, the plain comment thread, and the fixed Properties sidebar.
+- **[Goals Sidebar Link](../guides/projects-workflow/goals.md)** — restores the **Goals** item in the Classic workspace's main sidebar while the goals surface is being evaluated.
 
 #### No longer on this page
 
 If you're coming from an older release, a few toggles you may remember are gone:
 
+- **[Coordinator workspace](../experimental/coordinator-workspace.md)** — no toggle any more. It's the standard workspace for everyone, and an earlier "off" setting no longer counts. Choose **Classic workspace** if you want the previous interface.
+- **[Agent Chat](../experimental/agent-chat.md)** — no toggle any more. It's available to everyone, even on instances that had it off. `enableAgentChat` remains as a compatibility key, and stored or managed values are ignored.
 - **[Task Watchdogs](../experimental/task-watchdogs.md)** — no flag any more. Watchdog controls are always available on tasks.
 - **[Artifacts V1](../guides/day-to-day/artifacts.md)** — no toggle any more. Stacks, tiles, and compact rows are how artifacts look on every instance. A hosting operator can still [hold the older cards in place](../guides/day-to-day/artifacts.md#if-your-instance-shows-the-older-cards).
 - **[Auto-Create Recovery Tasks](../experimental/auto-create-recovery-tasks.md)** — retired, along with its preview and run actions.

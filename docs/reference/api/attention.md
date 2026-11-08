@@ -6,7 +6,7 @@ seo_description: Read the board's ranked decision queue — the feed behind the 
 
 # Attention
 
-Read the board's current decision queue. This is the feed behind the **Decisions** screen: a single, ranked view of work that needs a person to act, from approvals and questions to blocked work, failed runs, budget alerts, and agent errors.
+Read the board's current decision queue. This is the feed behind the **Inbox** page in the [Coordinator workspace](../../experimental/coordinator-workspace.md) (and the **Decisions** page in the Classic workspace): a single, ranked view of work that needs a person to act, from approvals and questions to blocked work, failed runs, budget alerts, and agent errors.
 
 Use this API when you are building an operator view or need to give a board user a concise, current list of what needs their attention. It is a read-only feed; the action a person takes still belongs to the underlying approval, interaction, issue, or alert.
 
@@ -240,6 +240,8 @@ The board feed is deliberately quiet about cards that a governed agent is expect
 - `addresseeAgentId` is `null` (it was raised for the board), or
 - the addressed agent is no longer invokable — the card falls back to the board so it never gets stranded.
 
+The feed also collapses repeated confirmations. When an agent asks for confirmation more than once on an issue, only the newest pending `request_confirmation` appears. Once the newest ask for a recipient is accepted, rejected, answered, or expired, older pending ones for that recipient stay hidden too. A cancelled or failed replacement doesn't settle the ask, so the older card returns. Quality-review confirmations are never collapsed, and a settled confirmation never hides a pending tool-action confirmation.
+
 ### Withdrawal and terminal expiry
 
 Addressed cards settle through the same administrative endings as any other interaction, plus one that is specific to addressees:
@@ -280,7 +282,7 @@ There is a second, different snooze. An inbox dismissal is yours alone and shows
 
 ## Your workspace preference
 
-Whether you see the classic workspace or the [Coordinator workspace](../../experimental/coordinator-workspace.md) is a personal setting stored for your account. It's off by default, and it changes your own interface, not what your company or teammates can do.
+The [Coordinator workspace](../../experimental/coordinator-workspace.md) is the standard for everyone. Opting in to the Classic workspace is a personal setting stored for your account, off by default, and it changes your own interface, not what your company or teammates can do. These routes keep their original field name: `coordinatorWorkspaceEnabled` is `true` for Coordinator and `false` for Classic.
 
 ```
 GET /api/workspace-preferences/me
@@ -289,24 +291,24 @@ PUT /api/companies/{companyId}/workspace-preferences/me
 
 Both routes need board access with a user context. A non-board caller gets `403` with `"Board access required"`, and a board caller with no user context gets `403` with `"Board user access required"`. Responses are sent with `Cache-Control: private, no-store`.
 
-`GET` returns your current preference. If you've never set one, you get the default:
+`GET` returns your current preference. If you've never chosen Classic, you get Coordinator. That includes accounts that had the old Coordinator experiment off, because the old value no longer selects Classic:
 
 ```json
 {
   "userId": "<your user id>",
-  "coordinatorWorkspaceEnabled": false,
+  "coordinatorWorkspaceEnabled": true,
   "updatedAt": null
 }
 ```
 
-`PUT` sets it. The body accepts only `coordinatorWorkspaceEnabled`:
+`PUT` sets it. The body accepts only `coordinatorWorkspaceEnabled`. Send `false` to opt in to Classic and `true` to return to Coordinator:
 
 ```bash
 curl -s -X PUT \
   "http://localhost:3100/api/companies/{companyId}/workspace-preferences/me" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
-  -d '{ "coordinatorWorkspaceEnabled": true }'
+  -d '{ "coordinatorWorkspaceEnabled": false }'
 ```
 
 The preference itself isn't tied to a company: it applies across every company on the instance. The company in the path is where the change is recorded in the activity log, as `workspace_preferences.updated`. You need an active membership in that company (local trusted boards are exempt). Viewers count too. Without access you get `403` with `"User does not have access to this company"` or `"User does not have active company access"`. On a local trusted instance, an unknown company returns `404`. The response is the saved preference, in the same shape as `GET`.
@@ -316,7 +318,7 @@ The preference itself isn't tied to a company: it applies across every company o
 ## Where to go next
 
 - [Decisions](../../guides/day-to-day/decisions.md) — use the built-in operator workflow.
-- [Coordinator workspace](../../experimental/coordinator-workspace.md) — the opt-in workspace built on decision history and Needs you.
+- [Coordinator workspace](../../experimental/coordinator-workspace.md) — the standard workspace built on decision history and Inbox.
 - [Decisions API](./decisions.md) — decision records, queues, and triage.
 - [Approvals](./approvals.md) — act on approval records in the queue.
 - [Issues](./issues.md) — work with issue-thread interactions and the issues behind many attention items.
