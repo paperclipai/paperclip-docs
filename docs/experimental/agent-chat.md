@@ -17,7 +17,7 @@ Agent Chat is a standard part of Paperclip. There's no toggle and nothing to ena
 
 ## Opening a chat
 
-In the [Coordinator workspace](coordinator-workspace.md), **Chat** is the first destination in the main sidebar. If you've opted in to the [Classic workspace](coordinator-workspace.md#use-the-classic-workspace-instead), **Chat** leads the **Work** group in the streamlined sidebar, or sits below Inbox in the older sidebar.
+In the [Coordinator workspace](coordinator-workspace.md), **Chat** is the first destination in the main sidebar. If you've opted in to the [Classic workspace](coordinator-workspace.md#use-the-classic-workspace-instead), **Chat** leads the **Work** group in the streamlined sidebar. With **Streamlined UI** off, the older desktop sidebar has no **Chat** row, so go to `/chats`.
 
 Click it and Paperclip takes you back to the last agent chat you had open in this company. If you don't have one, it opens a chat with your [primary agent](../guides/org/agents.md#your-primary-agent). With no primary agent either, you land on a page asking *"Who would you like to talk to?"*, with a few of your agents to pick from and a **Browse all agents** link for the rest.
 

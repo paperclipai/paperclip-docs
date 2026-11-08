@@ -14,7 +14,7 @@ Watching an agent work on a task usually means reading two things at once: the c
 
 Chat-Style Tasks started life as an experimental toggle. It's now simply how the task page works — there's nothing to switch on.
 
-If you'd rather have the old page back, go to **Settings → Experimental** and, under **Legacy** (*"These features are going to be removed."*), turn on **Classic Task Interface**. It restores the previous task detail page — the page-level header, the plain comment thread, and the fixed Properties sidebar — and the chat-only features described below aren't available there. The card notes that *"Switching takes effect immediately. No task data is affected."* Like every flag on that page, it's instance-wide. It only takes effect for people in the [Classic workspace](coordinator-workspace.md#use-the-classic-workspace-instead): the standard Coordinator workspace always uses the chat-style page, whatever this toggle says.
+If you'd rather have the old page back, go to **Settings → Experimental** and, under **Legacy** (*"These features are going to be removed."*), turn on **Classic Task Interface**. It restores the previous task detail page — the page-level header, the plain comment thread, and the fixed Properties sidebar — and the chat-only features described below aren't available there. The card notes that *"Switching takes effect immediately. No task data is affected."* Like every flag on that page, it's instance-wide. It only restores the old page for people in the [Classic workspace](coordinator-workspace.md#use-the-classic-workspace-instead): the standard Coordinator workspace always uses the chat-style page, though the toggle does change its properties panel.
 
 ## An optional combined task list
 
@@ -67,7 +67,7 @@ The fold is animated when it happens in front of you, and instant for turns that
 
 An agent's reasoning renders as a quiet block against a left rail. While it streams the header shimmers **Thinking…**; when it settles it becomes **Thought for 12s** and collapses. Click the header to read it again.
 
-When the agent's harness writes short headlines for its reasoning, as Codex does, each one shows as a bullet. The newest headline also becomes the one-line status of a folded live run, so you can see what it's working on without opening anything.
+When the agent's harness writes short headlines for its reasoning, as Codex does, each one shows as a bullet.
 
 ### Tool calls and diffs
 

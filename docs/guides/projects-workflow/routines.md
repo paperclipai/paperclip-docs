@@ -197,7 +197,7 @@ Every task a routine creates runs under a person's authority. To see whose, look
 
 To hand a routine to someone else, or adopt it yourself, click the name, search under **Find a person…**, and pick an active company member. The change saves straight away and applies to future automatic tasks. Tasks the routine already created keep the person they had. You need permission to assign tasks (`tasks:assign`). Everyone else, including agents and Viewers, sees the name without the picker. If someone edited the routine first, you'll see *This routine changed. Reload before changing responsibility.*
 
-When an agent creates a routine, the responsible user is the person the agent is acting for. The agent is still recorded as the routine's creator.
+When an agent creates a routine, the responsible user is the person the agent is acting for. If there's no such person, Paperclip uses the parent task's responsible user or creator, then the company's default. The agent is still recorded as the routine's creator.
 
 ### Saving edits
 

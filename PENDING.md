@@ -6,7 +6,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Compare truncation:** 0 truncated leaves (cumulative: 77 leaves, 1,339 commits, 6,022 files; increment: 17 leaves, 425 commits, 1,993 files).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
 - **Already on nightly:** drafts for `d69631b0..56517dda`. This run covers the 425 newer commits, `56517dda..d2efe339`.
-- **Verification:** authors and reviewers read only a checkout pinned to `d2efe339`. Every changed page was checked with `verify-edit` at that SHA (`source: snapshot`, no warnings). One round of fresh reviewers then checked the edits against code, and their 11 confirmed defects are fixed; those fixes weren't re-reviewed. Nothing was run against a live instance.
+- **Verification:** authors and reviewers read only a checkout pinned to `d2efe339`. Every changed page was checked with `verify-edit` at that SHA (`source: snapshot`, no warnings). Two rounds of fresh reviewers then checked the edits against code: a first pass (11 confirmed defects) and an exhaustive line-by-line pass (20 confirmed defects). All are fixed. The second round's fixes were spot-checked against code by hand, not by a third round. Nothing was run against a live instance.
 - **Auto-merge tier:** nothing this run. `.env.example` and `server/src/config.ts` didn't change in the window.
 
 ## Applied this run (`56517dda..d2efe339`)
@@ -75,11 +75,7 @@ None (`source: snapshot`, no warnings). This check ran before the edits. `sync:c
 - **Move graduated pages out of Experimental?** `coordinator-workspace.md` and `agent-chat.md` describe standard features but still sit under `experimental/`. Moving them changes URLs and needs redirects, so it was left for a decision.
 - **Release-note callout:** saved built-in Google Workspace connections stop working on upgrade until the toggle is on.
 - **Managed plugin environment edit page:** it renders for plugin rows and says environment variables can be added, but the server refuses that save. This looks like an upstream bug.
-- **`saved_work_recovery_failed` on a retained-export cause:** the message offers Retry but the UI hides it. Unclear whether that case can occur.
-- **Header chat button when Agent Chat is off:** moot now, because the flag is forced on.
-- **"Tied to the launch profile"** (`paperclip-runner.md:347`): the error code and the fresh-session behaviour are confirmed, but no launch-profile comparison was found in the OpenCode or Cursor Cloud drivers.
-- **`api/agents.md` `422` when choosing an AI connection:** the check sits inside a probe-gated branch, so it may not fire on every choice.
-- **Not settled by review:** which harnesses enter plan mode (`work-modes.md`), whether `resumeFrom` continues after graceful eviction (`sdk.md`), plain-folder close and the broken `.git` message (`workspaces.md`), "isn't parked" during verification and "plugins and adapters have loaded" (debug sections 19 and 18), and the **Mine** label in `understanding-github-review-bots.md`.
+- **Not settled by review:** in `your-first-company.md`, new-tab opening, paste versus Enter, and the sign-in Retry and refresh state; the in-sentence document link chip in `task-chat.md`; which other harnesses (Grok, Copilot, Cursor) enter a plan step, on which `work-modes.md` makes no claim; and whether **Harness** can route an agent back to the Runner from Cursor Cloud.
 - **Automatic resume and bootstrap retry counts** are left unquantified, because they were only seen in commit text.
 - **Screenshots:** see `SCREENSHOTS_PENDING.md`. Coordinator is now the default, so most of the set needs reshooting at the next release.
 

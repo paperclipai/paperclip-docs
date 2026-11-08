@@ -340,7 +340,7 @@ Other behaviour to know:
 - If the tree changes between the check and the write, the request fails with `409` and code `issue_parent_placement_changed` (`The task tree changed while this task was checked. Read the tasks again and retry.`, or `The task tree changed while this move was checked. Read the tasks again and retry.` for a move).
 - Board users aren't limited, and existing deeper trees stay valid.
 - A task inside a low-trust review boundary keeps its requested parent rather than moving above the boundary's root.
-- Task watchdog runs keep their requested parent. So do stranded-task recovery tasks and routines configured by a person. Routines created by an agent follow this limit.
+- Tasks created by task watchdog runs keep their requested parent. So do stranded-task recovery tasks and routines configured by a person. Routines created by an agent follow this limit.
 - Nesting doesn't make one task wait for another. Use `blockedByIssueIds` or `blockParentUntilDone`.
 
 ---

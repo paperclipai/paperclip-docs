@@ -1183,7 +1183,7 @@ Once a Codex or Claude agent on Paperclip Runner has reported its provider's lim
 | `limitReached` | `windowId`, `reason`, and `resetsAt` while the provider is refusing work, or `null`. |
 | `observedAt` | When this snapshot was reported. |
 
-While the provider's limit is active, a queued run for the agent is cancelled with `errorCode: "provider_limit_wait"` and retried at the reset. See [When a provider usage limit is reached](../../guides/org/agents.md#when-a-provider-usage-limit-is-reached). To compact an agent's context from a task, see [Context Window and Compaction](./issues.md#context-window-and-compaction).
+While the provider's limit is active, a queued automatic run for the agent is cancelled with `errorCode: "provider_limit_wait"` and retried at the reset. See [When a provider usage limit is reached](../../guides/org/agents.md#when-a-provider-usage-limit-is-reached). To compact an agent's context from a task, see [Context Window and Compaction](./issues.md#context-window-and-compaction).
 
 ---
 
@@ -1324,7 +1324,7 @@ Important notes:
 - The server resolves secrets before running the test.
 - To test a saved agent, pass its `agentId` in the test-environment body. The server fills in any environment values that came back redacted from the saved config, so you don't have to re-enter them. If you're testing a switch to a different adapter, re-enter those values instead — the server won't carry hidden values across to an unrelated adapter.
 - If you leave `environmentId` out, the test runs in the saved agent's default environment (when you passed `agentId`), or else the instance's default environment. Send `environmentId: null` to test against the instance default explicitly.
-- A plugin environment that runs Runner tasks only accepts agents on a managed AI connection in an isolated Runner home. Testing a `paperclip_runner` config there without an AI connection, or with `homeMode: "preconfigured"`, returns `status: "fail"` with the check code `ai_connection_required`, before any secret is resolved or a computer is allocated. Choosing an AI connection for a preconfigured-home Runner agent on such an environment fails with `422` and the same code.
+- A plugin environment that runs Runner tasks only accepts agents on a managed AI connection in an isolated Runner home. Testing a `paperclip_runner` config there without an AI connection, or with `homeMode: "preconfigured"`, returns `status: "fail"` with the check code `ai_connection_required`, before any secret is resolved or a computer is allocated. Adopting an AI connection from a task's connection card fails with `422` and the same code for a preconfigured-home Runner agent on such an environment, as does a re-verification on save for a legacy-adoption or Copilot connection. Ordinary saves aren't checked, and the run fails instead.
 
 ---
 

@@ -1258,7 +1258,7 @@ By default, each run gets its own Runner task. A driver can instead keep a Codex
 - Declare `warmTaskVersion: 1` on the driver and return `warmTaskVersion: 1` from `describe`, but only when your host supports attaching a new run to a running task.
 - Implement `onEnvironmentResumeLease`. Its params now include the new run's `runId`. See [When a sandbox can't be resumed](#when-a-sandbox-cant-be-resumed) for how to report a failure.
 
-An agent gets warm reuse when it uses the Codex provider with the **Warm session** Runner lifecycle and a selected AI account. Paperclip then sends a `warm` `lifecyclePolicy` (with an `idleTimeoutMs`) in the `submit` launch limits. Each later run's `prepare` carries the exact `priorIdentity` and a stable `accountIdentity`. Record that handoff idempotently before letting the new run in. If anything that matters changes — the account, credentials, workspace, authorized projects, or runtime settings — Paperclip retires the old process first and recovers from its checkpoint. The agent form offers this lifecycle only for Codex, so OpenCode and ACP agents stay per turn unless the environment says otherwise: a `runnerLifecycleMode` set on the environment's config overrides the agent's lifecycle.
+An agent gets warm reuse when its Runner lifecycle is **Warm session**, it has a selected AI account, and your driver declares `warmTaskVersion: 1`. This isn't limited to Codex. A new Runner agent on such a driver is saved as warm, except Muse, OpenAI DOT and Grok Bot agents. Paperclip then sends a `warm` `lifecyclePolicy` (with an `idleTimeoutMs`) in the `submit` launch limits. Each later run's `prepare` carries the exact `priorIdentity` and a stable `accountIdentity`. Record that handoff idempotently before letting the new run in. If anything that matters changes — the account, credentials, workspace, authorized projects, or runtime settings — Paperclip retires the old process first and recovers from its checkpoint. A `runnerLifecycleMode` set on the environment's config overrides the agent's lifecycle.
 
 ##### Releasing and resuming a settled Runner (gated)
 
@@ -1299,7 +1299,7 @@ if (installed.revision !== expectedRevision) {
 }
 ```
 
-`runner_revision_mismatch` is the only code in `ENVIRONMENT_TASK_ERROR_CODES` so far. A run that hasn't started provider work waits and retries once a minute for up to 10 attempts instead of blocking the task, and the agent **Test** button reports "The remote Runner does not match this Paperclip version yet. Paperclip will check again after the Runner update."
+`runner_revision_mismatch` is the only code in `ENVIRONMENT_TASK_ERROR_CODES` so far. A run still in setup, before Paperclip selects the Runner session, waits and retries once a minute for up to 10 attempts instead of blocking the task, and the agent **Test** button reports "The remote Runner does not match this Paperclip version yet. Paperclip will check again after the Runner update."
 
 **A saved session can't be used.** When you refuse a `submit` that has `resumeFrom`, throw an error with `status: 409`, `code: "SESSION_STATE_UNAVAILABLE"`, and a `reason` of `unresolved_operation` or `source_state_unverified`. The worker sends only those three fields and replaces your message with "Plugin Runner source state unavailable". It's a diagnostic only, and never authorizes a retry, a replacement, or cleanup.
 

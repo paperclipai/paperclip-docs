@@ -537,7 +537,7 @@ If an agent hits its 100% limit and auto-pauses, you have two options:
 1. Open **Audit → Budgets**. The breach shows up as a card under **Active incidents**, and the agent's policy card under **Agent Budgets** is marked **Paused**.
 2. Either enter a higher amount in the incident card's **New budget (USD)** field and click **Raise budget & resume**, or type it into the policy card's **Budget (USD)** field and click **Update budget**.
 
-The agent will resume immediately. It won't wait for the month to roll over — as long as its spend is fully counted. If it still has runs awaiting accounting or unpriced usage, it stays paused until that's sorted out (see [When spend is uncertain](#when-spend-is-uncertain)).
+The agent will resume immediately. It won't wait for the month to roll over — as long as its spend is fully counted. If unpriced usage is still blocking, it stays paused until that's sorted out. Runs awaiting accounting don't keep it paused, but new work can wait until they settle (see [When spend is uncertain](#when-spend-is-uncertain)).
 
 **Option 2: Wait for the month to reset**
 

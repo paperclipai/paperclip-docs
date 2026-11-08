@@ -117,7 +117,7 @@ Internal tools for developing, testing, and debugging Paperclip itself.
 
 | Feature | What it adds |
 | --- | --- |
-| [Classic Task Interface](task-chat.md) | **Classic workspace only.** Restores the previous task detail page. The chat-style task page is now the default. |
+| [Classic Task Interface](task-chat.md) | Restores the previous task detail page in the Classic workspace; in Coordinator it only changes the properties panel. The chat-style task page is now the default. |
 | [Goals Sidebar Link](../guides/projects-workflow/goals.md) | **Classic workspace only.** Restores the **Goals** item in the main sidebar. |
 
 ### Not on the page

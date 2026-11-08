@@ -241,20 +241,20 @@ Any other wait reads *Retry is waiting for execution checks. Your message is sav
 
 **Cause.** The server is starting, recovering, or shutting down for an update. Depending on which, the run's next step reads *The server restarted and is finishing recovery. This turn starts automatically when recovery completes.* or *The server is restarting for an update. This turn starts automatically on the replacement server.*
 
-**Fix.** Wait. After a restart, turns that never started go first, as soon as plugins and adapters have loaded. A pause for maintenance reads **Waiting for maintenance** instead.
+**Fix.** Wait. After a restart, turns that never started go first, as soon as plugins and adapters have loaded, unless that agent has a run still being recovered. A pause for maintenance reads **Waiting for maintenance** instead.
 
 ---
 
 ## 19. Task can't reach its sandbox provider or remote Runner
 
-**Symptom.** A task on a sandbox or plugin environment stops before the agent starts, with a red notice whose title starts **Sandbox provider:**, or a recovery notice titled **Environment provider was temporarily unavailable** or **Remote Runner is out of date**.
+**Symptom.** A task on a sandbox or plugin environment stops before the agent starts, with a red notice whose title starts **Sandbox provider:** (`plugin:` on a plugin environment), or a recovery notice titled **Environment provider was temporarily unavailable** or **Remote Runner is out of date**.
 
-**Cause.** These are usually short-lived:
+**Cause.** The underlying problem is usually short-lived:
 
 - The sandbox provider refused to create a sandbox with a temporary error, such as HTTP 429, 502, or 503, or a timeout. Paperclip retries a limited number of times, and while it does the notice adds *Paperclip will retry automatically.*
 - During a release, the app can update before the remote Runner does. Paperclip checks again every 60 seconds, up to 10 times, and this doesn't use up the task's normal retries. An agent going through verification keeps checking and isn't parked for it.
 
-**Fix.** Usually nothing. No agent work started, so nothing is lost. If the notice stays, check the provider's status, or that the Runner received this release's update, then click **Retry**.
+**Fix.** While the notice says *Paperclip will retry automatically.*, wait. No agent work started, so nothing is lost. A recovery notice means automatic retries have run out: check the provider's status, or that the Runner received this release's update, then click **Retry**.
 
 ---
 
@@ -264,7 +264,7 @@ Any other wait reads *Retry is waiting for execution checks. Your message is sav
 
 **Cause.** A finished run's cost isn't settled yet, often after a server restart. This is a temporary hold, not a hard stop: nothing is paused and running work carries on.
 
-**Fix.** Wait. Most holds clear within moments. A Paperclip Runner run that never proves it stopped settles once its recovery has finished and 10 minutes have passed since it ended. Held work then starts by itself. A run whose usage capture failed, or a run on another adapter with an incomplete report, has no such limit and keeps holding until its report is resolved. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain) for exactly what holds work and what stops it.
+**Fix.** Wait. Most holds clear within moments. A Paperclip Runner run that never proves it stopped settles once its recovery has finished and 10 minutes have passed since it ended. Held work then starts by itself, unless that run has no price and no sign of a server restart, which by default raises a hard stop. A run whose usage capture failed, or a run on another adapter with an incomplete report, has no such limit and keeps holding until its report is resolved. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain) for exactly what holds work and what stops it.
 
 ---
 

@@ -34,7 +34,7 @@ A few things to know about it:
 
 Chat is still there in Classic; see [Opening a chat](agent-chat.md#opening-a-chat) for where it sits.
 
-Coordinator always uses the streamlined shell and the chat-style task page. That means **Classic Task Interface**, **Combined Inbox + Task List**, **Decisions**, and **Goals Sidebar Link** on the [Experimental page](overview.md) only make a difference for people in the Classic workspace. **Streamlined UI** mostly does too, though a few page layouts still follow it in Coordinator.
+Coordinator always uses the streamlined shell and the chat-style task page. That means **Combined Inbox + Task List**, **Decisions**, and **Goals Sidebar Link** on the [Experimental page](overview.md) only make a difference for people in the Classic workspace. **Streamlined UI** mostly does too, though a few page layouts still follow it in Coordinator. **Classic Task Interface** doesn't change the task page in Coordinator, though the properties panel loses its streamlined layout.
 
 ## The sidebar
 
@@ -125,7 +125,7 @@ Coordinator no longer has a separate **Inbox** page under **More**. Those person
 
 Most items can be resolved right on the card. A task stuck in review with no one to pick it up asks you to **Choose how this task continues**: send it back to work, request changes, or **Mark task done**. Anything that can't be handled in place has an **Open to review** button. Cards tied to a task link back to it.
 
-If an agent asks for confirmation more than once on a task, even about different things, you only see the newest ask. Once you answer it, or it expires, the older ones stay hidden, so a card you already approved in chat doesn't come back here. If the newest ask is cancelled or fails instead, the earlier one returns, because nothing was settled.
+If an agent asks for confirmation more than once on a task, even about different things, you only see the newest ask. Once you answer it, or it expires, the older ones stay hidden, so a card you already approved in chat doesn't come back here. If the newest ask is cancelled or fails instead, the earlier one returns, because nothing was settled. Quality-review confirmations are listed separately.
 
 Use the toolbar above the queue to narrow it down:
 
