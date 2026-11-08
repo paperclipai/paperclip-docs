@@ -8,7 +8,7 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 
 `claude_local` runs Anthropic's Claude Code CLI on the same machine as Paperclip. Use it when you want a local coding agent with session persistence, skills injection, and full access to the configured working directory.
 
-> **Heads-up:** New Claude Code agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer (a Mac reached over SSH stays on the Legacy runner unless you pick the Runner yourself). Those agents are saved as `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"`, and a blank model resolves to `claude-opus-5-5`. To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
+> **Heads-up:** New Claude Code agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer (a Mac reached over SSH stays on the Legacy runner unless you ask for the Runner through the API or CLI). Those agents are saved as `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"`, and a blank model resolves to `claude-opus-5-5`. To keep the classic adapter described on this page, create or hire the agent with `runner: "legacy"` through the API, or `--runner legacy` in the CLI. The agent form no longer has a **Runner** setting. Existing agents keep the runner they already have.
 
 ---
 
@@ -120,6 +120,8 @@ On ACP, a tool call that goes quiet can't hold a run open forever:
 You can keep `engine` on `auto` when this agent runs in a Paperclip sandbox environment. If that sandbox provides Paperclip's bidirectional process session, Paperclip keeps the ACP engine and its structured live transcript; you do not add a separate bridge setting to the adapter config.
 
 An environment that only runs one-shot commands cannot host an ACP session, so an `auto` run there fails with a setup error rather than switching to the Claude CLI. Set `engine: "cli"` when you want the CLI lane — for example on such environments.
+
+In the default `approve-all` ACP permission mode, a sandbox session starts Claude in `bypassPermissions`, so tool calls don't wait on a permission round trip that Paperclip would approve anyway. That round trip was where tool calls could stall until `acpx_tool_stalled` ended the turn. Agents set to `approve-reads` or `deny-all`, and runs on a managed AI connection, keep Claude's normal permission flow.
 
 ### Sandbox memory limits
 

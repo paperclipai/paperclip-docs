@@ -8,7 +8,7 @@ seo_description: Approvals, blocked issues, failed runs, and budget warnings in 
 
 The **Decisions** page gives you one place to see work that needs a human call. Instead of checking approvals, blocked issues, failed runs, and budget warnings separately, you can start here and work through a ranked queue.
 
-Open it from the sidebar, or go directly to `/decisions`.
+In the standard Coordinator workspace, this queue is called **Inbox**: click **Inbox** in the sidebar. See [Inbox](../../experimental/coordinator-workspace.md#inbox) for how it works there. In the [Classic workspace](../../experimental/coordinator-workspace.md#use-the-classic-workspace-instead), the sidebar item is **Decisions**, and it appears once you turn on **Decisions** under **Settings → Experimental**. Either way, you can go directly to `/decisions`.
 
 ![The Decisions page: a ranked queue of items needing a human call, each row naming why it needs you and linking to the work behind it](../../user-guides/screenshots/light/decisions/queue-overview.png)
 

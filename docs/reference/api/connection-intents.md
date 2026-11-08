@@ -46,7 +46,7 @@ The two tools:
 | Tool | Arguments | Purpose |
 |---|---|---|
 | `connections_search` | `query` (string, optional) | List connectable services matching a service name or a plain-language description of the need, with each one's readiness for this agent. |
-| `connection_request` | `service` (string, required) | Ask for a specific service by slug; returns it ready if already usable, otherwise opens an intent. |
+| `connection_request` | `service` (string, required), `connectionId` (optional), `toolNames` (optional, 1–20 unique exact names), `targetService` (optional), `selectionInteractionId` (optional) | Ask for a specific service by slug; returns it ready if already usable, otherwise opens an intent. |
 
 ### REST convenience routes
 
@@ -112,6 +112,10 @@ For `agentmail`, the card is an inline API-key card addressed to the responsible
 
 If the service is already connected, `state` is `ready`, `connectionId` is set, `interactionId` is `null`, and the instruction says the service is available in this run. Requests are idempotent per run and service, so calling twice won't spawn two cards.
 
+An agent can already hold some of a connection's tools, for example when someone else connected the account and shared only part of it. A request without `toolNames` then comes back `ready`, because it only asks whether the agent can use the service at all. To get more, the agent passes `connectionId` and the exact `toolNames` it needs.
+
+An agent with no access yet can send a request without `toolNames` on a catalog of up to 500 indexed tools, and the person reviews them on one access card. Above 500, the request returns `422` with `Specify the tools needed for this task (up to 20).`, followed by the `connectionId` to reuse and the first 100 indexed tool names. No access is granted until the card is accepted, and write tools on the card start as **Ask first**.
+
 ---
 
 ## Board routes (human-facing)
@@ -140,6 +144,8 @@ Moves the intent through its working phases. Body:
 
 Any other value returns `422` with `{ "error": "phase must be requested, authorizing, or needs_retry" }`.
 
+The card also uses this route to save the person's choice of agents before an OAuth sign-in. Alongside `phase: "authorizing"` it sends an optional `setupAccess` object: the draft's `connectionId` and `access`, which is either `"all_agents"` or `{ "agentIds": [...] }`. Saving grants nothing. Paperclip rechecks and applies the choice when the intent completes.
+
 ### Complete the intent
 
 ```
@@ -152,7 +158,7 @@ Connects the chosen connection to the requesting agent and resolves the intent a
 |---|---|---|
 | `connectionId` | yes | A UUID for the connection to use. Must belong to the intent's service. |
 
-The chosen connection has to match the requested service (else `404`, `Connection does not match this intent`) and be `active` and `enabled` (else `409`, `Finish and test this connection before using it for the task`). An intent that's already resolved returns `409` with `Connection intent is already resolved`. Completing delegates the person's identity grant to the agent and installs the connection onto it; sharing a company-wide connection requires connection-management authority (`tools:manage_connections`). On success it logs an `issue.connection_intent_connected` activity and wakes the assigned agent's heartbeat.
+The chosen connection has to match the requested service (else `404`, `Connection does not match this intent`) and be `active` and `enabled` (else `409`, `Finish and test this connection before using it for the task`). An intent that's already resolved returns `409` with `Connection intent is already resolved`. Completing delegates the person's identity grant to the agent and installs the connection onto it, along with any wider set of agents the person saved during sign-in; sharing a company-wide connection requires connection-management authority (`tools:manage_connections`). On success it logs an `issue.connection_intent_connected` activity and wakes the assigned agent's heartbeat.
 
 ### Decline the intent
 

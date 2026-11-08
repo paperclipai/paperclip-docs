@@ -24,8 +24,6 @@ The mode is applied when you send. Changing the chip alone does not interrupt th
 
 Auto is the default. Plan focuses the agent on clarifying the goal and writing a plan document. Ask keeps the request read-only, so it suits a lookup, comparison, or explanation.
 
-Each agent reply shows the mode that request ran under. Read that chip when looking back through the thread: it describes that turn rather than promising that every message in the task used the same mode.
-
 ## How it behaves
 
 Use the **+** menu in the new-task or task composer to choose **Plan mode** or **Ask mode**. The selected mode appears beside the plus button. Click the chip to return to Auto, or choose the other mode to replace it. You can also cycle modes with **⌘+.** (**Ctrl+.** on Windows and Linux) or **Shift+Tab** while the text box is focused.
@@ -35,6 +33,8 @@ Replies in the thread don't show which mode they ran under. The chip beside the 
 Choose the agent, model, and effort separately. Those settings determine who answers and how the model runs; the work mode determines the kind of result you requested. See [The composer](../../experimental/task-chat.md#the-composer) for the full control layout.
 
 Pending questions and confirmations remain visible above the composer until you answer them or the request's own expiration rules apply. Selecting Auto or sending a new message does not automatically accept a plan. Use the confirmation card's choices to make that decision.
+
+On the [Paperclip Runner](../../reference/adapters/paperclip-runner.md), Plan mode also puts Codex and Claude Code into their own planning step. The plan they propose becomes the task's Plan document, with an approval card offering **Approve plan** and **Request changes**. An agent working in Auto can propose a plan the same way when it decides to stop and ask. A plan proposed during an Ask turn isn't saved as the task's plan. See [Cards and markers](../../experimental/task-chat.md#cards-and-markers) for what you'll see.
 
 Tasks keep their assignee, priority, project, thread, and status regardless of the mode. Budgets, approvals, and company boundaries still apply. The mode changes the agent's task instructions and available actions.
 

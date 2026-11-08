@@ -8,7 +8,7 @@ seo_description: Let agents search and read Google Chat conversations, and optio
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** This connector is no longer listed on the **Connectors** page for new setup; it appears there only when you have a saved connection to it, which keeps running unchanged. [Google Workspace](google-workspace.md), the connector for new Google accounts, does not include Google Chat. An agent that needs this service can still ask you for it with a connection card on its task.
+> **Note:** This connector is no longer listed on the **Connectors** page for new setup; it appears there only when you have a saved connection to it, which keeps running unchanged. [Google Workspace](google-workspace.md), the built-in connector for new Google accounts ([off by default](google-workspace.md#turn-on-the-built-in-connector)), does not include Google Chat. An agent that needs this service can still ask you for it with a connection card on its task.
 
 Agents can search Google Chat conversations and read messages, and on a sending connection post messages to spaces the authorizing account belongs to.
 

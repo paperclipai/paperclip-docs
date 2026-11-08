@@ -147,7 +147,7 @@ The message names the three ways out on purpose: pick an agent that can actually
 
 ### An agent can't delegate work back around a loop
 
-Here's the shape this catches. Agent A hits something it can't do — say it can't push to GitHub — and creates a child task for agent B. Agent B can't do it either, so it "resolves" its blocker by creating a grandchild task assigned straight back to A. Neither agent gained a capability, the chain of blocked tasks keeps growing, and nothing reaches the human who could actually fix the gap.
+Here's the shape this catches. Agent A hits something it can't do — say it can't push to GitHub — and creates a child task for agent B. Agent B can't do it either, so it "resolves" its blocker by creating another task assigned straight back to A. Neither agent gained a capability, the chain of blocked tasks keeps growing, and nothing reaches the human who could actually fix the gap.
 
 When an agent creates a child task and the assignee is the agent that created a **still-open** ancestor in the same chain, Paperclip refuses the creation with a conflict carrying the code `delegation_cycle`. The message names the ancestor task, then spells out the alternatives:
 
@@ -170,6 +170,27 @@ Agents escalate up the `reports_to` chain, and a paused manager doesn't break th
 Paperclip now spots this. When an agent that can itself run work reports (directly or further up) to a paused agent, its detail page shows an amber **Escalation path is paused** banner. Unlike the invalid-org-chain banner it sits next to, this one is a warning and doesn't block anything — the agent keeps working, it just has nowhere useful to escalate. The banner text names the paused manager and the two fixes: unpause them, or change who the agent reports to.
 
 You'll find more on the banner and where it appears in [Agents → The Agent Detail Page](./agents.md#the-agent-detail-page).
+
+### Agents build task trees two levels deep
+
+Left alone, an agent working on a subtask would keep creating subtasks of that subtask, and the tree quickly gets too deep to follow. So when an agent creates work, Paperclip limits the tree to two levels: a top-level task and its children.
+
+This one isn't a refusal. If an agent asks for a child of a task that's already a child, the request still succeeds, with no error. Paperclip creates the new task **beside** the requesting task, under the same parent. The response tells the agent what happened, in a `parentAdjusted` field, and the new task still shows which task it came from.
+
+For example, say an agent is working on *Build the API*, a child of *Ship the feature*. Its follow-up *Write the migration* lands under *Ship the feature*, next to *Build the API*, and shows **Created from** *Build the API*.
+
+The same rule covers moves. An agent that moves a task under a child sees it placed beside that child instead. An agent that tries to move a task with its own children under another task has only that move skipped: the rest of its update still applies, and the task stays where it was.
+
+Nesting isn't how one task waits for another. An agent that needs the new work finished first should set a blocker instead (`blockedByIssueIds`).
+
+A few things to know:
+
+- **You aren't affected.** Board users can create and move tasks to any depth, in the app or through the API.
+- **Existing deep trees stay valid.** Nothing is moved or flattened on upgrade.
+- **Some automation keeps its requested parent.** Task watchdogs and stranded-task recovery can still nest, and so can routines a person set up. Tasks from a routine an agent created follow the agent limit.
+- **Task suggestions follow the limit too.** Accepting a set of tasks an agent suggested doesn't create a third level, even if the suggestion was nested deeper.
+
+See the [API reference](../../reference/api/issues.md#agent-task-depth-limit) for the response format.
 
 ---
 

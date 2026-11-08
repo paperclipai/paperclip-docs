@@ -16,7 +16,7 @@ Paperclip Runner is experimental. Native Codex, native OpenCode, **ACP agents â†
 - A prepared execution environment and compatible model credential.
 - The pinned runtime required by the selected provider.
 
-For source development, an enabled Runner requires a Rust toolchain or `PAPERCLIP_RUNNER_BINARY`; the development launcher builds the daemon when needed. Published distributions and execution images provide their own runtime assets.
+For source development, an enabled Runner requires a Rust toolchain or `PAPERCLIP_RUNNER_BINARY`; the development launcher builds the daemon when needed. If you set `PAPERCLIP_RUNNER_BINARY`, use an absolute path: a relative one stops a new local run before it starts, with `PAPERCLIP_RUNNER_BINARY must be an absolute path`. Published distributions and execution images provide their own runtime assets.
 
 ## New Codex and Claude agents use the Runner
 
@@ -29,7 +29,7 @@ When you create a Codex, Claude Code, OpenCode, or Pi agent, Paperclip picks the
 | OpenCode | `provider: "opencode"` | [`opencode_local`](opencode.md) |
 | Pi | `provider: "acpx"`, `acpxAgent: "pi"` | [`pi_local`](pi.md) |
 
- This applies to new agents created through onboarding, **New agent**, hires, built-in agents, plugins, imports, and the API or CLI. New Grok Build agents also resolve to the Runner on Apple Silicon macOS and on Linux x64 with GNU libc 2.39 or newer, but they only run while **Paperclip Runner** is on. Choose **Legacy runner** if you keep that setting off. Other harnesses keep their current defaults.
+ This applies to new agents created through onboarding, **New agent**, hires, built-in agents, plugins, imports, and the API or CLI. New Grok Build agents also resolve to the Runner on Apple Silicon macOS and on Linux x64 with GNU libc 2.39 or newer, but they only run while **Paperclip Runner** is on. If you keep that setting off, create them with the `legacy` runner through the API or CLI. Other harnesses keep their current defaults.
 
 Paperclip Runner is chosen automatically when the agent's execution environment is one of these:
 
@@ -43,24 +43,26 @@ On Paperclip Cloud, a sandbox environment that Paperclip manages and that still 
 A few extra rules apply to Claude:
 
 - **Paperclip has to know the platform.** If it can't tell which operating system and architecture the agent will run on, a new Claude agent keeps the Legacy runner.
-- **A Mac reached over SSH defaults to Legacy.** You can still pick **Paperclip Runner** yourself for that host, as long as it has the matching Runner assets installed.
+- **A Mac reached over SSH defaults to Legacy.** You can still ask for the Runner on that host with `runner: "paperclip"` through the API or CLI, as long as it has the matching Runner assets installed.
 - **Linux SSH hosts can use a preinstalled provider pack.** Install the pack from the same Paperclip release at `/opt/paperclip-runner/provider-pack` or `$HOME/.local/share/paperclip-runner/provider-pack`. The Runner looks there, verifies the pack, and picks the Linux x64 or ARM64 build that matches the host.
 
-Some environment plugins run Paperclip Runner themselves. On one of those [plugin environments](../../experimental/environments.md), a Codex, Claude Code, OpenCode, or Pi agent always gets Paperclip Runner, with no platform check, and **Legacy runner** is greyed out.
+Some environment plugins run Paperclip Runner themselves. On one of those [plugin environments](../../experimental/environments.md), a Codex, Claude Code, OpenCode, or Pi agent always gets Paperclip Runner, with no platform check, and the Legacy runner isn't available.
 
 ### Pick a runner yourself
 
-To choose, open **Advanced** in the agent form, onboarding, or the built-in agent setup and set **Runner**:
+The agent form, onboarding, and built-in agent setup no longer have a **Runner** control. A new agent gets the automatic choice. Saving an existing agent keeps its runner unless you change its **Harness**: switching to Codex, Claude Code, OpenCode, or Pi picks the runner automatically again. **Advanced** only appears there when other settings are left to show.
 
-| Option | Value | What happens |
-| --- | --- | --- |
-| **Paperclip Runner (default)** or **Legacy runner (default)** | `auto` | Paperclip picks the runner for this environment. The label shows which one you'll get. |
-| **Paperclip Runner** | `paperclip` | Always use the Runner. Saving fails if the environment doesn't qualify. |
-| **Legacy runner** | `legacy` | Keep classic `codex_local`, `claude_local`, `opencode_local`, or `pi_local` execution and all its settings. |
+To choose a runner yourself, use the API or CLI:
 
-From the API, send `runner` (`auto`, `paperclip`, or `legacy`) alongside `adapterType: "codex_local"`, `"claude_local"`, `"opencode_local"`, or `"pi_local"` when you create or hire an agent. In the CLI, `paperclipai agent create` and `paperclipai agent hire` take `--runner <runner>`.
+| Value | What happens |
+| --- | --- |
+| `auto` | Paperclip picks the runner for this environment. |
+| `paperclip` | Always use the Runner. Saving fails if the environment doesn't qualify. |
+| `legacy` | Keep classic `codex_local`, `claude_local`, `opencode_local`, or `pi_local` execution and all its settings. |
 
-Some `codex_local` settings have no Runner equivalent, such as a custom `command`, `extraArgs`, `search: true`, `fastMode`, filesystem or network scopes, or `maxTurns`. If you set one and the Runner gets picked, saving fails with `agent_runner_config_incompatible`. The message names the fields and asks you to remove them or choose **Legacy runner** in **Advanced**. Paperclip never switches runners on its own: if authentication, the model, a dependency, or the runtime fails, the error tells you what to fix and the agent keeps the runner it has.
+From the API, send `runner` alongside `adapterType: "codex_local"`, `"claude_local"`, `"opencode_local"`, or `"pi_local"` when you create or hire an agent. To change an existing agent, send `runner` to `PATCH /api/agents/{agentId}`. In the CLI, `paperclipai agent create` and `paperclipai agent hire` take `--runner <runner>`.
+
+Some `codex_local` settings have no Runner equivalent, such as a custom `command`, `extraArgs`, `search: true`, `fastMode`, filesystem or network scopes, or `maxTurns`. If you set one and the Runner gets picked, saving fails with `agent_runner_config_incompatible`. The message names the fields and asks you to remove them before retrying; to keep them, choose the `legacy` runner through the API or CLI. Paperclip never switches runners on its own: if authentication, the model, a dependency, or the runtime fails, the error tells you what to fix and the agent keeps the runner it has.
 
 Turning web search off does carry over. When a Codex agent is saved with `search: false`, the Runner keeps that setting and launches Codex with hosted web search disabled, including on resumed sessions. The Runner's account and model check before a run always has web search off.
 
@@ -104,7 +106,7 @@ An OpenCode agent that lands on the Runner keeps its model, connection, instruct
 - **Permissions.** The Runner uses `opencodePermissionMode`, which defaults to `allow`. If you set `dangerouslySkipPermissions: false` so OpenCode would follow your own local permission rules, the Runner can't honor that, because each session runs in its own isolated home.
 - **Legacy-only settings.** A custom `command` other than `opencode`, `extraArgs` or `args`, a `variant`, and the effort fields `modelReasoningEffort`, `reasoningEffort`, and `effort` only work on the Legacy runner.
 
-Setting a Legacy-only value while the Runner is picked fails with `agent_runner_config_incompatible`, naming the fields so you can remove them or choose **Legacy runner** in **Advanced**. Going the other way, an `opencodePermissionMode` other than `allow` can't move back to the Legacy runner.
+Setting a Legacy-only value while the Runner is picked fails with `agent_runner_config_incompatible`, naming the fields so you can remove them, or keep them by choosing the `legacy` runner through the API or CLI. Going the other way, an `opencodePermissionMode` other than `allow` can't move back to the Legacy runner.
 
 ### What carries over for Pi
 
@@ -154,7 +156,7 @@ A minimal Codex configuration uses:
   "adapterType": "paperclip_runner",
   "adapterConfig": {
     "provider": "codex",
-    "model": "gpt-5.6-sol",
+    "model": "gpt-6.1-sol",
     "codexPermissionMode": "never"
   }
 }
@@ -173,6 +175,8 @@ The credential binding is configured separately. [Custom model providers](../../
 | Cursor Cloud | Provider-owned policy | Cursor manages commands and files in its cloud environment, so there's no permission mode to pick. Paperclip tools keep your company permissions. |
 
 Company permissions, governed approvals, and budgets still apply. Grok cannot automatically approve Paperclip tool calls under the narrower ACP modes; those requests wait for approval. Cursor session mode is a separate setting from ACP permission policy.
+
+Native Codex agents can make images with Codex's built-in image tool. The tool uses the credential the agent already runs on, so the agent doesn't ask you for a second OpenAI key. Codex saves the results under `CODEX_HOME/generated_images`. In an isolated home that folder is the only part of the Codex home the agent can read, and it copies the images it needs into the workspace.
 
 ## Sessions and task modes
 
@@ -234,10 +238,10 @@ This is a different thing from two similarly named options. **ACP agents â†’ Cur
 
 **Choose it.** Where you pick it depends on how you're setting up the agent:
 
-- **Self-hosted, new agent.** Choose the **Cursor Cloud** tile, open **Advanced**, and set **Runner** to **Paperclip Runner**. If you leave **Runner** alone, the tile creates a direct `cursor_cloud` agent.
+- **Self-hosted, new agent.** The **Cursor Cloud** tile creates a direct `cursor_cloud` agent, and there's no **Runner** setting to change that. To start on the Runner, use the API or CLI as shown below.
 - **Paperclip Cloud, new agent.** The **Cursor Cloud** tile appears only when **Paperclip Runner** is on, and it always creates a Runner agent.
 - **Managed Environment Only.** When both **Managed Environment Only** and **Paperclip Runner** are on, a new **Cursor Cloud** setup uses the Runner by default, with no computer. It runs through Cursor's API, so your managed-environment rule stays in place for every other agent.
-- **An agent already on the Runner.** Set **Harness** to **Cursor Cloud** in its settings, then open **Advanced** and set **Runner** to **Paperclip Runner**. Changing the harness alone moves the agent to the direct adapter. A Claude Managed or AWS AgentCore agent, or an ACP agent running Cursor, GitHub Copilot, or Kimi Code, also has a second **Harness** list where you can pick **Cursor Cloud (experimental)** and stay on the Runner.
+- **An agent already on the Runner.** Setting **Harness** to **Cursor Cloud** in its settings moves the agent to the direct adapter, and the form has no **Runner** setting to bring it back, so the API is the direct way back. A Claude Managed or AWS AgentCore agent, or an ACP agent running Cursor, GitHub Copilot, or Kimi Code, also has a second **Harness** list where you can pick **Cursor Cloud (experimental)** and stay on the Runner.
 
 From the API or CLI, send `adapterType: "cursor_cloud"` with `runner: "paperclip"`. The agent is saved as `paperclip_runner` with `provider: "cursor_cloud"`.
 
@@ -287,7 +291,7 @@ A passing test proves the key and the connection, not a full run. Your first rea
 - **Files come back as deliverables.** The agent creates a file in Cursor's artifacts folder and registers it, and Paperclip downloads it, checks its size and SHA-256, and adds it to the task. Each file can be up to 16 MiB. Paperclip also limits total imports for the session's artifact folder to 256 MiB and 256 import attempts, and later runs on that session share the total. Past the total, imports fail with *"Cursor Cloud artifact staging budget is exhausted or cannot be verified"*.
 - **No agent identity key.** Unlike the direct adapter, this setup doesn't give the hosted agent its private key. See [Agent identity](../../guides/org/agent-identity.md).
 
-**Agents already on the direct adapter.** Saved `cursor_cloud` agents keep their runtime, settings, and history, and Paperclip doesn't convert them or offer an upgrade notice. To move one, set **Runner** to **Paperclip Runner** on its settings page and pick an exact model. Remove `promptTemplate` and `bootstrapPromptTemplate` first, or the save fails with `agent_runner_config_incompatible`. Move any other environment variables into your Cursor Cloud environment too. The Runner only supports the `cloud` environment type, so a `pool` or `machine` target has to stay on the direct adapter.
+**Agents already on the direct adapter.** Saved `cursor_cloud` agents keep their runtime, settings, and history, and Paperclip doesn't convert them or offer an upgrade notice. To move one, send `runner: "paperclip"` to `PATCH /api/agents/{agentId}`, with an exact model in its adapter config. Remove `promptTemplate` and `bootstrapPromptTemplate` first, or the save fails with `agent_runner_config_incompatible`. Move any other environment variables into your Cursor Cloud environment too. The Runner only supports the `cloud` environment type, so a `pool` or `machine` target has to stay on the direct adapter.
 
 ### Google Antigravity on Paperclip Runner (preview)
 
@@ -337,12 +341,16 @@ Existing `cursor`, `cursor_cloud`, `grok_local`, `claude_local`, `codex_local`, 
 - **No install step to run first.** The server ships `opencode-ai@1.18.34` as a dependency, and the Runner finds the right platform package even if your package manager skipped postinstall scripts.
 - **Remote runs use the bundled Linux assets.** In a remote sandbox the Runner selects its bundled Linux daemon and OpenCode pack, so the image and Paperclip package need to come from the same release.
 - **Managed GitHub access carries over.** OpenCode's shell commands get the same managed GitHub credentials as other native providers.
+- **Your configured variables reach its shell tools.** OpenCode's shell commands receive the plain values and resolved company secrets from the agent's `env`, and those values are redacted from diagnostics and provider traces. OpenCode owns the `OPENCODE_*` and `XDG_*` names, so a task variable with one of those names isn't passed through.
+- **A cut-off reply doesn't count as the answer.** When the model stops at its output limit, the Runner discards that text. If the agent already reported its result, that report becomes the reply. Otherwise the Runner asks once for a concise final answer, and if that stops at the limit too, the run fails with `opencode_output_limit_reached`.
+- **A model the provider doesn't recognize shows as a model problem.** If a provider such as OpenRouter says the model ID isn't valid and the error can't be retried, the task shows **Model unavailable** with the provider's own message. The run is saved as `native_provider_model_rejected`. Choose another model and try again.
+- **A saved session needs a matching runtime.** Saved OpenCode and Cursor Cloud session state is tied to the launch profile that created it. OpenCode can re-bind a settled session when its release is unchanged; Cursor Cloud never re-binds. If the session can't be re-bound, a run that allows a replacement opens a fresh provider session. Otherwise it fails with `native_provider_state_incompatible` and isn't retried automatically. Retry the task to continue in a fresh provider session with the same workspace; the earlier provider conversation isn't carried over.
 
 ## Sandbox images and runtime versions
 
 When native Codex runs in a remote sandbox, the Runner checks the Codex version installed there before it starts. Any stable release from `0.149.0` up to but excluding `0.161.0` is accepted, so an image doesn't have to match the `0.160.0` install pin exactly; a compatible version that differs from the pin is noted in the run log. A version outside that window, or a prerelease, stops the run with `runner_remote_provider_artifact_incompatible`. The message tells you to install a supported stable Codex release or set `PAPERCLIP_RUNNER_REMOTE_CODEX_NPM_SPEC` to the pinned package.
 
-Some Codex models need a newer CLI when you sign in with ChatGPT: `gpt-6.1-sol` needs `0.159.0` or newer, and `gpt-6-sol` and `gpt-6-luna` need `0.157.0` or newer. If a fresh run's sandbox has a Codex release that's too old for the selected model, the Runner switches to the closest older model in the same family before launch, or to the Runner's default model. The task shows a warning such as *"Using gpt-5.6-sol because the sandbox's Codex 0.156.1 does not support gpt-6-sol."*, and the run log records a `runner.model_fallback` event. The agent and task settings keep the model you asked for. Update the sandbox's Codex CLI to use it.
+Some Codex models need a newer CLI when you sign in with ChatGPT: `gpt-6.1-sol` needs `0.159.0` or newer, and `gpt-6-sol` and `gpt-6-luna` need `0.157.0` or newer. If a fresh run's sandbox has a Codex release that's too old for the selected model, the Runner switches to the closest older model in the same family before launch, or to `gpt-5.6-sol`, which has no minimum CLI version. The task shows a warning such as *"Using gpt-5.6-sol because the sandbox's Codex 0.156.1 does not support gpt-6-sol."*, and the run log records a `runner.model_fallback` event. The agent and task settings keep the model you asked for. Update the sandbox's Codex CLI to use it.
 
 If you build your own sandbox images, keep two things in mind when you upgrade:
 

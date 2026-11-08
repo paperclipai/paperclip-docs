@@ -82,7 +82,7 @@ paperclipai agent update <agent-id> --payload-json '{"title":"Senior Builder"}'
 paperclipai agent delete <agent-id> --yes
 ```
 
-`agent update` patches an agent from an `UpdateAgent` JSON payload. `agent delete` removes an agent and **refuses to run without `--yes`** — there is no other confirmation, so treat the flag as the safety catch it is.
+`agent update` patches an agent from an `UpdateAgent` JSON payload. `agent delete` removes an agent and **refuses to run without `--yes`** — there is no other confirmation, so treat the flag as the safety catch it is. The server can still refuse: an agent with cost or finance history stays terminated instead (`agent_cost_history_retained`). See [Pause, Resume, Terminate, Delete](../api/agents.md#pause-resume-terminate-delete).
 
 ---
 

@@ -186,6 +186,8 @@ If `--yes` is missing, or `--confirm` does not match the argument, the command r
 paperclipai secrets doctor --company-id <company-id>
 ```
 
+On Windows, the local encrypted provider skips its key file permission check, so you won't see a warning that `chmod` can't fix.
+
 For AWS-backed secrets, `doctor` reports missing non-secret provider env and the expected AWS SDK runtime credential source. Do not store AWS bootstrap credentials *inside* Paperclip secrets — let the runtime resolve them from the standard AWS credential chain, and use `doctor` to confirm that chain is wired up.
 
 `secrets providers` lists the provider descriptors available to a company — the set of providers you can target with `create`, `link`, and provider-config commands.

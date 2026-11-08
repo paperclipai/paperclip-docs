@@ -125,7 +125,7 @@ On top of the core fields, the response folds in the related objects you need to
 
 - `parent` — a compact summary of the parent case, if any.
 - `labels` — the attached labels.
-- `issueLinks` — the linked issues, each with its `role` and a compact issue summary (`id`, `identifier`, `title`, `status`).
+- `issueLinks` — the linked issues, each with its `role` and a compact issue summary (`id`, `identifier`, `title`, `status`, plus `blockerAttention` when the issue has blocker state to show).
 - `documents` — the case's keyed documents, each as `{ key, document }`.
 - `attachments` — uploaded files, each with its stored asset.
 - `workIssue` and `pendingHandoff` — the same work summaries returned by the list route.

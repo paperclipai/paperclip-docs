@@ -143,7 +143,7 @@ Notes:
 - When `q` is present, results are ranked by the best match in title, identifier, description, or comments.
 - ID filters must be UUIDs. A malformed `participantAgentId`, `projectId`, `workspaceId`, `executionWorkspaceId`, `parentId`, `parentIssueId`, `descendantOf`, `createdFromIssueId`, or `labelId` returns `422` with an error naming the parameter, such as `parentId must be a UUID`. The `/issues/count` endpoint checks the same filters.
 - `sortField=updated` orders by latest activity, `sortField=created` by creation time, and `sortField=id` by task ID; ties fall back to the ID so pages stay stable. With `q` set, `updated` still ranks by search match first. `updated` and `created` sort newest first unless you send `sortDir=asc`; `id` sorts ascending unless you send `sortDir=desc`. Any other `sortField` returns `400` with `sortField must be 'updated', 'created', or 'id' when provided`, and any other `sortDir` returns `400` with `sortDir must be 'asc' or 'desc' when provided`. `id` and `created` ordering aren't supported together with `attention=blocked`.
-- `displayStatus` is matched against the computed display status, so `in_progress` excludes tasks currently showing as `monitoring`, while `status=in_progress` still includes them. The `/issues/count` endpoint accepts `displayStatus` too.
+- `displayStatus` is matched against the computed display status, so `in_progress` matches only tasks currently displayed that way, leaving out agent tasks showing as `monitoring`, `blocked`, `in_review`, or `todo`, while `status=in_progress` still includes them. The `/issues/count` endpoint accepts `displayStatus` too.
 - `includeAgentCreatedTasks` and `includeParticipatedTasks` return `400` for any value other than `true` or `false`. `includeParticipatedTasks=true` from a non-board caller returns `403`. The agent-created filter is applied before `limit` and pagination. The board's **show agent-created tasks** checkbox drives it.
 
 ### Example
@@ -179,7 +179,7 @@ The response includes the issue itself and these related fields:
 - `workProducts`
 - `createdFrom`
 
-Issue records, here and in list responses, can also carry a read-only `displayStatus`. It's the status the UI shows, and it usually equals `status`. The exception is `monitoring`: an `in_progress` task assigned to an agent, with a scheduled monitor, no queued or running run, no active recovery, and no current participant in its execution state, reports `displayStatus: "monitoring"`. Monitors waiting on provider usage limits never report `monitoring`. The stored `status` stays `in_progress`, you can't write `displayStatus`, and it never grants execution authority. Company search (`GET /api/companies/{companyId}/search`) accepts the same `displayStatus` filter and returns `displayStatus` on each task result.
+Issue records, here and in list responses, can also carry a read-only `displayStatus`. It's the status the UI shows, and it equals `status` except on an `in_progress` task assigned to an agent. That task reports `displayStatus: "in_progress"` only while a run for the task is `queued` or `running`. Without one it reports, in this order: `blocked` for an active or escalated recovery action; `in_review` for a pending execution stage with a current participant, or an active pending interaction; `monitoring` for an ordinary scheduled monitor; and otherwise `todo`. Monitors waiting on provider usage limits never report `monitoring`. The stored `status` stays `in_progress`, you can't write `displayStatus`, and it never grants execution authority. Company search (`GET /api/companies/{companyId}/search`) accepts the same `displayStatus` filter and returns `displayStatus` on each task result.
 
 ### Relationship Notes
 
@@ -188,7 +188,7 @@ Issue records, here and in list responses, can also carry a read-only `displaySt
 - `blockedBy` and `blocks` come from issue relations of type `blocks`.
 - `planDocument` is the keyed issue document with key `plan`, if it exists.
 - `legacyPlanDocument` is a read-only fallback extracted from an old `<plan>...</plan>` block in the issue description.
-- `createdFrom` names the task an agent run was working on when it created this one: `{ issue: { id, identifier, title, status }, run: { id, agentId }, agent: { id, name } | null }`. It records where the task came from. It isn't the parent and it isn't a blocker. It's `null` when the task has no recorded source, when the run belongs to another company, or when you can't read the source task or the run, so a private source looks the same as no source.
+- `createdFrom` names the task this one came from: `{ issue: { id, identifier, title, status }, run: { id, agentId } | null, agent: { id, name } | null }`. It records where the task came from. It isn't the parent and it isn't a blocker. When the task has a recorded origin task, you see that source even if you can't see the run that created it; `run` and `agent` are then `null`. It's `null` when the task has no recorded source, when the run belongs to another company, or when you can't read the source task (or, for a source known only through its run, the run), so a private source looks the same as no source.
 
 ### Heartbeat Context
 
@@ -225,6 +225,7 @@ Notable inputs:
 - `priority` defaults to `medium`.
 - `projectId`, `goalId`, and `parentId` establish the issue's placement.
 - When an agent run bound to a task omits `parentId`, the server makes the new task a child of the run's task and records `parentDefaultedFromRunIssue: true` on the `issue.created` activity. Send `"parentId": null` for a standalone task (CLI: `issue create --standalone`). The default is skipped for conversation runs, board and user creates, watchdog follow-ups, and when it would create a cycle or the agent couldn't create a child there. Those tasks stay top-level, so no request that worked before now fails.
+- An agent can't create a grandchild. The server places the task at the [agent task depth limit](#agent-task-depth-limit) and reports it in `parentAdjusted`.
 - `visibility` is `open` (default) or `private`. A private task is readable only by its owners, its assignee, private-project members, and people or agents it's shared with. A child of a private task, or a task in a private project, is private regardless. See [Privacy and access grants](#privacy-and-access-grants).
 - `blockedByIssueIds` links blockers.
 - `labelIds` attaches labels.
@@ -305,6 +306,45 @@ response = requests.post(
 
 ---
 
+## Agent Task Depth Limit
+
+Tasks created or moved by an agent can be at most two levels deep: a top-level task and its children. A request that would make a grandchild isn't rejected. The server uses the requested parent's own parent instead, so the task lands beside the requester, and returns the usual `201` (create) or `200` (update).
+
+This applies to agent callers of `POST /api/companies/{companyId}/issues`, `POST /api/issues/{issueId}/children`, and a `parentId` change through `PATCH /api/issues/{issueId}`, and to task creation from the Paperclip Runner tools.
+
+When the parent was changed, the create or update response includes `parentAdjusted`. It's left out when the requested parent was used as-is, and it only appears on those responses, not on later reads.
+
+```json
+{
+  "parentId": "{rootIssueId}",
+  "originIssueId": "{requestingIssueId}",
+  "parentAdjusted": {
+    "reason": "max_agent_depth",
+    "applied": true,
+    "requestedParent": { "id": "{requestingIssueId}", "identifier": "PAP-2" },
+    "effectiveParent": { "id": "{rootIssueId}", "identifier": "PAP-1" }
+  }
+}
+```
+
+| `reason` | `applied` | Meaning |
+|---|---|---|
+| `max_agent_depth` | `true` | The task was placed under `effectiveParent` instead of `requestedParent`. `effectiveParent` is `null` when the task became top-level, which happens when the tree sits under an older Agent Chat conversation, because conversations don't take children. |
+| `has_children` | `false` | An agent tried to give a parent to a task that has its own children. Only the move is skipped, and the rest of the `PATCH` still applies. `effectiveParent` is the task's current parent. |
+
+Other behaviour to know:
+
+- `originIssueId` records the task whose work created this one. The server sets it and callers can't. It's for audit only and doesn't affect the hierarchy or permissions. `GET /api/issues/{issueId}` uses it for `createdFrom`.
+- The `issue.created`, `issue.child_created`, and `issue.updated` activity entries record the placement, including `requestedParentId` on child creates and moves.
+- The agent must be allowed to write to the parent the task lands under, as well as the one it requested.
+- If the tree changes between the check and the write, the request fails with `409` and code `issue_parent_placement_changed` (`The task tree changed while this task was checked. Read the tasks again and retry.`, or `The task tree changed while this move was checked. Read the tasks again and retry.` for a move).
+- Board users aren't limited, and existing deeper trees stay valid.
+- A task inside a low-trust review boundary keeps its requested parent rather than moving above the boundary's root.
+- Tasks created by task watchdog runs keep their requested parent. So do stranded-task recovery tasks and routines configured by a person. Routines created by an agent follow this limit.
+- Nesting doesn't make one task wait for another. Use `blockedByIssueIds` or `blockParentUntilDone`.
+
+---
+
 ## Update Issue
 
 ```
@@ -328,6 +368,7 @@ Behavior to know:
 - Only board users can interrupt an active run from issue comments.
 - Agent-authenticated updates to a checked-out `in_progress` issue must satisfy checkout ownership checks, including `X-Paperclip-Run-Id`.
 - `hiddenAt` hides or unhides the issue from list responses.
+- An agent's `parentId` change follows the [agent task depth limit](#agent-task-depth-limit), and the response reports any adjustment in `parentAdjusted`.
 - `visibility` switches the issue between `open` and `private`. An agent that can update the task may make it `private`; any other change needs someone who can manage the task's privacy (see [Privacy and access grants](#privacy-and-access-grants)). Making a task public fails with `422` while it inherits privacy from a parent or a shared private project (`A task cannot be made public while it inherits private access`, `Move this task out of its private project before making it public`). In a personal private project, making the task public moves it out of that project instead. Existing private children stay private.
 - `expectedExecutionPolicy` is an optional snapshot of the `executionPolicy` you last read. When you send it, the update must change only `executionPolicy` (otherwise `422`, `expectedExecutionPolicy requires a policy-only update`), and the server rejects it with `409` and code `execution_policy_changed` if the stored policy changed since. The board uses this when you cancel a monitor from its card.
 - `expectedStatusVersion` guards promoting a prepared task from `backlog` to `todo`. Send only `status: "todo"` and the `statusVersion` you last read; anything else returns `422` (`expectedStatusVersion requires a status-only backlog-to-todo promotion`). If the task's status or assignment changed, or it's no longer in `backlog`, the server returns `409` with code `issue_status_version_changed`.
@@ -593,7 +634,7 @@ Writes need permission to change the task. An agent can only change the workspac
 
 ## Agent Chat conversations
 
-With the experimental, off-by-default [Agent Chat](../../experimental/agent-chat.md) feature on, each person gets one persistent conversation per agent in a company. Each conversation is an ordinary issue, so you read and write it with the normal issue, comment, document, and attachment routes. These three routes find and create them.
+With [Agent Chat](../../experimental/agent-chat.md), each person gets one persistent conversation per agent in a company. Each conversation is an ordinary issue, so you read and write it with the normal issue, comment, document, and attachment routes. These three routes find and create them.
 
 ```
 GET  /api/companies/{companyId}/chats
@@ -610,7 +651,6 @@ POST /api/companies/{companyId}/chats/{agentRef}
 `{agentRef}` accepts an agent ID or the agent's URL reference. Notes:
 
 - Only signed-in board users can call these routes; anything else gets `403` with `Board user access required`.
-- While Agent Chat is off, all three return `404` with `Agent Chat is disabled`.
 - An unknown agent returns `404` (`Agent not found`); a reference that matches more than one agent returns `409` (`Agent reference is ambiguous`).
 - Conversations returned by these routes include `isUnreadForMe` (whether the conversation has an agent message newer than your last read) and `lastExternalCommentAt` (when the latest agent message arrived).
 - Conversations follow ordinary company task visibility — teammates can read yours — but only the person who owns a conversation can post messages in it. Anyone else gets `403` with `Only the conversation owner can send messages or start a new session`.
@@ -1482,7 +1522,7 @@ The response is `202 Accepted` when the retry is recorded and `200 OK` when it i
 | `observedRunId` | The task's latest run as the server sees it. |
 | `presentation` | The task's refreshed `interruption` (see below). |
 
-A retry is a new, durable request. If automatic repair had used up its attempts, a retry gives it a fresh set. On a task bound to an [Agent Chat conversation](#agent-chat-conversations), only the conversation owner can retry (`403`, *"Only the conversation owner can retry a chat run"*), and the route returns `404` when Agent Chat is disabled. Reusing an `idempotencyKey` for a different task or user returns `409` with *"This retry request belongs to a different task or user."*
+A retry is a new, durable request. If automatic repair had used up its attempts, a retry gives it a fresh set. A request that's waiting on shared work, such as cleanup or a running turn, absorbs later clicks. A request that was declined for its requester's access (`retry_authority_denied`) is replaced by the next click with a new key, so that retry runs with the new requester's access. On a task bound to an [Agent Chat conversation](#agent-chat-conversations), only the conversation owner can retry (`403`, *"Only the conversation owner can retry a chat run"*). Reusing an `idempotencyKey` for a different task or user returns `409` with *"This retry request belongs to a different task or user."*
 
 ### The `interruption` field
 
@@ -1492,9 +1532,11 @@ A retry is a new, durable request. If automatic repair had used up its attempts,
 |---|---|
 | `state` | `working`, `retry_scheduled`, `failed`, `waiting_for_user`, or `resolved` |
 | `responsibility` | `system` when Paperclip owns the repair, `user` when a person needs to act |
-| `userAction` | For `waiting_for_user`: `approval`, `reconnect`, `assign_agent`, `choose_model`, `resume`, or `budget`. Otherwise `null`. |
-| `nextRetryAt` | When the next automatic attempt is due, for `retry_scheduled` |
-| `canRetry` | Whether a retry can help right now |
+| `userAction` | For `waiting_for_user`: `approval`, `reconnect`, `assign_agent`, `choose_model`, `resume`, `budget`, `project_access`, or `confirm_owner_stop`. Otherwise `null`. |
+| `nextRetryAt` | When the next automatic attempt is due, for `retry_scheduled`. This includes a Paperclip Runner run that's resuming by itself after a restart. |
+| `canRetry` | Whether a retry can help right now. `false` while an automatic resume is pending, while a retry is already being prepared, and during waits for a shared resource (those report `working`). |
+| `retryWait` | Present as `{ "reason": "...", "message": "..." }` when a saved retry or a task that hasn't started is waiting. `message` is safe to show as is. A retry that can't start with its requester's access has the reason `retry_authority_denied`; a task waiting on a budget hold reports `state: "working"` with the reason `budget.blocked`. |
+| `recoveryStep` | The saved-work recovery step in progress: `checking_previous_run`, `saving_previous_files`, or `finishing_recovery`. Only present while recovery is scheduled or running. |
 | `observedRunId` | The latest run; send it back as `observedRunId` when you retry |
 | `sourceRunIds`, `intentId` | The runs and the pending retry request behind the summary |
 | `providerFailure` | Present when a model provider reported the failure on a Paperclip Runner run. Holds `schema`, `provider`, `phase` (`startup` or `turn`), `category` (`rate_limit`, `quota_exhausted`, `authentication`, `permission`, `model_unavailable`, `invalid_request`, `overloaded`, `timeout`, or `unknown`), `message`, and `retryability` (`transient`, `requires_action`, or `unknown`), plus `providerCode`, `httpStatus`, `requestId`, and `retryAt` when available. |
@@ -1503,6 +1545,50 @@ A retry is a new, durable request. If automatic repair had used up its attempts,
 Both messages are redacted and limited to 4,000 characters. If Paperclip can't redact them, it leaves both fields out.
 
 This field is for display only. Paperclip still checks every permission and gate when the retry actually runs. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention) for how the UI presents it.
+
+---
+
+## Context Window and Compaction
+
+Check how full an agent's context window is on a task, and ask it to compact, between runs.
+
+```
+GET /api/issues/{issueId}/context-usage
+POST /api/issues/{issueId}/context/compact
+```
+
+### Read the context window
+
+`GET` returns the latest reading for the assignee's session on this task, or `null` until the agent's harness has reported one.
+
+| Field | Meaning |
+|---|---|
+| `runId`, `agentId`, `sessionId` | The run, agent, and runner session the reading belongs to. |
+| `usedTokens`, `windowTokens` | Tokens in use and the size of the context window. |
+| `observedAt` | When the provider reported this reading. |
+| `totals` | `inputTokens`, `cachedInputTokens`, and `outputTokens` for the session, or `null`. |
+| `costUsd` | The provider-reported session cost, or `null`. |
+| `compactions` | How many compactions this session has recorded. |
+| `compaction` | Whether a compaction can be requested now: `status` (`available`, `pending`, `unavailable`), `reasonCode`, `reason`, and, while pending, `runId`. |
+
+### Request a compaction
+
+`POST` takes an empty body. It's board-only and needs the same access as changing the task. It returns `202` with `{ "requestId", "runId" }`, and records `issue.context_compaction_requested` in the activity log.
+
+The compaction runs as a short run of its own and doesn't change the task's status. It works for agents on `paperclip_runner` with `provider: "codex"`, or with `provider: "acpx"` and `acpxAgent: "claude"`.
+
+Failures return `{ "error", "code" }`:
+
+| Status | `code` | `error` |
+|---|---|---|
+| `409` | `agent_busy` | `Available when the agent finishes its current run.` |
+| `409` | `already_pending` | `The agent is already compacting its context.` |
+| `422` | `no_assignee` | `Assign an agent to compact its context.` |
+| `422` | `task_closed` | `Available while the task is open.` |
+| `422` | `unsupported` | `This agent's harness can't compact on request.` |
+| `422` | `wake_skipped` | `Compaction did not start. Check that task execution is enabled for this instance and agent, then retry.` |
+
+On an Agent Chat conversation, only the conversation's owner can compact (`403`, `Only the conversation owner can compact a chat agent's context`).
 
 ---
 
@@ -1527,13 +1613,13 @@ For a manual pause, send:
 { "mode": "pause" }
 ```
 
-To release the pause without waking agents, post `{}` to its release route. To request wakeups as well, send:
+Releasing a pause re-dispatches the runs that pause interrupted, once and under the current admission gates, without replaying uncertain actions. Tasks with an execution blocker are skipped. To release the pause without any other wakeups, post `{}` to its release route. To wake every eligible task as well, send:
 
 ```json
 { "metadata": { "wakeAgents": true } }
 ```
 
-Wakeups apply only to eligible assigned tasks in `todo`, `in_progress`, or `in_review`; parked and terminal tasks are left alone. Before a release with wakeups, the server checks execution blockers. A blocked request returns `409` and preserves the pause so uncertain provider actions aren't replayed. A successful release can include `wakeFailures`, an array of `{ issueId, message }`; those failures do not undo the release or stop wake requests for other eligible tasks.
+Wakeups apply only to eligible assigned tasks in `todo`, `in_progress`, or `in_review`; parked and terminal tasks are left alone. Before a release with wakeups, the server checks execution blockers. A blocked request returns `409` and preserves the pause so uncertain provider actions aren't replayed. A successful release, or a `resume` hold that ends a pause, can include `wakeFailures`, an array of `{ issueId, message }`; those failures do not undo the release or stop wake requests for other eligible tasks.
 
 While an effective task or ancestor pause is active, a board comment — including a `PATCH` that includes a comment — is rejected with `409`. Interrupted agents can still report their results. [Agent Chat](#agent-chat-conversations) has its own `/new` reset for resuming a stopped conversation.
 

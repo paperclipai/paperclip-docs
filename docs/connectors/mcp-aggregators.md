@@ -13,6 +13,11 @@ Keep one thing in mind throughout: the aggregator sits between your agent and th
 
 If Paperclip has its own connector for an app, use that. It is the path Paperclip reviews, and it is what agents are steered to. An aggregator is for the app that has no native connector.
 
+Two exceptions send new setup to the aggregators, and a saved native connection keeps its own row in both:
+
+- **Google apps**, while the [built-in Google Workspace connector](google-workspace.md#turn-on-the-built-in-connector) is off, which is the default.
+- **Apps on Paperclip Cloud whose native connector would need an OAuth app you create yourself**, such as [Slack as an agent tool](slack.md#slack-as-an-agent-tool) while **Chat connectors** is off. Agents get the provider choice for these too.
+
 ## The four providers
 
 Each provider has its own catalog entry and its own connection. The setup screen shows the steps for the provider you picked, with a link to that provider's guide.
@@ -76,7 +81,7 @@ So set up both layers deliberately:
 
 The catalog starts on **Paperclip**. Use **Composio**, **Arcade**, **Installed**, or **All** to change the view. Search matches app names, aliases, providers, and saved accounts. The uninstalled catalog has pages of 50 entries; matching installed apps stay above it.
 
-An app without native setup can appear as one card with the logos of its available providers. **Connect** opens a provider choice when more than one supports it. A native connector keeps its own setup, even when the same app also appears in an external provider's catalog.
+An app without native setup can appear as one card with the logos of its available providers. **Connect** opens a provider choice when more than one supports it. Apart from the [two exceptions above](#native-connectors-come-first), a native connector keeps its own setup, even when the same app also appears in an external provider's catalog.
 
 Saved native and imported accounts are grouped under their app card. An imported row says **Managed by {provider}** and links to the saved gateway that supplies it. A provider filter includes a native app card when it has an account managed by that provider, not merely because the provider's public catalog lists that app.
 

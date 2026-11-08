@@ -14,15 +14,15 @@ Watching an agent work on a task usually means reading two things at once: the c
 
 Chat-Style Tasks started life as an experimental toggle. It's now simply how the task page works — there's nothing to switch on.
 
-If you'd rather have the old page back, go to **Settings → Experimental** and, under **Legacy** (*"These features are going to be removed."*), turn on **Classic Task Interface**. It restores the previous task detail page — the page-level header, the plain comment thread, and the fixed Properties sidebar — and the chat-only features described below aren't available there. The card notes that *"Switching takes effect immediately. No task data is affected."* Like every flag on that page, it's instance-wide.
+If you'd rather have the old page back, go to **Settings → Experimental** and, under **Legacy** (*"These features are going to be removed."*), turn on **Classic Task Interface**. It restores the previous task detail page — the page-level header, the plain comment thread, and the fixed Properties sidebar — and the chat-only features described below aren't available there. The card notes that *"Switching takes effect immediately. No task data is affected."* Like every flag on that page, it's instance-wide. It only restores the old page for people in the [Classic workspace](coordinator-workspace.md#use-the-classic-workspace-instead): the standard Coordinator workspace always uses the chat-style page, though the toggle does change its properties panel.
 
 ## An optional combined task list
 
-The task conversation described here is standard behavior. **Combined Inbox + Task List** (setting key `enableCombinedInboxTasks`) is a separate experimental option, off by default, under **Settings → Experimental**. It only takes effect while **Streamlined UI** is on; if your instance has switched **Streamlined UI** off, turning this on changes nothing and the separate **Inbox** row stays.
+The task conversation described here is standard behavior. **Combined Inbox + Task List** (setting key `enableCombinedInboxTasks`) is a separate experimental option, off by default, under **Settings → Experimental**. It only matters in the [Classic workspace](coordinator-workspace.md#use-the-classic-workspace-instead), because the standard Coordinator workspace [always includes these views in Tasks](coordinator-workspace.md#the-tasks-page). It also needs **Streamlined UI** to be on; if your instance has switched **Streamlined UI** off, turning this on changes nothing and the separate **Inbox** row stays.
 
 With that option on in the streamlined interface, **Tasks** carries the unread and failed-run badge, and the separate **Inbox** sidebar row disappears. Open **Views** on Tasks to switch between **Mine**, **Unread**, **Blocked**, **Recent**, and **Everything**, or the organization views **All tasks**, **Active**, **Backlog**, and **Done**. Your inbox actions and task filters still belong to their respective views. Existing inbox links take you to the corresponding task view.
 
-You can enable it independently of [Agent Chat](agent-chat.md). See the [view registry](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/lib/task-views.ts) and [sidebar behavior](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/Sidebar.tsx) for the current mapping.
+See the [view registry](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/lib/task-views.ts) and [sidebar behavior](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/components/Sidebar.tsx) for the current mapping.
 
 ## What changes on the task page
 
@@ -39,7 +39,11 @@ Everything is still there. It just moved.
 
 ### Bubbles
 
-Your own messages sit on the right in a solid accent bubble. Everyone else sits on the left with an author header. For an agent that's its icon, its name, and a small chip naming the mode the request ran in. For another person it's their name and profile picture, or their initials. So when a teammate comments on the same task, their message looks like theirs, not yours. Want to know more about an agent? Click its name or icon to open that agent's overview page. The name at the top of a turn works the same way. System notices are centered and quiet. Hover a bubble to reveal its timestamp.
+Your own messages sit on the right in a solid accent bubble. Everyone else sits on the left with an author header. For an agent that's its icon and its name. For another person it's their name and profile picture, or their initials. So when a teammate comments on the same task, their message looks like theirs, not yours. Want to know more about an agent? Click its name or icon to open that agent's overview page. The name at the top of a turn works the same way. System notices are centered and quiet. Hover a bubble to reveal its timestamp.
+
+Want to reuse something you wrote? On your own messages, a **Copy message** icon sits just left of the time. It appears when you hover or tab to the message, and stays visible on touch and small screens. It copies the message's original Markdown.
+
+Links stay easy to scan. A pasted GitHub pull request, issue, or repository link shows a short label such as `owner/repo#123` with its own icon, and the full address is in the tooltip. A link you've given your own text keeps that text. A link to one of the task's documents inside a sentence sits in the line as a small chip.
 
 If your company has turned on fast responses, a short acknowledgement can appear from the agent right after you send, while the agent gets started. It carries an info button (**Message details**) that explains *Platform-generated acknowledgement. The agent’s substantive response follows separately.* It doesn't count as the agent's answer. See [Fast responses](../guides/day-to-day/costs.md#fast-responses).
 
@@ -63,17 +67,38 @@ The fold is animated when it happens in front of you, and instant for turns that
 
 An agent's reasoning renders as a quiet block against a left rail. While it streams the header shimmers **Thinking…**; when it settles it becomes **Thought for 12s** and collapses. Click the header to read it again.
 
+When the agent's harness writes short headlines for its reasoning, as Codex does, each one shows as a bullet.
+
 ### Tool calls and diffs
 
-Each tool call is one compact row: an icon for the kind of tool, its name, and the thing it acted on in monospace, with a status marker on the right. Paperclip recognises the common families — terminal, search, read, edit, web, delegation, and MCP tools — and gives each its own glyph; genuinely unknown tools get a wrench.
+Each tool call is one compact row: an icon for the kind of tool, what it did, and the thing it acted on in monospace. A command shows as `$ pnpm test`, and a call about another task names that task by its identifier rather than an internal ID. Paperclip recognises the common families — terminal, search, read, edit, web, delegation, and MCP tools — and gives each its own glyph; genuinely unknown tools get a wrench.
 
-Click a row to expand its result. If the call changed a file, a diff panel appears underneath with the path, a `+34 −3` count, and the changed lines.
+The row also tells you how it went. A command carries an exit chip, grey for `exit 0` and red for anything else, and a row shows how long the call took when the harness reports it. A call that a policy or rule refused reads **Blocked** and gives the reason in red.
 
-Where an agent had to ask permission for a call, the row also shows whether it was **allowed** or denied.
+Click a row to expand its result. If the call edited a file, the row carries a `+34 −3` count and expands to the diff for that edit, with added lines in green and removed lines in red. A long diff shows **Show 12 more lines**. Every turn that changed files ends with a **Changed in this turn** card listing each file and its counts. Open a file there to read its diff, or use **Expand all** when there are several.
+
+Where an agent had to ask permission for a call, the expanded row shows the outcome, such as **Permission allowed**.
+
+### Other activity in a turn
+
+Tool calls aren't the only thing a run does. These get rows of their own, so you can follow along without opening the run log. Most of them come from agents on the [Paperclip Runner](../reference/adapters/paperclip-runner.md), and each appears only when the agent's harness reports it, so other agents may show simpler rows.
+
+- **Web searches** read **Searched the web** with the query in quotes, and the source sites appear underneath as small links. Expand the row for the full results.
+- **Model switches** read **Switched models** and name the model it moved from and to.
+- **Waits** read **Waiting 30s** with a live countdown such as *12s left*, then **Waited 30s**.
+- **Verification checks** read **Check passed**, **Check failed**, or **Check not run**, with the check and its outcome.
+- **Subagents** each get a card with their type, description, tool count, and elapsed time. Expand one to read its prompt, tool rows, and result. Subagents started together share a tree with a line like **Running 3 subagents · 1 done**.
+- **Hooks and automatic reviews** appear as small rows, so automatic decisions stay auditable: **PreToolUse hook ran**, **Auto-review approved**. A row that stopped the agent is tinted and gives its reason underneath, such as **Auto-review denied** or **PreToolUse hook blocked Bash**. An automatic approval of a tool you can already see folds into that tool's row as an **auto-approved** badge.
+
+### Status chips
+
+A harness also reports on itself: it compacts its context, retries a failed request, or falls back to another model. Those reports stay out of the agent's answer and show as small chips between the activity rows, such as **Compacting context…**, **Context compacted**, **Retrying (attempt 2 of 5)**, **Reconnecting**, and **Fell back to** a named model. A retry fades to **Recovered after retry** once the run moves on. Click a chip to read the full message. A provider error that won't be retried shows as a red **Provider error** row with the provider's own message.
+
+If an MCP server can't start, a warning sits at the top of that run, naming the server and the reason — for example **github MCP server failed to start**. Expand it to read *"The agent ran without these tools. Fix the server's command or credentials, then try again."* That's usually the explanation when an agent says it can't reach its tools.
 
 ### The live status line
 
-While a run is in flight, a status line sits at the bottom of the thread with a pulsing dot, a ticking elapsed timer, and a label for what's happening right now — **Thinking**, **Responding**, **Searching**, **Running a command**, **Reading files**, **Editing files**, **Fetching the web**, **Delegating**, or **Using *ToolName*** for an MCP tool. A run that hasn't started yet reads **Queued · Waiting to start**. If an instance admin has paused new work for maintenance, the turn reads **Waiting for maintenance** instead and starts on its own as soon as the maintenance pause ends or expires — you don't need to retry. The message that started the turn stays in the conversation while it waits.
+While a run is in flight, a status line sits at the bottom of the thread with a pulsing dot, a ticking elapsed timer, and a label for what's happening right now — **Thinking**, **Responding**, **Searching**, **Running a command**, **Reading files**, **Editing files**, **Fetching the web**, **Delegating**, or **Using *ToolName*** for an MCP tool. A run that hasn't started yet reads **Queued · Waiting to start**. If an instance admin has paused new work for maintenance, the turn reads **Waiting for maintenance** instead and starts on its own as soon as the maintenance pause ends or expires — you don't need to retry. If the server is starting up, recovering, or shutting down for a restart, the turn reads **Waiting for server restart** and likewise starts on its own when that's done. The message that started the turn stays in the conversation while it waits.
 
 When the run ends, that line is replaced in place by the folded turn summary — the same spot, so your eye doesn't have to move.
 
@@ -90,6 +115,10 @@ Plan confirmations, questions, and suggested-task cards stay inline in the threa
 Confirmation prompts render as Markdown, so links, emphasis, code, lists, and paragraph breaks come through as written, and you can click straight through to whatever you're being asked to review. That applies to the card above the composer, the cards on the classic task page, checkbox confirmations, and receipts you can expand afterwards on the chat-style task page. An image in a prompt shows as a text reference (*Image:* followed by its name and address) rather than the picture itself, and a diagram shows as its source text.
 
 When a plan document is written or revised, a divider marks the spot: **Plan created**, or **Plan updated · rev 3 — see the Plan tab**.
+
+When an agent on the Paperclip Runner proposes a plan from its harness's own planning step, you get to decide on it. A **Writing plan** card streams while the plan is drafted, and a one-line **Proposed a plan** row stays in the turn. Paperclip saves the plan as the task's Plan document and asks *Approve plan revision 1?* with **Approve plan** and **Request changes**. Approving wakes the agent to carry on. Requesting changes needs a reason, and the agent receives it. Afterwards a receipt records **Approved Plan v1** or **Requested changes to Plan v1**, with your reason. If a newer revision is saved before you decide, the old approval and its pending count disappear from the composer, so you can't approve an out-of-date plan.
+
+Several images from the same run share a compact thumbnail grid instead of one full-width card each, and new images join the grid as they arrive. Click a thumbnail to open the gallery.
 
 When an agent saves a new company skill during the task, a **Skill created** card marks the spot with the skill's name and description. Click it to open the skill in its own side-pane tab — see [Skills your agents create during a task](../guides/org/skills.md#skills-your-agents-create-during-a-task).
 
@@ -136,11 +165,15 @@ Moving on from a question also tells the agent you've moved on. Once you've sent
 
 Dismissing a confirmation or review works the same way: the agent treats it as deferred and won't ask you for it again, and an ordinary dismissed card no longer stops the task from finishing or blocks a retry. When the task completes, a dismissed card that isn't a question expires. Dismissal is never an approval, though. A dismissed request for a tool action, a credential, a connection, or a plan sign-off, or one whose approver was set by company or review policy, keeps holding the gated work until someone actually decides it.
 
-**Queued messages.** A message you send while the agent is mid-run waits in the queue above the composer. **Steer** pushes it into the run that's going now, and **Interrupt** stops that run and starts a fresh one with your message. Either way your message shows up in the conversation straight away. If it can't be delivered, it goes back into the queue with an error explaining why, so nothing you typed is lost. If the run stops before your queued messages go out, they stay in the queue and the button on them reads **Send** instead of **Interrupt**. Click it when you're ready to continue — the messages and their attachments go to the agent as you wrote them, and nothing starts until you do. If the task can't take them yet, they stay queued with a short note under the queue explaining the wait — by default *"Messages are still queued. They will send when the task is ready."* And if a run was stopped before it really got going, the conversation offers **Retry**, or you can just send a new message to start a fresh turn. If the agent you're messaging is paused, your message is kept and delivered once you resume the agent. It isn't dropped.
+**Follow the agent's plan.** When the agent keeps a step-by-step plan during a run, it docks above the composer as a card. The header shows the current step and a count like `2/5`, above a progress bar, and the list marks each step done, in progress, not started, blocked, or failed. Plans of more than seven steps show the steps around the current one, with **2 earlier steps done** and **+3 more steps** to reveal the rest. The card collapses once every step is done (**All 5 steps done**) and disappears when the run ends. A one-step plan shows only the header, and so does any plan while a question or approval needs you. On a phone the card starts collapsed. Without a plan, the same spot can show a count of the files changed so far.
+
+**Queued messages.** A message you send while the agent is mid-run waits in the queue above the composer. **Steer** pushes it into the run that's going now, and **Interrupt** stops that run and starts a fresh one with your message. If the run can't take steering right now, because it's still preparing or its runner doesn't support it, the message offers **Interrupt** instead. Either way your message shows up in the conversation straight away. If it can't be delivered, it goes back into the queue with an error explaining why, so nothing you typed is lost. If the run stops before your queued messages go out, they stay in the queue and the button on them reads **Send** instead of **Interrupt**. Click it when you're ready to continue — the messages and their attachments go to the agent as you wrote them, and nothing starts until you do. If the task can't take them yet, they stay queued with a short note under the queue explaining the wait — by default *"Messages are still queued. They will send when the task is ready."* And if a run was stopped before it really got going, the conversation offers **Retry**, or you can just send a new message to start a fresh turn. If the agent you're messaging is paused, your message is kept and delivered once you resume the agent. It isn't dropped. A long queue scrolls inside its own strip, so it never covers the conversation.
+
+**A monitor that comes due mid-run waits its turn.** If a [monitor](../guides/day-to-day/issues.md#the-issue-detail-sidebar) check falls due while a run is still active, the strip above the composer reads **Monitor waits for current run**, with *"The check can start after the current run finishes saving its work."* and the time it was scheduled for. It goes back to the normal display when the run clears.
 
 **Choose a project when you create the task.** **New Task** uses the same composer, with a **Project** picker above the text box. Search by project name, choose a recent project, or select **No project**. Model and effort are part of the task's initial run settings; the project is a property of the task, not a per-message override.
 
-**Send with ⌘+Enter** (or Ctrl+Enter). Plain **Enter** inserts a newline.
+**Press Enter to send**, and **Shift+Enter** for a new line. ⌘+Enter (Ctrl+Enter on Windows and Linux) also sends. When an autocomplete menu is open, Enter can pick an item from it rather than sending. If your instance would rather keep plain Enter for new lines, an admin can turn on **Command/Ctrl+Enter to Submit** in **Settings → Experimental**. Enter then adds a new line, and only ⌘+Enter or Ctrl+Enter sends, in task replies and new tasks alike.
 
 ### Stop, pause, and resume
 
@@ -198,9 +231,9 @@ Purely presentational. Turning on **Classic Task Interface** restores the old ta
 ## Caveats
 
 - This is a redesign of a page you probably use all day, and it's under active iteration. Expect details — labels, spacing, which things fold — to move between releases.
-- **Classic Task Interface** is instance-wide, so switching back changes the task page for every person on the instance. There's no per-user opt-out.
+- **Classic Task Interface** is instance-wide, so switching back changes the task page for everyone using the Classic workspace on the instance. There's no per-user opt-out. In Coordinator it doesn't bring back the old task page, though the properties panel loses its streamlined layout.
 - You can upload files from the Artifacts tab, but not delete them there. Deleting attachments still happens on the existing attachment surfaces.
-- Live structured plan checklists (an agent ticking off plan steps as it goes) depend on adapter support and aren't wired into the live thread yet — the Plan tab shows the plan document and accepted-plan history.
+- The step-by-step plan above the composer only appears when the agent's harness reports one, and only for the current run. The Plan tab shows the plan document and accepted-plan history.
 
 ## Where to go next
 

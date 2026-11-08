@@ -22,7 +22,7 @@ For the operator-facing walkthrough see [Administration → Plugins](../../admin
 | `GET /api/plugins/examples` | List the bundled plugins discovered in the current checkout (reference examples and vendored first-party plugins). See below. |
 | `GET /api/plugins/ui-contributions` | Aggregate of UI slots and launchers contributed by enabled plugins. The Paperclip UI consumes this on page load. |
 | `GET /api/plugins/tools` | Tools declared by enabled plugins. |
-| `POST /api/plugins/tools/execute` | Execute a plugin-declared tool by key. |
+| `POST /api/plugins/tools/execute` | Execute a plugin-declared tool by key. `runContext` needs `agentId`, `runId`, and `companyId`. `projectId` is optional: leave it out or send `null` for a run with no project, and the tool receives an empty `projectId`. Any other non-string value returns `400`. |
 
 ### Bundled plugin discovery
 

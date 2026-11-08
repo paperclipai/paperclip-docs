@@ -105,7 +105,7 @@ Daytona counts a *stopped* sandbox against your org's storage quota — only an 
 
 | Field | Default | Notes |
 |---|---|---|
-| `autoStopInterval` | `15` (minutes) | Stops idle running sandboxes, which frees CPU/RAM and starts the archive clock. `0` disables auto-stop. |
+| `autoStopInterval` | `15` (minutes) | Stops idle running sandboxes, which frees CPU/RAM and starts the archive clock. `0` disables auto-stop. Otherwise, a reusable sandbox that keeps a warm runner never auto-stops before the warm idle window plus 5 minutes, and a sandbox running a Paperclip runner never auto-stops before the host's runner reconnect grace plus 5 minutes. |
 | `autoArchiveInterval` | `60` (minutes) | Archives stopped sandboxes so they leave the disk quota. `0` uses Daytona's maximum interval. |
 | `autoDeleteInterval` | `10080` (minutes, 7 days) | Backstop reaper for sandboxes nobody resumes. `-1` disables auto-delete; `0` deletes immediately after stop. |
 

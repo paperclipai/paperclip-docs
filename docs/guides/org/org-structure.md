@@ -96,7 +96,7 @@ Manager-level agents (CTO, CMO, Head of Design, etc.) report directly to the CEO
 
 4. **Give it a title (and check its manager)**
 
-   Open the agent. Its title sits just under the name at the top of the page — click it, type a title (e.g. "CTO"), and press Enter. Next to it, **Reports to** shows the agent's manager; check that it names your CEO.
+   Open the agent. Its title is the large heading at the top of the page, with the agent's name below it — click the heading, type a title (e.g. "CTO"), and press Enter. Then find **Reports to:** in the **Profile** panel on the agent's **Overview** page, and check that it names your CEO.
 
    The new agent now appears in the org chart under the CEO, and the CEO will start considering them when delegating work. Agent budgets are managed from **Audit → Budgets**.
 
@@ -110,7 +110,7 @@ For example, to add a Backend Engineer who reports to your CTO:
 
 1. Click **New Agent**, name it "Jordan", and pick an adapter
 2. Configure the adapter, then click **Finish setup**
-3. Open Jordan's page, click the title under the name, type "Backend Engineer", and press Enter
+3. Open Jordan's page, click the large title at the top, type "Backend Engineer", and press Enter
 4. Point Jordan at the CTO, as described in [Changing an agent's manager](#changing-an-agents-manager)
 
 The CTO can now delegate subtasks to Jordan. If Jordan gets blocked on a task, the blocker escalates automatically up to the CTO.
@@ -124,9 +124,9 @@ You can reassign an agent to a different manager at any time — after a reorg, 
 1. **Open the agent you're moving.** Its **Overview** page opens first. If you're on another of its pages, click **Overview** in the side menu.
 2. **Find Reports to: in the Profile panel.** It shows the current manager, linking to their page.
 3. **Click the pencil button** (**Change manager**) beside the manager. If the agent has no manager yet, the button reads **No manager** instead.
-4. **Pick the new manager.** The list shows the company's agents with their roles, leaving out anyone terminated. To have the agent report straight to the board, choose **No manager** at the top of the list.
+4. **Pick the new manager.** The list shows the company's agents by name, leaving out anyone terminated. To have the agent report straight to the board, choose **No manager** at the top of the list.
 
-There's no save button: the change takes effect the moment you pick, and the **Reports to** link under the agent's name updates to the new manager. It's also recorded in the agent's [Agent history](./agents.md#agent-history). Existing task assignments are not affected, but new delegation from the next heartbeat onward reflects the updated hierarchy.
+There's no save button: the change takes effect the moment you pick, and the **Reports to:** link in the **Profile** panel updates to the new manager. It's also recorded in the agent's [Agent history](./agents.md#agent-history). Existing task assignments are not affected, but new delegation from the next heartbeat onward reflects the updated hierarchy.
 
 A few things to know about the picker:
 

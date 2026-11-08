@@ -96,7 +96,7 @@ Independently of the grant, each connection says which agents may use it at all.
 - **Any agent** — *"Available across your company."*
 - **Just agents I pick** — *"Available only to selected agents."* You then choose the agents.
 
-New tool connections normally default to `all_agents`; setup for a requesting agent narrows access to that agent. Methods and saved connections can carry more specific access. This does not bypass approval: creating the connection is itself an authorized, audited operation, and every individual action still has its own permission.
+New tool connections default to `all_agents`, whether you start from **Connectors** or from a connection card on a task. On a card you can narrow the list, but the agent that asked has to stay on it; otherwise setup stops with *"Include the requesting agent or choose all agents to continue this task."* Reusing an account you already connected from a card adds the requesting agent's access. AI account and inbox setup stay scoped to the agent that asked. Methods and saved connections can carry more specific access. Changing this list updates what those agents can actually reach in the same save. None of this bypasses approval: creating the connection is itself an authorized, audited operation, and every individual action still has its own permission.
 
 For a dedicated agent identity the question narrows to *"Which agent owns this GitHub account?"* — the identity and the agent are the same decision.
 

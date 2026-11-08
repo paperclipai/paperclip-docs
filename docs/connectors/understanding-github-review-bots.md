@@ -180,7 +180,7 @@ threshold, only the first outcome passes.
 
 A low score, pending CI, or an unmerged PR doesn't call you into Paperclip on its
 own. After publishing, the bot's task waits in review for the next GitHub event
-and stays out of your Inbox **Mine** tab. A later 5/5 review with its completion
+and stays out of your **Mine** view. A later 5/5 review with its completion
 conditions met can finish the task quietly. You only hear from the bot when it
 genuinely needs your input, such as repository access.
 

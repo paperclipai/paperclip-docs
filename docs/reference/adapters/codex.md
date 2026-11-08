@@ -8,7 +8,7 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 
 `codex_local` runs OpenAI's Codex CLI on the same machine as Paperclip. Use it when you want a local coding agent with persistent session state, managed `CODEX_HOME`, and Paperclip skills injected into the Codex skills directory.
 
-> **Heads-up:** New Codex agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer. Those agents are saved as `paperclip_runner` with `provider: "codex"`. To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
+> **Heads-up:** New Codex agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer. Those agents are saved as `paperclip_runner` with `provider: "codex"`. To keep the classic adapter described on this page, create or hire the agent with `runner: "legacy"` through the API, or `--runner legacy` in the CLI. The agent form no longer has a **Runner** setting. Existing agents keep the runner they already have.
 
 ---
 
@@ -118,11 +118,11 @@ An environment that only runs one-shot commands cannot host an ACP session, so a
 
 Pick any of the known Codex model ids in the `model` field. The picker lists them the way the ChatGPT app orders Codex models — newest model version first, most capable first within each version, and older models at the end:
 
-- `gpt-6.1-sol`
+- `gpt-6.1-sol` (the adapter default)
 - `gpt-6-astra`
 - `gpt-6-sol`
 - `gpt-6-luna`
-- `gpt-5.6-sol` (the adapter default)
+- `gpt-5.6-sol`
 - `gpt-5.6-terra`
 - `gpt-5.6-luna`
 - `gpt-5.5`
@@ -148,7 +148,9 @@ This is a curated list. Even when an OpenAI API key is available, the picker doe
 
 You can also type a model id that is not in this list. Anything Paperclip does not recognize is treated as a manual model id and passed straight through to the Codex CLI.
 
-> **Heads-up:** The default is now the concrete `gpt-5.6-sol` slug. The bare `gpt-5.6` alias has no OpenAI-published metadata, so Paperclip rewrites `gpt-5.6` to `gpt-5.6-sol` automatically — an agent still configured with the old alias keeps working and stops triggering the CLI's "model metadata not found" warning.
+> **Heads-up:** New Codex agents now default to `gpt-6.1-sol`. Agents that already have a saved model keep it, and `gpt-5.6-sol` stays in the picker. With ChatGPT sign-in, `gpt-6.1-sol` needs Codex CLI `0.159.0` or newer; see [Environment Test](#environment-test) for how Paperclip checks this.
+
+> **Note:** The bare `gpt-5.6` alias has no OpenAI-published metadata, so Paperclip rewrites `gpt-5.6` to `gpt-5.6-sol` automatically. An agent still configured with the old alias keeps working and stops triggering the CLI's "model metadata not found" warning.
 
 > **Tip:** Leave `model` empty to let Codex choose. When no model is set, the adapter omits the `--model` flag entirely so the Codex CLI falls back to its own default model.
 
@@ -315,7 +317,7 @@ Paperclip writes these definitions into a managed region of the per-company mana
   "adapterType": "codex_local",
   "adapterConfig": {
     "cwd": "/Users/me/projects/paperclip-workspace",
-    "model": "gpt-5.6-sol",
+    "model": "gpt-6.1-sol",
     "instructionsFilePath": "/Users/me/projects/paperclip-workspace/INSTRUCTIONS.md",
     "modelReasoningEffort": "medium",
     "search": false,

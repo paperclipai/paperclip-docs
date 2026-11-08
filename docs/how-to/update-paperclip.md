@@ -290,6 +290,12 @@ npx paperclipai@latest --version
 
 **The server boots but the UI is blank or shows old assets** — Hard-refresh the browser (Cmd+Shift+R) to bypass cached UI bundles. If you're behind a reverse proxy, also flush its cache.
 
+**A task says Waiting for server restart** — The server is starting, recovering, or shutting down for the update. Queued work starts by itself when it's ready, and turns that never started go first, unless that agent has a run still being recovered. See [Queued run says Waiting for server restart](./debug-stuck-heartbeat.md#18-queued-run-says-waiting-for-server-restart).
+
+**New work waits on the budget right after a restart** — A run the restart cut off still has an unsettled cost. This holds new work only, nothing is paused, and it usually clears by itself, normally within about 10 minutes of that run's recovery finishing. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain).
+
+**A task says Remote Runner is out of date** — The app updated before the remote Runner did, and Paperclip's automatic checks ran out first. Check that the Runner received this release's update, then retry the task.
+
 **Agents stop running after the update** — Check the run log for adapter errors. New releases occasionally tighten env-var validation or require a newer adapter binary (Claude Code, Codex, etc.). Update those binaries on the host and re-test.
 
 > **Note:** Using the unofficial, community-maintained desktop app? It updates itself — see [Community Desktop App](./community-desktop-app.md#updating).

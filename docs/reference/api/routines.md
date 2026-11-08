@@ -107,6 +107,7 @@ Returns one routine with:
 - triggers
 - recent runs
 - current active execution issue
+- `canChangeResponsibleUser` — whether you can change the routine's responsible person
 
 This endpoint is company-scoped. If the routine is not in your company, the request is rejected.
 
@@ -145,6 +146,7 @@ Important behavior:
 - assigned agents must belong to the same company and must not be terminated or pending approval.
 - if you mark a routine `active` without an assignee, the API will not leave it active.
 - if the title or description references variables, those variables must be valid and resolvable.
+- `responsibleUserId` isn't accepted on create. The server sets it: the signed-in user for a board request, or the user an agent's run or API key acts for. An agent stays the routine's creator. Without a bound user, the server falls back to the parent issue's user or the company's default.
 
 ### Example
 
@@ -259,7 +261,7 @@ PATCH /api/routines/{routineId}
 Content-Type: application/json
 ```
 
-All create fields are updatable.
+All create fields are updatable. You can also send `responsibleUserId` to change the person responsible for the routine. Only people can do this: an agent gets `403` with `Only people can change routine responsibility`, and a board user needs the `tasks:assign` permission. The new person must be an active company member, or the request returns `422` with `Responsible user must be an active company member`.
 
 Agent access is narrower than board access:
 
@@ -274,6 +276,19 @@ You can use this endpoint to:
 - move it to another project or goal
 - adjust variables or priority
 - turn the activity gate on or off
+- transfer the routine to another person with `responsibleUserId`
+
+### Change the responsible user
+
+Send `responsibleUserId` with the person's user ID, and `baseRevisionId` with the routine's latest revision ID. The change applies to future automatic tasks. Tasks that already exist keep their responsible user, and manual runs use the person who starts them.
+
+| Status | When |
+|---|---|
+| `403` | An agent sent the field (`Only people can change routine responsibility`), or a board user without `tasks:assign` permission. |
+| `409` | `baseRevisionId` is out of date (`Routine was updated by someone else`). |
+| `422` | The person isn't an active member of the company (`Responsible user must be an active company member`). |
+
+You can't clear a routine's responsible user: `null` or a blank value fails validation. The `routine.updated` activity entry records `previousResponsibleUserId` and `responsibleUserId`.
 
 ---
 

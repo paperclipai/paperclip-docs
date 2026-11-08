@@ -28,7 +28,7 @@ GET /api/companies/{companyId}/tools/action-requests?status=pending
 
 Review the action, connection, and request details shown in the card. The available details depend on the request type. If the preview does not establish what will change, inspect the task and ask the agent to clarify before approving.
 
-A pending request linked to a task also has an **Arguments and audit hash** section. Open it to read a redacted summary of the arguments and the hash that goes with them. This helps when the preview leaves out something you care about, such as a date near the end of a proposal. The summary is cut off at 4,000 characters, so very long arguments can still be incomplete. Opening the section doesn't answer the request. If the details can't be shown, the card says **Request arguments are unavailable.**
+A pending request linked to a task also has an **Arguments** section. Open it to read a redacted summary of the arguments. The hash that identifies those exact arguments stays behind **Copy audit hash**; if your browser blocks the clipboard, the button reads **Couldn’t copy** and the hash appears as text you can select. This helps when the preview leaves out something you care about, such as a date near the end of a proposal. The summary is cut off at 4,000 characters, so very long arguments can still be incomplete. Opening the section doesn't answer the request. If the details can't be shown, the card says **Request arguments are unavailable.**
 
 The buttons on that task card are worded a little differently from the review queue: **Approve & run** is the same as **Allow once**, and **Always allow** sits in the menu beside it when it's offered.
 

@@ -30,7 +30,7 @@ Open the palette without typing anything and you'll see two ready-made groups: *
 The **Pages** group is a jump list for the main areas of your company:
 
 - **Dashboard**
-- **Inbox**
+- **Inbox**, which reads **My work** and opens your personal task view in the standard Coordinator workspace, and in Classic when **Combined Inbox + Task List** is in effect
 - **Tasks**
 - **Projects**
 - **Goals**

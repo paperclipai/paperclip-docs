@@ -87,7 +87,7 @@ You'll find routines on the **Routines** page in the sidebar.
 
 When the trigger fires, Paperclip creates a task, assigns it to the agent, and that assignment wakes the agent immediately. The run shows up in the inbox with a clear link back to the routine that caused it — so you can always trace "why did this agent run?" back to a specific cause.
 
-> **Tip:** Want the result in your chat instead of buried in a task? If [Agent Chat](../../experimental/agent-chat.md) is on, ask for it in the routine's instructions — "send the digest to my chat". The agent posts it to its chat with you, with a link back to the routine's task, and the chat shows as unread until you've seen it. See [Messages from tasks and routines](../../experimental/agent-chat.md#messages-from-tasks-and-routines).
+> **Tip:** Want the result in your chat instead of buried in a task? Ask for it in the routine's instructions — "send the digest to my chat". The agent posts it to its chat with you, with a link back to the routine's task, and the chat shows as unread until you've seen it. See [Messages from tasks and routines](../../experimental/agent-chat.md#messages-from-tasks-and-routines).
 
 ### Routine policies worth knowing
 
@@ -176,7 +176,7 @@ The left sub-sidebar lists the routine's sections in two groups, and each sectio
 
 The first group holds the editable parts of the template:
 
-- **Overview** — the assignment row ("For [assignee] in [project]") and the Markdown instructions editor. It also shows a quick summary of the routine's **Triggers** and **Next run** (for a webhook-only routine that reads **On webhook delivery**), plus the five most recent runs with **View all runs** and **View routine activity** links.
+- **Overview** — the routine's **Default agent** and [**Responsible user**](#the-responsible-user), and the Markdown instructions editor. It also shows a quick summary of the routine's **Triggers** and **Next run** (for a webhook-only routine that reads **On webhook delivery**), plus the five most recent runs with **View all runs** and **View routine activity** links.
 - **Triggers** — every trigger attached to the routine, each as its own card, plus a composer to add new ones.
 - **Variables** — the `{{name}}` placeholders detected in the title and instructions.
 - **Delivery** — the concurrency and catch-up policies.
@@ -190,6 +190,14 @@ The first group holds the editable parts of the template:
 The routine's revision history lives behind the **History** button in the header, where you can restore an earlier revision; **Back to overview** takes you out again.
 
 A small amber dot appears next to any section with unsaved edits, and a blue pulsing dot appears on **Runs** when a run is live. On narrow screens the sidebar collapses into a single grouped section picker at the top.
+
+### The responsible user
+
+Every task a routine creates runs under a person's authority. To see whose, look at **Responsible user** on **Overview**, beside **Default agent**. As the page puts it: *Automatic tasks use this person. Manual runs use the person who starts them.*
+
+To hand a routine to someone else, or adopt it yourself, click the name, search under **Find a person…**, and pick an active company member. The change saves straight away and applies to future automatic tasks. Tasks the routine already created keep the person they had. You need permission to assign tasks (`tasks:assign`). Everyone else, including agents and Viewers, sees the name without the picker. If someone edited the routine first, you'll see *This routine changed. Reload before changing responsibility.*
+
+When an agent creates a routine, the responsible user is the person the agent is acting for. If there's no such person, Paperclip uses the parent task's responsible user or creator, then the company's default. The agent is still recorded as the routine's creator.
 
 ### Saving edits
 

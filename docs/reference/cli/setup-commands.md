@@ -121,7 +121,7 @@ It loads the config's `.env`, then runs these checks in order, stopping early on
 - config validity (must pass first)
 - deployment / auth mode compatibility
 - agent JWT secret
-- secrets adapter
+- secrets adapter (on Windows, this skips the local key file's permission check, because Windows can't restrict that file with `chmod`)
 - storage
 - database connectivity
 - LLM provider

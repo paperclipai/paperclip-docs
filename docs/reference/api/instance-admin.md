@@ -181,7 +181,7 @@ Execution workspaces are the materialised working directories Paperclip creates 
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /api/companies/:companyId/execution-workspaces` | List execution workspaces for the company. |
+| `GET /api/companies/:companyId/execution-workspaces` | List execution workspaces for the company. With `summary=true` you can page through results by adding `limit` (1 to 101, default 51) and `cursor` (the last row's `id`). The paged response is still a plain array, sorted by `id`. Invalid values return `422` with `Invalid workspace summary pagination`. |
 | `GET /api/execution-workspaces/:id` | Read one workspace. |
 | `GET /api/execution-workspaces/:id/close-readiness` | Whether the workspace is safe to close (no pending operations, no dirty state). |
 | `GET /api/execution-workspaces/:id/workspace-operations` | List the operations recorded against the workspace. |

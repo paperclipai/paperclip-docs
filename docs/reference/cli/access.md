@@ -127,7 +127,7 @@ paperclipai member archive <member-id> --company-id <company-id>
 | Command | Method & path | Notes |
 | --- | --- | --- |
 | `member list` | `GET /api/companies/<company-id>/members` | Company-scoped. |
-| `member user-directory` | `GET /api/companies/<company-id>/user-directory` | Company-scoped. |
+| `member user-directory` | `GET /api/companies/<company-id>/user-directory` | Company-scoped. Each user entry includes `membershipRole`. |
 | `member update <memberId>` | `PATCH /api/companies/<company-id>/members/<member-id>` | Requires `--payload-json`. |
 | `member role-and-grants <memberId>` | `PATCH /api/companies/<company-id>/members/<member-id>/role-and-grants` | Requires `--payload-json`. |
 | `member permissions <memberId>` | `PATCH /api/companies/<company-id>/members/<member-id>/permissions` | Requires `--payload-json`. |

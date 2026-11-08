@@ -158,7 +158,7 @@ The footer shows **Unsaved changes** while you have edits, or **No configuration
 
 Click **Save changes**. The footer shows each step as it runs (**Saving: …**). When everything finishes, Paperclip reloads the document from the server and shows an **Agent saved** toast. If any setting was ignored along the way, the toast lists the [configuration warnings](../../reference/api/agents.md#configuration-warnings).
 
-While a save is running, the editor is read-only, the header's **Assign task** button is disabled, and so are **Run now**, **Pause** / **Resume**, and **Clear error** in the header's actions menu. Paperclip also asks before you leave the page with unsaved edits.
+While a save is running, the editor is read-only, the header's **New task** button is disabled, and so are **Run now**, **Pause** / **Resume**, and **Clear error** in the header's actions menu. Paperclip also asks before you leave the page with unsaved edits.
 
 ### Rules the editor enforces
 

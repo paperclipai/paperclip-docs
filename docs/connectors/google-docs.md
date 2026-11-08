@@ -8,7 +8,7 @@ seo_description: Let agents read Google Docs documents and optionally update the
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** This connector is no longer listed on the **Connectors** page for new setup; it appears there only when you have a saved connection to it, which keeps running unchanged. For a new Google account, use [Google Workspace](google-workspace.md). An agent that needs this service can still ask you for it with a connection card on its task.
+> **Note:** This connector is no longer listed on the **Connectors** page for new setup; it appears there only when you have a saved connection to it, which keeps running unchanged. For a new Google account, use [Google Workspace](google-workspace.md) if your instance has [turned it on](google-workspace.md#turn-on-the-built-in-connector); otherwise connect the Google app through Composio or Arcade. An agent that needs this service can still ask you for it with a connection card on its task.
 
 Agents can read the text and structure of Google Docs documents, and on an editing connection update them.
 

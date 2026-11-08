@@ -33,7 +33,7 @@ All experimental flags live in one place, and they're instance-wide (they apply 
 
 Changes take effect immediately — no restart, no migration. Each feature page in this section repeats the exact toggle name to look for.
 
-One card works differently. **Coordinator workspace**, at the top of the page above the warning, is a personal preference rather than an instance flag. It changes only your own interface, across every company on the instance, and it's off until you turn it on. See [Coordinator workspace](coordinator-workspace.md).
+One card works differently. **Classic workspace**, at the top of the page above the warning, is a personal preference rather than an instance flag. It swaps the standard Coordinator workspace for the previous interface, only for you, across every company on the instance, and it's off until you turn it on. See [Use the Classic workspace instead](coordinator-workspace.md#use-the-classic-workspace-instead).
 
 The page groups its toggles into up to three sections — **Experimental features**, **Paperclip Developer Mode**, and **Legacy** — and lists the cards alphabetically within each one, so you can scan for a name. If every toggle in the developer or legacy section is hidden, that section heading disappears too.
 
@@ -65,20 +65,20 @@ This card sits above the instance-wide sections, and only affects you.
 
 | Feature | What it adds |
 | --- | --- |
-| [Coordinator workspace](coordinator-workspace.md) | **Personal, off by default.** A workspace built around **Chat**, **Tasks**, and **Needs you**, with task proposals, decision cards and receipts, and decision history. Turn it off to return to the classic workspace. Chat still needs Agent Chat to be on for the instance. |
+| [Classic workspace](coordinator-workspace.md#use-the-classic-workspace-instead) | **Personal, off by default.** Use the previous workspace instead of the standard Coordinator workspace. Old Coordinator experiment settings don't turn it on; you have to choose it. Turn it off to return to Coordinator. |
 
 ### Experimental features
 
 | Feature | What it adds |
 | --- | --- |
-| [Agent Chat](agent-chat.md) | One ongoing conversation per agent. **Chat** leads the **Work** group; agents clarify your goal, hand real work off to tasks, and report back when those tasks are done. |
 | [Assistant connections (MCP)](assistant-connections.md) | Connect an external assistant as your user through OAuth, with separate read, write, and configuration scopes. |
 | Beta skills | Lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill without removing saved pins. |
 | [Built-in Agents](../reference/api/built-in-agents.md) | Paperclip-managed built-in agent surfaces: roster badges and setup controls. |
 | [Cases](cases.md) | Durable work products that tasks create and iterate on, with one primary task that agents hand off phase by phase. Adds the **Cases** tab and the agent case API ([API reference](../reference/api/cases.md)). |
 | [Chat connectors](../connectors.md#chat-channels-experimental) | Connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations. Existing chat connections keep running when it's off. |
-| [Combined Inbox + Task List](task-chat.md#an-optional-combined-task-list) | Reach inbox and task views from one **Tasks** navigation entry. |
-| [Decisions](../guides/day-to-day/decisions.md) | Shows the **Decisions** item in the main sidebar, where the tasks awaiting your input collect. |
+| [Combined Inbox + Task List](task-chat.md#an-optional-combined-task-list) | **Classic workspace only.** Reach inbox and task views from one **Tasks** navigation entry. Coordinator always includes personal views in Tasks. |
+| Command/Ctrl+Enter to Submit | Restores the previous keyboard shortcut for task replies and new tasks: Command/Ctrl+Enter submits and Enter adds a new line. Off by default, so Enter submits and Shift+Enter adds a new line. |
+| [Decisions](../guides/day-to-day/decisions.md) | **Classic workspace only.** Shows the **Decisions** item in the main sidebar, where the tasks awaiting your input collect. Coordinator always has **Inbox**. |
 | [Enable Environments](environments.md) | Environment management in settings, plus project and agent environment assignment — including custom sandbox images. |
 | [Enable External Objects](external-objects.md) | Detects external URLs in issues and shows live status for referenced pull requests, tickets, and other work objects. |
 | [Enable Isolated Workspaces](isolated-workspaces.md) | Execution-workspace controls: per-run isolated copies of a project so agents don't step on each other. Turning it on reveals a **Use Isolated Workspaces By Default** card. |
@@ -86,6 +86,7 @@ This card sits above the instance-wide sections, and only affects you.
 | [Experimental File Viewer](file-viewer.md) | Task-detail controls for browsing and previewing workspace files relative to a task. |
 | First task: propose with a plan document | For a single-task first request, the chief of staff writes a short plan document and a checkbox card. Applies to organizations created after you flip it. |
 | [GitHub review bots](../connectors/understanding-github-review-bots.md) | Connect agents to GitHub with their own App identity to review pull requests and respond to issues. Separate from Chat connectors; turning it off hides setup, but existing bots keep running. |
+| [Google Workspace connector (Paperclip)](../connectors/google-workspace.md#turn-on-the-built-in-connector) | Shows the built-in Google Workspace connector for Gmail, Drive, and Calendar while Google verification is pending. Off by default; while it's off, Google apps are offered through Composio and Arcade, and the built-in connector can't be set up or run. |
 | [Grok Bot](external-agents.md) | Connect an existing Grok Bot as an agent. Needs Assistant connections (MCP), Paperclip Runner, and authenticated public HTTPS. |
 | [Memory connectors](../connectors/memory-connectors.md) | Set up Mem0, Zep, Supermemory, Cognee, or Honcho for agents. Existing connections keep running when setup is hidden. |
 | [Muse — Personal agent](external-agents.md) | Connect your personal Meta Muse and verify a background reply before assigning tasks. Needs Paperclip Runner and an authenticated instance with a public HTTPS URL. |
@@ -93,7 +94,7 @@ This card sits above the instance-wide sections, and only affects you.
 | [Paperclip Runner](../reference/adapters/paperclip-runner.md) | Native agent execution, on by default for self-hosted instances and off by default on Cloud. The switch controls the Runner's other providers (Muse and Grok Bot need it, for example). New Codex, Claude Code, OpenCode, and Pi agents resolve to the Runner on supported macOS and Linux hosts even when it's off (OpenCode and Pi stay on the Legacy runner on Linux ARM64), unless you pick **Legacy runner** as the runner override. Copilot agents keep running when the switch is off; turning it off only hides the **Paperclip Runner** choice. See [GitHub Copilot](../connectors/github-copilot.md) and [Experimental external providers](../reference/adapters/paperclip-runner.md#experimental-external-providers). |
 | [Simplified English Interactions](../reference/skills/optional/content/simplified-english.md) | Agents write confirmations, questions, and suggested tasks in ASD-STE100 Simplified Technical English. |
 | [Status Cards](status-cards.md) | A shared board of living summaries, kept current by the Summarizer. Enabling it also enables Summaries. |
-| Streamlined UI | **On by default.** The simplified sidebar, focused task detail layout, and contextual navigation. Turning it off restores the legacy shell and navigation. |
+| Streamlined UI | **On by default.** The simplified sidebar, focused task detail layout, and contextual navigation. Turning it off restores the legacy shell and navigation for people in Classic. Coordinator always uses the streamlined shell, but a few page layouts, such as the Routines **Runs** tab, the Skills browse rails, and the Agents view, still follow this setting there. |
 | [Summaries](../reference/api/summary-slots.md) | Summarizer-generated status slots on project and workspace pages. Status Cards needs it. |
 
 ### Paperclip Developer Mode
@@ -116,8 +117,8 @@ Internal tools for developing, testing, and debugging Paperclip itself.
 
 | Feature | What it adds |
 | --- | --- |
-| [Classic Task Interface](task-chat.md) | Restores the previous task detail page. The chat-style task page is now the default. |
-| [Goals Sidebar Link](../guides/projects-workflow/goals.md) | Restores the **Goals** item in the main sidebar. |
+| [Classic Task Interface](task-chat.md) | Restores the previous task detail page in the Classic workspace; in Coordinator it only changes the properties panel. The chat-style task page is now the default. |
+| [Goals Sidebar Link](../guides/projects-workflow/goals.md) | **Classic workspace only.** Restores the **Goals** item in the main sidebar. |
 
 ### Not on the page
 
@@ -126,6 +127,8 @@ These have pages in this section but no toggle in this release:
 | Feature | Status |
 | --- | --- |
 | [Task-pinned AI routing](task-pinned-ai-routing.md) | Experimental and off by default, but the `enableAiConnectionRouters` flag has no card on the Experimental page. Needs a router plugin. |
+| [Coordinator workspace](coordinator-workspace.md) | **No toggle any more.** The standard workspace for everyone. An earlier "off" setting no longer counts; choose **Classic workspace** above if you want the previous interface. |
+| [Agent Chat](agent-chat.md) | **No toggle any more.** Available to everyone, even on instances that had it off. `enableAgentChat` remains as a compatibility key, and stored or managed values are ignored. |
 | [Task Watchdogs](task-watchdogs.md) | **No flag any more.** Watchdog controls are always available on tasks. |
 | [Artifacts V1](../guides/day-to-day/artifacts.md) | **No toggle any more.** Stacks, tiles, and compact rows are how artifacts look on every instance. A hosting operator can still [hold the older cards in place](../guides/day-to-day/artifacts.md#if-your-instance-shows-the-older-cards). |
 | [Auto-Create Recovery Tasks](auto-create-recovery-tasks.md) | **Retired**, along with its toggle and its preview and run actions. |
