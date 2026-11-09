@@ -205,6 +205,8 @@ Codex can also run natively through [Paperclip Runner](paperclip-runner.md) (`pa
 - **Codex keeps its own base prompt.** Paperclip sends its task context as additive `developerInstructions` when a thread starts or resumes, so Codex's stock base instructions stay in place. Conversations created before this change keep their saved prompt when resumed; reset those sessions if you want the stock base instructions back.
 - **A model your ChatGPT account can't use says so.** When Codex rejects the selected model for a ChatGPT sign-in, the task shows **Model unavailable.** with *"The selected model is not supported by the current ChatGPT connection. Choose a supported model or a compatible AI connection."* Paperclip doesn't retry that request automatically. Choose a supported model or clear the task's model override, then retry.
 - **A busy model retries on its own.** When the selected model is at capacity, Paperclip shows **Model at capacity** and retries after one minute, then after two. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention).
+- **Local follow-ups start faster.** Under the **Automatic** [Runner lifecycle](paperclip-runner.md#runner-lifecycle), a native Codex agent on a local target stays warm for 5 minutes after a run, so a follow-up skips the launch and session load. Pick **Turn by turn** in the agent form if you'd rather suspend after each run.
+- **It can make images on an OpenAI API key.** A native Codex agent on a direct OpenAI API-key connection gets a `generate_image` tool that uses that key. Conditions, limits, and billing are in [Generate images](paperclip-runner.md#generate-images).
 
 ---
 

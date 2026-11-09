@@ -64,10 +64,27 @@ This is the right choice for tasks that make code changes — features, fixes, e
 **Reuse existing workspace**
 The task shares a workspace with another task or a previous run. Multiple tasks can share one workspace so they can work against the same branch and see the same running services.
 
-This is useful when tasks are closely related and need to coordinate on the same state — for example, multiple issues working against the same feature branch.
+This is useful when tasks are closely related and need to coordinate on the same state — for example, multiple issues working against the same feature branch. It works between tasks that aren't parent and child. A subtask can't reuse a workspace from the task above it; see [Subtasks get their own workspace](#subtasks-get-their-own-workspace).
 
 **Project primary workspace**
 The task runs in the project's primary checkout, not an isolated copy. Use this carefully — changes made here affect the shared working copy directly.
+
+### Subtasks get their own workspace
+
+A parent task and its subtask often run at the same time. To stop them from overwriting each other's files, Paperclip gives a subtask its own execution workspace, built from the project base the same way a top-level task's workspace is.
+
+A subtask keeps its parent's project and workspace strategy: the mode, base ref, branch template, provision and teardown commands, environment, and runtime settings. It never gets the parent's checkout, branch, or unmerged changes. If a subtask needs work the parent hasn't merged yet, merge that work first.
+
+The exception is shared workspace mode. There, every task uses the project's one folder, subtasks included. A branch the project itself pins also applies to every task in the project.
+
+A few cases work a little differently:
+
+- **The parent reuses a workspace or works on a named branch.** Those modes point at specific files, so they don't carry over. The project's default applies instead.
+- **The subtask is in a different project.** It doesn't take the parent's strategy. It uses its own project's defaults.
+- **The parent has no project workspace.** The parent worked in its own task files, so the subtask takes the project's defaults, like a top-level task.
+- **Something names a workspace from above.** If a create request sets `executionWorkspaceId` or an `existing` workspace selection to a workspace that the new task's parent, or another task above it, created or is bound to, Paperclip drops that choice and keeps only the strategy.
+- **`inheritExecutionWorkspaceFromIssueId`.** This field copies only the source task's project and workspace strategy, whether or not the source is the new task's parent. The new task still gets its own workspace.
+- **An older subtask already shares a workspace from above.** It moves to its own workspace the next time it starts normally. A run still going finishes where it is, and so does a retry that keeps the current workspace or a run that still has workspace cleanup or recovery to settle. The parent and its workspace aren't changed, and anything the subtask left there stays put.
 
 ---
 
@@ -384,7 +401,7 @@ If nothing about a failure is obvious from the excerpt, remember that excerpts a
 
 ## Tasks tab
 
-The Tasks tab shows every issue that has ever run against this execution workspace — not just the source issue that created it, but any follow-ups, retries, and related tasks that inherited the workspace.
+The Tasks tab shows every issue that has ever run against this execution workspace — not just the source issue that created it, but also retries and any other task set to reuse the workspace.
 
 ![Tasks tab](../../user-guides/screenshots/light/workspaces/issues.png)
 
@@ -408,9 +425,9 @@ If an issue in the list needs to be reassigned or rescheduled before you can clo
 Two different relationships show up on the Tasks tab and in the Configuration tab's Workspace context card, and it's worth keeping them straight:
 
 - The **source issue** is the single issue that originally caused Paperclip to provision this workspace. It's stored on the workspace itself and appears in the Workspace context card. For isolated worktrees created from a specific task, this will typically be the task that kicked the whole flow off.
-- The **linked issues** listed on the Tasks tab are every issue that has ever been attached to this workspace, including the source issue, follow-up child issues that inherited the workspace, and any issue whose `inheritExecutionWorkspaceFromIssueId` pointed back here.
+- The **linked issues** listed on the Tasks tab are every issue that has ever been attached to this workspace, including the source issue and any issue set to reuse it. Subtasks normally aren't in this list, because each one [gets its own workspace](#subtasks-get-their-own-workspace).
 
-When you're deciding whether it's safe to archive, look at the full linked list, not just the source issue. An archived workspace takes all its branch state with it, and a follow-up issue that still references it will end up without a valid cwd the next time it runs.
+When you're deciding whether it's safe to archive, look at the full linked list, not just the source issue. An archived workspace takes all its branch state with it, and a task that still references it will end up without a valid cwd the next time it runs.
 
 ---
 
@@ -500,7 +517,7 @@ When something doesn't behave, run through this checklist before filing a bug:
 - **Does the runtime config actually apply?** Look at Runtime config source on the Configuration tab. If it says "None", no service commands will be available.
 - **Is another workspace holding the port?** Two isolated worktrees on the same machine that both inherit a dev server config will both try to bind. Either override the port on one of them or only start one at a time.
 - **Did a previous close fail?** If the workspace is in `cleanup_failed`, you'll keep getting stale state until you either retry the close or manually fix the underlying problem and then retry.
-- **Is the agent looking at the right workspace?** When follow-up tasks are created, make sure either `parentId` or `inheritExecutionWorkspaceFromIssueId` is set on the child issue so Paperclip can resolve it back to this workspace.
+- **Is the agent looking at the right workspace?** A subtask, or a task created with `inheritExecutionWorkspaceFromIssueId`, gets [its own workspace](#subtasks-get-their-own-workspace) and won't see this one's files. To work here on purpose, choose **Reuse existing workspace** on a task that isn't a subtask of the one using this workspace.
 
 Most workspace-level issues come down to one of these six questions.
 
@@ -607,7 +624,7 @@ A few concrete patterns show up often enough to be worth calling out:
 4. Link the resulting evidence to the issue — the operation timestamp is enough.
 
 **Reusing a workspace across tasks**
-1. When creating the follow-up issue, set `parentId` if it's a child task, or `inheritExecutionWorkspaceFromIssueId` if it's a sibling that should share the same workspace.
+1. On the task that should join in, choose **Reuse existing workspace** and pick the workspace. Setting `parentId` or `inheritExecutionWorkspaceFromIssueId` won't do this, because those give the new task [its own workspace](#subtasks-get-their-own-workspace). A subtask of a task that created or uses the workspace can't reuse it either.
 2. Paperclip will wire the new issue up to the existing workspace on checkout.
 3. On the Tasks tab of the workspace, you'll see the new issue alongside the original.
 

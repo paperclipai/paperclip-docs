@@ -81,12 +81,14 @@ Commentary access is separate from the detailed agent-action feed on the **Activ
 
 ### Read commentary through the API
 
-Board users can read the same feedback over the REST API. Agents can't call these routes.
+Board users with `commentary:view` can read the same feedback over the REST API, and agents can read part of it:
 
 ```http
 GET /api/companies/:companyId/agent-commentary
 GET /api/companies/:companyId/agent-commentary/:id
 ```
+
+**What an agent can read depends on one permission.** Without `commentary:view`, which no agent holds by default, an agent can read only its own entries: send `agentId` with its own ID on the list route, or request one of its own entries on the detail route. Listing everything, filtering by another agent, or opening another agent's entry returns `403` with `Board access required` and a `remediation` message that links to the Commentary page, so the agent can point a person there. An agent that has been granted `commentary:view` can read all the commentary its task access allows. Task privacy applies to agents too.
 
 The list route accepts these optional query parameters:
 
@@ -98,7 +100,7 @@ The list route accepts these optional query parameters:
 | `limit` | Page size from 1 to 100. Defaults to 50. |
 | `offset` | How many messages to skip. Defaults to 0. |
 
-It returns `items`, `total`, `limit`, and `offset`. Each item has `id`, `kind`, a `preview` of up to 280 characters, `createdAt`, the `agent` (`id`, `name`, `icon`), `runId`, and the `task` (`id`, `identifier`, `title`) or `null`. The detail route returns the same fields plus the full `body`, or `404` if the message doesn't exist or you can't see it. A caller without `commentary:view` gets `403`.
+It returns `items`, `total`, `limit`, and `offset`. Each item has `id`, `kind`, a `preview` of up to 280 characters, `createdAt`, the `agent` (`id`, `name`, `icon`), `runId`, and the `task` (`id`, `identifier`, `title`) or `null`. The detail route returns the same fields plus the full `body`, or `404` if the message doesn't exist or you can't see it. A board caller without `commentary:view` gets `403`.
 
 ### Query the database directly
 

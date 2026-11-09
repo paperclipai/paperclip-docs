@@ -473,15 +473,44 @@ Paperclip exposes both broad and company-scoped portability routes:
 | `POST /api/companies/{companyId}/exports/preview` | Preview a company export | Board or CEO of that company |
 | `POST /api/companies/{companyId}/exports` | Export a company bundle with the stricter portability flow | Board or CEO of that company |
 | `POST /api/companies/import/preview` | Preview an import into a new or existing company | Board only |
-| `POST /api/companies/{companyId}/imports/preview` | Preview an import into the same company | Board or CEO of that company |
-| `POST /api/companies/{companyId}/imports/apply` | Apply an import into the same company | Board or CEO of that company |
+| `POST /api/companies/{companyId}/imports/preview` | Preview an import into the same company or a new one | Board or CEO of that company |
+| `POST /api/companies/{companyId}/imports/apply` | Apply an import into the same company or a new one | Board or CEO of that company |
 
-The company-scoped `imports/*` routes are intentionally safer:
+### What to send for an export
 
-- they can only target the route company
-- they reject the `replace` collision strategy
+`POST /api/companies/{companyId}/exports` and `/exports/preview` take the same JSON body. If you want a setup you can reuse elsewhere, say what to include, because the defaults are narrow:
 
-Use the board-level preview route when you need to inspect an import that would create a brand-new company or target a different company.
+| Field in `include` | Default |
+|---|---|
+| `company` | `true` |
+| `agents` | `true` |
+| `projects` | `false` |
+| `skills` | `false` |
+| `issues` | `false` |
+
+So a request with no `include` exports only the company and its agents. Send `"include": { "projects": true, "skills": true }` for a reusable company setup. The other `include` values keep their defaults.
+
+Naming specific items also switches that section on: a non-empty `agents`, `projects`, `skills`, `issues`, or `projectIssues` list exports those without a matching `include` flag. The body also accepts `selectedFiles`, `expandReferencedSkills`, and `sidebarOrder`.
+
+### What to send for a safe import
+
+`POST /api/companies/{companyId}/imports/preview` and `/imports/apply` take these fields. `apply` also accepts `adapterOverrides`, `secretValues`, and `pauseAutomations`.
+
+| Field | Notes |
+|---|---|
+| `source` | Required. The package to import. |
+| `target` | Required. `{ "mode": "existing_company", "companyId": "<route company>" }` or `{ "mode": "new_company", "newCompanyName": "..." }`. A new-company import returns `422` if the source company has no active user membership. A different `companyId` returns `403` with `Safe import route can only target the route company`. |
+| `include` | Optional, with the same defaults as export. |
+| `agents` | Optional. `"all"` or a list of agent slugs. |
+| `collisionStrategy` | Optional, defaults to `rename`. `rename` or `skip` on these routes. `replace` returns `403` with `Safe import route does not allow replace collision strategy`, so an existing agent is never overwritten. |
+| `nameOverrides` | Optional. Maps an incoming agent, project, or issue slug to the name it should get. |
+| `selectedFiles` | Optional. Limits the import to these package files. |
+
+Preview doesn't change the company, so run it first to see what an import would do. `apply` creates or reuses the resources and returns them.
+
+These company-scoped routes are intentionally safer: they can't target another existing company, and they reject the `replace` collision strategy.
+
+Use the board-level preview route when you need to inspect an import into a different company.
 
 ### Chunked import transfers
 

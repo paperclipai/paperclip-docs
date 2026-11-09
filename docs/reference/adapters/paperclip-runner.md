@@ -176,7 +176,22 @@ The credential binding is configured separately. [Custom model providers](../../
 
 Company permissions, governed approvals, and budgets still apply. Grok cannot automatically approve Paperclip tool calls under the narrower ACP modes; those requests wait for approval. Cursor session mode is a separate setting from ACP permission policy.
 
-Native Codex agents can make images with Codex's built-in image tool. The tool uses the credential the agent already runs on, so the agent doesn't ask you for a second OpenAI key. Codex saves the results under `CODEX_HOME/generated_images`. In an isolated home that folder is the only part of the Codex home the agent can read, and it copies the images it needs into the workspace.
+### Generate images
+
+Native Codex agents can make images without asking you for a second OpenAI key. How they do it depends on how the agent signs in.
+
+**With a ChatGPT sign-in,** the agent uses Codex's built-in image tool. Codex saves the results under `CODEX_HOME/generated_images`. In an isolated home that folder is the only part of the Codex home the agent can read, and it copies the images it needs into the workspace.
+
+**With an OpenAI API key,** the built-in tool isn't available, so Paperclip gives the agent a `generate_image` tool that makes the image with that same key. Paperclip's server sends the key to OpenAI itself, so it never reaches the agent's process or shell. The agent gets the tool only when all of these are true:
+
+- It's a native Codex run, and the agent's selected connection is an OpenAI API-key connection.
+- There's no AI router selection or managed AI routing on the run.
+- The task runs in Auto (`standard`) mode and has a workspace. Ask and Plan runs don't get the tool, and neither do completion reviews or tasks run through a plugin environment driver.
+- If the run is on a remote target, Paperclip can run commands there to install the file.
+
+Each call makes one PNG with `gpt-image-2`. The prompt can be up to 8,000 characters. `size` is `1024x1024` (the default), `1536x1024`, `1024x1536`, or `auto`, and `quality` is `low`, `medium`, `high`, or `auto` (the default). An image over 20 MiB is refused, and the request times out after 180 seconds. The file lands in the workspace root as a new file named from the optional `name` plus a short random suffix, such as `cake-logo-1a2b3c4d.png`, and the agent moves or copies it from there. It can use `register_deliverable` when you should receive the image.
+
+Images are billed to your OpenAI account through that key, and each one counts against the agent's budget. Before spending anything, Paperclip rechecks that the agent may still change the task and that no budget has stopped it. Each image is recorded as a cost event with an estimated price from OpenAI's published token rates. If OpenAI rejects the request with an HTTP error, no charge is recorded. If a reply is lost and OpenAI may have billed anyway, the event is recorded as unpriced.
 
 ## Sessions and task modes
 
@@ -184,7 +199,7 @@ The Runner records native session identity and recovers through the provider's s
 
 In a plugin environment, the plugin chooses the working directory, not Paperclip. The Runner records the directory the plugin prepared with the session, and recovery fails rather than resuming the session somewhere else.
 
-A Codex agent with the **Warm session** Runner lifecycle can also stay warm in a plugin environment, as long as the plugin supports it and the agent has a selected AI account. The next run then picks up the same Codex process instead of starting a new one. Other providers in plugin environments run turn by turn. If the environment itself sets a Runner lifecycle, that setting wins over the agent's.
+A Codex agent with the **Warm session** or **Automatic** Runner lifecycle can also stay warm in a plugin environment, as long as the plugin supports it and the agent has a selected AI account. The next run then picks up the same Codex process instead of starting a new one. Other providers in plugin environments run turn by turn. If the environment itself sets a Runner lifecycle, that setting wins over the agent's.
 
 For Claude, the Runner loads three task tools up front — `set_task_title`, `paperclip_finish`, and `paperclip_block` — so Claude doesn't have to search for them before it can name or finish a simple task. Its other Paperclip tools load on demand, with the same access checks.
 
@@ -193,6 +208,28 @@ Runner agents can also manage their own task workspace. `get_workspace` shows th
 When an assigned tool returns more than about 500 KB, the Runner saves the full result and hands the agent a reference instead. The agent reads it in pages with `read_tool_result`, passing `artifactId` and then each `responseText.nextOffsetBytes` until it's `null`, so the original action never has to run twice.
 
 Standard, planning, and ask tasks are supported. Cursor additionally has `acpxSessionMode`: `agent` (default), `plan`, or `ask`. Selecting Plan or Ask changes native Cursor session behavior, while Paperclip permissions and environment boundaries remain in force.
+
+### Runner lifecycle
+
+The agent form's **Runner lifecycle** field decides whether the Runner keeps the provider process and session alive between runs. Keeping them warm means a follow-up can skip launching the process and loading the session, so it starts faster.
+
+| Option | Stored `lifecycleMode` | What it does |
+| --- | --- | --- |
+| **Automatic** | none | Paperclip picks for you. A local Codex or OpenCode agent stays warm for 5 minutes after a run, and a plugin environment that supports warm reuse can keep an agent warm too. Everything else runs turn by turn. |
+| **Turn by turn** | `per_turn` | Suspends after each run. |
+| **Warm session** | `warm` | Keeps the same provider process available between runs. The **Warm idle timeout (ms)** field sets how long, up to 24 hours. |
+
+Outside plugin environments, **Automatic** keeps an agent warm only when all of these are true:
+
+- The harness is Codex or OpenCode. ACP Claude agents follow Automatic but stay turn by turn, because Claude relaunches its provider process on every follow-up either way.
+- The run is on a local target, not a remote one. A sandbox environment runs turn by turn under Automatic, unless the environment sets a Runner lifecycle of its own.
+- For OpenCode, no managed AI **Connection** is selected. Managed connections keep an OpenCode agent turn by turn even with **Warm session**. Codex can stay warm with one.
+
+Other Runner harnesses, including Grok, Pi, and ACP Cursor, don't follow Automatic: a new one is saved as `per_turn`, and a saved value stays as it is. A value you pick yourself beats the Automatic default, though an environment's own lifecycle setting or a managed connection that can't stay warm can still override it. A session that has already started keeps the lifecycle it began with.
+
+In a plugin environment, an agent on **Automatic** with a selected AI account gets warm reuse when the plugin's driver supports it. See the [Plugin SDK](../plugins/sdk.md) for what the driver has to declare.
+
+**When you upgrade,** Paperclip clears a saved `per_turn` from native Codex, OpenCode, and ACP Claude agents, because that value usually came from the old creation default rather than a choice. They then follow Automatic. An agent keeps `per_turn` if its configuration history shows someone changed it to that value. A **Turn by turn** picked when the agent was first created isn't recorded in that history, so it's cleared too; pick it again if you still want it. Each cleared agent gets an `agent.updated` activity entry. Other harnesses and legacy adapters aren't touched.
 
 ### Pi on Paperclip Runner
 
@@ -337,6 +374,7 @@ Existing `cursor`, `cursor_cloud`, `grok_local`, `claude_local`, `codex_local`, 
 
 ## OpenCode on the Runner
 
+- **Follow-ups start warm locally.** Under the **Automatic** [Runner lifecycle](#runner-lifecycle), a local OpenCode agent with no managed connection stays warm for 5 minutes after a run.
 - **Replies stream as they're written.** Native OpenCode forwards text and reasoning as they arrive. Queued chat messages are dispatched as soon as the session is ready.
 - **No install step to run first.** The server ships `opencode-ai@1.18.34` as a dependency, and the Runner finds the right platform package even if your package manager skipped postinstall scripts.
 - **Remote runs use the bundled Linux assets.** In a remote sandbox the Runner selects its bundled Linux daemon and OpenCode pack, so the image and Paperclip package need to come from the same release.

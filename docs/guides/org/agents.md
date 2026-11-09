@@ -235,7 +235,7 @@ The actions menu holds everything else:
 - **Duplicate agent** — makes a copy of the agent, including its instruction files, after you confirm.
 - **Copy agent ID** — copies the agent's ID to your clipboard.
 - **Reset sessions** — clears the agent's saved conversation state so its next run starts fresh.
-- **Terminate** — shuts the agent down for good. It acts straight away, with no confirmation step, so be sure before you click it. Built-in agents don't have this item, and pausing one asks you to confirm first.
+- **Terminate** — shuts the agent down for good. It acts straight away, with no confirmation step, so be sure before you click it. Only a board user can terminate an agent, and another agent that tries through the API is refused with a link to this page. Built-in agents don't have this item, and pausing one asks you to confirm first.
 
 If the agent's reporting chain is broken, **New task** and **Run now** stay disabled until you repair it (see [Banners at the top of the page](#banners-at-the-top-of-the-page)).
 
