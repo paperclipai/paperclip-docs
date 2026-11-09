@@ -131,20 +131,42 @@ Return all issues visible to a company, ordered by priority unless a search quer
 | `includeAgentCreatedTasks` | `true` or `false`. Send `false` to keep only tasks a person created through the normal task or onboarding flow; tasks created by an agent, with no creating user, or from another origin (including every chat-channel task) are left out. Omit it to keep the previous behaviour |
 | `includeParticipatedTasks` | `true` or `false`. Board users only. With `includeAgentCreatedTasks=false`, also keeps agent-created tasks the signed-in user has taken part in |
 | `q` | Full-text search across title, identifier, description, and comments |
-| `limit` | Positive integer result cap |
+| `limit` | Page size, a positive integer. Defaults to 500. A value above 1000 is treated as 1000 |
+| `offset` | How many tasks to skip, a non-negative integer. Defaults to `0` |
+| `afterId` | Cursor paging: return tasks after this task UUID. Needs `sortField=id`, `sortDir=asc`, and no `offset` |
 | `sortField` | `updated`, `created`, or `id`. Omit it for the default priority order (or search-rank order when `q` is set) |
 | `sortDir` | `asc` or `desc` |
 
 Notes:
 
 - `assigneeUserId=me`, `touchedByUserId=me`, `inboxArchivedByUserId=me`, and `unreadForUserId=me` only work with board authentication.
-- `limit` must be a positive integer.
+- A `limit` that isn't a positive integer returns `400` with `limit must be a positive integer up to 1000`. An `offset` that isn't a non-negative integer returns `400` with `offset must be a non-negative integer`.
+- An `afterId` that isn't a UUID, or one sent without `sortField=id`, `sortDir=asc`, and a zero `offset`, returns `422` with `afterId requires a UUID, ascending ID order and no offset`.
 - Routine execution issues are excluded by default unless you opt in with `includeRoutineExecutions=true` or filter by `originKind`/`originId`.
 - When `q` is present, results are ranked by the best match in title, identifier, description, or comments.
 - ID filters must be UUIDs. A malformed `participantAgentId`, `projectId`, `workspaceId`, `executionWorkspaceId`, `parentId`, `parentIssueId`, `descendantOf`, `createdFromIssueId`, or `labelId` returns `422` with an error naming the parameter, such as `parentId must be a UUID`. The `/issues/count` endpoint checks the same filters.
 - `sortField=updated` orders by latest activity, `sortField=created` by creation time, and `sortField=id` by task ID; ties fall back to the ID so pages stay stable. With `q` set, `updated` still ranks by search match first. `updated` and `created` sort newest first unless you send `sortDir=asc`; `id` sorts ascending unless you send `sortDir=desc`. Any other `sortField` returns `400` with `sortField must be 'updated', 'created', or 'id' when provided`, and any other `sortDir` returns `400` with `sortDir must be 'asc' or 'desc' when provided`. `id` and `created` ordering aren't supported together with `attention=blocked`.
 - `displayStatus` is matched against the computed display status, so `in_progress` matches only tasks currently displayed that way, leaving out agent tasks showing as `monitoring`, `blocked`, `in_review`, or `todo`, while `status=in_progress` still includes them. The `/issues/count` endpoint accepts `displayStatus` too.
 - `includeAgentCreatedTasks` and `includeParticipatedTasks` return `400` for any value other than `true` or `false`. `includeParticipatedTasks=true` from a non-board caller returns `403`. The agent-created filter is applied before `limit` and pagination. The board's **show agent-created tasks** checkbox drives it.
+
+### Page Through a Long List
+
+If you want every matching task, read the response headers as well as the body. The body is a plain array holding at most `limit` tasks, 500 unless you ask otherwise, so a full page on its own doesn't tell you whether more tasks exist.
+
+| Header | When it's set | What it means |
+|---|---|---|
+| `X-Paperclip-Has-More` | Every page | `true` when more tasks match after this page, `false` on the last one. |
+| `X-Paperclip-Limit` | Every page | The page size the server used. |
+| `X-Paperclip-Next-Offset` | More tasks exist and you didn't send `afterId` | Send this as `offset` to get the next page. |
+| `X-Paperclip-Next-After-Id` | More tasks exist, you sorted with `sortField=id&sortDir=asc`, and you sent no `offset` | Send this as `afterId` to get the next page. |
+
+Repeat the request with the same filters and the next position until `X-Paperclip-Has-More` is `false`. An agent calling this route through `call_api` sees the same values in the result's `pagination` field.
+
+A few cases behave differently:
+
+- **Some callers get no paging headers.** The headers only go to callers who can read the whole company's task list. If your rows are filtered after the query, as they are for a low-trust agent, the server leaves all four off so the raw page can't reveal tasks you can't read. For those callers, missing headers don't mean the list is complete. A board member who only has private tasks hidden still gets the headers, because those tasks are removed in the query itself.
+- **`oneChildPerParent` pages by offset.** This option needs `view=index` with `parentIds`. Its results are ordered by parent first, so you never get `X-Paperclip-Next-After-Id`. Use `X-Paperclip-Next-Offset` instead.
+- **The Mine inbox isn't paged this way.** `GET /api/companies/{companyId}/inbox/mine` takes no query parameters and sends none of these headers.
 
 ### Example
 
@@ -231,7 +253,8 @@ Notable inputs:
 - `labelIds` attaches labels.
 - `executionPolicy`, `executionWorkspaceId`, `executionWorkspacePreference`, and `executionWorkspaceSettings` control execution behavior.
 - `assigneeAgentId` and `assigneeUserId` are allowed, but the caller must have task assignment permission.
-- `inheritExecutionWorkspaceFromIssueId` copies execution workspace settings from another issue.
+- `inheritExecutionWorkspaceFromIssueId` gives the new task another task's project and workspace strategy. Without it, the task named in `parentId` is the source. The new task doesn't inherit the source's actual workspace: it builds its own from the project base, unless it runs in shared workspace mode. See [How a new task's workspace is inherited](#how-a-new-tasks-workspace-is-inherited).
+- A task created here with `status` set to `done` or `cancelled` doesn't queue an assignment wake, because the work is already closed. A `backlog` task doesn't wake its assignee either.
 
 If you include `assigneeAgentId` or `assigneeUserId`, the request is checked against task assignment permissions before the issue is created. The check runs through the central authorization service — see [Scoped Permissions and Authorization](./agents.md#scoped-permissions-and-authorization) for the full decision matrix, including the `deny_policy_restricted` reason that protected agents and projects raise.
 
@@ -303,6 +326,22 @@ response = requests.post(
 ```
 
 <!-- /tabs -->
+
+### How a new task's workspace is inherited
+
+You can start a task from another task and keep the same way of working, without the two tasks writing to the same files.
+
+The source is the task in `inheritExecutionWorkspaceFromIssueId`, or the parent if you didn't send one. An agent creating a task from a run with an execution workspace, and sending neither of those nor any other workspace field, inherits from that run's task. If you don't name a project, the new task takes the source's project. When the two tasks share a project and the source has a project workspace, the new task also takes that project workspace, and it copies the settings that describe how to build a workspace: the mode, shared-workspace concurrency, network egress, the environment, the workspace runtime, and the workspace strategy (type, base ref, branch template, worktree parent directory, and provision and teardown commands).
+
+These don't carry over:
+
+- A `reuse_existing` or `operator_branch` mode. The project's default applies instead.
+- The source's realized workspace, including its checkout, branch, and unmerged changes.
+- The workspace settings, when the new task targets a different project or the source has no project workspace. The new task then takes its own project's defaults.
+
+Your own workspace fields take priority. `executionWorkspaceSettings` is merged over the copied values when the two share a mode or one has no mode, and replaces them when the modes differ. Neither happens if you also send `executionWorkspaceId` or an explicit `workspaceSelection`. Sending any other workspace field without settings means no settings are copied.
+
+Naming a workspace yourself doesn't get around this. An `executionWorkspaceId` that points at the workspace of the task's parent or another ancestor is dropped, and so is a `workspaceSelection` of kind `existing` that names one. The new task builds its own workspace from the project base. With `executionWorkspaceId`, it keeps the settings copied from its source, combined with any `executionWorkspaceSettings` you sent under the mode rule above. With `workspaceSelection`, only the selected workspace's mode is combined with the copied settings. A selection must still be usable: a closed workspace or one you can't read returns `403` or `404` instead of being dropped. A valid workspace that isn't an ancestor's is still used.
 
 ---
 
@@ -708,6 +747,24 @@ Behavior to know:
 - `@mentions` in the comment body are context only. They don't wake the mentioned agent.
 - Comments are accepted on open and closed issues.
 
+### Discard A Queued Comment
+
+A comment posted while the agent is busy can wait in a queue until the agent reaches it. If you change your mind before then, you can discard your own queued comment. Only its author can do that.
+
+```
+DELETE /api/issues/{issueId}/queued-comments/{commentId}
+DELETE /api/issues/{issueId}/comments/{commentId}?mode=cancel
+```
+
+The first route needs `queueId` and `revision` from the current queue in the request body.
+
+- **People** use the first route. Someone who isn't the author gets `403` with `Only the queued message author can discard it`.
+- **Agents** use the second route to discard their own queued comments. An agent that calls the first route with a valid body for a comment on that task gets `403` (a comment that isn't on the task returns `404`), and if the comment is its own, the error names the `?mode=cancel` route to use instead.
+
+The other denials are final. An agent calling the first route about someone else's comment gets `403`, and so does a non-author calling the second route with `mode=cancel` or while the comment is still queued. The message says that only the author can discard the comment, from that queued message's menu on the linked task, and that no board, admin, or agent override exists. If you see it, there's no other route to try, so ask the author to discard it.
+
+Before those denials, the server checks that the caller can read the task. A caller that can't read it gets the usual not-found or access error instead, so the denial doesn't confirm a task it can't read.
+
 ### Comment style
 
 Comments are the primary communication channel between agents. Every status update, finding, question, and handoff happens through comments. Use concise markdown with:
@@ -894,6 +951,26 @@ GET /api/issues/{issueId}/documents/{key}/revisions
 ```
 
 Return the revision history for a document, newest first.
+
+### Read One Revision
+
+```
+GET /api/issues/{issueId}/documents/{key}/revisions/{revisionId}
+```
+
+Use this when you need the exact text of a revision you already know about, for example to check what a link or receipt pointed at. You need read access to the issue, and reading a revision never changes the document.
+
+The response is the revision (`id`, `companyId`, `documentId`, `issueId`, `key`, `revisionNumber`, `title`, `format`, `body`, `changeSummary`, `createdByAgentId`, `createdByUserId`, `createdByRunId`, and `createdAt`), plus three fields that tell you whether it's still current:
+
+| Field | Meaning |
+|---|---|
+| `latestRevisionId` | The document's current revision ID. |
+| `latestRevisionNumber` | The document's current revision number. |
+| `isLatest` | `true` when this revision is the current one. |
+
+If `isLatest` is `false` and you want the current text, read `GET /api/issues/{issueId}/documents/{key}`.
+
+The key is trimmed and lowercased before it's checked. An invalid key or a `revisionId` that isn't a UUID returns `400` with `Invalid document revision reference`. A revision that isn't linked to this issue under that key returns `404` with `Document revision not found`.
 
 ### Restore A Revision
 
@@ -1685,6 +1762,8 @@ Additional constraints:
 - `outcome: "blocked"` requires the source issue to have at least one unresolved first-class blocker via `blockedByIssueIds` — otherwise the server returns `422 Unprocessable Entity`.
 - If the source issue is currently `in_review` under an execution policy, agent-authenticated resolutions must satisfy the same review-path checks as a normal status change.
 - Resolving with `outcome: "restored"` and `sourceIssueStatus: "todo"` retries the task. When the blocked run failed during setup because its shared workspace source was restricted, this retry is board-only: the server moves the task to an isolated workspace from the project's repository (source `recovery`) before it re-queues, unless the task already has a pending workspace choice. If a newer run exists or the task no longer matches the failed run, the server returns `409 Conflict`.
+- Resolving with `restored` or `false_positive` while the active action's cause is `native_controller_host_unverified` returns `409 Conflict` with code `native_controller_stop_required` and `Confirm that the previous server stopped to resume this run.` Use [Confirm the previous server stopped](#confirm-the-previous-server-stopped) instead.
+- Resolving with `restored` or `false_positive` while the active action's cause is `native_workspace_finalization_owner_unverified` returns `409 Conflict` with code `workspace_owner_stop_required` and `Paperclip is still confirming that the previous server stopped. Saving resumes without repeating the agent's work.`
 - The server writes an `issue.recovery_action_resolved` activity log entry (and an `issue.updated` entry when the source status actually changed).
 
 Response:
@@ -1695,6 +1774,30 @@ Response:
   "recoveryAction": { "...": "RecoveryAction" }
 }
 ```
+
+### Confirm the previous server stopped
+
+```
+POST /api/issues/{issueId}/recovery-actions/confirm-controller-stopped
+```
+
+Sometimes a run has to wait after a server restart because Paperclip can't tell whether the server that was running it has really stopped. That happens on an ephemeral, multi-host server when the run's controller was saved before its host was recorded. A process ID alone could belong to a different machine, so Paperclip opens a board-owned recovery action with cause `native_controller_host_unverified` and waits for you.
+
+Once you've checked that the previous server is gone, use this route to say so. Recovery then resumes the run from its saved state.
+
+Only a board user can call it, and that person must be a company owner or admin or an instance admin (the `runtime:confirm_owner_stop` action). The implicit board on a local deployment is allowed too. Agent callers get `403`.
+
+Request body, with no other fields accepted:
+
+| Field | Type | Notes |
+|---|---|---|
+| `actionId` | uuid, required | The active recovery action. |
+| `runId` | uuid, required | The run that action is waiting on. |
+| `stopEvidence` | string, required | What you checked, 20 to 12,000 characters after trimming. |
+
+The response is `202 Accepted` with `{ "runId": "...", "status": "queued" }`. The recovery action becomes `resolved` with outcome `restored`, and an `issue.native_controller_stop_confirmed` activity entry records your evidence.
+
+If the action or the run's recorded controller no longer matches what the request describes, the server returns `409 Conflict` with code `native_controller_host_recovery_stale` and `The recorded controller is no longer current. Refresh the task and inspect its run.`
 
 ### Recovery action shape
 

@@ -163,9 +163,9 @@ Request body:
 | `agentId` | no | A per-card summarizer override, or `null` for the built-in Summarizer. Must belong to this company — otherwise `422 Unprocessable Entity`, `{ "error": "Summarizer agent must belong to this company" }`. |
 | `refreshPolicy` | no | Defaults to `{ "mode": "manual" }` with the default triggers. |
 
-**Status code.** `201 Created`, returning the card as it stands after the compile was queued — `state: "compiling"` with `generatingIssueId` set.
+**Status code.** `201 Created`, returning the card as it stands after the compile was queued — `state: "compiling"` with `generatingIssueId` set. The response also carries `href`, the card's page in the app, such as `/PC/status/{id}`. Share it as a link when you want someone to open the card.
 
-Creation and compilation are all-or-nothing: if the compile task cannot be created or the agent cannot be woken, the new card is deleted again and the underlying error is returned.
+If the compile task can't be created or the agent can't be woken, the new card is deleted again and the underlying error is returned. Once the compile is queued, a later failure doesn't delete the card.
 
 An agent caller must belong to the company it is creating in; if it does not, the response is `403 Forbidden` with `{ "error": "Agent cannot author status cards for this company" }`.
 
@@ -194,7 +194,7 @@ curl -sS -X POST \
 GET /api/status-cards/{id}
 ```
 
-Return one hydrated card. Company access is enough.
+Return one hydrated card, with the same `href` link as the create response. Company access is enough.
 
 ---
 
@@ -220,9 +220,11 @@ Request body — at least one field is required, otherwise the request fails val
 Two of these have side effects worth planning for:
 
 - **Editing `interestPrompt`** queues a compile task and clears `lastUpdateRunKind`, so the next content update is a full rebuild rather than a patch. The response is the card returned by that compile.
-- **Archiving** (`archived: true`) clears `nextEvalAt` and `generatingIssueId` and cancels any in-flight generation task. **Restoring** (`archived: false`) queues a full refresh with trigger `restore`, provided the card has compiled queries and nothing is already running.
+- **Archiving** (`archived: true`) hides the card from the live list but doesn't delete it: the card, its summary, and its update history all stay. It clears `nextEvalAt` and `generatingIssueId` and cancels any in-flight generation task. A person can find archived cards on the company's Status page under **Show archived** and restore them there. **Restoring** (`archived: false`) queues a full refresh with trigger `restore`, provided the card has compiled queries and nothing is already running, so the restored content is regenerated before it's current.
 
 Changing the agent also clears `lastUpdateRunKind`, for the same reason: a new writer should not patch text it did not write.
+
+The response carries the same `href` link as the create response, which is handy for pointing someone at a card you've just archived.
 
 ---
 

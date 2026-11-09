@@ -73,7 +73,7 @@ If server-host sign-in is unavailable you will see *"Server-host subscription si
 
 ## Assign the credential
 
-Open the saved connection and use **Make default** under **Personal default** for your own account. In the agent's **Connection** selector, choose **Responsible user’s default** to use each responsible person's account, or select a named compatible personal or company-shared account. Save the agent configuration. Each account in the selector shows its name, sign-in method, **Personal** or **Company shared**, and the account or owner name when Paperclip knows it, so two accounts with the same name are easy to tell apart.
+The **Connectors** page marks your personal default with a crown. Hover or tap it to read *Your default for Claude*. To choose a different account, open the **…** menu on its row and select **Set as default for Claude**, or open the saved connection and use the **Set as default for Claude** button there. Both appear only on your own personal account, not on one that goes through a router, and you need permission to configure connections, which viewers don't have. The action is disabled while the account can't be used, and the **…** menu gives a reason such as *Reconnect this account before making it your default.* On the connection's page, the current default reads **Default for Claude**, or **Default unavailable** if it needs attention. In the agent's **Connection** selector, choose **Responsible user’s default** to use each responsible person's account, or select a named compatible personal or company-shared account. Save the agent configuration. Each account in the selector shows its name, sign-in method, **Personal** or **Company shared**, and the account or owner name when Paperclip knows it, so two accounts with the same name are easy to tell apart.
 
 A connected account is not yet the account a run uses. Two ways to bind it:
 
@@ -120,7 +120,7 @@ Two saved accounts can look alike, so the saved connection's **Permissions** tab
 
 For a connected Claude subscription, Paperclip asks Anthropic for the account details when you open the page and shows *"Checking account details…"* meanwhile. It uses this connection's own stored credential, never a `claude` CLI login on the machine. An API-key account has no profile to look up, so it shows the account label Paperclip saved, if any.
 
-The account details load on their own, separately from the controls below them. A slow or refused check never blocks **Make default**, reconnecting, or revoking. If the page can't load the account at all, it shows the error and a **Retry** button instead of waiting forever on *"Loading AI account…"*.
+The account details load on their own, separately from the controls below them. A slow or refused check never blocks **Set as default for Claude**, reconnecting, or revoking. If the page can't load the account at all, it shows the error and a **Retry** button instead of waiting forever on *"Loading AI account…"*.
 
 | Message | What it means |
 | --- | --- |

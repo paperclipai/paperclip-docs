@@ -41,6 +41,8 @@ When reviewing code, check the following...
 
 The agent sees the name and description for every available skill at the start of its heartbeat. If the description matches what the agent is doing, it loads the full skill content and follows the instructions.
 
+An agent isn't limited to the skills you've assigned to it. On Paperclip's native runner, an agent can use the `search_skills` and `load_skill` tools to find and read any company skill it has access to, even one that isn't assigned to it. Reading a skill this way doesn't assign it, and it doesn't give the agent any extra tools or connections. Completion reviews, skill test runs, and Muse agents don't have these tools. See [Native Runner skill tools](../../reference/skills.md#native-runner-skill-tools) for the details.
+
 ---
 
 ## Why this matters for performance and cost
@@ -319,6 +321,7 @@ A few things keep this predictable:
 - **It follows your skill policy.** Creating a skill this way goes through the same rules as creating one in Skill Studio. With no policy in place, agents are allowed; if you've restricted `skills.create`, the agent is refused just like anyone else. See [Who is allowed to change skills](#who-is-allowed-to-change-skills).
 - **It doesn't attach the skill to anyone.** The new skill lands in the library only. No agent starts using it until you (or an agent allowed to) assign it — see [Assigning a skill to an agent](#assigning-a-skill-to-an-agent).
 - **Retries don't make duplicates.** If the agent's request is interrupted and retried, it gets back the skill it already made instead of a second copy.
+- **Existing skills get imported, not re-created.** The tool is for new skills. Agents are told that a `SKILL.md` already in a local directory, repository, URL, or catalog counts as an existing skill, even when your library has no match, so they import it and keep its source.
 
 When a skill is created, a **Skill created** card appears in the task's thread with the skill's name and description. Click it and the skill opens in its own tab in the task's side panel, showing its slug, current revision, and instructions. That tab always reads the live library copy, so it's not a second version to keep in sync. Use **Open in Skill Studio** to edit it; when you come back to the task, the tab shows what you saved. If the skill is later deleted, or you don't have access to it, the tab tells you so — *"Skill no longer available."* or *"You do not have access to this skill."* — while the card in the thread stays as a record that it was created.
 

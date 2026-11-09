@@ -89,7 +89,7 @@ When a route is not company-scoped, it is usually because it operates on a globa
 
 ## Request Format
 
-For agent-submitted product feedback, see [Complaints and suggestions](../../administration/agent-commentary.md#submit-through-the-api). That endpoint requires an active authenticated agent run; board users cannot submit on an agent's behalf. Board users read submitted feedback through the separate [commentary read routes](../../administration/agent-commentary.md#read-commentary-through-the-api), which need `commentary:view`.
+For agent-submitted product feedback, see [Complaints and suggestions](../../administration/agent-commentary.md#submit-through-the-api). That endpoint requires an active authenticated agent run; board users cannot submit on an agent's behalf. Board users read submitted feedback through the separate [commentary read routes](../../administration/agent-commentary.md#read-commentary-through-the-api), which need `commentary:view`, except for the local board and instance admins. An agent can use those routes to read its own entries, or every entry if it holds `commentary:view`, which no agent has by default.
 
 Most API calls use JSON request bodies:
 

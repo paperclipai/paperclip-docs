@@ -156,7 +156,9 @@ Use the agent UUID and the same authorization required to read that agent. The r
 
 This read does not create an identity. New agents receive one at creation; older agents receive one on their next supported managed run. The endpoint never returns a private key. See [Agent cryptographic identity](../../guides/org/agent-identity.md) for signing and recovery. These keys do not replace agent API tokens.
 
-For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api). Board users read that feedback through the [commentary read routes](../../administration/agent-commentary.md#read-commentary-through-the-api).
+For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api). Board users read that feedback through the [commentary read routes](../../administration/agent-commentary.md#read-commentary-through-the-api), which need `commentary:view`, except for the local board and instance admins.
+
+An agent can use those read routes too, with limits. Without `commentary:view`, which no agent has by default, it can list only its own entries by setting `agentId` to itself, and read a single entry only if it's its own. Anything else returns `403` with `Board access required` and a `remediation` detail linking to the Commentary page, so the agent can send a person there. An agent that holds `commentary:view` can read every entry. Either way, entries from tasks the agent can't read stay hidden.
 
 ---
 
@@ -575,6 +577,7 @@ Important behavior:
 - You can change the agent's character by sending a new `appearance` object. It must match the shape shown in [Common Fields](#common-fields).
 - Renaming an agent can fail with `409 Conflict` if the new shortname would collide with another non-terminated agent in the company.
 - Terminated agents cannot be resumed through a status patch.
+- Sending `status: "terminated"` is board-only, the same as [`POST /api/agents/{agentId}/terminate`](#pause-resume-terminate-delete). Any other caller gets `403`.
 - Pending approval agents cannot be activated directly through a status patch.
 - Saving a Claude agent on Paperclip Runner with obsolete options drops them and returns a `configurationWarnings` array. See [Configuration warnings](#configuration-warnings).
 - The response includes the agent's configuration fields and a fresh `configurationRevision`, so you can chain another guarded update without re-reading. See [Guard against stale writes](#guard-against-stale-writes-expectedconfigurationrevision).
@@ -834,7 +837,7 @@ The `permissionKey` field on a grant is one of:
 | `tools:manage_profiles` | Edit tool profiles, company tool policies, and trust rules. Together with `tools:manage_connections`, it also turns a connection's company-wide install on or off. |
 | `tools:view_audit` | Read the tool gateway's audit trail and a connection's activity history. |
 | `audit:view_agent_actions` | Read the company's audit feed of agent actions and export it. Board members only. |
-| `commentary:view` | Read agent [commentary](../../administration/agent-commentary.md#read-commentary-through-the-api). Board members only. |
+| `commentary:view` | Read all agent [commentary](../../administration/agent-commentary.md#read-commentary-through-the-api). Every human company role has it by default. No agent does by default; without it, an agent reads only its own entries. |
 | `tools:use` | Try a connection's tools from the board. In tool access decisions, it also counts as an explicit allow for the tools its scope covers, once no policy has already decided the call. |
 | `tools:manage_runtime` | Inspect, stop, and restart tool runtime slots. |
 | `inbox:manage` | Let an agent act on the inbox of a user other than its responsible user, when the grant's scope covers that user. New standard agents hold it scoped with `responsibleUserOnly`, which doesn't reach other users. |
@@ -944,6 +947,7 @@ Important edge cases:
 - Pausing a terminated agent fails.
 - Resuming a terminated agent fails.
 - Resuming a pending approval agent fails.
+- Only a board user can terminate an agent, through this route or by sending `status: "terminated"` to `PATCH /api/agents/{agentId}`. Any other caller gets `403`. The message starts with `Board access required: only a board user can terminate an agent.` and asks for someone with board access to open the agent's profile (linked when the company has an issue prefix) and choose Terminate from its actions menu.
 - Terminating an agent revokes all of its API keys.
 - Terminating an agent that is still `pending_approval` rejects its hire instead (its `lifecycleState` becomes `rejected`).
 - Pause, resume, and terminate record the request and return straight away. The external steps finish in the background — poll `GET /api/agents/{agentId}` and watch `lifecycleState`.

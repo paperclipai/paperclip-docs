@@ -50,6 +50,8 @@ seo_description: Run OpenCode on the Paperclip host when you want provider and m
 
 OpenCode sessions are resumed with `--session` when the stored session `cwd` matches the current `cwd`. If the directory moved, a fresh session starts.
 
+Agents on [Paperclip Runner](paperclip-runner.md#runner-lifecycle) work differently: under the **Automatic** Runner lifecycle, a local OpenCode agent with no managed connection stays warm for 5 minutes after a run.
+
 ---
 
 ## Execution Details

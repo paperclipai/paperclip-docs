@@ -106,8 +106,8 @@ On the manual path, use the generated manifest rather than configuring scopes by
 | In Slack | In Paperclip |
 | --- | --- |
 | A linked person mentions the agent in a channel | One task per new mentioned thread |
-| A linked person sends the agent a direct message | The agent replies in the DM (when **Allow direct messages** is on). No @mention needed. |
-| The conversation continues in the thread | It continues on the same task. With **Require at-mention** on, channel replies must @mention the bot. |
+| A linked person sends the agent a direct message | The agent replies in the DM (when **Allow direct messages** is on). No @mention needed. A new top-level DM starts a new task once the previous one is **Done** or **Cancelled**, or after you send your agent's slash command with `new` or `close` in the DM. |
+| The conversation continues in the thread | It continues on the same task, keeping its earlier comments, in channel threads and DM threads alike, even after the task is **Done** or **Cancelled**. A DM thread ended with your agent's slash command plus `new` or `close` starts a new task instead. With **Require at-mention** on, channel replies must @mention the bot. |
 | The agent has answered and nothing is left to do | The task shows as **Idle** |
 
 Paperclip acknowledges with a reaction so people can see a message was picked up before the agent has finished thinking. This works in direct messages too.

@@ -167,7 +167,7 @@ Waits for a busy AI connection or a remote Runner update behave the same way: th
 | `native_finalization_retry_exhausted` | *Native run finalization failed after 3 attempts.* |
 | `native_run_failed` | *The native run ended in a failed state without a classified provider error. Inspect the run events for the last recorded step.* |
 
-**Fix.** Follow the recovery action on the task. See [Recovering saved files](../guides/day-to-day/issues.md#recovering-saved-files). If Paperclip's own attempts to export the files run out, the action moves to the board, and through the API its `nextAction` starts with *Automatic recovery of saved work stopped after* the attempt count and last failure code. That text says "Retry recovery", but on the task the control is **Recover saved files**, or **Try file recovery again** if your earlier request failed. It starts a new round of attempts without starting a provider turn.
+**Fix.** Follow the recovery action on the task. See [Recovering saved files](../guides/day-to-day/issues.md#recovering-saved-files). If Paperclip's own attempts to export the files run out, the action moves to the board, and through the API its `nextAction` starts with *Automatic recovery of saved work stopped after* the attempt count and last failure code, and ends *Retry to try again; the agent will not repeat its work.* On the task, the control depends on the files' source. When Paperclip can verify it, use **Recover saved files**, or **Try file recovery again** if your earlier request failed. When it can't, the task explains why and shows the ordinary **Retry**. Either way, a new round of attempts starts without a new agent turn.
 
 ---
 
@@ -202,7 +202,7 @@ Waits for a busy AI connection or a remote Runner update behave the same way: th
 | *Retry is waiting for the budget to allow new work. Check Costs for unrecorded or unpriced usage.* | See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain). |
 | *Paperclip is finishing the saved result before Retry can continue.* | Wait. |
 | *Saving the agent's files failed after automatic retries. Retry to try again; the agent will not repeat its work.* | Click **Retry** to start a new round of attempts. |
-| *Retry is waiting for a board member to confirm that the previous server stopped copying files. The agent's result and your Retry are saved.* | See [section 17](#17-task-asks-you-to-confirm-the-previous-server-stopped). |
+| *Retry is waiting until Paperclip confirms that the previous server stopped saving files. The agent's result and your Retry are saved.* | See [section 17](#17-task-asks-you-to-confirm-the-previous-server-stopped). |
 | *Retry could not start with the requesting user's access. Press Retry to start it with yours.* | Click **Retry**. Your click replaces the old request. |
 | *Retry cannot continue because its saved message changed. Send a new message to continue from saved work.* | Send a new message. **Retry** is hidden. |
 | *Retry cannot continue this attempt. Send a new message after the previous execution has stopped.* | Send a new message. **Retry** is hidden. |
@@ -231,7 +231,11 @@ Any other wait reads *Retry is waiting for execution checks. Your message is sav
 
 **Cause.** A restart killed the server while it was copying the agent's files back, and Paperclip can't prove that copy has stopped. Starting another one could overwrite the work.
 
-**Fix.** Make sure the old server process and its file copy really have ended. Then click **Confirm the previous server stopped**, answer *How did you confirm that the previous server and its file copy stopped?* in at least 20 characters, and click **Confirm and resume**. The task shows *Restoring saved work…* and a waiting Retry then carries on by itself, without another agent turn. If you can't confirm, you'll see *A company owner or administrator can confirm that the previous server stopped.*
+**Fix.** Make sure the old server process and its file copy really have ended. Then click **Confirm the previous server stopped**, answer *How did you confirm that the previous server and its file copy stopped?* in at least 20 characters, and click **Confirm and resume**. The task shows *Restoring saved work…* and a waiting Retry then carries on by itself, without another agent turn.
+
+A run on a server whose host wasn't recorded asks the same thing in different words. The task says *This run’s previous server was recorded before Paperclip stored which host it ran on, so Paperclip can’t verify that it stopped. The run’s saved state is kept.*, because a process ID saved without its host can't be checked from a different machine. Confirm in the same way, answering *How did you confirm that the previous server stopped?* The task then shows *Resuming the run…*
+
+Only a company owner or admin, an instance admin, or a board user on a local trusted instance can confirm. Anyone else sees *Paperclip is waiting to confirm that the previous server stopped.*
 
 ---
 
@@ -260,11 +264,11 @@ Any other wait reads *Retry is waiting for execution checks. Your message is sav
 
 ## 20. New work waits on the budget
 
-**Symptom.** A new task sits in `todo` reading *Waiting for the budget to allow new work. The task starts automatically when it does.*, or an agent's wake is refused with *Company cannot start work while completed runs await accounting.* or *New work must wait while a native run recovers its unfinished accounting.*
+**Symptom.** A new run is refused with *Available budget is reserved by unfinished runs*, or a new task sits in `todo` reading *Waiting for the budget to allow new work. The task starts automatically when it does.*
 
-**Cause.** A finished run's cost isn't settled yet, often after a server restart. This is a temporary hold, not a hard stop: nothing is paused and running work carries on.
+**Cause.** The refusal means recorded charges plus what unfinished runs are expected to cost already fill the budget, or the new run's own reservation would push it over. Each unfinished run counts for the larger of its reservation and the cost it has reported so far. The `todo` message comes from a wake stopped by a pause or a reached hard stop, when there's no pause or approval to show on the task. Another run's unfinished accounting doesn't refuse new work on its own. Only a reached hard stop, a pause, or a full budget does.
 
-**Fix.** Wait. Most holds clear within moments. A Paperclip Runner run that never proves it stopped settles once its recovery has finished and 10 minutes have passed since it ended. Held work then starts by itself, unless that run has no price and no sign of a server restart, which by default raises a hard stop. A run whose usage capture failed, or a run on another adapter with an incomplete report, has no such limit and keeps holding until its report is resolved. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain) for exactly what holds work and what stops it.
+**Fix.** For the refusal, wait for earlier runs to settle, which releases their reservations, or raise the budget or lower its **Reserve per run (USD)** amount. For the `todo` message, those steps don't help, because that check never looks at reservations: resolve the hard stop or lift the pause. A Paperclip Runner run that never proves it stopped settles once its recovery has finished and 10 minutes have passed since it ended, and so does a run whose usage capture failed. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain) for exactly what counts and what refuses work.
 
 ---
 
@@ -294,6 +298,23 @@ The rest need a change first, because another try fails the same way:
 - *Project storage access is unavailable or out of date; reconcile the project's storage before retrying*
 - *Saved workspace storage no longer matches this workspace; retrying the same workspace will not help*
 - *The selected runtime's saved connection is invalid; reprovision the runtime before retrying*
+
+---
+
+## 22. Messages sent during a pause
+
+**Symptom.** You sent a message on a task while its agent, its project, or the whole company was paused, or while a budget pause was in place, and no run started.
+
+**Cause.** The hold turned away the wake for your message. The message itself isn't lost.
+
+**Fix.** Lift the hold. What happens next depends on the task:
+
+- **The task has run before.** Paperclip saved your message. It's delivered once, after the hold lifts and the task's latest run has ended. If the message was saved under a budget or project pause and that latest run is one you stopped, it waits until something wakes the task again, such as a new message.
+- **The task has never run.** Your message stays in the task, and the task starts once the hold lifts.
+
+This covers a paused agent, a paused project, a paused company (including one paused by its own budget hard stop), and a budget pause that isn't a reached hard stop. It doesn't cover an agent or project budget hard stop, an agent awaiting approval, or a [paused task or subtree](../experimental/task-chat.md#stop-pause-and-resume), which has its own resume step. If the task is reassigned first, the message isn't delivered. A cancelled task can still reopen to receive it, unless its latest run is one you stopped. Over the API, a direct `POST /api/agents/{agentId}/wakeup` carrying the comment answers `409` even though the message is saved, while posting the comment itself returns `201`.
+
+Two other cases also protect a person's message. If a server restart loses the wake, Paperclip sends the message itself, as long as it's been 30 seconds, the task is `todo` or `in_progress`, is assigned to an agent, isn't an Agent Chat conversation, has run before, and has no active run. If an agent run that started before your message closes the task as `done` without reading it, the task reopens and the agent gets the message once. A task a person closed stays closed.
 
 ---
 
