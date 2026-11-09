@@ -266,9 +266,9 @@ Only a company owner or admin, an instance admin, or a board user on a local tru
 
 **Symptom.** A new run is refused with *Available budget is reserved by unfinished runs*, or a new task sits in `todo` reading *Waiting for the budget to allow new work. The task starts automatically when it does.*
 
-**Cause.** The refusal means recorded charges plus what unfinished runs are expected to cost already fill the budget, or the new run's own reservation would push it over. Each unfinished run counts for the larger of its reservation and the cost it has reported so far. The `todo` message comes from a wake the budget check stopped, when there's no pause or approval to show for it. Another run's unfinished accounting doesn't refuse new work on its own. Only a reached hard stop, a pause, or a full budget does.
+**Cause.** The refusal means recorded charges plus what unfinished runs are expected to cost already fill the budget, or the new run's own reservation would push it over. Each unfinished run counts for the larger of its reservation and the cost it has reported so far. The `todo` message comes from a wake stopped by a pause or a reached hard stop, when there's no pause or approval to show on the task. Another run's unfinished accounting doesn't refuse new work on its own. Only a reached hard stop, a pause, or a full budget does.
 
-**Fix.** Wait for earlier runs to settle, which releases their reservations, or raise the budget or lower its **Reserve per run (USD)** amount. A Paperclip Runner run that never proves it stopped settles once its recovery has finished and 10 minutes have passed since it ended, and so does a run whose usage capture failed. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain) for exactly what counts and what refuses work.
+**Fix.** For the refusal, wait for earlier runs to settle, which releases their reservations, or raise the budget or lower its **Reserve per run (USD)** amount. For the `todo` message, those steps don't help, because that check never looks at reservations: resolve the hard stop or lift the pause. A Paperclip Runner run that never proves it stopped settles once its recovery has finished and 10 minutes have passed since it ended, and so does a run whose usage capture failed. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain) for exactly what counts and what refuses work.
 
 ---
 
@@ -303,16 +303,16 @@ The rest need a change first, because another try fails the same way:
 
 ## 22. Messages sent during a pause
 
-**Symptom.** You sent a message on a task while its agent or the whole company was paused, or while a budget pause was in place, and no run started.
+**Symptom.** You sent a message on a task while its agent, its project, or the whole company was paused, or while a budget pause was in place, and no run started.
 
 **Cause.** The hold turned away the wake for your message. The message itself isn't lost.
 
 **Fix.** Lift the hold. What happens next depends on the task:
 
-- **The task has run before.** Paperclip saved your message. It's delivered once, after the hold lifts and the task's latest run has ended.
+- **The task has run before.** Paperclip saved your message. It's delivered once, after the hold lifts and the task's latest run has ended. If the message was saved under a budget or project pause and that latest run is one you stopped, it waits until something wakes the task again, such as a new message.
 - **The task has never run.** Your message stays in the task, and the task starts once the hold lifts.
 
-This covers a paused agent, a paused company, and a budget pause that isn't a reached hard stop. It doesn't cover a reached budget hard stop, an agent awaiting approval, or a [paused task or subtree](../experimental/task-chat.md#stop-pause-and-resume), which has its own resume step. If the task is cancelled or reassigned first, the message isn't delivered. Over the API, a wake refused this way still answers `409`, even though the message is saved.
+This covers a paused agent, a paused project, a paused company (including one paused by its own budget hard stop), and a budget pause that isn't a reached hard stop. It doesn't cover an agent or project budget hard stop, an agent awaiting approval, or a [paused task or subtree](../experimental/task-chat.md#stop-pause-and-resume), which has its own resume step. If the task is reassigned first, the message isn't delivered. A cancelled task can still reopen to receive it, unless its latest run is one you stopped. Over the API, a direct `POST /api/agents/{agentId}/wakeup` carrying the comment answers `409` even though the message is saved, while posting the comment itself returns `201`.
 
 Two other cases also protect a person's message. If a server restart loses the wake, Paperclip sends the message itself, as long as it's been 30 seconds, the task is `todo` or `in_progress`, is assigned to an agent, isn't an Agent Chat conversation, has run before, and has no active run. If an agent run that started before your message closes the task as `done` without reading it, the task reopens and the agent gets the message once. A task a person closed stays closed.
 

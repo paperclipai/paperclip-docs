@@ -182,7 +182,7 @@ Native Codex agents can make images without asking you for a second OpenAI key. 
 
 **With a ChatGPT sign-in,** the agent uses Codex's built-in image tool. Codex saves the results under `CODEX_HOME/generated_images`. In an isolated home that folder is the only part of the Codex home the agent can read, and it copies the images it needs into the workspace.
 
-**With an OpenAI API key,** the built-in tool isn't available, so Paperclip gives the agent a `generate_image` tool that makes the image with that same key. Paperclip's server sends the key to OpenAI itself, so it never reaches the agent's process or shell. The agent gets the tool only when all of these are true:
+**With an OpenAI API key,** the built-in tool isn't available, so Paperclip gives the agent a `generate_image` tool that makes the image with that same key. The image request runs on Paperclip's server, so the tool never hands the key to the agent's shell. The agent gets the tool only when all of these are true:
 
 - It's a native Codex run, and the agent's selected connection is an OpenAI API-key connection.
 - There's no AI router selection or managed AI routing on the run.
@@ -199,7 +199,7 @@ The Runner records native session identity and recovers through the provider's s
 
 In a plugin environment, the plugin chooses the working directory, not Paperclip. The Runner records the directory the plugin prepared with the session, and recovery fails rather than resuming the session somewhere else.
 
-A Codex agent with the **Warm session** or **Automatic** Runner lifecycle can also stay warm in a plugin environment, as long as the plugin supports it and the agent has a selected AI account. The next run then picks up the same Codex process instead of starting a new one. Other providers in plugin environments run turn by turn. If the environment itself sets a Runner lifecycle, that setting wins over the agent's.
+A Runner agent with the **Warm session** or **Automatic** Runner lifecycle can also stay warm in a plugin environment, as long as the plugin supports it and the agent has a selected AI account. The next run then picks up the same provider process instead of starting a new one. OpenAI DOT, Grok Bot, Muse, and Cursor Cloud agents run turn by turn. If the environment itself sets a Runner lifecycle, that setting wins over the agent's.
 
 For Claude, the Runner loads three task tools up front — `set_task_title`, `paperclip_finish`, and `paperclip_block` — so Claude doesn't have to search for them before it can name or finish a simple task. Its other Paperclip tools load on demand, with the same access checks.
 
@@ -225,7 +225,7 @@ Outside plugin environments, **Automatic** keeps an agent warm only when all of 
 - The run is on a local target, not a remote one. A sandbox environment runs turn by turn under Automatic, unless the environment sets a Runner lifecycle of its own.
 - For OpenCode, no managed AI **Connection** is selected. Managed connections keep an OpenCode agent turn by turn even with **Warm session**. Codex can stay warm with one.
 
-Other Runner harnesses, including Grok, Pi, and ACP Cursor, don't follow Automatic: a new one is saved as `per_turn`, and a saved value stays as it is. A value you pick yourself beats the Automatic default, though an environment's own lifecycle setting or a managed connection that can't stay warm can still override it. A session that has already started keeps the lifecycle it began with.
+Other Runner harnesses, including Grok, Pi, and ACP Cursor, don't follow Automatic: a new one is saved as `per_turn`, and a saved value stays as it is. The exception is a new agent whose environment is a plugin driver with warm tasks: creation saves it as `warm` whatever you picked, except for OpenAI DOT, Grok Bot, and Muse agents. A value you pick yourself beats the Automatic default, though an environment's own lifecycle setting or a managed connection that can't stay warm can still override it. A run that's already been admitted, including its recovery, keeps its lifecycle, and the next run uses the current settings.
 
 In a plugin environment, an agent on **Automatic** with a selected AI account gets warm reuse when the plugin's driver supports it. See the [Plugin SDK](../plugins/sdk.md) for what the driver has to declare.
 

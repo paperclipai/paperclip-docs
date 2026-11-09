@@ -3,7 +3,7 @@
   "base_release_tag": "v2026.1106.0",
   "base_release_sha": "d69631b01b9c658f80bf8bed389863dce82643e1",
   "last_seen_parent_sha": "2aac7d29ffb28326c5b9bef4a53d73edf2af4563",
-  "last_applied_manifest_hash": "345795a14d8d4f00a7ed3f1c95c5c01fb9f1263a8006fa97dd5676f0d59b9a26",
-  "last_run_at": "2026-11-09T11:32:42.000Z",
+  "last_applied_manifest_hash": "521a357e23907e0ce21a690f319f0ce7bc3af053845ed021f79c924b32987ed2",
+  "last_run_at": "2026-11-09T11:49:21.000Z",
   "last_run_outcome": "applied"
 }

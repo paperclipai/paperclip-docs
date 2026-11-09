@@ -499,14 +499,14 @@ Naming specific items also switches that section on: a non-empty `agents`, `proj
 | Field | Notes |
 |---|---|
 | `source` | Required. The package to import. |
-| `target` | Required. `{ "mode": "existing_company", "companyId": "<route company>" }` or `{ "mode": "new_company", "newCompanyName": "..." }`. A new-company import returns `422` if the source company has no active user membership. A different `companyId` returns `403` with `Safe import route can only target the route company`. |
+| `target` | Required. `{ "mode": "existing_company", "companyId": "<route company>" }` or `{ "mode": "new_company", "newCompanyName": "..." }`. `apply` on a new-company import returns `422` if the source company has no active user membership. Preview doesn't check this. A different `companyId` returns `403` with `Safe import route can only target the route company`. |
 | `include` | Optional, with the same defaults as export. |
 | `agents` | Optional. `"all"` or a list of agent slugs. |
 | `collisionStrategy` | Optional, defaults to `rename`. `rename` or `skip` on these routes. `replace` returns `403` with `Safe import route does not allow replace collision strategy`, so an existing agent is never overwritten. |
-| `nameOverrides` | Optional. Maps an incoming agent, project, or issue slug to the name it should get. |
+| `nameOverrides` | Optional. Maps an incoming agent or project slug to the name it should get. Issue slugs are accepted but have no effect. |
 | `selectedFiles` | Optional. Limits the import to these package files. |
 
-Preview doesn't change the company, so run it first to see what an import would do. `apply` creates or reuses the resources and returns them.
+Preview doesn't change the company, so run it first to see what an import would do. `apply` creates the resources, renaming or skipping on a collision, and returns a summary of what it did for the company and each agent, project, skill, and routine. Imported tasks aren't listed in that summary.
 
 These company-scoped routes are intentionally safer: they can't target another existing company, and they reject the `replace` collision strategy.
 

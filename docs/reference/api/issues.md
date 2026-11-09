@@ -341,7 +341,7 @@ These don't carry over:
 
 Your own workspace fields take priority. `executionWorkspaceSettings` is merged over the copied values when the two share a mode or one has no mode, and replaces them when the modes differ. Neither happens if you also send `executionWorkspaceId` or an explicit `workspaceSelection`. Sending any other workspace field without settings means no settings are copied.
 
-Naming a workspace yourself doesn't get around this. An `executionWorkspaceId`, or a `workspaceSelection` of kind `existing`, that points at the workspace of the task's parent or another ancestor is dropped. The new task keeps the settings copied from its source, plus any you sent, and builds its own workspace from the project base. A valid workspace that isn't an ancestor's is still used.
+Naming a workspace yourself doesn't get around this. An `executionWorkspaceId` that points at the workspace of the task's parent or another ancestor is dropped, and so is a `workspaceSelection` of kind `existing` that names one. The new task builds its own workspace from the project base. With `executionWorkspaceId`, it keeps the settings copied from its source, combined with any `executionWorkspaceSettings` you sent under the mode rule above. With `workspaceSelection`, only the selected workspace's mode is combined with the copied settings. A selection must still be usable: a closed workspace or one you can't read returns `403` or `404` instead of being dropped. A valid workspace that isn't an ancestor's is still used.
 
 ---
 

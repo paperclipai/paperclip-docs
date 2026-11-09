@@ -388,18 +388,18 @@ An auto-paused agent doesn't lose its work — any tasks it had in progress rema
 
 ### When spend is uncertain
 
-A hard stop is only as good as the number behind it, so Paperclip counts a run's cost even while its accounting is unfinished. That counting never makes other work wait: a run that has ended without a recorded cost doesn't stop new work from starting. The budget checks below apply only to a budget that has a hard stop turned on and an amount above zero.
+A hard stop is only as good as the number behind it, so Paperclip counts a run's cost even while its accounting is unfinished. That counting opens no separate hold: a run that has ended without a recorded cost doesn't stop new work by itself, though its estimate counts toward a full budget, described below. The budget checks below apply only to a budget that has a hard stop turned on and an amount above zero.
 
 Only a few things refuse new work, and it helps to tell them apart.
 
 **A hard stop** opens an incident, pauses the scope, and stops work that's already running. Only two things cause one:
 
 - Spend reaches the limit. Spend here means recorded charges plus what unfinished runs have reported so far. A reservation on its own doesn't count.
-- Usage in the budget window has no reliable price, and the budget blocks on that (the default).
+- Usage in the budget window has no reliable price, or hosted browser work has an unconfirmed or uncapped cost, and the budget blocks on that (the default). Browser work counts whenever it's still unsettled, not just inside the budget window.
 
 **A pause** refuses new work too: a paused or inactive company, a paused project, or a paused agent. A scope that a budget paused but that no longer has a budget policy reads *Budget pause requires a policy or an explicit operator resume.*
 
-**A full budget** keeps a new run from starting, with *Available budget is reserved by unfinished runs*. Paperclip adds up recorded charges and what unfinished runs are expected to cost:
+**A full budget** keeps a new run from starting, with *Available budget is reserved by unfinished runs*. Paperclip adds up recorded charges, held amounts for hosted browser work, and what unfinished runs are expected to cost:
 
 - A run with a reservation counts for the larger of its reservation and the cost it has reported so far.
 - A run without a reservation counts for the cost it has reported so far, which is zero until it reports something or its charge is recorded.
@@ -408,10 +408,10 @@ If that total already meets the budget, or the new run's own reservation would p
 
 How unfinished runs affect other work:
 
-- A run that has ended without a recorded cost doesn't hold anything back. It only adds the estimate above.
+- A run that has ended without a recorded cost opens no hold of its own. It adds the estimate above, which can still fill the budget and refuse a new run.
 - A run that succeeded and reported its usage counts toward your spend straight away, and its final charge can still reach the hard stop.
 - Work that's already underway keeps going. A recovering run reuses its original reservation, so other runs' reservations can't refuse it, and the same goes for a running run's own task updates. Both stop only for a hard stop or a pause.
-- A task's earlier run that still owns its workspace or a lease can hold that task's next run. That's cleanup on the task itself, not a budget check, and it doesn't affect other tasks.
+- A task's earlier run that still owns its workspace or a lease can hold that task's next run. That's cleanup, not a budget check. It usually stays on that task, but a run that was the writer of a remote workspace also holds up another task using that workspace until its save and sandbox release settle.
 
 **How long a run's accounting stays open.** Most runs settle within moments, and until then their estimate keeps counting. If a Paperclip Runner run lost its final cost report, accounting closes as soon as Paperclip can prove the run is over: a failed run's local process is verified stopped, or every sandbox it used is confirmed stopped or destroyed. A run whose provider never started settles at once, with no charge. If that proof never arrives, the run settles anyway once its recovery has finished and 10 minutes have passed since it ended, and the activity log records `cost.accounting_closure_timed_out` naming the run. Its cost may be higher than what was recorded. A run whose usage capture failed settles at the same limit on any adapter: known cost, or tokens that can be priced, is recorded as a lower-bound **Estimated** figure, and otherwise the charge is **Unpriced**. A run on another adapter with an incomplete report stays open until its report is resolved.
 

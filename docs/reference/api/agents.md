@@ -156,7 +156,7 @@ Use the agent UUID and the same authorization required to read that agent. The r
 
 This read does not create an identity. New agents receive one at creation; older agents receive one on their next supported managed run. The endpoint never returns a private key. See [Agent cryptographic identity](../../guides/org/agent-identity.md) for signing and recovery. These keys do not replace agent API tokens.
 
-For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api). Board users read that feedback through the [commentary read routes](../../administration/agent-commentary.md#read-commentary-through-the-api), which need `commentary:view`.
+For agent-submitted product feedback, see the separate [Complaints and suggestions endpoint](../../administration/agent-commentary.md#submit-through-the-api). Board users read that feedback through the [commentary read routes](../../administration/agent-commentary.md#read-commentary-through-the-api), which need `commentary:view`, except for the local board and instance admins.
 
 An agent can use those read routes too, with limits. Without `commentary:view`, which no agent has by default, it can list only its own entries by setting `agentId` to itself, and read a single entry only if it's its own. Anything else returns `403` with `Board access required` and a `remediation` detail linking to the Commentary page, so the agent can send a person there. An agent that holds `commentary:view` can read every entry. Either way, entries from tasks the agent can't read stay hidden.
 

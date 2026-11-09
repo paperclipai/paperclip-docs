@@ -6,7 +6,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Compare truncation:** 0 truncated leaves (cumulative: 82 leaves, 1,480 commits, 6,221 files; increment: 141 commits).
 - **Merge main → nightly:** nothing to merge; `main` was already an ancestor of `nightly`.
 - **Already on nightly:** drafts for `d69631b0..d2efe339`. This run covers the 141 newer commits, `d2efe339..2aac7d29`.
-- **Verification:** authors and reviewers read only a snapshot pinned to `2aac7d29`. Every changed page was checked with `verify-edit` at that SHA (`source: snapshot`, no warnings). Two fresh reviewers then went through all 223 added content lines against code and confirmed 17 defects, all fixed. The fixes were spot-checked against code by hand, not by a further round. Nothing was run against a live instance.
+- **Verification:** authors and reviewers read only a snapshot pinned to `2aac7d29`. Every changed page was checked with `verify-edit` at that SHA (`source: snapshot`, no warnings). Two rounds of fresh reviewers then checked every added line against code: a first pass (17 confirmed defects) and a second line-by-line pass that also re-read the first round's fixes (22 confirmed defects). All are fixed. The second round's fixes were spot-checked against code by hand, not by a third round. Nothing was run against a live instance.
 - **Auto-merge tier:** nothing this run. `.env.example` and `server/src/config.ts` didn't change in the window.
 
 ## Applied this run (`d2efe339..2aac7d29`)
@@ -20,7 +20,7 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 - **Agents and skills:** board-only termination on both routes (#19955), agents read their own commentary (#19842), `search_skills` and `load_skill` (#19676), import rather than re-create (#19983), OpenCode hire key inheritance (#19977), `{skillId}` accepts a UUID, key or unique slug (#19808).
 - **Codex image generation with an API key** (#19654), on the Codex adapter page and `paperclip-runner.md`.
 - **Personal AI account defaults** (#19845): crown and **Set as default for <provider>**, in `openai.md`, `anthropic.md` and `xai.md`. This replaces **Make default**.
-- **Slack DM threads stay on their task after completion** (#19486), unless ended with `/new` or `/close`.
+- **Slack DM threads stay on their task after completion** (#19486), unless ended with the agent's slash command plus `new` or `close`.
 - **API reference:** company task list paging headers (#19972), closed-task creation doesn't wake (#19961), exact revision read (#19939), queued-comment discard rules (#19990), status card `href` (#19903), company export and import bodies (#19945, #19968).
 
 ## Applied in earlier runs (still on nightly, unreleased)
@@ -67,7 +67,7 @@ None (`source: snapshot`, no warnings). `sync:check` flags `POST /api/issues/{is
 
 ## Open questions from this run
 
-- **Not settled by review:** the full `importBundle` return shape behind "creates or reuses the resources and returns them" in `api/companies.md`; whether an earlier throw can pre-empt the two `/resolve` `409`s; the per-task hold through dispatch in `costs.md`; and the promotion drain behind "delivered once" in debug section 22.
+- **Not settled by review:** in debug section 22, whether a task that has never run starts once the hold lifts in every status; in `task-chat.md`, what happens to the countdown if an edit is abandoned; and in `paperclip-runner.md`, that a ChatGPT sign-in uses Codex's built-in image tool, which only a code comment at the pin supports.
 - **Move graduated pages out of Experimental?** `coordinator-workspace.md` and `agent-chat.md` describe standard features but still sit under `experimental/`. Moving them changes URLs and needs redirects.
 - **Release-note callouts:** saved built-in Google Workspace connections stop working on upgrade until the toggle is on, and Automatic clears unedited `per_turn` Runner lifecycles.
 - **Managed plugin environment edit page:** it renders for plugin rows and says environment variables can be added, but the server refuses that save. This looks like an upstream bug.

@@ -100,7 +100,7 @@ The list route accepts these optional query parameters:
 | `limit` | Page size from 1 to 100. Defaults to 50. |
 | `offset` | How many messages to skip. Defaults to 0. |
 
-It returns `items`, `total`, `limit`, and `offset`. Each item has `id`, `kind`, a `preview` of up to 280 characters, `createdAt`, the `agent` (`id`, `name`, `icon`), `runId`, and the `task` (`id`, `identifier`, `title`) or `null`. The detail route returns the same fields plus the full `body`, or `404` if the message doesn't exist or you can't see it. A board caller without `commentary:view` gets `403`.
+It returns `items`, `total`, `limit`, and `offset`. Each item has `id`, `kind`, a `preview` of up to 280 characters, `createdAt`, the `agent` (`id`, `name`, `icon`), `runId`, and the `task` (`id`, `identifier`, `title`) or `null`. The detail route returns the same fields plus the full `body`, or `404` if the message doesn't exist or you can't see it. A board caller without `commentary:view` gets `403`, and so does an agent without it in the cases that return `404` for everyone else.
 
 ### Query the database directly
 
