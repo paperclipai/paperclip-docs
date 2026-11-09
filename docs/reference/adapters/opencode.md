@@ -6,33 +6,21 @@ seo_description: Run OpenCode on the Paperclip host when you want provider and m
 
 # OpenCode
 
-`opencode_local` runs OpenCode on the same machine as Paperclip. Use it when you want provider/model routing in OpenCode's `provider/model` format and session resume across heartbeats.
+Configure OpenCode by answering the exact setting you searched for, then give the agent its first ticket. `opencode_local` runs OpenCode on the same machine as Paperclip with a required `provider/model`.
 
-> **Heads-up:** New OpenCode agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64 with GNU libc `2.39` or newer (Linux ARM64 stays on the Legacy runner). Those agents are saved as `paperclip_runner` with `provider: "opencode"`, and they don't need the experimental Runner setting. A custom `command`, `extraArgs`, a `variant`, or `dangerouslySkipPermissions: false` only works on the classic adapter; see [What carries over for OpenCode](paperclip-runner.md#what-carries-over-for-opencode). To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
-
----
-
-## When To Use
-
-- You already use OpenCode locally.
-- You want to use provider/model routing — for example `anthropic/claude-sonnet-4-5` or `openai/gpt-5.2-codex`.
-- You want Paperclip to resume OpenCode sessions across heartbeats via `--session`.
-
-## When Not To Use
-
-- The runtime lives behind a webhook or API. Use [OpenClaw Gateway](./openclaw-gateway.md) or [HTTP](./http.md).
-- You only need a one-shot shell command or script. Use [Process](./process.md).
-- OpenCode CLI is not installed on the machine.
+> **Heads-up:** New OpenCode agents run on [Paperclip Runner](/reference/adapters/paperclip-runner/#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64 with GNU libc `2.39` or newer. Linux ARM64 stays on the Legacy runner. Those agents are saved as `paperclip_runner` with `provider: "opencode"` and don't need the experimental Runner setting. The Runner itself is documented as experimental. A custom `command`, `extraArgs`, a `variant` or `dangerouslySkipPermissions: false` only works on the classic adapter described on this page. To keep it, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
 
 ---
 
-## Common Fields
+## Configure `opencode_local`
+
+Set a `model` in `provider/model` form and a working directory. Everything else can stay at its default until you need it.
 
 | Field | Required | Notes |
-|---|---:|---|
-| `cwd` | no | Absolute working directory. Recommended. Created when permissions allow; otherwise falls back to the process working directory. |
-| `model` | **yes** | OpenCode model id in `provider/model` format (e.g. `openai/gpt-5.2-codex`, `anthropic/claude-sonnet-4-5`). |
-| `variant` | no | Provider-specific reasoning/profile variant passed as `--variant`. Accepts `minimal`, `low`, `medium`, `high`, `xhigh`, `max`. |
+| --- | --- | --- |
+| `cwd` | no | Absolute working directory. Recommended. Created when permissions allow. Otherwise falls back to the process working directory. |
+| `model` | **yes** | OpenCode model id in `provider/model` format, for example `openai/gpt-5.2-codex` or `anthropic/claude-sonnet-4-5`. |
+| `variant` | no | Provider-specific reasoning or profile variant passed as `--variant`. Accepts `minimal`, `low`, `medium`, `high`, `xhigh` and `max`. |
 | `dangerouslySkipPermissions` | no | Injects a temporary runtime config with `permission=allow`, so every tool and connection runs without approval prompts. Defaults to `true` for unattended Paperclip runs. |
 | `promptTemplate` | no | Run prompt template. |
 | `instructionsFilePath` | no | Absolute path to a Markdown instructions file prepended to the run prompt. |
@@ -42,113 +30,18 @@ seo_description: Run OpenCode on the Paperclip host when you want provider and m
 | `timeoutSec` | no | Run timeout in seconds. `0` means no timeout. |
 | `graceSec` | no | SIGTERM grace period before a forced stop. |
 
-> **Note:** Paperclip requires an explicit `model` value for `opencode_local` agents. Use `opencode models` to list valid options in `provider/model` format.
+Paperclip requires an explicit `model` for `opencode_local` agents. Run `opencode models` to list valid options in `provider/model` format.
 
----
-
-## Session Persistence
-
-OpenCode sessions are resumed with `--session` when the stored session `cwd` matches the current `cwd`. If the directory moved, a fresh session starts.
-
----
-
-## Execution Details
+How the adapter runs OpenCode:
 
 - Runs are invoked as `opencode run --format json ...`.
-- Model selection is passed via the `--model` CLI flag.
-- OpenCode runs in the task's prepared workspace: Paperclip passes it as `--dir`. If your `extraArgs` already set `--dir` (before any `--`), your value is kept.
-- If a run hits its timeout, it fails with `OpenCode execution timed out`.
-- `OPENCODE_DISABLE_PROJECT_CONFIG=true` is set automatically to prevent OpenCode from writing config into the project directory.
-- When `dangerouslySkipPermissions` is enabled (the default for unattended runs), Paperclip copies your existing `opencode` config into a temporary `XDG_CONFIG_HOME`, sets `permission=allow` in that copy's `opencode.json`, and points the run at it. That puts OpenCode in full-auto mode for all tools and connections, so unattended runs never stall on approval prompts, and your real config is never touched. Any `permission` rules from your own config are replaced in that temporary copy, so set `dangerouslySkipPermissions` to `false` if you need OpenCode to honour them. The env overrides below (`PAPERCLIP_OPENCODE_PROVIDERS`, `PAPERCLIP_OPENCODE_SMALL_MODEL`) are written into this same temporary file, so they apply only when `dangerouslySkipPermissions` is on and the target runs locally.
+- The model is passed with the `--model` flag.
+- OpenCode runs in the task's prepared workspace, passed as `--dir`. If your `extraArgs` already set `--dir` (before any `--`), your value is kept.
+- A run that hits its timeout fails with `OpenCode execution timed out`.
 
----
+### Example
 
-## Custom Providers And Gateways
-
-Set these environment variables on the Paperclip server (process env, or the agent's `env`) to route OpenCode through your own OpenAI-compatible provider or LLM gateway. Paperclip reads them server-side and writes them into the temporary `opencode.json` described above, so they take effect only when `dangerouslySkipPermissions` is enabled and the target runs locally.
-
-### `PAPERCLIP_OPENCODE_PROVIDERS`
-
-A JSON object in OpenCode's `provider` shape — a map of provider id to provider definition. Paperclip merges these entries into the `provider` block of the temporary `opencode.json` (your existing providers are preserved; same-named keys are overwritten). Entries whose value is not an object are skipped, and invalid JSON is ignored — both cases surface as a run note rather than failing silently.
-
-This lets you expose a custom or remote OpenAI-compatible provider (for example an EU LLM gateway that serves `/v1`) and then reference its models in `model` using the usual `provider/model` format. Because OpenCode only resolves a `--model provider/model` when that model exists in the provider's `models` map, give each provider an explicit `models` map listing the ids you intend to use.
-
-You can keep secrets out of the JSON with OpenCode's `{env:VAR}` placeholders. Paperclip expands them server-side from the run env (then the process env) before writing the file; any placeholder it cannot resolve is left intact for OpenCode to resolve itself.
-
-```json
-{
-  "my-gateway": {
-    "npm": "@ai-sdk/openai-compatible",
-    "name": "My EU Gateway",
-    "options": {
-      "baseURL": "https://gateway.example.com/v1",
-      "apiKey": "{env:MY_GATEWAY_KEY}"
-    },
-    "models": {
-      "gpt-5.2-codex": {},
-      "gpt-5.2-codex-small": {}
-    }
-  }
-}
 ```
-
-With the above set, an agent can use `"model": "my-gateway/gpt-5.2-codex"`.
-
-> **Tip:** OpenCode validates configured models against `opencode models` by default. For gateway-routed models that never appear in that listing, set `OPENCODE_ALLOW_ALL_MODELS=true` so Paperclip skips the availability probe (the `provider/model` format is still enforced).
-
-### `PAPERCLIP_OPENCODE_SMALL_MODEL`
-
-Pins OpenCode's auxiliary "small" model — used for helper tasks such as session-title generation — by writing `small_model` into the temporary `opencode.json`. OpenCode otherwise falls back to a built-in per-provider default; when you repoint a provider at a gateway that does not serve that exact default, the helper call fails and aborts the run. Set this to a model your gateway actually serves to keep every call on a supported model.
-
-```bash
-PAPERCLIP_OPENCODE_SMALL_MODEL=my-gateway/gpt-5.2-codex-small
-```
-
----
-
-## Models
-
-OpenCode supports multiple providers. Common ids:
-
-| Id | Provider |
-|---|---|
-| `openai/gpt-5.2-codex` | OpenAI (default) |
-| `openai/gpt-6-astra` | OpenAI |
-| `openai/gpt-6.1-sol` | OpenAI |
-| `openai/gpt-6-sol` | OpenAI |
-| `openai/gpt-6-luna` | OpenAI |
-| `openai/gpt-5.6-sol` | OpenAI |
-| `openai/gpt-5.6-terra` | OpenAI |
-| `openai/gpt-5.6-luna` | OpenAI |
-| `anthropic/claude-opus-5-5` | Anthropic |
-| `anthropic/claude-opus-5` | Anthropic |
-| `anthropic/claude-fable-5-1` | Anthropic |
-| `anthropic/claude-sonnet-5-5` | Anthropic |
-| `anthropic/claude-sonnet-5` | Anthropic |
-| `google/gemini-3.8-flash` | Google |
-| `xai/grok-4.7` | xAI |
-| `openai/gpt-5.5` | OpenAI |
-| `openai/gpt-5.4` | OpenAI |
-| `openai/gpt-5.4-mini` | OpenAI |
-| `openai/gpt-5.2` | OpenAI |
-| `openai/gpt-5.1-codex-max` | OpenAI |
-| `openai/gpt-5.1-codex-mini` | OpenAI |
-
-Run `opencode models` for the authoritative list on your machine.
-
-You are not limited to that list, though. OpenCode only resolves a `--model provider/model` when the model id exists in that provider's `models` map, so an id the bundled catalog does not carry — a model released after the catalog shipped, or a routing variant such as `openai/gpt-oss-120b:nitro` — would otherwise be rejected with `Model not found` even though the provider serves it.
-
-To spare you that, Paperclip registers whatever you put in `model` into the temporary `opencode.json` described above, adding it to that provider's `models` map when it is not already there. Models the catalog already knows keep all of their metadata, and an explicit definition — from your own OpenCode config or from `PAPERCLIP_OPENCODE_PROVIDERS` — always wins, so Paperclip never overwrites one. When it does add an entry, you will see a run note saying it registered the model. Like the rest of the runtime config on this page, this applies when `dangerouslySkipPermissions` is enabled and the target runs locally.
-
-Before a run, Paperclip pre-flights your configured model against `opencode models`. If the model is in the returned list, the run proceeds. If the list comes back non-empty but without your model, Paperclip refreshes OpenCode's on-disk catalog once (`opencode models --refresh`) and re-checks before giving up — long-lived hosts can otherwise report a stale catalog while the provider already serves the model. If it's still missing, the run is rejected with `Configured OpenCode model is unavailable: <model>`, listing a sample of the ids that are available so you can correct the `model` value.
-
-The pre-flight is a best-effort guard, not a gate. If `opencode models` can't run — it times out or errors — or returns no models at all, Paperclip logs a warning and proceeds with your configured model rather than blocking the run, since the real invocation is authoritative. (`OPENCODE_ALLOW_ALL_MODELS=true` skips the probe entirely, as described above.)
-
----
-
-## Example
-
-```json
 {
   "adapterType": "opencode_local",
   "adapterConfig": {
@@ -172,7 +65,131 @@ The pre-flight is a best-effort guard, not a gate. If `opencode models` can't ru
 
 ---
 
-## Next Steps
+## What `OPENCODE_DISABLE_PROJECT_CONFIG` does
 
-- [Creating an Adapter](./creating-an-adapter.md)
-- [Adapter UI Parser Contract](./adapter-ui-parser.md)
+Paperclip sets `OPENCODE_DISABLE_PROJECT_CONFIG=true` automatically on `opencode_local` runs. The variable keeps OpenCode from writing config into the project directory. You don't need to set it yourself.
+
+This behavior is documented for the classic `opencode_local` adapter. On Paperclip Runner, each OpenCode session runs in its own isolated home.
+
+---
+
+## Permissions and the temporary config
+
+`dangerouslySkipPermissions` is on by default, which puts OpenCode in full-auto mode for every tool and connection on unattended runs. Here is what that does:
+
+1. Paperclip copies your existing `opencode` config into a temporary `XDG_CONFIG_HOME`.
+2. It sets `permission=allow` in that copy's `opencode.json` and points the run at it.
+3. Your real config is never touched.
+
+Any `permission` rules from your own config are replaced in that temporary copy. If you need OpenCode to honor them, set `dangerouslySkipPermissions` to `false`, which only works on the Legacy runner. On Paperclip Runner, permissions use `opencodePermissionMode` instead (`allow` by default, or `ask` or `deny`), and each session runs in its own isolated home, so your local permission rules don't apply.
+
+The provider overrides and model registration described below are written into the same temporary file, so they apply only when `dangerouslySkipPermissions` is on and the target runs locally.
+
+---
+
+## Heartbeats and session resume
+
+Paperclip wakes an OpenCode agent for a heartbeat when it's given work, and new agents start with **Heartbeat on interval** off, so assigning a task or clicking **Run now** is what starts a run. Turn the interval on under **Run Policy** on the agent's **Harness / Runtime** page if you want timed wakes.
+
+Between heartbeats, the session carries over like this:
+
+- **On `opencode_local`,** Paperclip resumes the OpenCode session with `--session` when the stored session `cwd` matches the current `cwd`. If the directory moved, a fresh session starts.
+- **On Paperclip Runner,** the Runner records the native session identity and recovers through OpenCode's supported session-load path. Recovery rechecks the saved provider, environment, credential and task authority, and it isn't a guarantee that every interrupted operation resumes.
+
+To start clean on the next heartbeat, open **More actions (⋯)** in the agent header and choose **Reset Sessions**, or use **clear session for these tasks** on a run's page.
+
+---
+
+## Give the agent its first ticket
+
+Before you assign real work, test the setup. On the agent's **Harness / Runtime** page, click **Run test** in the **Test your agent** card. On the Runner, testing the environment needs a complete `provider/model` value.
+
+Then:
+
+1. On the agent's page, click **Assign Task**, or click **New Task** and pick the agent as assignee.
+2. Choose the **Project**, write a small task you can check quickly and click **Create task**.
+3. If someone has to review the work before it closes, open the task's **Properties** and add a **Reviewer** or **Approver**.
+
+Assigning the task wakes the agent. On that run it checks the task out, the status moves to **In Progress** and it posts progress in the task thread. When it finishes, the task moves to **Done**, or to **In Review** if a reviewer or approver is set.
+
+For example, let's say you are a (team lead) trying to (add an OpenCode agent to a team that already runs other agents) but (you're not sure the model and working directory are right until it does real work). Here's how to approach the first ticket:
+
+- **Task:** (one small change in the repo at `cwd`)
+- **Done when:** (the check you'll run, such as a passing test)
+- **Reviewer:** (the person or agent who signs off)
+
+If the task doesn't move, open the agent's **Runs**, then the latest run. A model problem shows up as `Configured OpenCode model is unavailable: <model>` (see [Models](#models-and-custom-providers)), and a timeout as `OpenCode execution timed out`.
+
+---
+
+## Models and custom providers
+
+`model` must be a full `provider/model` id that your provider serves. Common ids include `openai/gpt-5.2-codex`, `openai/gpt-5.6-sol`, `anthropic/claude-sonnet-5-5` and `xai/grok-4.7`. Run `opencode models` for the authoritative list on your machine.
+
+**The model pre-flight.** Before a run, Paperclip checks your configured model against `opencode models`:
+
+- If the model is in the list, the run proceeds.
+- If the list comes back non-empty without your model, Paperclip refreshes OpenCode's on-disk catalog once (`opencode models --refresh`) and checks again.
+- If it's still missing, the run is rejected with `Configured OpenCode model is unavailable: <model>`, with a sample of the available ids so you can correct `model`.
+- If `opencode models` times out, errors or returns nothing, Paperclip logs a warning and proceeds with your configured model. The pre-flight is a best-effort guard, not a gate; the real invocation decides.
+
+**Models the catalog doesn't carry yet.** OpenCode only resolves `--model provider/model` when the id exists in that provider's `models` map, so a newer id or a routing variant such as `openai/gpt-oss-120b:nitro` would otherwise fail with `Model not found`. Paperclip registers the id you put in `model` into the temporary `opencode.json`, adding it to that provider's `models` map when it isn't there. Ids the catalog already knows keep their metadata, and an explicit definition from your own config or from `PAPERCLIP_OPENCODE_PROVIDERS` always wins. You'll see a run note when Paperclip adds an entry. The provider still has to serve the model.
+
+### Route OpenCode through your own gateway
+
+Set these on the Paperclip server (process env, or the agent's `env`). They're written into the temporary `opencode.json`, so they apply only when `dangerouslySkipPermissions` is on and the target runs locally.
+
+**`PAPERCLIP_OPENCODE_PROVIDERS`** is a JSON object in OpenCode's `provider` shape. Paperclip merges it into the `provider` block (existing providers are kept; same-named keys are overwritten). Non-object entries are skipped and invalid JSON is ignored, both with a run note. Give each provider an explicit `models` map, and keep secrets out of the JSON with `{env:VAR}` placeholders, which Paperclip expands server-side from the run env, then the process env.
+
+```
+{
+  "my-gateway": {
+    "npm": "@ai-sdk/openai-compatible",
+    "name": "My EU Gateway",
+    "options": {
+      "baseURL": "https://gateway.example.com/v1",
+      "apiKey": "{env:MY_GATEWAY_KEY}"
+    },
+    "models": {
+      "gpt-5.2-codex": {},
+      "gpt-5.2-codex-small": {}
+    }
+  }
+}
+```
+
+With that set, an agent can use `"model": "my-gateway/gpt-5.2-codex"`. For gateway-routed models that never appear in `opencode models`, set `OPENCODE_ALLOW_ALL_MODELS=true` to skip the availability probe. The `provider/model` format is still enforced.
+
+**`PAPERCLIP_OPENCODE_SMALL_MODEL`** pins OpenCode's auxiliary small model, used for helper tasks such as session titles, by writing `small_model` into the temporary config. If you repoint a provider at a gateway that doesn't serve OpenCode's default small model, the helper call fails and aborts the run, so set this to a model your gateway serves:
+
+```
+PAPERCLIP_OPENCODE_SMALL_MODEL=my-gateway/gpt-5.2-codex-small
+```
+
+---
+
+## OpenCode on Paperclip Runner
+
+If your agent landed on the Runner, it keeps its model, connection, instructions and environment. The differences:
+
+- **Model:** use a full `provider/model` id. You can save a setup draft first, but testing the environment and finishing the hire both need a complete model.
+- **Permissions:** `opencodePermissionMode` (`allow` by default, `ask` or `deny`) replaces `dangerouslySkipPermissions`.
+- **Legacy-only settings:** a custom `command` other than `opencode`, `extraArgs` or `args`, a `variant` and the effort fields `modelReasoningEffort`, `reasoningEffort` and `effort`. Setting one while the Runner is picked fails with `agent_runner_config_incompatible`, naming the fields so you can remove them or choose **Legacy runner**.
+- **Streaming:** replies stream as they're written.
+- **Install:** no install step to run first. The server ships OpenCode as a dependency.
+
+---
+
+## When not to use `opencode_local`
+
+- The runtime lives behind a webhook or API. Use [OpenClaw Gateway](/reference/adapters/openclaw-gateway/) or [HTTP](/reference/adapters/http/).
+- You only need a one-shot shell command or script. Use [Process](/reference/adapters/process/).
+- The OpenCode CLI isn't installed on the machine.
+
+## Next steps
+
+- [Paperclip Runner](/reference/adapters/paperclip-runner/): runner choice and what carries over for OpenCode
+- [Agents](/guides/org/agents/): Harness / Runtime, Run Policy, runs and **Reset Sessions**
+- [Issues](/guides/day-to-day/issues/): creating tasks, statuses and reviewers
+- [Creating an Adapter](/reference/adapters/creating-an-adapter/)
+- [Adapter UI Parser Contract](/reference/adapters/adapter-ui-parser/)
