@@ -1411,6 +1411,10 @@
         {
           "title": "UI Parser Contract",
           "file": "../docs/reference/adapters/adapter-ui-parser.md"
+        },
+        {
+          "title": "Adapter Errors",
+          "file": "../docs/reference/adapters/troubleshooting.md"
         }
       ]
     },
