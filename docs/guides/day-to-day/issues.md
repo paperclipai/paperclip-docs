@@ -688,7 +688,7 @@ If another run holds a workspace this task shares, or has ended but is still sav
 
 The red *Couldn’t finish this attempt* line is only for real failures. A wait for a shared resource, such as a busy AI connection or a remote Runner update, doesn't show it or offer **Retry**. Neither does a task that's waiting on unfinished dependencies, which keeps showing its dependency state. A task that's automatically resuming after a restart shows *Trying again in …*, and saved-work recovery names its step, such as *Saving files from the previous attempt*. **Retry** stays away during the automatic resume and while a recovery step is actually running, so they can't compete.
 
-When you do click **Retry**, Paperclip saves the request first. If something still has to finish, the status line says what, for example *Retry is waiting for the previous environment to stop. Your message is saved.* The Retry then starts by itself. See [Retry says it's waiting](../../how-to/debug-stuck-heartbeat.md#15-retry-says-its-waiting) for every message and which ones need you.
+When you do click **Retry**, Paperclip saves the request first. If something still has to finish, the status line says what, for example *Retry is waiting for the previous environment to stop. Your message is saved.* The Retry then starts by itself. When it's waiting on tasks this one is blocked by, the line lists them, so you can open a blocked one and retry it there. See [Retry says it's waiting](../../how-to/debug-stuck-heartbeat.md#15-retry-says-its-waiting) for every message and which ones need you.
 
 Retry keeps the agent's work when it can. If the task has its own local workspace that nothing else is using, the new attempt continues there with the uncommitted files and task branch intact. When Paperclip has to start a fresh attempt instead, the old folder stays as it was and, when that folder is the task's own, the agent is told its path, its branch if known, and up to 50 changed files. On a remote task, the newest verified saved files are attached under `.paperclip-recovered/` for the agent to read.
 
@@ -734,6 +734,14 @@ The task stays on hold until the server has recorded verified copies of the file
 Sometimes Paperclip can't verify where the saved files came from, for example when a sandbox dates from an older release. The task then says why, such as *Paperclip can’t confirm that this run alone used the sandbox that holds the saved files.* or *Paperclip can’t verify the saved files’ recorded source*, followed by a code, and adds *Paperclip does not apply files it can’t verify.* **Recover saved files** doesn't appear in that case. Use **Retry** instead, which starts a new round of recovery.
 
 You need board access to this task to request recovery. Company members with the viewer role can't, and they see *A board member with task access can request file recovery.* You can do the same thing from the failed run's page: click **Inspect recovery** and the recovery controls appear with the run's recorded failure.
+
+### When a subtask or blocker needs the board
+
+A parent task normally hears about its subtasks only when they finish, and a dependent task only when all its blockers are done. So when a subtask or blocker stops on a recovery action that needs the board instead, for example after its retries run out, Paperclip tells the tasks waiting on it.
+
+Each waiting task that's assigned to an agent and is `todo`, `in_progress`, `in_review`, or `blocked` wakes its agent once for that stop. An agent that's paused or doesn't take on-demand wakes is tried again later. If the agent can't read the stopped task, it only learns that a task it can't read is stalled and that the board needs to act. A new stop later on, such as after another failed Retry, wakes it again.
+
+On the waiting task's page, a notice reads **A dependency needs the board** (or **2 dependencies need the board**, and so on). Each row says whether it's a **Child** or a **Blocker**, links to the task, and shows the next step recovery recorded. When that task can be retried, the row has its own **Retry**, so you can restart it without opening it. Tasks you can't read aren't listed, and a row disappears once the stopped task moves on.
 
 ### Resolution outcomes
 

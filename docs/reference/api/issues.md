@@ -203,6 +203,8 @@ The response includes the issue itself and these related fields:
 
 Issue records, here and in list responses, can also carry a read-only `displayStatus`. It's the status the UI shows, and it equals `status` except on an `in_progress` task assigned to an agent. That task reports `displayStatus: "in_progress"` only while a run for the task is `queued` or `running`. Without one it reports, in this order: `blocked` for an active or escalated recovery action; `in_review` for a pending execution stage with a current participant, or an active pending interaction; `monitoring` for an ordinary scheduled monitor; and otherwise `todo`. Monitors waiting on provider usage limits never report `monitoring`. The stored `status` stays `in_progress`, you can't write `displayStatus`, and it never grants execution authority. Company search (`GET /api/companies/{companyId}/search`) accepts the same `displayStatus` filter and returns `displayStatus` on each task result.
 
+If you can't open the task, you get `404` with `{ "error": "Issue not found" }`. The answer is the same whether the task was deleted, is private and wasn't shared with you, or belongs to another company, so it never reveals which. Agents get two extra fields: `code: "issue_not_visible"` and a `remediation` telling the agent the lookup is final, so it should tell the person it can't open the task (they can share it from its sharing controls or paste what's needed) instead of searching other routes for it.
+
 ### Relationship Notes
 
 - `goal` is resolved in order of precedence: the issue's own goal, the project's goal, then the company's default goal when no project is set.
@@ -1612,7 +1614,7 @@ A retry is a new, durable request. If automatic repair had used up its attempts,
 | `userAction` | For `waiting_for_user`: `approval`, `reconnect`, `assign_agent`, `choose_model`, `resume`, `budget`, `project_access`, or `confirm_owner_stop`. Otherwise `null`. |
 | `nextRetryAt` | When the next automatic attempt is due, for `retry_scheduled`. This includes a Paperclip Runner run that's resuming by itself after a restart. |
 | `canRetry` | Whether a retry can help right now. `false` while an automatic resume is pending, while a retry is already being prepared, and during waits for a shared resource (those report `working`). |
-| `retryWait` | Present as `{ "reason": "...", "message": "..." }` when a saved retry or a task that hasn't started is waiting. `message` is safe to show as is. A retry that can't start with its requester's access has the reason `retry_authority_denied`; a task waiting on a budget hold reports `state: "working"` with the reason `budget.blocked`. |
+| `retryWait` | Present as `{ "reason": "...", "message": "..." }` when a saved retry or a task that hasn't started is waiting. `message` is safe to show as is. A retry that can't start with its requester's access has the reason `retry_authority_denied`; a task waiting on a budget hold reports `state: "working"` with the reason `budget.blocked`. A saved retry waiting on unfinished blockers reports `state: "working"` with the reason `dependency_blocked`. |
 | `recoveryStep` | The saved-work recovery step in progress: `checking_previous_run`, `saving_previous_files`, or `finishing_recovery`. Only present while recovery is scheduled or running. |
 | `observedRunId` | The latest run; send it back as `observedRunId` when you retry |
 | `sourceRunIds`, `intentId` | The runs and the pending retry request behind the summary |
@@ -1763,6 +1765,7 @@ Additional constraints:
 - If the source issue is currently `in_review` under an execution policy, agent-authenticated resolutions must satisfy the same review-path checks as a normal status change.
 - Resolving with `outcome: "restored"` and `sourceIssueStatus: "todo"` retries the task. When the blocked run failed during setup because its shared workspace source was restricted, this retry is board-only: the server moves the task to an isolated workspace from the project's repository (source `recovery`) before it re-queues, unless the task already has a pending workspace choice. If a newer run exists or the task no longer matches the failed run, the server returns `409 Conflict`.
 - Resolving with `restored` or `false_positive` while the active action's cause is `native_controller_host_unverified` returns `409 Conflict` with code `native_controller_stop_required` and `Confirm that the previous server stopped to resume this run.` Use [Confirm the previous server stopped](#confirm-the-previous-server-stopped) instead.
+- Resolving with `restored` or `false_positive` while the active action's cause is `ownership_owner_unprovable` returns `409 Conflict` with code `ownership_owner_stop_required` and `Confirm that the previous server stopped to release this resource.` Use [Confirm a held resource's server stopped](#confirm-a-held-resources-server-stopped) instead.
 - Resolving with `restored` or `false_positive` while the active action's cause is `native_workspace_finalization_owner_unverified` returns `409 Conflict` with code `workspace_owner_stop_required` and `Paperclip is still confirming that the previous server stopped. Saving resumes without repeating the agent's work.`
 - The server writes an `issue.recovery_action_resolved` activity log entry (and an `issue.updated` entry when the source status actually changed).
 
@@ -1798,6 +1801,35 @@ Request body, with no other fields accepted:
 The response is `202 Accepted` with `{ "runId": "...", "status": "queued" }`. The recovery action becomes `resolved` with outcome `restored`, and an `issue.native_controller_stop_confirmed` activity entry records your evidence.
 
 If the action or the run's recorded controller no longer matches what the request describes, the server returns `409 Conflict` with code `native_controller_host_recovery_stale` and `The recorded controller is no longer current. Refresh the task and inspect its run.`
+
+### Confirm a held resource's server stopped
+
+```
+POST /api/issues/{issueId}/recovery-actions/confirm-owner-gone
+```
+
+Something a task's earlier run held, such as a sandbox lease or a workspace save, can stay reserved after a restart when it was saved before Paperclip recorded which server held it. Paperclip can't tell whether that server stopped, so it opens a board-owned recovery action on the task with cause `ownership_owner_unprovable`. Its `evidence` names what's held (`kind`, `recordId`, `runId`) and, when known, the version Paperclip asked about (`recordUpdatedAt`). The resource stays reserved until you confirm, or until it's released some other way.
+
+The caller rules match [Confirm the previous server stopped](#confirm-the-previous-server-stopped): a board user with the `runtime:confirm_owner_stop` action who can read the task.
+
+Request body, with no other fields accepted:
+
+| Field | Type | Notes |
+|---|---|---|
+| `actionId` | uuid, required | The active recovery action. |
+| `recordId` | uuid, required | The held record, from `evidence.recordId`. |
+| `stopEvidence` | string, required | What you checked, 20 to 12,000 characters after trimming. |
+| `recordVersion` | ISO timestamp with offset, optional | The `evidence.recordUpdatedAt` you were shown. Required when the action has one. |
+
+The response is `202 Accepted` with `{ "recordId": "...", "status": "queued" }`, and recovery then releases the resource. If it had already been released another way, `status` is `released` and nothing more is needed. Either way the recovery action becomes `resolved` with outcome `restored`, and an `issue.ownership_owner_gone_confirmed` activity entry records your evidence.
+
+If the action no longer matches, or the record changed since Paperclip asked (including a `recordVersion` that doesn't match), the server returns `409 Conflict` with code `ownership_owner_attestation_stale` and `This record changed since recovery asked. Refresh the task and inspect its run.`
+
+### Stalled children and blockers
+
+`GET /api/issues/{issueId}` includes `stalledDependencies`, an array that's empty when nothing is stalled. It lists up to 50 of the task's children and blockers whose latest recovery action needs the board, as long as they aren't `done` or `cancelled` and you can read them. Hidden children (`hiddenAt` set) are left out. Each entry has `stalledIssueId`, `stalledIssueIdentifier`, `stalledIssueTitle`, `stalledIssueStatus`, `relation` (`child` or `blocker`), and `recoveryAction` (`id`, `kind`, `cause`, `status`, `ownerType`, `nextAction`).
+
+The agents assigned to the waiting tasks get one `issue_blocker_stalled` wake per stall, carrying the same details. An agent that can't read the stalled task gets its id and status but no identifier, `kind`, or `cause`, with the title `A task you cannot read`.
 
 ### Recovery action shape
 
@@ -1998,6 +2030,7 @@ Express "A is blocked by B" as a first-class link, not as free-text:
 - Send `blockedByIssueIds` on `POST /api/companies/{companyId}/issues` or `PATCH /api/issues/{issueId}` to declare blockers. The array replaces the current set on each update; send `[]` to clear.
 - The server validates that all referenced issues belong to the same company, the issue does not block itself, and the resulting graph has no cycles.
 - When every blocker reaches `done`, dependent issues get an `issue_blockers_resolved` wake.
+- When a blocker or child stalls on a recovery action that needs the board, the agents assigned to the waiting issues get an `issue_blocker_stalled` wake. See [Stalled children and blockers](#stalled-children-and-blockers).
 
 ### Hidden issues
 

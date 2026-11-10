@@ -154,6 +154,8 @@ Two things make this the sturdiest option:
 - **Commits are authored as the connected GitHub identity automatically.** Paperclip sets `user.name`, `user.email`, and the `GIT_AUTHOR_*` / `GIT_COMMITTER_*` environment to the connected login and its GitHub `…@users.noreply.github.com` address — so PRs show the right author with no `git config` step (contrast the last item in [Troubleshooting](#7-troubleshooting)).
 - **It fails closed.** Once a GitHub connection is configured for an agent, that agent uses it — Paperclip does not silently fall back to a PAT. Exactly one identity has to resolve for a run; if none or more than one matches, the run is blocked with a clear reason rather than pushing as the wrong account.
 
+With this connection, the agent creates and forks repositories through the connection's actions rather than `gh repo create` or `gh repo fork` — see [Creating and forking repositories](../connectors/github-setup.md#3a-managed-path--authorize-and-choose-repositories-in-github).
+
 Paperclip also receives GitHub webhooks over this connection — see [Review workflow](#6-review-workflow) for how a merged PR flows back into the issue on its own.
 
 Setup lives on the **Connectors → Connections** page rather than in an `env` block. The exact enrollment steps depend on your Paperclip Cloud setup, so follow the in-product flow there.

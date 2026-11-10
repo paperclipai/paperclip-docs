@@ -23,6 +23,8 @@ Three experimental flags in this area are still real and still off by default. T
 
 The second is **GitHub review bots**: *"Connect agents to GitHub with their own App identity to review pull requests and respond to issues."* It controls the GitHub Code Review Bot on its own, independent of **Chat connectors**. Turning it off hides setup and management; existing bots keep running, and GitHub tool connections stay available. AgentMail used to sit behind **Chat connectors**; it is now a default connection, available on every instance.
 
+The server enforces both settings when someone creates a chat endpoint, not just the UI. While the matching setting is off, `POST /api/companies/{companyId}/chat-endpoints` returns `403` saying *"Chat connectors is turned off on this instance, so this chat endpoint cannot be created."* (or the same message naming **GitHub review bots** for a GitHub endpoint). The message points to the instance's experimental settings, where an instance admin can turn it on; agents can't change instance settings. AgentMail endpoints don't need either setting.
+
 The third is **Memory connectors**: *"Connect Mem0, Zep, Supermemory, Cognee, and Honcho for long-term memory and context."* It hides or shows setup for those [memory providers](../connectors.md#memory-experimental). Turning it off hides setup only; existing connections keep running.
 
 The MCP aggregators (Zapier, Arcade, Composio, and Executor) briefly had a toggle of their own. They are now always available, and `enableMcpAggregators` is a deprecated compatibility key: *"MCP aggregators are always enabled; stored and managed values are ignored."* See [Connect apps through an MCP aggregator](../connectors/mcp-aggregators.md).

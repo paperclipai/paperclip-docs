@@ -144,7 +144,7 @@ The body is optional — provision with an empty body to accept the registry def
 |---|---|---|
 | `adapterType` | string | Must be one of the built-in's allowed adapter types. Defaults to the first allowed type. |
 | `adapterConfig` | object | Adapter-specific config, such as a `model`, `command`, or `url` depending on the adapter type. |
-| `budgetMonthlyCents` | integer | Monthly budget in cents. Defaults to the registry default (currently `0` for all shipped built-ins). |
+| `budgetMonthlyCents` | integer | Monthly budget in cents. Defaults to the registry default (currently `0` for all shipped built-ins). Board-only: an agent caller that includes this field, with any value, gets `403` with `Board access required`. |
 
 Returns `200 OK` when the built-in is provisioned directly, or `202 Accepted` when the company requires board approval and the request created a pending approval instead.
 

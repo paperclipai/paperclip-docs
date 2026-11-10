@@ -457,7 +457,7 @@ A **warning** (amber, *budget warning*) means spend crossed the soft threshold. 
 A **hard stop** (red, *hard stop*) means the scope is paused — the card says *This scope is paused. New heartbeats will not start until you resolve the budget incident.* (or, for a project, that new work in the project won't start).
 
 - **Keep paused** — acknowledge the breach and leave the scope paused. Useful when you want the agent to stop for the rest of the month and resume naturally at rollover.
-- **Raise budget & resume** — increase the policy's amount (you enter the new cap in **New budget (USD)**; it must be higher than what's already been spent) and immediately un-pause the scope.
+- **Raise budget & resume** — increase the policy's amount (you enter the new cap in **New budget (USD)**; it must be higher than what's already been spent) and immediately un-pause the scope. Paperclip also retries, once each and on your behalf, the task runs the hard stop cancelled, so that work carries on. It skips runs a person stopped and tasks that have moved on since. See [Cancelled work continues after you resume](../../reference/api/costs.md#cancelled-work-continues-after-you-resume).
 
 Raising the budget won't work while the scope has unpriced usage it's set to block on, or if the new amount isn't above what's already been spent. In that case you'll see *Could not update the budget. Check any pending runs or unpriced usage shown on this page, then try again.* — sort that out first (see [When spend is uncertain](#when-spend-is-uncertain)). Runs that are still awaiting accounting don't stop you raising it, but new work can keep waiting until they settle.
 

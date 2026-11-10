@@ -392,6 +392,8 @@ The request body for both endpoints is the same:
 
 The budget window is calendar-month UTC for company and agent monthly budgets. Sending `0` turns the matching policy off rather than setting a zero-dollar cap.
 
+Both endpoints are board-only, and so is setting a budget anywhere else, such as `budgetMonthlyCents` on an agent update. See [Who can set a budget](agents.md#who-can-set-a-budget). An agent caller gets `403` with code `board_access_required` and a `remediation` that links the matching budget page: the company's budgets page, or that agent's budget tab ([Board-only denials](overview.md#board-only-denials)).
+
 <!-- tabs: cURL, JavaScript, Python -->
 <!-- tab: cURL -->
 ```bash
@@ -490,6 +492,21 @@ If you raise the budget, you must supply a new `amount` that exceeds the current
 
 - finished runs in the scope are still waiting for their cost to be recorded (`Completed runs must finish accounting before resuming`), or
 - the scope has unpriced usage and its policy is set to `block` (`Resolve unpriced usage or explicitly allow it in the budget policy before resuming`).
+
+#### Cancelled work continues after you resume
+
+When you resolve a hard stop with `raise_budget_and_resume`, Paperclip also picks up the task runs that the stop cancelled. Each one gets a single Retry, filed on behalf of the board user who resolved the incident, once its stop has finished. A Retry starts a fresh run through the normal checks.
+
+A run isn't continued in cases like these:
+
+- a person stopped it,
+- it finished before its stop landed, or it was cancelled for another reason,
+- the task has moved on: a newer run started, the task is `done` or `cancelled`, or it's no longer assigned to that run's agent,
+- the Retry itself was refused.
+
+Resolving the same incident again doesn't add a second Retry. `keep_paused` and the monthly reset don't continue cancelled work. If an agent is still paused or waiting for approval, its Retries wait until it can take work.
+
+When there's work to continue, the activity log records `budget.cancelled_work_resume_requested` on the incident, then `budget.cancelled_work_continued` or `budget.cancelled_work_not_continued` (with a `reason`) on each task.
 
 > **Warning:** Hard-stop budget enforcement pauses the affected scope and cancels work for that scope. A budget increase only resumes the scope if the new budget is above current observed spend and the scope's accounting is complete.
 

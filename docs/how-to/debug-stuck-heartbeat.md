@@ -200,6 +200,10 @@ Waits for a busy AI connection or a remote Runner update behave the same way: th
 | *Retry is waiting for the current run to finish. Your message is saved.* | Wait, or stop the current run. |
 | *Retry is waiting for a pending approval or question to be resolved. Your message is saved.* | Answer the approval or question on the task. |
 | *Retry is waiting for the budget to allow new work. Check Costs for unrecorded or unpriced usage.* | See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain). |
+| *Retry is waiting for the tasks this one depends on to finish. Your Retry is saved.* | Wait. It starts when its blockers are done. |
+| *Retry is waiting on a blocked task this one depends on. Retry or unblock it; this task continues when it is done. Your Retry is saved.* | Open the blocked task and click **Retry** there, or unblock it. |
+| *Retry is waiting on a cancelled task this one depends on. Remove or replace that dependency to continue. Your Retry is saved.* | Remove the cancelled task from **Blocked by**, or replace it. |
+| *Retry is waiting for a finished task this one depends on to save its files. Your Retry is saved.* | Wait. |
 | *Paperclip is finishing the saved result before Retry can continue.* | Wait. |
 | *Saving the agent's files failed after automatic retries. Retry to try again; the agent will not repeat its work.* | Click **Retry** to start a new round of attempts. |
 | *Retry is waiting until Paperclip confirms that the previous server stopped saving files. The agent's result and your Retry are saved.* | See [section 17](#17-task-asks-you-to-confirm-the-previous-server-stopped). |
@@ -207,6 +211,8 @@ Waits for a busy AI connection or a remote Runner update behave the same way: th
 | *Retry cannot continue because its saved message changed. Send a new message to continue from saved work.* | Send a new message. **Retry** is hidden. |
 | *Retry cannot continue this attempt. Send a new message after the previous execution has stopped.* | Send a new message. **Retry** is hidden. |
 | *This attempt was stopped. Send a new message to continue from saved work.* | Send a new message. **Retry** is hidden. |
+
+When the Retry is waiting on blockers, the tasks it's waiting on are listed under the message, each linked, with its title and what it needs: **Blocked: open it to Retry**, **Cancelled: remove or replace it**, **Saving its files**, or its status. A task you can't read shows only as a locked chip with its identifier, without a link or title.
 
 Any other wait reads *Retry is waiting for execution checks. Your message is saved.*
 
@@ -234,6 +240,8 @@ Any other wait reads *Retry is waiting for execution checks. Your message is sav
 **Fix.** Make sure the old server process and its file copy really have ended. Then click **Confirm the previous server stopped**, answer *How did you confirm that the previous server and its file copy stopped?* in at least 20 characters, and click **Confirm and resume**. The task shows *Restoring saved work…* and a waiting Retry then carries on by itself, without another agent turn.
 
 A run on a server whose host wasn't recorded asks the same thing in different words. The task says *This run’s previous server was recorded before Paperclip stored which host it ran on, so Paperclip can’t verify that it stopped. The run’s saved state is kept.*, because a process ID saved without its host can't be checked from a different machine. Confirm in the same way, answering *How did you confirm that the previous server stopped?* The task then shows *Resuming the run…*
+
+Other things an earlier run held can wait for the same answer when they were saved before Paperclip recorded which server held them, such as a sandbox lease, a sandbox cleanup, a workspace save, or the run's result handling. The task names what is held, for example *A sandbox lease from this task’s earlier run was recorded before Paperclip stored which server held it, so Paperclip can’t verify that the server stopped. It stays reserved until then.* Confirm in the same way. The task then shows what's being released, such as *Releasing the sandbox lease…* If the held item changed after Paperclip asked, the confirmation is refused with *This record changed since recovery asked. Refresh the task and inspect its run.*, so refresh the task and confirm what it shows now.
 
 Only a company owner or admin, an instance admin, or a board user on a local trusted instance can confirm. Anyone else sees *Paperclip is waiting to confirm that the previous server stopped.*
 
@@ -314,7 +322,7 @@ The rest need a change first, because another try fails the same way:
 
 This covers a paused agent, a paused project, a paused company (including one paused by its own budget hard stop), and a budget pause that isn't a reached hard stop. It doesn't cover an agent or project budget hard stop, an agent awaiting approval, or a [paused task or subtree](../experimental/task-chat.md#stop-pause-and-resume), which has its own resume step. If the task is reassigned first, the message isn't delivered. A cancelled task can still reopen to receive it, unless its latest run is one you stopped. Over the API, a direct `POST /api/agents/{agentId}/wakeup` carrying the comment answers `409` even though the message is saved, while posting the comment itself returns `201`.
 
-Two other cases also protect a person's message. If a server restart loses the wake, Paperclip sends the message itself, as long as it's been 30 seconds, the task is `todo` or `in_progress`, is assigned to an agent, isn't an Agent Chat conversation, has run before, and has no active run. If an agent run that started before your message closes the task as `done` without reading it, the task reopens and the agent gets the message once. A task a person closed stays closed.
+Two other cases also protect a person's message. If a server restart loses the wake, Paperclip sends the message itself, as long as the task is assigned to an agent, isn't an Agent Chat conversation, has run before, and has no active run, and the message wasn't already steered into a run. The task has to be `todo` or `in_progress`, or `done` when it wasn't a person who closed it. A task closed that way reopens to `todo` so the agent gets the message. A message posted before the current server started skips the 30-second wait. A newer one waits 30 seconds first, in case its normal wake still arrives. If an agent run that started before your message closes the task as `done` without reading it, the task reopens and the agent gets the message once. A task a person closed stays closed.
 
 ---
 

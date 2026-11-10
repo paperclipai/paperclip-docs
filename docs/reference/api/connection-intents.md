@@ -77,7 +77,7 @@ POST /runtime-tools/connections/request
 }
 ```
 
-Each method can carry a `purpose` of `tool`, `channel`, or `ai`. Channel and AI methods also carry a company-scoped `setupPath` pointing at their own setup flow, which the agent shares with the user. Tool methods and AgentMail use `connection_request` instead. Chat channel methods appear only when the instance's **Chat connectors** setting is on; AgentMail always appears. A search match is not proof that an account is authorized or that a tool is installed.
+Each method can carry a `purpose` of `tool`, `channel`, or `ai`. Channel and AI methods also carry a company-scoped `setupPath` pointing at their own setup flow, which the agent shares with the user. Tool methods and AgentMail use `connection_request` instead. Chat channel methods appear only when the instance's **Chat connectors** setting is on; AgentMail always appears. While the setting is off, a search that matches a chat service offering nothing else can still list it, with `state: "unavailable"`, empty `methods`, and a `reason` explaining that an instance admin turns on **Chat connectors** in Experimental settings. A search match is not proof that an account is authorized or that a tool is installed.
 
 Each method also carries a `management` block, so the agent can tell whether it may do the setup itself instead of handing it to a person:
 

@@ -51,6 +51,10 @@ Back in Paperclip, the identity card shows **Accessible GitHub repositories**. T
 
 This branch is the only one that produces a durable identity for shell Git and `gh`.
 
+**Creating and forking repositories.** When the connection supplies the run's shell credential, `gh repo create`, `gh repo new`, and `gh repo fork` don't run. Paperclip stops the command and tells the agent to use the connection's `create_repository` or `fork_repository` action instead, so the action settings from step 4 apply. The message then points the agent at the next step: add the new repository as a Git remote and push, or clone the fork or add it as a remote.
+
+On this managed path, those two actions also pick a sensible owner. When the agent leaves out the organization, the repository or fork goes to your personal account, unless the Paperclip GitHub App is installed only on one organization; then Paperclip uses that organization. A fork of a repository that organization already owns keeps the personal-account default. Paperclip decides this from its last read of the installation, and only when that read lists at least one of the organization's repositories and marks it as an organization. If Paperclip doesn't pick the organization when you expect it to, select **Refresh access** so Paperclip re-reads the installation.
+
 ### 3b. Token path — create the token, then paste it
 
 There is no authorization redirect and no GitHub installation screen on this branch. **Repository scope lives on the token**, so you set it while creating the token rather than afterwards in Paperclip.
