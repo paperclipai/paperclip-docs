@@ -115,7 +115,7 @@ Error responses also return JSON and usually look like:
 }
 ```
 
-Some validation and domain errors also include a `details` field with structured context.
+Some validation and domain errors also include a `details` field with structured context. Others carry a top-level `code` and a `remediation` string you can act on, like the [board-only denials](#board-only-denials) below.
 
 ## Error Codes
 
@@ -136,6 +136,22 @@ Two useful distinctions:
 
 - `401` means the server does not accept the caller identity.
 - `403` means the caller is known, but not allowed to do this.
+
+### Board-only denials
+
+Some actions belong to people, not agents: budgets, secrets, members, plugin management, and similar controls. When an agent calls a board-only route, the `403` it gets usually carries a body built to stop it from hunting for a workaround:
+
+```json
+{
+  "error": "Board access required",
+  "code": "board_access_required",
+  "remediation": "This action is board-only by design and this denial is final: no agent credential, tool or other API route can do it, so do not search for one. Stop working on this step and reply now: tell the person that a board user must do it. ..."
+}
+```
+
+The `remediation` goes on to say where a person can do it. When Paperclip knows the board page that holds the control, it includes a Markdown link such as `[Open budgets](/<prefix>/activity/budgets)`, where the agent fills in `<prefix>` from its company's task prefix. Plugin management links only while plugin settings aren't hidden on the instance. These denials don't include a `details` field.
+
+Other callers that aren't board users get just `{ "error": "Board access required" }`.
 
 ## Health Check
 

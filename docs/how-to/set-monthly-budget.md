@@ -139,7 +139,7 @@ Only the scope that hit its limit is affected. An agent budget pauses just that 
 
 Two things to know:
 
-- **No work is lost.** The agent's tasks remain assigned. When you raise the cap or the month resets, the agent picks up where it left off.
+- **No work is lost.** The agent's tasks remain assigned. When you raise the cap or the month resets, the agent picks up where it left off. If you resume with `raise_budget_and_resume`, Paperclip also retries each task run the hard stop cancelled, once, unless a person stopped it or the task has moved on since. See [Cancelled work continues after you resume](../reference/api/costs.md#cancelled-work-continues-after-you-resume).
 - **The audit trail records the pause.** The incident, the trigger, and the eventual resolution are all in the activity log — useful for retros, less useful for debugging in the moment.
 
 To resume:

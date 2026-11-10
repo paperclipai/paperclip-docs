@@ -55,6 +55,8 @@ You can still pick **Plan mode** or **Ask mode** in the composer, just like on a
 
 When a reply is finished, the conversation simply waits for your next message. An idle chat doesn't count as unfinished work.
 
+Sometimes a turn finishes while something else is holding the task: an approval, an execution stage, a blocker, or a card the turn didn't create (one from an earlier turn, or one addressed to someone else). The agent's reply still appears in the conversation, so you can read its answer while the task waits. On a [Paperclip Runner](../reference/adapters/paperclip-runner.md) turn, if Paperclip restarts before the reply is posted, it posts the same reply once it's back up. The exception is a turn that ends by asking you a question or asking you to confirm something: that card is the turn's reply.
+
 ### Who gets the task
 
 A task the agent creates from your chat is assigned to that same agent, unless you say otherwise. The same goes for tasks it suggests. To give the work to another agent or a person, name them in your message. Saying a task is "for me" doesn't assign it to you, and the agent won't hand the work to a different agent just because that agent seems a better fit. If a suggested task arrives with no assignee, Paperclip assigns it to the agent you're chatting with when you accept it.

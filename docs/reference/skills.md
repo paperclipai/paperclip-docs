@@ -168,6 +168,7 @@ Skills are installed at the **company** level. Once installed, any agent in that
 | Read a file from a skill | `GET /api/companies/{companyId}/skills/{skillId}/files?path=SKILL.md` |
 | Update a file (editable skills) | `PATCH /api/companies/{companyId}/skills/{skillId}/files` — see [Safe file updates](#safe-file-updates) |
 | Update status (GitHub-managed) | `GET /api/companies/{companyId}/skills/{skillId}/update-status` |
+| What a pending source update changes | `GET /api/companies/{companyId}/skills/{skillId}/update-diff` — see [`update-diff` response](#update-diff-response) |
 | Pull latest commit | `POST /api/companies/{companyId}/skills/{skillId}/install-update` |
 | Delete | `DELETE /api/companies/{companyId}/skills/{skillId}` |
 | Create empty (Paperclip-managed) | `POST /api/companies/{companyId}/skills` |
@@ -692,6 +693,46 @@ Behaviour depends on the source:
 For non-GitHub sources, `supported: false` is returned with a reason. Calling `install-update` on an unsupported skill rejects with `422 Unprocessable Entity`.
 
 For a skill that belongs to a GitHub skill source, `update-status` returns `supported: false` with the reason *"Source is disconnected. Reconnect it in Skills → Sources."* when the source is disconnected or the skill is no longer selected. `install-update` on such a skill returns `409` if it's no longer selected (*"This skill is no longer selected. Manage its source to resume syncing."*) or if the refresh left it in an error state or removed upstream.
+
+### `update-diff` response
+
+Before you install an update for a skill from a [GitHub skill source](#github-skill-sources), you can see exactly what it changes. `update-diff` compares the installed revision (`currentRef`) with the latest commit on the branch or revision the source follows, its `trackingRef` (`latestRef`) and lists each package file that differs, with a unified line diff. It's read-only: nothing is installed.
+
+```json
+{
+  "supported": true,
+  "reason": null,
+  "currentRef": "9f2a3b1c4d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a",
+  "latestRef": "0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b",
+  "hasUpdate": true,
+  "files": [
+    {
+      "path": "SKILL.md",
+      "change": "modified",
+      "binary": false,
+      "executableChanged": false,
+      "diff": "@@ -1,3 +1,3 @@\n # Code Review\n-Check for typos.\n+Check for typos and broken links.\n Keep comments short.",
+      "diffUnavailable": null
+    }
+  ],
+  "truncated": false
+}
+```
+
+- `hasUpdate` is `false`, and `files` is empty, when the installed revision is already the latest.
+- Each file's `change` is `added`, `removed`, `modified`, or `not_compared`. `not_compared` means the scan left that path out of at least one revision — it was too large, a symlink, or rejected by the safety checks — so Paperclip doesn't guess what changed.
+- In `diff`, lines starting with `-` exist only in the installed revision and lines starting with `+` only in the latest one. It's `""` when only the executable bit changed (`executableChanged: true`).
+- When `diff` is `null`, `diffUnavailable` says why: `binary`, `too_large`, `omitted` (the path is `not_compared`), or `budget`.
+- `truncated` is `true` when the response hit its size or work budget, so some files carry no diff or aren't listed. A response lists at most 1,000 files.
+
+Some skills can't be diffed. You still get `200`, with `supported: false` and a `reason`:
+
+| Situation | `reason` |
+|---|---|
+| The skill isn't from a GitHub skill source | *"Only skills installed from a tracked GitHub source have an update diff."* |
+| The source is disconnected, or the skill is no longer selected | *"Source is disconnected. Reconnect it in Skills → Sources."* |
+| The installed revision isn't recorded as a full commit SHA | *"The installed source revision is unknown."* |
+| A repository package over the package limits | *"The repository is larger than the supported package size, so its revisions cannot be compared file by file."* |
 
 ### Install-update semantics
 

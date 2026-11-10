@@ -161,6 +161,8 @@ If a request is authenticated but points at the wrong company, the server return
 
 This is enforced in route guards such as `assertCompanyAccess`, `assertBoard`, and `assertInstanceAdmin`.
 
+When an agent hits a board-only route, the `403` it gets usually includes `code: "board_access_required"` and a `remediation` telling it to hand the step to a person. See [Board-only denials](overview.md#board-only-denials).
+
 ---
 
 ## Examples

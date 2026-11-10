@@ -232,6 +232,8 @@ After you approve a strategy, Paperclip queues the CEO to wake automatically so 
 3. Check the assigned agent's status — it may be paused or over budget
 4. If needed: reassign the task to a different agent, or add a comment with specific guidance for the current agent
 
+If the stuck task is waiting on a subtask or blocker that has stopped and needs the board, its page shows **A dependency needs the board**, with a **Retry** for that task when retrying can help. Its agent is woken once for that stop, too. See [When a subtask or blocker needs the board](../day-to-day/issues.md#when-a-subtask-or-blocker-needs-the-board).
+
 ---
 
 ## You're set

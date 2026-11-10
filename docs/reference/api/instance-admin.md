@@ -63,11 +63,12 @@ The fields you'll care about most:
 
 - `ready` — `true` only when nothing would be lost by replacing the server right now.
 - `activeRuns`, `recoverableRuns`, `blockingRuns` — how many runs are in progress, how many can carry on through a replacement, and how many can't.
+- `retainedBlockedRuns` — [Paperclip Runner](../adapters/paperclip-runner.md) runs left over from an earlier server that no server owns any more: the run was interrupted before its process started, the old server's hold on it has expired, and there's no saved checkpoint. They're counted here instead of in `activeRuns`, so they don't stop `ready` from being `true`, and they wait for Paperclip's normal recovery. A run this server is still tracking as active stays in `activeRuns`.
 - `pendingWakes` and `draining` — queued wakeups and whether a drain is on.
 - `truncated` — `true` if more than 1,000 running runs were found and the report stopped counting.
 - `observedAt`, `version`, `controllerBootId`, `supportedOutageMs` (five minutes) and `recoveryGraceMs` (seven minutes).
 
-Only [Paperclip Runner](../adapters/paperclip-runner.md) runs on a remote computer, with a saved checkpoint and a live hold from this server, count as recoverable. Everything else counts as blocking. `ready` is `false` whenever any run is blocking, wakeups are pending, a drain is on, or the report was truncated. If it's `false`, drain and let the work finish before you upgrade. The report can go stale as work starts and stops, so read it right before you act.
+Only [Paperclip Runner](../adapters/paperclip-runner.md) runs on a remote computer, with a saved checkpoint and a live hold from this server, count as recoverable. Everything else, apart from the leftover runs in `retainedBlockedRuns`, counts as blocking. `ready` is `false` whenever any run is blocking, wakeups are pending, a drain is on, or the report was truncated. If it's `false`, drain and let the work finish before you upgrade. The report can go stale as work starts and stops, so read it right before you act.
 
 ---
 

@@ -37,13 +37,13 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `adapterType` | Runtime type such as `process`, `http`, `paperclip_runner`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `hermes_local`, `cursor`, or `openclaw_gateway`. External adapters can also be registered. |
 | `adapterConfig` | Adapter-specific config. Secret references are allowed inside `env`. |
 | `runtimeConfig` | Runtime settings. `heartbeat.enabled` defaults to `false` when you create an agent. |
-| `budgetMonthlyCents` | Monthly budget in cents. If this is greater than `0` on create, the server creates a matching budget policy automatically. |
+| `budgetMonthlyCents` | Monthly budget in cents. Budgets are board-only: see [Who can set a budget](#who-can-set-a-budget). When a board user creates an agent with a value above `0`, the server creates a matching budget policy automatically. |
 | `status` | Lifecycle state. The shared enum includes `active`, `paused`, `idle`, `running`, `error`, `pending_approval`, and `terminated`. While setup, pause, or resume is in progress the agent reports `paused`; while termination or cleanup is in progress it reports `terminated`. Read `lifecycleState` for the precise step. |
 | `lifecycleState` | Read-only. Where the agent is in its hire-to-termination lifecycle: `pending_approval`, `preparing`, `verifying`, `ready`, `pausing`, `paused`, `resuming`, `terminating`, `cleaning_up`, `terminated`, or `rejected`. Only `ready` admits work; work assigned earlier stays queued. See [Lifecycle Steps and Retry](#lifecycle-steps-and-retry). |
 | `lifecycleError` | Read-only. A fixed, credential-free message naming the step that failed and what to fix, or `null`. |
 | `lifecycleVersion` | Read-only. A counter that increases with each lifecycle operation. |
 | `createdByUserId` | Read-only. The human user who created the agent, or `null` when an agent or the system created it. The server sets this from the authenticated user; a value in the request body is ignored. |
-| `permissions` | Agent-level permissions: `canCreateAgents` and `canCreateSkills` (defaults to `true`). |
+| `permissions` | Agent-level permissions: `canCreateAgents` and `canCreateSkills` (defaults to `true`). On a CEO agent whose hiring was turned off, it also carries `ceoHiringDeniedBy`: `{ "actorType": "user" \| "agent", "actorId", "at" }`. See [CEO hiring](#ceo-hiring). |
 
 ---
 
@@ -410,7 +410,8 @@ Important behavior:
 - Duplicate names are deduplicated on create. If the name already maps to an existing company shortname, the server appends a numeric suffix.
 - `runtimeConfig.heartbeat.enabled` defaults to `false` if you omit it.
 - `adapterConfig.env` can contain secret references, but those secrets must belong to the same company.
-- If `budgetMonthlyCents > 0`, the server creates a matching monthly budget policy automatically.
+- Sending `budgetMonthlyCents` above `0` is board-only. An agent caller gets `403` with `Board access required`. When a board user sends it, the server creates a matching monthly budget policy, except for a `setupId` draft.
+- An agent denied hiring because it lacks the grant gets `403`. The message adds that no other route overrides the denial, and that a board user can hire the agent directly or turn on hiring for this agent on its permissions page.
 - If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
 - For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds a short default `AGENTS.md`: a one-line role description for `role: "ceo"`, or a one-line generic placeholder for every other role. Keep it short — Paperclip's runtime and installed skills already supply the operating procedures. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
 - Certain adapters apply defaults on create. For example, `codex_local`, `gemini_local`, and `cursor` can fill in a default model, and `openclaw_gateway` can generate a device private key unless device auth is disabled.
@@ -553,9 +554,24 @@ Important behavior:
 - You can include `sourceIssueId` or `sourceIssueIds` to link the hire back to one or more issues.
 - An agent on the `paperclip_runner` adapter can send `"inheritRuntimeFrom": "caller"` to give the new hire the calling agent's runner settings and default environment. The new agent must also use `adapterType: "paperclip_runner"`, and you can't combine this with `adapterConfig`, `runtimeConfig`, or `defaultEnvironmentId` — the server copies the adapter config and default environment from the calling agent. Board users can't use this option; it's rejected with `403 Forbidden`.
 - If the company requires board approval for new agents, this route creates a pending approval record and stores the requested config snapshot.
+- An agent can propose a `budgetMonthlyCents` above `0` only when the company requires board approval for new agents. The budget then takes effect when a board user approves the hire. Without that setting, an agent that sends a budget gets `403` with `Board access required`. A board user's hire that goes live straight away creates the matching monthly budget policy.
+- An agent denied hiring because it lacks the grant gets the same `403` message as on the create route.
 - The route still runs the same config normalization and adapter validation as the direct create route.
 - When obsolete Claude options were ignored, the returned `agent` object carries a `configurationWarnings` array, just like the create route. See [Configuration warnings](#configuration-warnings).
 - To finish an agent saved with `setupId` on the create route, send its ID as `setupAgentId`. The hire completes that same agent instead of creating a new one, and any board-approval requirement applies here. Repeating the call for an agent whose setup is already finished returns the agent and its approval with `idempotent: true`. An unknown ID returns `404` with `Agent setup not found`.
+
+### Who can set a budget
+
+Agent budgets are a board decision. These routes accept a budget only from a board user:
+
+- [Create Agent](#create-agent) with `budgetMonthlyCents` above `0`
+- [Hire Agent](#hire-agent) with `budgetMonthlyCents` above `0`, unless the company requires board approval for new agents (the board approves the proposed budget along with the hire)
+- [Update Agent](#update-agent) when `budgetMonthlyCents` differs from the current value
+- [Configuration rollback](#configuration) to a revision whose `budgetMonthlyCents` differs from the current value
+- [Built-in agent provisioning](built-in-agents.md#provision) with any `budgetMonthlyCents`
+- [Set agent budget](costs.md#set-agent-budget) and the other budget routes
+
+An agent caller gets `403` with `Board access required`. The response also carries `code: "board_access_required"` and a `remediation` telling the agent to hand the step to a person, with a link to the budget page to use. See [Board-only denials](overview.md#board-only-denials).
 
 ---
 
@@ -578,6 +594,8 @@ Important behavior:
 - Renaming an agent can fail with `409 Conflict` if the new shortname would collide with another non-terminated agent in the company.
 - Terminated agents cannot be resumed through a status patch.
 - Sending `status: "terminated"` is board-only, the same as [`POST /api/agents/{agentId}/terminate`](#pause-resume-terminate-delete). Any other caller gets `403`.
+- Sending `status: "paused"` is board-only, the same as `POST /api/agents/{agentId}/pause`. Sending `status: "idle"` gets the same check as `POST /api/agents/{agentId}/resume`: an agent caller needs a grant to change the target agent's configuration (`agents:configure`). If the agent's reporting chain is invalid, `status: "idle"` returns `409` until the chain is repaired, as resume does.
+- Changing `budgetMonthlyCents` is board-only. An agent caller gets `403` with `Board access required`, and the `remediation` links the agent's budget page. Use [Set agent budget](costs.md#set-agent-budget) for budget changes.
 - Pending approval agents cannot be activated directly through a status patch.
 - Saving a Claude agent on Paperclip Runner with obsolete options drops them and returns a `configurationWarnings` array. See [Configuration warnings](#configuration-warnings).
 - The response includes the agent's configuration fields and a fresh `configurationRevision`, so you can chain another guarded update without re-reading. See [Guard against stale writes](#guard-against-stale-writes-expectedconfigurationrevision).
@@ -732,6 +750,19 @@ Current permission fields:
 
 Board sessions can call this route. Agent sessions can only call it when the caller is the company CEO agent.
 
+Setting `canCreateAgents: false` on any agent also removes an explicit `agents:create` grant the agent holds, so the switch really turns hiring off.
+
+### CEO hiring
+
+A CEO agent can hire by default. You can still turn that off: save `canCreateAgents: false` on the CEO through this route, and Paperclip records who did it and when in `permissions.ceoHiringDeniedBy`. From then on, the CEO role alone no longer lets it hire. Save `canCreateAgents: true` here to turn hiring back on, which also clears the record.
+
+A few details:
+
+- Only this route, or importing a package that carries a recorded denial, records one. A `false` saved by other writes, such as an import whose manifest leaves the field out, doesn't restrict a CEO. A CEO with no recorded denial reads as `canCreateAgents: true`, unless it's low-trust.
+- When a CEO agent calls this route and changes any agent's `canCreateAgents` from its saved value, the CEO must itself be allowed to hire. A CEO whose hiring is off can't turn it back on for itself or hand it to another agent.
+- Exporting a company keeps a CEO's recorded denial. Importing that package brings the denial along, and any `agents:create` grant the package lists for that CEO is skipped.
+- An agent importing a package that would create new agents needs permission to hire. A CEO's role doesn't override a denial there either; the message says a board user can import them instead.
+
 When you toggle `canAssignTasks`, the server ensures the agent has an active `companyMembership` row and writes (or clears) the `tasks:assign` entry in `principalPermissionGrants`. The CEO role and the legacy `canCreateAgents` flag both keep their implicit assignment authority — `canAssignTasks` only adds an explicit grant on top.
 
 ## Allowed Projects (Project Access)
@@ -849,7 +880,7 @@ The `permissionKey` field on a grant is one of:
 | `users:manage_permissions` | Edit roles and grants for other members. |
 | `joins:approve` | Approve pending join requests. |
 
-A new standard agent gets `canCreateAgents: true` and `canCreateSkills: true` when it is created; low-trust agents get `canCreateAgents: false`. Stored agents without an explicit `canCreateAgents` value are treated as `false`. An agent with the `ceo` role can always create agents, whatever its flag says. New standard agents also receive fifteen direct grants when they are created or their hire is approved: `agents:read`, `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`, `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `audit:view_agent_actions`, `tools:use`, `tools:manage_runtime`, `inbox:manage` (scoped `{ "responsibleUserOnly": true }`), `tasks:assign`, `tasks:assign_scope` (scoped `{ "subtreeRootAgentId": "<the new agent's id>" }`), and `tasks:manage_active_checkouts`. Low-trust agents and managed built-in agents don't receive them. Existing agents aren't backfilled, with one exception: a one-time migration adds only `agents:read` to eligible existing standard agents. See [Reading agent configuration](../../administration/roles-and-permissions.md#reading-agent-configuration) for who it skips. A company's single root CEO agent and the Reflection Coach have separate default grants, which Paperclip keeps in place.
+A new standard agent gets `canCreateAgents: true` and `canCreateSkills: true` when it is created; low-trust agents get `canCreateAgents: false`. Stored agents without an explicit `canCreateAgents` value are treated as `false`, except CEO agents, which are treated as `true` unless they're low-trust. A CEO keeps its hiring authority unless it was turned off through the permissions route, or a package import brought that restriction along; see [CEO hiring](#ceo-hiring). New standard agents also receive fifteen direct grants when they are created or their hire is approved: `agents:read`, `agents:configure`, `agents:suggest-changes`, `skills:create`, `skills:suggest-changes`, `tools:manage_connections`, `tools:manage_profiles`, `tools:view_audit`, `audit:view_agent_actions`, `tools:use`, `tools:manage_runtime`, `inbox:manage` (scoped `{ "responsibleUserOnly": true }`), `tasks:assign`, `tasks:assign_scope` (scoped `{ "subtreeRootAgentId": "<the new agent's id>" }`), and `tasks:manage_active_checkouts`. Low-trust agents and managed built-in agents don't receive them. Existing agents aren't backfilled, with one exception: a one-time migration adds only `agents:read` to eligible existing standard agents. See [Reading agent configuration](../../administration/roles-and-permissions.md#reading-agent-configuration) for who it skips. A company's single root CEO agent and the Reflection Coach have separate default grants, which Paperclip keeps in place.
 
 Role-default human grants are applied automatically when a user joins. `owner` and `admin` receive the agent, skill, environment, invite, task-assignment, join-approval, and four tool keys (`owner` adds `users:manage_permissions`). `operator` receives company editing, invite, tool, and audit keys, but not `joins:approve` or `users:manage_permissions`. All four roles, `viewer` included, receive `commentary:view`, and it's added to accepted invites whose saved grant list leaves it out. The exact lists are in [Roles & Permissions](../../administration/roles-and-permissions.md#the-four-company-roles).
 

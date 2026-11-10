@@ -508,6 +508,9 @@ This is a hard delete at the API layer:
 - the secret row is removed
 - the version rows cascade away with it
 - future runtime resolution will fail for any configs still pointing at that secret
+- any `binding` proposals that point at the secret through `secretId` are removed with it
+
+Before those proposals go, Paperclip rejects the ones still `pending`, with the reason *"The referenced secret was deleted."* The proposing agent hears back the same way it does for any rejection — see [When a proposal resolves](#when-a-proposal-resolves). Once the delete has started, a new binding proposal for that secret is refused with `404` `Secret not found`.
 
 Delete only when you are sure nothing should resolve that secret anymore.
 
