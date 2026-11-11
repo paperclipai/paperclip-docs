@@ -872,6 +872,13 @@ function cloudflarePathForRoute(basePath, routePath, { trailingSlash = false } =
 }
 
 function cloudflareRedirectLine(basePath, sourceRoute, destinationRoute) {
+  // A trailing `/*` is a Cloudflare splat: one line catches every old URL under
+  // that prefix. Cloudflare applies the first match, so specific entries for the
+  // same prefix must come earlier in redirects.json.
+  if (normalizeRouteKey(sourceRoute).endsWith("/*")) {
+    const destinationPath = cloudflarePathForRoute(basePath, destinationRoute, { trailingSlash: true });
+    return [`${cloudflarePathForRoute(basePath, sourceRoute)} ${destinationPath} 301`];
+  }
   const sourcePath = cloudflarePathForRoute(basePath, sourceRoute);
   const sourceSlashPath = cloudflarePathForRoute(basePath, sourceRoute, { trailingSlash: true });
   const destinationPath = cloudflarePathForRoute(basePath, destinationRoute, { trailingSlash: true });
