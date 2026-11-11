@@ -183,7 +183,7 @@ Paperclip keeps Codex's conversation across heartbeats so the agent can continue
 
 - **Reset everything for the agent.** In the agent header, open **More actions (⋯)** and choose **Reset Sessions**.
 - **Reset for specific tasks.** On a run's page, use the **clear session for these tasks** link.
-- **Check whether a session rotated.** A run's detail view shows **session ID before** and **session ID after**. Different values mean the session rotated during that run; equal values mean Codex continued the same conversation.
+- **Check whether a session rotated.** A run's detail view shows a single session ID when the session didn't change, and **Before** and **After** IDs when it did.
 
 Sessions also start fresh on their own in these cases:
 
@@ -199,7 +199,7 @@ Codex preserves the `previous_response_id` chain so heartbeats can continue the 
 
 On native Codex (Paperclip Runner, `provider: "codex"`), a few behaviors differ:
 
-- **A turn cut off by a restart resumes once.** If a server restart kills a native Codex turn mid-flight, Paperclip makes sure the old process is gone, then resumes the request once in the same conversation and workspace and asks the agent to check unfinished commands or outside actions before carrying on. It doesn't resend the task. The run log records the interrupted turn with `provider_turn_lost_on_restore`. Anything that can't be reconciled stops for a person.
+- **A turn cut off by a restart can resume once.** If a server restart kills a native Codex turn mid-flight, Paperclip makes sure the old process is gone, then resumes the request once in the same conversation and workspace and asks the agent to check unfinished commands or outside actions before carrying on. It doesn't resend the task. The run log records the interrupted turn with `provider_turn_lost_on_restore`. Anything that can't be reconciled stops for a person.
 - **Codex keeps its own base prompt.** Paperclip sends task context as additive `developerInstructions`, so Codex's stock base instructions stay in place. Conversations created before this change keep their saved prompt when resumed. Reset those sessions if you want the stock base instructions back.
 - **A model your ChatGPT account can't use says so.** The task shows **Model unavailable.** Paperclip doesn't retry that request automatically. Choose a supported model or clear the task's model override, then retry.
 - **A busy model retries on its own.** When the selected model is at capacity, Paperclip shows **Model at capacity** and retries after one minute, then after two.
