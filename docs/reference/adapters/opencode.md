@@ -6,9 +6,9 @@ seo_description: Run OpenCode on the Paperclip host when you want provider and m
 
 # OpenCode
 
-Configure OpenCode by answering the exact setting you searched for, then give the agent its first ticket. `opencode_local` runs OpenCode on the same machine as Paperclip with a required `provider/model`.
+Configure OpenCode by answering the exact setting you searched for, then give the agent its first ticket. `opencode_local` runs OpenCode on the same machine as Paperclip with a model in `provider/model` form.
 
-> **Heads-up:** New OpenCode agents run on [Paperclip Runner](/reference/adapters/paperclip-runner/#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64 with GNU libc `2.39` or newer. Linux ARM64 stays on the Legacy runner. Those agents are saved as `paperclip_runner` with `provider: "opencode"` and don't need the experimental Runner setting. The Runner itself is documented as experimental. A custom `command`, `extraArgs`, a `variant` or `dangerouslySkipPermissions: false` only works on the classic adapter described on this page. To keep it, create or hire the agent with `runner: "legacy"` through the API, or `--runner legacy` in the CLI. The agent form no longer has a **Runner** setting. Existing agents keep the runner they already have.
+> **Heads-up:** New OpenCode agents run on [Paperclip Runner](/reference/adapters/paperclip-runner/#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64 with GNU libc `2.39` or newer. Linux ARM64 stays on the Legacy runner. Those agents are saved as `paperclip_runner` with `provider: "opencode"` and don't need the experimental Runner setting. The Runner itself is documented as experimental. A custom `command`, `extraArgs`, a `variant` or `dangerouslySkipPermissions: false` only works on the classic adapter described on this page. To keep it, create or hire the agent with `runner: "legacy"` through the API, or `--runner legacy` in the CLI. The agent form no longer has a **Runner** setting. The classic adapter runs on local, SSH and sandbox environments only, so on a plugin environment the agent uses Paperclip Runner. Existing agents keep the runner they already have.
 
 ---
 
@@ -19,7 +19,7 @@ Set a `model` in `provider/model` form and a working directory. Everything else 
 | Field | Required | Notes |
 | --- | --- | --- |
 | `cwd` | no | Absolute working directory. Recommended. Created when permissions allow. Otherwise falls back to the process working directory. |
-| `model` | **yes** | OpenCode model id in `provider/model` format, for example `openai/gpt-5.2-codex` or `anthropic/claude-sonnet-4-5`. |
+| `model` | no | OpenCode model id in `provider/model` format, for example `openai/gpt-5.2-codex` or `anthropic/claude-sonnet-4-5`. Defaults to `openai/gpt-5.2-codex` when you create the agent without one. |
 | `variant` | no | Provider-specific reasoning or profile variant passed as `--variant`. Accepts `minimal`, `low`, `medium`, `high`, `xhigh` and `max`. |
 | `dangerouslySkipPermissions` | no | Injects a temporary runtime config with `permission=allow`, so every tool and connection runs without approval prompts. Defaults to `true` for unattended Paperclip runs. |
 | `promptTemplate` | no | Run prompt template. |
@@ -30,7 +30,7 @@ Set a `model` in `provider/model` form and a working directory. Everything else 
 | `timeoutSec` | no | Run timeout in seconds. `0` means no timeout. |
 | `graceSec` | no | SIGTERM grace period before a forced stop. |
 
-Paperclip requires an explicit `model` for `opencode_local` agents. Run `opencode models` to list valid options in `provider/model` format.
+If you create an `opencode_local` agent without a `model`, Paperclip saves it with `openai/gpt-5.2-codex`. A run with no model set fails, so keep one saved. Run `opencode models` to list valid options in `provider/model` format.
 
 How the adapter runs OpenCode:
 
