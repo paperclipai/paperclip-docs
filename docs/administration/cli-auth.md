@@ -72,7 +72,7 @@ The CLI:
 
 1. POSTs to `/api/cli-auth/challenges` with a description of itself (`command`, `clientName`, `requestedAccess`, and an optional `requestedCompanyId`).
 2. Gets back a challenge containing `token`, `boardApiToken`, `approvalUrl`, `pollPath`, `expiresAt`, and a polling interval.
-3. Prints the approval URL to your terminal and tries to open it in your default browser.
+3. Prints the approval URL to your terminal and tries to open it in your default browser. When the instance has a public URL configured (for example `PAPERCLIP_AUTH_PUBLIC_BASE_URL`), the link uses it, so a server behind a reverse proxy doesn't send your browser to an internal hostname.
 4. Starts polling the server at `pollPath` until the challenge is approved, cancelled, or expires.
 
 Common flags:

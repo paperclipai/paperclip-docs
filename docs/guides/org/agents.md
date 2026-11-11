@@ -24,7 +24,14 @@ The agent list is the front door. Open **Agents** in the sidebar and you land on
 
 A toolbar at the top of the page holds a **Search agents…** box, the view toggle, and the **New Agent** button. Type in the search box to narrow the list by name, role, or title — it works in both the list and the org chart.
 
-In the list view, a filter button sits above the roster. Click it to open **Filters** and pick a **Harness** — for example only your Codex agents — or **All harnesses** to see everyone again. A small count shows how many agents match. If nothing matches, you'll see *"No agents match these filters."*
+A filter button sits just below the toolbar. Click it to open **Filters**, where you can narrow the roster by four things at once:
+
+- **Model**: the agent's default model, or **Harness default** for agents that use their harness's own choice.
+- **Status**: for example only paused agents.
+- **Harness**: for example only your Codex agents.
+- **Connection**: which AI connection the agent uses, such as a named connection or pool, **Local credentials**, **Responsible user's default**, or **Managed externally**.
+
+Each menu starts with an **All** option (**All models**, **All statuses**, and so on). Filters combine with each other and with your search, and the button shows a small badge with how many are active. Click **Clear filters** to reset them without losing your search. Your filters stay in place when you switch between the list and the org chart; in the org chart, the managers above a matching agent stay visible so the tree still makes sense. A small count at the other end of the filter row shows how many agents match. If nothing matches, the list shows *"No agents match these filters."* and the org chart shows *"No agents match your search and filters."*
 
 There are no status tabs any more. Paused agents stay in the full roster and carry a `paused` status badge, so you can spot them without switching views. Old bookmarks such as `/agents/active` or `/agents/paused` simply open the full roster at `/agents/all`.
 
@@ -120,6 +127,8 @@ After the dialog, you land on a setup page with your agent's character and name 
 **Environments that give each agent its own computer.** Some environments come from a [plugin](../../administration/plugins.md) that creates a separate computer for every agent. When you pick one, Paperclip saves your choice straight away and starts preparing that agent's computer in the background. You'll see **Preparing your agent computer…** while it works, and the test waits until it's done, because it runs on that computer. If preparation fails, the error appears with a **Retry preparation** button. Switching to a different environment keeps the account you already connected but clears the previous test result, so run the test again. If the switch can't be saved, click **Retry saving environment**. The agent still won't take ordinary work until you finish setup.
 
 If your company requires approval for new agents, the computer isn't created until the hire is approved. The test tells you *"The selected account will be verified on the agent computer after hire approval."* and you can finish setup without it.
+
+**Signing in to Claude or Codex on an agent computer.** If the environment's plugin supports it, you can sign in with your Claude or ChatGPT subscription right on an agent's computer instead of in a temporary sandbox. When you sign in from a saved agent's settings, Paperclip uses that agent's computer. Otherwise a **Choose a sign-in computer** menu appears: choose any Paperclip Runner agent on that environment whose computer is ready or still being verified. If none has, you'll see *"An agent computer must finish setup before you can sign in."* The computer you pick only hosts the sign-in. It doesn't change who owns the account or which agents may use it.
 
 **Coming back to an unfinished agent.** If you close setup part-way, the agent stays paused in your list. Its page header shows **Finish setup** as the main button, where **New task** would normally be. Click it to return to setup with your saved choices. An unfinished agent can't be resumed, and API keys can't be created for it, until setup is done.
 
@@ -230,7 +239,7 @@ The main button is usually **New task**, which opens the new-task dialog with th
 The actions menu holds everything else:
 
 - **Run now** — wakes the agent for a heartbeat right away and takes you to the new run. Handy for testing an instruction change. While setup is unfinished, **New task** takes this spot.
-- **Pause** / **Resume** — switches the agent between `paused` and `active`. When the agent is in `error`, you see **Clear error** here instead, which returns it to idle. None of these show while setup is unfinished.
+- **Pause** / **Resume** — switches the agent between `paused` and `active`. A new `todo` task you assign to an agent you've paused stays in `todo` and starts once you resume the agent, instead of being moved to `blocked`. When the agent is in `error`, you see **Clear error** here instead, which returns it to idle. None of these show while setup is unfinished.
 - **Agent history** — every saved change to the agent, with a way to restore an earlier version. See [Agent history](#agent-history).
 - **Duplicate agent** — makes a copy of the agent, including its instruction files, after you confirm.
 - **Copy agent ID** — copies the agent's ID to your clipboard.

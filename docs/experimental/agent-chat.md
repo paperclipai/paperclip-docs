@@ -47,6 +47,8 @@ You can open **Artifacts** or **Properties** from the panel's **+** menu. The co
 
 Conversations follow your company's normal task visibility. Teammates can read your conversation with an agent, but only you can send messages in it. Each person has their own conversation with each agent.
 
+If the agent has already used up its daily run limit or daily cost limit, your message isn't dropped. It waits above the composer with the reason, for example *Ada reached its daily run limit. Your message is saved and sends automatically when the limit resets at 00:00 UTC.*, and goes to the agent by itself once the limit resets. The limit still applies, so the message doesn't start a run early. While it waits, you can't edit or discard it from the queue.
+
 ## Talking it through, then handing off
 
 In a chat, the agent's job is to understand what you want — not to quietly start building. It asks about anything important that's missing, can research and draft a plan with you, and then, when there's substantial work to do, creates ordinary tasks for it, in a suitable project, with the context, any plan you agreed, and what "done" looks like. The conversation itself never turns into the work.

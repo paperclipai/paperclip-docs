@@ -262,7 +262,7 @@ The call body takes:
 |---|---|---|
 | `tool` | yes | The tool name. A missing or non-string value returns `400` with `"tool" is required and must be a string`. |
 | `parameters` | no | The tool's arguments. Defaults to `{}`. |
-| `timeoutMs` | no | How long to wait on the upstream tool, capped at 60 seconds. Without it, most tools get 10 seconds; GitHub review bot tools get the full 60, so a slow review publication can finish and return its receipt. |
+| `timeoutMs` | no | How long to wait on the upstream tool, capped at 60 seconds. Without it, most tools get 10 seconds; tools on a connected remote server, such as a remote MCP server, get 30 seconds (Railway's `run-command` tool has its own budget); REST and native-provider connectors are capped at 30 seconds whatever `timeoutMs` says; GitHub review bot tools get the full 60, so a slow review publication can finish and return its receipt. A remote MCP call that runs out of time fails with `504` and `tool_timeout`, and the next call starts a fresh MCP session. |
 | `approvedActionRequestId` | no | The approval you are cashing in, when a previous attempt returned `require_approval`. |
 | `idempotencyKey` | no | Makes a retry safe — the same key won't run the tool twice. |
 

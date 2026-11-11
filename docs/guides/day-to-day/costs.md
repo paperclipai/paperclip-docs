@@ -413,7 +413,7 @@ How unfinished runs affect other work:
 - Work that's already underway keeps going. A recovering run reuses its original reservation, so other runs' reservations can't refuse it, and the same goes for a running run's own task updates. Both stop only for a hard stop or a pause.
 - A task's earlier run that still owns its workspace or a lease can hold that task's next run. That's cleanup, not a budget check. It usually stays on that task, but a run that was the writer of a remote workspace also holds up another task using that workspace until its save and sandbox release settle.
 
-**How long a run's accounting stays open.** Most runs settle within moments, and until then their estimate keeps counting. If a Paperclip Runner run lost its final cost report, accounting closes as soon as Paperclip can prove the run is over: a failed run's local process is verified stopped, or every sandbox it used is confirmed stopped or destroyed. A run whose provider never started settles at once, with no charge. If that proof never arrives, the run settles anyway once its recovery has finished and 10 minutes have passed since it ended, and the activity log records `cost.accounting_closure_timed_out` naming the run. Its cost may be higher than what was recorded. A run whose usage capture failed settles at the same limit on any adapter: known cost, or tokens that can be priced, is recorded as a lower-bound **Estimated** figure, and otherwise the charge is **Unpriced**. A run on another adapter with an incomplete report stays open until its report is resolved.
+**How long a run's accounting stays open.** Most runs settle within moments, and until then their estimate keeps counting. If a Paperclip Runner run lost its final cost report, accounting closes as soon as Paperclip can prove the run is over: the local process of a failed, cancelled, timed-out, or interrupted run is verified stopped, or every sandbox it used is confirmed stopped or destroyed. A run whose provider never started settles at once, with no charge. If that proof never arrives, the run settles anyway once its recovery has finished and 10 minutes have passed since it ended, and the activity log records `cost.accounting_closure_timed_out` naming the run. Its cost may be higher than what was recorded. A run whose usage capture failed settles at the same limit on any adapter: known cost, or tokens that can be priced, is recorded as a lower-bound **Estimated** figure, and otherwise the charge is **Unpriced**. A run on another adapter with an incomplete report stays open until its report is resolved.
 
 **What a lost cost report turns into.** Paperclip records what it knows and never shows the unknown part as `$0`:
 
@@ -423,7 +423,7 @@ How unfinished runs affect other work:
 
 **Which unpriced usage blocks work.** With the default setting, these no longer block or cause a hard stop, though they stay visible in Costs:
 
-- The final charge of a run whose cost report was lost.
+- The final charge Paperclip had to settle without a complete cost report: the report was lost, it never arrived before the 10-minute limit, or capturing the usage failed. That final charge stays exempt even if a later report adds usage, but the added usage counts normally.
 - A charge that has a known partial cost.
 - API or subscription billing with no observed tokens.
 
@@ -431,9 +431,10 @@ These still count:
 
 - Usage from a complete report that has no price.
 - Unknown billing with no tokens, for example Cursor Cloud.
-- A run that settled at the 10-minute limit with no sign of a server restart, because its provider may have kept running, and a run whose usage capture failed. Those raise the normal reason, *Company cannot start work because recorded usage has no reliable price.*
 
-**What you see on tasks.** A `todo` task that has never started reads *Waiting for the budget to allow new work. The task starts automatically when it does.* when the budget refused its agent's wake and no pause or approval explains why. There's no **Retry** to press. A Retry the budget refused reads *Retry is waiting for the budget to allow new work. Check Costs for unrecorded or unpriced usage.* A real hard stop is different: tasks wait for a board decision, and the inbox row reads **Budget limit reached**.
+Those raise the normal reason, *Company cannot start work because recorded usage has no reliable price.*
+
+**What you see on tasks.** A `todo` task that has never started reads *Waiting for the budget to allow new work. The task starts automatically when it does.* when the budget refused its agent's wake and no pause or approval explains why. There's no **Retry** to press. A Retry the budget refused reads *Retry is waiting for the budget to allow new work. Check Costs for unrecorded or unpriced usage.* When the refusal comes from unpriced usage, the task says so instead: *Waiting because recorded usage has no price. Check Costs, or allow unpriced usage in the budget policy.* for a task that hasn't started, and *Retry is waiting because recorded usage has no price. Check Costs, or allow unpriced usage in the budget policy. Your message is saved.* for a Retry. A real hard stop is different: tasks wait for a board decision, and the inbox row reads **Budget limit reached**.
 
 The policy card explains what it found, for example *"2 completed runs await accounting."* or *"3 usage events are unpriced. Known spend excludes their unknown cost."* The count of completed runs includes every run whose cost isn't final. It's there for information and never holds work.
 

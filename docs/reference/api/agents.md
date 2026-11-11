@@ -765,6 +765,55 @@ A few details:
 
 When you toggle `canAssignTasks`, the server ensures the agent has an active `companyMembership` row and writes (or clears) the `tasks:assign` entry in `principalPermissionGrants`. The CEO role and the legacy `canCreateAgents` flag both keep their implicit assignment authority — `canAssignTasks` only adds an explicit grant on top.
 
+## Grant or Revoke One Permission
+
+`PATCH /api/agents/{agentId}/permission-grants`
+
+Adds or removes a single [permission key](#permission-keys) on an agent and leaves its other grants alone. The CLI wraps it as `agent permission:grant` and `agent permission:revoke`.
+
+```json
+{ "permissionKey": "commentary:view", "enabled": true }
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `permissionKey` | string | One of the permission keys. Unknown keys are rejected. |
+| `enabled` | boolean | `true` writes an unscoped, company-wide grant (replacing any existing scope for that key). `false` deletes the key. |
+
+This is a board route: the caller needs `users:manage_permissions` in the agent's company. The response is `{ agentId, companyId, permissionKey, enabled }`, and the change is logged as `agent.permission_grant_updated`.
+
+| Status | When |
+|---|---|
+| `403` | `Missing permission: users:manage_permissions`. |
+| `409` | Granting to an agent that's pending approval or terminated (`Cannot grant permissions to an unapproved or terminated agent`), or whose membership isn't active (`Agent company membership is not active`). |
+
+## Interaction Permissions
+
+`GET /api/agents/{agentId}/interaction-permissions`
+`PATCH /api/agents/{agentId}/interaction-permissions`
+
+Reads or changes an agent's [interaction permissions](../../administration/roles-and-permissions.md#limiting-how-one-agent-works-with-other-agents): optional switches that stop specific agent-to-agent actions. The eleven keys are `canAssignTasksToAgents`, `canReceiveAssignmentsFromAgents`, `canAssignTasksToHumans`, `canMentionAgents`, `canReceiveMentionsFromAgents`, `canCommentOnOtherTasks`, `canReceiveCommentsFromAgents`, `canEditOtherTasks`, `canReceiveTaskEditsFromAgents`, `canConfigureOtherAgents`, and `canReceiveConfigurationChangesFromAgents`. A missing key means allowed.
+
+Both routes return:
+
+| Field | Meaning |
+|---|---|
+| `agentId`, `companyId` | The agent. |
+| `overrides` | Only the keys someone has set explicitly. |
+| `effective` | All eleven keys resolved to `true` or `false`. This describes this restriction layer only, not the result of every other permission check. |
+
+**Reading** follows the same rule as reading the agent's configuration.
+
+**Changing** takes a non-empty partial map of keys to `true`, `false`, or `null`. `null` removes the override; keys you leave out are kept. Unknown keys and non-boolean values are rejected. Only a board user with `users:manage_permissions` can change these, never an agent: an agent gets the board-access `403`, and a plugin call made on an agent's behalf gets `Only human permission managers can change interaction permissions`, even when it carries board authority. An agent that's still pending approval returns `409`. Each change is logged as `agent.interaction_permissions_updated` with the before and after values.
+
+```json
+{ "canReceiveCommentsFromAgents": false, "canMentionAgents": null }
+```
+
+This route is the only way to change them. Including `interactions` in `PATCH /api/agents/{agentId}/permissions` returns a `400` validation error. Including `permissions.interactions` in `PATCH /api/agents/{agentId}` returns `422` (`Use /api/agents/:id/interaction-permissions to change interaction permissions`). Including it when you create or hire an agent, or sending a different value through another configuration save, returns `403` with code `agent_interaction_permissions_separate_endpoint`. Saves that leave `interactions` out keep the stored settings.
+
+When an agent's action is blocked, it gets a `403` with code `agent_interaction_denied`, a message such as `Agent interaction is disabled by canReceiveCommentsFromAgents. A human permission manager can change this setting.`, and details naming the `operation`, `permission`, `direction` (`incoming` or `outgoing`), `policyAgentId`, `actorAgentId`, `targetAgentId`, and `issueId`.
+
 ## Allowed Projects (Project Access)
 
 Lets an operator see and extend the projects a low-trust agent may work in.
@@ -1588,13 +1637,13 @@ This is board-only and only works for `claude_local` agents.
 
 ## Claude subscription login (setup-token)
 
-Instead of pasting an `ANTHROPIC_API_KEY`, a company owner can log Claude in with a Claude subscription using a **setup-token** flow. The flow is company-and-environment scoped (it carries no agent id, so you can run it during a hire before any agent exists), and the server derives the owner from the authenticated actor.
+Instead of pasting an `ANTHROPIC_API_KEY`, a company owner can log Claude in with a Claude subscription using a **setup-token** flow. The flow is company-and-environment scoped (you don't need an agent, so you can run it during a hire before any agent exists), and the server derives the owner from the authenticated actor. When the environment is a plugin environment that hosts sign-in on an existing agent computer, also send `agentId` to choose that computer; the rules and errors match [adapter device login](./adapters.md#adapter-device-login). The chosen agent doesn't become the token's owner.
 
 | Route | Purpose |
 |---|---|
 | `GET /api/companies/{companyId}/claude-oauth-token-status` | Read whether a stored Claude OAuth token exists for the authenticated owner. Returns only the secret id and latest version — never a token. A missing or foreign value returns the same fixed `404`. |
-| `POST /api/companies/{companyId}/setup-token-login-sessions` | Start a login session. Body: `{ "environmentId": "<uuid>", "adapterType": "claude_local", "overwrite"?: { … } }`. Returns `201`. |
-| `GET /api/companies/{companyId}/setup-token-login-sessions/active` | Rediscover the caller's own active session without a session id — handy after a browser reload with no local state. Returns the panel mode and the one-time prompt, sent with `Cache-Control: no-store, private`. A non-owner, a foreign company, or no active session all return the same fixed `404`. |
+| `POST /api/companies/{companyId}/setup-token-login-sessions` | Start a login session. Body: `{ "environmentId": "<uuid>", "adapterType": "claude_local", "agentId"?: "<uuid>", "overwrite"?: { … } }`. Returns `201`. |
+| `GET /api/companies/{companyId}/setup-token-login-sessions/active` | Rediscover the caller's own active session without a session id — handy after a browser reload with no local state. Returns the panel mode and the one-time prompt (plus `agentId` when the session targets an agent computer), sent with `Cache-Control: no-store, private`. A non-owner, a foreign company, or no active session all return the same fixed `404`. |
 | `GET /api/companies/{companyId}/setup-token-login-sessions/{sessionId}` | Read the session status. |
 | `GET /api/companies/{companyId}/setup-token-login-sessions/{sessionId}/prompt` | Read the one-time login prompt (the authorization URL to open in a browser). |
 | `POST /api/companies/{companyId}/setup-token-login-sessions/{sessionId}/code` | Submit the code the browser hands back. Body: `{ "browserCode": "…" }`. |

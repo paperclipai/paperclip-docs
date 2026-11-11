@@ -156,7 +156,7 @@ The line you'll see depends on the shape of the block:
 
 If the chain is healthy and something in it is actually running, the notice turns blue and reads **Waiting on live work**: *"Queued behind 3 tasks being worked in order. This task resumes automatically when the chain is done. Comments still notify the assignee."* It draws the queue as a progress bar with an *"N of M done"* count, and the last step in the list is your task, labelled *"This task — resumes automatically when the chain is done"*. Nothing needs doing here — this is the reassuring variant.
 
-The recurring promise across all of these is worth internalising: **comments still notify the assignee**. A blocked task isn't a dead task. You can ask a question on it at any time and the assignee hears you, even when your message won't move the status by itself.
+The recurring promise across all of these is worth internalising: **comments still notify the assignee**. A blocked task isn't a dead task. You can ask a question on it at any time and the assignee hears you, even when your message won't move the status by itself. The same goes for your answer to a question or confirmation the assignee asked you on that task: it reaches the agent even while the dependencies are unfinished. The agent gets a short turn to read and act on your answer, but the task stays blocked, keeps its dependencies, and isn't started early.
 
 A task sitting in backlog with an assignee gets its own version of the same courtesy: *"Parked — [assignee] will not be asked to work on this until status changes to To do or In progress."*
 

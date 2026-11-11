@@ -55,6 +55,8 @@ pnpm paperclipai configure --section storage
 
 Use this when the instance may run on more than one machine or when local disk would not be durable enough.
 
+**Storage outages and rotating keys make work wait instead of failing.** If the store has a short blip, Paperclip resends small uploads and resumes a download that broke partway. A longer outage, or the store rejecting credentials that expired or were rotated, ends that attempt, but the task waits instead of failing: Paperclip retries the task about once a minute, up to 10 times, and after a rejection it fetches fresh credentials from its credential source, so keys from a credentials file or an instance role can be rotated without restarting the server. Keys set as environment variables still need a restart. A plain access-denied error isn't retried, so check the bucket permissions if you see one. For what the task shows while it waits, see [Run stops because file storage was unavailable](../../how-to/debug-stuck-heartbeat.md#23-run-stops-because-file-storage-was-unavailable).
+
 ---
 
 ## What Gets Stored
