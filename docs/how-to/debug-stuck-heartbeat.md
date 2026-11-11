@@ -196,21 +196,26 @@ Waits for a busy AI connection or a remote Runner update behave the same way: th
 | *Retry is waiting for the previous execution to finish cleanup. Your message is saved.* | Wait. It starts when the cleanup finishes. |
 | *Retry is waiting for the previous execution to stop. Your message is saved.* | Wait. |
 | *Retry is waiting for the previous execution to finish recovery. Your message is saved.* | Wait. |
-| *Retry is waiting for Paperclip to verify that the previous execution stopped. Your message is saved.* | Wait. |
+| *Retry is waiting for Paperclip to verify that the previous execution stopped. Your message is saved.* | Wait. If Paperclip can't verify it by itself, the task asks a board operator to confirm instead. See [section 17](#17-task-asks-you-to-confirm-the-previous-server-stopped). |
 | *Retry is waiting for the current run to finish. Your message is saved.* | Wait, or stop the current run. |
 | *Retry is waiting for a pending approval or question to be resolved. Your message is saved.* | Answer the approval or question on the task. |
 | *Retry is waiting for the budget to allow new work. Check Costs for unrecorded or unpriced usage.* | See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain). |
+| *Retry is waiting because recorded usage has no price. Check Costs, or allow unpriced usage in the budget policy. Your message is saved.* | Check **Costs**, or clear **Block new work when usage has no reliable price** under **Advanced settings** on the policy card. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain). |
 | *Retry is waiting for the tasks this one depends on to finish. Your Retry is saved.* | Wait. It starts when its blockers are done. |
 | *Retry is waiting on a blocked task this one depends on. Retry or unblock it; this task continues when it is done. Your Retry is saved.* | Open the blocked task and click **Retry** there, or unblock it. |
 | *Retry is waiting on a cancelled task this one depends on. Remove or replace that dependency to continue. Your Retry is saved.* | Remove the cancelled task from **Blocked by**, or replace it. |
 | *Retry is waiting for a finished task this one depends on to save its files. Your Retry is saved.* | Wait. |
 | *Paperclip is finishing the saved result before Retry can continue.* | Wait. |
-| *Saving the agent's files failed after automatic retries. Retry to try again; the agent will not repeat its work.* | Click **Retry** to start a new round of attempts. |
+| *Saving the agent's files failed. Retry to try again; the agent will not repeat its work.* | Click **Retry** to start a new round of attempts. |
 | *Retry is waiting until Paperclip confirms that the previous server stopped saving files. The agent's result and your Retry are saved.* | See [section 17](#17-task-asks-you-to-confirm-the-previous-server-stopped). |
 | *Retry could not start with the requesting user's access. Press Retry to start it with yours.* | Click **Retry**. Your click replaces the old request. |
 | *Retry cannot continue because its saved message changed. Send a new message to continue from saved work.* | Send a new message. **Retry** is hidden. |
 | *Retry cannot continue this attempt. Send a new message after the previous execution has stopped.* | Send a new message. **Retry** is hidden. |
 | *This attempt was stopped. Send a new message to continue from saved work.* | Send a new message. **Retry** is hidden. |
+
+When the agent, its project, or the company is paused by a budget hard stop, the task keeps the failure in view and names the wait instead: *Couldn’t finish this attempt. Your message is saved. It is waiting for the budget to allow new work. Raise the budget in Costs.* A task that never started reads *This task has not started. It is waiting for the budget to allow new work. Raise the budget in Costs.* An open task page updates as soon as Paperclip records why your Retry is waiting, so you don't need to reload. Once the budget allows new work, the saved Retry starts once by itself.
+
+Sometimes a Retry has nothing to start, because a newer attempt already replaced the one you were looking at. The task then says *This attempt was already replaced, so Retry did not start new work. The task now shows its current state.*, and a Retry from the Inbox shows the same reason instead of opening the task.
 
 When the Retry is waiting on blockers, the tasks it's waiting on are listed under the message, each linked, with its title and what it needs: **Blocked: open it to Retry**, **Cancelled: remove or replace it**, **Saving its files**, or its status. A task you can't read shows only as a locked chip with its identifier, without a link or title.
 
@@ -227,7 +232,7 @@ Any other wait reads *Retry is waiting for execution checks. Your message is sav
 - **The same run is resuming by itself.** After a server restart, a Paperclip Runner run that couldn't rejoin its provider resumes automatically. The countdown shows when. Once that time arrives, the task shows as working for up to two minutes while the resume starts.
 - **Saved work is being recovered.** Before the task continues, Paperclip shows the step it's on: *Checking that the previous attempt stopped*, *Saving files from the previous attempt*, or *Finishing recovery of saved work*.
 
-**Fix.** Usually, wait. While a saved-work step is only counting down to its next attempt, **Retry** is still there if you want it sooner. **Retry** stays hidden during an automatic resume, because a manual one would compete with it, while a recovery step is running, and while a Retry is already being prepared. If an automatic resume ends or never starts, you get one working **Retry** back. When saved-work recovery runs out of attempts, the handoff to the board names the last cause it recorded, such as `sandbox_not_running` or `transport_timeout`.
+**Fix.** Usually, wait. If you'd rather not and **Retry** is offered during the countdown, click it: it starts the scheduled attempt right away instead of adding another one. If it can't start yet, the task says why, for example *The retry remains scheduled. Paperclip will check again at the scheduled time.* While a saved-work step is only counting down to its next attempt, **Retry** is still there if you want it sooner. **Retry** stays hidden during an automatic resume, because a manual one would compete with it, while a recovery step is running, and while a Retry is already being prepared. If an automatic resume ends or never starts, you get one working **Retry** back. When saved-work recovery runs out of attempts, the handoff to the board names the last cause it recorded, such as `sandbox_not_running` or `transport_timeout`.
 
 ---
 
@@ -242,6 +247,8 @@ Any other wait reads *Retry is waiting for execution checks. Your message is sav
 A run on a server whose host wasn't recorded asks the same thing in different words. The task says *This run’s previous server was recorded before Paperclip stored which host it ran on, so Paperclip can’t verify that it stopped. The run’s saved state is kept.*, because a process ID saved without its host can't be checked from a different machine. Confirm in the same way, answering *How did you confirm that the previous server stopped?* The task then shows *Resuming the run…*
 
 Other things an earlier run held can wait for the same answer when they were saved before Paperclip recorded which server held them, such as a sandbox lease, a sandbox cleanup, a workspace save, or the run's result handling. The task names what is held, for example *A sandbox lease from this task’s earlier run was recorded before Paperclip stored which server held it, so Paperclip can’t verify that the server stopped. It stays reserved until then.* Confirm in the same way. The task then shows what's being released, such as *Releasing the sandbox lease…* If the held item changed after Paperclip asked, the confirmation is refused with *This record changed since recovery asked. Refresh the task and inspect its run.*, so refresh the task and confirm what it shows now.
+
+A local run can ask a similar question about the agent itself. If the server restarted after it started the agent but before it recorded the agent's process, the task says *Paperclip can't confirm that the previous run stopped. The server restarted after it started the agent but before it recorded the agent's process. If no agent is still working on this task, a board operator can confirm that it stopped, and your Retry starts right away. Your message is saved.* Check the server host for an agent process still working on the task, such as a `codex` or `claude` process. Then click **Confirm it stopped**, answer *How did you confirm that no agent is still working on this task?*, and click **Confirm and resume**. The task shows *Starting your Retry…* If Paperclip still finds a runner for that run on the host, it refuses with *A runner for this run is still running on this host. Stop it first.*
 
 Only a company owner or admin, an instance admin, or a board user on a local trusted instance can confirm. Anyone else sees *Paperclip is waiting to confirm that the previous server stopped.*
 
@@ -323,6 +330,21 @@ The rest need a change first, because another try fails the same way:
 This covers a paused agent, a paused project, a paused company (including one paused by its own budget hard stop), and a budget pause that isn't a reached hard stop. It doesn't cover an agent or project budget hard stop, an agent awaiting approval, or a [paused task or subtree](../experimental/task-chat.md#stop-pause-and-resume), which has its own resume step. If the task is reassigned first, the message isn't delivered. A cancelled task can still reopen to receive it, unless its latest run is one you stopped. Over the API, a direct `POST /api/agents/{agentId}/wakeup` carrying the comment answers `409` even though the message is saved, while posting the comment itself returns `201`.
 
 Two other cases also protect a person's message. If a server restart loses the wake, Paperclip sends the message itself, as long as the task is assigned to an agent, isn't an Agent Chat conversation, has run before, and has no active run, and the message wasn't already steered into a run. The task has to be `todo` or `in_progress`, or `done` when it wasn't a person who closed it. A task closed that way reopens to `todo` so the agent gets the message. A message posted before the current server started skips the 30-second wait. A newer one waits 30 seconds first, in case its normal wake still arrives. If an agent run that started before your message closes the task as `done` without reading it, the task reopens and the agent gets the message once. A task a person closed stays closed.
+
+---
+
+## 23. Run stops because file storage was unavailable
+
+**Symptom.** On an instance that uses [S3 storage](../reference/deploy/storage.md#s3-compatible-storage), a run ends with the code `storage_unavailable` and one of these messages:
+
+- *File storage was unavailable, so this attempt stopped before it could save its work. Paperclip will retry automatically when storage is back.*
+- *File storage rejected Paperclip's storage credentials (they may have expired or been rotated), so this attempt stopped before it could save its work. Paperclip will retry automatically when valid credentials are available.*
+
+**Cause.** The storage service was down, overloaded, timing out, or dropping connections, or it turned down the server's credentials because they had expired or been rotated. Paperclip already rides out short outages on its own: storage calls that a run can't do without keep trying for up to five minutes, small uploads are resent, and a download that breaks partway picks up where it stopped. Only an outage that outlasts that ends the attempt.
+
+**Fix.** Usually nothing. The task shows as working, without a **Retry** button, and Paperclip tries again about once a minute, up to 10 times. After a credential rejection, the server fetches fresh credentials from its usual credential source before the next try, so a rotated key is picked up without a restart. A plain *access denied*, or a server that can't load any credentials at all, isn't treated as a temporary outage and fails the run.
+
+If storage still isn't back after every automatic try, the run's message changes to *File storage stayed unavailable or kept rejecting Paperclip's storage credentials through every automatic retry, so Paperclip stopped retrying this task. Check the storage service and its credentials, then Retry.* Fix the storage service or the credentials, then click **Retry**.
 
 ---
 

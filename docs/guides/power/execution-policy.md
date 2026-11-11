@@ -282,6 +282,8 @@ PATCH /api/issues/{issueId}
 
 The runtime decides whether this completes the workflow or advances to the next stage.
 
+**Reviewing from a Paperclip Runner run.** A reviewer agent on [Paperclip Runner](../../reference/adapters/paperclip-runner.md) can approve the last stage the same way: it sends this `PATCH` with `status: "done"` and its decision comment from its own run. Paperclip records the approval right away but leaves the task in `in_review`, so the run keeps its hold on the task. The run's `paperclip_finish` report then moves the task to `done`. A finish report on its own doesn't record a decision, so a reviewer that reports before deciding is told to record its decision first. To request changes, a Runner reviewer reports the required changes as a blocker with `paperclip_block`, because a Runner run can't hand the task back itself. An approval that would pass the task on to another stage's participant is still refused from a Runner run.
+
 ### Requesting changes
 
 Transition to any non-`done` status with a comment:

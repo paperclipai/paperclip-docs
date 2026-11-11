@@ -60,7 +60,11 @@ A declined request means the action did not happen. The agent is expected to cha
 
 Changed your mind after declining? Post a new comment on the task asking for the action again. When that comment wakes the agent on a new run, the same call can open a new **Ask first** review. Your earlier decline doesn't approve anything, so the call goes through your current action settings like any other. This only works for the person who declined: a later comment from someone else leaves the decline in place.
 
-Pending requests expire. After expiry the item reads **Expired — send it again**, and the agent has to make a fresh call to open a new request.
+An ordinary request has no built-in time limit, so you can approve it later, even after the agent's run ended or the server restarted. It expires only if the action was given its own deadline or the task closes. After expiry the task card reads **Expired**, and the agent has to make a fresh call to open a new request. In task chat, the card shows an **Expires** time only when the request has a deadline.
+
+Routine sign-in upkeep doesn't spoil a request. When an OAuth app refreshes its tokens while a request waits, the request still matches what you reviewed, and approving it runs that exact call once. A real change does need a new review: different consent, permissions, credentials, or a changed action. Approving a request after one of those changes is refused with a message that names what changed, such as *The connected account, credentials, or permissions changed. A new review is required.* or *The tool definition changed. A new review is required.*, and the card doesn't offer to try again.
+
+If the app needs you to sign in again after you approve, your approval is kept. The card reads **Approved · Sign-in needed** and *Your approval is saved. Reconnect the app to continue. Paperclip will check the account and action again before it runs.*, with a **Reconnect *app name*** button, such as **Reconnect GitHub**. Once you reconnect with the same authorization, the action continues by itself.
 
 ## If a request seems stuck
 

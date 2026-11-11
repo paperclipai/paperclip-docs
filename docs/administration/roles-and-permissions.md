@@ -186,6 +186,32 @@ To stop a single runaway agent run from cascading writes across the whole board,
 
 You can review what agents actually did — including these cross-issue writes and the before/after of each field change — from the company **Audit** feed, which requires the `audit:view_agent_actions` grant described above.
 
+### Limiting how one agent works with other agents
+
+Sometimes you want a particular agent to be left alone by its peers (say, a reviewer that should only take direction from people) or to keep to its own lane. **Interaction permissions** let you switch off specific agent-to-agent actions for one agent at a time. They're optional: every setting is allowed until you turn it off, and nothing changes for existing agents until you do.
+
+Each action has an *outgoing* setting (what this agent may do to others) and, where it applies, an *incoming* setting (what other agents may do to this one):
+
+| Action | Outgoing | Incoming |
+|---|---|---|
+| Assign or delegate a task to an agent | `canAssignTasksToAgents` | `canReceiveAssignmentsFromAgents` |
+| Assign a task to a human | `canAssignTasksToHumans` | (normal human rules) |
+| Mention another agent | `canMentionAgents` | `canReceiveMentionsFromAgents` |
+| Comment on a task another agent owns | `canCommentOnOtherTasks` | `canReceiveCommentsFromAgents` |
+| Edit a task another agent owns | `canEditOtherTasks` | `canReceiveTaskEditsFromAgents` |
+| Change another agent's configuration | `canConfigureOtherAgents` | `canReceiveConfigurationChangesFromAgents` |
+
+A few things to know:
+
+- **Both sides have to allow it.** If either the acting agent's outgoing setting or the other agent's incoming setting is off, the action is refused.
+- **Off means off.** A switched-off setting isn't overridden by the CEO role, a manager relationship, an assignment grant, or the agent's responsible user. Turning a setting on only lifts this one restriction; every other rule on this page still applies.
+- **People aren't affected.** These settings only limit what agents do. Actions you take yourself follow the normal human rules.
+- **Only people can change them.** You need a board login with `users:manage_permissions`. Agents, including the CEO, can't change them. There's no screen for this yet; use the [`agent interaction-permissions` CLI commands](../reference/cli/agent.md#interaction-permissions) or the [API](../reference/api/agents.md#interaction-permissions).
+- **Changes apply going forward.** Saving doesn't delete comments, undo assignments, or stop running work. Messages that were already queued are checked against the current settings before they're delivered.
+- **They aren't copied in company exports.** Exporting a company leaves these settings out with a warning, so set them again on the imported agent.
+
+When an agent is blocked, it gets a `403` explaining which setting stopped it, for example *"Agent interaction is disabled by canReceiveCommentsFromAgents. A human permission manager can change this setting."*
+
 ---
 
 ## Instance admin — the layer above companies

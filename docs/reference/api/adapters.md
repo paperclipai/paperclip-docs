@@ -96,8 +96,18 @@ Some adapters authenticate with a **device login** — the kind where the tool p
 
 | Route | Purpose |
 |---|---|
-| `POST /api/companies/{companyId}/adapters/{type}/login-sessions` | Start a device-login session. Body: `{ "environmentId": "<id>", "ttlSeconds"?: <number> }`. Returns `201`; a `409` means a session is already in flight. |
+| `POST /api/companies/{companyId}/adapters/{type}/login-sessions` | Start a device-login session. Body: `{ "environmentId": "<id>", "agentId"?: "<id>", "ttlSeconds"?: <number> }`. Returns `201`; a `409` means a session is already in flight. |
 | `GET /api/companies/{companyId}/adapters/{type}/login-sessions/{sessionId}` | Read the session — its state and the code/URL to complete the login in a browser. |
 | `POST /api/companies/{companyId}/adapters/{type}/login-sessions/{sessionId}/cancel` | Cancel the session. |
 
 These are board routes: the caller must be on the board, have access to the company, and be allowed to manage the company's adapters. `type` must be an adapter that supports device login (Codex today); other types are rejected.
+
+The environment can be a sandbox or a plugin environment that hosts sign-in on an existing agent computer. For a plugin environment, send `agentId` to pick the computer: a `paperclip_runner` agent in the same company whose environment (its own or the instance default) is that environment, and whose computer is `ready` or `verifying`. The agent only hosts the sign-in; it doesn't change who owns the stored credential. Typical rejections:
+
+| Code | Message |
+|---|---|
+| `login_agent_required` | `Select an agent computer for sign-in.` |
+| `login_agent_unavailable` | `The selected agent computer is not available for sign-in.` |
+| `login_adapter_unsupported` | `This provider login is not supported on agent computers.` |
+
+Sending `agentId` for a sandbox environment returns `400` with `A temporary sandbox login does not take an agent computer target.`

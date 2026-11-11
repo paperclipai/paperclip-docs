@@ -8,7 +8,7 @@ seo_description: Exact Paperclip adapter and task messages, the stage each one c
 
 Match the exact error message to its adapter and failure stage, then check the documented cause before retrying. A failed environment test, a run that hit its time limit and a task another agent already holds all look like "the agent didn't work", but each one needs a different check.
 
-This page covers messages from the classic Codex adapter (`codex_local`), run time limits shared by the local adapters, and the task-level notices Paperclip posts when a run ends badly. New Codex agents run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default on supported machines, and Runner agents can report different wording. If your message isn't listed, see [When your message isn't here](#when-your-message-isnt-here).
+This page covers messages from the classic Codex adapter (`codex_local`), run time limits shared by the local adapters, generic run failures that carry a named cause, and the task-level notices Paperclip posts when a run ends badly. New Codex agents run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default on supported machines, and Runner agents can report different wording. If your message isn't listed, see [When your message isn't here](#when-your-message-isnt-here).
 
 ## Find your message
 
@@ -23,6 +23,9 @@ This page covers messages from the classic Codex adapter (`codex_local`), run ti
 | `Timed out after 300s` (your number) | Failed run | The agent's `timeoutSec` |
 | `monitor: no codex activity (output or process) for 30m 0s` | Failed run | Was the run quiet or stuck? |
 | `exited with code 143` | Failed run | Timeout or out of memory |
+| `adapter failed (40001)` (your code) | Run ledger on the task | What the code names |
+| `Database query failed (40001)` | Failed run, Inbox | Retry, then check the server log |
+| `Couldn’t set up the task workspace.` | Task page | The project's workspace setup command |
 | `409 Conflict` on checkout | Run aborts | Another agent holds the task |
 | `Paperclip needs a disposition before this issue can continue.` | Task thread | The run ended without setting a status |
 | `issue_rewake_throttled` | Run history | Repeated runs made no progress |
@@ -100,6 +103,40 @@ A busy build that keeps writing output resets the timer. If the task really does
 ### exited with code 143
 
 The run failed with `exited with code 143`, which is SIGTERM. The [stuck-heartbeat guide](../../how-to/debug-stuck-heartbeat.md) lists a timeout or running out of memory as the usual cause. Break the work into smaller child tasks and give the agent less context per run.
+
+## Failures with a named cause
+
+Some runs fail with a generic code, `adapter_failed` or `setup_failed`, because nothing more specific applies. Paperclip still records a short cause for them, so you can tell one failure from another without opening the run log.
+
+### adapter failed with a code
+
+The **Run ledger** on the task shows the stop reason as `adapter failed`, followed by a code in brackets, for example `adapter failed (40001)`. The code comes from the failure itself, never from its message text:
+
+- `provider_http_429` and similar: the model provider answered with that HTTP status. A `provider_` code without a number names the kind of provider failure instead, such as `provider_authentication`.
+- A database or network code, such as `40001` or `ECONNRESET`: the error, or one of the errors it wrapped, carried that code.
+- `signal_SIGKILL`, `exit_code_2`, and similar: the agent's process was killed by that signal or exited with that code.
+- An error class name, such as `TypeError`.
+- `adapter_reported_error` when the adapter reported an error with no exit code or signal, or `unknown_error` when nothing more specific was available.
+
+Runs from before your Paperclip version recorded a cause still read just `adapter failed`. The same code is on the run as `failureCause` (see [Runs for an issue](../api/activity.md#runs-for-an-issue)) and in the server's failure log line, so you can search for it there.
+
+### Database query failed
+
+```text
+Database query failed (40001)
+```
+
+A database query failed while Paperclip was handling the run. Paperclip replaces the SQL statement and its parameters with this text before the error reaches the board, so query text and the values in it stay off the task, the run, and the Inbox. Anything the error said before the statement stays, so the code may appear after a short prefix written by the step that failed. The code in brackets, when there is one, is the database's own error code. `40001`, for example, is PostgreSQL's serialization failure: the transaction was rolled back because it conflicted with a concurrent one, and is normally safe to retry. If the same code keeps coming back, find it in the server log.
+
+### Couldn’t set up the task workspace
+
+```text
+Couldn’t set up the task workspace. The project's workspace provision command "bash ./scripts/provision-worktree.sh" failed with exit code 127: bash: ./scripts/provision-worktree.sh: No such file or directory. Fix the command in the project’s workspace settings, then retry.
+```
+
+Before the agent starts, Paperclip runs the setup commands configured for the task's workspace. One of them exited with an error, so the run failed with `setup_failed`. The notice names which command it was (the project's workspace provision command, the workspace seed command, or the runtime provision command), the command as configured, its exit code, and the end of its output. While an automatic retry is lined up, the same message appears before the *Trying again in …* countdown.
+
+Fix the command where the notice says, then click **Retry**. Exit code `127` usually means the script or program doesn't exist at that path.
 
 ## Task-level messages
 

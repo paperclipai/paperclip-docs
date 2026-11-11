@@ -45,6 +45,8 @@ Use the **Copy link** button next to the URL if you need to copy it again. The l
 
 Send the URL however you normally share a secret — a DM, your password manager, a private channel. Whoever accepts an active link joins your company with the role it carries, so treat it like a short-lived password and don't post it anywhere public. Changed your mind about one that's still outstanding? Hit **Revoke** on its row in the **Invite history** table.
 
+Paperclip keeps the secret part of the link out of its own logs. The server's HTTP request log keeps the invite route, method, and status but drops the token, and an agent's run log does the same when an agent creates an invite and shares the link in chat. The person the agent is talking to still gets the full, working link in the reply.
+
 ---
 
 ## 4. Your teammate opens the link and joins

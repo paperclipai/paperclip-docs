@@ -71,7 +71,7 @@ Field meanings:
 | `details.whoCanAct` | Who is able to perform this write instead. |
 | `details.sanctionedPath` | The supported way to get the work moving. |
 
-Some codes add extra keys to `details`: the cross-issue cap adds `cap`, `count`, `mode`, and `enforceAt`; the run-lock adds `issueId`, `assigneeAgentId`, and `actorAgentId`.
+Some codes add extra keys to `details`: the cross-issue cap adds `cap`, `count`, `mode`, and `enforceAt`; the run-lock adds `issueId`, `assigneeAgentId`, and `actorAgentId`; the live-run status refusal adds `issueId`, `runId`, `requestedStatus`, and `issuePath`.
 
 Each code carries a **tone** (`boundary`, `lock`, `cap`, or `attribution`) that drives the UI icon and colour, and a fixed HTTP status:
 
@@ -82,6 +82,7 @@ Each code carries a **tone** (`boundary`, `lock`, `cap`, or `attribution`) that 
 | `issue_write_responsible_user_ceiling` | `403` | `boundary` | The responsible ("on behalf of") user is not authorized for the action. A run can never exceed the permissions of the user it acts for. |
 | `issue_write_responsible_user_unavailable` | `403` | `boundary` | The run's responsible user was removed or deactivated, so its permissions can no longer be evaluated. |
 | `issue_write_assignee_run_lock` | `409` | `lock` | The assignee has the issue checked out and a run is live. Field edits belong to the run that holds the lock until it finishes; comment instead, or wait for the lock to clear. |
+| `issue_status_change_live_run` | `409` | `boundary` | An agent asked to change the status of a task whose lock is held by a different queued or running run. A status change would release that lock without stopping the run, leaving it running with no task bound to it, so the request is refused before anything changes. The refusal is final. It links the task and names the person's controls there: the run's **Stop** or **Interrupt**, or the task's actions menu (⋯) → **Pause subtree** on the parent task. The lock-holding run, board users, moving the task to `in_progress` or `cancelled`, and reassigning it aren't affected. If a run takes the lock between the check and the write, the change fails with `409` and code `issue_execution_lock_changed` (*"The task's execution changed while this status change was checked. Read the task again and retry."*). |
 | `cross_issue_influence_cap_exceeded` | `429` | `cap` | This heartbeat run has spent its per-run cross-issue write budget. A rate backstop, not a permission decision. |
 | `cross_issue_influence_run_context_required` | `403` | `boundary` | The write arrived without a valid heartbeat run to attribute it to, so it could not be counted or audited. |
 | `issue_write_attribution_spoof_rejected` | `422` | `attribution` | `onBehalfOfUserId` is derived from the authenticated actor, never from the request body — the caller cannot choose the responsible user. |
@@ -422,6 +423,8 @@ If you update `blockedByIssueIds`, the server replaces the existing `blocks` rel
 - all referenced issues belong to the same company,
 - the issue does not block itself, and
 - the resulting graph does not contain cycles.
+
+A dependency that would close a cycle is refused with `422` and code `blocking_cycle`, and nothing changes. The message names the order that already exists, so you can see which way the tasks already wait, for example *"Blocking relations cannot contain cycles: TASK-2 waits for TASK-1, so TASK-1 cannot also wait for TASK-2. No dependencies were changed and the existing ones are kept. …"* It names tasks by identifier only, never by title. `details` adds `issueId`, `requestedBlockerIssueId`, and `existingChain`, a list of `{ id, identifier }` from the task you're updating to the blocker you asked for. The full message also tells agents not to remove or reverse an existing dependency to make the new one fit, but to ask whoever requested the change which order they want, and to change dependencies only after they choose.
 
 ### Example
 
@@ -1559,7 +1562,7 @@ For plan-approval flows, the recommended sequence is: update the `plan` document
 
 `POST /api/issues/{issueId}/scheduled-retry/retry-now`
 
-Use this when an issue has a live scheduled retry pending and you want the server to fire it immediately instead of waiting for the schedule. The route is board-only and company-scoped to the issue.
+Use this when an issue has a live scheduled retry pending and you want the server to fire it immediately instead of waiting for the schedule. The route is board-only and checks the same read and change access as [Retry a Task](#retry-a-task): you must be able to read the task and change it. A private task you can't read answers `404`.
 
 The request body is empty. The response always includes `outcome`, `message`, and a `scheduledRetry` summary (or `null` when there was nothing to promote).
 
@@ -1567,8 +1570,11 @@ The request body is empty. The response always includes `outcome`, `message`, an
 |---|---|
 | `promoted` | The scheduled retry was moved into the queued run pool and will pick up on the next heartbeat. |
 | `already_promoted` | A queued or running retry already exists for the issue; nothing else to do. |
+| `waiting` | The run is still scheduled. `message` says why, for example *"Waiting for execution cleanup. Paperclip will retry automatically once cleanup finishes."* |
 | `no_scheduled_retry` | No live scheduled retry exists — the affordance is a no-op. |
 | `gate_suppressed` | The promotion was blocked by a heartbeat gate (e.g. concurrency or budget); the run stays scheduled. |
+
+In the UI, every outcome now shows a toast with its headline and `message`: **Retry promoted**, **Retry already running**, **Retry waiting**, **No scheduled retry**, or **Couldn't retry now**.
 
 Activity is logged as `issue.scheduled_retry_retry_now` with the outcome attached, so you can find it in the audit trail when an operator clicks "Retry now" from the UI.
 
@@ -1600,6 +1606,11 @@ The response is `202 Accepted` when the retry is recorded and `200 OK` when it i
 | `requestId` | The retry request, or `null` when `stale`. |
 | `observedRunId` | The task's latest run as the server sees it. |
 | `presentation` | The task's refreshed `interruption` (see below). |
+| `scheduledRetry` | Present only when the task was counting down to a scheduled retry. Holds the `outcome` and `message` from [Retry a Scheduled Retry Now](#retry-a-scheduled-retry-now). |
+
+Clicking **Retry** while a scheduled retry counts down starts that retry right away instead of waiting for the countdown. Paperclip promotes the same scheduled run, so no second run is created, and logs `issue.scheduled_retry_retry_now` with `source: "task_retry"`. If the promotion doesn't start work (`waiting`, `gate_suppressed`, or `no_scheduled_retry`), the task page and the Inbox show its `message` as the reason. A `stale` response shows *This attempt was already replaced, so Retry did not start new work. The task now shows its current state.* and the Inbox stays where it is instead of opening the task.
+
+Each time the reason a saved retry waits changes, the task gets an `issue.execution_waiting` activity entry from the system, with the `requestId` and `reason` in its details. Its live event refreshes an open task page, so the wait shows up without a reload.
 
 A retry is a new, durable request. If automatic repair had used up its attempts, a retry gives it a fresh set. A request that's waiting on shared work, such as cleanup or a running turn, absorbs later clicks. A request that was declined for its requester's access (`retry_authority_denied`) is replaced by the next click with a new key, so that retry runs with the new requester's access. On a task bound to an [Agent Chat conversation](#agent-chat-conversations), only the conversation owner can retry (`403`, *"Only the conversation owner can retry a chat run"*). Reusing an `idempotencyKey` for a different task or user returns `409` with *"This retry request belongs to a different task or user."*
 
@@ -1611,17 +1622,19 @@ A retry is a new, durable request. If automatic repair had used up its attempts,
 |---|---|
 | `state` | `working`, `retry_scheduled`, `failed`, `waiting_for_user`, or `resolved` |
 | `responsibility` | `system` when Paperclip owns the repair, `user` when a person needs to act |
-| `userAction` | For `waiting_for_user`: `approval`, `reconnect`, `assign_agent`, `choose_model`, `resume`, `budget`, `project_access`, or `confirm_owner_stop`. Otherwise `null`. |
+| `userAction` | For `waiting_for_user`: `approval`, `reconnect`, `assign_agent`, `choose_model`, `resume`, `budget`, `project_access`, `confirm_owner_stop`, or `confirm_run_stopped` (see [Confirm a run stopped](#confirm-a-run-stopped)). Otherwise `null`. |
+| `rejectedModel` | With `userAction: "choose_model"`, the configured model ID the provider rejected. Left out for every other stop. |
 | `nextRetryAt` | When the next automatic attempt is due, for `retry_scheduled`. This includes a Paperclip Runner run that's resuming by itself after a restart. |
 | `canRetry` | Whether a retry can help right now. `false` while an automatic resume is pending, while a retry is already being prepared, and during waits for a shared resource (those report `working`). |
-| `retryWait` | Present as `{ "reason": "...", "message": "..." }` when a saved retry or a task that hasn't started is waiting. `message` is safe to show as is. A retry that can't start with its requester's access has the reason `retry_authority_denied`; a task waiting on a budget hold reports `state: "working"` with the reason `budget.blocked`. A saved retry waiting on unfinished blockers reports `state: "working"` with the reason `dependency_blocked`. |
+| `retryWait` | Present as `{ "reason": "...", "message": "..." }` when a saved retry or a task that hasn't started is waiting. `message` is safe to show as is. A retry that can't start with its requester's access has the reason `retry_authority_denied`; a task waiting on a budget hold reports `state: "working"` with the reason `budget.blocked`, or `accounting.unpriced_usage` when the budget refused it because recorded usage has no reliable price. A saved retry waiting on unfinished blockers reports `state: "working"` with the reason `dependency_blocked`. A retry waiting on a run whose process was never recorded reports `state: "waiting_for_user"`, `userAction: "confirm_run_stopped"`, and the reason `process_identity_missing` when a board operator can confirm the stop. |
 | `recoveryStep` | The saved-work recovery step in progress: `checking_previous_run`, `saving_previous_files`, or `finishing_recovery`. Only present while recovery is scheduled or running. |
 | `observedRunId` | The latest run; send it back as `observedRunId` when you retry |
 | `sourceRunIds`, `intentId` | The runs and the pending retry request behind the summary |
 | `providerFailure` | Present when a model provider reported the failure on a Paperclip Runner run. Holds `schema`, `provider`, `phase` (`startup` or `turn`), `category` (`rate_limit`, `quota_exhausted`, `authentication`, `permission`, `model_unavailable`, `invalid_request`, `overloaded`, `timeout`, or `unknown`), `message`, and `retryability` (`transient`, `requires_action`, or `unknown`), plus `providerCode`, `httpStatus`, `requestId`, and `retryAt` when available. |
 | `workspaceFailure` | Present as `{ "message": "..." }` when the run failed, or is waiting on a retry, with `workspace_validation_failed`. |
+| `setupFailure` | Present when a configured workspace setup command exited non-zero before the agent started (`setup_failed`), including on the scheduled retry that follows. Holds `step` (`workspace_provision`, `workspace_seed`, or `workspace_runtime_provision`), `command` (up to 200 characters), `exitCode` (or `null`), `output` (the last 300 characters, or `null`), and `message`, such as `The project's workspace provision command "bash ./scripts/provision-worktree.sh" failed with exit code 127: …`. |
 
-Both messages are redacted and limited to 4,000 characters. If Paperclip can't redact them, it leaves both fields out.
+The `providerFailure` and `workspaceFailure` messages are redacted and limited to 4,000 characters. `setupFailure` is redacted too, with secrets removed from the command and output before they're shortened. If Paperclip can't redact them, it leaves all three fields out.
 
 This field is for display only. Paperclip still checks every permission and gate when the retry actually runs. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention) for how the UI presents it.
 
@@ -1824,6 +1837,40 @@ Request body, with no other fields accepted:
 The response is `202 Accepted` with `{ "recordId": "...", "status": "queued" }`, and recovery then releases the resource. If it had already been released another way, `status` is `released` and nothing more is needed. Either way the recovery action becomes `resolved` with outcome `restored`, and an `issue.ownership_owner_gone_confirmed` activity entry records your evidence.
 
 If the action no longer matches, or the record changed since Paperclip asked (including a `recordVersion` that doesn't match), the server returns `409 Conflict` with code `ownership_owner_attestation_stale` and `This record changed since recovery asked. Refresh the task and inspect its run.`
+
+### Confirm a run stopped
+
+```
+POST /api/issues/{issueId}/recovery-actions/confirm-run-stopped
+```
+
+A local Paperclip Runner run can be cut off by a server restart after Paperclip asked to start the agent's runner but before it recorded the runner's process. The agent's provider may still be running, so Paperclip won't assume the run stopped, and a Retry on the task waits with the reason `process_identity_missing`. When a board operator can confirm it, the task's `interruption` switches to `userAction: "confirm_run_stopped"`.
+
+Once you've checked that no agent is still working on the task, use this route to say so. Any Retry that was waiting on this run starts straight away.
+
+The caller rules match [Confirm the previous server stopped](#confirm-the-previous-server-stopped): a board user with the `runtime:confirm_owner_stop` action who can read the task.
+
+Request body, with no other fields accepted:
+
+| Field | Type | Notes |
+|---|---|---|
+| `runId` | uuid, required | The run to confirm, usually `interruption.observedRunId`. |
+| `stopEvidence` | string, required | What you checked, 20 to 12,000 characters after trimming. |
+
+The response is `200 OK` with `runId`, `alreadyStopped` (`true` when the stop was already on record), and the task's refreshed `presentation`. An `issue.run_stop_confirmed` activity entry records your evidence.
+
+Paperclip still checks the run itself. If it can't accept the confirmation, it returns `409 Conflict` with one of these codes:
+
+| Code | Message |
+|---|---|
+| `run_not_found` | `This run does not belong to the task.` |
+| `run_not_finished` | `Only a finished run's stop can be confirmed.` |
+| `process_identity_recorded` | `This run recorded its process. Paperclip verifies that process itself.` |
+| `no_unidentified_launch` | `This run has no unconfirmed runner launch to stop.` |
+| `launch_on_other_host` | `The runner was launched on another host. Confirm the stop there.` |
+| `remote_environment` | `This run used a remote environment. Its environment cleanup confirms the stop.` |
+| `runner_still_running` | `A runner for this run is still running on this host. Stop it first.` |
+| `run_changed` | `This run changed while its stop was being confirmed. Check it again.` |
 
 ### Stalled children and blockers
 

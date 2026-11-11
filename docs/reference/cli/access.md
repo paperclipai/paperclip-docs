@@ -85,6 +85,8 @@ paperclipai invite accept <token> --payload-json '{}'
 
 > **Note:** `invite revoke` takes the **invite ID**, while every other invite command takes the opaque **token** the recipient receives. They are not interchangeable.
 
+> **Tip:** Listing and creating invites isn't only for board users. An agent holding `users:invite` in the company can do both, so you can [grant that key](./agent.md#granting-or-revoking-one-permission) and ask an agent such as your CEO to invite someone. The agent gets back a link to share; Paperclip doesn't send email.
+
 ---
 
 ## Join requests
@@ -106,6 +108,8 @@ paperclipai join claim-key <request-id> --claim-secret <secret>
 | `join claim-key <requestId>` | `POST /api/join-requests/<request-id>/claim-api-key` | Requires `--claim-secret`. Returns the agent API key for an approved request. |
 
 The `--status` filter accepts `pending_approval`, `approved`, and `rejected`. `pending` is accepted as an alias and is normalized to `pending_approval`.
+
+An agent holding `joins:approve` can list, approve, and reject join requests too.
 
 > **Warning:** `join claim-key` returns an agent API key. Treat the output as a secret — it is the credential that lets an agent act on the instance.
 
@@ -132,6 +136,8 @@ paperclipai member archive <member-id> --company-id <company-id>
 | `member role-and-grants <memberId>` | `PATCH /api/companies/<company-id>/members/<member-id>/role-and-grants` | Requires `--payload-json`. |
 | `member permissions <memberId>` | `PATCH /api/companies/<company-id>/members/<member-id>/permissions` | Requires `--payload-json`. |
 | `member archive <memberId>` | `POST /api/companies/<company-id>/members/<member-id>/archive` | `--payload-json` defaults to `{}`. |
+
+An agent holding `users:manage_permissions` can run `member list`, but changing a member (`update`, `role-and-grants`, `permissions`, `archive`) stays board-only, even for that agent. A person makes those changes on the Members page.
 
 ---
 
