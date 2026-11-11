@@ -203,6 +203,21 @@ try {
       existsSync(destinationIndexPath),
       `legacy redirect target is not a generated page: ${sourceRoute} -> ${destinationRoute}`,
     );
+    if (sourceRoute.endsWith("/*")) {
+      const splatRedirect = `/${sourceRoute} /${destinationRoute}/ 301`;
+      assert(redirects.includes(splatRedirect), `missing legacy splat redirect: ${splatRedirect}`);
+      const prefix = `/${sourceRoute.slice(0, -1)}`;
+      const splatIndex = redirects.indexOf(splatRedirect);
+      for (const line of redirects.split("\n")) {
+        if (line.startsWith(prefix) && line !== splatRedirect) {
+          assert(
+            redirects.indexOf(line) < splatIndex,
+            `specific redirect must precede the ${sourceRoute} splat or Cloudflare never reaches it: ${line}`,
+          );
+        }
+      }
+      continue;
+    }
     const noSlashRedirect = `/${sourceRoute} /${destinationRoute}/ 301`;
     const slashRedirect = `/${sourceRoute}/ /${destinationRoute}/ 301`;
     assert(redirects.includes(noSlashRedirect), `missing legacy no-slash redirect: ${noSlashRedirect}`);

@@ -91,5 +91,17 @@
   "reference/adapters/gemini-local": "reference/adapters/gemini-cli",
   "reference/adapters/opencode-local": "reference/adapters/opencode",
   "reference/adapters/pi-local": "reference/adapters/pi",
-  "reference/adapters/hermes-local": "reference/adapters/hermes"
+  "reference/adapters/hermes-local": "reference/adapters/hermes",
+  "cli": "reference/cli/overview",
+  "start/architecture": "guides/welcome/key-concepts",
+  "guides/agent-developer/heartbeat-protocol": "guides/welcome/key-concepts",
+  "guides/board-operator/costs-and-budgets": "guides/day-to-day/costs",
+  "adapters": "reference/adapters/overview",
+  "adapters/execution": "reference/adapters/overview",
+  "adapters/openclaw": "reference/adapters/openclaw-gateway",
+  "adapters/api": "reference/adapters/creating-an-adapter",
+  "adapters/custom": "reference/adapters/creating-an-adapter",
+  "adapters/configuration": "guides/org/agent-adapters",
+  "adapters/ui": "reference/adapters/adapter-ui-parser",
+  "adapters/*": "reference/adapters/overview"
 }
