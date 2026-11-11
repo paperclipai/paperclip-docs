@@ -804,7 +804,7 @@ Both routes return:
 
 **Reading** follows the same rule as reading the agent's configuration.
 
-**Changing** takes a non-empty partial map of keys to `true`, `false`, or `null`. `null` removes the override; keys you leave out are kept. Unknown keys and non-boolean values are rejected. Only a board user with `users:manage_permissions` can change these, never an agent: an agent gets the board-access `403`, and a plugin acting for a board user gets `Only human permission managers can change interaction permissions`. An agent that's still pending approval returns `409`. Each change is logged as `agent.interaction_permissions_updated` with the before and after values.
+**Changing** takes a non-empty partial map of keys to `true`, `false`, or `null`. `null` removes the override; keys you leave out are kept. Unknown keys and non-boolean values are rejected. Only a board user with `users:manage_permissions` can change these, never an agent: an agent gets the board-access `403`, and a plugin call made on an agent's behalf gets `Only human permission managers can change interaction permissions`, even when it carries board authority. An agent that's still pending approval returns `409`. Each change is logged as `agent.interaction_permissions_updated` with the before and after values.
 
 ```json
 { "canReceiveCommentsFromAgents": false, "canMentionAgents": null }

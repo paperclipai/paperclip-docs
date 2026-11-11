@@ -81,7 +81,6 @@ Some `codex_local` settings have no Runner equivalent, including a custom `comma
     "instructionsFilePath": "/Users/me/projects/paperclip-workspace/INSTRUCTIONS.md",
     "modelReasoningEffort": "medium",
     "search": false,
-    "dangerouslyBypassApprovalsAndSandbox": true,
     "env": {
       "OPENAI_API_KEY": {
         "type": "secret_ref",
@@ -106,7 +105,7 @@ Paperclip skips the bypass, keeping Codex in its writable workspace sandbox or i
 - Your `extraArgs` set an `approval_policy=` override, or switch network access off with `sandbox_workspace_write.network_access=false`.
 - The execution target denies network access.
 
-> **Heads-up:** Earlier versions kept Codex in the workspace sandbox unless you opted in to the bypass. If you relied on that, set `dangerouslyBypassApprovalsAndSandbox` to `false` explicitly.
+> **Heads-up:** On the classic CLI engine, earlier versions kept Codex in the workspace sandbox unless you opted in to the bypass. If you relied on that, set `dangerouslyBypassApprovalsAndSandbox` to `false` explicitly.
 
 ### Service secrets in shell commands
 
@@ -114,7 +113,7 @@ Codex normally hides any variable whose name contains `KEY`, `SECRET` or `TOKEN`
 
 These stay out regardless:
 
-- Codex's own login keys (`OPENAI_API_KEY` and `CODEX_API_KEY`), plus managed provider keys, observability credentials and Paperclip's own `PAPERCLIP_GITHUB_*`, `PAPERCLIP_RUNNER_*`, `PAPERCLIP_NATIVE_*` and `PAPERCLIP_ACPX_*` secrets, even if you set them in `env`.
+- Codex's own login keys (`OPENAI_API_KEY` and `CODEX_API_KEY`), plus managed provider keys, observability credentials and any `PAPERCLIP_GITHUB_*`, `PAPERCLIP_RUNNER_*`, `PAPERCLIP_NATIVE_*` or `PAPERCLIP_ACPX_*` value you set in `env` yourself. The one exception is the GitHub broker capability Paperclip injects for a managed GitHub connection, described below.
 - Host secrets you didn't assign. Nothing is pulled from the Paperclip host's environment.
 - Names with wildcard characters.
 
@@ -241,7 +240,7 @@ The `model` picker lists known Codex model ids, newest version first and most ca
 
 `gpt-6.1-sol` (the default for agents created in the UI or on Paperclip Runner), `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5`, `gpt-5-mini`, `gpt-5-nano`, `o3`, `o4-mini`, `o3-mini` and `codex-mini-latest`.
 
-> **Heads-up:** New Codex agents default to `gpt-6.1-sol`. Agents that already have a saved model keep it, and `gpt-5.6-sol` stays in the picker. With ChatGPT sign-in, `gpt-6.1-sol` needs Codex CLI `0.159.0` or newer; see [Check auth and the environment](#check-auth-and-the-environment) for how Paperclip checks this.
+> **Heads-up:** New Codex agents created in the UI or on Paperclip Runner default to `gpt-6.1-sol`. Agents that already have a saved model keep it, and `gpt-5.6-sol` stays in the picker. With ChatGPT sign-in, `gpt-6.1-sol` needs Codex CLI `0.159.0` or newer; see [Check auth and the environment](#check-auth-and-the-environment) for how Paperclip checks this.
 
 > **Heads-up:** OpenAI retired `gpt-5.5` (on 2026-10-14) and `gpt-5.4` and `gpt-5.4-mini` (on 2026-08-31) from Codex with ChatGPT sign-in. They stay in the picker because OpenAI API-key sessions still serve them. If you sign in with ChatGPT, switch to the replacement instead:
 >

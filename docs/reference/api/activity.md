@@ -413,7 +413,7 @@ The response includes run metadata such as:
 - `logBytes`
 - `failureCause`
 
-`failureCause` names why a run with a generic failure code (`adapter_failed` or `setup_failed`) failed, as one short code of up to 80 characters: a provider HTTP status such as `provider_http_429`, a database or network code such as `40001` or `ECONNRESET`, an error class name, `signal_SIGKILL`, `exit_code_2`, `adapter_reported_error`, or `unknown_error`. It never contains message text. Runs recorded before the field existed return `null`. See [Adapter errors](../adapters/troubleshooting.md#adapter-failed-with-a-code) for how the board shows it.
+`failureCause` names why a run with a generic failure code (`adapter_failed` or `setup_failed`) failed, as one short code of up to 80 characters: for example a provider HTTP status such as `provider_http_429` or a provider category such as `provider_authentication`, a database or network code such as `40001` or `ECONNRESET`, an error class name, the adapter's error family, `signal_SIGKILL`, `exit_code_2`, `process_cancellation_failed`, `adapter_reported_error`, or `unknown_error`. It never contains message text. Runs recorded before the field existed return `null`. See [Adapter errors](../adapters/troubleshooting.md#adapter-failed-with-a-code) for how the board shows it.
 
 ## Issues for a run
 

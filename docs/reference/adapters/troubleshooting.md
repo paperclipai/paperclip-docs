@@ -116,6 +116,7 @@ The **Run ledger** on the task shows the stop reason as `adapter failed`, follow
 - A database or network code, such as `40001` or `ECONNRESET`: the error, or one of the errors it wrapped, carried that code.
 - `signal_SIGKILL`, `exit_code_2`, and similar: the agent's process was killed by that signal or exited with that code.
 - An error class name, such as `TypeError`.
+- An error family the adapter reported, such as `transient_upstream` or `provider_quota`, or `process_cancellation_failed` when Paperclip couldn't stop the agent's process.
 - `adapter_reported_error` when the adapter reported an error with no exit code or signal, or `unknown_error` when nothing more specific was available.
 
 Runs from before your Paperclip version recorded a cause still read just `adapter failed`. The same code is on the run as `failureCause` (see [Runs for an issue](../api/activity.md#runs-for-an-issue)) and in the server's failure log line, so you can search for it there.
@@ -134,7 +135,7 @@ A database query failed while Paperclip was handling the run. Paperclip replaces
 Couldn’t set up the task workspace. The project's workspace provision command "bash ./scripts/provision-worktree.sh" failed with exit code 127: bash: ./scripts/provision-worktree.sh: No such file or directory. Fix the command in the project’s workspace settings, then retry.
 ```
 
-Before the agent starts, Paperclip runs the setup commands configured for the task's workspace. One of them exited with an error, so the run failed with `setup_failed`. The notice names which command it was (the project's workspace provision command, the workspace seed command, or the runtime provision command), the command as configured, its exit code, and the end of its output. While an automatic retry is lined up, the same message appears before the *Trying again in …* countdown.
+Before the agent starts, Paperclip runs the setup commands configured for the task's workspace. One of them exited with an error, so the run failed with `setup_failed`. The notice names which command it was (the project's workspace provision command, the workspace seed command, or the runtime provision command), the command as configured, its exit code, and the end of its output. While an automatic retry is lined up, the notice shows just the command's failure, followed by the *Trying again in …* countdown.
 
 Fix the command where the notice says, then click **Retry**. Exit code `127` usually means the script or program doesn't exist at that path.
 

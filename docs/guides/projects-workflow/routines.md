@@ -168,7 +168,7 @@ The header packs the always-available controls into one row:
 - **Editable title** — the title is an inline text field. Press Enter to jump to the Overview section (and into the description when you're already there).
 - **Run button** — opens the same "run now" dialog as the list row. This is the manual override for any routine.
 - **Automation toggle** — the large switch. On = `active`, off = `paused`. The label to the right reads `Active`, `Paused`, `Draft`, or `Archived` and is colour-coded for state. Flipping it on while no default agent is set is refused with a "Default agent required" prompt.
-- **Plugin badge** — when a routine is managed by a plugin, a badge shows the plugin's name and resource key so you know not to hand-edit it. The plugin owns the routine's title, instructions, schedule, and assignee, and you change them in that plugin's settings. Agents are told not to rewrite or copy a plugin-managed routine, and to reply with a link to the plugin's settings page and the routine instead. When your hosting operator manages plugins for you, they're told to say so.
+- **Plugin badge** — when a routine is managed by a plugin, a badge shows the plugin's name and resource key so you know not to hand-edit it. The plugin owns the routine's title, instructions, schedule, and assignee, and you change them in that plugin's settings. Agents are told not to rewrite or copy a plugin-managed routine, and to reply with a link to the plugin's settings page and the routine instead. When your hosting operator manages plugins for you, there's no settings page to link, so agents say that the hosting operator controls the plugin's settings and link the routine instead.
 
 ### The sub-sidebar: sections, not tabs
 
