@@ -36,7 +36,7 @@ The short path, in order:
 1. **Create the agent.** Click **New Agent**, name it and pick the **Codex** card. If you want `codex_local` rather than the Runner, create the agent with `runner: "legacy"` through the API or `--runner legacy` in the CLI instead, because the agent form no longer has a **Runner** setting.
 2. **Connect and configure.** Connect the Codex account, then set at least `cwd` (and `model` if you don't want the default: `gpt-6.1-sol` in the agent form or on the Runner, or the Codex CLI's own default for a `codex_local` agent created through the API without one). See [Configure the adapter](#configure-the-adapter).
 3. **Test it.** Run the environment test before any real heartbeat. See [Check auth and the environment](#check-auth-and-the-environment).
-4. **Place it on the org chart.** On **Harness / Runtime**, set **Title** and **Reports to** in the **Agent identity** card so delegation and escalations reach the right manager.
+4. **Place it on the org chart.** On the agent's **Overview**, set **Reports to:** in the **Profile** panel so delegation and escalations reach the right manager. To change the title, click it in the page header. See [Org Structure](/guides/org/org-structure/).
 5. **Assign its first ticket.** See [Give Codex its first ticket](#give-codex-its-first-ticket).
 6. **Reset the session when you need a clean start.** See [Reset a Codex session](#reset-a-codex-session).
 
