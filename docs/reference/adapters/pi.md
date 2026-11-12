@@ -31,7 +31,7 @@ seo_description: Run the Pi coding agent CLI on the Paperclip host, with its bui
 
 | Field | Required | Notes |
 |---|---:|---|
-| `cwd` | no | Absolute working directory. Recommended. Created when permissions allow; otherwise falls back to the process working directory. |
+| `cwd` | no | Deprecated. A legacy fallback working directory, used only when a run has no project workspace. The create flow no longer shows it, and an existing agent that still has a value shows it as **Working directory (deprecated)**. Set the repository on the [project](../../guides/projects-workflow/projects.md) instead. |
 | `model` | **yes** | Pi model id in `provider/model` format (e.g. `xai/grok-4`). |
 | `thinking` | no | Thinking level passed to Pi. Accepts `off`, `minimal`, `low`, `medium`, `high`, `xhigh`. |
 | `promptTemplate` | no | User prompt template passed via the `-p` flag. |
@@ -112,7 +112,6 @@ Pi then routes `--provider <name> --model <id>` by matching the provider key (e.
 {
   "adapterType": "pi_local",
   "adapterConfig": {
-    "cwd": "/Users/me/projects/paperclip-workspace",
     "model": "xai/grok-4",
     "thinking": "high",
     "promptTemplate": "You are the engineering lead. Work carefully and report progress.",

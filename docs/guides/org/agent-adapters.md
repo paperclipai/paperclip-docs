@@ -26,7 +26,7 @@ Without an adapter, an agent is just a record in a database. With one, it's a wo
 | `paperclip_runner` | Native sessions and Paperclip task tools | Runner enabled, prepared execution environment, compatible provider credential |
 | `pi_local` | Pi users wanting Pi's built-in tool set | Pi CLI installed, relevant API keys |
 | `grok_local` | xAI users — runs the Grok Build CLI | Grok CLI installed, xAI API key or SuperGrok login |
-| `hermes_local` | Persistent memory, 30+ tools, 80+ skills | Hermes Agent installed (Python 3.10+) |
+| `hermes_local` | Persistent memory, 30+ tools, 80+ skills | Hermes Agent installed |
 
 For most people getting started, **`claude_local`** is the right choice. It runs directly on your Mac using the same Claude that powers Anthropic's Claude.ai, and it only needs Claude Code plus an API key wired through environment variables.
 
