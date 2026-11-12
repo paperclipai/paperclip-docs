@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.618.0
+paperclip_version: v2026.1106.0
 seo_title: OpenClaw Gateway Adapter
 seo_description: Connect to an OpenClaw instance over the Gateway WebSocket protocol when OpenClaw runs on another machine, in Docker, or behind a network boundary.
 ---
@@ -8,7 +8,7 @@ seo_description: Connect to an OpenClaw instance over the Gateway WebSocket prot
 
 `openclaw_gateway` connects Paperclip to an OpenClaw instance over the OpenClaw Gateway WebSocket protocol. Use it when OpenClaw is running on another machine, inside Docker, or behind a shared gateway and you want Paperclip agents to delegate work to it.
 
-> **Info:** `openclaw_gateway` is fully functional in the runtime but currently shown as **"Coming soon"** in the agent-config adapter-type dropdown. It's reached through the OpenClaw invite-prompt flow instead of being picked manually. This page documents the adapter so you can target it via the API or an imported company. Direct UI selection is planned.
+> **Info:** `openclaw_gateway` is fully functional in the runtime but currently shown as **"Coming soon"** in the agent-config adapter-type dropdown. It's reached through the external-agent invite flow in the add-agent dialog instead of being picked manually. This page documents the adapter so you can target it via the API or an imported company. Direct UI selection is planned.
 
 ---
 
@@ -157,7 +157,7 @@ Automates invite creation, agent join, board approval, one-time API key claim, a
 pnpm smoke:openclaw-docker-ui
 ```
 
-Clones or updates `openclaw/openclaw` in `/tmp/openclaw-docker`, builds `openclaw:local`, writes isolated smoke config under `~/.openclaw-paperclip-smoke/`, starts `openclaw-gateway` via Compose, and prints `http://127.0.0.1:18789/#token=...`.
+Clones or updates `openclaw/openclaw` in `/tmp/openclaw-docker`, builds `openclaw:local`, writes isolated smoke config under `$TMPDIR/openclaw-paperclip-smoke/` (`/tmp` when `TMPDIR` is unset), starts `openclaw-gateway` via Compose, and prints `http://127.0.0.1:18789/#token=...`.
 
 Useful knobs:
 
@@ -189,7 +189,7 @@ For remote gateways, prefer a reachable hostname (Docker host alias, Tailscale h
 When you add OpenClaw to a Paperclip company:
 
 1. Start Paperclip in auth mode and a clean OpenClaw Docker.
-2. In the company settings, use **Generate OpenClaw Invite Prompt** and paste it into OpenClaw's main chat.
+2. Click **New Agent**, then **Invite an external agent**, pick **Other**, and click **Copy invitation prompt**. Paste the prompt into OpenClaw's main chat. See [Bring your own agent](../../how-to/bring-your-own-agent.md#option-a-external-agent-invite-openclaw-and-friends) for the full flow.
 3. Approve the resulting join request in Paperclip and confirm the agent appears in your company.
 4. Preflight the agent config:
    - `adapterType` is `openclaw_gateway` (not `openclaw`).

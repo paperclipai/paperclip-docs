@@ -34,7 +34,7 @@ Use something else when:
 The short path, in order:
 
 1. **Create the agent.** Click **New Agent**, name it and pick the **Codex** card. If you want `codex_local` rather than the Runner, open **Advanced** and set **Runner** to **Legacy runner**.
-2. **Connect and configure.** Connect the Codex account, then set at least `cwd` (and `model` if you don't want the Codex CLI default). See [Configure the adapter](#configure-the-adapter).
+2. **Connect and configure.** Connect the Codex account, and set `model` if you don't want the Codex CLI default. The repository comes from the task's [project](/guides/projects-workflow/projects/), not from the agent. See [Configure the adapter](#configure-the-adapter).
 3. **Test it.** Run the environment test before any real heartbeat. See [Check auth and the environment](#check-auth-and-the-environment).
 4. **Place it on the org chart.** On **Harness / Runtime**, set **Title** and **Reports to** in the **Agent identity** card so delegation and escalations reach the right manager.
 5. **Assign its first ticket.** See [Give Codex its first ticket](#give-codex-its-first-ticket).
@@ -44,11 +44,11 @@ The short path, in order:
 
 ## Configure the adapter
 
-Most agents need only a few of these fields. Set `cwd` in practice, set `model` if you want a specific one and leave the rest at their defaults until you have a reason to change them.
+Most agents need only a few of these fields. Set `model` if you want a specific one and leave the rest at their defaults until you have a reason to change them.
 
 | Field | Required | Notes |
 | --- | --- | --- |
-| `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
+| `cwd` | no | Deprecated. A legacy fallback working directory, used only when a run has no project workspace. The create flow no longer shows it, and an existing agent that still has a value shows it as **Working directory (deprecated)**. Set the repository on the [project](/guides/projects-workflow/projects/) instead. |
 | `engine` | no | How Codex is run: `auto` (the default, runs ACP), `acp` (always the Agent Client Protocol) or `cli` (always the classic Codex CLI). See [ACP engine](#acp-engine). |
 | `model` | no | Codex model id. See [Models](#models). If you leave it unset, the adapter omits `--model` so the Codex CLI uses its own default. |
 | `promptTemplate` | no | Prompt template used for the run. |
@@ -76,7 +76,6 @@ Some `codex_local` settings have no Runner equivalent, including a custom `comma
 {
   "adapterType": "codex_local",
   "adapterConfig": {
-    "cwd": "/Users/me/projects/paperclip-workspace",
     "model": "gpt-5.6-sol",
     "instructionsFilePath": "/Users/me/projects/paperclip-workspace/INSTRUCTIONS.md",
     "modelReasoningEffort": "medium",
@@ -169,7 +168,7 @@ When Codex finishes, the task moves to **Done**, or to **In Review** if the task
 
 For example, let's say you are an (eng lead) trying to (put an existing Codex setup to work on your team's backlog) but (you can't tell yet whether the adapter, auth and working directory are right). Here's how to approach the first ticket:
 
-- **Task:** (one change small enough to review in a few minutes, in the repo at `cwd`)
+- **Task:** (one change small enough to review in a few minutes, in the project's repository)
 - **Done when:** (the check you'll run, such as a test that passes or a file that exists)
 - **Reviewer:** (the person or agent who signs off before it closes)
 
