@@ -57,6 +57,21 @@ You can give every agent its own plugin view, such as a report, notes, or a live
 
 Each declared slot shows up in an **Apps** section of the agent's sidebar, labelled with the slot's `displayName`. When someone opens it, Paperclip mounts your component with the agent as the host context (`entityType: "agent"`, `entityId`, `companyId`) and adds a breadcrumb trail that ends in your `displayName`. If the agent can't be loaded, or your slot is no longer available, the page shows a short notice instead of a blank screen.
 
+If your view only makes sense for agents that run in your plugin's own execution environment, such as a console for the computers your driver provides, add `agentEnvironmentDriver` to the slot, set to the `driverKey` of that driver's entry in `environmentDrivers`:
+
+```json
+{
+  "type": "detailTab",
+  "id": "computer-console",
+  "displayName": "Computer console",
+  "exportName": "ComputerConsole",
+  "entityTypes": ["agent"],
+  "agentEnvironmentDriver": "my-driver"
+}
+```
+
+Paperclip then shows the tab, and its [task side panel](#showing-the-view-beside-a-running-task) entry, only for agents whose environment is a plugin environment (`driver: "plugin"`) from your plugin with that driver key. That means an `environment_driver` entry: a `kind: "sandbox_provider"` driver backs `driver: "sandbox"` environments, so a view tied to it never shows. An agent with no default environment of its own uses the instance default. If the agent's environment can't be read, or uses a different driver, the view stays hidden. `agentEnvironmentDriver` only works on a `detailTab` whose `entityTypes` is exactly `["agent"]`; anything else fails manifest validation with "agentEnvironmentDriver requires an agent-only detailTab". Leave it out and the view appears for every agent, as before.
+
 If your view needs data about the agent from your own API routes, use `companyResolution: { from: "agent", param: "agentId" }` on those routes (see [Plugin API routes over WebSocket](#plugin-api-routes-over-websocket)). Paperclip then applies the same `agent:read` check the agent's own page uses before your worker sees the request.
 
 #### Showing the view beside a running task
@@ -241,7 +256,7 @@ Don't cancel useful work just to look idle. The SDK already counts requests and 
 | `PluginSecretsClient` | Resolve secret refs declared in instance config. Declare a secret field as `type: "string"` with `format: "secret-ref"`. When someone picks a stored secret, the settings form saves a `{ type: "secret_ref", secretId, version }` binding there, and config validation checks the binding's `secretId` against the field's schema instead of rejecting the object. |
 | `PluginActivityClient` | Append `PluginActivityLogEntry` rows to the host activity log. |
 | `PluginStateClient` | Scoped key-value state under a `ScopeKey`. |
-| `PluginEntitiesClient` | Upsert and query plugin-owned entities (`PluginEntityUpsert`, `PluginEntityQuery`, `PluginEntityRecord`). |
+| `PluginEntitiesClient` | Upsert and query plugin-owned entities (`PluginEntityUpsert`, `PluginEntityQuery`, `PluginEntityRecord`). A `ctx.entities.list` query can filter by `entityType`, `externalId`, `scopeKind`, and `scopeId`, with `limit` and `offset` for paging. |
 | `PluginProjectsClient`, `PluginExecutionWorkspacesClient`, `PluginCompaniesClient`, `PluginIssuesClient`, `PluginIssueRelationsClient`, `PluginIssueSummariesClient`, `PluginAgentsClient`, `PluginAgentSessionsClient`, `PluginGoalsClient`, `PluginSkillsClient` | Read/write access to the core Paperclip domain via the host. A child issue you create with `ctx.issues.create` gets its own execution workspace, unless it runs in shared workspace mode, where every task uses the project's one folder. It takes the parent's project unless you set one, and inside that project it keeps the parent's workspace strategy. It never gets the parent's checkout, branch, or unmerged changes. `inheritExecutionWorkspaceFromIssueId` likewise copies only the source issue's project and workspace strategy. See [Subtasks get their own workspace](../../guides/projects-workflow/workspaces.md#subtasks-get-their-own-workspace). |
 | `ctx.approvals` | Read and decide company approvals — see [Responding to interactions and approvals](#responding-to-interactions-and-approvals). Requires `approvals.read` for `list` / `get` and `approvals.respond` for `decide`. The interface is named `PluginApprovalsClient` in the SDK source but is not currently re-exported as a name; it is reachable from `PluginContext`. |
 | `ctx.routines` | Resolve and reconcile plugin-managed Paperclip routines (`ctx.routines.managed`). Requires the `routines.managed` capability. The interface type is not currently re-exported as a name, but it is reachable from `PluginContext`. |
@@ -278,7 +293,7 @@ Workspace metadata for `ctx.executionWorkspaces`: `PluginExecutionWorkspaceMetad
 
 Agent-session helpers: `AgentSession`, `AgentSessionEvent`, `AgentSessionSendResult`. When you send a message with `ctx.agents.sessions.sendMessage(...)`, the `message` field on the `AgentSessionEvent` you receive with `eventType: "done"` is the canonical final user-facing assistant reply for that run — or `null` when the run produced no reply text. That is the field to relay back to whoever asked; you no longer need to reassemble it from the `"chunk"` events. An `eventType: "error"` event carries a run-status string in `message` instead.
 
-Workspace, event, and scope helpers: `PluginWorkspace`, `PluginEvent`, `EventFilter`, `ScopeKey`, `PluginJobContext`, `ResourceLifecycleEvent`, `ResourceLifecycleResult`.
+Workspace, event, and scope helpers: `PluginWorkspace`, `PluginProjectSnapshot` (returned by [`ctx.projects.readSnapshots`](#private-per-project-credentials)), `PluginEvent`, `EventFilter`, `ScopeKey`, `PluginJobContext`, `ResourceLifecycleEvent`, `ResourceLifecycleResult`.
 
 Agent lifecycle and runtime shapes: `AgentLifecycleRequest`, `AgentLifecycleResult`, `PluginAgentRuntimeState`, `PluginAgentRuntimeSkill`, `PluginAgentConnectionAssignments`.
 
@@ -399,6 +414,23 @@ A few rules shape how this works:
 - **Archived and deleted projects can only remove.** Callbacks for them receive an empty `event.instanceSecrets`, and your result can clear keys but not write them. A deleted project's secrets are deleted along with it anyway.
 
 Outside a lifecycle callback, trusted worker code can read the values with `ctx.projects.getInstanceSecrets(projectId, companyId)` during a call scoped to that company. Archived or missing projects can't be read this way.
+
+When you need the same picture for many projects at once, such as when your worker starts up and reconciles everything it manages, you can read them in one call instead of one project at a time:
+
+```ts
+const snapshots = await ctx.projects.readSnapshots(projectIds, companyId, "storage-binding");
+if (snapshots === null) {
+  // Older Paperclip host: fall back to per-project reads.
+}
+```
+
+Each `PluginProjectSnapshot` carries the `projectId`, its `workspaces`, your `instanceSecrets` for that project, and `entity`: the one plugin entity of the given type that your plugin saved at company scope with that project's ID as its `externalId` (or `null` if there isn't one). A few things to know:
+
+- **Capabilities.** It needs `projects.read`, `project.workspaces.read`, and `projects.instance-secrets`.
+- **Limits.** Send 1 to 64 distinct project UUIDs. The `entityType` must be 1–128 letters, digits, `.`, `_`, or `-`. Anything else fails with "Invalid project snapshot scope".
+- **All or nothing.** If any project is missing, archived, outside the company, or changes while it's being read, the whole call fails. Retry rather than trusting a partial result.
+- **Older hosts.** On a Paperclip version without this call, the SDK returns `null` instead of throwing.
+- **Keep it in the worker.** The result includes instance secrets, so it follows the same rules as `getInstanceSecrets`.
 
 These values never appear in lifecycle inbox listings or the company's secret list. Keep them out of plugin entities, state, data handlers, UI, and logs too. Agent instance secrets keep their own [lifecycle contract](#required-agent-lifecycle-work).
 
@@ -535,7 +567,7 @@ Operators can make the same choice in the project's configuration, under **Works
 
 #### Becoming the default for projects
 
-Want new projects to use your storage without anyone choosing it each time? Declare `defaultForProjects` with one of the modes and strategies you support:
+Want the Git projects on your storage to start with a sensible workspace mode and strategy? Declare `defaultForProjects` with one of the modes and strategies you support:
 
 ```ts
 workspaceProvider: {
@@ -547,15 +579,14 @@ workspaceProvider: {
 
 If the pair isn't in your own `modes` and `strategies`, the manifest is rejected with "Project defaults must use a declared workspace mode and strategy".
 
-Paperclip applies the default once, when it creates a project with no explicit choice, and saves your plugin's ID on the project. That includes the personal private project it creates for each person. Installing your plugin doesn't change existing projects, and neither does turning it off for a company. A company where your plugin is off doesn't get the default for its new projects.
+`defaultForProjects` doesn't attach projects to you. A new project lands on your storage when it's created in one of your plugin's task environments: an `environmentDrivers` entry that isn't `kind: "sandbox_provider"` and has `supportsTasks: true`, from a plugin with the `environment.drivers.register` capability. Someone can also pick your plugin for a project in **Workspace storage**. A company where your plugin is off doesn't offer your environments for new projects.
 
-For Git projects attached to you, Paperclip also fills in your default mode and strategy where the project hasn't set its own. It works this out each time and never writes those two settings into the project's saved policy.
+For Git projects attached to you, Paperclip fills in your default mode and strategy where the project hasn't set its own. It works this out each time and never writes those two settings into the project's saved policy.
 
 A few rules keep the default predictable:
 
 - **Explicit choices win.** A project created with a specific plugin, or with `null` for Core / local, keeps that choice.
 - **Clashing settings fail clearly.** If a project's own mode or strategy isn't one you support, runs fail with a configuration error asking the operator to change the setting or pick another storage provider.
-- **Only one default at a time.** If more than one enabled plugin claims the default, creating a project with no explicit choice is refused with "Multiple workspace storage plugins claim the project default: …". Existing projects aren't affected.
 - **No silent fallback.** An attached project never switches to local storage. If your worker is down, runs fail. If your plugin is disabled, uninstalled, or turned off for the company, runs fail with "The workspace storage plugin is unavailable".
 - **Existing workspaces keep their owner.** Adding a default never moves, resets, or recreates a workspace that already exists, local ones included.
 
@@ -661,7 +692,7 @@ Two top-level manifest fields opt into lifecycle features: `agentLifecycle: true
 
 Two more opt into execution features. The top-level `workspaceProvider` object (`modes` and `strategies`, plus optional `defaultForProjects`, `finalizationVersion`, and `freshWorkspaceVersion`) makes your plugin the owner of a project's [storage and task workspaces](#project-storage-and-task-workspaces) — it needs `workspaces.manage` plus `"project"` in `resourceLifecycle`. And `supportsTasks: true` on an entry in `environmentDrivers` (a `PluginEnvironmentDriverDeclaration`) says that driver can [run Runner tasks](#running-runner-tasks-optional); the same entry can add `freshWorkspaceVersion: 1` and `warmTaskVersion: 1`. An `environmentDrivers` entry can also list [`skillKeys`](#skills-that-come-with-an-environment) to hand agents your managed skills, and set [`requiresAgent: true`](#environments-that-need-the-agent-first) when its leases depend on a prepared agent. Set [`creationOperationVersion: 1`](#recovering-an-interrupted-create-optional) to let the host recover sandboxes from interrupted creates.
 
-On a `PluginUiSlotDeclaration`, the optional `taskSidePanel` object (`{ availabilityPath, activation? }`, where `activation` is `{ namespace, activityKey }`) lets an agent `detailTab` [appear beside a task](#showing-the-view-beside-a-running-task), with `activation` only requesting automatic opening.
+On a `PluginUiSlotDeclaration`, the optional `taskSidePanel` object (`{ availabilityPath, activation? }`, where `activation` is `{ namespace, activityKey }`) lets an agent `detailTab` [appear beside a task](#showing-the-view-beside-a-running-task), with `activation` only requesting automatic opening. The optional `agentEnvironmentDriver` string [limits an agent `detailTab`](#adding-a-view-to-an-agents-page) to agents on that plugin environment driver.
 
 | Type | Declares |
 |---|---|
@@ -1207,7 +1238,7 @@ The SDK validates every operation and result for you. Each result must carry the
 | `prepare` | `prepared` | Build the provider configuration for the exact `requirements` (schema `paperclip.runner.launch-requirements.v1`) without starting a process. Return a `launch` with a `configurationId`, a `requirementsDigest`, and a `provider` descriptor. For a provider that works in a filesystem directory, the descriptor's `cwd` sets the working directory (see below). You can add `projectAuthCheckAtSubmit: true` to skip the separate `check_project_auth` step (see below). A warm handoff also sends `priorIdentity` and `accountIdentity`. If you advertise the GitHub broker, it can also carry a `githubBroker` (see below). |
 | `check_project_auth` | `project_auth` | Check that nothing in the prepared configuration for these projects can replace or redirect the selected account. Return `allowed: true` only if the checks pass. |
 | `read_file` | `file` | Only sent if you advertise `workspaceFileReadVersion: 1`. Read one file from the active task — see [Reading task output files](#reading-task-output-files). |
-| `submit` | `accepted` | Start the task at most once, using the structured launch inputs — the Runner protocol range, Runner identity, `bootstrapTicket`, and optional `preparedLaunchId`, `credential`, and `launch` limits. Paperclip never sends a command line or a guest path. |
+| `submit` | `accepted` (or `admission_rejected`) | Start the task at most once, using the structured launch inputs — the Runner protocol range, Runner identity, `bootstrapTicket`, and optional `preparedLaunchId`, `credential`, and `launch` limits. Paperclip never sends a command line or a guest path. If you decide not to start it at all, return `admission_rejected` instead (see [Telling Paperclip why a task failed](#telling-paperclip-why-a-task-failed)). |
 | `connection` | `connection` | Return an `authenticated_websocket` endpoint: a `wss://` `websocketUrl` with no user info, query, or fragment, `secretHeaders` for authentication, and a `generation`. |
 | `status` | `status` | Report the `phase` and, once the Runner and everything it started have stopped, `executionStopped: true`. |
 | `read_state` / `archive_state` | `state` | Read, or archive under an idempotent `archiveKey`, that task's retained Runner state. |
@@ -1287,7 +1318,7 @@ If you evict a released session gracefully and save it as suspended first, a lat
 
 ##### Telling Paperclip why a task failed
 
-Paperclip doesn't read the text of a task error, so a plain `Error` is an ordinary setup failure. Two structured signals are worth sending.
+Paperclip doesn't read the text of a task error, so a plain `Error` is an ordinary setup failure. Three structured signals are worth sending.
 
 **The installed Runner is the wrong revision.** Throw `PluginEnvironmentTaskError` from `describe` or `submit`, before you prepare or start anything:
 
@@ -1302,6 +1333,14 @@ if (installed.revision !== expectedRevision) {
 `runner_revision_mismatch` is the only code in `ENVIRONMENT_TASK_ERROR_CODES` so far. A run still in setup, before Paperclip selects the Runner session, waits and retries once a minute for up to 10 attempts instead of blocking the task, and the agent **Test** button reports "The remote Runner does not match this Paperclip version yet. Paperclip will check again after the Runner update."
 
 **A saved session can't be used.** When you refuse a `submit` that has `resumeFrom`, throw an error with `status: 409`, `code: "SESSION_STATE_UNAVAILABLE"`, and a `reason` of `unresolved_operation` or `source_state_unverified`. The worker sends only those three fields and replaces your message with "Plugin Runner source state unavailable". It's a diagnostic only, and never authorizes a retry, a replacement, or cleanup.
+
+**You refused to start the task.** Sometimes your `submit` handler checks the request and decides, for certain, not to start anything. Instead of throwing, return a refusal for the same `taskId`:
+
+```ts
+return { kind: "admission_rejected", taskId, reason: "account_binding_mismatch" };
+```
+
+The `reason` is either `session_state_unavailable` or `account_binding_mismatch`. Only `submit` can return this result; for any other operation it's an invalid reply. The difference from throwing matters: a thrown error leaves Paperclip unsure whether the task started, so it checks the same task's status. A refusal tells Paperclip nothing is running. Paperclip records the refusal on the lease, fails the run with the `runner_task_admission_rejected` cause, and stops automatic retries. The person looking at the run sees "The execution provider refused to start this task. Review the admission reason before retrying. Automatic retries are stopped."
 
 #### Login PTY and duplex channel streaming (optional)
 
@@ -1368,7 +1407,7 @@ To test the interaction, approval, and attachment paths, seed them through `harn
 
 To exercise a lifecycle consumer, seed journal entries with `harness.seed({ lifecycleEvents: [...] })` (a `ResourceLifecycleEvent[]`). The harness's `ctx.events.listLifecycle` and `ctx.events.acknowledgeLifecycle` follow the same rules as the host: the `events.subscribe` capability check, the `1`–`100` limit, creation-first and one-event-per-resource delivery, and the error when you acknowledge out of order.
 
-To test [per-project credentials](#private-per-project-credentials), seed them with `harness.seed({ projectInstanceSecrets: [{ companyId, projectId, values }] })`. The harness's `ctx.projects.getInstanceSecrets` applies the same scope as the host: it needs the `projects.instance-secrets` and `events.subscribe` capabilities, `"project"` in `resourceLifecycle`, and a seeded, unarchived project in that company. It then returns a copy of the seeded values (or an empty object). `ctx.projects.resolveGitCredential` checks for `projects.git-credentials` and then always throws "Git credentials require a matching host project operation", since the harness never runs a host project operation; stub it if your tests need a token.
+To test [per-project credentials](#private-per-project-credentials), seed them with `harness.seed({ projectInstanceSecrets: [{ companyId, projectId, values }] })`. The harness's `ctx.projects.getInstanceSecrets` applies the same scope as the host: it needs the `projects.instance-secrets` and `events.subscribe` capabilities, `"project"` in `resourceLifecycle`, and a seeded, unarchived project in that company. It then returns a copy of the seeded values (or an empty object). `ctx.projects.resolveGitCredential` checks for `projects.git-credentials` and then always throws "Git credentials require a matching host project operation", since the harness never runs a host project operation; stub it if your tests need a token. `ctx.projects.readSnapshots` builds each snapshot from the harness's seeded projects, workspaces, entities, and per-project credentials, so it needs the same capabilities and setup as `getInstanceSecrets` plus `projects.read` and `project.workspaces.read`.
 
 `ctx.agents.getRuntime` checks for the `agents.lifecycle.manage` capability in the harness but has no built-in data — it throws "Agent runtime state requires a host service fixture" — so stub it when your tests need runtime inputs. `ctx.agents.getRuntimeIdentity` works the same way and throws "Agent runtime identity requires a host service fixture".
 

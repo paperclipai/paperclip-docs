@@ -62,7 +62,7 @@ Returns one company object if the caller has access to that company.
 GET /api/companies/{companyId}/artifacts
 ```
 
-Returns a company-wide projection of the outputs agents produced while working. It flattens three sources — agent-authored issue documents, direct issue attachments, and `artifact` work products — into one card-ready list, so callers do not have to stitch per-issue endpoints together. Company access is checked before the projection runs.
+Returns a company-wide projection of the outputs agents produced while working. It flattens three sources — agent-authored issue documents, direct issue attachments, and `artifact` work products — into one card-ready list, so callers do not have to stitch per-issue endpoints together. Company access is checked before the projection runs, and the list only includes artifacts from tasks you can read. Outputs on a private task you haven't been given access to are left out, and so are tasks you can't read when results are grouped by task or parent task.
 
 ### Query parameters
 
@@ -394,6 +394,42 @@ Board-only route for reviewing feedback activity across a company. Query filters
 - `includePayload`
 
 Use this when you want to inspect the feedback loop, not normal company activity.
+
+---
+
+## Link preview
+
+```
+GET /api/companies/{companyId}/link-preview?url={url}
+```
+
+Returns the status card the app shows when you hover a GitHub pull request link in task Markdown (see [Chat-Style Tasks](../../experimental/task-chat.md#bubbles)). This route is board-only, and it checks your company access first.
+
+`url` is required and can be at most 2048 characters; otherwise the call fails with `400` and `A link URL is required`. Only GitHub pull request links are recognized: `https://github.com/{owner}/{repo}/pull/{number}`, also on `www.github.com` and with a trailing path such as `/files`. Anything else returns `"preview": null`.
+
+```json
+{
+  "preview": {
+    "target": {
+      "provider": "github",
+      "kind": "pull_request",
+      "canonicalUrl": "https://github.com/acme/app/pull/42",
+      "label": "acme/app#42"
+    },
+    "title": "Add billing export",
+    "state": "open",
+    "author": "octocat",
+    "updatedAt": "2026-11-10T09:30:00Z"
+  },
+  "maxAgeMs": 60000
+}
+```
+
+- `state` is `open`, `draft`, `merged`, `closed`, `conflicts`, or `unknown`.
+- `preview` is `null` when the link isn't supported or GitHub can't be read with the credential available. A failed lookup is still a normal `200` response.
+- `maxAgeMs` says how long the result stays fresh. The server keeps each result per company, per user, and per pull request, for at most an hour.
+- The response is sent with `Cache-Control: private, no-store`.
+- GitHub is read with the caller's own managed GitHub connection when one is configured, never the task assignee's. If that connection is configured but can't supply access, `preview` is `null`; it doesn't fall back to other credentials. With no managed connection, the server tries a company secret named `GITHUB_TOKEN`, `GH_TOKEN`, or `PAPERCLIP_GITHUB_TOKEN`, then the server's `GITHUB_TOKEN` or `GH_TOKEN`, and finally no token.
 
 ---
 

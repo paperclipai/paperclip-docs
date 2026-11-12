@@ -41,7 +41,13 @@ Archived projects are filtered out of this list. You can still reach them by fol
 
 To find a project quickly, type in the **Search projects…** box. It matches words in each project's name and description; if nothing matches, you'll see *"No projects match your search."* There are no other filters, but you can change the order. Click **Sort: Name** and choose **Name**, **Updated**, **Created**, or **Target date**. Click the active option again to flip between ascending and descending.
 
-The **Create project** button opens the **Create project** dialog. Give the project a name and, if you want, pick source repositories or connect GitHub. Paperclip assigns a random color and starts the project in `planned` status. The Configuration tab is where you come back later to change repository bindings, environment variables, and execution workspace behaviour — the create dialog only covers the minimum a project needs to exist.
+The **Create project** button opens the **Create project** dialog. Give the project a name and, if you want, pick source repositories or connect GitHub. Paperclip assigns a random color and starts the project in `planned` status.
+
+Every project also gets a place to run and a home for its working files. Paperclip picks your own default environment for you: an agent creating a project uses its default environment, and a person uses their primary agent's default. Without one, it falls back to the instance default, then to running locally. Instance-wide rules still win: forced Kubernetes execution picks the Kubernetes environment, and managed-sandbox-only mode swaps running locally for the managed sandbox. The project keeps that environment, and its storage follows from it.
+
+Sometimes your environments can't all share the same working files, for example when one keeps code in a storage plugin and another uses Paperclip's own storage. Then the dialog shows an **Available in** dropdown. Each choice lists every environment that can share the project's files, and the note under it reads *"These environments can share this project's working files. The storage choice stays with the project."* It starts on the choice that holds your default environment. If you switch to another choice, the project uses the first environment listed in it. If your default environment can't hold project files at all, the dialog says *"The default environment cannot use project workspace storage. Select an available environment or repair the default environment configuration."* Choose an available environment to carry on, or fix the default first.
+
+The Configuration tab is where you come back later to change repository bindings, environment variables, and execution workspace behaviour — the create dialog only covers the minimum a project needs to exist.
 
 If the company has no projects yet, the list is replaced with a large illustration, the message *No projects yet.*, and its own **Create project** button.
 
@@ -198,6 +204,12 @@ Each project can define environment variables that are injected into agent runs 
 - Secret-valued variables are stored via the secrets store and rendered masked.
 - Project variables extend the environment an agent sees when it runs inside this project; they don't change anything at the company level.
 
+### Project environment
+
+When [Environments](../../experimental/environments.md) are turned on, the Configuration tab has an **Environment** row. It decides where new runs for this project's tasks go. A new project starts on the environment it was created in, so its runs go there even if an agent has its own default, and a later change to an agent's or the instance default doesn't move them. Switch it to **Use agent default** and each run uses the agent's own environment, then the instance default. Pick another environment and new runs in this project go there instead. As the note under it says, it *"Applies only to this project. Agent and company defaults stay unchanged."* Other projects keep their own choice.
+
+The list only offers environments that can use the project's current storage. If the saved environment is no longer one of them, the row shows **Unavailable environment**. A change applies to runs that start after you save it. A run that has already started keeps its environment. On a task's workspace card, an environment that comes from the project is marked **· project default**.
+
 ### Execution workspace configuration
 
 When isolated workspaces are enabled, the Configuration tab shows an **Execution Workspaces** section with the per-project knobs:
@@ -208,7 +220,6 @@ When isolated workspaces are enabled, the Configuration tab shows an **Execution
 
 Click **Show advanced checkout settings** for the rest:
 
-- **Environment** — saves an environment choice on the project, and the task's workspace card shows it (only shown when environments are enabled and more than one is available). It doesn't pick where runs go: a run uses the agent's override, then the instance default. See [Environments](../../experimental/environments.md).
 - **Base ref** — the git ref (branch, tag, or commit) new isolated workspaces branch from.
 - **Branch template** — the naming convention Paperclip uses for new branches (for example, a template that includes the task identifier).
 - **Worktree parent dir** — where Paperclip places new git worktrees on disk.

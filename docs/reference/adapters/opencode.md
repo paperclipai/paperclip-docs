@@ -94,7 +94,7 @@ Paperclip wakes an OpenCode agent for a heartbeat when it's given work, and new 
 Between heartbeats, the session carries over like this:
 
 - **On `opencode_local`,** Paperclip resumes the OpenCode session with `--session` when the stored session `cwd` matches the current `cwd`. If the directory moved, a fresh session starts.
-- **On Paperclip Runner,** the Runner records the native session identity and recovers through OpenCode's supported session-load path. Recovery rechecks the saved provider, environment, credential and task authority, and it isn't a guarantee that every interrupted operation resumes. Under the **Automatic** [Runner lifecycle](/reference/adapters/paperclip-runner/#runner-lifecycle), a local OpenCode agent with no managed connection stays warm for 5 minutes after a run.
+- **On Paperclip Runner,** the Runner records the native session identity and recovers through OpenCode's supported session-load path. Recovery rechecks the saved provider, environment, credential and task authority, and it isn't a guarantee that every interrupted operation resumes. Under the **Automatic** [Runner lifecycle](/reference/adapters/paperclip-runner/#runner-lifecycle), a local OpenCode agent with no managed connection stays warm for 5 minutes after a run. In a sandbox environment whose provider supports reuse, an OpenCode agent with no managed connection keeps its sandbox warm between runs too, so a follow-up doesn't upload the whole workspace again.
 
 To start clean on the next heartbeat, open **More actions (⋯)** in the agent header and choose **Reset Sessions**, or use **clear session for these tasks** on a run's page.
 

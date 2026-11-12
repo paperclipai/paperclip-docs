@@ -1,18 +1,18 @@
 ---
 paperclip_version: v2026.1012.0
 seo_title: Delegation: How Work Reaches Agents
-seo_description: Set a goal, approve a plan, and the CEO breaks it into tasks and assigns them. What you own, what the CEO handles, and the agent-to-agent guardrails.
+seo_description: Set a goal, approve a plan, and the CEO carries it out or hands tasks to your team. What you own, what the CEO handles, and the agent guardrails.
 ---
 
 # Delegation
 
-One of the most powerful things about Paperclip is that you don't have to manage work directly. You set a goal, approve a plan, and the CEO automatically breaks that goal into concrete tasks and assigns them to the right agents. This is delegation — and understanding how it works helps you know when to act and when to let the system run.
+One of the most powerful things about Paperclip is that you don't have to manage work directly. You set a goal, approve a plan, and the CEO carries it out. When the plan hands work to the team, the CEO turns it into concrete tasks and assigns them to the right agents. This is delegation — and understanding how it works helps you know when to act and when to let the system run.
 
 ---
 
 ## How automatic delegation works
 
-When you set a company goal, the CEO doesn't just acknowledge it and wait. On its next heartbeat, it reads the goal, forms a strategy, and submits it to your approval queue. Once you approve, delegation begins:
+When you set a company goal, the CEO doesn't just acknowledge it and wait. On its next heartbeat, it reads the goal, forms a strategy, and submits it to your approval queue. When the plan you approve assigns work to others, delegation looks like this:
 
 ```
 You set a company goal
@@ -30,7 +30,9 @@ Reports execute + post updates in task comments
 CEO monitors progress + escalates blockers to you
 ```
 
-Each step is traceable. Every task links back to the company goal through a parent hierarchy, so you can always see why work is happening.
+Each step is traceable. Tasks created under a parent link back to the company goal through that hierarchy, so you can see why work is happening.
+
+Accepting a plan doesn't, by itself, mean new tasks. When you accept a plan on a task, the agent is told to carry it out on that same task, and to follow any task assignments the plan explicitly includes. If you want work split across agents, say so in your request or in the plan before you approve it. (A plan you approve in an [Agent Chat](../../experimental/agent-chat.md) conversation is different: the agent hands it off to new tasks rather than working in the chat.)
 
 ---
 
@@ -38,9 +40,9 @@ Each step is traceable. Every task links back to the company goal through a pare
 
 | What you do | What the CEO does automatically |
 |---|---|
-| Set the company goal | Break the goal into tasks |
+| Set the company goal | Carry out the approved plan |
 | Approve strategy proposals | Assign tasks to the right reports |
-| Approve hire requests | Create subtasks when work needs more granularity |
+| Approve hire requests | Create subtasks when the approved plan calls for them |
 | Monitor the dashboard | Hire new agents when the team lacks capacity (pending your approval) |
 | Review completed work | Monitor progress each heartbeat |
 | Intervene when things stall | Escalate blockers to you when it can't resolve them |
@@ -113,7 +115,7 @@ CEO
     └── Content Writer
 ```
 
-The CEO assigns high-level tasks to the CTO and CMO. They break those down and assign subtasks to their own reports. You only interact with the CEO — the rest runs automatically.
+The CEO assigns high-level tasks to the CTO and CMO. When the work calls for it, they break those down and assign subtasks to their own reports. You only interact with the CEO — the rest runs automatically.
 
 ### Hire-on-demand
 
@@ -203,6 +205,7 @@ If you've set a goal but nothing seems to be happening, work through these commo
 | Check | What to look for |
 |---|---|
 | **Approval queue** | Is there a strategy approval waiting for your review? This is the most common reason — the CEO has submitted a plan and is waiting for sign-off. |
+| **Plan scope** | Did the plan you accepted on the task assign work to other agents? If not, the CEO is told to do the work on that task itself rather than create new ones. Ask for the split you want and accept a revised plan. |
 | **Goal is set** | Go to the Goals section of your company. If no goal exists, the CEO has nothing to work from. |
 | **CEO heartbeat** | Is the CEO's heartbeat enabled? Open the CEO's **Advanced** page and check that `runtimeConfig.heartbeat.enabled` is `true` (see [Heartbeat settings on an agent](../projects-workflow/routines.md#heartbeat-settings-on-an-agent)). Then click **Runs** under **Audit** in its side menu and check that recent runs appear. |
 

@@ -48,11 +48,11 @@ Want to hand off work right away? A **New task** button sits at the top, just ab
 
 Looking for something? Click the search icon beside the organization menu, at the very top of the sidebar. It's there when the sidebar is collapsed too, and it opens the same quick search as ⌘K (Ctrl+K), covering tasks, agents, and projects.
 
-Other pages live under **More**: **Search**, **Dashboard**, **Projects**, **Routines**, **Artifacts**, **Agents**, **Skills**, **Connectors**, **Audit**, and **Settings**, plus **Cases** when that experiment is on. Hover any of them and click the pin to add it to the **Pinned** section below **More**. To take one back off, hover it and click its unpin icon.
+Other pages live under **More**: **Search**, **Dashboard**, **Projects**, **Routines**, **Artifacts**, **Agents**, **Skills**, **Connectors**, **Audit**, and **Settings**, plus **Cases** when that experiment is on. Hover any of them and click the pin to add it to your pinned links, which sit just after **Inbox** and above **More**. To take one back off, hover it and click its unpin icon.
 
 You can pin agents too, from the chat [contact list](agent-chat.md#opening-a-chat) or the **Agents** list. A pinned agent opens straight into your chat with it. Pages and agents share one list, in the order you pinned them, and you can drag a row by its grip to reorder it (or use the keyboard on the grip). Pins are saved in this browser, for your account, and a pinned agent only shows while its company is selected.
 
-Below that, **Recents** mixes the tasks you've opened, your agent conversations, and projects you've visited in this session, newest first. Chats show the agent's avatar and name. Expand a project there to see its most recently updated tasks without leaving the page. The list scrolls on its own, so a long history doesn't crowd the rest of the sidebar. It only appears once it has something to list, and it's hidden while the sidebar is collapsed.
+Below **More**, **Recents** mixes the tasks you've opened, your agent conversations, and projects you've visited in this session, newest first. Chats show the agent's avatar and name. Expand a project there to see its most recently updated tasks without leaving the page. The list scrolls on its own, so a long history doesn't crowd the rest of the sidebar. It only appears once it has something to list, and it's hidden while the sidebar is collapsed.
 
 On a phone, the bottom bar carries **Chat**, **Tasks**, **Inbox**, and **New task**.
 

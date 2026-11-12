@@ -75,6 +75,8 @@ The wizard finishes by creating your first task, and the agent opens it with a q
 
 If you choose the interview, the agent asks its questions, saves a plan, and asks you to approve it. Approving a plan for real work starts that work, so you won't be asked to approve the same thing twice. If you only want a plan, say so, and the agent stops once the plan is approved. Hiring rules and budgets still apply either way.
 
+If you have one thing in mind, the agent proposes doing it right on your first task and asks you to accept the scope. Once you accept, it does the work there and saves the result on that task. It only opens a separate task when the proposal you accepted said it would.
+
 With [Agent Chat](../../experimental/agent-chat.md), you can ask the agent to run the interview in chat instead. The questions move there, so you only ever answer one card. If the task has nothing else waiting on it, it closes itself with a note that onboarding continues in chat.
 
 Optional in-app announcements wait until your first task is done or cancelled. After that, on desktop, they sit in the sidebar above your account menu, so they never cover the task you're reading.

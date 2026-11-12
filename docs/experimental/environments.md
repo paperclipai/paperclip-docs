@@ -6,7 +6,7 @@ seo_description: Run agents somewhere other than the Paperclip host. Define name
 
 # Environments
 
-By default, agent runs execute on the Paperclip host itself. **Environments** let you define named, reusable execution targets — a remote machine over SSH, or a sandbox from a provider plugin — and assign them per instance or per agent. Each environment carries its own configuration and, for sandbox environments, supports connection probing and reusable custom images.
+By default, agent runs execute on the Paperclip host itself. **Environments** let you define named, reusable execution targets — a remote machine over SSH, or a sandbox from a provider plugin — and assign them per instance, per agent, or per project. Each environment carries its own configuration and, for sandbox environments, supports connection probing and reusable custom images.
 
 ![Environment management in instance settings](../user-guides/screenshots/light/experimental/environments.png)
 
@@ -34,7 +34,9 @@ The **Environments** tab in **Settings** is always visible, but until you flip t
 Then route work onto it:
 
 - **Per agent** — the agent configuration form gains an **Environment override** picker (*"Default: …"* plus each environment as `name · driver`).
-- **Per project** — project configuration's execution-workspace settings gain an **Environment** dropdown. This one lives inside the isolated-workspaces controls, so it also needs [Isolated Workspaces](isolated-workspaces.md) enabled and more than one selectable environment. The dropdown doesn't currently pick where runs go: a run uses the agent's override, then the instance default.
+- **Per project** — project configuration gains an **Environment** dropdown. Pick an environment and new runs for that project's tasks go there, ahead of the agent's override and the instance default. Set it to **Use agent default** to let the agent decide. The choice belongs to that one project: it doesn't change the agent, other projects, or the instance default. It only lists environments that can use the project's storage. See [Project environment](../guides/projects-workflow/projects.md#project-environment).
+
+When you create a project, it starts out in your default environment and keeps it, so that project's runs don't follow a later change to an agent's override or the instance default. Switch the project to **Use agent default** if you want them to. If your environments can't all share the same project storage, the **Create project** dialog lets you pick one under **Available in**.
 
 ### Custom sandbox images
 

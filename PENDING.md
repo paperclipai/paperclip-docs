@@ -2,31 +2,32 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1106.0` (`d69631b0`, on master) → parent master `37808f2a` (@ 2026-11-10T10:46Z). 24h quarantine applied (cutoff 2026-11-10T11:00Z). Master HEAD at run time was `bc453342`.
-- **Compare truncation:** 0 truncated leaves (cumulative: 96 leaves, 1,785 commits, 6,584 files; increment: 184 commits, 856 files).
-- **Merge main → nightly:** `68be933` (#176, Codex and OpenCode adapter copy refresh) conflicted with nightly's post-tag edits to both pages. Resolved by taking main's new structure and wording, then re-applying nightly's post-tag facts on top: no **Runner** setting in the agent form (`runner: "legacy"` / `--runner legacy` instead), `gpt-6.1-sol` default and the retired-model table, GitHub broker capability in the shell, `acpx_auth_required`, the Automatic Runner lifecycle warm period, image generation, and two extra OpenCode model ids. Review also scoped main's "full-auto by default" Permissions copy to the CLI engine (ACP is the default and keeps the sandbox), and qualified the default-model wording (agent form and Runner pre-fill `gpt-6.1-sol`; an API-created `codex_local` agent with no model uses the Codex CLI default).
-- **Already on nightly:** drafts for `d69631b0..3963d385`. This run covers the 184 newer commits, `3963d385..37808f2a`.
-- **Verification:** authors and reviewers read only a snapshot pinned to `37808f2a`. `verify-edit` at that SHA: 536 claims across 29 pages (`source: snapshot`, no warnings). The 18 unverified records are all on lines that predate this run (JSON example placeholders like `secret-id`, and pages with no matching `packages/adapters/<name>` directory). Two rounds of fresh reviewers then checked every added line against code: round one found 21 defects, round two (which also re-read round one's fixes and main's kept copy) found 9 more. All are fixed. Nothing was run against a live instance.
-- **Auto-merge tier:** nothing this run. No env vars were added or removed in the window (the only new names are test-only).
+- **Window (cumulative):** base release tag `v2026.1106.0` (`d69631b0`, on master) → parent master `bc453342` (@ 2026-11-11T10:42Z). 24h quarantine applied (cutoff 2026-11-11T11:10Z). Master HEAD at run time was `559551e9`.
+- **Compare truncation:** 0 truncated leaves (cumulative: 101 leaves, 1,946 commits, 7,645 files; increment: 161 commits, 1,656 files).
+- **Merge main → nightly:** clean. It brought in #183 (legacy backlink redirects).
+- **Already on nightly:** drafts for `d69631b0..37808f2a`. This run covers the 161 newer commits, `37808f2a..bc453342`.
+- **Verification:** authors and reviewers read only a snapshot pinned to `bc453342`. `verify-edit` at that SHA: 527 claims across 29 pages (`source: snapshot`, no warnings). The 17 unverified records are all on lines that predate this run: the `_DRY_RUN` suffix in `workspaces.md`, and placeholder values on the adapter pages where the checker finds no `packages/adapters/<name>` directory. Two rounds of fresh reviewers then checked every added line against code: round one found 21 defects, round two found 15 more. All are fixed. An orchestrator pass then found the removed multi-plugin storage refusal still described on two pages. Nothing was run against a live instance.
+- **Drift:** none (`check-drift` against `bc453342`, `source: snapshot`, no warnings).
+- **Auto-merge tier:** nothing this run. No env vars or CLI commands were added or removed in the window.
 
-## Applied this run (`3963d385..37808f2a`)
+## Applied this run (`37808f2a..bc453342`)
 
-- **Agent interaction permissions** (#20411): new **Limiting how one agent works with other agents** in `roles-and-permissions.md`; `GET`/`PATCH /api/agents/{agentId}/interaction-permissions` in `api/agents.md` with the `agent_interaction_denied` and `agent_interaction_permissions_separate_endpoint` codes; `interaction-permissions` CLI commands in `cli/agent.md`.
-- **Agent grants** (#20323, #20349): `PATCH /api/agents/{agentId}/permission-grants` and `permission:grant` / `permission:revoke` CLI; agent-callable invite and join-request operations in `cli/access.md`; remote CLI login link uses the public origin (`cli-auth.md`).
-- **Agent roster filters** (#20317): **Model**, **Status**, **Harness**, **Connection** in `agents.md`.
-- **Plugin environment moves pause agents automatically** (#20375): `plugins.md`, `plugins/sdk.md`.
-- **Sign in to Codex and Claude on an agent computer** (#20417, #20410): **Choose a sign-in computer** in `agents.md`, `agentId` on adapter device login and setup tokens, plugin Login PTY lease contract in `sdk.md`.
-- **Retry** (#20283, #20310, #20338): every Retry starts work or says why; new `POST /api/issues/{issueId}/recovery-actions/confirm-run-stopped` and the **Confirm it stopped** flow; budget-held and unpriced-usage Retry waits; debug sections 15–17.
-- **Task API denials** (#20342, #20271): `blocking_cycle` names the existing order; `issue_status_change_live_run`.
-- **Failure causes** (#20483, #20478): **Failures with a named cause** in `adapters/troubleshooting.md`, `failureCause` in `api/activity.md`, `interruption.setupFailure`, the failed workspace setup command on the task page.
-- **Model rejections** (#20513, #20488): Claude and Codex API-key unknown models show **Model unavailable** and name the model (`rejectedModel`).
-- **Runner** (#20399, #20463): OpenCode tool-result image notices; Claude shell `git`/`gh` keep managed GitHub access.
-- **Workspaces and storage** (#20269, #20442, #20456, #20299, #20313): provision command fallback to `scripts/provision-worktree.sh` (no longer run before every turn); saved copies read file by file; new debug section 23 for `storage_unavailable` and a note in `deploy/storage.md`.
-- **Costs** (#20254): unproven accounting never holds the company; two "usage has no price" messages.
-- **Smaller items:** saved answers reach dependency-blocked tasks (#20363), native reviewer approves its stage (#20373), new tasks wait for a manually paused assignee (#20281), chat messages held at an agent's daily limit (#20292), Markdown and screenshots in queued messages (#20367), tool approvals survive OAuth refresh (#20340), remote MCP 30-second default (#19768), invite tokens kept out of logs (#20360, #20343), plugin-managed routine guidance (#20409).
+- **Gateway tokens an agent can't see** (#20581, #20613): an agent can create and revoke gateway client tokens but never receives the value. The person reveals it once on the gateway's **Tokens** tab. New `POST /api/tool-gateway/gateway-tokens/{tokenId}/reveal`, `pendingReveal`/`tokensPath` on agent-created tokens, six reveal reason codes (`tool-gateway.md`, `access-model.md`).
+- **Each project keeps its own environment** (#20587, #20651): **Available in** at creation, the **Environment** row and **Use agent default** in project configuration, the new run environment order, storage that follows the environment, `environmentId` and `expectedStorageProviderPluginId`, and `GET /api/companies/{companyId}/project-environments` (`projects.md`, `workspaces.md`, `environments.md`, `goals-and-projects.md`). A plugin's `defaultForProjects` no longer attaches new projects, and the "Multiple workspace storage plugins claim the project default" refusal is gone (`plugins.md`, `sdk.md`).
+- **Pull request previews** (#20593, #20654): hover or focus a GitHub PR link for its status card. `GET /api/companies/{companyId}/link-preview` (`task-chat.md`, `github.md`, `companies.md`, `issues.md`).
+- **Task chat** (#20583, #20553, #20590): why a queued-message edit wasn't saved, discarding before the server confirms, and review cards that open their document.
+- **Plugins** (#20657, #20762): `agentEnvironmentDriver` on agent views, `ctx.projects.readSnapshots`, the `admission_rejected` task result, and `ctx.entities.list` scope filters (`sdk.md`, `plugins.md`, `api/agents.md`).
+- **Remote sandboxes stay warm by default** (#20048): an Automatic Codex, OpenCode, or Claude agent keeps a reusable sandbox on Daytona, CreateOS, or boxd (`paperclip-runner.md`, `codex.md`, `opencode.md`, `sandbox-providers.md`). Daytona force-stops a sandbox stuck stopping (#20609).
+- **Debug guide** (#20692, #20757, #20729, #20639, #20678, #20758, #20676): usage-limit waits that read dated resets and Retry automatically, `native_provider_state_incompatible` and `native_provider_session_closed`, sandbox disk full, cleanup-gate Retry, and storage holds with no automatic retry. A run log that was never written answers `404` (#20539, `storage.md`).
+- **Privacy** (#20595, #20589): artifact search results and the artifacts list follow task privacy; agents can run private tasks parked in **My private tasks**.
+- **Cases** (#20686): closing or reopening a case with a primary task needs that task's agent, and `done` goes through the terminal handoff.
+- **Fewer subtasks** (#20362): approving a plan on a task no longer implies new tasks, onboarding works on the first task, and the visibility-denial example asks the board to widen visibility.
+- **Smaller items:** pinned sidebar links sit above **More** (#20369); termination returns to the agent list (#20667).
+- **Stale embedded skills** (not in this window): `task-planning`, `wireframe`, and `release-announcement` re-embedded from the pin, with their descriptions, lists, hashes, and sizes. They dated from before the tag, so they're safe for `main` too.
 
 ## Applied in earlier runs (still on nightly, unreleased)
 
+- `3963d385..37808f2a` (#181, #182): agent interaction permissions, agent grants, roster filters, sign-in computers, Retry says why, failure causes, model rejections, workspace storage waits, Codex/OpenCode legacy runner and plugin environments.
 - `2aac7d29..3963d385` (#180): confirm a held resource's server stopped, stalled children and blockers wake the parent, lost-wake backstop, CEO hiring denial, board-only budgets and denials, environment delete, GitHub default owner, skills `update-diff`.
 - `d2efe339..2aac7d29` (#178): subtask workspaces, budget admission, Runner lifecycle Automatic, task chat steering and Compact now, messages saved through holds, run recovery, Codex image generation, personal AI account defaults, Slack DM threads, API reference updates.
 
@@ -53,30 +54,14 @@ None. No entry left the cumulative window, and there are no revert commits in th
 
 ## Not documented this run
 
-- **Internal recovery and native-runtime work**, which is most of the window: restart continuations, lease takeover, governed-wait settlement, workspace migration and cohort proofs, ACPX cancel settlement.
-- **Restart-chaos and perf work** (#20406, #20447, #20437, #20418, #20413, #20388, #20389, #20355, and the rest of the `perf`/`test(chaos)` commits).
-- **Stall and exit codes with no documented list:** `native_runner_process_exited` (#20259), `runner_event_commit_stalled` (#20235).
-- **Agent-facing guidance only:** chat-agent prompt tweaks (#20334, #20306, #20261, #20245, #20230, #20239, #20236, #20267, #20265, #20301, #20328, #20324), API search wording (#20354, #20382), `call_api` `responseText` (#20344), API catalog metadata (#20252).
-- **GitHub star prompt** (#20453): a one-time dialog for self-hosted users after 5 done tasks; no natural home.
-- **Observability spans** (#20396): no page lists span names.
+- **Internal recovery and native-runtime work**, which is most of the window: restart continuations, lease takeover, warm backups, finalization retry budgets, ACPX resend, run-event waits, same-boot stalls.
+- **Perf and test work**: indexes, cached task opens, batched reads, live-event sharing, evals, restart-chaos.
+- **Slack form custody** (#19825): durable form receipts for Paperclip Cloud; no setup or UI change.
+- **Agent-facing only:** missing tool-input scope (#20272/#19774), `request_human_input` payload forms (#20588), the re-check-before-blocking correction (#20779).
+- **Responsive breadcrumbs with parent tasks** (#20366): no page describes breadcrumb contents.
 
-## ⚠ Drift (checked against master `37808f2a`)
+## Follow-ups found this run (pre-existing, not from this window)
 
-None (`source: snapshot`, no warnings). `sync:check` reports two `Verify:` candidates (`PATCH /api/agents/{agentId}/interaction-permissions`, `POST /api/issues/{issueId}/recovery-actions/confirm-run-stopped`) because it reads the old `last_seen` SHA (`3963d385`), before those routes existed. Both exist at `37808f2a`.
-
-## Verification notes
-
-`verify-edit` at `37808f2a`: 536 claims across 29 pages (`source: snapshot`, no warnings); 18 unverified, all on pre-existing lines (example placeholders and adapter-directory misses).
-
-## Open questions from this run
-
-- **Main's #176 copy, still unconfirmed upstream:** its PR listed open items (real-run proof for E17/E18; **Run test** vs **Test Environment**; **Clear session for these tasks**). Nightly keeps main's wording. **Run test**, **Test your agent** and *clear session for these tasks* all exist in the UI code at `37808f2a`; the real-run proof is still outstanding.
-- **Agent roster empty states:** which of the two empty-state messages shows where was inferred from `Agents.tsx` vs `AgentBulkRoster.tsx`.
-- **Grant route callers:** a local trusted board login skips the `users:manage_permissions` check on `permission-grants`, and agents get the generic board-access 403. Not spelled out on the page.
-- **Section 15 gap:** the `saved_work_recovery_refused` retry-wait message isn't listed in debug section 15.
-- **Agent Chat on other runners:** the held-reply rule is checked on the live completion path for every runner, but restart recovery only covers Paperclip Runner turns, and the page now says so. Unconfirmed whether non-native Agent Chat turns ever hit the held case.
-- **Agent imports and budgets:** an agent's company import can create agents whose `budgetMonthlyCents` comes from the package, but no budget policy is created. `roles-and-permissions.md` calls the approval-gated hire "the one opening"; left as is.
-- **Environment delete:** the server also refuses a delete while a warm native runner session is active. Not documented.
-- **Old gaps noticed, not from this window:** `DELETE /api/environments/:id` in `instance-admin.md` doesn't mention `?destroyReusableSandboxLeases=true`; `api/secrets.md` still says the picker recognises a UUID-shaped value, though it now saves a binding object.
-- **Carried over:** debug section 22 hold-lift starts in every status; `task-chat.md` countdown on an abandoned edit; Codex built-in image tool on ChatGPT sign-in; moving `coordinator-workspace.md` and `agent-chat.md` out of Experimental; release-note callouts (Google Workspace toggle, Automatic clearing `per_turn`); managed plugin environment edit page bug; `your-first-company.md` sign-in details; **Harness** routing from Cursor Cloud.
-- **Screenshots:** see `SCREENSHOTS_PENDING.md`. Most of the set needs reshooting at the next release.
+- `tool-gateway.md` mint table: `ownerNote` is optional with no minimum, and `allowedActions` accepts six actions (adds `resources/list`, `resources/read`, `prompts/list`, `prompts/get`), with the service default covering all six.
+- `api/agents.md` permission row for `environments:manage` says environment reads need instance admin; the read routes also accept company membership.
+- `check-drift` doesn't compare embedded `skill-source` blocks with the catalog, which is how three skill pages went stale. Worth adding a class.

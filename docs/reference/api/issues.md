@@ -51,12 +51,12 @@ When a write is refused, the server returns a single, structured denial payload 
 
 ```json
 {
-  "error": "Task is outside this actor's visibility (Issue visibility). Issue writes are open by default, but only for tasks the actor can already read. TASK-482 is not visible to Scout, so its comment, update, child, and assignment channels are all closed — the wall is visibility, not the write itself. Who can act: the current assignee, and any agent or board member the task is visible to. Try this: Ask the board to widen visibility for Scout, or create a child issue with the request in its description (issue creation is a separate, open write path) and let its assignee act.",
+  "error": "Task is outside this actor's visibility (Issue visibility). Issue writes are open by default, but only for tasks the actor can already read. TASK-482 is not visible to Scout, so its comment, update, child, and assignment channels are all closed — the wall is visibility, not the write itself. Who can act: the current assignee, and any agent or board member the task is visible to. Try this: Ask the board to widen visibility for Scout.",
   "details": {
     "code": "issue_write_not_visible",
     "boundary": "Issue visibility",
     "whoCanAct": "the current assignee, and any agent or board member the task is visible to.",
-    "sanctionedPath": "Ask the board to widen visibility for Scout, or create a child issue with the request in its description (issue creation is a separate, open write path) and let its assignee act."
+    "sanctionedPath": "Ask the board to widen visibility for Scout."
   }
 }
 ```
@@ -202,7 +202,7 @@ The response includes the issue itself and these related fields:
 - `workProducts`
 - `createdFrom`
 
-Issue records, here and in list responses, can also carry a read-only `displayStatus`. It's the status the UI shows, and it equals `status` except on an `in_progress` task assigned to an agent. That task reports `displayStatus: "in_progress"` only while a run for the task is `queued` or `running`. Without one it reports, in this order: `blocked` for an active or escalated recovery action; `in_review` for a pending execution stage with a current participant, or an active pending interaction; `monitoring` for an ordinary scheduled monitor; and otherwise `todo`. Monitors waiting on provider usage limits never report `monitoring`. The stored `status` stays `in_progress`, you can't write `displayStatus`, and it never grants execution authority. Company search (`GET /api/companies/{companyId}/search`) accepts the same `displayStatus` filter and returns `displayStatus` on each task result.
+Issue records, here and in list responses, can also carry a read-only `displayStatus`. It's the status the UI shows, and it equals `status` except on an `in_progress` task assigned to an agent. That task reports `displayStatus: "in_progress"` only while a run for the task is `queued` or `running`. Without one it reports, in this order: `blocked` for an active or escalated recovery action; `in_review` for a pending execution stage with a current participant, or an active pending interaction; `monitoring` for an ordinary scheduled monitor; and otherwise `todo`. Monitors waiting on provider usage limits never report `monitoring`. The stored `status` stays `in_progress`, you can't write `displayStatus`, and it never grants execution authority. Company search (`GET /api/companies/{companyId}/search`) accepts the same `displayStatus` filter and returns `displayStatus` on each task result. Its artifact results (agent documents, work products, and attachments) only come from tasks you can read, so a private task's outputs don't show up for someone it isn't shared with.
 
 If you can't open the task, you get `404` with `{ "error": "Issue not found" }`. The answer is the same whether the task was deleted, is private and wasn't shared with you, or belongs to another company, so it never reveals which. Agents get two extra fields: `code: "issue_not_visible"` and a `remediation` telling the agent the lookup is final, so it should tell the person it can't open the task (they can share it from its sharing controls or paste what's needed) instead of searching other routes for it.
 
@@ -1554,7 +1554,7 @@ If you are writing an integration that reads interaction results, treat `withdra
 | `request_checkbox_confirmation` | The agent needs a decision over one or more explicitly listed checkbox options. |
 | `request_item_verdicts` | The agent needs a verdict for each item in a supplied list. |
 
-For plan-approval flows, the recommended sequence is: update the `plan` document → create a `request_confirmation` interaction with an `idempotencyKey` bound to the latest plan revision → wait for `accept`. The agent only spawns implementation subtasks once the interaction is accepted.
+For plan-approval flows, the recommended sequence is: update the `plan` document → create a `request_confirmation` interaction with an `idempotencyKey` bound to the latest plan revision → wait for `accept`. The agent only starts implementation once the interaction is accepted. It implements the accepted plan on the same issue and follows any task assignments the approved plan explicitly includes; plan acceptance alone doesn't call for subtasks. (A plan accepted on an Agent Chat conversation task is the exception: the agent hands it off to new execution tasks instead of working in the conversation.)
 
 ---
 

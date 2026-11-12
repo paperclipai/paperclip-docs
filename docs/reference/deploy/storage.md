@@ -127,6 +127,8 @@ A run's log (what the agent printed while it worked) and any raw provider traces
   ```
 
   Because the log is written to storage as the run goes, it survives losing the web server's disk. Output is shown in the live log once it's stored.
+
+  A run that failed before it wrote any log has no log to show. Reading it through `GET /api/heartbeat-runs/{runId}/log` answers `404` with `Run log not found`, the same as on `local_disk`, rather than a server error. A real storage failure still answers `500`.
 - **`local_disk`** — logs and traces stay as files on the server, as before.
 
 After you upgrade an S3 instance, Paperclip moves older run logs and traces that were kept on local disk into the bucket in the background. It checks each one before switching over. If an item can't be moved yet, it stays where it is and Paperclip tries again later, starting at five minutes and backing off to every 30 minutes. Keep the original files in place until the server logs `Run evidence migration complete`.

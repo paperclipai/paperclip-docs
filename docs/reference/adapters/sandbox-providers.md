@@ -42,7 +42,7 @@ Each run's workspace is a `paperclip-workspace` folder in the machine's home dir
 
 ### Reusable leases (opt-in)
 
-Leave `reuseLease` off and every run gets a fresh machine that's deleted when the run releases it. Turn it on and the release suspends the machine instead. The next run resumes the same machine, waking it from whichever state it's in. Paperclip turns off boxd's own auto-suspend on the machines it creates, so the machine is suspended only when a run releases it.
+Leave `reuseLease` off and every run gets a fresh machine that's deleted when the run releases it, unless the agent's **Runner lifecycle** is **Automatic** and its harness is Codex, OpenCode, or Claude: those runs can keep a reusable, warm machine by default (see [Runner lifecycle](paperclip-runner.md#runner-lifecycle) for the exact conditions). Turn it on and the release suspends the machine instead. The next run resumes the same machine, waking it from whichever state it's in. Paperclip turns off boxd's own auto-suspend on the machines it creates, so the machine is suspended only when a run releases it.
 
 A few edge cases:
 
@@ -95,9 +95,11 @@ The current published Daytona SDK dependency is `@daytonaio/sdk`.
 
 ### Reusable leases (opt-in)
 
-Set `reuseLease: true` to keep a warm sandbox around between runs. Instead of deleting the sandbox when the lease is released, the driver stops it, and a later run resumes the same sandbox with Daytona's start call. Because adapter installation and the workspace bootstrap survive between runs, this skips the create-and-bootstrap cost that an ephemeral sandbox pays every time. Leave `reuseLease` at its default of `false` and each run gets a fresh sandbox that's deleted on release, same as before.
+Set `reuseLease: true` to keep a warm sandbox around between runs. Instead of deleting the sandbox when the lease is released, the driver stops it, and a later run resumes the same sandbox with Daytona's start call. Because adapter installation and the workspace bootstrap survive between runs, this skips the create-and-bootstrap cost that an ephemeral sandbox pays every time. Leave `reuseLease` at its default of `false` and each run gets a fresh sandbox that's deleted on release — unless the agent's **Runner lifecycle** is **Automatic** and its harness is Codex, OpenCode, or Claude. Those runs can keep a reusable, warm sandbox by default (see [Runner lifecycle](paperclip-runner.md#runner-lifecycle) for the exact conditions).
 
 Reuse is only considered safe when the run matches the lease that created it. The driver writes a sentinel file (`.paperclip-runtime/reusable-sandbox-lease.json`) into the workspace and gates resume on a fingerprint built from these dimensions: `companyId`, `environmentId`, `agentId`, `executionWorkspaceId`, `adapterType`, and the resource-shaping config (`image`, `snapshot`, `target`, `cpu`, `memory`, `disk`, `gpu`). If any of these change — say you bump the requested CPU or swap the image — the old lease no longer matches, so it's expired and a fresh sandbox is provisioned rather than resuming a mis-sized one. Reuse also needs both `agentId` and `executionWorkspaceId` to be present; runs without them stay ephemeral.
+
+Sometimes a retained sandbox gets stuck on its way down: a process inside ignores the graceful stop, and Daytona keeps reporting the sandbox as `stopping`. You don't have to step in. When the driver is about to start a retained sandbox and has watched it sit in `stopping` for 30 seconds, it forces the stop once and then starts the sandbox, all within the same start deadline. The force stop kills whatever was still running, but a stop keeps the sandbox's disk, so your retained workspace survives. If Daytona refuses the force stop, the driver just keeps waiting for the sandbox to settle, as it did before. No configuration is needed. In traces, the wait shows up as a `lease.wait_transition` span and the forced stop as a `lease.force_stop` span.
 
 ### Quota-safe auto-archive (default)
 
@@ -123,7 +125,7 @@ Beyond `reuseLease`, two fields control how the `paperclip_runner` process lives
 
 | Field | Default | Notes |
 |---|---|---|
-| `runnerLifecycleMode` | `"inherit"` | One of `inherit`, `per_turn`, or `warm`. `inherit` uses the agent's own setting. `warm` keeps `runnerd` and the sandbox available between turns instead of tearing them down each turn. `per_turn` reclaims them after every turn. |
+| `runnerLifecycleMode` | `"inherit"` | One of `inherit`, `per_turn`, or `warm`. `inherit` uses the agent's own setting. When nobody chose a lifecycle (the agent's **Runner lifecycle** is **Automatic**), a Codex, OpenCode, or Claude agent defaults to warm on a provider that keeps reusable sandboxes, though with a managed connection only Codex does (see [Runner lifecycle](paperclip-runner.md#runner-lifecycle)). `warm` keeps `runnerd` and the sandbox available between turns instead of tearing them down each turn. `per_turn` reclaims them after every turn. |
 | `runnerIdleTimeoutMs` | `300000` (5 min) | How long an idle warm runner stays alive before it checkpoints and suspends. Validated between `1000` and `86400000` ms. |
 
 `warm` trades a little idle cost for lower per-turn latency, since the runner and sandbox don't have to spin back up between turns. `runnerIdleTimeoutMs` is the backstop that suspends a warm runner nobody is using.

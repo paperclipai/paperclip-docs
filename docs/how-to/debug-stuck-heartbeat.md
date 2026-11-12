@@ -110,6 +110,16 @@ A [Paperclip Runner](../reference/adapters/paperclip-runner.md) task can also st
 
 **Fix.** Act on the message: wait out a rate limit, add allowance, reconnect the account, or pick another model. The notice itself only explains the failure. Separately, when a run fails during startup and the provider reported a rate limit or usage limit, Paperclip waits that out before its next attempt. If it says *Paperclip will retry automatically.*, you can leave it alone. If **Retry** is there, click it once you've fixed the cause.
 
+**When the usage limit runs out mid-task.** If the provider ends a Runner agent's turn because the account's usage allowance ran out, the run shows **Usage limit reached** with *The model provider has reached its current usage limit. Try again after the limit resets.* You don't have to come back and click **Retry** yourself. Paperclip reads when the limit resets from the provider's message, including dated resets such as "resets Nov 12, 6pm (UTC)" that weekly limits use, and the task's recovery action tells you what happens next. The time is shown in UTC:
+
+| Recovery action says | What it means |
+|---|---|
+| *The provider usage limit resets at …. Paperclip will retry this task then; Retry starts it sooner if usage capacity is already restored.* | Paperclip retries the task for you once the limit resets. The automatic Retry uses the authority of the person who asked for the run, or the run's accountable user, and goes through the same checks as a click. If you've already raised the limit, click **Retry** to start sooner. |
+| *The provider usage limit resets at …. Retry the task after that time, or sooner if usage capacity is restored.* | The reset is more than eight days away (a monthly limit, say), or no user is accountable for the run, so Paperclip leaves the Retry to you. |
+| *Restore model provider usage capacity, then retry the task. The provider did not report when its usage limit resets.* | There's no reset to wait for. Restore capacity, then click **Retry**. |
+
+Paperclip retries at most three times in a row without a successful run in between, so a provider that keeps reporting resets that don't restore capacity doesn't loop. If it doesn't retry after it said it would, the action changes to *Paperclip did not retry this task after the provider usage limit reset because* followed by the reason, for example *the task changed* or *three automatic Retries in a row did not restore usage*, and ends *Retry the task when usage capacity is available.* **Retry** stays on the task either way.
+
 ---
 
 ## 9. A failed run still offers Stop
@@ -163,11 +173,12 @@ Waits for a busy AI connection or a remote Runner update behave the same way: th
 | Code | Message |
 |---|---|
 | `native_workspace_sync_out_retry_exhausted` | *Saving the workspace failed after 3 attempts. The agent's result is kept; follow the run's recovery action to repair the workspace.* It adds *Last cause:* when the failing step is known, for example `remote_workspace_capture_failed: stage=archive`. |
+| `native_workspace_sync_out_retry_exhausted` (sandbox disk full) | *Saving the workspace stopped because the sandbox disk is full. The agent's result is kept, and Paperclip saves the files again from the retained sandbox without repeating the agent's work; follow the run's recovery action if that cannot free enough space.* It ends with *Last cause:* and a `remote_workspace_sandbox_disk_full` cause. Paperclip stops at the first full-disk failure instead of trying three times, because nothing frees space between attempts. |
 | `native_workspace_sync_out_unrecoverable` | *The sandbox holding unexported workspace changes is unavailable, so its files could not be saved.* |
 | `native_finalization_retry_exhausted` | *Native run finalization failed after 3 attempts.* |
 | `native_run_failed` | *The native run ended in a failed state without a classified provider error. Inspect the run events for the last recorded step.* |
 
-**Fix.** Follow the recovery action on the task. See [Recovering saved files](../guides/day-to-day/issues.md#recovering-saved-files). If Paperclip's own attempts to export the files run out, the action moves to the board, and through the API its `nextAction` starts with *Automatic recovery of saved work stopped after* the attempt count and last failure code, and ends *Retry to try again; the agent will not repeat its work.* On the task, the control depends on the files' source. When Paperclip can verify it, use **Recover saved files**, or **Try file recovery again** if your earlier request failed. When it can't, the task explains why and shows the ordinary **Retry**. Either way, a new round of attempts starts without a new agent turn.
+**Fix.** Follow the recovery action on the task. See [Recovering saved files](../guides/day-to-day/issues.md#recovering-saved-files). When the sandbox disk is full, Paperclip's own recovery first deletes only inactive tool caches it can prove safe, then saves again. If the disk is still full, it doesn't keep repeating that save. The action goes to the board and reads *Saving the agent's files stopped because the sandbox disk is full. Paperclip deletes only inactive tool caches it can prove safe, and that did not free enough space. Automatic recovery does not repeat a save that fails the same way. Retry saves the files again. The agent's result is kept, and the agent will not repeat its work.* Click **Retry** to save the files again. If Paperclip's own attempts to export the files run out, the action moves to the board, and through the API its `nextAction` starts with *Automatic recovery of saved work stopped after* the attempt count and last failure code, and ends *Retry to try again; the agent will not repeat its work.* On the task, the control depends on the files' source. When Paperclip can verify it, use **Recover saved files**, or **Try file recovery again** if your earlier request failed. When it can't, the task explains why and shows the ordinary **Retry**. Either way, a new round of attempts starts without a new agent turn.
 
 ---
 
@@ -178,6 +189,15 @@ Waits for a busy AI connection or a remote Runner update behave the same way: th
 **Cause.** The run couldn't rejoin the provider session it expected to continue.
 
 **Fix.** Read the cause in the message. If a later run does start a new provider thread, it won't have that thread's earlier conversation, so check that the agent still has what it needs from the task.
+
+Two related failures stop at once and point you straight to **Retry**, instead of spending automatic attempts on a session that can't come back:
+
+| Code | Recovery action |
+|---|---|
+| `native_provider_state_incompatible` | *The current runner cannot restore this task's saved provider session, so retrying this run cannot succeed. Retry the task to continue in a fresh provider session with the same workspace. The earlier provider conversation is not carried over.* You can see this when a run in a new sandbox finds no saved Runner state for the session it was meant to continue. |
+| `native_provider_session_closed` | *The provider session closed after a turn start that may have reached the provider, and this run cannot reopen it. Retry starts a new run with a fresh provider conversation and the saved task context.* |
+
+Click **Retry**. It continues in a fresh provider session, so check that the agent still has what it needs from the task.
 
 ---
 
@@ -194,6 +214,7 @@ Waits for a busy AI connection or a remote Runner update behave the same way: th
 | *Retry is waiting for Paperclip to recover the saved files. Your message is saved.* | Use the controls in [Recovering saved files](../guides/day-to-day/issues.md#recovering-saved-files). |
 | *Retry is waiting for the previous environment to stop. Your message is saved.* | Wait. |
 | *Retry is waiting for the previous execution to finish cleanup. Your message is saved.* | Wait. It starts when the cleanup finishes. |
+| *The previous session is still shutting down. Your work is saved, and Paperclip finishes the cleanup automatically.* | Wait. This only shows while something is actually finishing that cleanup. When nothing is, the task offers **Retry** instead. |
 | *Retry is waiting for the previous execution to stop. Your message is saved.* | Wait. |
 | *Retry is waiting for the previous execution to finish recovery. Your message is saved.* | Wait. |
 | *Retry is waiting for Paperclip to verify that the previous execution stopped. Your message is saved.* | Wait. If Paperclip can't verify it by itself, the task asks a board operator to confirm instead. See [section 17](#17-task-asks-you-to-confirm-the-previous-server-stopped). |
@@ -343,6 +364,13 @@ Two other cases also protect a person's message. If a server restart loses the w
 **Cause.** The storage service was down, overloaded, timing out, or dropping connections, or it turned down the server's credentials because they had expired or been rotated. Paperclip already rides out short outages on its own: storage calls that a run can't do without keep trying for up to five minutes, small uploads are resent, and a download that breaks partway picks up where it stopped. Only an outage that outlasts that ends the attempt.
 
 **Fix.** Usually nothing. The task shows as working, without a **Retry** button, and Paperclip tries again about once a minute, up to 10 times. After a credential rejection, the server fetches fresh credentials from its usual credential source before the next try, so a key rotated in a credentials file or an instance role is picked up without a restart. Keys set as environment variables still need a restart. A plain *access denied*, or a server that can't load any credentials at all, isn't treated as a temporary outage and fails the run.
+
+Paperclip only promises an automatic retry when one is actually scheduled. If no storage retry gets scheduled, for example because the run is held for recovery under another failure code, or the retry was refused or replaced by a case handoff, nothing retries it, and the message says so instead:
+
+- *File storage was unavailable, so this attempt stopped before it could save its work. Paperclip is not retrying it automatically. Retry or send a message to continue.*
+- *File storage rejected Paperclip's storage credentials (they may have expired or been rotated), so this attempt stopped before it could save its work. Paperclip is not retrying it automatically. Retry or send a message to continue.*
+
+Once storage is back, click **Retry** or send a message. Runs saved by an earlier release with the retry promise under a different code read with these messages too.
 
 If storage still isn't back after every automatic try, the run's message changes to *File storage stayed unavailable or kept rejecting Paperclip's storage credentials through every automatic retry, so Paperclip stopped retrying this task. Check the storage service and its credentials, then Retry.* Fix the storage service or the credentials, then click **Retry**.
 

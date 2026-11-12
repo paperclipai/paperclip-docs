@@ -158,7 +158,7 @@ Request body:
 | `projectId` | no | Must belong to the company, or `null`. |
 | `parentCaseId` | no | Must belong to the company, or `null`. |
 
-Unknown fields are rejected. This route doesn't start a workflow or set a primary task — use [Start a handoff](#start-a-handoff) for that. A `projectId` that doesn't belong to the company, or a `parentCaseId` that doesn't (or that points at the case itself), comes back as `422 Unprocessable Entity` — for example `{ "error": "Project does not belong to company" }` or `{ "error": "A case cannot be its own parent" }`.
+Unknown fields are rejected. This route doesn't start a workflow or set a primary task — use [Start a handoff](#start-a-handoff) for that. When the upsert updates an existing case that has a primary task, a `status` change follows the same closing rule as [Update a Case](#update-a-case): agents close it with a done handoff, not here. A `projectId` that doesn't belong to the company, or a `parentCaseId` that doesn't (or that points at the case itself), comes back as `422 Unprocessable Entity` — for example `{ "error": "Project does not belong to company" }` or `{ "error": "A case cannot be its own parent" }`.
 
 ### Example
 
@@ -193,6 +193,7 @@ Notes:
 
 - Unknown fields are rejected.
 - Setting `status` to `done` or `cancelled` stamps `completedAt`; any other status clears it.
+- On a case with a primary task, an agent can't close it here. Moving such a case into or out of `done` or `cancelled` needs the same authority as a [done handoff](#start-a-handoff): only the agent assigned to the primary task, with ordinary permission to change that task, may cancel or reopen it. Any other agent gets the `403` ownership error described there, or `404` with `Task not found` if it can't see the primary task. Even that agent can't set `done` directly. It gets `422 Unprocessable Entity` with `{ "error": "Close a case that has a primary task with a terminal handoff to done" }`, so the case closes through the handoff and the task's normal completion gates. Board users, other status changes, and fact edits aren't affected.
 - `projectId`, `parentCaseId`, and every label id are validated against the company; a mismatch returns `422 Unprocessable Entity` (e.g. `{ "error": "One or more labels do not belong to company" }`).
 - `phase`, `workIssueId`, and assignment aren't editable here — they change only through [case handoffs](#case-handoffs).
 - When an agent run writes to a case, the run must still own its task. A Paperclip Runner run whose task has moved on (for example, after it handed the task off) gets `403 Forbidden` with `{ "error": "The task is no longer writable by this run" }`. The same applies to document, annotation, and attachment writes.
@@ -478,6 +479,8 @@ A **done handoff** asks Paperclip to close the case when its primary task comple
 | `instructions` | yes | Up to 20,000 characters. |
 | `expectedHandoffVersion` | yes | The case's current `handoffVersion`. |
 | `expectedIssueStatusVersion` | yes | The primary task's current status version. |
+
+Among agents, only the one assigned to the primary task can record a done handoff; board users aren't limited this way. Any other agent gets `403 Forbidden` with an error that starts `Agents may complete only their own case work.` and names the agent that owns the primary task, so you know who to ask on that task. If the task has no assigned agent, the error says so instead. An agent that can't see the primary task gets `404` with `Task not found`, and the assigned agent still needs ordinary permission to change the task.
 
 A done handoff doesn't move the task or satisfy any completion gate. It waits in `awaiting_completion` until the task is completed normally, including any required review or approval, then closes the case and sets its phase to `done`. Stopping the run, cancelling the task, or reassigning it cancels a waiting done handoff.
 

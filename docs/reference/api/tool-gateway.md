@@ -24,7 +24,7 @@ Most routes on this page are connection-setup routes, and each one checks a perm
 |---|---|
 | `tools:manage_connections` | Creating, updating, reconnecting, refreshing, and deleting applications and connections, and starting their sign-in. |
 | `tools:manage_profiles` | Profiles, profile entries and bindings, company tool policies, trust rules, and changing a connection's company-wide install. An Owner or Admin without this key can use `tools:admin` instead. |
-| `tools:admin` | Creating, listing, and updating named MCP gateways; minting and revoking gateway tokens; managing approved stdio command templates. |
+| `tools:admin` | Creating, listing, and updating named MCP gateways; minting, revealing, and revoking gateway tokens; managing approved stdio command templates. |
 | `tools:manage_runtime` | Listing runtime slots, and stopping or restarting them. |
 | `tools:view_audit` | Reading the gateway audit feed and a connection's activity. |
 | `tools:use` | Running test calls against a connection (either this or `tools:manage_connections` is enough). |
@@ -41,17 +41,17 @@ An agent can call the same routes with its own token when it's setting up a conn
 
 The request is refused when the run has no responsible user, the run no longer owns its task, the task is in Ask or Plan mode (reads still work), or the run is a skill test or low-trust. An agent can't set `responsibleUserId`, `onBehalfOfUserId`, `createdByUserId`, or `createdByAgentId` in a body (*"Management identity is derived from authentication"*), and any `ownerUserId` or `subjectUserId` it sends must be its responsible user (*"Personal credentials must belong to the responsible user"*). List routes only return the rows the agent may manage.
 
-When a step needs a person — signing in, consent, or credentials — an agent's response includes a `requiredUserAction` block alongside the usual result:
+When a step needs a person — signing in, consent, credentials, or revealing a token value — an agent's response includes a `requiredUserAction` block alongside the usual result:
 
 | Field | Meaning |
 |---|---|
-| `kind` | `authenticate`, `consent`, `enter_credentials`, or `confirm_identity`. |
+| `kind` | `authenticate`, `consent`, `enter_credentials`, `confirm_identity`, or `reveal_credential`. |
 | `userId` | The responsible user who must take the step. |
-| `resource` | `{ type, id, companyId }`, where `type` is `connection`, `chat_endpoint`, or `ai_login`. |
+| `resource` | `{ type, id, companyId }`, where `type` is `connection`, `chat_endpoint`, `ai_login`, or `gateway_token`. |
 | `setupPath` | The Paperclip page where that person finishes the saved setup. |
 | `reason` | What the person needs to do. |
 
-Approving or declining action requests, OAuth callbacks, and the stdio import and smoke routes stay board-only. [How connector access works](../../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you) explains the model in plain terms.
+Approving or declining action requests, OAuth callbacks, and the stdio import and smoke routes stay board-only. Revealing a gateway token's value is for people only: an agent can create and revoke gateway client tokens, but it never receives a token value (see [Mint a gateway token](#mint-a-gateway-token)). [How connector access works](../../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you) explains the model in plain terms.
 
 ---
 
@@ -172,6 +172,45 @@ Requires `tools:admin`, and `companyId` in the body. Responds `201 Created`.
 | `expiryOverrideReason` | no | Required when `expiresAt` is `null`. |
 
 Two rules are worth knowing before you script this. Asking for anything other than `gateway_client` as `subjectType` is rejected — `heartbeat_run` is runtime-managed, and `board_user` and `agent` are reserved for later OAuth and user-bound flows. And a token with no expiry is deliberately awkward: set `expiresAt` to `null` and you must also supply `expiryOverrideReason`, or you get `Non-expiring gateway tokens require an override reason`.
+
+#### Who receives the token value
+
+A token's value is shown once, to whoever receives it — so Paperclip makes sure that's always a person.
+
+When you mint a token yourself, the `201` response carries the token's details plus `token`, the value itself. This is the only time you get it, so copy it straight into your client.
+
+When an agent mints a token for you, the agent never sees a value. The token is saved without one and with `pendingReveal: true`, and the agent's response adds:
+
+| Field | Meaning |
+|---|---|
+| `tokensPath` | The gateway's Tokens page, `/<company prefix>/apps/gateways/<gatewayId>/tokens`, where you reveal the value. |
+| `requiredUserAction` | A `reveal_credential` step for the run's responsible user, with a `resource` of type `gateway_token`. |
+| `nextStep` | Instructions for the agent: link you to the Tokens page, and never ask for, accept, or repeat token values in chat. |
+
+A token that's still waiting to be revealed can't connect a client. Its value is generated only when you reveal it on the Tokens page.
+
+If the new token replaces an old one, keep the old one active for now. Its client keeps working on it until you've revealed the new value and installed it, and revoking it early disconnects that client. Revoke the old token once the client works with the new one — you can do that on the same Tokens page. An agent that creates a gateway is pointed at this page too: its `201` response adds `gatewayPath` (the gateway's Overview page) and `tokensPath`.
+
+### Reveal a gateway token
+
+```
+POST /api/tool-gateway/gateway-tokens/{tokenId}/reveal
+```
+
+This is how you collect a token an agent created for you. It's for people only, requires `tools:admin`, and takes `companyId` in the body. Paperclip generates the value and returns the token's details plus `token`, once.
+
+In the app you don't need to call this yourself. Open the gateway's **Tokens** tab: tokens an agent created for you are listed under **Waiting for you to reveal**, each with a **Reveal token** button. The value then appears under **New token — copy now**, with a **Copy** button. Until it's revealed, the token's status in the list reads **Not revealed**.
+
+Each token can be revealed exactly once. A refused reveal comes back as `{ "error": ..., "reasonCode": ... }`:
+
+| Status | `reasonCode` | When |
+|---|---|---|
+| `403` | `gateway_token_requires_person` | An agent called the route. |
+| `403` | `gateway_token_reveal_requires_responsible_person` | You aren't the person the agent created the token for. |
+| `404` | `gateway_token_not_found` | No such token in this company. |
+| `409` | `gateway_token_already_revealed` | The value was already shown once. Issue a new token to get a new value. |
+| `409` | `gateway_token_revoked` | The token was revoked before its value was revealed. |
+| `409` | `gateway_token_expired` | The token expired before its value was revealed. Create a new one instead. |
 
 ### Revoke a gateway token
 

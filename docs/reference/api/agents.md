@@ -137,6 +137,14 @@ agent = res.json()
 ```
 <!-- /tabs -->
 
+### Which environment the agent runs in
+
+Sometimes you need to know what kind of computer an agent uses, for example to decide whether a plugin's view applies to it. The agent record carries `defaultEnvironmentId`. When it's `null`, the agent falls back to the instance's default environment, or to the local environment when the instance has no default. A project can also set its own `environmentId` (see [Goals and Projects](goals-and-projects.md)), and that takes precedence for runs on that project's tasks.
+
+Look the environment up with `GET /api/environments/{environmentId}`, or list them all with `GET /api/companies/{companyId}/environments`. Both are board routes; you need membership in a company or instance admin access, otherwise you get `403` with `Company membership or instance admin access required`.
+
+For a plugin environment (`driver: "plugin"`), the response includes `pluginDriver`, with the environment's `pluginKey` and `driverKey`. It's there even when the rest of the configuration is redacted for you, and it never contains driver settings, environment variables, or credentials. This is how the agent page decides which [environment-specific plugin views](../plugins/sdk.md#adding-a-view-to-an-agents-page) to show.
+
 ---
 
 ## Public Identity
