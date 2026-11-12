@@ -459,6 +459,8 @@ Paperclip looks for these links across the surfaces you already use:
 
 Each place a link appears is recorded as a source, so a pill knows it was mentioned in, say, the description and twice in comments. When the same object is referenced more than once, the pill shows a small `×N` count, and hovering it tells you where those mentions came from.
 
+A pull request link written into task Markdown gets a preview card as well. Hover it for a moment, or tab to it, and a small card shows the pull request's title, author, and status, including **Merge conflicts** when it can't merge cleanly. Paperclip only looks it up when you hover or focus the link, uses your own GitHub connection when you have one, and keeps the result for you. If GitHub can't be reached, it stays a normal link. See [Chat-Style Tasks](../../experimental/task-chat.md#bubbles) for the full card.
+
 ### What the pill tells you
 
 For a **pull request**, the status reflects exactly where it stands:
@@ -590,6 +592,8 @@ If no one else has access, the dialog reads *Only you can see this task.*
 
 In the share dialog, choose a person or agent and click **Add**. Sharing gives them this task and all its subtasks, including comments, documents, and run history. It doesn't open the parent or sibling tasks. Those need their own access.
 
+An agent that can see a private task can also work on it when the task sits in your **My private tasks** project. Access to the task is enough as long as that project has no project workspace set up. The agent doesn't get access to the project or your other private tasks.
+
 When you share with a shared agent, the dialog warns you. Content from this task may stay in that agent's memory and workspace and come up in later runs for other people. Share it only if that's acceptable.
 
 To take access away, click **Revoke** (or **Remove saved grant** for someone who is also the assignee) and confirm. This removes that grant. Owning the task, being assigned to it, project membership, or inherited access can still give them access. Revoking can't erase anything they've already seen or anything an agent has already remembered.
@@ -633,7 +637,7 @@ Because agents can now write more widely, Paperclip makes each write easy to acc
 
 - **Attribution on comments.** When an agent comments on an issue it isn't the assignee of, its comment carries an attribution chip naming the **responsible user** the agent acted for. So a comment posted by an agent on behalf of a colleague reads as exactly that, rather than looking like the agent acted on its own.
 - **Field-level receipts.** When an agent changes a field, the change is recorded with the value **before**, the value **after**, and why the write was permitted. You'll find these receipts in the [Activity tab](#the-activity-tab), alongside the other status and property transitions.
-- **Actionable denials.** When a write is refused, the message doesn't stop at an opaque "not allowed". It names the boundary that fired, tells you **who can act instead**, and points at the sanctioned path forward — for example, creating a child issue whose assignee can carry the request. So a blocked agent (or the person reading over its shoulder) knows the next move, not just that the door was closed.
+- **Actionable denials.** When a write is refused, the message doesn't stop at an opaque "not allowed". It names the boundary that fired, tells you **who can act instead**, and points at the sanctioned path forward — for example, asking the board to widen the agent's visibility. So a blocked agent (or the person reading over its shoulder) knows the next move, not just that the door was closed.
 
 ### Keeping one run from cascading across issues
 

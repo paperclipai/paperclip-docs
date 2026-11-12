@@ -244,7 +244,7 @@ The actions menu holds everything else:
 - **Duplicate agent** — makes a copy of the agent, including its instruction files, after you confirm.
 - **Copy agent ID** — copies the agent's ID to your clipboard.
 - **Reset sessions** — clears the agent's saved conversation state so its next run starts fresh.
-- **Terminate** — shuts the agent down for good. It acts straight away, with no confirmation step, so be sure before you click it. Only a board user can terminate an agent, and another agent that tries through the API is refused with a link to this page. Built-in agents don't have this item, and pausing one asks you to confirm first.
+- **Terminate** — shuts the agent down for good. It acts straight away, with no confirmation step, so be sure before you click it. Once Paperclip accepts it, you're taken back to the agent list, even while cleanup is still finishing. If you have unsaved edits on the page, Paperclip first asks whether to leave them, and if you say no, the agent isn't terminated. Only a board user can terminate an agent, and another agent that tries through the API is refused with a link to this page. Built-in agents don't have this item, and pausing one asks you to confirm first.
 
 If the agent's reporting chain is broken, **New task** and **Run now** stay disabled until you repair it (see [Banners at the top of the page](#banners-at-the-top-of-the-page)).
 
@@ -546,7 +546,7 @@ Under the heading, a one-line summary reminds you what the page covers: how the 
 
 - **Harness panel** — **Harness** (every adapter you can pick on your instance; adapters that can't be selected yet aren't listed), **Model**, and adapter-specific fields such as **Thinking effort**. Switching adapters is a structural change and usually resets the model and options to safe defaults for the new adapter, so pick deliberately. Some adapters (OpenCode, for example) need the model in a specific format; the form shows an inline error if the model can't be validated.
 - **Configuration panel** — adapter-specific settings, with less common options such as **Command** and **Extra args** tucked under **Advanced**.
-- **Environment panel** — where the agent runs. Leave it on the company default or pick a specific environment.
+- **Environment panel** — where the agent runs. Leave it on the company default or pick a specific environment. A task in a project that has its own [project environment](../projects-workflow/projects.md#project-environment) runs there instead.
 - **Test your agent** — a quick check that the runtime and model can respond (see below).
 - **Environment variables** — values passed to the agent's runtime on every run.
 - **Debugging** — the **Capture raw provider traces** switch. Turn it on and save to record the exact provider traffic for every future run until you turn it off. Traces may contain sensitive prompts and tool arguments. Paperclip keeps at most 64 MiB per run and deletes each trace after 24 hours. Only instance administrators see this panel (or anyone, on a local trusted instance), and it isn't shown for agents on an external runner.

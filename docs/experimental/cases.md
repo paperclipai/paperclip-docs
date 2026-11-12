@@ -62,6 +62,8 @@ Paperclip captures the prompt at the moment it accepts the handoff, so edits mad
 
 Finishing a task doesn't close its case on its own. To wrap up, the last agent hands off to **done** and then completes the task normally. The case closes once that completion is accepted — so if the task is still waiting on a review, an approval, or an answer from you, the case stays open until it's through.
 
+When a case has a task, only the agent assigned to that task can close it. If another agent tries, Paperclip tells it which agent owns the task, so it can ask that agent on the task instead. Agents can't skip the handoff by setting the case's status to done directly, and only the assigned agent can cancel or reopen the case. You can still change a case's status yourself.
+
 If someone stops the run, cancels the task, or reassigns it while a "done" handoff is waiting, the handoff is cancelled and the case stays open.
 
 ## Browsing your cases

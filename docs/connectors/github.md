@@ -133,6 +133,10 @@ Provider channel or repository access determines where a message can reach the i
 
 ---
 
+## Pull request previews in tasks
+
+Your own GitHub connection also helps you read tasks. When you hover or focus a GitHub pull request link in a task, Paperclip shows its title and status, such as **Open**, **Merged**, or **Merge conflicts**. If you've connected your own GitHub account, the lookup uses that connection. It never borrows the agent's identity, and the result is kept for you alone. If you haven't connected GitHub yourself, Paperclip uses a company secret named `GITHUB_TOKEN`, `GH_TOKEN`, or `PAPERCLIP_GITHUB_TOKEN`, then the server's own token, which only reads public repositories. If your connection is set up but can't supply access, the link simply stays a normal link. See [Chat-Style Tasks](../experimental/task-chat.md#bubbles) for what the card shows.
+
 ## Not the same as the workspace git setup
 
 [Connect an agent to a GitHub repo](../how-to/connect-agent-to-github.md) is a different job: pointing a project workspace at a remote, and matching Paperclip's review stage to GitHub's. That page remains the right one for the git and `gh` workflow itself. This connector is how the credential gets there. Use both.

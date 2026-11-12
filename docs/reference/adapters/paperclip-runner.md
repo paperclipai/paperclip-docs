@@ -216,15 +216,22 @@ The agent form's **Runner lifecycle** field decides whether the Runner keeps the
 
 | Option | Stored `lifecycleMode` | What it does |
 | --- | --- | --- |
-| **Automatic** | none | Paperclip picks for you. A local Codex or OpenCode agent stays warm for 5 minutes after a run, and a plugin environment that supports warm reuse can keep an agent warm too. Everything else runs turn by turn. |
+| **Automatic** | none | Paperclip picks for you. A local Codex or OpenCode agent stays warm for 5 minutes after a run. In a sandbox environment, a Codex, OpenCode, or Claude agent keeps its sandbox warm between runs when the sandbox provider supports reuse. A plugin environment that supports warm reuse can keep an agent warm too. Everything else runs turn by turn. |
 | **Turn by turn** | `per_turn` | Suspends after each run. |
 | **Warm session** | `warm` | Keeps the same provider process available between runs. The **Warm idle timeout (ms)** field sets how long, up to 24 hours. |
 
-Outside plugin environments, **Automatic** keeps an agent warm only when all of these are true:
+On a local target, **Automatic** keeps an agent warm only when all of these are true:
 
-- The harness is Codex or OpenCode. ACP Claude agents follow Automatic but stay turn by turn, because Claude relaunches its provider process on every follow-up either way.
-- The run is on a local target, not a remote one. A sandbox environment runs turn by turn under Automatic, unless the environment sets a Runner lifecycle of its own.
+- The harness is Codex or OpenCode. ACP Claude agents follow Automatic but stay turn by turn locally, because Claude relaunches its provider process on every follow-up either way.
 - For OpenCode, no managed AI **Connection** is selected. Managed connections keep an OpenCode agent turn by turn even with **Warm session**. Codex can stay warm with one.
+
+In a sandbox environment, **Automatic** keeps the sandbox warm when you haven't picked a lifecycle on the agent and the environment's `runnerLifecycleMode` is left on `inherit` (see [Sandbox providers](sandbox-providers.md)). Then a follow-up on the same task keeps its sandbox, its Runner, and its workspace, so Paperclip doesn't upload the whole workspace again for every turn. That happens only when all of these are true:
+
+- The harness is Codex, OpenCode, or ACP Claude. On a sandbox, the cost of a new sandbox and a full workspace upload outweighs Claude's relaunch, so Claude gains from warm there too.
+- The sandbox provider keeps reusable sandboxes. Daytona, CreateOS, and boxd do. On a provider that doesn't, the run stays turn by turn, exactly as before.
+- If a managed AI **Connection** is selected, the harness is Codex. With a managed connection, OpenCode and Claude stay turn by turn on a sandbox.
+
+You don't need to turn on the environment's `reuseLease` for this. The sandbox then stays warm for the environment's `runnerIdleTimeoutMs`, or the agent's **Warm idle timeout (ms)**, or 5 minutes when neither is set. Paperclip passes the same window to the sandbox provider, so a provider idle auto-stop, such as Daytona's, agrees with it. If the sandbox Paperclip gets back turns out not to be reusable after all, the run quietly falls back to turn by turn instead of failing.
 
 Other Runner harnesses, including Grok, Pi, and ACP Cursor, don't follow Automatic: a new one is saved as `per_turn`, and a saved value stays as it is. The exception is a new agent whose environment is a plugin driver with warm tasks: creation saves it as `warm` whatever you picked, except for OpenAI DOT, Grok Bot, and Muse agents. A value you pick yourself beats the Automatic default, though an environment's own lifecycle setting or a managed connection that can't stay warm can still override it. A run that's already been admitted, including its recovery, keeps its lifecycle, and the next run uses the current settings.
 
@@ -375,7 +382,7 @@ Existing `cursor`, `cursor_cloud`, `grok_local`, `claude_local`, `codex_local`, 
 
 ## OpenCode on the Runner
 
-- **Follow-ups start warm locally.** Under the **Automatic** [Runner lifecycle](#runner-lifecycle), a local OpenCode agent with no managed connection stays warm for 5 minutes after a run.
+- **Follow-ups start warm.** Under the **Automatic** [Runner lifecycle](#runner-lifecycle), a local OpenCode agent with no managed connection stays warm for 5 minutes after a run. In a sandbox environment whose provider supports reuse, an OpenCode agent with no managed connection keeps its sandbox warm between runs too.
 - **Replies stream as they're written.** Native OpenCode forwards text and reasoning as they arrive. Queued chat messages are dispatched as soon as the session is ready.
 - **No install step to run first.** The server ships `opencode-ai@1.18.34` as a dependency, and the Runner finds the right platform package even if your package manager skipped postinstall scripts.
 - **Remote runs use the bundled Linux assets.** In a remote sandbox the Runner selects its bundled Linux daemon and OpenCode pack, so the image and Paperclip package need to come from the same release.

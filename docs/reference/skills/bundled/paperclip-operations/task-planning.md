@@ -1,29 +1,29 @@
 ---
 paperclip_version: v2026.618.0
 seo_title: Task Planning Skill
-seo_description: Turn a request into a plan an executor can run: a child task graph, real blockers, named owners, and an acceptance bar defined up front.
+seo_description: Write or revise a plan sized to the work: the outcome, the approach, how you'll verify it, and when splitting into child tasks is worth it.
 ---
 
 # Task Planning
 
-> Turn a Paperclip issue or request into a structured implementation plan with child task graph, blockers, owners, and acceptance criteria, then save it as the issue `plan` document.
+> Write or revise a useful Paperclip plan with a clear outcome and verification. Use when a plan is requested or uncertainty needs resolving before execution.
 
-Turn a Paperclip issue or request into an implementation plan the executor can actually run: a child task graph, real blockers, named owners, and a defined acceptance bar — saved as the issue `plan` document. Avoid plans that read well but can't be split into work.
+Write or revise a plan that's only as big as the work needs: the outcome you're after, the constraints that matter, the approach you've chosen, and how you'll know it worked. A plan saves as the issue's `plan` document (revised in place, never duplicated), and it doesn't automatically mean child tasks or a new approval gate — keep the steps with one owner unless a second owner, parallel work, a dependency, or an independent review genuinely calls for splitting them out.
 
 This is a **bundled** catalog skill — part of the bundled baseline kit. For how to install, audit, update, assign, and reset catalog skills, see the [Skills reference](../../../skills.md#3-app-shipped-catalog).
 
 ## When to use
 
-- An issue asks you to plan, scope, break down, design the rollout, or propose the work.
-- A user wants a written plan before approving implementation.
-- A manager needs to delegate non-trivial work whose shape isn't obvious yet.
-- You inherited an issue too large to deliver in one heartbeat.
+- Someone explicitly asks for a plan, or wants to review one before approving the work.
+- There's real uncertainty — about the approach, constraints, or a decision — that you need to settle before you start executing.
+- An existing `plan` document needs revising — you update its current revision rather than writing a new one.
+- Planning mode or an explicit approval request is in play, so you need to confirm the latest plan revision and wait for the decision.
 
 ### When not to use
 
-- The issue is a single small change you can ship in the same heartbeat — just ship it.
-- The issue is forensic (“why did this break”) — diagnose the root cause first.
-- A current `plan` document already exists and the change is minor — update it instead.
+- Execution is already authorized and the next step is small and clear — just do it.
+- The plan is accepted and the work is cohesive — carry it out on the current task rather than planning further.
+- You need to turn an accepted plan into delegated child tasks — use `paperclip-converting-plans-to-tasks` instead.
 
 ## Catalog metadata
 
@@ -43,14 +43,14 @@ This is a **bundled** catalog skill — part of the bundled baseline kit. For ho
 | Requires | — |
 | Tags | `paperclip`, `planning`, `issues`, `delegation` |
 | Files | 1 |
-| Content hash | `sha256:487c3116eead89fef4f71c984329c41836bd69951b7ef9ed8736c69435e02438` |
+| Content hash | `sha256:a1724bde58be85c445590aeaa2f5f2f1de2bee24fe62f07fa3b579c6e4b28e6d` |
 | Package | `@paperclipai/skills-catalog@0.3.1` |
 
 ## File inventory
 
 | Path | Kind | Bytes |
 |---|---|---:|
-| `SKILL.md` | `skill` | 4,938 |
+| `SKILL.md` | `skill` | 1,517 |
 
 ## Full skill definition
 
@@ -59,7 +59,7 @@ The block below is the complete, authoritative `SKILL.md` for this skill — the
 ````markdown skill-source
 ---
 name: task-planning
-description: Turn a Paperclip issue or request into a structured implementation plan with child task graph, blockers, owners, and acceptance criteria, then save it as the issue `plan` document.
+description: Write or revise a useful Paperclip plan with a clear outcome and verification. Use when a plan is requested or uncertainty needs resolving before execution.
 key: paperclipai/bundled/paperclip-operations/task-planning
 recommendedForRoles:
   - manager
@@ -72,75 +72,27 @@ tags:
   - delegation
 ---
 
-# Task Planning
+# Task planning
 
-Produce implementation plans that the Paperclip executor can actually run: explicit child issues, real blockers, named owners, and a defined acceptance bar. Avoid plans that read well but cannot be split into work.
+Plan only as much as the work needs. If execution is authorized and the next step
+is small and clear, do it. A request for a plan alone does not require child tasks
+or a new approval gate.
 
-## When to use
+Describe the intended outcome, relevant constraints, chosen approach, and how to
+verify success. Include uncertainties or decisions that affect execution. Use the
+user's preferred format; keep implementation steps within one owner's task unless
+another owner, useful parallel output, dependency, or independent review warrants
+separate work.
 
-- An issue asks you to "plan", "scope", "break down", "design the rollout", "propose the work", or similar.
-- A user wants a written plan before approving implementation.
-- A manager needs to delegate non-trivial work and the shape of the work is not obvious yet.
-- You inherited an issue too large to deliver in one heartbeat and need to split it.
+Save a requested plan as the issue document with key `plan`. Update its current
+revision instead of duplicating it, and link the saved document in your response.
+Use the native document tools when available; legacy agents follow the `paperclip`
+skill's document and planning API mechanics.
 
-## When not to use
-
-- The issue is a single small change you can ship in the same heartbeat. Just ship it.
-- The issue is forensic ("why did this break"). Use a diagnosis skill first; plan only after the root cause is named.
-- A current `plan` document already exists and the change is minor. Update that document; do not start fresh.
-
-## Outputs
-
-1. An updated issue document with key `plan` (markdown).
-2. A short comment on the issue that links to the plan document and names the next action.
-3. Where the plan requires approval, an issue-thread interaction of kind `request_confirmation` bound to the latest plan revision.
-
-Do not create implementation subtasks until the plan is accepted.
-
-## Plan structure
-
-Required sections, in order:
-
-1. **Goal** — one paragraph. What changes for the user, the operator, or the system once this work lands.
-2. **Context reviewed** — bullet list of documents, files, and prior issues you read. Lets reviewers spot missing inputs.
-3. **Constraints and non-goals** — what must hold (compatibility, security, performance) and what this plan deliberately will not do.
-4. **Approach** — the chosen path, with a short rationale. If you considered alternatives, name them and why you rejected them.
-5. **Work breakdown** — ordered list of child issues. Each child has:
-   - Title in imperative form.
-   - Owner specialty (Engineer, QA, Designer, Security, DevRel, Manager, etc.).
-   - Scope and deliverables.
-   - Acceptance criteria.
-   - Blocks/blocked-by relationships expressed by phase letter or child title.
-6. **Acceptance** — the bar for the parent issue. How the user knows the whole thing is done.
-7. **Risks and mitigations** — short list. Skip if there are none.
-8. **Deferrals** — what is intentionally pushed to follow-up issues, with why.
-
-## Rules of thumb for splitting
-
-- One child issue, one specialty. If two specialties have to coordinate inside the same issue, split it.
-- One child issue, one acceptance verdict. If a reviewer would say "this is half done", split it.
-- A child must be checkout-able by the owner from its title and description alone. Reviewers should not have to re-read the parent plan to understand a child.
-- Order children by real blocker chains, not by author preference. Parallel children should explicitly say `blockers: none`.
-- Avoid `polish` or `cleanup` child issues without acceptance criteria — they never close.
-
-## Filing the plan
-
-Use the Paperclip API to write the plan document, then comment:
-
-- `PUT /api/issues/{issueId}/documents/plan` with the markdown body. If `plan` already exists, include the latest `baseRevisionId`.
-- `POST /api/issues/{issueId}/comments` with a short summary that links the plan: `/<prefix>/issues/<issue-id>#document-plan`.
-- If approval is required: `POST /api/issues/{issueId}/interactions` with `kind: request_confirmation`, `targetRevisionId` set to the new plan revision, `continuationPolicy: wake_assignee`, and `idempotencyKey: "confirmation:{issueId}:plan:{revisionId}"`.
-- Set the issue to `in_review` after creating the confirmation. Stay assigned so the acceptance wakes the planner.
-
-When the plan is accepted, see the companion skill for converting accepted plans into Paperclip executable tasks. Key requirements covered there: produce a compact task matrix (task, owner, initial status, blockers); encode every hard dependency as `blockedByIssueIds` — parent/child nesting alone does not block execution; and verify the created issue graph before closing the source planning issue.
-
-## Anti-patterns
-
-- Plan disguised as a description edit. Use the `plan` document.
-- "Phases A–Z" with no work breakdown inside the phases.
-- Children with descriptions that say "see parent" — they fail at delegation time.
-- Acceptance written as "code review approval". Reviewers need a behavior bar, not a process bar.
-- Plans that bury blocker chains in prose. Use explicit blocked-by lines.
+Respect planning mode and explicit approval requests. When approval is required,
+request confirmation of the latest plan revision and wait for that decision.
+After acceptance, execute cohesive work on the current ordinary task. Use
+`paperclip-converting-plans-to-tasks` when delegation is justified.
 ````
 
 ## See also
