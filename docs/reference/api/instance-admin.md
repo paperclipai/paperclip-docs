@@ -70,6 +70,20 @@ The fields you'll care about most:
 
 Only [Paperclip Runner](../adapters/paperclip-runner.md) runs on a remote computer, with a saved checkpoint and a live hold from this server, count as recoverable. Everything else, apart from the leftover runs in `retainedBlockedRuns`, counts as blocking. `ready` is `false` whenever any run is blocking, wakeups are pending, a drain is on, or the report was truncated. If it's `false`, drain and let the work finish before you upgrade. The report can go stale as work starts and stops, so read it right before you act.
 
+#### The handoff verdict
+
+The top-level `ready` is strict: any run that can't carry on through the swap holds it at `false`, even one that hasn't done anything yet. For a graceful server replacement you usually want a narrower question answered: would the swap actually lose work? The report's `handoff` object answers that. It leaves the fields above exactly as they were.
+
+- `handoff.ready` — `true` when replacing the server now wouldn't lose any work.
+- `handoff.recoverableRuns` — the same count as `recoverableRuns`.
+- `handoff.restartableRuns` — [Paperclip Runner](../adapters/paperclip-runner.md) runs that haven't reached a runner or a provider yet, with no process, provider session, checkpoint, or execution start recorded. The new server's restart recovery starts the same work again, so nothing is lost.
+- `handoff.blockingRuns` — the runs that would lose work: `blockingRuns` minus the restartable ones.
+- `handoff.pendingWakes` — the same as `pendingWakes`.
+- `handoff.unsavedWakes` — pending wakeups whose queued run hasn't been saved yet. A saved wakeup is picked up by the next server when it starts, but an unsaved one exists only in this server's memory and can be lost.
+- `handoff.version` — `1`.
+
+`handoff.ready` is `false` only when `handoff.blockingRuns` or `handoff.unsavedWakes` is above zero, a drain is on, or the report was truncated. Restartable runs and saved wakeups don't block it.
+
 ---
 
 ## Liveness probe

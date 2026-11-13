@@ -161,14 +161,15 @@ Click **Agents** in the left sidebar, then click the **Org chart view** button (
 
 The org chart view renders your company as an **interactive tree**. Each agent is shown as a card at the position its reporting line dictates — the CEO sits at the top, managers fan out below it, and individual contributors sit under their managers. Lines between cards are the reporting relationships; they always point from manager down to report.
 
-The card itself surfaces everything you usually need at a glance:
+Cards come in three sizes, so you can tell leaders from the people doing the work at a glance:
 
-- The agent's **character** with a small coloured **status dot** (green for active, yellow for paused or idle, red for error, cyan for running, grey for terminated).
-- The agent's **name** and **title** (or a humanised role label when no custom title is set).
-- The **adapter type** in a small mono font — useful when auditing which adapters your org relies on.
-- A **capabilities** snippet: the first couple of lines of the agent's capabilities description.
+- **Top leaders** — an agent at the top of the chart with reports of its own gets the largest card.
+- **Managers** — any other agent with reports gets a slightly smaller card.
+- **Individual contributors** — agents without reports get compact cards, packed closely under their manager so wide teams don't sprawl across the screen.
 
-The **Search agents…** box works here too: the chart narrows to the agents that match, plus the managers above them. There are no status tabs, and the **Harness** filter is only in the list view. If nothing matches, the chart still says *"No agents match your search and selected status."*, even though there's no status to select any more. If there's nothing to chart at all, it says *"No organizational hierarchy defined."* To share or clone an org, use **Export** and **Import** in company settings — see [Export & import](../power/export-import.md).
+Every card shows the agent's **name** and **title** (or a humanised role label when no custom title is set), its character, and its default **model** with a small harness logo — plus the reasoning effort when one is set. Leader and manager cards also show the agent's **status** (for example **Idle** or **Paused**), a larger animated character, and a star button to star the agent.
+
+The **Search agents…** box and the filter button work here too, but the chart doesn't rearrange itself: every agent stays in its place, and the ones that don't match are dimmed, along with their reporting lines. You can still click a dimmed card to open that agent. If there's nothing to chart at all, it says *"No organizational hierarchy defined."* To share or clone an org, use **Export** and **Import** in company settings — see [Export & import](../power/export-import.md).
 
 ![Interactive org chart showing the CEO at the top with managers and workers connected by reporting lines](../../user-guides/screenshots/light/org/chart.png)
 
@@ -178,7 +179,7 @@ The chart area supports full pan and zoom:
 
 - **Drag** anywhere on the background to pan — the cursor switches to a grab hand to make this obvious.
 - **Scroll / pinch** to zoom in and out. Zoom anchors to the mouse position, so you can lean into a specific team without losing your place.
-- Use the **+**, **−**, and **Fit** buttons in the top-right corner for precise zoom control. **Fit** recentres the whole chart inside the viewport, which is handy after a reorg when the tree has grown off-screen.
+- Use the **Zoom out** (−), **Zoom in** (+), and **Fit chart to screen** buttons in the toolbar, next to **New Agent**, for precise zoom control. They appear only while the org chart view is showing and fade away when you switch to the list. **Fit chart to screen** recentres the whole chart inside the viewport, which is handy after a reorg when the tree has grown off-screen.
 - **Click a card** to open the agent's page. Dragging on a card does not pan — clicks are always routed to the agent.
 
 For a text-only view, switch to **List view**. It shows the same agents as a flat list sorted by name, without the reporting lines — use the org chart when you want to see who reports to whom. Changes made on an agent's page appear in both views.
@@ -207,7 +208,7 @@ A few guardrails apply:
 The lines between cards are not just decorative — they encode the company's delegation and escalation paths:
 
 - Every line points from a **manager** (top) to a **direct report** (bottom). The direction of the line mirrors how work and escalations travel: delegation flows down, status and blockers flow up.
-- **Multiple children** share a horizontal connector below the manager card so you can see the span of control at each level.
+- **Multiple children** each get their own line from the manager's card, drawn with right angles on separate tracks that never merge, so you can count the span of control at each level.
 - **Separate subtrees** mean separate reporting lines. If you ever end up with more than one root, it usually means an agent lost its manager (for example, after a termination) — fix it by choosing a new manager with the **Reports to:** picker on its **Overview** page (see [Changing an agent's manager](#changing-an-agents-manager)).
 - **Terminated agents** don't appear on the chart. If a terminated agent had reports, they show as their own separate roots at the top of the chart — a cue to give them a new manager.
 

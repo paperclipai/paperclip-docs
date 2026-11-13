@@ -107,12 +107,12 @@ On the manual path, use the generated manifest rather than configuring scopes by
 | --- | --- |
 | A linked person mentions the agent in a channel | One task per new mentioned thread |
 | A linked person sends the agent a direct message | The agent replies in the DM (when **Allow direct messages** is on). No @mention needed. A new top-level DM starts a new task once the previous one is **Done** or **Cancelled**, or after you send your agent's slash command with `new` or `close` in the DM. |
-| The conversation continues in the thread | It continues on the same task, keeping its earlier comments, in channel threads and DM threads alike, even after the task is **Done** or **Cancelled**. A DM thread ended with your agent's slash command plus `new` or `close` starts a new task instead. With **Require at-mention** on, channel replies must @mention the bot. |
+| The conversation continues in the thread | It continues on the same task, keeping its earlier comments, in channel threads and DM threads alike, even after the task is **Done** or **Cancelled**. A DM thread ended with your agent's slash command plus `new` or `close` starts a new task instead. Replies in an existing thread never need an @mention. |
 | The agent has answered and nothing is left to do | The task shows as **Idle** |
 
 Paperclip acknowledges with a reaction so people can see a message was picked up before the agent has finished thinking. This works in direct messages too.
 
-**Require at-mention** is on for new Slack connections. It keeps ordinary channel chatter from starting agent work: in channels, the agent only responds to messages that @mention it, including replies in a thread it's already in. Direct messages never need an @mention. Turn it off in **Settings** if you want any reply in a followed thread to reach the agent. Connections made before this setting existed keep their previous behavior.
+**Require at-mention in channels** is on for new Slack connections. It keeps ordinary channel chatter from starting agent work: in a channel, a new top-level message has to @mention the bot to start a conversation. Once a conversation is going, you can reply in its thread without mentioning the bot again, and direct messages never need an @mention. You can turn it off in **Settings** if you'd rather not require the @mention in channels. Connections made before this setting existed keep their previous behavior.
 
 If you stop the agent's run from the Slack thread, the current response ends. Your next message in the thread starts a fresh turn on the same task.
 
@@ -177,7 +177,7 @@ For something like "every weekday at 10am, post the standup summary in #team", u
 The connection's page has **Settings**, **Access**, **Conversations**, and **Activity** tabs. Once setup is finished, **Open Slack** at the top follows the same rule as the **Success** screen: your DM with the bot when Paperclip can open it, otherwise Slack. **Open Slack configuration** takes you straight to the app in Slack's settings.
 
 - **Send me a test message** checks the bot from Paperclip. It sends a DM to your linked Slack account, so **Allow direct messages** must be on. If your account isn't linked yet, pick it from the list and Paperclip sends you a connection invitation in Slack first; open it to link your account, and the test message follows.
-- **Settings** lists **Allowed Channels** (every channel the bot is in), the **Allow direct messages** and **Require at-mention** toggles, **Additional communication instructions**, and the **Slack tools** summary.
+- **Settings** lists **Allowed Channels** (every channel the bot is in), the **Allow direct messages** and **Require at-mention in channels** toggles, **Additional communication instructions**, and the **Slack tools** summary.
 - **Access** holds linked people, **Invite people**, and two optional sections: **Guest access** and **Personal Slack search**.
 
 **Task defaults**, also on **Settings**, chooses the **Project** and **Workspace** for new conversations. Existing tasks keep their files and project. Paperclip checks project and workspace access for each task, and a shared folder must also be allowed by the agent's execution policy.
@@ -255,7 +255,7 @@ A read confirms the credential without putting a message in front of colleagues.
 | **Verify Slack connection** keeps waiting | Slack hasn't re-checked the Request URL since you saved credentials | In **Event Subscriptions**, click **Retry** beside the Request URL |
 | Your account never appears after the connect command | The command went to a different workspace or app | Send your app's exact slash command plus `connect` in the workspace where you installed it |
 | A mention in a channel does nothing | The bot isn't in the channel, the channel is off in **Allowed Channels**, or the bot was typed as plain text | Invite the bot, enable the channel, and pick the bot from @mention suggestions |
-| A reply in the thread doesn't reach the agent | **Require at-mention** is on, so channel replies need an @mention | @mention the bot in the reply, or turn **Require at-mention** off in **Settings** |
+| A new message in a channel doesn't reach the agent | **Require at-mention in channels** is on, so a new channel message needs an @mention | @mention the bot to start the conversation, or turn **Require at-mention in channels** off in **Settings** |
 | The agent reads a channel but won't reply there | The channel is off in **Allowed Channels** | Enable it in **Settings** |
 | **Settings** shows **Add permissions to unlock more tools** | The app predates the newer Slack tools | Add the listed Bot Token Scopes in Slack and reinstall the app |
 | A question card only offers **Open in Paperclip** | The request needs Paperclip's full review screen, such as a rejection reason, an approval with side effects, or a very long request | Click **Open in Paperclip** and answer there. The Slack card updates and the result still arrives in the thread |

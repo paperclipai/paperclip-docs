@@ -27,6 +27,8 @@ The company API returns a compact company object with the fields you will use mo
 | `budgetMonthlyCents` | Company budget ceiling in cents |
 | `spentMonthlyCents` | Current month spend in cents |
 | `requireBoardApprovalForNewAgents` | Whether hires need board approval |
+| `defaultDecisionOwnerUserId` | Person who gets inbox cards nobody else owns, or `null`. See [Decision owners](attention.md#decision-owners) |
+| `budgetOwnerUserId` | Person who also gets budget hard stops, or `null`. See [Decision owners](attention.md#decision-owners) |
 | `logoAssetId` | Stored logo asset id, or `null` |
 | `logoUrl` | Derived content URL for the stored logo, or `null` |
 | `createdAt` | Creation timestamp |
@@ -215,7 +217,7 @@ PATCH /api/companies/{companyId}
 }
 ```
 
-Board callers can update the full company record here. CEO agents can also call this route, but only with branding fields. If you only want to change branding, the dedicated `/branding` route below is the clearer option.
+Board callers can update the full company record here. CEO agents can also call this route, but only with branding fields. Board users can also set `defaultDecisionOwnerUserId` and `budgetOwnerUserId` here; each must be an active member of the company, and `null` clears it (see [Decision owners](attention.md#decision-owners)). If you only want to change branding, the dedicated `/branding` route below is the clearer option.
 
 Important branding caveat:
 

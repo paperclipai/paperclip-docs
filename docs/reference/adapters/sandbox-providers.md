@@ -134,6 +134,16 @@ Beyond `reuseLease`, two fields control how the `paperclip_runner` process lives
 
 `livenessTimeoutMs` (default `30000`) is the per-call timeout for the sandbox liveness read. If a sandbox connection goes silently unresponsive, the read fails fast with an error instead of stalling until the outer operation timeout. Set it to `0` or less to disable the bound. The `timeoutMs` create/start/stop/execute budget is unaffected — start and recovery calls derive their deadline from `timeoutMs`, not this field.
 
+### When a new sandbox is slow to start
+
+Getting a fresh sandbox for a run has its own limit: 180 seconds, or `timeoutMs` if you set it lower. If Daytona still hasn't returned the new sandbox after 90 seconds, the driver looks it up once by its creation name:
+
+- **It's `started`.** The driver uses that sandbox and carries on with setup.
+- **It's still preparing its snapshot** (`pending_build`, `building_snapshot`, or `pulling_snapshot`). The driver keeps waiting, within the 180-second limit.
+- **Anything else.** The attempt ends there, and the half-made sandbox is cleaned up as usual.
+
+A sandbox that ran out of time like this hasn't started any agent work, so Paperclip treats it as a temporary provider problem rather than a setup failure. The run ends with `environment_provider_unavailable` and retries by itself, after about 30 seconds and then after about 60 seconds. The task only offers **Retry** once those attempts are used up. See [Task can't reach its sandbox provider or remote Runner](../../how-to/debug-stuck-heartbeat.md#19-task-cant-reach-its-sandbox-provider-or-remote-runner).
+
 ### When the live log stream drops
 
 Daytona streams a command's output to Paperclip over a log socket, and occasionally that socket closes or simply goes quiet while the command is still running. The driver doesn't take a dropped stream as the end of the command, so you don't lose output or get a run marked finished too early:

@@ -541,12 +541,12 @@ Without the capability and the project lifecycle stream, the manifest is rejecte
 
 `workspaceProvider` also takes four optional fields:
 
-- `defaultForProjects` — a `{ mode, strategy }` pair that makes your plugin the [default storage for new projects](#becoming-the-default-for-projects).
+- `defaultForProjects` — a `{ mode, strategy }` pair that Git projects on your storage [start with](#becoming-the-default-for-projects).
 - `finalizationVersion: 1` — you support the lighter [`finalize`](#what-each-operation-does) step when a run completes.
 - `freshWorkspaceVersion: 1` — you can prepare [fresh retry workspaces](#fresh-retry-workspaces).
 - `supportsMergeAncestry: false` — your inspection can't tell whether a branch was merged. Automatic cleanup then inspects a workspace only once a matching pull request has merged, instead of re-checking it on a timer. Open or unknown pull requests keep the normal retries, and an explicit close still inspects the workspace. Leave the field out to keep the usual ancestry checks.
 
-The same plugin implements two hooks. `onResourceLifecycle` creates and retains the project's storage as projects come and go. `onWorkspaceOperation(params: PluginWorkspaceParams): Promise<PluginWorkspaceResult>` manages the per-task checkouts inside that storage.
+The same plugin implements two hooks. `onResourceLifecycle` creates and retains the project's storage as projects come and go. `onWorkspaceOperation(params: PluginWorkspaceParams): Promise<PluginWorkspaceResult>` manages the per-task checkouts inside that storage. You can add a third, optional `onWorkspacePrepare`, to [prepare checkouts in the background](#preparing-a-workspace-in-the-background-optional).
 
 #### Pointing a project at your plugin
 
@@ -555,15 +555,15 @@ A project's `executionWorkspacePolicy.storageProviderPluginId` decides who owns 
 | Value | What happens |
 |---|---|
 | Your installed plugin's ID | The project is attached to your storage and stays there. |
-| `null` or not set | The project uses Core / local storage on the Paperclip host. It can move to a plugin later. |
+| `null` or not set | The project uses Core / local storage on the Paperclip host and stays there. |
 
-The move only goes one way. A Core / local project can move to a plugin, but a request to change a plugin-backed project's storage fails with "A plugin-backed project stays attached to its storage plugin". An update that leaves the field out keeps the attachment.
+The choice is made once, when the project is created, and never changes. A request to change it in either direction fails with the `project_storage_locked` conflict, "A project stays on the workspace storage chosen when it was created". An update that leaves the field out keeps the current storage.
 
 Whichever owner is picked, Paperclip reserves the execution workspace record and binds the task to it *before* calling your hook. The choice stays fixed while that task's workspace is being prepared. Tasks that don't need a project source don't prepare project storage at all.
 
-A project with no repository or folder ignores its saved storage when a task runs, and its tasks use a plain task directory. On a remote environment, this only applies if the project has no other saved workspace settings. It can still be attached to you, for example through the default below, so you can receive lifecycle events for a project you'll never get workspace operations for.
+A project with no repository or folder ignores its saved storage when a task runs, and its tasks use a plain task directory. On a remote environment, this only applies if the project has no other saved workspace settings. It can still be attached to you, for example when it's created in one of your environments, so you can receive lifecycle events for a project you'll never get workspace operations for.
 
-Operators can make the same choice in the project's configuration, under **Workspace storage**. It offers **Core / local** and each storage plugin available to this company. The picker is locked on a plugin-backed project, and any configuration error shows below it.
+Operators don't pick storage in the project's configuration. It shows the choice read-only, in an **Available in** row that lists the environments able to use it, with any configuration error below it.
 
 #### Becoming the default for projects
 
@@ -579,7 +579,7 @@ workspaceProvider: {
 
 If the pair isn't in your own `modes` and `strategies`, the manifest is rejected with "Project defaults must use a declared workspace mode and strategy".
 
-`defaultForProjects` doesn't attach projects to you. A new project lands on your storage when it's created in one of your plugin's task environments: an `environmentDrivers` entry that isn't `kind: "sandbox_provider"` and has `supportsTasks: true`, from a plugin with the `environment.drivers.register` capability. Someone can also pick your plugin for a project in **Workspace storage**. A company where your plugin is off doesn't offer your environments for new projects.
+`defaultForProjects` doesn't attach projects to you. A new project lands on your storage when it's created in one of your plugin's task environments: an `environmentDrivers` entry that isn't `kind: "sandbox_provider"` and has `supportsTasks: true`, from a plugin with the `environment.drivers.register` capability. Someone creating a project through the API can also name your plugin directly. A company where your plugin is off doesn't offer your environments for new projects.
 
 For Git projects attached to you, Paperclip fills in your default mode and strategy where the project hasn't set its own. It works this out each time and never writes those two settings into the project's saved policy.
 
@@ -636,11 +636,43 @@ throw new PluginWorkspaceOperationError("storage_pending");
 
 A failure with no reason shows as "Workspace storage provider reported a failure; retry the same workspace" and counts as retryable.
 
-Because the files don't live on the Paperclip host, Paperclip stores no local folder for these workspaces, and file browsing and other host-side file operations aren't available for them. Archive, reopen, and cleanup rules still apply. While live workspaces depend on it, a project's repository source and storage owner can't be changed, and your plugin should refuse to retire project storage while task workspaces still hold local data.
+Because the files don't live on the Paperclip host, Paperclip stores no local folder for these workspaces, and file browsing and other host-side file operations aren't available for them. Archive, reopen, and cleanup rules still apply. A project's storage owner never changes, and its repository source can't be changed while live workspaces depend on it. Your plugin should refuse to retire project storage while task workspaces still hold local data.
+
+#### Preparing a workspace in the background (optional)
+
+Making a checkout can take a while, for example when you clone a large repository inside a remote computer. Rather than holding one long call open, you can accept the work, then let Paperclip check back until it's ready. Add the optional `onWorkspacePrepare` hook next to `onWorkspaceOperation`:
+
+```ts
+async onWorkspacePrepare(params) {
+  if (params.phase === "submit") {
+    await startCheckout(params);
+    return { kind: "pending", deadline: new Date(Date.now() + 120_000).toISOString() };
+  }
+  const done = await checkoutResult(params.operationId);
+  return done ?? { kind: "pending", deadline: params.deadline };
+}
+```
+
+`params` is a `PluginWorkspacePrepareParams`: the same fields as a `prepare` call to `onWorkspaceOperation`, plus a `phase` of `"submit"` or `"poll"`. Defining the hook advertises the `workspacePrepare` method, and Paperclip then sends ordinary `prepare` operations here first. You still need `onWorkspaceOperation` for everything else. A prepare that only verifies an existing checkout (`verifyExisting: true`) always goes to `onWorkspaceOperation`.
+
+**Submitting.** Paperclip gives the first call 15 seconds. Reply with one of the three `PluginWorkspacePrepareResult` shapes:
+
+- `{ kind: "unsupported" }` — you'd rather not prepare this one in the background. Paperclip sends the same request to `onWorkspaceOperation` instead.
+- A `prepared` result — the checkout was quick, so you're already done.
+- `{ kind: "pending", deadline }` — a receipt. `deadline` is an ISO date-time by which you promise to finish. Paperclip waits until then and never shortens it, but an offer more than 310 seconds away fails with "Workspace provider offered a deadline outside the supported lifecycle budget", and it isn't retried.
+
+**Polling.** After a receipt, Paperclip calls again about once a second with `phase: "poll"` and your `deadline`. Each poll gets up to 15 seconds, or whatever is left before the deadline. Reply `pending` with the same deadline while you're still working, and the `prepared` result once you're done. A poll can't change its mind: returning `unsupported` fails with "Workspace provider withdrew asynchronous preparation", and a different deadline fails with "Workspace provider changed the preparation deadline".
+
+A few things to know:
+
+- **Lost replies are retried.** If a poll's reply goes missing or times out, Paperclip keeps polling until the deadline. Other errors end the preparation, and you can throw a `PluginWorkspaceOperationError` with the same reasons as above.
+- **The deadline is firm.** Once it passes, the run fails with "Workspace storage operation expired; retry the same workspace", which counts as retryable.
+- **Same checks on the result.** A `prepared` reply goes through the same validation as one from `onWorkspaceOperation`, including the binding checks. Keep using the `operationId` to find work you've already started.
+- **Validating on your side.** The SDK exports `pluginWorkspacePrepareParamsSchema` and `parseWorkspacePrepareResult`, the same checks Paperclip runs on these calls.
 
 #### Running agents in your workspaces
 
-To run agents against these checkouts, the project's environment must use a task-capable driver from the *same* plugin — Paperclip rejects a driver from a different one. Paperclip pins the binding on the environment lease and passes it to your driver as `PluginEnvironmentTaskParams.workspace`; your driver turns it into real mounts and a working directory. Native execution also needs the [Runner task hook](#running-runner-tasks-optional), and Paperclip won't fall back to running Runner on the host if that hook is unavailable.
+To run agents against these checkouts, the environment the task runs in (its agent's environment) must use a task-capable driver from the *same* plugin — Paperclip rejects a driver from a different one. Paperclip pins the binding on the environment lease and passes it to your driver as `PluginEnvironmentTaskParams.workspace`; your driver turns it into real mounts and a working directory. Native execution also needs the [Runner task hook](#running-runner-tasks-optional), and Paperclip won't fall back to running Runner on the host if that hook is unavailable.
 
 #### Native Runner sessions in a plugin environment
 
@@ -1356,7 +1388,7 @@ Codex sign-in also needs the optional `onLoginPtyReadCredential` hook. It receiv
 
 The four worker-to-host notification method names are exported as constants: `LOGIN_PTY_OUTPUT_NOTIFICATION`, `LOGIN_PTY_EXIT_NOTIFICATION`, `DUPLEX_CHANNEL_DATA_NOTIFICATION`, and `DUPLEX_CHANNEL_EXIT_NOTIFICATION`. The per-hook parameter shapes (`PluginLoginPtyOpenParams`, `PluginDuplexChannelOpenParams`, and friends) live in the SDK's `protocol.ts` but are reachable through the hook signatures rather than re-exported as names.
 
-Runner task and storage-provider exports: `MAX_ENVIRONMENT_TASK_FILE_BYTES`, `environmentTaskOperationSchema`, `environmentTaskResultSchema`, `environmentTaskCredentialSchema`, `environmentRunnerLaunchRequirementsSchema`, and `parseEnvironmentTaskResult`, with the types `PluginEnvironmentTaskOperation`, `PluginEnvironmentTaskParams`, `PluginEnvironmentTaskResult`, and `PluginEnvironmentTaskCredential`; plus `workspaceProviderOperationSchema`, `workspaceProviderResultSchema`, `pluginWorkspaceParamsSchema`, `freshWorkspaceSchema`, and `parseWorkspaceProviderResult`, with the types `PluginWorkspaceOperation`, `PluginWorkspaceResult`, `PluginWorkspaceParams`, and `PluginFreshWorkspace`. The host-to-worker methods behind them are `environmentTask` and `workspaceOperation`.
+Runner task and storage-provider exports: `MAX_ENVIRONMENT_TASK_FILE_BYTES`, `environmentTaskOperationSchema`, `environmentTaskResultSchema`, `environmentTaskCredentialSchema`, `environmentRunnerLaunchRequirementsSchema`, and `parseEnvironmentTaskResult`, with the types `PluginEnvironmentTaskOperation`, `PluginEnvironmentTaskParams`, `PluginEnvironmentTaskResult`, and `PluginEnvironmentTaskCredential`; plus `workspaceProviderOperationSchema`, `workspaceProviderResultSchema`, `pluginWorkspaceParamsSchema`, `freshWorkspaceSchema`, `parseWorkspaceProviderResult`, `pluginWorkspacePrepareParamsSchema`, and `parseWorkspacePrepareResult`, with the types `PluginWorkspaceOperation`, `PluginWorkspaceResult`, `PluginWorkspaceParams`, `PluginWorkspacePrepareParams`, `PluginWorkspacePrepareResult`, and `PluginFreshWorkspace`. The host-to-worker methods behind them are `environmentTask`, `workspaceOperation`, and `workspacePrepare`.
 
 Environment failure exports: `PluginEnvironmentRunnerIngressError`, `environmentRunnerIngressErrorData`, and `readEnvironmentRunnerIngressFailure`, with the type `PluginEnvironmentRunnerIngressFailure`; `PluginEnvironmentStopError`, `environmentStopErrorData`, and `readEnvironmentStopFailure`, with the types `PluginEnvironmentStopFailure` and `PluginEnvironmentStopFailureReason`; `environmentResumeErrorData` and `readEnvironmentResumeErrorDiagnostic`, with the type `PluginEnvironmentResumeErrorDiagnostic`; `environmentAcquireErrorData` and `readEnvironmentAcquireErrorDiagnostic`, with the type `PluginEnvironmentAcquireErrorDiagnostic`; `ENVIRONMENT_TASK_ERROR_CODES`, `PluginEnvironmentTaskError`, `environmentTaskErrorCodeData`, and `readEnvironmentTaskErrorCode`, with the type `PluginEnvironmentTaskErrorCode`; `environmentTaskErrorData` and `readEnvironmentTaskErrorDiagnostic`, with the type `PluginEnvironmentTaskErrorDiagnostic`; and `WORKSPACE_OPERATION_FAILURE_REASONS`, `PluginWorkspaceOperationError`, `workspaceOperationErrorData`, and `readWorkspaceOperationFailureReason`, with the type `PluginWorkspaceOperationFailureReason`.
 

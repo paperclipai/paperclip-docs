@@ -183,23 +183,22 @@ An environment plugin can also bring skills its agents need, such as instruction
 
 A plugin can also take over where a project's repository lives. Instead of Paperclip keeping the code on its own disk and making each task's checkout there, the plugin keeps the project's storage — inside remote agent computers, for example — and prepares a checkout there for each task.
 
-A project stays on the storage it got when it was created. Installing or disabling a storage plugin later never moves an existing project somewhere else.
+A project stays on the storage it got when it was created. Storage is the one placement choice a project owns, and nothing moves it afterwards: not installing or disabling a storage plugin, and not editing the project.
 
 **When a project is created,** Paperclip settles its storage once and saves the answer:
 
-- **The project's environment decides.** If the project is created in one of a storage plugin's own task environments, it goes on that plugin. A project created in a local, SSH, or sandbox environment uses Core / local storage. A plugin that's turned off for the company doesn't offer its environments here.
+- **The environment it's created in decides.** That's your default environment, or the one you pick under **Available in**. If it's one of a storage plugin's own task environments, the project goes on that plugin. A project created in a local, SSH, or sandbox environment uses Core / local storage. A plugin that's turned off for the company doesn't offer its environments here.
 - **An explicit choice has to agree.** If you name a storage plugin through the [projects API](../reference/api/goals-and-projects.md) and an environment too, the two must match, or the request is refused with *"The selected environment cannot use the requested project workspace storage."*
 - **A plugin's project default doesn't attach projects.** A storage plugin can still declare a default workspace mode and strategy, but that only fills in settings for projects already on it. A person's **My private tasks** project, which Paperclip creates for them, uses Core / local storage.
 
-**After that,** open the project's configuration and use **Workspace storage**. It lists **Core / local** and each storage plugin available to this company.
+**After that,** the project's configuration shows its storage read-only, in an **Available in** row that lists the environments able to use it. The note under it reads *"… workspace storage was chosen when this project was created and does not change."*
 
-- **A Core / local project can move to a plugin.** Pick the plugin in the list. The move is one way, so the note under the picker warns you: *"A project moved to a storage plugin stays on that plugin."*
-- **A plugin-backed project stays on its plugin.** The picker is locked, and the note reads *"This project stays on …."* A request to change it through the API is refused with *"A plugin-backed project stays attached to its storage plugin"*, while an update that leaves the field out keeps it attached.
-- **There's no fallback.** If the plugin is disabled, uninstalled, or turned off for the company, the picker shows **Unavailable provider** and runs fail with *"The workspace storage plugin is unavailable"* until you restore it. If the plugin is enabled but not running, runs fail too.
+- **It can't be changed.** There's no picker. A request through the API that asks for different storage is refused with *"A project stays on the workspace storage chosen when it was created"*, while an update that leaves the field out keeps the current storage.
+- **There's no fallback.** If the plugin is disabled, uninstalled, or turned off for the company, the row shows **Storage plugin unavailable** and runs fail with *"The workspace storage plugin is unavailable"* until you restore it. If the plugin is enabled but not running, runs fail too.
 
-The same setting is `executionWorkspacePolicy.storageProviderPluginId` in the [projects API](../reference/api/goals-and-projects.md): a plugin ID, or `null` for Core / local. If you leave it out when you create a project, the project takes its storage from its environment, so a plugin's project default doesn't attach new projects by itself. See [Creating a project](../guides/projects-workflow/projects.md) for how the **Available in** choice works.
+The same setting is `executionWorkspacePolicy.storageProviderPluginId` in the [projects API](../reference/api/goals-and-projects.md): a plugin ID, or `null` for Core / local. If you leave it out when you create a project, the project takes its storage from the environment it's created in, so a plugin's project default doesn't attach new projects by itself. See [Creating a project](../guides/projects-workflow/projects.md) for how the **Available in** choice works.
 
-> **Upgrading from a version where projects inherited the default?** A project that used a plugin only through the installed default, with no saved choice, is Core / local after the upgrade. New tasks use Core / local, and a task that already has a plugin task workspace stays on it. To put the project back on the plugin, pick it in **Workspace storage**. If the plugin still has task workspaces for that project, the move is refused with *"Retire managed execution workspaces before changing their storage owner or repository source"* until they've been removed, so tasks start with new workspaces after the move.
+> **Upgrading from a version where projects inherited the default?** A project that used a plugin only through the installed default, with no saved choice, is Core / local after the upgrade. New tasks use Core / local, and a task that already has a plugin task workspace stays on it. Its storage can't be switched afterwards, so to keep new work on the plugin, create a new project in one of the plugin's environments.
 
 A few things behave differently for those projects:
 

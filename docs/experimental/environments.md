@@ -6,7 +6,7 @@ seo_description: Run agents somewhere other than the Paperclip host. Define name
 
 # Environments
 
-By default, agent runs execute on the Paperclip host itself. **Environments** let you define named, reusable execution targets — a remote machine over SSH, or a sandbox from a provider plugin — and assign them per instance, per agent, or per project. Each environment carries its own configuration and, for sandbox environments, supports connection probing and reusable custom images.
+By default, agent runs execute on the Paperclip host itself. **Environments** let you define named, reusable execution targets — a remote machine over SSH, or a sandbox from a provider plugin — and assign them per instance or per agent. Each environment carries its own configuration and, for sandbox environments, supports connection probing and reusable custom images.
 
 ![Environment management in instance settings](../user-guides/screenshots/light/experimental/environments.png)
 
@@ -19,7 +19,7 @@ One machine doesn't fit every agent. Some work needs isolation from the host, so
 1. Go to **Settings → Experimental**.
 2. Turn on **Enable Environments** — *"Show environment management in company settings and allow project and agent environment assignment controls."*
 
-The **Environments** tab in **Settings** is always visible, but until you flip the flag it only asks you to enable Environments in the experimental settings. The flag also reveals the environment pickers on agent and project configuration.
+The **Environments** tab in **Settings** is always visible, but until you flip the flag it only asks you to enable Environments in the experimental settings. The flag also reveals the environment picker on agent configuration.
 
 ## Set up your first environment
 
@@ -34,9 +34,8 @@ The **Environments** tab in **Settings** is always visible, but until you flip t
 Then route work onto it:
 
 - **Per agent** — the agent configuration form gains an **Environment override** picker (*"Default: …"* plus each environment as `name · driver`).
-- **Per project** — project configuration gains an **Environment** dropdown. Pick an environment and new runs for that project's tasks go there, ahead of the agent's override and the instance default. Set it to **Use agent default** to let the agent decide. The choice belongs to that one project: it doesn't change the agent, other projects, or the instance default. It only lists environments that can use the project's storage. See [Project environment](../guides/projects-workflow/projects.md#project-environment).
 
-When you create a project, it starts out in your default environment and keeps it, so that project's runs don't follow a later change to an agent's override or the instance default. Switch the project to **Use agent default** if you want them to. If your environments can't all share the same project storage, the **Create project** dialog lets you pick one under **Available in**.
+Projects don't pick an environment. A run goes to its agent's override, then the instance default. What a project does keep is its storage: when you create one, its working files go wherever your default environment keeps them. If your environments can't all share the same project storage, the **Create project** dialog lets you pick under **Available in**, and the project's configuration later shows which environments can use it. See [Project storage](../guides/projects-workflow/projects.md#project-storage).
 
 ### Custom sandbox images
 
@@ -58,7 +57,7 @@ One kind of kept sandbox deserves a second look: a stopped sandbox kept as a fai
 
 ## When it's off
 
-UI-only gate: the Environments page content, the agent override picker, and the project dropdown are hidden, but existing environments, the default-environment assignment, and captured images are all kept. Flip it back on and everything is where you left it.
+UI-only gate: the Environments page content and the agent override picker are hidden, but existing environments, the default-environment assignment, and captured images are all kept. Flip it back on and everything is where you left it.
 
 ## Caveats
 

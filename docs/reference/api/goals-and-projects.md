@@ -170,14 +170,15 @@ Projects have a few important implementation details:
 - `visibility` is `open` (the default) or `private`. A private project is visible only to its access members — see [Project Access Members](#project-access-members). Only the project's privacy owner or a company owner or admin can change it; the person who makes a project private is added as a member.
 - `status` defaults to `backlog`.
 - `leadAgentId` is optional.
+- `decisionOwnerUserId` is optional: the person who gets this project's inbox cards that nobody else owns, ahead of the company's default decision owner. It must be an active member of the company, only board users can set it, and `null` clears it. See [Decision owners](attention.md#decision-owners).
 - `targetDate` is optional.
 - `goalIds` is preferred for new code.
 - `workspace` can be supplied during create to seed the first workspace in the same request.
 - `env` is the project environment binding config. Secret bindings are normalized before storage.
-- `executionWorkspacePolicy` is an advanced runtime policy object. Set its `storageProviderPluginId` to an installed plugin's ID to let that plugin own the project's storage and task workspaces (see [Plugins that store your project's code](../../administration/plugins.md#plugins-that-store-your-projects-code)); set it to `null` to keep Paperclip's local behavior. If you leave it unset when you create a project, storage follows the project's environment (see `environmentId` below). A plugin's project default doesn't attach a project to that plugin by itself. If you set both a storage plugin and an environment, they must agree, or the request fails with `409` and the code `project_environment_incompatible`. A plugin-backed project can't change its storage later: that request fails with a conflict too.
+- `executionWorkspacePolicy` is an advanced runtime policy object. Set its `storageProviderPluginId` to an installed plugin's ID to let that plugin own the project's storage and task workspaces (see [Plugins that store your project's code](../../administration/plugins.md#plugins-that-store-your-projects-code)); set it to `null` to keep Paperclip's local behavior. If you leave it unset when you create a project, storage comes from an environment (see `environmentId` below). A plugin's project default doesn't attach a project to that plugin by itself. If you set both a storage plugin and an environment, they must agree, or the request fails with `409` and the code `project_environment_incompatible`. Storage is fixed once the project exists: an update that asks for different storage, in either direction, fails with `409` and the code `project_storage_locked` (*"A project stays on the workspace storage chosen when it was created"*). An update that leaves `storageProviderPluginId` out keeps the current storage.
 - Project responses return the saved `executionWorkspacePolicy` as is, plus a separate `workspaceProvider` object showing what applies: `source` (`project` when the policy holds a saved choice, including `null`, or `core` when it holds none), the selected `pluginId` and `displayName`, the available `providers` (each with `id`, `displayName`, and `isDefault`), the resulting `effectivePolicy`, and any `error`.
-- `environmentId` is the project's own execution target. New runs for the project's tasks use it ahead of the agent's default environment and the instance default; `null` means "use the agent default". It belongs to this one project, so changing it never changes the agent, another project, or instance settings. On create, leave it out (and leave `storageProviderPluginId` unset) and Paperclip uses the caller's default environment: the calling agent's default, or for a person their primary agent's default, then the instance default, then local. The project also takes its storage from that environment. Setting or changing it needs permission to change the project's workspaces.
-- `expectedStorageProviderPluginId` is an optional safety check you can send with `environmentId` on create or update. Pass the `storageProviderPluginId` you saw for that environment in [List Project Environments](#list-project-environments) (`null` for Paperclip's own storage). If the environment's storage has changed since then, the request fails with `409` and the code `project_environment_incompatible` instead of quietly picking different storage.
+- `environmentId` is create-only and picks the project's storage. Send one of the environments from [List Project Environments](#list-project-environments) and the project takes the storage that environment uses. Paperclip doesn't save the environment on the project: the project's runs still go to each agent's default environment, then the instance default. Leave it out (and leave `storageProviderPluginId` unset) and Paperclip uses the caller's default environment: the calling agent's default, or for a person their primary agent's default, then the instance default, then local.
+- `expectedStorageProviderPluginId` is an optional safety check you can send on create. Pass the `storageProviderPluginId` you saw for that environment in [List Project Environments](#list-project-environments) (`null` for Paperclip's own storage). If the environment's storage has changed since then, the request fails with `409` and the code `project_environment_incompatible` instead of quietly picking different storage.
 - `archivedAt` can be set when archiving a project.
 
 Project statuses are:
@@ -220,10 +221,10 @@ The value is matched as the exact string `true`, so `includeArchived=1` and `inc
 GET /api/companies/{companyId}/project-environments
 ```
 
-Use this before creating a project, or before changing its environment, to see which environments it can use. It returns:
+Use this before creating a project to see where its working files can live. It returns:
 
 - `groups` — one entry per storage owner. Each has a `storageProviderPluginId` (`null` for Paperclip's own storage) and its `environments`, each with just an `id` and `name`. Environments in the same group can share a project's working files.
-- `defaultEnvironmentId` — the caller's default environment, when it can hold project storage.
+- `defaultEnvironmentId` — the caller's default environment, when it can hold project storage. If it can't and there's only one group, this is the first environment in that group, so a single storage option is used automatically.
 - `error` — a message when the default environment can't be used, otherwise `null`.
 
 It leaves out environments a project can't use, and it never returns provider configuration.
@@ -331,7 +332,7 @@ PATCH /api/projects/{projectId}
 
 This endpoint also accepts the legacy `goalId` field, but `goalIds` should be preferred.
 
-To move the project's runs to another environment, send `environmentId` (and, if you like, `expectedStorageProviderPluginId`). Send `"environmentId": null` to go back to the agent default. The environment must be one [List Project Environments](#list-project-environments) returns, or the request fails with `409` and the code `project_environment_unavailable`. If the project already has saved storage, the new environment must be able to use it, or the request fails with `409` and the code `project_environment_incompatible`. If it has none saved yet, it takes its storage from the new environment.
+A project has no environment of its own to change. Update ignores `environmentId` and `expectedStorageProviderPluginId`, and the project's runs follow each agent's environment. Its storage can't change either; see `executionWorkspacePolicy` in the project fields above.
 
 ### Delete Project
 

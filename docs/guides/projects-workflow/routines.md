@@ -400,6 +400,8 @@ One thing to know: **the test event is not replayed.** Finishing setup does not 
 Under the hood, each webhook trigger carries a **signing mode** that decides how Paperclip authenticates an inbound call, plus — for the timestamped mode — a **replay window**:
 
 - **Signing mode** — `app_webhook`, `bearer`, `hmac_sha256`, `github_hmac`, or `none`. `app_webhook` is what the **Another app or script** path creates: it accepts either a Bearer token or an HMAC-SHA256 body signature. `github_hmac` matches the GitHub path, and `bearer` is the older Bearer-only mode. Each option has a short description below the dropdown explaining how the fire endpoint will authenticate the request.
+
+  Only you and other board users can pick `none`. When an agent sets up a webhook for you, it has to use an authenticated mode such as `bearer` (the default) or `hmac_sha256`. If the app sending events can't authenticate its requests, Paperclip tells the agent to ask a person to choose the unauthenticated option on the board.
 - **Replay window (seconds)** — how far back a signed request's timestamp may be, used only by the timestamped `hmac_sha256` mode. It defaults to 300 seconds and doesn't apply to the other modes, which don't carry a timestamp.
 
 ### Rotating the secret

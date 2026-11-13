@@ -21,11 +21,23 @@ This is a good connector to give a debugging agent, because the useful work is a
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
 3. Complete Sentry's browser sign-in and choose the organization when prompted.
 
-Paperclip registers its client with Sentry automatically, so there is nothing to configure in a developer console. This is the supported path and the one this page documents.
+Paperclip registers its client with Sentry automatically, so there is nothing to configure in a developer console. This is the quickest path.
+
+### Connect with a user auth token instead
+
+A browser sign-in grant eventually expires, and then the person who signed in has to sign in again. If an agent works unattended — a nightly triage routine, for example — you can connect with a Sentry user auth token instead. It keeps working until you revoke it.
+
+1. In Sentry, create a user auth token in your account settings. Give it these scopes: `org:read`, `project:read`, `project:write`, `team:read`, `team:write`, and `event:write`.
+2. In Paperclip, open **Connectors**, select **Sentry**, and select **Change** on the access line.
+3. Under **How do you want to connect?**, choose **Use a user auth token**.
+4. Paste the token into **Your Sentry key**. The **Where do I find this?** link opens Sentry's auth token settings.
+5. Select **Connect**.
+
+> **Warning:** A user auth token acts as the Sentry user who created it. Every agent with access to this connection reaches what that person can reach, and Paperclip cannot add scopes to a token after the fact — if you missed one, create a new token. Consider creating the token from an account whose team membership matches what agents should see.
 
 ## Choose access
 
-Reach is the authorizing Sentry account's: the organization selected during sign-in, and the projects that account can see within it. Sentry's own team membership and role decide the rest.
+Reach is the authorizing Sentry account's (or, with a user auth token, the token creator's): the organization selected during sign-in, and the projects that account can see within it. Sentry's own team membership and role decide the rest.
 
 > **Note:** The connector's definition mentions organization, project, and environment scope, but those are descriptive — Paperclip does not enforce a project or environment filter on top of what Sentry grants. If an agent should only see one project, authorize with an account whose team membership is limited to it.
 
@@ -52,7 +64,7 @@ Compare against the Sentry dashboard. Reading a known issue confirms the credent
 | Some projects are invisible | The authorizing account's team membership does not include them | Add the account to those teams in Sentry |
 | An issue cannot be resolved by the agent | The action is **Off**, or the account's role does not permit it | Check the **Permissions** tab, then the Sentry role |
 | An issue was resolved unexpectedly | A mutation was set to **Allowed** | Re-open it in Sentry and tighten the action settings |
-| **Needs attention** | The grant expired or was revoked | Select **Reconnect** |
+| **Needs attention** | The grant expired or was revoked | Select **Reconnect**, or switch to a [user auth token](#connect-with-a-user-auth-token-instead) so it does not expire |
 
 Limitations: one organization per connection. No project or environment filter inside Paperclip. Sentry's data retention bounds how far back an agent can look.
 

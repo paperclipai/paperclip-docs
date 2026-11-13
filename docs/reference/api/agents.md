@@ -139,7 +139,7 @@ agent = res.json()
 
 ### Which environment the agent runs in
 
-Sometimes you need to know what kind of computer an agent uses, for example to decide whether a plugin's view applies to it. The agent record carries `defaultEnvironmentId`. When it's `null`, the agent falls back to the instance's default environment, or to the local environment when the instance has no default. A project can also set its own `environmentId` (see [Goals and Projects](goals-and-projects.md)), and that takes precedence for runs on that project's tasks.
+Sometimes you need to know what kind of computer an agent uses, for example to decide whether a plugin's view applies to it. The agent record carries `defaultEnvironmentId`. When it's `null`, the agent falls back to the instance's default environment, or to the local environment when the instance has no default.
 
 Look the environment up with `GET /api/environments/{environmentId}`, or list them all with `GET /api/companies/{companyId}/environments`. Both are board routes; you need membership in a company or instance admin access, otherwise you get `403` with `Company membership or instance admin access required`.
 
