@@ -14,11 +14,11 @@ Configure OpenCode by answering the exact setting you searched for, then give th
 
 ## Configure `opencode_local`
 
-Set a `model` in `provider/model` form and a working directory. Everything else can stay at its default until you need it.
+Set a `model` in `provider/model` form. The repository comes from the task's [project](/guides/projects-workflow/projects/), not from the agent. Everything else can stay at its default until you need it.
 
 | Field | Required | Notes |
 | --- | --- | --- |
-| `cwd` | no | Absolute working directory. Recommended. Created when permissions allow. Otherwise falls back to the process working directory. |
+| `cwd` | no | Deprecated. A legacy fallback working directory, used only when a run has no project workspace. The create flow no longer shows it, and an existing agent that still has a value shows it as **Working directory (deprecated)**. Set the repository on the [project](/guides/projects-workflow/projects/) instead. |
 | `model` | no | OpenCode model id in `provider/model` format, for example `openai/gpt-5.2-codex` or `anthropic/claude-sonnet-4-5`. Defaults to `openai/gpt-5.2-codex` when you create the agent without one. |
 | `variant` | no | Provider-specific reasoning or profile variant passed as `--variant`. Accepts `minimal`, `low`, `medium`, `high`, `xhigh` and `max`. |
 | `dangerouslySkipPermissions` | no | Injects a temporary runtime config with `permission=allow`, so every tool and connection runs without approval prompts. Defaults to `true` for unattended Paperclip runs. |
@@ -45,7 +45,6 @@ How the adapter runs OpenCode:
 {
   "adapterType": "opencode_local",
   "adapterConfig": {
-    "cwd": "/Users/me/projects/paperclip-workspace",
     "model": "anthropic/claude-sonnet-4-5",
     "variant": "high",
     "promptTemplate": "You are the engineering lead. Work carefully and report progress.",
@@ -114,7 +113,7 @@ Assigning the task wakes the agent. On that run it checks the task out, the stat
 
 For example, let's say you are a (team lead) trying to (add an OpenCode agent to a team that already runs other agents) but (you're not sure the model and working directory are right until it does real work). Here's how to approach the first ticket:
 
-- **Task:** (one small change in the repo at `cwd`)
+- **Task:** (one small change in the project's repository)
 - **Done when:** (the check you'll run, such as a passing test)
 - **Reviewer:** (the person or agent who signs off)
 

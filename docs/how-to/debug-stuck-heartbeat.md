@@ -292,6 +292,7 @@ Only a company owner or admin, an instance admin, or a board user on a local tru
 **Cause.** The underlying problem is usually short-lived:
 
 - The sandbox provider refused to create a sandbox with a temporary error, such as HTTP 429, 502, or 503, or a timeout. Paperclip retries a limited number of times, and while it does the notice adds *Paperclip will retry automatically.*
+- A new sandbox didn't finish starting in time. On [Daytona](../reference/adapters/sandbox-providers.md#when-a-new-sandbox-is-slow-to-start), one attempt to get a fresh sandbox stops after at most 180 seconds instead of waiting out the whole operation timeout. The run ends with the code `environment_provider_unavailable`, and the notice reads *The sandbox for "…" did not finish starting in time. No agent work had started. Paperclip retries automatically; if those retries are used up, use Retry once the provider is available.* Paperclip tries again after about 30 seconds, then after about 60 seconds.
 - During a release, the app can update before the remote Runner does. Paperclip checks again every 60 seconds, up to 10 times, and this doesn't use up the task's normal retries. An agent going through verification keeps checking and isn't parked for it.
 
 **Fix.** While the notice says *Paperclip will retry automatically.*, wait. No agent work started, so nothing is lost. A recovery notice means automatic retries have run out: check the provider's status, or that the Runner received this release's update, then click **Retry**.
@@ -373,6 +374,16 @@ Paperclip only promises an automatic retry when one is actually scheduled. If no
 Once storage is back, click **Retry** or send a message. Runs saved by an earlier release with the retry promise under a different code read with these messages too.
 
 If storage still isn't back after every automatic try, the run's message changes to *File storage stayed unavailable or kept rejecting Paperclip's storage credentials through every automatic retry, so Paperclip stopped retrying this task. Check the storage service and its credentials, then Retry.* Fix the storage service or the credentials, then click **Retry**.
+
+---
+
+## 24. Task says Waiting for agent files
+
+**Symptom.** A task reads **Waiting for agent files** and *Waiting for another run of this agent to finish with its files; this task continues automatically.* In the run log you see *Another run of this agent is still using its files. This task will continue automatically.*, or, on a run that was resuming, *Another run of this agent is still using its files; this run continues when it finishes*. In the first case, the run behind it ends `cancelled` with the code `agent_directory_busy`; a resuming run just waits and picks up again.
+
+**Cause.** The agent has managed agent files, and another run of the same agent was busy with them, for example saving them, just as this run was getting ready. Only one run can work on an agent's files at a time. No agent work had started yet.
+
+**Fix.** Nothing. This is a wait, not a failure, so it doesn't use up the task's automatic retries. Paperclip tries again 5 to 15 seconds later, up to 30 times, and the retry handles the same wake as the run it replaces. The cancelled attempt stays in the run log and doesn't show up in the task's conversation. If the files are still busy after 30 tries, the run fails the normal way. If Paperclip can't schedule the next try, the run log says *Another run of this agent is still using its files, and this task could not be rescheduled.* Either way, check what the agent's other runs are doing before you continue the task.
 
 ---
 

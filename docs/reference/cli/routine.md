@@ -156,7 +156,7 @@ Triggers are what cause a routine to run. A routine can have several. There are 
 | `webhook` | An external system POSTs to the trigger's webhook URL. | Carries a secret you can rotate. Use it to turn inbound events into Paperclip work. |
 | `api` (public) | A caller fires its public endpoint by `publicId`. | Fired with `routine trigger:fire`; the public id is shareable without exposing the routine id. |
 
-The exact shape of a trigger (its kind, schedule expression, webhook config, concurrency policy, and catch-up policy) is set through the JSON payload on `trigger:create` and `trigger:update`. The CLI passes that payload straight to the API, so the trigger schema is the source of truth for the available fields.
+The exact shape of a trigger (its kind, schedule expression, webhook config, concurrency policy, and catch-up policy) is set through the JSON payload on `trigger:create` and `trigger:update`. The CLI passes that payload straight to the API, so the trigger schema is the source of truth for the available fields. When an agent runs these commands, a webhook trigger must use an authenticated signing mode — the API refuses `"signingMode": "none"` from an agent (see [Agents can only create authenticated webhooks](../api/routines.md#agents-can-only-create-authenticated-webhooks)).
 
 ### Concurrency and catch-up
 

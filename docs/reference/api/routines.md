@@ -391,6 +391,16 @@ Supported signing modes in the code are:
 
 When you create a webhook trigger through the API and omit `signingMode`, the default is `bearer`.
 
+#### Agents can only create authenticated webhooks
+
+If an agent creates the trigger, it has to pick a mode that authenticates the sender — anything except `none`. An agent that sends `"signingMode": "none"` gets a `403` with this message:
+
+```text
+Agents can only create authenticated webhook triggers. Use signingMode "bearer" (the default) or a signed mode such as "hmac_sha256". If the sender cannot authenticate its requests, ask a person to choose an unauthenticated webhook on the board.
+```
+
+The same check runs when an agent updates a webhook trigger or restores a routine revision: an agent can't switch an authenticated webhook to `none`. Board users keep every option, including `none`. If a person already set a webhook up with `none`, an agent can still edit that trigger's other fields.
+
 Replay windows are only used for the timestamped `hmac_sha256` mode and must be between 30 and 86,400 seconds. The default is 300 seconds.
 
 The `webhookUrl` is built from the server's public origin. External senders such as GitHub or Fireflies can only deliver to a publicly reachable HTTPS address — see [HTTPS and public access](../deploy/https.md). The UI warns when a URL points at `localhost`, a private network, a Tailscale `.ts.net` host, or plain HTTP.
@@ -516,7 +526,7 @@ You can update:
 - `label`
 - `enabled`
 - `cronExpression` and `timezone` for schedule triggers
-- `signingMode` and `replayWindowSec` for webhook triggers
+- `signingMode` and `replayWindowSec` for webhook triggers (agents can't change an authenticated webhook to `none` — see [Agents can only create authenticated webhooks](#agents-can-only-create-authenticated-webhooks))
 - `setupPending` — only the value `false` is accepted, which finishes setup and enables the webhook for real deliveries (see [Webhook setup and test deliveries](#webhook-setup-and-test-deliveries))
 - `archived` — `true` archives the trigger (retires it from the active set), `false` restores it
 

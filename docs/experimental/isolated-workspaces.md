@@ -75,7 +75,6 @@ The Workspaces sidebar item disappears (visiting `/workspaces` redirects to your
 
 - Isolation requires **both** the instance flag and the project's *Enable isolated task checkouts* policy.
 - Git worktree is the only implementation — the UI labels it *"Host-managed implementation: Git worktree."*
-- The advanced **Environment** dropdown in the same section needs the [Environments](environments.md) flag and more than one selectable environment.
 - Workspace-scoped sandbox confinement — including the writable-path check above — runs on Linux hosts only.
 - A Codex agent pinned to the ACP engine can't run in an in-place environment: *"In-place workspace realization requires the Codex CLI engine; ACP archive staging is not supported."* Leave the engine unset and Paperclip picks the CLI for you.
 

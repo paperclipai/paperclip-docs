@@ -876,6 +876,8 @@ curl -X POST "http://localhost:3100/api/companies/company-1/secret-proposals/pro
 
 Approval fails safely if the situation has shifted since the proposal was raised. A proposal past its expiry can't be approved (`Expired proposals cannot be approved`), a binding whose prerequisite is still pending needs the cascade flag (`Binding proposal requires pending secret proposal <id>; retry with cascade=true`), and a binding whose target has since moved out of the proposer's chain of command is refused (`Binding proposal target is no longer allowed by its proposal-time and current chain-of-command policy`). These come back as `409 Conflict`.
 
+A binding also won't overwrite a value someone already set. If the target agent's config already holds a different, non-empty value at the `configPath`, approval fails with `409 Conflict` and `Agent config path already exists: <configPath>`. A blank value doesn't count: if the field is missing, an empty string `""`, or a plain value that's empty (`{ "type": "plain", "value": "" }`), the approved binding simply fills it in. This applies to `env.<KEY>` and to the other config paths alike.
+
 ### Reject a proposal
 
 ```http

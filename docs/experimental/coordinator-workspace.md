@@ -129,18 +129,21 @@ If an agent asks for confirmation more than once on a task, even about different
 
 Use the toolbar above the queue to narrow it down:
 
-- **Search** decisions or task IDs.
+- **Search** your cards.
 - Filter by agent (**All agents**) or project (**All projects**).
-- Group the cards by task, agent, or project (**No grouping** by default).
-- Sort by **Newest first** or **Oldest first**.
+- Choose whose cards you see. **Assigned to you** is the default. **No owner yet** shows cards nobody has claimed, and **Company alerts** shows company-wide problems. If you can act in the company, you also get **All assignees** and each person by name.
+- Group the cards **By type** (the default, which splits them into **Decisions** and **Problems**), **By task**, **By agent**, or **By project**, or pick **No grouping**.
+- The **View** menu opens **Archived**, the cards you hid for yourself, and **Decision history**.
 
-When you answer something, it settles into a receipt under **Recent Decisions**, where it stays for a day. When the queue is empty you'll see *"You're caught up."*
+An ownerless request has a **Claim** button, and each card has a **Close…** menu (**⋯**) for transferring, withdrawing, archiving, or snoozing it. See [Claim, hand off, or withdraw a card](../guides/day-to-day/decisions.md#claim-hand-off-or-withdraw-a-card). When a card points at a document, you can open it beside the queue in a side panel tab.
+
+When you answer a card, it briefly turns into a receipt in place, then leaves the queue. When someone else handles a card that was meant for you, a note about it shows under **Updates**. When the queue is empty you'll see *"You're caught up."*
 
 ### Decision history
 
-Click **Decision history** to open every decision you can see, not just the last day's. It opens in the side panel on a desktop, or full-screen on a phone. You can search it, filter by outcome (**Approved**, **Answered**, **Changes requested**, **Decided**, **Cancelled**, **Expired**), agent, or project, group it, and sort it. Each entry links back to the decision in its task. Scroll down and click **Load more decisions** to go further back.
+Choose **Decision history** from the **View** menu to see every closed card, approvals included. It replaces the queue in the main pane, and **Needs You** takes you back. It opens on **Handled by me or for me**; switch to **Everyone** for every person's history. You can search it, filter by outcome (**Approved**, **Answered**, **Changes requested**, **Decided**, **Withdrawn**, **Expired**, **Closed with task**, **Cancelled**, or **Handled for me**), agent, or project, group it, and sort it. Each entry links back to its task or approval. Scroll down and click **Load more decisions** to go further back.
 
-History only includes decisions on tasks you're allowed to read. The [Attention API](../reference/api/attention.md#read-decision-history) serves the same list.
+History only includes records you're allowed to read. The [Attention API](../reference/api/attention.md#read-decision-history) serves the same list.
 
 ## Caveats
 

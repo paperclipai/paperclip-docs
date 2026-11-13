@@ -264,7 +264,13 @@ What each one is for:
 
 In `by-agent`, charges that don't belong to an agent — such as background [decision model](./decision-models.md) requests — come back as a row with `agentId: null`. The UI labels it **Paperclip services**.
 
-Rows from `by-agent` and `by-agent-model` include `eventCount` (ledger events in the group, not distinct runs) and `estimatedEventCount`, so you can tell when a total is partly or fully an estimate.
+Rows from `by-agent`, `by-agent-model`, `by-provider`, `by-biller`, and `by-project` include three counts that tell you how much to trust a row's total:
+
+- `eventCount` — ledger events in the group, not distinct runs
+- `estimatedEventCount` — events whose cost is an estimate rather than a reported amount, so you can tell when a total is partly or fully an estimate
+- `unpricedEventCount` — events that used tokens but have no known price. Usage billed as included in a subscription isn't counted here.
+
+`costCents` only adds up priced usage. Unpriced usage is missing from it, not counted as zero — so when `unpricedEventCount` equals `eventCount` and `costCents` is `0`, treat the cost as unknown rather than `$0.00`. To see which runs are behind it, call [`/costs/data-quality`](#cost-gaps).
 
 ### Spend by user
 

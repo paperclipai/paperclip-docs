@@ -290,6 +290,31 @@ You can use the same pattern for `approve` and `reject` by changing the path to 
 
 ---
 
+## Withdraw An Approval
+
+```http
+POST /api/approvals/{approvalId}/cancel
+Content-Type: application/json
+```
+
+Use this when an approval request has gone out of date and nobody should decide it any more. Withdrawing never approves anything: the approval moves to `cancelled`, the activity log records `approval.cancelled`, and the agent that asked is woken so it knows the request is gone.
+
+Body:
+
+| Field | Required | Notes |
+|---|---|---|
+| `reason` | No | Why you're withdrawing it, up to 4000 characters. Passed on to the requesting agent. |
+
+Rules:
+
+- Board users only.
+- Only approvals in `pending` or `revision_requested` can be withdrawn. One that's already resolved returns `409` with `Already answered`.
+- A `hire_agent` approval can't be withdrawn, because that would leave the pending agent without a decision. You get `422` with `Reject this hire request instead of withdrawing it.` (code `approval_cancel_unsupported`). Reject it instead.
+
+The **Close…** menu on an inbox card uses the same withdrawal. See [Claim, close, or transfer a card](attention.md#claim-close-or-transfer-a-card).
+
+---
+
 ## Comments
 
 ```http
@@ -462,7 +487,9 @@ comment = res.json()
 ```
 pending -> approved
         -> rejected
+        -> cancelled
         -> revision_requested -> pending
+                              -> cancelled
 ```
 
 Practical rules:
@@ -470,7 +497,8 @@ Practical rules:
 - `approve` and `reject` work only on `pending` and `revision_requested`
 - `request-revision` works only on `pending`
 - `resubmit` works only on `revision_requested`
-- `approve`, `reject`, and `request-revision` require board access
+- `cancel` works only on `pending` and `revision_requested`, and moves the approval to `cancelled`
+- `approve`, `reject`, `request-revision`, and `cancel` require board access
 - `resubmit` can be done by the requesting agent, or by the board
 
 ---

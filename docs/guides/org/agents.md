@@ -22,16 +22,16 @@ The agent list is the front door. Open **Agents** in the sidebar and you land on
 
 ### Search and filter
 
-A toolbar at the top of the page holds a **Search agents…** box, the view toggle, and the **New Agent** button. Type in the search box to narrow the list by name, role, or title — it works in both the list and the org chart.
+A toolbar at the top of the page holds a **Search agents…** box, the view toggle, the filter button, and the **New Agent** button. Type in the search box to narrow the list by name, role, or title — it works in both the list and the org chart.
 
-A filter button sits just below the toolbar. Click it to open **Filters**, where you can narrow the roster by four things at once:
+The filter button sits right beside the view toggle. Click it to open **Filters**, where you can narrow the roster by four things at once:
 
 - **Model**: the agent's default model, or **Harness default** for agents that use their harness's own choice.
 - **Status**: for example only paused agents.
 - **Harness**: for example only your Codex agents.
 - **Connection**: which AI connection the agent uses, such as a named connection or pool, **Local credentials**, **Responsible user's default**, or **Managed externally**.
 
-Each menu starts with an **All** option (**All models**, **All statuses**, and so on). Filters combine with each other and with your search, and the button shows a small badge with how many are active. Click **Clear filters** to reset them without losing your search. Your filters stay in place when you switch between the list and the org chart; in the org chart, the managers above a matching agent stay visible so the tree still makes sense. A small count at the other end of the filter row shows how many agents match. If nothing matches, the list shows *"No agents match these filters."* and the org chart shows *"No agents match your search and filters."*
+Each menu starts with an **All** option (**All models**, **All statuses**, and so on). Filters combine with each other and with your search, and the button shows a small badge with how many are active. Click **Clear filters** to reset them without losing your search. Your filters stay in place when you switch between the list and the org chart. In the org chart, nothing moves: every agent keeps its place in the tree, and agents that don't match are dimmed, along with their reporting lines. Dimmed cards still open the agent when you click them. In the list view, the first column heading shows how many agents match, for example **12 agents**. If nothing matches, the list shows *"No agents match these filters."*
 
 There are no status tabs any more. Paused agents stay in the full roster and carry a `paused` status badge, so you can spot them without switching views. Old bookmarks such as `/agents/active` or `/agents/paused` simply open the full roster at `/agents/all`.
 
@@ -56,7 +56,7 @@ Every agent row shows the same pieces of information, just arranged differently 
 - **Name, role, and title** (e.g. "Ada" with "Engineer - Backend Engineer" underneath). A small crown next to the name marks [your primary agent](#your-primary-agent).
 - **Chat button** (list view in the streamlined UI) — a **Chat** button that appears when you hover over the row or tab to it, and opens a chat with this agent. Hover it to see *chat with this agent*.
 - **Live run pill** — a pulsing blue "Live" badge when the agent has a run currently in flight; click it to jump straight into the live transcript
-- **Harness**, **Connection**, and **Default model** columns (list view) — which AI runtime powers the agent, which AI connection it signs in with, and the model it uses when a task doesn't ask for another. **Harness default** means no model is pinned, **Local credentials** means no AI connection is assigned, and **Managed externally** means the adapter handles its own connection.
+- **Harness**, **Default model**, and **Connection** columns (list view) — which AI runtime powers the agent, the model it uses when a task doesn't ask for another, and which AI connection it signs in with. **Harness default** means no model is pinned, **Local credentials** means no AI connection is assigned, and **Managed externally** means the adapter handles its own connection.
 - **Last heartbeat** — a relative time like "4m ago"
 - **Status badge** — the agent's current status, such as `idle`, `running`, or `paused`. In the list view it sits under the **Status** heading, next to the live run pill.
 
@@ -128,7 +128,7 @@ After the dialog, you land on a setup page with your agent's character and name 
 
 If your company requires approval for new agents, the computer isn't created until the hire is approved. The test tells you *"The selected account will be verified on the agent computer after hire approval."* and you can finish setup without it.
 
-**Signing in to Claude or Codex on an agent computer.** If the environment's plugin supports it, you can sign in with your Claude or ChatGPT subscription right on an agent's computer instead of in a temporary sandbox. When you sign in from a saved agent's settings, Paperclip uses that agent's computer. Otherwise a **Choose a sign-in computer** menu appears: choose any Paperclip Runner agent on that environment whose computer is ready or still being verified. If none has, you'll see *"An agent computer must finish setup before you can sign in."* The computer you pick only hosts the sign-in. It doesn't change who owns the account or which agents may use it.
+**Signing in to Claude or Codex on an agent computer.** If the environment's plugin supports it, you can sign in with your Claude or ChatGPT subscription right on an agent's computer instead of in a temporary sandbox. When you sign in from a saved agent's settings, Paperclip uses that agent's computer. Otherwise there's nothing to choose: when you start the sign-in, Paperclip picks a Paperclip Runner agent on that environment whose computer is ready or still being verified. It prefers a ready computer and skips any computer that's already hosting another sign-in. If none is available, you'll see *"No agent computer is available for sign-in."* The computer Paperclip picks only hosts the sign-in. It doesn't change who owns the account or which agents may use it.
 
 **Coming back to an unfinished agent.** If you close setup part-way, the agent stays paused in your list. Its page header shows **Finish setup** as the main button, where **New task** would normally be. Click it to return to setup with your saved choices. An unfinished agent can't be resumed, and API keys can't be created for it, until setup is done.
 
@@ -230,9 +230,9 @@ To see or change who an agent reports to, use the **Reports to:** picker in the 
 
 ### Header actions
 
-On the right of the header, you get an actions menu (`⋯`), a chat button, and one main button.
+On the right of the header, you get an actions menu (`⋯`), a **Chat** button, and one main button, side by side and the same size.
 
-The chat button (*Chat with this agent*) opens a chat with this agent.
+**Chat** (hover it to see *Chat with this agent*) opens a chat with this agent.
 
 The main button is usually **New task**, which opens the new-task dialog with this agent already picked as the assignee. While the agent's setup isn't finished, the main button is **Finish setup** instead. Click it to return to setup with the same saved agent and your earlier choices; once setup finishes, **New task** comes back. If you have unsaved edits on the page, Paperclip asks before leaving.
 
@@ -329,11 +329,13 @@ The counts look at a limited number of recent items. When the agent is very busy
 Below the tiles, two panels sit side by side:
 
 - **Profile** — the top of the panel shows when the agent was added, for example **Created** and the date. In a company with two or more people, it reads **Created by** with the name of the person who added it and the date, so you know who to ask about it. If that person has since left the company, it reads **Former member**. Agents created by other agents, or before Paperclip started recording creators, show only the date. **Reports to:** shows the agent's manager, linking to its page, with a pencil button (**Change manager**) beside it that opens the manager picker — see [Changing an agent's manager](./org-structure.md#changing-an-agents-manager). If the agent has no manager, the button reads **No manager**; if its saved manager can't be shown, for example because that manager was terminated, it reads **Manager unavailable**. When the agent has reports, **Direct reports:** lists them, each linking to its own page. If there are more than fit on two lines, a **+N more** button (for example **+3 more**) shows the rest, and **Show less** folds them away again.
-- **Skills** — the skills enabled for this agent, with a count such as **3 enabled**, or **No skills enabled.**
+- **Skills** — the skills enabled for this agent, with a count such as **3 enabled**. The **Explore skills** link at the end of the list opens the agent's [Skills](#skills) page, where you can turn more on.
 
 ### Recent tasks
 
 A list of up to five tasks this agent has worked on, most recently updated first. **See all tasks** opens the full task list filtered to this agent. Use it to pick up context before you run the agent or reassign work.
+
+A brand-new agent has no tasks yet, so this section offers a few to get you started under **Start with a suggested task** — for example *Research a topic and summarize the key findings*. Click one to open the new-task dialog with that title filled in and this agent already picked as the assignee.
 
 To see the agent's current or latest run, open **Runs** under **Audit**, or click the **Runs** tile. For spending charts and how costs are worked out, see [Costs & budgets](../day-to-day/costs.md).
 
@@ -470,13 +472,15 @@ Existing agents keep whatever files they already have — Paperclip doesn't rewr
 
 ### Editing files
 
-The **Files** panel lists the agent's files and folders; the entry file is tagged **entry**, and other files show their size. Click a file to open it on the right. Add a file with the **+** button (**Add agent file**) at the top of the list — type a name such as `TOOLS`, then click **Create**. Paperclip adds `.md` for you, and the name can use letters, numbers, hyphens, and underscores, so you can't create a file inside a folder from here. The new file opens empty and is written when you click **Save changes** in the bar at the bottom. Rename is via delete + create for now.
+The **Files** panel lists the agent's files and folders; the entry file is tagged **entry**, and other files show their size. Click a file to open it on the right. To add a file, click the **+** button (**Add agent file**) at the top of the list. A new, empty file called `Untitled.md` opens on the right, with its name ready to edit at the top of the preview — type a name such as `TOOLS` and press Enter. Paperclip adds `.md` for you, and the name can use letters, numbers, hyphens, and underscores, so you can't create a file inside a folder from here. If the name is taken or not allowed, a message under the title tells you (*"A file with this name already exists."* or *"Use letters, numbers, hyphens or underscores."*). The new file is written when you click **Save changes** in the bar at the bottom.
+
+To rename a Markdown file, click its name at the top of the preview and type a new one. Press Escape to put the old name back. The rename is saved with **Save changes**, like any other edit.
 
 A file opens as a read-only preview of its raw text, exactly as the agent sees it. Under the file name, a date reads **Last updated** or **Date created** when Paperclip knows it, and **Date unavailable** when it doesn't. Next to the file name you'll find three icon buttons:
 
 - **Edit** (pencil) — switches the file into a plain text editor. Click the pencil again to go back to the preview.
 - **Copy as markdown** — copies the file's text to your clipboard.
-- **Delete file** (bin) — removes the file after you confirm. It isn't offered for the entry file.
+- **Delete file** (bin) — removes the file after you confirm. For the entry file the bin is greyed out; hover it to see *This file is required*.
 
 The editor handles text files up to 1 MiB. For a binary file, or one too large to edit, the page shows a download link instead.
 
@@ -546,7 +550,7 @@ Under the heading, a one-line summary reminds you what the page covers: how the 
 
 - **Harness panel** — **Harness** (every adapter you can pick on your instance; adapters that can't be selected yet aren't listed), **Model**, and adapter-specific fields such as **Thinking effort**. Switching adapters is a structural change and usually resets the model and options to safe defaults for the new adapter, so pick deliberately. Some adapters (OpenCode, for example) need the model in a specific format; the form shows an inline error if the model can't be validated.
 - **Configuration panel** — adapter-specific settings, with less common options such as **Command** and **Extra args** tucked under **Advanced**.
-- **Environment panel** — where the agent runs. Leave it on the company default or pick a specific environment. A task in a project that has its own [project environment](../projects-workflow/projects.md#project-environment) runs there instead.
+- **Environment panel** — where the agent runs. Leave it on the company default or pick a specific environment.
 - **Test your agent** — a quick check that the runtime and model can respond (see below).
 - **Environment variables** — values passed to the agent's runtime on every run.
 - **Debugging** — the **Capture raw provider traces** switch. Turn it on and save to record the exact provider traffic for every future run until you turn it off. Traces may contain sensitive prompts and tool arguments. Paperclip keeps at most 64 MiB per run and deletes each trace after 24 hours. Only instance administrators see this panel (or anyone, on a local trusted instance), and it isn't shown for agents on an external runner.
@@ -569,14 +573,13 @@ The **Test your agent** card checks that the runtime and model can respond. Clic
 
 ### Saving changes
 
-Edits are tracked as you make them, on Harness / Runtime, [Identity](#identity), and [Secrets & variables](#secrets-tools-and-channels). A bar stays pinned to the bottom of the page while you scroll:
+Edits are tracked as you make them, on Harness / Runtime, [Identity](#identity), and [Secrets & variables](#secrets-tools-and-channels). As soon as you change something, a save bar appears at the bottom of the screen and stays there while you scroll:
 
-- An **amber dot** with **Unsaved changes** means you've edited something that isn't saved yet.
+- A dot with **Unsaved changes** means you've edited something that isn't saved yet.
 - **Saving changes…** shows while Paperclip saves.
-- A **green dot** with **Changes saved** confirms the save went through.
-- **No unsaved changes** means there's nothing pending.
+- A green dot with **Saved changes** confirms the save went through. It stays for a couple of seconds, then the bar slides away.
 
-The [Identity](#identity) page uses a lighter version: the bar only appears once you've changed something. After a save it reads **Saved changes** for a couple of seconds and then slides away.
+If nothing has changed, there's no bar at all.
 
 **Discard** puts every changed field back the way it was; **Save changes** saves them. Saving a change to the agent's settings (Harness / Runtime, Secrets, or the YAML on Advanced) adds an entry to its [Agent history](#agent-history). Instruction files on the Identity page have their own per-file history instead.
 

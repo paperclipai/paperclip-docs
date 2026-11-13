@@ -31,7 +31,7 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 
 | Field | Required | Notes |
 |---|---:|---|
-| `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
+| `cwd` | no | Deprecated. A legacy fallback working directory, used only when a run has no project workspace. The create flow no longer shows it, and an existing agent that still has a value shows it as **Working directory (deprecated)**. Set the repository on the [project](../../guides/projects-workflow/projects.md) instead. |
 | `engine` | no | How Claude Code is run: `auto` (the default — runs ACP), `acp` (always the Agent Client Protocol), or `cli` (always the classic Claude CLI). See [ACP Engine](#acp-engine). |
 | `model` | no | Claude model id. Common choices include `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-opus-4-8`, `claude-sonnet-5`, and `claude-fable-5-1`. |
 | `promptTemplate` | no | Prompt template used for the run. |
@@ -219,7 +219,6 @@ If the test fails, fix the command, path, or auth signal before trying again. On
 {
   "adapterType": "claude_local",
   "adapterConfig": {
-    "cwd": "/Users/me/projects/paperclip-workspace",
     "model": "claude-sonnet-4-6",
     "promptTemplate": "You are the engineering lead. Work carefully and report progress.",
     "env": {
