@@ -22,7 +22,7 @@ Paperclip ranks the visible queue by recent activity and urgency. That makes it 
 
 Rows that Paperclip can complete in place — approvals, issue-thread interactions, join requests, and proposed decisions — give you the relevant decision controls. A few problem rows have their own quick fixes too: a failed run offers **Retry run**, and a budget hard stop lets you **Keep paused** or raise the limit and resume. Other rows take you to the original issue, alert, or record so you can inspect the context before you act.
 
-When a request is tied to a task that has since been closed, or a confirmation has been replaced by a newer one, Paperclip keeps it out of your current cards so you don't answer something that no longer matters.
+When a confirmation has been replaced by a newer one, Paperclip hides the older one so you don't answer something that no longer matters. A request whose task has since been closed moves to the [Stale](#stale-cards) group instead of your current cards.
 
 ---
 
@@ -33,7 +33,7 @@ Not every card is for you. Paperclip works out who each card belongs to, and a r
 | Tab | What's in it |
 |---|---|
 | **For you** | Cards meant for you. This is where the page opens, and its count is the number on the sidebar badge. |
-| **Unassigned** | Cards that need a person but have no owner yet. Any board member can answer one, or claim it. |
+| **Unassigned** | Cards that need a person but have no owner yet. Any board member can answer one, and you can claim a request to make it yours. |
 | **Company** | Company-wide alerts for operators: failed runs, agent errors, budget stops, and join requests. |
 | **Archived** | Cards you archived or snoozed for yourself. |
 | **Everyone** | Every person's cards. You only see this tab if you can act in the company. Viewers don't get it. |
@@ -164,7 +164,7 @@ Set triage in the UI with the **When to decide** row on an expanded item. You ca
 
 If a card is real but not for this moment, open its **Close…** menu and archive it or snooze it. **Archive for me** hides it until its content changes. **Snooze for me** hides it until the time you choose. Log entries, automatic retries, and unrelated comments don't bring a card back, but a real change to what you're deciding does.
 
-The snooze choices are **1 hour**, **4 hours**, **Tomorrow morning**, and **Next week**. Right after you archive or snooze a card, Paperclip shows an **Undo** action for eight seconds.
+The snooze choices are **1 hour**, **4 hours**, **Tomorrow morning**, and **Next week**, or pick your own time under **Custom** and click **Snooze until…**. Right after you archive or snooze a card, Paperclip shows an **Undo** action for eight seconds.
 
 Your hidden cards live on the **Archived** tab, with snoozed ones in their own **Snoozed** group that says when each comes back. Choose **Restore** (or **Restore now** for a snoozed card) to bring one back, or **Change snooze time** to move it.
 

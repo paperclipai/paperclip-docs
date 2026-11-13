@@ -206,7 +206,7 @@ Each project can define environment variables that are injected into agent runs 
 
 ### Project storage
 
-When this project is on a storage plugin, or your company has one installed, the Configuration tab shows an **Available in** row. It lists the environments that can use this project's storage, so you can see which agents' environments can work on it. The note under it names the storage, for example *"Core / local workspace storage was chosen when this project was created and does not change."* There's nothing to pick here: storage is the one placement choice a project owns, and it's settled when you create the project. If no environment can use it right now, the row reads **No available environments**. If the project's storage plugin has been removed or turned off, it shows **Storage plugin unavailable**.
+When this project is on a storage plugin, or a storage plugin is available to your company, the Configuration tab shows an **Available in** row. It lists the environments that can use this project's storage, so you can see which agents' environments can work on it. The note under it names the storage, for example *"Core / local workspace storage was chosen when this project was created and does not change."* There's nothing to pick here: storage is the one placement choice a project owns, and it's settled when you create the project. If no environment can use it right now, the row reads **No available environments**. If the project's storage plugin has been removed or turned off, it shows **Storage plugin unavailable**.
 
 Where a task runs isn't a project setting. Each run follows its agent's environment, then the instance default (see [Environments](../../experimental/environments.md)).
 

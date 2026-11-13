@@ -22,7 +22,7 @@ For Paperclip, MCP is how you give an agent a capability that doesn't fit a [ski
 > **Which agents this page applies to.** The steps below edit the runtime's own MCP config on the host, so they only reach agents that run with that host config: Claude Code on the **Legacy runner** (`claude_local`) and `hermes_local`. Two cases where the runtime's own config is not used:
 >
 > - **Paperclip Runner.** New Claude Code agents use [Paperclip Runner](../reference/adapters/paperclip-runner.md) by default on supported machines. Each Runner session gets a private, isolated provider home, so a `.mcp.json` file or a `claude mcp add` entry on the host isn't loaded. The exception is an agent an operator has set to [`homeMode: "preconfigured"`](../reference/adapters/paperclip-runner.md#keep-working-in-your-own-provider-home).
-> - **`claude_local` runs that carry Paperclip's own MCP servers.** When Paperclip attaches MCP servers to a run, for example from Connectors, it starts Claude with `--strict-mcp-config`. Claude then loads only those servers and ignores your `.mcp.json` and `claude mcp add` entries for that run.
+> - **`claude_local` runs that carry Paperclip's own MCP servers.** When Paperclip attaches MCP servers to a run on the classic Claude CLI engine (`engine: "cli"`; the default is ACP), for example from Connectors, it starts Claude with `--strict-mcp-config`. Claude then loads only those servers and ignores your `.mcp.json` and `claude mcp add` entries for that run.
 >
 > The supported path on every runner is a connector. Add the server on the **Connectors** page and Paperclip attaches it to the agent's runs: see [Connect a custom MCP server](../connectors/custom-mcp-servers.md).
 
@@ -59,7 +59,7 @@ The agent never speaks MCP directly — its runtime does. That means MCP server 
 - Paperclip running locally or on a server you control. See [Installation](../guides/getting-started/installation.md).
 - An agent already hired with one of the supported adapters. See [Hire Your First Agent](../guides/getting-started/your-first-agent.md).
 - For Claude Code: the [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed on the host running the agent.
-- For Hermes: [Hermes Agent](https://github.com/NousResearch/hermes-agent) installed (`curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash` on Linux, macOS, or WSL2).
+- For Hermes: [Hermes Agent](https://github.com/NousResearch/hermes-agent) installed (`pip install hermes-agent`, or the Hermes installer `curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash` on Linux, macOS, or WSL2), with Python 3.10+ on the host.
 - The MCP server you want to attach. [Anthropic's directory](https://github.com/modelcontextprotocol/servers) and [Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers) are the two best starting points.
 
 ---

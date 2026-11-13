@@ -135,7 +135,7 @@ Use the toolbar above the queue to narrow it down:
 - Group the cards **By type** (the default, which splits them into **Decisions** and **Problems**), **By task**, **By agent**, or **By project**, or pick **No grouping**.
 - The **View** menu opens **Archived**, the cards you hid for yourself, and **Decision history**.
 
-An ownerless request has a **Claim** button, and each card has a **Close…** menu (**⋯**) for transferring, withdrawing, archiving, or snoozing it. See [Claim, hand off, or withdraw a card](../guides/day-to-day/decisions.md#claim-hand-off-or-withdraw-a-card). When a card points at a document, it opens beside the queue in a side panel tab.
+An ownerless request has a **Claim** button, and each card has a **Close…** menu (**⋯**) for transferring, withdrawing, archiving, or snoozing it. See [Claim, hand off, or withdraw a card](../guides/day-to-day/decisions.md#claim-hand-off-or-withdraw-a-card). When a card points at a document, you can open it beside the queue in a side panel tab.
 
 When you answer a card, it briefly turns into a receipt in place, then leaves the queue. When someone else handles a card that was meant for you, a note about it shows under **Updates**. When the queue is empty you'll see *"You're caught up."*
 
