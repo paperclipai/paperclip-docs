@@ -12,7 +12,7 @@ Around that broker sit the pieces you configure. **Applications** and **connecti
 
 Every route below is company-scoped, and company access is checked on every request. If you are new to the API, read the [API Overview](./overview.md) first for base URL, authentication, and error-code conventions; this page builds on those and won't repeat them.
 
-> **Experimental — off by default.** The Tools, Profiles, and Apps surfaces are gated behind an instance experimental setting: an operator has to turn on `enableApps` before any of this appears in your instance. The Smoke Lab described near the end of this page is gated separately behind `enableSmokeLab`, and while that flag is off every Smoke Lab route responds `404 Not Found` with `{ "error": "Smoke lab is disabled" }`. Because the whole surface is experimental, treat the request and response shapes below as subject to change between releases.
+> **Experimental — on by default.** The Tools, Profiles, and Apps surfaces are gated behind the `enableApps` instance experimental setting, which defaults to `true`. An operator can turn it off, and then none of this appears in your instance. The Smoke Lab described near the end of this page is gated separately behind `enableSmokeLab`, and while that flag is off every Smoke Lab route responds `404 Not Found` with `{ "error": "Smoke lab is disabled" }`. Because the whole surface is experimental, treat the request and response shapes below as subject to change between releases.
 
 ---
 
