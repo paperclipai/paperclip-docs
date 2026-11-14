@@ -698,7 +698,7 @@ There are two kinds of proposal, and the `kind` field picks between them:
 - `secret` — "please create this company secret." The agent supplies a name, a value, and a justification. On approval the board creates a real company secret from the proposed value.
 - `binding` — "please wire a secret into an agent's config." The agent points at an existing secret (`secretId`) or at another pending secret proposal (`secretProposalId`), and names the `configPath` to bind it to. On approval the board writes a `secret_ref` into the target agent's adapter config.
 
-A `binding` proposal is how an agent gets access to a company secret that already exists. To give itself, or an agent that reports to it, a secret, the agent sends `kind: "binding"` with the secret's `secretId` and the `configPath` to fill, for example `env.DEPLOY_API_KEY`. Once a board member approves, Paperclip writes the binding into the target agent's config. An agent can't add a secret reference by editing agent configuration directly; approving the proposal is what applies it.
+A `binding` proposal is how an agent gets access to a company secret that already exists. To give itself, or an agent that reports to it, a secret, the agent sends `kind: "binding"` with the secret's `secretId` and the `configPath` to fill, for example `env.DEPLOY_API_KEY`. Once a board member approves, Paperclip writes the binding into the target agent's config.
 
 A binding can depend on a secret proposal that hasn't been approved yet, so an agent can raise both in one go: propose the secret, then propose a binding that references the secret proposal by ID. The board can approve them together (see [Approve a proposal](#approve-a-proposal)).
 
@@ -836,7 +836,7 @@ Only the original proposer may withdraw, and only a pending proposal can be reso
 GET /api/companies/{companyId}/secret-proposals
 ```
 
-The same list is what the board sees under **Company settings → Secrets → Proposals**, where the tab carries a count badge while anything is pending. Requests waiting for a decision are listed first. If you're allowed to decide one, it has a **Reject** button, which asks you for a reason, and an approve button that says what it will do, such as **Approve access** or **Approve and save secret**. If you aren't, the request says who can. A **Recently decided** section below shows the latest outcomes:
+The same list is what the board sees under **Company settings → Secrets → Proposals**, where the tab carries a count badge while anything is pending. Requests waiting for a decision are listed first. If you're allowed to decide one, it has a **Reject** button, which asks you for a reason, and an approve button that says what it will do, such as **Approve access** or **Approve and save secret**. If you aren't, the request says who can. Once anything has been decided, a **Recently decided** section below shows the latest outcomes:
 
 ![The Proposals tab in company secrets settings: one pending proposal showing its path-style name, the proposing agent, the value's fingerprint and byte length, its expiry, the agent's stated reason, and Approve and Reject buttons](../../user-guides/screenshots/light/secrets/proposals-tab.png)
 

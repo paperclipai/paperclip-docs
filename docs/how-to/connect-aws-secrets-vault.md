@@ -41,7 +41,7 @@ The **Connect AWS Secrets Manager** dialog opens. It reminds you that Paperclip 
 3. Optionally click **Naming and tags** to fill **Namespace** and **Secret name prefix**, if you already know the slash-separated path you organize secrets under. The same section holds **KMS key id**, **Owner tag**, and **Environment tag**. You can leave all of them empty and let the check suggest values.
 4. Click **Check AWS**.
 
-Paperclip calls `POST /companies/{companyId}/secret-provider-configs/discovery/preview` with the draft fields and shows the result inline. The button shows a spinner and *Checking AWS* while the request is in flight. The metadata scan can take a few seconds on large accounts.
+Paperclip calls `POST /companies/{companyId}/secret-provider-configs/discovery/preview` with the draft fields and shows the result inline. While the request is in flight the button shows a spinner and a *Checking AWS* line appears under it. The metadata scan can take a few seconds on large accounts.
 
 > **Tip:** If the button is greyed out with *"Enter an AWS region first."* underneath, you forgot to fill the region field.
 
@@ -77,8 +77,8 @@ To keep a vault's settings without letting Paperclip use it, choose **Disable** 
 Now that the vault exists, any secret on this company can use it.
 
 1. Switch back to the **Secrets** tab.
-2. Click an existing AWS-backed secret to open its detail panel, then click **Replace value** (or **Change reference** if the secret is an external reference that can't take a value write — see below). The dialog has a **Stored in** dropdown — pick the vault you just created and Paperclip writes the new version to AWS through it. The dropdown opens on the vault the secret uses now and lists only AWS vaults. Its first option, **Paperclip's default**, uses the server's own AWS settings instead of a saved vault. A vault that is disabled or failed its last check is listed with the reason but can't be selected.
-3. For new secrets, click **New secret**. The same **Stored in** picker appears in the dialog once there's more than one place a secret can go, and for an AWS vault the dialog shows the path the secret will be created at.
+2. Click an existing AWS-backed secret to open its detail panel, then click **Replace value** (or **Change reference** if the secret is an external reference that can't take a value write — see below). The dialog has a **Stored in** dropdown — pick the vault you just created and Paperclip writes the new version to AWS through it. The dropdown opens on the vault the secret uses now (or the default AWS vault, if it has none) and lists only AWS vaults. Its first option, **Paperclip's default**, uses the server's own AWS settings instead of a saved vault. A vault that is disabled or failed its last check is listed with the reason but can't be selected.
+3. For new secrets, click **New secret**. For a secret the organization provides, the same **Stored in** picker appears in the dialog once there's more than one place a secret can go, and for an AWS vault the dialog shows the path the secret will be created at.
 
 Existing secrets that were created before this vault stay on whichever vault they already pointed at. Move them to another AWS vault with **Replace value** the next time you turn the key.
 

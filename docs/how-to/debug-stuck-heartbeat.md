@@ -391,7 +391,7 @@ If storage still isn't back after every automatic try, the run's message changes
 
 **Symptom.** A task shows a red recovery notice, and its **Next action** row tells you what to do. Most say *no agent work started*.
 
-**Cause.** Something went wrong while Paperclip was getting the task ready, so the agent was never asked anything. Nothing the agent did is lost.
+**Cause.** For most of these notices, something went wrong while Paperclip was getting the task ready, so the agent was never asked anything. Nothing the agent did is lost.
 
 **Fix.** Read the **Next action** row: each notice now says what you can do. A few setup problems are usually short-lived, and Paperclip tries them again by itself:
 

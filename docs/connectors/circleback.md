@@ -45,7 +45,7 @@ Some Circleback tools return a card instead of plain text: `DisplayMeetings`, `D
 What to expect:
 
 - **People who can read the task and use the Circleback connection see the cards.** Paperclip loads each card with the viewer's own access to the connection, so someone without it sees a short note instead. A card stays with the reply, so you can scroll back to it later.
-- **Cards can be interactive.** A button on a card calls Circleback the same way the agent would. Your action permissions still apply: an **Ask first** action sends a review request instead of running, and the card tells you *"This action needs approval first. It was sent for review."* To use a card's buttons you need the same rights as for a test call on the connection. See [Testing Before You Trust](../reference/api/tool-gateway.md#testing-before-you-trust).
+- **Cards can be interactive.** A button on a card calls Circleback the same way the agent would. Your action permissions still apply: an **Ask first** action sends a review request instead of running, and the card gets back *"This action needs approval first. It was sent for review."* To use a card's buttons you need the same rights as for a test call on the connection. See [Testing Before You Trust](../reference/api/tool-gateway.md#testing-before-you-trust).
 - **Links open in a new tab.** A card can't reach your Paperclip session, your camera, your microphone, or your clipboard.
 - **Long runs stay tidy.** A reply shows up to five cards, followed by a button such as **Show 3 more** for the rest. Cards load as you scroll near them.
 
