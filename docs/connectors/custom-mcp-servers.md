@@ -68,6 +68,33 @@ A custom connection can store optional `agentInstructions` through the connectio
 
 The current **Agent instructions** editor appears only when a connector declares a template; it is not shown on every custom server. Paperclip does not automatically adopt the server's initialization prose as trusted instructions. See [Saved connection instructions](connection-instructions.md) for the setting and its behavior.
 
+## Cards and skills from MCP servers
+
+An MCP server can offer more than tools. Paperclip supports two MCP extensions, so a server you connect, custom or from the catalog, can also show interactive cards in the task chat and publish skills for your agents.
+
+### Interactive cards in task chat
+
+When a tool declares a `ui://` view (the MCP Apps extension), Paperclip shows that view as a card with the agent's reply in the task chat each time an agent calls the tool during a task. [Circleback](circleback.md#meetings-as-cards-in-task-chat) is a catalog connector that does this, and its page walks through what you see.
+
+A few rules apply to every card:
+
+- The card runs in a sealed frame. It can't reach your Paperclip session, and it can only connect to the web addresses its server declared, and only over `https`. Camera, microphone, and clipboard access are always off.
+- A button on a card calls the server through Paperclip's action permissions, as the agent whose call drew the card. Using a card's buttons needs the same rights as a test call on the connection.
+- A tool the server marks as callable only from its card doesn't appear in the agent's tool list. Only the card can call it.
+- A view document over 4 MB isn't shown, and a tool result over 512 KB isn't kept for its card. The agent's tool result is still in the activity either way. A task shows cards for its newest 200 calls that have one; older calls keep only their plain tool row.
+
+The outside MCP clients you connect through a [named MCP gateway](../reference/api/tool-gateway.md#named-mcp-gateways) don't receive these views. Cards appear only in Paperclip's task chat.
+
+### Skills published by a server
+
+A server can also publish skills (the MCP Skills extension). Paperclip lists them every time it refreshes the connection's actions, and none reaches an agent until someone approves it on the **Skills** page. Once approved, a skill goes to the agents that can use that connection. See [Skills from connected apps](../guides/org/skills.md#skills-from-connected-apps).
+
+Paperclip asks only remote (HTTP) servers for skills, and only when the server speaks MCP version `2026-07-28`, the stateless version of the protocol, and declares the MCP Skills extension. Local (stdio) servers, and the Railway and Google Workspace connections, are never asked.
+
+### Protocol versions
+
+Paperclip tries MCP `2026-07-28` first, then falls back to `2025-11-25`, `2025-06-18`, `2025-03-26`, or `2024-11-05`, so a server that speaks an older version keeps working. You don't have to pick a version when you connect.
+
 ## Not the same as an adapter MCP server
 
 Attaching an MCP server to an agent's *runtime* — through the adapter's own configuration — is a different mechanism with different governance. Paperclip's action permissions and review queue do not sit in front of it. See [Add an MCP server to an agent](../how-to/add-mcp-server-to-agent.md) for that path, and pick it deliberately rather than by accident.

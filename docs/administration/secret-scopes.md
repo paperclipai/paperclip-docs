@@ -24,11 +24,11 @@ Binding decides which doors ask for a badge: a definition bound to a target — 
 
 ## How a run resolves a secret
 
-Start from the definition. Creating a secret means declaring its scope up front — in the scope selector these read **Company**, meaning one shared value, or **Each user**, meaning one value per human. Scope is a property of the definition, so everyone in the company sees the same definition either way; what differs is who is expected to fill it.
+Start from the definition. Creating a secret means declaring its scope up front. Under **Who provides the value** in the **New secret** dialog you pick **Organization**, meaning one shared value, or **Each user**, meaning one value per human. Scope is a property of the definition, so everyone in the company sees the same definition either way; what differs is who is expected to fill it.
 
 ![A user-scoped secret definition in the secrets UI, with the user scope distinct from company scope](../user-guides/screenshots/light/secrets/user-secret-definition.png)
 
-Under a user scope, each person stores their own value for the definition, in the product under Company Settings → Secrets → My secrets. Your value is yours alone: it is used when you are the responsible user for a run, and it is never shown back to anyone, including admins.
+Under a user scope, each person stores their own value for the definition, in the product under Company Settings → Secrets → **My secrets**. Secrets still waiting for your value are listed first. Click **Set value** to add yours, or **Replace** to change one you already added. Your value is yours alone: it is used when you are the responsible user for a run, and once saved it can be replaced but never viewed.
 
 ![The My secrets tab, where the current user supplies their own value for a user-scoped definition](../user-guides/screenshots/light/secrets/per-user-value-entry.png)
 
@@ -58,13 +58,13 @@ Saved agents keep the stricter path. Signing a saved agent in to Claude resolves
 
 ## Seeing who reached for a secret
 
-Each runtime resolution leaves a redacted entry behind, and you can read them. Open Company Settings → Secrets, select a company secret, and switch to the **Access events** tab. An entry names the consumer that asked, the outcome, and — where a user is involved — the responsible user, plus the credential owner when that turns out to be someone else.
+Each runtime resolution leaves a redacted entry behind, and you can read them. Open Company Settings → Secrets and select a company secret. Its detail panel has an **Activity** section; click **Show all activity** if the list is cut short. An entry names the consumer that asked, the outcome, and — where a user is involved — the responsible user, plus the credential owner when that turns out to be someone else.
 
 The consumer is recorded honestly rather than rounded off to the nearest agent. Testing an environment records the environment you selected, or a `system` consumer of `adapter_test` when you didn't select one, so an environment probe never appears in the log as though an agent had done it.
 
 Listing or syncing an agent's skills records the agent as the consumer with you as the actor behind it. Those two actions deliberately skip user-scoped secrets altogether, so what they contribute to the log is attribution on the company secrets the agent's config already referenced — not any new access to per-user values.
 
-Open a user-scoped definition and its **Access events** tab won't list entries: access events for a user-scoped secret are recorded on each member's own stored value at the moment runtime resolution occurs, not on the shared definition.
+Open a user-scoped definition and you won't find an **Activity** section: access events for a user-scoped secret are recorded on each member's own stored value at the moment runtime resolution occurs, not on the shared definition. Its **Members** section shows how many members have added their value instead.
 
 ## Choosing a scope
 

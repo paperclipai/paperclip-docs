@@ -200,7 +200,7 @@ paperclipai secrets providers --company-id <company-id>
 
 ## Provider vault configs
 
-A company can have multiple provider vault configs (for example several AWS Secrets Manager instances), with one marked as the default. These are also configurable from the board UI under `Company Settings → Secrets → Provider vaults`, but every operation is available from the CLI. The mutating subcommands take a raw `--payload-json` so they track the server contract exactly.
+A company can have multiple provider vault configs (for example several AWS Secrets Manager instances), with one marked as the default. These are also configurable from the board UI under `Company Settings → Secrets → Vaults`, but every operation is available from the CLI. The mutating subcommands take a raw `--payload-json` so they track the server contract exactly.
 
 ```sh
 # List existing configs

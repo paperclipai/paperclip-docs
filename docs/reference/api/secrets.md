@@ -698,6 +698,8 @@ There are two kinds of proposal, and the `kind` field picks between them:
 - `secret` — "please create this company secret." The agent supplies a name, a value, and a justification. On approval the board creates a real company secret from the proposed value.
 - `binding` — "please wire a secret into an agent's config." The agent points at an existing secret (`secretId`) or at another pending secret proposal (`secretProposalId`), and names the `configPath` to bind it to. On approval the board writes a `secret_ref` into the target agent's adapter config.
 
+A `binding` proposal is how an agent gets access to a company secret that already exists. To give itself, or an agent that reports to it, a secret, the agent sends `kind: "binding"` with the secret's `secretId` and the `configPath` to fill, for example `env.DEPLOY_API_KEY`. Once a board member approves, Paperclip writes the binding into the target agent's config.
+
 A binding can depend on a secret proposal that hasn't been approved yet, so an agent can raise both in one go: propose the secret, then propose a binding that references the secret proposal by ID. The board can approve them together (see [Approve a proposal](#approve-a-proposal)).
 
 ### Who can propose
@@ -782,6 +784,13 @@ There are guardrails on how fast and how many an agent can raise. An agent may h
 { "error": "Agents may have at most 20 pending secret proposals" }
 ```
 
+A proposal that leaves out a required field is also refused with `422`, and the message names what's missing. A `secret` proposal without a `name` returns `Secret name is required`, one without a `value` returns `Secret value is required`, and either kind without a `justification` returns `Justification is required`:
+
+```json
+422 Unprocessable Entity
+{ "error": "Justification is required" }
+```
+
 ### List your proposals
 
 ```http
@@ -827,11 +836,13 @@ Only the original proposer may withdraw, and only a pending proposal can be reso
 GET /api/companies/{companyId}/secret-proposals
 ```
 
-The same list is what the board sees under **Company settings → Secrets → Proposals**, where the tab carries a count badge while anything is pending:
+The same list is what the board sees under **Company settings → Secrets → Proposals**, where the tab carries a count badge while anything is pending. Requests waiting for a decision are listed first. If you're allowed to decide one, it has a **Reject** button, which asks you for a reason, and an approve button that says what it will do, such as **Approve access** or **Approve and save secret**. If you aren't, the request says who can. Once anything has been decided, a **Recently decided** section below shows the latest outcomes:
 
 ![The Proposals tab in company secrets settings: one pending proposal showing its path-style name, the proposing agent, the value's fingerprint and byte length, its expiry, the agent's stated reason, and Approve and Reject buttons](../../user-guides/screenshots/light/secrets/proposals-tab.png)
 
 The board-side list. Returns proposals for the company, newest first, as a plain array (not wrapped). Add `?status=` to filter by one of `pending`, `approved`, `rejected`, `withdrawn`, or `expired`. It takes the same `limit`/`offset` paging and the same `X-Page-*` headers as the agent list.
+
+Add `?order=resolved` to list the most recent decisions first instead, which is handy with `?status=approved` or `?status=rejected`. Proposals that haven't been decided yet follow, newest first. The default is `order=created`. Any other value is rejected with `422` and `order must be created or resolved`.
 
 Each row is enriched for review: alongside the proposal fields it carries `proposedBy`, the `target` agent (for bindings), the `originIssue` it came from, and the resolved names of any referenced secret (`secretName`) or prerequisite secret proposal (`secretProposalName`). It also carries two review hints:
 

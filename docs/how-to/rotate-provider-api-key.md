@@ -60,9 +60,10 @@ Use this when the env-var entry on the agent looks like:
 ```
 
 1. Open **Company Settings → Secrets**.
-2. Find the secret the agent is referencing — it's usually named after the provider (`anthropic-key`, `openai-key`, etc.).
-3. Click **Rotate**, paste the new value, and confirm. Paperclip stores it as a new version and bumps `latestVersion`.
-4. Open the agent and click **Test environment** to confirm the new value is being injected.
+2. Find the secret the agent is referencing — it's usually named after the provider (`anthropic-key`, `openai-key`, etc.). Type part of the name into **Search all secrets** if the list is long. A key Paperclip saved for you when you connected a model account sits under **Managed by Paperclip** at the bottom of the list, in the **Model sign-ins** group, where it's shown as **Model provider key**.
+3. Click the secret to open its detail panel. The **Agents that can use it** section shows which agents receive it.
+4. Click **Replace value**, paste the new key into **New value**, and click **Save new value**. Paperclip stores it as a new version and bumps `latestVersion`; the old value is kept as an earlier version.
+5. Open the agent and click **Test environment** to confirm the new value is being injected.
 
 Every agent that references this secret with `version: "latest"` now resolves to the new value on its next heartbeat. Agents pinned to a numeric version (`"version": "3"`) stay on that historical value until you re-point them.
 

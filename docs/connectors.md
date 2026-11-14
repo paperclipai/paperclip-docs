@@ -25,6 +25,8 @@ The **Connectors** list holds three kinds of connection. They look alike — eac
 
 **App integrations** let agents work with information and actions inside an app you already use: read a Notion page, open a Linear issue, look at a Sentry error, search a Drive folder. Setup ends in a list of individual actions you switch on or off. The agent starts the work.
 
+Some app integrations give you more than an action list. An app can draw its results as interactive cards in the task chat, as [Circleback](connectors/circleback.md#meetings-as-cards-in-task-chat) does for meetings, and an app can publish skills that you approve on the **Skills** page before agents use them. See [Cards and skills from MCP servers](connectors/custom-mcp-servers.md#cards-and-skills-from-mcp-servers).
+
 **Model providers** supply the credential Paperclip uses to run models. Setup ends in a stored key or subscription, and there is no action list, because nothing here is a tool an agent can call. Paperclip uses it on the agent's behalf whenever the agent thinks. If you have ever wondered why your Anthropic connection has no permissions to set, this is why.
 
 **Chat channels — Experimental** let people talk to your agents from a messaging app. An administrator must enable **Chat connectors**, which is off by default. Setup connects a provider app or bot to Paperclip; eligible messages can start or continue agent tasks.
@@ -84,6 +86,7 @@ Start with **Google Workspace** for a new Google account if [your instance has t
 | [Arcade](connectors/arcade.md) | Tool gateway combining the tools you select from several servers behind one URL. Agents use the exposed tools; authentication follows your gateway settings. Setup is unverified. | Gateway URL · Browser sign-in or token/headers |
 | [Asana](connectors/asana.md) | Work management for team projects, tasks, and goals. Agents work with the projects and tasks the authorizing Asana account can reach. | Connect with Paperclip · Your own OAuth app |
 | [Calendly](connectors/calendly.md) | Scheduling links and bookings. Agents review event types and availability, and where you allow it, use Calendly's scheduling actions. The sign-in grants read and write together, so set booking actions to **Ask first**. | Sign in with Calendly |
+| [Circleback](connectors/circleback.md) | Meeting notes, transcripts, action items, calendar events, and connected email the signed-in user can see. Agents can show meetings as cards in the task chat. Set share and delete actions to **Ask first**. | Sign in with Circleback |
 | [Composio](connectors/composio.md) | App discovery and execution through Composio Connect or a configured session. Upstream app authorization happens in Composio; broad execution actions need separate review. Setup is unverified. | Composio Connect sign-in · Configured session URL and headers |
 | [Executor](connectors/executor.md) | One remote endpoint for configured integrations. Agents use its exposed actions within Executor's upstream policies. Setup is unverified. | Deployment URL · Browser sign-in or token/headers |
 | [Fireflies](connectors/fireflies.md) — **Live exception; not yet stable** | Meeting transcripts, summaries, and action items the connected account can access. Setup is unverified. | Sign in with Fireflies · API key |

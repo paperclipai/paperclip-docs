@@ -156,6 +156,19 @@ Discovered models are cached for about a minute (keyed to the API key and base U
 > If the installed CLI is older, the environment test and the run both fail fast with `claude_cli_version_incompatible` instead of launching against an unsupported binary — upgrade Claude Code on the target host to use the model.
 >
 > In a sandbox environment there's usually nothing for you to upgrade. When the sandbox's default `claude` command is too old for the selected model, Paperclip installs the exact minimum version into a private folder in the workspace (`.paperclip-runtime/claude-cli/<version>`), verifies it, and uses it for both the environment test and normal runs, reusing it next time. The image's own CLI, your model, your account, and your engine stay as they are. If the install or the version check fails, you still get `claude_cli_version_incompatible`. Local and SSH targets and custom `command` values stay yours to upgrade.
+>
+> The ACP engine checks the same minimums. On a local run, ACP launches the Claude Code that ships bundled with Paperclip's ACP bridge, and that copy can be older than the model you picked. When it is, the run stops before it starts, with the code `claude_cli_version_incompatible` and a message like this in the run log:
+>
+> ```
+> [paperclip] <model> requires Claude Code <minimum> or newer; the ACP lane runs the bundled Claude Code <bundled version>. Set CLAUDE_CODE_EXECUTABLE in the agent env to a newer Claude Code, or set engine=cli, before retrying.
+> ```
+>
+> To fix it, do one of these and retry:
+>
+> - Add `CLAUDE_CODE_EXECUTABLE` to the agent's `env`, pointing at a newer Claude Code you've installed.
+> - Set `engine` to `cli` so the run uses the Claude CLI on the host instead.
+>
+> Paperclip skips this check when the bundled copy isn't the one that runs: on a remote target, when you set a custom `agentCommand`, or when `CLAUDE_CODE_EXECUTABLE` is already in the agent's `env`.
 
 ---
 

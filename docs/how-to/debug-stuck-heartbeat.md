@@ -160,7 +160,7 @@ Waits for a busy AI connection or a remote Runner update behave the same way: th
 
 **Cause.** Paperclip couldn't put the task's saved workspace into a new sandbox. The step says where it stopped: `snapshot_lookup`, `snapshot_download`, or `sandbox_restore`. A sandbox failure adds short fields such as `reason=occupied_root`. They never include command output or paths. A failed restore doesn't change the saved version.
 
-**Fix.** Paperclip retries a limited number of times when that's safe. Otherwise it leaves a recovery action owned by the board that reads *Open the failed run to see which restore step failed. The saved workspace version was kept. If the sandbox folder is already occupied, inspect and move it aside, then retry the task.*
+**Fix.** Paperclip retries a limited number of times when that's safe. Otherwise it leaves a recovery action owned by the board that reads *The saved work could not be put back into the sandbox, so no agent work started. The saved version was kept. Press Retry to start again from it.* The failed run still names the step that stopped, if you want to look first.
 
 ---
 
@@ -384,6 +384,36 @@ If storage still isn't back after every automatic try, the run's message changes
 **Cause.** The agent has managed agent files, and another run of the same agent was busy with them, for example saving them, just as this run was getting ready. Only one run can work on an agent's files at a time. No agent work had started yet.
 
 **Fix.** Nothing. This is a wait, not a failure, so it doesn't use up the task's automatic retries. Paperclip tries again 5 to 15 seconds later, up to 30 times, and the retry handles the same wake as the run it replaces. The cancelled attempt stays in the run log and doesn't show up in the task's conversation. If the files are still busy after 30 tries, the run fails the normal way. If Paperclip can't schedule the next try, the run log says *Another run of this agent is still using its files, and this task could not be rescheduled.* Either way, check what the agent's other runs are doing before you continue the task.
+
+---
+
+## 25. Task stopped before the agent started
+
+**Symptom.** A task shows a red recovery notice, and its **Next action** row tells you what to do. Most say *no agent work started*.
+
+**Cause.** For most of these notices, something went wrong while Paperclip was getting the task ready, so the agent was never asked anything. Nothing the agent did is lost.
+
+**Fix.** Read the **Next action** row: each notice now says what you can do. A few setup problems are usually short-lived, and Paperclip tries them again by itself:
+
+| Notice | Next action |
+|---|---|
+| **Workspace setup timed out** | *Setting up the workspace took too long, so no agent work started. Paperclip tries again automatically.* |
+| **Saved sandbox could not be resumed** | *The sandbox service did not start the saved sandbox in time. The saved sandbox and its files were kept, and no agent work started. Paperclip tries again automatically.* |
+
+When Paperclip can't continue these two by itself, the last sentence reads *Press Retry to start it again.* instead. These need a click on **Retry**, sometimes after a fix:
+
+| Notice | Next action |
+|---|---|
+| **Workspace scan timed out** | *Reading the task's files took too long, so no agent work started. Press Retry to start it again.* |
+| **Workspace scan queue is full** | *The server was too busy to read the task's files, so no agent work started. Press Retry to start it again.* |
+| **Workspace scan exceeded its limit** | *The task's files are larger than Paperclip can read at once, so no agent work started. Press Retry to start it again.* |
+| **Workspace scan failed** | *The task's files could not be read, so no agent work started. Press Retry to start it again.* |
+| **Workspace scan was cancelled** | *Preparing the task's files was stopped, so no agent work started. Press Retry to start it again.* |
+| **Environment plugin was not running** | *The plugin that starts this agent's sandbox was not running, so no agent work started. Press Retry once it is running again.* |
+| **Workspace base ref unavailable** | *Set a starting branch that exists in the repository, then press Retry.* |
+| **Shared workspace still held** | *Stop the other run on this task, or choose a separate workspace for this task, then press Retry.* |
+
+Other notices put the advice in the message itself. **Workspace validation failed** reads *The task's workspace could not be used, so the agent did not start. Press Retry to start it again.* A **Configuration incomplete** notice about a missing secret reads *The agent did not start because a secret it needs is not set. Add the secret in the agent's settings, then press Retry.* When a reviewer doesn't finish, **Review recovery stalled** asks you to choose a reviewer or press **Retry** to ask the same one again. When there's no more specific advice and no agent owns the recovery, the **Recovery owner** row says **Waiting for you** and the **Next action** row reads *This attempt could not be finished. Press Retry to start it again from the saved work.* When an agent owns the recovery, the **Next action** row says *The assigned agent continues the task from the saved work* instead.
 
 ---
 

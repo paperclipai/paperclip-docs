@@ -199,7 +199,7 @@ The response is intentionally narrower than the full issues list endpoint — ea
 
 Use this route in preference to the full company issues list during heartbeat startup. Fall back to `GET /api/companies/{companyId}/issues?assigneeAgentId=...` only when you need the complete issue object.
 
-This route is agent-only.
+This route is agent-only. It follows the same private-task rules as the rest of the API: a private task the agent isn't allowed to read stays out of the list, even when it's assigned to the agent.
 
 <!-- tabs: cURL, JavaScript, Python -->
 
@@ -631,15 +631,24 @@ The agent's **Advanced** page sends this guard whenever a save changes the agent
 
 Sometimes a saved agent carries settings that Paperclip Runner no longer uses. Rather than refusing the whole save, the server ignores those settings and tells you which ones it dropped.
 
-The create, hire, and update responses add a `configurationWarnings` array only when something was ignored. Each entry looks like this:
+The create, hire, update, and [configuration rollback](#configuration) responses add a `configurationWarnings` array only when there is something to tell you. Each entry looks like this:
 
 | Field | Meaning |
 |---|---|
-| `code` | Always `runner_option_ignored`. |
-| `field` | The ignored `adapterConfig` key, such as `maxTurnsPerRun` or `chrome`. |
-| `message` | A readable explanation you can show to people, ending with "The agent can still run." |
+| `code` | `runner_option_ignored` for a dropped Runner option, or `protected_environment_variable` for an environment variable a plugin environment sets itself (see below). |
+| `field` | For `runner_option_ignored`, the ignored `adapterConfig` key, such as `maxTurnsPerRun` or `chrome`. For `protected_environment_variable`, the variable's path, such as `adapterConfig.env.KEY`. |
+| `message` | A readable explanation you can show to people. |
 
 In the agent's settings, these messages appear in the **Agent saved** toast.
+
+### Environment variables a plugin environment sets itself
+
+Some plugin environments set certain environment variables on their own tasks. The plugin's environment driver lists them as `protectedEnvironmentKeys`. If you put the same variable in an agent's `adapterConfig.env`, the two values compete, so Paperclip checks every create, hire, update, and configuration rollback against the active plugin environments:
+
+- **The agent runs in that environment.** When the agent's environment protects one of the variables, the save is refused with `422` and code `protected_environment_variable`. The agent's environment is its `defaultEnvironmentId`, or the instance's default environment when it has none. The error reads `<KEY> is set by <environment name> on its tasks. Remove it from the environment variables, or choose another environment.` (when several variables match, they're listed together, with "are" and "them"), and `details` lists the `keys` and the `environmentId`. Remove the variable from `env`, or pick a different environment for the agent.
+- **Another active environment sets it.** The save goes through, and the response carries a `configurationWarnings` entry with code `protected_environment_variable` for each such variable. Its `message` names the environments and warns that agents running there may see the platform's value instead of yours.
+
+An update runs this check only when it touches the agent's `adapterType`, `adapterConfig` (a `runtimeSettings` model change counts), or `defaultEnvironmentId`.
 
 ### Change only the connection or default model (`runtimeSettings`)
 
@@ -1279,6 +1288,42 @@ While the provider's limit is active, a queued automatic run for the agent is ca
 
 ---
 
+## Check for Stranded Assigned Work
+
+`GET /api/companies/{companyId}/assigned-work-invariant`
+
+Every open task assigned to an agent should be going somewhere: either a run is working on it, something is lined up to start one, or it's waiting on someone else's move, such as a person's answer or an approval. A task with none of those is stranded. Paperclip looks for stranded tasks in the background and starts them again on its own. This report lets you see how that's going, for example right after you upgrade or redeploy, when the count should drop back to zero.
+
+The route is read-only and board-only; agents can't call it. It looks at open tasks (`todo`, `in_progress`, or `blocked`) assigned to an agent, newest-updated first, and only counts tasks you're allowed to read, so private tasks you can't see stay out of every number and sample.
+
+The response contains:
+
+| Field | Meaning |
+|---|---|
+| `checked` | How many tasks the report classified. It reads at most 2,000. |
+| `openTasks` | How many open, agent-assigned tasks you can read in total. |
+| `truncated`, `violationCountIsLowerBound` | Both `true` when there were more than 2,000 tasks. The counts then cover only the 2,000 newest, so the real number of stranded tasks can be higher, never lower. |
+| `ok` | Healthy tasks, counted by why they're fine: `live_run`, `pending:<intent>` (for example `pending:queued_wake` or `pending:scheduled_retry`), or `waiting:<reason>` (for example `waiting:question` or `waiting:approval`). |
+| `violations` | Stranded tasks, counted by reason (see below). |
+| `violationCount` | The total number of stranded tasks. Aim for `0`. |
+| `heldByRecoveryOwner` | Stranded tasks that are blocked under an active recovery hold. The hold's owner picks them up. |
+| `staleBlocked` | Stranded blocked tasks that have been blocked for more than 7 days. They're reported here and not counted in `violationCount`, and Paperclip doesn't restart them on its own. |
+| `settling` | Tasks that changed moments ago: their last run just ended, they were just created and haven't run yet, or a task blocking them just finished. They're checked again shortly. |
+| `sample` | Up to 20 stranded tasks, each with its `identifier`, `status`, and `reason`. |
+| `agentsWithStalledSlots` | Up to 20 agents whose run slots are held by stalled runs, each with `agentName`, `stalledRuns`, and `queuedRuns` (the work waiting behind them). |
+
+The reasons in `violations` and `sample` are:
+
+- `no_pending_path`: nothing is running, nothing is lined up, and it isn't anyone else's move.
+- `retry_offered`: the task offers a Retry that only the system can act on.
+- `recovery_block`: the task is blocked by an automatic recovery outcome, not by a person.
+- `unknown_block`: the task is blocked and nothing records why.
+- `blocked_with_live_run`: the task is blocked while a run is still active on it.
+- `run_owner_gone`: a run still says it's running, but the server that owned it is gone.
+- `native_run_stalled`: a native run still says it's running, but nobody has renewed it for 5 minutes. It holds its agent's run slot until native recovery ends it.
+
+---
+
 ## Org Chart
 
 Returns the company org structure.
@@ -1517,6 +1562,7 @@ Important notes:
 - `agents:read` doesn't cover changes. Changing or rolling back another agent's configuration needs `agents:configure`; `agents:suggest-changes` with an accepted change covers only instructions and profile fields. An agent can change or roll back its own configuration without a grant, subject to its responsible user's access and the limits on what agents may set; a low-trust agent can't. `POST /api/companies/{companyId}/adapters/{type}/test-environment` needs permission to create agents. Testing a saved agent by passing `agentId` also needs permission to change it.
 - Revisions redact secret-bearing fields before returning them, so reads never expose secrets regardless of who you are.
 - A rollback can fail if the target revision contains redacted secret values.
+- A rollback gets the same [protected environment variable](#environment-variables-a-plugin-environment-sets-itself) check as an update: it's refused with `422` when the revision's `env` sets a variable that the revision's environment (or the instance default, when the revision has none) sets itself, and it returns `configurationWarnings` when another environment sets one.
 
 ---
 
