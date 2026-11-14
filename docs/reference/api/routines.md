@@ -137,6 +137,7 @@ Body:
 | `activityGatePolicy` | no | `always` (default) or `require_external_activity`. See [Activity Gate](#activity-gate). |
 | `activityGateScope` | no | `company` (default) or `project`. Only used when the policy is `require_external_activity`. |
 | `variables` | no | Template variables for the routine title, description, and run payloads. |
+| `env` | no | Environment variables for the routine. Secret bindings are normalized before storage. See [Variables a plugin environment sets itself](#variables-a-plugin-environment-sets-itself). |
 
 Agents can only create routines assigned to themselves. Board users can create routines for any agent they can assign.
 
@@ -277,6 +278,10 @@ You can use this endpoint to:
 - adjust variables or priority
 - turn the activity gate on or off
 - transfer the routine to another person with `responsibleUserId`
+
+### Variables a plugin environment sets itself
+
+Some plugin environments set certain environment variables on their own tasks; their driver lists them as `protectedEnvironmentKeys`. If a routine's `env` contains one of those, create and update still save it. The response then adds a `configurationWarnings` array with one entry per such variable: `code` is `protected_environment_variable`, `field` is the variable's path (such as `env.KEY`), and `message` names the environments that set it. Runs in those environments may see the platform's value instead of yours. In the app, you see the same message when you save the routine.
 
 ### Change the responsible user
 
@@ -574,7 +579,7 @@ Body:
 
 | Field | Required | Notes |
 |---|---|---|
-| `source` | no | Defaults to `manual`. The code also accepts `api`. |
+| `source` | no | Defaults to `manual`. Board callers can also send `api`. When an agent starts the run, it's always recorded as `manual`, whatever `source` the agent sends. |
 | `triggerId` | no | If present, it must belong to the routine and be enabled. |
 | `payload` | no | Arbitrary JSON payload stored on the run. |
 | `variables` | no | Explicit variable overrides. |

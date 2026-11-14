@@ -299,6 +299,8 @@ As soon as you continue, Paperclip creates the webhook and shows you two things 
 
 Copy both now. **The secret is only visible during setup** — once you leave the wizard it's hidden, and the field is replaced by a **Generate new key** button. If you didn't save it, generate a fresh one rather than hunting for the old value (see [Rotating the secret](#rotating-the-secret)).
 
+If an agent sets up the webhook for you, Paperclip tells it not to paste the secret into chat, a comment, or a task. Instead, the agent links you to the routine's **Triggers** page, where you choose **Generate new key** (for a trigger still waiting for setup) or **Edit webhook**, then **Replace key**, and copy the key Paperclip shows you there. Replacing the key stops the earlier one from working. The same goes for the URL of a webhook with no signing, because that URL alone is enough to start the routine.
+
 Paperclip also gives you a copy-ready **Agent instructions** block bundling the URL, the key, and step-by-step wiring — handy when you'd rather hand the connection off to one of your agents to set up.
 
 ### The generic path (another app or script)

@@ -317,6 +317,8 @@ sudo journalctl -u paperclip -f
 
 You should see Paperclip listening on `http://127.0.0.1:3100`.
 
+> **Note:** systemd hands the service a few variables of its own, such as `NOTIFY_SOCKET`. Paperclip removes `NOTIFY_SOCKET`, `LISTEN_FDS`, `LISTEN_PID`, and `LISTEN_FDNAMES` before it starts an agent's process, so agents can't reach the service manager's channel and your journal doesn't fill with `reception only permitted for main PID` warnings.
+
 ---
 
 ## Step 7 — Put Nginx in front of Paperclip

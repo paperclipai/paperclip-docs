@@ -23,10 +23,11 @@ Click it and Paperclip takes you back to the last agent chat you had open in thi
 
 A contact list sits beside the conversation, so you can switch chats without leaving the page:
 
-- Your existing conversations come first, most recent on top, followed by the other agents you can chat with in alphabetical order. Each row shows the agent's avatar, name, and title, and a terminated agent says **Terminated**.
+- Agents you've pinned come first, in your pin order. Your other conversations follow, most recent on top, then the other agents you can chat with in alphabetical order. Each row shows the agent's avatar, name, and title, and a terminated agent says **Terminated**.
 - **Search chats** filters the list by name, title, or role.
 - A number beside a name is how many messages from that agent you haven't read. You'll see a small dot instead when Paperclip knows there's something unread but doesn't have a count.
 - Hover a row and click the pin to add that agent to **Pinned** in the main sidebar, and click it again to remove it. See [The sidebar](coordinator-workspace.md#the-sidebar). You can pin from the **Agents** list too.
+- To reorder your pinned agents, hover a pinned row and drag it by its grip. From the keyboard, tab to the grip, press Space to pick the row up, move it with the arrow keys, and press Space again to drop it. The new order carries over to **Pinned** in the main sidebar.
 - **Create a new agent**, at the end of the list, opens the new-agent form.
 
 The **Chat** entry in the main navigation also carries a count of how many of your chats have unread agent messages. A message counts as read once you've scrolled to it at the bottom of the conversation while the window is in focus.

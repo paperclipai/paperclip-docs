@@ -167,7 +167,7 @@ Requires `tools:admin`, and `companyId` in the body. Responds `201 Created`.
 | `ownerNote` | yes | 1–1,000 characters — who owns it and why it exists. |
 | `subjectType` | no | Only `gateway_client` is accepted today. |
 | `subjectId` | no | 1–240 characters, or `null`. |
-| `allowedActions` | no | Any of `tools/list` and `tools/call`. Defaults to both. |
+| `allowedActions` | no | Any of `tools/list`, `tools/call`, `resources/list`, `resources/read`, `prompts/list`, and `prompts/get`. Defaults to `tools/list` and `tools/call`. |
 | `expiresAt` | no | A date, or `null` for a non-expiring token. |
 | `expiryOverrideReason` | no | Required when `expiresAt` is `null`. |
 
@@ -237,12 +237,17 @@ The `POST` speaks JSON-RPC. Authenticate with `Authorization: Bearer <gateway-to
 
 | Method | What happens |
 |---|---|
-| `initialize` | Returns `protocolVersion` `2025-03-26`, a `capabilities` block advertising `tools`, and `serverInfo` naming `Paperclip MCP Gateway`. |
+| `initialize` | Returns `protocolVersion` `2025-03-26`, a `capabilities` block, and `serverInfo` naming `Paperclip MCP Gateway`. `capabilities` lists `tools`, `resources`, and `prompts` only when the token's `allowedActions` include `tools/list`, `resources/list`, or `prompts/list` respectively. |
 | `notifications/initialized` | Acknowledged with `202 Accepted` and no body. |
 | `tools/list` | Returns the tools this gateway's profile allows, each with `name`, `title`, `description`, and `inputSchema`. |
 | `tools/call` | Runs a tool. Takes `params.name` and `params.arguments`; a missing name is a JSON-RPC error `-32602` with `params.name is required`. |
+| `resources/list`, `resources/read`, `prompts/list`, `prompts/get` | Lists and reads resources and prompts from connections fully assigned to the gateway. The same four are also offered as tools, `paperclip_list_resources`, `paperclip_read_resource`, `paperclip_list_prompts`, and `paperclip_get_prompt`, for clients that only call tools. |
 
 Anything else returns `404` with JSON-RPC error `-32601`, `Method not found`. When a call is refused, the JSON-RPC `error` object carries a `data.reasonCode` so you can tell a policy block apart from a broken upstream.
+
+Listing, calling, and the resource and prompt methods each need the matching action in the token's `allowedActions`. Because `initialize` only advertises what the token may list, a client sees the capabilities it can actually use. A method outside the token's list is refused with `403`, the message `Gateway bearer token is not allowed to perform this MCP action`, and `data.reasonCode` `gateway_token_action_denied`.
+
+The `initialize` result's `_meta` also carries `"paperclip/mcp-app-ui": "host_rendered"`. Interactive `ui://` views from connected apps are shown in Paperclip's task chat, and the gateway doesn't pass them on to your client.
 
 A failure inside the provider is different: `tools/call` returns a normal result with `isError: true` and the message as text. That covers `tool_error` and `github_access_denied`, which is what you get when GitHub refuses a repository or account this connection can't reach. For GitHub, the text includes steps for repairing the connection's access. Don't retry the same call until that's done.
 
@@ -613,6 +618,22 @@ GET  /api/tool-connections/{connectionId}/test-calls/{actionRequestId}
 ```
 
 All of these need `tools:use` or `tools:manage_connections`, and you can only test as an agent you would be allowed to assign work to. `test-agents` lists those agents along with each one's `effectiveAccess` for that connection; the `test-agents/{agentId}/access` route drills into a single agent and returns its full `access` summary for the connection. `test-calls` takes an `agentId`, a `toolName`, and optional `parameters`. If the call needs approval, you get an action request back and poll the third route for its status. When the gateway service isn't configured at all, these respond `501 Not Implemented` with `{ "error": "Tool gateway service is not configured" }`.
+
+### Cards from connected apps in task chat
+
+When an agent calls a tool that declares an interactive `ui://` view (MCP Apps), Paperclip records the call so the task chat can show it as a card. These routes are what the chat uses:
+
+```
+GET  /api/issues/{issueId}/mcp-app-views
+GET  /api/issues/{issueId}/mcp-app-views/{viewId}
+POST /api/issues/{issueId}/mcp-app-views/{viewId}/tool-calls
+```
+
+All three are board-only and follow the task's read access. A task you can't read, or a view that isn't on that task, returns `404`. The single-view route reads the view with your own access to the connection, so it also returns `404`, with `mcp_app_view_not_accessible`, when you can't use that connection.
+
+- The list returns the task's newest 200 views, oldest first. Each has `id`, `runId`, `connectionId`, `applicationName`, `toolName` (the name the agent called), `upstreamToolName` (the app's own name), `resourceUri`, `toolInput`, and `createdAt`.
+- The single-view route adds the recorded `toolResult` and the `resource` Paperclip reads from the app: the view's `html`, its declared `csp` origins, its `permissions`, and `prefersBorder`. When the app doesn't return a valid view it fails with `502` and `mcp_app_resource_invalid`, and a view over 4 MB fails with `502` and `mcp_app_resource_too_large`.
+- `tool-calls` is how a button on a card calls the app. The body takes `name` (the app's tool name, 1–256 characters) and optional `arguments`. It runs as a [live test call](#testing-before-you-trust) for the agent whose call recorded the view, so it needs the same rights: `tools:use` or `tools:manage_connections`, access to the connection, and permission to test as that agent. Task and project rules see the view's task. A tool the app doesn't offer to its views returns `404` with `mcp_app_tool_not_found`. When the view's agent no longer exists, the call is refused with `This view's agent no longer exists`. An action set to ask first returns a result with `isError: true` and the text *"This action needs approval first. It was sent for review."*
 
 You can also look up how decisions landed for a specific agent run:
 

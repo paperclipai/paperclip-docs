@@ -32,6 +32,19 @@ This is the simplest operating mode.
 - Login friction is removed
 - The host typically stays bound to `localhost`
 
+### Agents don't share your local trust
+
+The no-login trust in `local_trusted` is meant for you, the operator: your browser, your terminal, and the tools you run yourself. Your agents run on the same machine, though, and a command an agent's shell runs could otherwise reach the local API and act as you.
+
+So on Linux and macOS, Paperclip checks which local process each request comes from. A request that comes from inside an agent run (the run's own process or anything it started) gets no implicit board access. The agent has to use its own run credentials, such as its Paperclip tools or the `PAPERCLIP_API_KEY` Paperclip gives the run, and it can only do what that run is allowed to do. The same check applies to the live-updates connection the app uses.
+
+What this means for you:
+
+- Your own requests keep working without logging in, over both IPv4 and IPv6 loopback.
+- If an agent gets `401` or `403` on a call that works from your terminal, that's the check doing its job. The action needs a person, or a permission you grant the agent.
+- On Linux, when the server can't see which process a request came from, it grants implicit board access only if every process running as the same user that it isn't allowed to inspect has a readable chain of at least two processes, none of them part of an agent run. If it can't decide, it refuses.
+- On other operating systems, on Linux when `/proc/net/tcp` and `/proc/net/tcp6` can't be read, or on macOS when `netstat` can't run or doesn't show which process owns a connection, Paperclip can't tell your processes from an agent's. It keeps the old behavior, where every local request gets board access, and logs this warning once: `This platform cannot identify the local process behind a request, so implicit local board access is not limited to operator processes`.
+
 Choose this when:
 
 - you are installing Paperclip for yourself

@@ -25,7 +25,7 @@ What changes is how Paperclip interprets the token.
 
 Paperclip resolves the request actor in this order:
 
-1. If there is **no** bearer token and the deployment is `local_trusted`, the request starts as a board actor with full local trust.
+1. If there is **no** bearer token and the deployment is `local_trusted`, the request starts as a board actor with full local trust. On Linux and macOS, a request that comes from inside an agent run's processes loses that trust and stays unauthenticated; see [Agents don't share your local trust](../deploy/deployment-modes.md#agents-dont-share-your-local-trust).
 2. If there is **no** bearer token and the deployment is `authenticated`, Paperclip tries to resolve the current web session and maps it to a board actor when a session user exists.
 3. If there **is** a bearer token, Paperclip checks it as a board API key first.
 4. If it is not a board key, Paperclip checks agent API keys.
@@ -47,7 +47,9 @@ Paperclip only implements two deployment modes in the current codebase:
 - `local_trusted`
 - `authenticated`
 
-`local_trusted` is the simplest mode. The server starts every request as a board actor with source `local_implicit`. This mode is only valid when `server.exposure` is `private`.
+`local_trusted` is the simplest mode. The server starts every request without a bearer token as a board actor with source `local_implicit`. This mode is only valid when `server.exposure` is `private`.
+
+That implicit board access is for the operator's own processes. On Linux and macOS, the server checks which local process sent the request, and one that comes from an agent run (its process tree carries the run's `PAPERCLIP_RUN_ID`, `PAPERCLIP_AGENT_ID`, `PAPERCLIP_AGENT_KEY_ID`, or `PAPERCLIP_RUNNER_INSTANCE_ID`, or runs under `paperclip-runnerd`) gets no board access. An agent calls the API with its own run credentials instead, for example `Authorization: Bearer $PAPERCLIP_API_KEY`.
 
 `authenticated` is the login-aware mode. When no bearer token is present, Paperclip can resolve the current web session and treat that user as a board actor. If no session can be resolved, the request stays unauthenticated.
 

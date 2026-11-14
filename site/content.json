@@ -275,6 +275,10 @@
               "file": "../docs/connectors/calendly.md"
             },
             {
+              "title": "Circleback",
+              "file": "../docs/connectors/circleback.md"
+            },
+            {
               "title": "ClickHouse",
               "file": "../docs/connectors/clickhouse.md"
             },

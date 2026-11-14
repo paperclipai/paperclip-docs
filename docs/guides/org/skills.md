@@ -344,6 +344,53 @@ After a version conflict, the agent rereads the skill and uses a new retry key f
 
 ---
 
+## Skills from connected apps
+
+Some apps ship their own skills. When an MCP server you've connected publishes skills, Paperclip picks them up each time it refreshes the connection's actions, and lists them on the **Skills** page under **Skills from connected apps**. The section sits above the skill cards on the **Installed** and **Discover** tabs, and it only appears once a connected app has published a skill. See [Cards and skills from MCP servers](../../connectors/custom-mcp-servers.md#cards-and-skills-from-mcp-servers) for which servers can do this.
+
+Nothing reaches your agents automatically. The section's header says it plainly: *"Agents that use an app get its skills only after you approve them."*
+
+### Review a skill
+
+Each skill shows its name, which app it's **from**, a short description, how many files it has and their total size, and a status badge:
+
+| Status | Meaning |
+| --- | --- |
+| **Needs review** | New or changed. No agent uses it yet. |
+| **Approved** | Agents that can use the app get this skill. |
+| **Declined** | You said no. You can still approve it later. |
+| **Not available** | Paperclip can't offer it to agents. A note under the skill says why. |
+
+To review one:
+
+1. Select **Read instructions** to see the skill's instructions as plain text. Select **Hide instructions** to fold them away again.
+2. If the skill asks to use specific tools, you'll see a checkbox that starts with **Also let it use:** followed by the tools. Leave it clear unless you want the skill to have those tools too. Without your tick, it never gets them.
+3. Select **Approve**, or **Decline** if you don't want it. On an approved skill, the same button reads **Turn off**.
+
+Approving lets agents that use the app follow the skill's instructions, including any commands it describes, so read it as you would any outside instructions. A skill reaches the agents that can use the connection it came from. Give the connection only to the agents that should have its skills.
+
+### When a skill changes or can't be used
+
+An approval covers the exact version you read. If the app changes the skill, it goes back to **Needs review** with a note that the app changed it: *"Agents won't use it until you approve the new version."* If you approve while the app is changing it, Paperclip refuses with *"This skill changed since you opened it. Review it again."*
+
+A skill shows **Not available** when Paperclip can't check it or deliver it safely. The note tells you which case you're in:
+
+- The app builds the skill fresh every time, so its content can't be checked.
+- It's over 512 files or 16 MiB in total.
+- Its listing doesn't follow the MCP skills format.
+- The app sent files that didn't match what it listed. Refresh the app to see its current version.
+- The app no longer offers it.
+
+### What agents receive
+
+An agent gets an approved skill under the app's name, so a skill from a connected app never replaces one of your company skills. If another skill already has the same name, the review card tells you, and both stay available. The agent's copy is marked as coming from the app and checked against the version you approved, and the skill's other files are read through Paperclip on demand rather than copied to disk.
+
+If a run can't load an approved skill, the run's log names the skill and says why. Agents on Paperclip Runner with a preconfigured home don't receive skills from connected apps.
+
+Approving and declining count as installing a skill, so your [company skill policy](../../reference/api/company-skill-policy.md) applies, and only people on the board can do it.
+
+---
+
 ## Renaming a skill
 
 Names age. The `code-review` skill you wrote in week one turns out to be your PR triage procedure, and every agent that uses it is now working from a name that misleads whoever reads the roster next. You can rename it without unpicking anything.

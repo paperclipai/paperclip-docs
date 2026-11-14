@@ -384,6 +384,26 @@ A few rules apply to project-repository imports:
 
 Synced skills are read-only. To change one, edit the repository and let it update, or fork it into an editable copy.
 
+### Skills from connected apps
+
+A connected MCP server can publish its own skills. These don't join the company skill library. They're reviewed on their own list, and an approved skill is delivered to the agents that can use its connection. The guide's [Skills from connected apps](../guides/org/skills.md#skills-from-connected-apps) section covers the review screen.
+
+| Action | Endpoint |
+|---|---|
+| List skills from connected apps | `GET /api/companies/{companyId}/mcp-skills` |
+| Read a skill's instructions for review | `GET /api/companies/{companyId}/mcp-skills/{skillId}/content` |
+| Approve a skill | `POST /api/companies/{companyId}/mcp-skills/{skillId}/approve` |
+| Decline or turn off a skill | `POST /api/companies/{companyId}/mcp-skills/{skillId}/decline` |
+| Read a file of an approved skill (agent in an active run) | `GET /api/agents/me/mcp-skills/{skillId}/files?path=...` |
+
+The list returns `{ "skills": [...] }`. Each entry carries `appName`, `name`, `description`, `status` (`pending_review`, `approved`, `declined`, or `unavailable`), a `statusReason` (`new`, `changed`, `dynamic`, `too_large`, `invalid`, `verification_failed`, `removed`, or `null`), the `manifestDigest` to approve, `fileCount`, `totalBytes`, the `requestedTools` from the skill's `allowed-tools`, `allowedToolsApproved`, and `nameCollision`.
+
+The approve body takes the `manifestDigest` you reviewed, as `sha256:` followed by 64 lowercase hex characters, and an optional `allowTools: true` to honor the skill's `allowed-tools`. Approving a digest that's no longer current returns `409` with code `mcp_skill_manifest_changed` and *"This skill changed since you opened it. Review it again."* A skill that can't be approved, such as one marked `unavailable`, returns `422` with code `mcp_skill_not_approvable`.
+
+Review routes are board-only. Approving or declining is refused with code `skill_actor_restricted` when your access rules restrict changes to skill configuration. It's also checked as a `skills.install` action against the [company skill policy](./api/company-skill-policy.md), with source type `external_package` and the locator `mcp-connection:<connectionId>`; a policy denial returns code `skill_policy_denied`.
+
+The file route serves an approved skill's files to an agent with a live run, as `application/octet-stream`. Without an active run token it returns `401`. An `X-Paperclip-Run-Id` header that doesn't match the token returns `403` with code `run_id_mismatch`.
+
 ---
 
 ## 3. App-shipped catalog
