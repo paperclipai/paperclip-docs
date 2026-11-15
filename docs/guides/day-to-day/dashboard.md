@@ -16,7 +16,7 @@ Think of it like the cockpit instruments on a plane. You don't need to read ever
 
 ## Agents Section
 
-At the top of the dashboard, Paperclip shows your live agent activity in the **Agents** panel, followed by a row of overview cards. This is the quickest way to tell whether work is moving.
+At the top of the dashboard, Paperclip shows your live agent activity in the **Agents** panel, followed by a row of overview cards. This is the quickest way to tell whether work is moving. The sidebar's live counts include only runs that have started, not ones still waiting in line.
 
 The first overview card, **Agents Enabled**, rolls your agent states into one number: the total count of enabled agents, with a line underneath that breaks out how many are running, paused, or in error. Click the card to jump to your agents list.
 

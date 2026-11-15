@@ -226,7 +226,7 @@ The **Billers** view answers a different question than **Providers**: not "who r
 
 ### Biller sub-tabs
 
-Like Providers, the Billers view has a sub-tab bar at the top. **All billers** shows an aggregate grid; each per-biller sub-tab shows the same card standalone. Sub-tab labels include the biller's display name, token count, and cost.
+Like Providers, the Billers view has a sub-tab bar at the top. **All billers** shows an aggregate grid; each per-biller sub-tab shows the same card standalone. Sub-tab labels include the biller's display name, token count, and cost. Display names are product names where Paperclip knows them, so `ollama-cloud` shows as **Ollama Cloud** and `ollama` as **Ollama**.
 
 ### Biller spend card
 

@@ -754,7 +754,7 @@ Behavior to know:
 
 ### Discard A Queued Comment
 
-A comment posted while the agent is busy can wait in a queue until the agent reaches it. If you change your mind before then, you can discard your own queued comment. Only its author can do that.
+A comment posted while the agent is busy can wait in a queue until the agent reaches it. If you change your mind before then, you can discard your own queued comment. A board user who can read the task can also discard a queued message an agent wrote, for example to stop an agent's follow-up from starting more work. A queued message another person wrote stays theirs to discard.
 
 ```
 DELETE /api/issues/{issueId}/queued-comments/{commentId}
@@ -763,10 +763,13 @@ DELETE /api/issues/{issueId}/comments/{commentId}?mode=cancel
 
 The first route needs `queueId` and `revision` from the current queue in the request body.
 
-- **People** use the first route. Someone who isn't the author gets `403` with `Only the queued message author can discard it`.
+- **People** use the first route. It works for your own queued messages and for agent-authored ones. Each queue entry's `canDiscard` says whether you can discard it. Discarding another person's message gets `403` with `Only the queued message author can discard it`. A private task you can't read gets the usual not-found or access error first.
 - **Agents** use the second route to discard their own queued comments. An agent that calls the first route with a valid body for a comment on that task gets `403` (a comment that isn't on the task returns `404`), and if the comment is its own, the error names the `?mode=cancel` route to use instead.
 
-The other denials are final. An agent calling the first route about someone else's comment gets `403`, and so does a non-author calling the second route with `mode=cancel` or while the comment is still queued. The message says that only the author can discard the comment, from that queued message's menu on the linked task, and that no board, admin, or agent override exists. If you see it, there's no other route to try, so ask the author to discard it.
+The other denials are final. An agent calling the first route about someone else's comment gets `403`, and so does a non-author calling the second route with `mode=cancel` or while the comment is still queued. What the message says depends on who wrote the comment:
+
+- **A person wrote it.** Only that author can discard it, from that queued message's menu on the linked task, and no board, admin, or agent override exists. Ask the author to discard it.
+- **An agent wrote it.** A board user with access to the linked task can discard it from the queue, and the agent that wrote it can cancel it. The message also tells an agent not to try other agent routes.
 
 Before those denials, the server checks that the caller can read the task. A caller that can't read it gets the usual not-found or access error instead, so the denial doesn't confirm a task it can't read.
 
@@ -1592,6 +1595,7 @@ Request body:
 |---|---|---|
 | `idempotencyKey` | uuid, required | Generate one per deliberate click. Sending the same key again returns the original request instead of starting a second attempt, so it's safe to resend after a lost response. |
 | `observedRunId` | uuid or `null`, required | The latest run you saw for the task, usually `interruption.observedRunId`. If it no longer matches the task's latest run, nothing new is started. |
+| `retryAction` | `"move_forward"`, optional | Send it when `interruption.retryAction` is `move_forward`, which is what **Move it forward now** does. See [Move a waiting continuation forward](#move-a-waiting-continuation-forward). |
 
 ```json
 { "idempotencyKey": "6f1c7a52-3f0e-4b5a-9d63-0f8a1f2c4e11", "observedRunId": "0b8e2d47-91a6-4c3f-8f0d-5e7a2b9c1d34" }
@@ -1606,13 +1610,23 @@ The response is `202 Accepted` when the retry is recorded and `200 OK` when it i
 | `requestId` | The retry request, or `null` when `stale`. |
 | `observedRunId` | The task's latest run as the server sees it. |
 | `presentation` | The task's refreshed `interruption` (see below). |
+| `refused` | Present as `{ "reason": "...", "message": "..." }` when Paperclip saved the request but turned it down for a reason another click can't change. `accepted` is then `false` and the status is `200`. `message` is safe to show as is. |
+| `alreadyMovedOn` | `true` when a `move_forward` request found nothing left to move: the task's latest run is no longer queued or running, and no continuation is waiting to be delivered. Nothing new is started. |
 | `scheduledRetry` | Present only when the task was counting down to a scheduled retry. Holds the `outcome` and `message` from [Retry a Scheduled Retry Now](#retry-a-scheduled-retry-now). |
+
+Paperclip tries to start a plain Retry before it answers, for up to 5 seconds, so an `accepted: true` answer means the request wasn't turned down. If starting it takes longer, for example because it waits on the agent, the answer stays `accepted` and the Retry carries on in the background. A refusal comes back as `refused`, for example with the reason `previous_execution_unverified`, and the task page and the Inbox show its `message` instead of looking as though Retry worked. A `move_forward` request that finds nothing left to move shows *The task already moved on, so nothing new was started. It now shows its current state.*
 
 Clicking **Retry** while a scheduled retry counts down starts that retry right away instead of waiting for the countdown. Paperclip promotes the same scheduled run, so no second run is created, and logs `issue.scheduled_retry_retry_now` with `source: "task_retry"`. If the promotion doesn't start work (`waiting`, `gate_suppressed`, or `no_scheduled_retry`), the task page and the Inbox show its `message` as the reason. A `stale` response shows *This attempt was already replaced, so Retry did not start new work. The task now shows its current state.* and the Inbox stays where it is instead of opening the task.
 
 Each time the reason a saved retry waits changes, the task gets an `issue.execution_waiting` activity entry from the system, with the `requestId` and `reason` in its details. Its live event refreshes an open task page, so the wait shows up without a reload.
 
 A retry is a new, durable request. If automatic repair had used up its attempts, a retry gives it a fresh set. A request that's waiting on shared work, such as cleanup or a running turn, absorbs later clicks. A request that was declined for its requester's access (`retry_authority_denied`) is replaced by the next click with a new key, so that retry runs with the new requester's access. On a task bound to an [Agent Chat conversation](#agent-chat-conversations), only the conversation owner can retry (`403`, *"Only the conversation owner can retry a chat run"*). Reusing an `idempotencyKey` for a different task or user returns `409` with *"This retry request belongs to a different task or user."*
+
+### Move a waiting continuation forward
+
+When Paperclip continues a task by itself, the task shows as working and offers no **Retry**, because a second run would race the first. On a busy agent that next run can wait a long time behind other work. Once it has waited 15 minutes, `interruption.retryAction` becomes `move_forward` and the task page offers **Move it forward now**.
+
+Send the usual [Retry](#retry-a-task) body with `"retryAction": "move_forward"`. Paperclip never starts a second run for it. If the continuation is already in the agent's queue, your request joins that run and moves it ahead of automatic work. If it's recorded but not yet in the queue, Paperclip delivers it as the one run. The task keeps showing as working the whole time.
 
 ### The `interruption` field
 
@@ -1625,6 +1639,7 @@ A retry is a new, durable request. If automatic repair had used up its attempts,
 | `userAction` | For `waiting_for_user`: `approval`, `reconnect`, `assign_agent`, `choose_model`, `resume`, `budget`, `project_access`, `confirm_owner_stop`, or `confirm_run_stopped` (see [Confirm a run stopped](#confirm-a-run-stopped)). Otherwise `null`. |
 | `rejectedModel` | With `userAction: "choose_model"`, the configured model ID the provider rejected. Left out for every other stop. |
 | `nextRetryAt` | When the next automatic attempt is due, for `retry_scheduled`. This includes a Paperclip Runner run that's resuming by itself after a restart. |
+| `retryAction` | `move_forward` when the task is continuing by itself but its next run has waited at least 15 minutes. `canRetry` is then `true` and the UI offers **Move it forward now** instead of **Retry**. Left out otherwise. |
 | `canRetry` | Whether a retry can help right now. `false` while an automatic resume is pending, while a retry is already being prepared, and during waits for a shared resource (those report `working`). |
 | `retryWait` | Present as `{ "reason": "...", "message": "..." }` when a saved retry or a task that hasn't started is waiting. `message` is safe to show as is. A retry that can't start with its requester's access has the reason `retry_authority_denied`; a task waiting on a budget hold reports `state: "working"` with the reason `budget.blocked`, or `accounting.unpriced_usage` when the budget refused it because recorded usage has no reliable price. A saved retry waiting on unfinished blockers reports `state: "working"` with the reason `dependency_blocked`. A retry waiting on a run whose process was never recorded reports `state: "waiting_for_user"`, `userAction: "confirm_run_stopped"`, and the reason `process_identity_missing` when a board operator can confirm the stop. |
 | `recoveryStep` | The saved-work recovery step in progress: `checking_previous_run`, `saving_previous_files`, or `finishing_recovery`. Only present while recovery is scheduled or running. |

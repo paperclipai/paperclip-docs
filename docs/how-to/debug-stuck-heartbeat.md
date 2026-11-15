@@ -417,6 +417,34 @@ Other notices put the advice in the message itself. **Workspace validation faile
 
 ---
 
+## 26. Task says it's waiting to start
+
+**Symptom.** A task's header shows **Waiting** instead of a live badge, and its conversation reads one of these:
+
+- *Waiting for Codie · 20 slots max · 41 of 295 in line · Configure*
+- *Waiting for PAP-5656 to finish*
+- **Waiting to start**
+
+**Cause.** Paperclip has accepted the run, but it hasn't started yet:
+
+- **The agent is full.** It's already running as many tasks as its limit allows, and this run is waiting its turn. The place in line is the order Paperclip starts that agent's waiting runs. Work people asked for, such as a **Retry**, goes ahead of Paperclip's own recovery work.
+- **A routine runs one task at a time.** An earlier task from the same routine is still open with its run, and this one starts when that task finishes. A private earlier task reads *Waiting for another task in this routine to finish*.
+- **Nothing more specific is known.** A turn still queued after 30 seconds reads **Waiting to start** rather than **Working**, so it never claims to be working when it isn't.
+
+**Fix.** Usually, wait. The task starts by itself. If an agent's line is always long, click **Configure** to open the agent's **Advanced** settings and raise how many runs it takes at once. To take one task out of line, press **Stop**: the waiting run is cancelled, an **In Progress** task goes back to **Todo**, and the agent moves on to its next task. If a task that Paperclip is continuing by itself has waited 15 minutes, **Move it forward now** moves it up the agent's line without starting a second run. See [Tasks waiting in an agent's line](../guides/day-to-day/issues.md#tasks-waiting-in-an-agents-line).
+
+---
+
+## 27. Automatic work stops while runs fail before starting
+
+**Symptom.** During an outage, for example while a sandbox provider refuses new sandboxes, tasks stop getting new automatic attempts. Queued recovery runs stay queued, while a **Retry** you click isn't held back.
+
+**Cause.** When most of a company's recent automatic runs fail before the agent starts, Paperclip pauses its own automatic work for that company so the outage doesn't multiply itself. Separately, each task gets at most six automatic attempts an hour.
+
+**Fix.** Fix the underlying problem if it's yours, or wait for the provider. Paperclip tries one run now and then and resumes by itself once runs start normally again, so you don't need to retry every task. To see what's happening, read `automaticWork` in [Check for Stranded Assigned Work](../reference/api/agents.md#when-automatic-work-is-paused).
+
+---
+
 ## Where to look first
 
 - **Run logs.** Agent detail → **Audit → Runs** → click any run for the full transcript and exit code.

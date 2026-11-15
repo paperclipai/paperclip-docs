@@ -112,6 +112,8 @@ On the manual path, use the generated manifest rather than configuring scopes by
 
 Paperclip acknowledges with a reaction so people can see a message was picked up before the agent has finished thinking. This works in direct messages too.
 
+While the agent works, the thread shows what it's actually doing. When an agent running on [Paperclip Runner](../reference/adapters/paperclip-runner.md) writes a short progress note, such as what it's checking or what it found, Paperclip posts the latest one in a single progress message and edits that message as new notes arrive, instead of posting one message per step. The first update waits 10 seconds, and later ones come at most every 30 seconds, so the thread stays short. When the agent finishes, its answer arrives as a new reply, not as an edit of the progress message. Pending updates pick up again after a server restart.
+
 **Require at-mention in channels** is on for new Slack connections. It keeps ordinary channel chatter from starting agent work: in a channel, a new top-level message has to @mention the bot to start a conversation. Once a conversation is going, you can reply in its thread without mentioning the bot again, and direct messages never need an @mention. You can turn it off in **Settings** if you'd rather not require the @mention in channels. Connections made before this setting existed keep their previous behavior.
 
 If you stop the agent's run from the Slack thread, the current response ends. Your next message in the thread starts a fresh turn on the same task.

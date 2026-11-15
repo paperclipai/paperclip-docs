@@ -1311,6 +1311,7 @@ The response contains:
 | `settling` | Tasks that changed moments ago: their last run just ended, they were just created and haven't run yet, or a task blocking them just finished. They're checked again shortly. |
 | `sample` | Up to 20 stranded tasks, each with its `identifier`, `status`, and `reason`. |
 | `agentsWithStalledSlots` | Up to 20 agents whose run slots are held by stalled runs, each with `agentName`, `stalledRuns`, and `queuedRuns` (the work waiting behind them). |
+| `automaticWork` | Whether Paperclip is holding back automatic work for the company (see below): `state` (`closed`, `open`, or `half_open`), `pausedSince`, `nextTryAt` (only while `open`), `recentAutomaticRuns`, `failedBeforeStarting`, and a plain-language `summary`. |
 
 The reasons in `violations` and `sample` are:
 
@@ -1321,6 +1322,16 @@ The reasons in `violations` and `sample` are:
 - `blocked_with_live_run`: the task is blocked while a run is still active on it.
 - `run_owner_gone`: a run still says it's running, but the server that owned it is gone.
 - `native_run_stalled`: a native run still says it's running, but nobody has renewed it for 5 minutes. It holds its agent's run slot until native recovery ends it.
+- `saved_work_recovery_overdue`: the task's saved files have to be recovered before it can run, and that recovery hasn't started in time. Paperclip starts the recovery rather than waking the agent.
+- `queued_run_stalled`: the task's run is its agent's oldest waiting run, it has waited past the aging limit, and the agent keeps starting other runs ahead of it. Work a person asked for going first doesn't count against a run nobody asked for.
+
+A task whose saved files are due for recovery, while that recovery still has time to start, counts as healthy, under `pending:saved_work_recovery`.
+
+### When automatic work is paused
+
+If most of a company's recent automatic runs fail before the agent even starts, for example while a sandbox provider refuses to create sandboxes, Paperclip stops starting new automatic runs for that company instead of piling up failures. Automatic here means runs nobody asked for: recovery continuations and automatic retries. Work a person asked for, such as a **Retry** click or a reply on a task, isn't held back.
+
+Automatic runs that are already waiting in line stay queued while the pause is on. Paperclip tries one run now and then, lets a few more through once runs start normally again, and then goes back to full speed by itself. Nobody needs to act. `automaticWork.summary` says what's happening, for example *Automatic work is paused for this company since … because 12 of 14 recent automatic runs failed before starting; next try at ….*, *Automatic work is resuming gradually since … because recent runs started normally again.*, or *Automatic work is running normally.*
 
 ---
 

@@ -539,11 +539,12 @@ A storage provider needs four things in its manifest:
 
 Without the capability and the project lifecycle stream, the manifest is rejected with "Workspace providers require workspaces.manage and project resource lifecycle".
 
-`workspaceProvider` also takes four optional fields:
+`workspaceProvider` also takes these optional fields:
 
 - `defaultForProjects` — a `{ mode, strategy }` pair that Git projects on your storage [start with](#becoming-the-default-for-projects).
 - `finalizationVersion: 1` — you support the lighter [`finalize`](#what-each-operation-does) step when a run completes.
 - `freshWorkspaceVersion: 1` — you can prepare [fresh retry workspaces](#fresh-retry-workspaces).
+- `workspaceEnvironmentVersion: 1` — you want to know which environment a run picked. See [What each operation does](#what-each-operation-does).
 - `supportsMergeAncestry: false` — your inspection can't tell whether a branch was merged. Automatic cleanup then inspects a workspace only once a matching pull request has merged, instead of re-checking it on a timer. Open or unknown pull requests keep the normal retries, and an explicit close still inspects the workspace. Leave the field out to keep the usual ancestry checks.
 
 The same plugin implements two hooks. `onResourceLifecycle` creates and retains the project's storage as projects come and go. `onWorkspaceOperation(params: PluginWorkspaceParams): Promise<PluginWorkspaceResult>` manages the per-task checkouts inside that storage. You can add a third, optional `onWorkspacePrepare`, to [prepare checkouts in the background](#preparing-a-workspace-in-the-background-optional).
@@ -595,6 +596,8 @@ The project API returns the saved `executionWorkspacePolicy` as before, plus a s
 #### What each operation does
 
 Every call carries `pluginId`, `companyId`, `projectId`, `executionWorkspaceId`, a `generation` number, a `deadline`, a stable `operationId`, and the `operation` itself. `runId` and `agentId` are optional context — your hook must work without an environment lease, a live agent, or any folder on the Paperclip host. The exception is `finalize`, which always carries the run and agent it's finishing.
+
+If your plugin also provides the environment drivers its runs use, a `prepare` alone may not tell you enough: a sandbox you create per run needs that environment's settings before you can find or start it. Declare `workspaceEnvironmentVersion: 1` in `workspaceProvider`, and a run's `prepare` calls, including verification and fresh preparation, carry `environment: { id, driverKey, config }` whenever the run's environment uses one of your own drivers. `config` is that environment's driver config, exactly as your driver's acquire receives it. The field is left out for environments from another plugin or a non-plugin driver, and for calls made outside a run's environment, such as `finalize`. It's context only: it doesn't change the `operationId` or the order in which Paperclip prepares the workspace and acquires the environment.
 
 | `operation.kind` | Return | What you do |
 |---|---|---|
@@ -1266,7 +1269,7 @@ The SDK validates every operation and result for you. Each result must carry the
 
 | `operation.kind` | Return `kind` | What you do |
 |---|---|---|
-| `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. Add `freshWorkspaceVersion: 1`, `workspaceFileReadVersion: 1`, `warmTaskVersion: 1`, `releaseResumeVersion: 1`, `resumeCredentialVersion: 1`, `githubCredentialBrokerVersion: 1`, or `configuredEnvironmentVersion: 1` for the optional features below. Add `codexSourceRecoveryVersion: 1` or `acpxSourceRecoveryVersion: 1` only if your host can verify and restore a stopped session for that provider without starting another turn; the two are separate promises. |
+| `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. Add `freshWorkspaceVersion: 1`, `workspaceFileReadVersion: 1`, `warmTaskVersion: 1`, `releaseResumeVersion: 1`, `resumeLaunchInputsVersion: 1`, `githubCredentialBrokerVersion: 1`, or `configuredEnvironmentVersion: 1` for the optional features below. Add `codexSourceRecoveryVersion: 1` or `acpxSourceRecoveryVersion: 1` only if your host can verify and restore a stopped session for that provider without starting another turn; the two are separate promises. |
 | `prepare` | `prepared` | Build the provider configuration for the exact `requirements` (schema `paperclip.runner.launch-requirements.v1`) without starting a process. Return a `launch` with a `configurationId`, a `requirementsDigest`, and a `provider` descriptor. For a provider that works in a filesystem directory, the descriptor's `cwd` sets the working directory (see below). You can add `projectAuthCheckAtSubmit: true` to skip the separate `check_project_auth` step (see below). A warm handoff also sends `priorIdentity` and `accountIdentity`. If you advertise the GitHub broker, it can also carry a `githubBroker` (see below). |
 | `check_project_auth` | `project_auth` | Check that nothing in the prepared configuration for these projects can replace or redirect the selected account. Return `allowed: true` only if the checks pass. |
 | `read_file` | `file` | Only sent if you advertise `workspaceFileReadVersion: 1`. Read one file from the active task — see [Reading task output files](#reading-task-output-files). |
@@ -1279,7 +1282,7 @@ The SDK validates every operation and result for you. Each result must carry the
 | `stop` | `accepted` | Stop the task and everything it started. |
 | `complete` | `accepted` | Release the task's resources once Paperclip has saved what it needs. |
 | `release` | `released` | Only sent if you advertise `releaseResumeVersion: 1`. End active use of the exact, settled Runner session named by `identity` — see [Releasing and resuming a settled Runner](#releasing-and-resuming-a-settled-runner-gated). |
-| `resume` | `resume` | Only sent if you advertise `releaseResumeVersion: 1`. Ask for that same session back using `identity` and a fresh `bootstrapTicket`, and return an `outcome` of `resumed` or `unavailable`. If you also advertise `resumeCredentialVersion: 1`, it carries the claiming run's `credential` when the run has one. When the resume moves the session onto a new task and you advertise `configuredEnvironmentVersion: 1`, it also carries `configuredEnvironment`. |
+| `resume` | `resume` | Only sent if you advertise `releaseResumeVersion: 1`. Ask for that same session back using `identity` and a fresh `bootstrapTicket`, and return an `outcome` of `resumed` or `unavailable`. If you also advertise `resumeLaunchInputsVersion: 1`, every `resume` carries the same launch inputs a `submit` would for the claiming run: its `credential` when the run has one, and `configuredEnvironment` when you also advertise `configuredEnvironmentVersion: 1`. Without it, `configuredEnvironment` comes only when the resume moves the session onto a new task and you advertise `configuredEnvironmentVersion: 1`. |
 
 A few rules keep this safe:
 

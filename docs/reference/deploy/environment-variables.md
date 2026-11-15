@@ -589,6 +589,19 @@ These belonged to the older Paperclip ID broker, which used a different, incompa
 
 ---
 
+## Tailscale Connector
+
+The [Tailscale connector](../../connectors/tailscale.md) runs its own private Tailscale device for each connected tailnet, so the Paperclip server needs the `tailscale` and `tailscaled` programs. The official Docker image ships both, and on other installs Paperclip looks for them on the server's `PATH`. Set these only when the programs live somewhere else:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PAPERCLIP_TAILSCALE_CLI` | `tailscale` | The `tailscale` command Paperclip uses to sign in, list machines, and carry SSH connections to tailnet machines. Use an absolute path. |
+| `PAPERCLIP_TAILSCALED` | `tailscaled` | The `tailscaled` command Paperclip starts for each connection's device. Use an absolute path. |
+
+Both can go in your `.env` file like any other server setting. Restart the server after you change them. If Paperclip can't start the programs, connecting a tailnet fails with *"Tailscale sign-in could not start. Check that Tailscale is installed, then try again."*
+
+---
+
 ## HTTP Adapter Private Endpoint Allowlist
 
 By default, HTTP adapters may call public HTTP(S) origins but not private ones — the socket-level guard rejects private networks and link-local metadata targets and pins DNS results to prevent rebinding. Use this variable to opt specific trusted private origins into HTTP-adapter calls.

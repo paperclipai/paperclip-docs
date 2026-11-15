@@ -31,6 +31,8 @@ General settings no longer have a `keyboardShortcuts` field. Keyboard shortcuts 
 
 The experimental-settings response and patch body include `enableBuiltInAgents` as a boolean. Set it to `true` before using the [Built-in Agents API](./built-in-agents.md); while it is off, those routes return `404 Not Found`.
 
+They also include `enableMcpTasks`, the **Durable app actions (MCP Tasks)** card. It's `false` by default. Set it to `true` to let connected apps that support MCP Tasks run long actions as tasks Paperclip keeps track of. See [Long-running actions](../../connectors/custom-mcp-servers.md#long-running-actions-experimental).
+
 ---
 
 ## Task drain

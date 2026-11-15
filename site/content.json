@@ -532,6 +532,10 @@
               "file": "../docs/connectors/supermemory.md"
             },
             {
+              "title": "Tailscale",
+              "file": "../docs/connectors/tailscale.md"
+            },
+            {
               "title": "Tavily",
               "file": "../docs/connectors/tavily.md"
             },

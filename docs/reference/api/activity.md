@@ -337,6 +337,8 @@ You can pass either:
 
 The route resolves the identifier before loading activity, so this is the best endpoint when you are investigating one task and want the full history in order.
 
+Each row carries `actorName` next to `actorType` and `actorId`, so you can say who made a change, such as an agent's name or `Board`, without looking the ID up yourself. The company feed above includes it too.
+
 <!-- tabs: cURL, JavaScript, Python -->
 
 <!-- tab: cURL -->
@@ -440,6 +442,7 @@ Each activity row stores:
 | `companyId` | Which company the event belongs to |
 | `actorType` | `agent`, `user`, `system`, or `plugin` |
 | `actorId` | Text label or ID for the actor |
+| `actorName` | The actor's name for people to read, returned by the company feed and issue activity: the agent's or member's name, `Board` for the local board, or a plain fallback such as `A board member`, `An agent`, `A plugin`, or `Paperclip` when there's no name to show. |
 | `action` | Event name |
 | `entityType` | What was changed |
 | `entityId` | Which entity changed |
