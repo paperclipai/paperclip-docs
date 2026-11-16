@@ -25,7 +25,7 @@ The **Connectors** list holds three kinds of connection. They look alike — eac
 
 **App integrations** let agents work with information and actions inside an app you already use: read a Notion page, open a Linear issue, look at a Sentry error, search a Drive folder. Setup ends in a list of individual actions you switch on or off. The agent starts the work.
 
-Some app integrations give you more than an action list. An app can draw its results as interactive cards in the task chat, as [Circleback](connectors/circleback.md#meetings-as-cards-in-task-chat) does for meetings, and an app can publish skills that you approve on the **Skills** page before agents use them. See [Cards and skills from MCP servers](connectors/custom-mcp-servers.md#cards-and-skills-from-mcp-servers).
+Some app integrations give you more than an action list. An app can draw its results as interactive cards in the task chat, as [Circleback](connectors/circleback.md#meetings-as-cards-in-task-chat) does for meetings, and an app can publish skills that you approve on the **Skills** page before agents use them. See [Cards and skills from MCP servers](connectors/custom-mcp-servers.md#cards-and-skills-from-mcp-servers). While an app works on a call, the task chat can also show its progress and ask you its questions. See [While an app works on a call](connectors/custom-mcp-servers.md#while-an-app-works-on-a-call).
 
 **Model providers** supply the credential Paperclip uses to run models. Setup ends in a stored key or subscription, and there is no action list, because nothing here is a tool an agent can call. Paperclip uses it on the agent's behalf whenever the agent thinks. If you have ever wondered why your Anthropic connection has no permissions to set, this is why.
 

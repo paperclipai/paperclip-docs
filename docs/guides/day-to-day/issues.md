@@ -70,6 +70,8 @@ Open **Tasks** to see the work across your company. The API calls these records 
 
    Tasks with an agent actively running on them show a live-run indicator. Live updates keep that indicator current so you can see which tasks are being worked on without refreshing.
 
+   A task whose run hasn't started yet doesn't pretend to be working. When every run on it is still waiting in line, the row shows a muted **Waiting** with an hourglass instead. Hover it to see why, for example *Waiting for Codie · 20 slots max · 41 of 295 in line*: the agent is already running as many tasks as its limit allows, and this one is 41st in line. Counts of live subtasks on a parent row include only runs that have started.
+
 Implementation reference: [Tasks page and live updates](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/pages/Issues.tsx).
 
 ---
@@ -101,6 +103,8 @@ Implementation reference: [Tasks page and live updates](https://github.com/paper
    Files you add here are saved in your browser until the task is created, so a reload doesn't lose them. Once you create the task, the saved copies are cleared.
 
 6. **Click Create task**, or press **Enter**. If your instance has **Command/Ctrl+Enter to Submit** turned on, press **⌘+Enter** (**Ctrl+Enter** on Windows and Linux) instead.
+
+   The dialog closes straight away and the task saves in the background, so you can start the next one without waiting. If a save fails, Paperclip reopens the dialog with that task filled back in. If you've already started on another task, you see **A task could not be saved** instead. Open **New task** to find the failed request kept for you, with a **Retry saved task** button for it.
 
    The task opens after creation. Its **Properties** panel lets you adjust status, parent, project, and the other task fields. Status, reviewers, approvers, and a [task watchdog](#task-watchdogs) aren't set in the new-task dialog — add them from **Properties** once the task exists. A paused assignee can receive the task, but won't start until you resume it.
 
@@ -354,7 +358,7 @@ On the default chat-style task page, you can read the task's plan and outputs be
 - **Properties** — the task fields above.
 - **Plan** — the task's plan document and accepted-plan history.
 - **Artifacts** — work products, attachments, and the plan document in one list, newest first, below a **Documents** section for general documents.
-- **Tasks** — ancestors from the root down to the immediate parent, then subtasks and tasks created from this work, grouped by project.
+- **Tasks** — ancestors from the root down to the immediate parent, then subtasks and tasks created from this work, grouped by project. Each task appears once: a subtask that was also created from this work isn't repeated in its project group, and a project group whose tasks all appear above is left out.
 
 A skill or a text attachment can open a named tab of its own. Tabs remember what you opened, so you can return to a document without losing the thread. Clicking a **Skill created** card opens the live company skill — see [Skills your agents create during a task](../org/skills.md#skills-your-agents-create-during-a-task).
 
@@ -682,6 +686,16 @@ While your response is waiting, the agent can't hand the task back to you for re
 
 An empty composer shows **Stop** while the task is running and you can manage task controls. Click it to create a manual pause; on a parent task it applies to descendants too. Typing a message or adding an attachment switches the button back to Send. Stop waits for affected runs to stop, and an unconfirmed stop reports an inline error.
 
+### Tasks waiting in an agent's line
+
+Each agent runs only so many tasks at once. Other work waits in that agent's line, and a task in line says so instead of looking busy. Its header shows **Waiting** rather than a live badge, and the conversation reads, for example, *Waiting for Codie · 20 slots max · 41 of 295 in line · Configure*. There's no spinner or ticking timer, because nothing is running yet. **Configure** opens the agent's **Advanced** settings, where you can raise how many runs it takes at once.
+
+Other waits are named too. A task created by a [routine](../projects-workflow/routines.md) that runs one task at a time reads *Waiting for PAP-5656 to finish* while an earlier task of the same routine is still open with its run. When that earlier task is private, it reads *Waiting for another task in this routine to finish*. If a turn has been queued for more than 30 seconds and Paperclip can't name a reason, it reads **Waiting to start** instead of **Working**. Each wait is named once, in the turn's header.
+
+To take a waiting task out of line, press **Stop**, which shows as soon as the task has a run, even one that hasn't started. The waiting run is cancelled, an **In Progress** task goes back to **Todo**, and nothing new starts for it. The agent moves on to the next task in its line, and the task's activity records the change.
+
+Work people asked for goes first. When an agent's line is long, a run you asked for, such as a **Retry**, starts ahead of Paperclip's own recovery work, and a run that has waited a long time gets its turn. Recovery work joins a busy agent's line a few runs at a time, so it can't flood the line.
+
 While paused, the composer says **Task is paused.** or **Subtree is paused.**, preserves your draft, and offers **Resume task** or **Resume subtree**. Resume releases the hold; waking agents is optional. Work the pause stopped or turned away, including a retry that came due while paused, starts again by itself, exactly once, even if you don't wake agents. A task that still has an execution blocker isn't restarted, and the blocker stays visible. If an interrupted run has uncertain outcomes, a resume that also tries to wake it is refused and the pause remains. Inspect the stopped run and follow its recovery instructions before continuing. See [Stop, pause, and resume](../../experimental/task-chat.md#stop-pause-and-resume) for the complete flow. A paused agent or company is a different hold, and a message you send during one isn't lost. See [Messages sent during a pause](../../how-to/debug-stuck-heartbeat.md#22-messages-sent-during-a-pause).
 
 If a run stops for a reason Paperclip can repair itself, the task shows one short status line instead of a stack of warnings: *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* once it has stopped retrying. **Retry** asks Paperclip to try the task again with your saved messages. If the provider rejected the selected model, choose a supported model or clear the task override, then retry. A rejection as the session opens stops straight away with **Model unavailable** (`native_provider_model_rejected`), because retrying would fail the same way. A provider sign-in request needs your authentication step before the run can continue. See [When a run needs attention](../../experimental/task-chat.md#when-a-run-needs-attention).
@@ -698,6 +712,10 @@ When you do click **Retry**, Paperclip saves the request first. If something sti
 
 Retry keeps the agent's work when it can. If the task has its own local workspace that nothing else is using, the new attempt continues there with the uncommitted files and task branch intact. When Paperclip has to start a fresh attempt instead, the old folder stays as it was and, when that folder is the task's own, the agent is told its path, its branch if known, and up to 50 changed files. On a remote task, the newest verified saved files are attached under `.paperclip-recovered/` for the agent to read.
 
+Paperclip checks a **Retry** before it answers you. If it can't start for a reason another click won't change, the status line gives that reason instead of looking as though Retry worked. If you clicked **Move it forward now** (see below) and the task had already moved on, you see *The task already moved on, so nothing new was started. It now shows its current state.*
+
+When Paperclip is continuing a task by itself, for example in a fresh run from saved work after a provider error or a server swap, the task keeps showing as working, however long that takes, and offers no **Retry**. A second run would compete with the one already lined up. If that next run has waited 15 minutes, the line reads *Waiting for the agent to finish other work. Paperclip continues this task by itself.* with a **Move it forward now** button. Clicking it moves the waiting run ahead of automatic work in the agent's line. It never starts a second run. **Retry** comes back as soon as Paperclip hands the task to you.
+
 **Interrupt** on a queued message is a hand-off, not a failure. The stopped turn appears once, the task keeps showing as working, and your message goes next. If the hand-off still hasn't started after five minutes, you get one **Retry**. Clicking **Send** on a queued message while the previous run hasn't started yet is accepted too. You'll see *Messages are still queued. They will send when the task is ready.*, and the message goes as soon as that run stops.
 
 A low-trust agent can also be stopped because the task's project isn't one of its allowed projects. Then the task shows a **Project access** notice instead: the agent hasn't started, and your message is saved. Choose **Manage project access** (or **View agent access** if you can't change it) to open the agent's settings and add the project. Saving access doesn't restart anything. Back on the task, the notice reads **Project access is ready**, and **Retry task** picks the work up again. See [Allowed projects](../../administration/trust-and-low-trust-review.md#allowed-projects).
@@ -708,7 +726,7 @@ Sometimes an issue's run finishes without choosing a next step, or an assigned i
 
 Recovery preserves the original assignee and only retries it when that's safe. It **doesn't take over or reassign the stranded work by itself** — once retries are exhausted or a takeover would be unsafe, the recovery action is **owned by the board** so a person decides the next step.
 
-That includes runs that keep getting cut off — for example by several server restarts in a row. Once an interrupted or failed run has used up its automatic retries and nothing else is working the issue, Paperclip moves the issue to `blocked` with a notice explaining why (for a stalled `in_progress` or `todo` issue it's usually titled **No live execution path**), so it lands in front of you instead of sitting silently with no run.
+That includes runs that keep getting cut off — for example by several server restarts in a row. Each task gets at most six automatic attempts an hour, shared by Paperclip's automatic continuations and its automatic retries after a temporary failure, so a lasting outage can't loop. Once an interrupted or failed run has used up its automatic retries and nothing else is working the issue, Paperclip moves the issue to `blocked` with a notice explaining why (for a stalled `in_progress` or `todo` issue it's usually titled **No live execution path**), so it lands in front of you instead of sitting silently with no run.
 
 A recovery action carries:
 
@@ -717,6 +735,10 @@ A recovery action carries:
 - **Evidence** — the JSON the recovery engine collected to justify the action (the last run's status, the missing disposition, error codes, and so on).
 - A **wake policy** that decides when the owner is nudged again.
 - A **resolution outcome** when the action is closed.
+
+If the assigned agent can't run, Paperclip stops the task instead of retrying it and says so plainly, for example *Ada can't run right now, so Paperclip stopped this task instead of retrying it. It is still assigned to them. To continue, resume or fix the agent, or assign the task to someone else.* An agent you paused yourself is the exception: Paperclip doesn't stop its **Todo** or **In Progress** tasks that haven't had a run yet, or whose last run your pause stopped, because that would fight your pause. They carry on when you resume the agent. An agent paused for another reason, such as its budget, still gets the notice.
+
+When most of a company's automatic runs fail before the agent starts, for example while a sandbox provider is down, Paperclip pauses its own automatic work for that company instead of piling up failures. Work you ask for isn't held back. Automatic work picks up again by itself once runs start normally. See [When automatic work is paused](../../reference/api/agents.md#when-automatic-work-is-paused).
 
 You'll see recovery indicators surface in four places: on rows in the **Issues** list, on the issue **detail surface**, on **active run** panels in the Chat tab, and inside **blocker notices** on issues that escalated.
 

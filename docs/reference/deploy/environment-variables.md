@@ -26,6 +26,8 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `DATABASE_CONNECT_TIMEOUT_SECONDS` | `30` | Seconds to wait for a new database connection before giving up. |
 | `DATABASE_MAX_LIFETIME_SECONDS` | random, 30–60 minutes | Seconds a pooled connection is reused before it's replaced. |
 | `DATABASE_APPLICATION_NAME` | `paperclip` | Name Paperclip's connections report in PostgreSQL's `pg_stat_activity`. |
+| `DATABASE_DEDICATED_CONNECTION_MAX` | `24` | How many dedicated lock connections one server process uses at once before new requests for one wait their turn. See [Database → Connection pool settings](database.md#connection-pool-settings). |
+| `DATABASE_DEDICATED_CONNECTION_WAIT_MS` | `30000` | Milliseconds a request waits for a dedicated lock connection before it gets one anyway, over the limit. |
 | `PAPERCLIP_HOME` | `~/.paperclip` | Base directory for all Paperclip data |
 | `PAPERCLIP_INSTANCE_ID` | `default` | Instance identifier for multiple local instances |
 | `PAPERCLIP_DEPLOYMENT_MODE` | `local_trusted` | Runtime mode override |
@@ -417,6 +419,15 @@ To turn it on, set `OTEL_EXPORTER_OTLP_ENDPOINT` and install the OpenTelemetry p
 
 A bad endpoint or an unreachable collector never takes the server down — the SDK logs the failure and tracing simply stays off. On shutdown the server flushes buffered spans (with a short timeout) before exiting.
 
+### Load metrics and work-signal logging
+
+Two more switches help when you're measuring how a busy server copes. Both are off by default and are read once at startup, so restart the server after you change them.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PAPERCLIP_SERVER_METRICS` | off | Set to `true` (or `1`) to turn on the instance-admin [server metrics endpoint](../api/instance-admin.md#server-metrics), which reports one server process's CPU, event-loop, database and run-event load over about the last minute. `false` or `0` keeps it off. Any other value stops startup with an error. |
+| `PAPERCLIP_DEBUG_WORK_SIGNALS` | unset | Diagnostic only. A comma-separated list of internal work-signal topics, each optionally followed by `:N`, for example `stranded-assignments:10,queued-run-dispatch`. For each listed topic the server writes JSON lines to stderr about the signals it sends and the recovery checks they trigger, with the calling code's stack on one signal in `N` (default 20). Lines carry internal IDs only (company, task, run), never secrets or user details, and each topic is capped at 10 lines a second per event, with a `suppressed` line counting what was dropped. Unset or empty turns it off completely. |
+
 ---
 
 ## Error Monitoring (Sentry)
@@ -586,6 +597,19 @@ The instance ID, both private keys, and the environment work as a set. Once you 
 | `PAPERCLIP_ID_CONNECTOR_SEAL_PRIVATE_KEY` | retired |
 
 These belonged to the older Paperclip ID broker, which used a different, incompatible protocol. They are not aliases for the `PAPERCLIP_CLOUD_CONNECTOR_*` variables above. If an instance still sets them and has no Paperclip Cloud enrollment, the Google connector reports `CONNECTOR_MIGRATION_REQUIRED`. To fix it, enroll the instance with Paperclip Cloud, remove the old values, and reconnect each Google account that was linked through the old broker.
+
+---
+
+## Tailscale Connector
+
+The [Tailscale connector](../../connectors/tailscale.md) runs its own private Tailscale device for each connected tailnet, so the Paperclip server needs the `tailscale` and `tailscaled` programs. The official Docker image ships both, and on other installs Paperclip looks for them on the server's `PATH`. Set these only when the programs live somewhere else:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PAPERCLIP_TAILSCALE_CLI` | `tailscale` | The `tailscale` command Paperclip uses to sign in, list machines, and carry SSH connections to tailnet machines. Use an absolute path. |
+| `PAPERCLIP_TAILSCALED` | `tailscaled` | The `tailscaled` command Paperclip starts for each connection's device. Use an absolute path. |
+
+Both can go in your `.env` file like any other server setting. Restart the server after you change them. If Paperclip can't start the programs, connecting a tailnet fails with *"Tailscale sign-in could not start. Check that Tailscale is installed, then try again."*
 
 ---
 

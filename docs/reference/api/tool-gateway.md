@@ -310,6 +310,23 @@ The call body takes:
 | `approvedActionRequestId` | no | The approval you are cashing in, when a previous attempt returned `require_approval`. |
 | `idempotencyKey` | no | Makes a retry safe — the same key won't run the tool twice. |
 
+#### When an app pauses a call
+
+A connected app can stop a call partway and hand control back. These come back as errors with a `reasonCode`, and each tells you what to do next:
+
+| Status | `reasonCode` | What happened | What to do |
+|---|---|---|---|
+| `409` | `elicitation_required` | The app asked a question, and a card is waiting for a person in the task chat. | Wait. Paperclip wakes the agent once the card is answered or skipped; then call the same tool again with the same arguments. Calling again before then returns the same error without contacting the app. |
+| `409` | `elicitation_sensitive_refused` | The app's form asked for a password, key, or other secret, so Paperclip showed nothing. | The app has to ask for it through a secure link. |
+| `409` | `elicitation_unsupported` | The app asked a question Paperclip can't show in the task chat. | Finish that step in the app, then try again. |
+| `409` | `elicitation_limit_reached` | The task already has 10 app questions waiting. | Wait for those to be answered. |
+| `504` | `provider_task_pending` | With MCP Tasks on, the app is still working on a long action. | Call the same tool again with the same arguments to collect the result. Changing the arguments starts the work over. |
+| `502` | `provider_task_failed` | The app reported that the long action failed. | Treat it as a tool error. The message carries the app's reason. |
+| `409` | `provider_task_cancelled` | The action was cancelled, for example because the run was stopped. | Run it again if it's still needed. |
+| `410` | `provider_task_expired` | The app no longer has the action's result. | Run the action again. |
+
+A call that stopped for a question runs again when repeated, rather than replaying the earlier result. The person's answers never come back to the caller, only the app's own result. Error bodies leave out the call's internal audit record (request IDs, timings, server-side stack traces), which stays in the audit feed.
+
 If the provider rejects a saved OAuth token mid-call, Paperclip refreshes the token but does not replay your call. You get `409 Conflict` with the code `oauth_refreshed_retry_required` and *"The provider rejected the saved OAuth token, which has now been refreshed. Retry the action explicitly; the original call was not replayed."* Send the call again when you are sure repeating it is safe.
 
 ### An agent authorizing its own connection
@@ -321,7 +338,7 @@ POST /api/agents/me/connections/{connectionId}/start-authorization
 POST /api/agents/me/connections/{connectionId}/token
 ```
 
-`start-authorization` prepares a sign-in for the run's responsible user. It's a connection-setup change, so it needs the same delegated authority as the other setup routes (see [Agents calling these routes](#agents-calling-these-routes)). Its body needs a `subjectUserId`, which must be the run's responsible user, and takes optional `scopes` and `returnTo`. The agent never receives a provider sign-in link of its own: `url` points at the saved setup page in Paperclip, where the person starts the provider sign-in in their own browser session, and the response's `requiredUserAction` (kind `authenticate`) names that person. For Google Workspace, any services the agent requests are saved and preselected for the person.
+`start-authorization` prepares a sign-in for the run's responsible user. It's a connection-setup change, so it needs the same delegated authority as the other setup routes (see [Agents calling these routes](#agents-calling-these-routes)). Its body needs a `subjectUserId`, which must be the run's responsible user, and takes optional `scopes` and `returnTo`. The agent never receives a provider sign-in link of its own: `url` is a relative path to the saved setup page in Paperclip, such as `/{prefix}/apps/connect?resume={connectionId}` for a saved draft (`reconnect=` for an existing connection), so it opens on whichever address the person uses, where the person starts the provider sign-in in their own browser session, and the response's `requiredUserAction` (kind `authenticate`) names that person. For Google Workspace, any services the agent requests are saved and preselected for the person.
 
 `token` mints a short-lived token the agent can present to the upstream service. It needs a run id, so a token without one is refused `401` with `{ "error": "Agent run id required", "code": "run_id_required" }`, and if you also send an `X-Paperclip-Run-Id` header it must match the token's run or you get `403` with `run_id_mismatch`. A successful mint returns `200` with `status` `minted` and the `token`, `tokenType`, `expiresAt`, `ttlSeconds`, `scope`, and `grantId`. If the connection is backed by static credentials rather than a broker, minting is refused with `409 Conflict` and `status` `use_env_lease` — the signal to reach the credential through an audited environment lease instead.
 
@@ -515,6 +532,41 @@ The `PUT` replaces the whole install set. If the company-wide install stays as i
 
 Saving the install set gives the connection's app profile only to newly added targets. Targets that stay installed keep their current profile assignments, so a profile you removed from an agent stays removed. Removing a target and adding it back counts as a new install.
 
+#### Machine sign-in
+
+An organization connection to a remote MCP server can sign in as a client registered with the provider, with no person involved. See [Machine sign-in for organization connections](../../connectors/custom-mcp-servers.md#machine-sign-in-for-organization-connections) for the setup in the app.
+
+```
+POST /api/companies/{companyId}/tools/machine-sign-in
+GET  /api/tool-connections/{connectionId}/machine-sign-in
+POST /api/tool-connections/{connectionId}/machine-sign-in/test
+POST /api/tool-connections/{connectionId}/machine-sign-in/rotate
+POST /api/tool-connections/{connectionId}/machine-sign-in/rotate/complete
+```
+
+All five need `connections:configure`, and creating one needs connection-manager authority. Personal connections are refused: *"Machine sign-in is only for connections your organization shares. Personal connections sign in as you."*
+
+The create route makes a draft connection, finds and pins the sign-in service, and either creates a signing key or stores the secret. It responds `201 Created`. Its body:
+
+| Field | Required | Notes |
+|---|---|---|
+| `link` | yes | The MCP server's full address. |
+| `method` | yes | `paperclip_key` or `client_secret`. |
+| `authorizationServer` | no | The sign-in service's address, or its token URL. Leave it out and Paperclip finds it from the server. |
+| `clientId` | no | The client ID the provider gave you. With `paperclip_key` you can add it later, once the key is registered. |
+| `clientSecret` | no | For `client_secret`. Stored in the company vault and never returned. |
+| `scopes` | no | The scopes to request, as one string separated with spaces. |
+| `name` | no | A name for the connection, up to 160 characters. |
+| `applicationId` | no | The app to attach the connection to. |
+
+The `GET` returns the settings and, for a key, the public key. The private key and any secret stay in the vault and never appear in responses or activity.
+
+`test` takes optional `clientId`, `clientSecret`, and `scopes`. It asks the sign-in service for a token, lists the server's tools with it, and turns the connection on when both work. A failed test changes nothing, so you can fix the provider side and test again.
+
+`rotate` replaces a credential without downtime. Send `{ "method": "client_secret", "clientSecret": "..." }` and Paperclip tests the new secret before it replaces the stored one; a wrong secret changes nothing. Send `{ "method": "paperclip_key" }` to stage a new key: the response shows its public key while the current key keeps working. Register it with the provider, then call `rotate/complete`, which tests the new key and only then switches to it and deletes the old one. Calling `rotate/complete` with nothing staged fails with *"There's no new key waiting. Start a key rotation first."*
+
+These routes log `tool_connection.machine_sign_in_created`, `tool_connection.machine_sign_in_verified`, `tool_connection.machine_sign_in_rotation_started`, and `tool_connection.machine_sign_in_rotated`.
+
 #### Connection identities (grants)
 
 A single connection can carry more than one **identity**. A grant with `kind` `organization` is a shared identity everyone on the connection uses; a grant with `kind` `user` is one member's personal identity. This is how, for example, five people can all use the same Gmail connection while each acts as themselves.
@@ -634,6 +686,27 @@ All three are board-only and follow the task's read access. A task you can't rea
 - The list returns the task's newest 200 views, oldest first. Each has `id`, `runId`, `connectionId`, `applicationName`, `toolName` (the name the agent called), `upstreamToolName` (the app's own name), `resourceUri`, `toolInput`, and `createdAt`.
 - The single-view route adds the recorded `toolResult` and the `resource` Paperclip reads from the app: the view's `html`, its declared `csp` origins, its `permissions`, and `prefersBorder`. When the app doesn't return a valid view it fails with `502` and `mcp_app_resource_invalid`, and a view over 4 MB fails with `502` and `mcp_app_resource_too_large`.
 - `tool-calls` is how a button on a card calls the app. The body takes `name` (the app's tool name, 1–256 characters) and optional `arguments`. It runs as a [live test call](#testing-before-you-trust) for the agent whose call recorded the view, so it needs the same rights: `tools:use` or `tools:manage_connections`, access to the connection, and permission to test as that agent. Task and project rules see the view's task. A tool the app doesn't offer to its views returns `404` with `mcp_app_tool_not_found`. When the view's agent no longer exists, the call is refused with `This view's agent no longer exists`. An action set to ask first returns a result with `isError: true` and the text *"This action needs approval first. It was sent for review."*
+
+Three more routes back the rest of what the task chat shows:
+
+```
+PUT  /api/issues/{issueId}/mcp-app-views/{viewId}/model-context
+POST /api/issues/{issueId}/mcp-app-views/{viewId}/messages
+GET  /api/issues/{issueId}/tool-call-progress
+```
+
+- `model-context` stores what a card reports about what the person is looking at. The body takes optional `content` (up to 64 blocks; only text is kept) and `structuredContent`. An empty body clears it, and the stored context is capped at 16 KB (a larger one returns `413`). It returns `{ "updated": <boolean> }`, `false` when nothing changed. A change logs `issue.mcp_app_context_updated`. The task's next run gets the three most recently updated contexts in a section headed `App context (untrusted)`.
+- `messages` records that a comment came from a card. The card proposes a message, the person sends it as their own comment, and the chat then posts `{ "clientRequestId": <uuid> }` with that comment's request ID. It only matches the caller's own comment on the same task from the last 10 minutes; anything else returns `404` with `Comment not found`. Success returns `201` with the `commentId` and logs `issue.mcp_app_message_sent`.
+- Both of those are for a signed-in person viewing the task who may comment on it. Board API keys and MCP clients get `403` with `Only a signed-in person viewing the task can do this` (agents are turned away earlier, because these routes are board-only), and someone who can't comment gets `403` with `You can't comment on this task`.
+- `tool-call-progress` returns the latest progress the task's running app tool calls reported, plus recently finished ones marked done, so a reloaded chat can redraw its progress bars. It's board-only and follows the task's read access.
+
+Provider tool icons come from:
+
+```
+GET /api/companies/{companyId}/tool-icons
+```
+
+It is board-only, needs `connections:read`, and returns `{ "icons": [...] }` for connections you can see. Icons are cleaned when the catalog refreshes and again on the way out: only `https:` URLs and `data:` URIs for PNG, JPEG, GIF, WebP, ICO, or SVG images are kept, SVG only as a `data:` URI, a `data:` icon is at most 32 KB, and a URL at most 2,048 characters.
 
 You can also look up how decisions landed for a specific agent run:
 

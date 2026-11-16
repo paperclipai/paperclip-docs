@@ -37,6 +37,18 @@ Then route work onto it:
 
 Projects don't pick an environment. A run goes to its agent's override, then the instance default. What a project does keep is its storage: when you create one, its working files go wherever your default environment keeps them. If your environments can't all share the same project storage, the **Create project** dialog lets you pick under **Available in**, and the project's configuration later shows which environments can use it. See [Project storage](../guides/projects-workflow/projects.md#project-storage).
 
+### Run on a machine over SSH
+
+An SSH environment runs tasks on a computer you already own. Paperclip doesn't create or replace that machine; it connects to it and uses the harness and workspace you've set up there.
+
+**Reach a machine on your tailnet.** Once an instance administrator has connected a tailnet with the [Tailscale connector](../connectors/tailscale.md), the SSH form gains a **Network** field for instance administrators: **Direct connection** or **Tailscale**. Pick **Tailscale**, choose a **Machine**, and use **Prepare machine pairing** to install a fresh key on it. **Host** then fills in by itself, and the machine has to be online when you save. Until a tailnet is connected, the form shows a **Connect Tailscale Network** link in place of the field. **Test** in the form stays off for a Tailscale environment; save it, then test it from the list, where it shows as `ssh via Tailscale`.
+
+**Which AI account the agent uses.** A new SSH environment runs each agent with the AI account you select for that agent in Paperclip, the same way sandbox runs do. That account's subscription or API key is used, and its credentials stay in private directories on the machine. The remote user's own provider login isn't touched. If the agent has no AI account selected, its **Test** and its tasks stop with *"Select an AI account for this agent or enable authentication configured on the remote machine in the SSH environment's advanced settings."*
+
+To use the login that's already on the machine instead, open **Advanced** in the SSH form and turn on **Use authentication configured on the remote machine**. SSH environments created before this setting existed show it turned on, and upgrading doesn't change their saved configuration. The setting works the same for direct and Tailscale connections.
+
+> **Tip:** A passing SSH test proves Paperclip can reach the machine, not that the harness can sign in to its provider. Test the agent too.
+
 ### Custom sandbox images
 
 For sandbox environments, editing the environment exposes a **Custom image** panel: start a throwaway setup sandbox, open a terminal in the browser, install and log in to whatever the agent needs, then capture the machine as a reusable image future runs boot from. The full walkthrough lives in the [Custom sandbox images guide](../guides/projects-workflow/custom-sandbox-images.md).

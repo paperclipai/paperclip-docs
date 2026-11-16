@@ -112,6 +112,8 @@ The variable has three settings:
 | `false` | Paperclip never prepares statements. Use this behind a pooler that doesn't support them. |
 | `true` | Paperclip also prepares its ordinary queries, including the ones inside transactions. Only use this on a direct connection or a pooler that supports named prepared statements, so check your provider's settings first. Preparing caches statement metadata on the connection, never query results. |
 
+With `true`, each database client prepares at most 1,000 different statements and skips any statement longer than 8 KB. If a prepared statement fails because the pooler's copy went stale after a schema change, or was lost, Paperclip stops preparing that statement. Outside a transaction it retries the statement once without preparing it; if the failure hits a transaction's first statement, it restarts the transaction and runs it unprepared. Later in a transaction, the error reaches the caller.
+
 > **Warning:** Use the direct connection for schema changes. Pointing migrations at the pooled endpoint is a common way to get avoidable connection errors.
 
 ---
@@ -127,6 +129,8 @@ Paperclip keeps a pool of open connections to PostgreSQL and reuses them across 
 | `DATABASE_CONNECT_TIMEOUT_SECONDS` | `30` | How long to wait for a new connection before giving up. |
 | `DATABASE_MAX_LIFETIME_SECONDS` | a random 30–60 minutes | Replaces a pooled connection with a fresh one once it's this old. |
 | `DATABASE_APPLICATION_NAME` | `paperclip` | The name Paperclip's connections show in PostgreSQL's `pg_stat_activity` view, so you can tell them apart from other clients. |
+| `DATABASE_DEDICATED_CONNECTION_MAX` | `24` | How many dedicated lock connections (see below) one server process uses at once. Past that, new requests for one wait in line. Work that already holds one, or is inside a database transaction, doesn't wait. |
+| `DATABASE_DEDICATED_CONNECTION_WAIT_MS` | `30000` | How long, in milliseconds, a request waits in that line. After that it gets a dedicated connection anyway, over the limit, so nothing stalls indefinitely. |
 | `DATABASE_PREPARED_STATEMENTS` | unset | Prepared statements. See [Hosted PostgreSQL](#hosted-postgresql). |
 
 Values are checked when the server starts, and a bad one stops startup with an error that names the variable instead of being quietly ignored. The number settings take whole numbers of `1` or more, except `DATABASE_IDLE_TIMEOUT_SECONDS`, which also accepts `0`. `DATABASE_PREPARED_STATEMENTS` takes `true` or `false` (`1` and `0` work too).
@@ -137,14 +141,17 @@ To see Paperclip's connections, run this against your database:
 SELECT * FROM pg_stat_activity WHERE application_name LIKE 'paperclip%';
 ```
 
-If you've set `DATABASE_APPLICATION_NAME`, the main pool uses your name instead, so search for that too. The two helper connections below keep their own names.
+If you've set `DATABASE_APPLICATION_NAME`, the main pool uses your name instead, so search for that too. The private pools and dedicated lock connections below keep their own names.
 
 **Sizing `max_connections`.** Each server process can use more than `DATABASE_POOL_MAX` connections. When you set PostgreSQL's `max_connections`, budget for these per server process, plus your other clients:
 
 - the main pool, up to `DATABASE_POOL_MAX`
 - a second pool of the same size when `DATABASE_MIGRATION_URL` is set
-- up to 2 connections named `paperclip-controller-lease`, which keep agent runs alive so they never wait behind slow queries
-- a short-lived single connection named `paperclip-workspace-finalization-lock` while a workspace is being finalized
+- 9 connections in small private pools, so the work they do never waits behind slow queries: lease renewals that keep agent runs alive (`paperclip-controller-lease`, `paperclip-legacy-controller-lease`, `paperclip-controller-instance-lease`), Runner checkpoints (`paperclip-runner-checkpoint`), and file storage (`paperclip-file-storage`)
+- 2 connections that listen for database notifications, under the main pool's name
+- dedicated lock connections named `paperclip-workspace-finalization-lock`, for work that holds a database lock. `DATABASE_DEDICATED_CONNECTION_MAX` bounds how many are in use. The worst case is twice that value plus 4 idle ones kept for reuse, so 52 with the default of 24
+
+With every default, one server process can open up to 73 connections: 10 in the main pool, 9 in the private pools, 2 listeners, and 52 dedicated lock connections. If that doesn't fit your plan's `max_connections`, lower `DATABASE_DEDICATED_CONNECTION_MAX`.
 
 Paperclip closes its pools when the server shuts down, and when startup fails after a pool has opened, so restarts don't leave idle connections behind.
 

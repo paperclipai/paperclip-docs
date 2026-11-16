@@ -31,6 +31,8 @@ General settings no longer have a `keyboardShortcuts` field. Keyboard shortcuts 
 
 The experimental-settings response and patch body include `enableBuiltInAgents` as a boolean. Set it to `true` before using the [Built-in Agents API](./built-in-agents.md); while it is off, those routes return `404 Not Found`.
 
+They also include `enableMcpTasks`, the **Durable app actions (MCP Tasks)** card. It's `false` by default. Set it to `true` to let connected apps that support MCP Tasks run long actions as tasks Paperclip keeps track of. See [Long-running actions](../../connectors/custom-mcp-servers.md#long-running-actions-experimental).
+
 ---
 
 ## Task drain
@@ -130,6 +132,18 @@ POST /api/instance/database-backups
 Trigger a manual database backup. Returns a structured result that includes the backup directory, retention policy, and timing. Scheduled backups follow the same code path but are not exposed as a separate route.
 
 Instance-admin only.
+
+---
+
+## Server metrics
+
+```
+GET /api/instance/server-metrics
+```
+
+Check how hard one server process is working. The response covers only the process that answers the request, over about the last minute (`windowMs`): CPU (`processCpu`, `mainThreadCpu`), event-loop use and delay (`eventLoopUtilization`, `eventLoopDelayP99Ms`), database `statementsPerSecond`, how late run events arrive (`runEventLatenessP99Ms`), how long agent API requests wait before their handler runs (`agentApiPreHandlerP99Ms`), `leaseRenewalsMissed`, and `dedicatedConnections`, the use of the server's [dedicated database connections](../deploy/database.md#connection-pool-settings). It also names the process (`processId`, `buildRevision`, `uptimeSec`) and when it was sampled (`sampledAt`). Responses are never cached.
+
+The endpoint is off by default and returns `404` until you set [`PAPERCLIP_SERVER_METRICS=true`](../deploy/environment-variables.md#load-metrics-and-work-signal-logging) and restart. Instance-admin only: agent keys and company members get `403`.
 
 ---
 

@@ -88,6 +88,7 @@ If it fails, change only one thing at a time — the model id is the most common
 | The key works but one model is refused | OpenRouter is not routing that model for your account | Choose another model, or check the model's requirements with OpenRouter |
 | Runs fail once usage rises | OpenRouter credit is exhausted or a rate limit applied | Select **Check usage** on the saved account to see the key's credit cap, then top up or raise limits in OpenRouter |
 | Status **needs attention** | The key was revoked or rotated | Reconnect with a current key |
+| *"Could not load OpenRouter models. Retry or enter a model ID manually."* | OpenRouter's public model catalog was slow or unavailable. Paperclip gives it 10 seconds | Refresh the list later, or type the model ID yourself. The connection itself is fine |
 
 Limitations: one connection is one OpenRouter account, and it grants no tool access. A model catalog is a list of choices, not proof of account entitlement or harness compatibility. OpenRouter decides which upstream models your account can reach.
 

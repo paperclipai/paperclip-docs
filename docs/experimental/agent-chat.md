@@ -68,7 +68,7 @@ A task the agent creates from your chat is assigned to that same agent, unless y
 
 ## Getting results back
 
-You don't have to keep checking on the tasks a chat created. When one of them is marked done, the agent you were chatting with wakes up and posts an update in the conversation: what finished, and where to find the result. If several finish before it gets round to replying, it covers them together. If it's in the middle of a reply when a task finishes, the update follows in its next turn.
+You don't have to keep checking on the tasks a chat created. When one of them is marked done, the agent you were chatting with wakes up and posts an update in the conversation: what finished, and where to find the result. If several finish before it gets round to replying, it covers them together. If it's in the middle of a reply when a task finishes, the update follows in its next turn. You hear about each finished task once: when a reply for another reason, such as your answer to a question, already looked at the done task and told you, the agent doesn't report it a second time.
 
 Only finished tasks are reported this way — progress, blocked, failed, and cancelled tasks aren't announced in the chat. Reopening a task before its update has been posted cancels that update; finishing it again sends a new one.
 

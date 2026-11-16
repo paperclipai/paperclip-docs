@@ -146,6 +146,14 @@ Use `version: "latest"` for values you expect to rotate. Pin a numeric version o
 
 > **Tip:** If a config value would be unsafe to print in a log, it should probably be a secret reference.
 
+### Secrets in run output
+
+Agents sometimes print their environment by accident, for example by running `env` or `echo $STRIPE_KEY`. When a variable is bound to a secret, Paperclip replaces its value with `***REDACTED***` before it stores the run's output: the run log, the stdout and stderr excerpts, and the transcript events. This works for agent, environment, project, and routine bindings, on local runs and on Paperclip Runner runs. Plain, non-secret values are left as they are.
+
+The mask matches exact text only. It catches the full value, the value with surrounding whitespace trimmed, its JSON-escaped form, and each line of a multi-line value. Values or lines shorter than 8 characters aren't masked.
+
+> **Warning:** Treat this as protection against accidents, not as a security boundary. An agent that changes the value before printing it, for example by base64-encoding it, gets past the mask. Keep binding only what each agent needs, and rotate a secret if you think it leaked.
+
 ---
 
 ## Routine `env` Bindings

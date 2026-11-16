@@ -35,6 +35,8 @@ Each record includes:
 - **Details** — the specifics of the change (e.g., old and new status values, the comment text, the budget change amounts)
 - **Timestamp** — exactly when it happened
 
+Agents see names too. When an agent reads a task's history to answer you, each entry says who acted, such as an agent's or member's name, or `Board` for the local board, so its reply doesn't quote a raw ID back at you.
+
 ---
 
 ## Reading the Activity Log

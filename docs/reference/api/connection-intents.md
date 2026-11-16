@@ -95,6 +95,16 @@ When `allowed` is `true`, the agent configures the connection through that route
 
 Each result's `state` is one of `ready` (a connection is connected and usable by this agent right now, with `connectionId` set), `needs_user_action` (a matching connection exists but isn't usable yet), `available` (the service can be connected but nothing exists), or `unavailable` (the service offers no connection methods).
 
+#### Setup card, setup link, or setup by the agent
+
+Whether the agent may set an app up itself is decided from the person's latest message on the task, never from the agent's query. The instruction that comes back with a search then tells the agent how to handle each kind of request:
+
+- **The person asked to set the app up**, with a message that opens with a word like *connect*, *set up*, *configure*, *install*, or *link* and names that app, such as "Connect Notion". For a single matching tool service, the agent may configure it itself when `management.allowed` is `true`, reusing any saved draft.
+- **The person asked how to connect an app**, or about its setup options. The agent answers in plain words, naming each method and anything needed first, and links the catalog setup page as `/{prefix}/apps/connect?source={service}`. It doesn't call `connection_request` for this, because the card ends the agent's turn before its answer is shown. A saved connection (a `service` of `connection:{id}`) has no catalog setup page, so it gets the card instead.
+- **The person asked for something that needs the app's data**, such as "Read my Notion". The agent calls `connection_request` so the person sees the setup card and can connect or decline. Until the connection is ready, the agent doesn't claim access or report the app's data.
+
+In every case except the first, the agent is told not to create a connection or a saved draft itself.
+
 `request` takes a body of `{ "service": <string> }` — trimmed, 1–120 characters. A service that isn't available comes back `422` with `Connection service <slug> is not available`. Otherwise it returns:
 
 ```json

@@ -24,6 +24,7 @@ This page covers messages from the classic Codex adapter (`codex_local`), run ti
 | `monitor: no codex activity (output or process) for 30m 0s` | Failed run | Was the run quiet or stuck? |
 | `exited with code 143` | Failed run | Timeout or out of memory |
 | `adapter failed (40001)` (your code) | Run ledger on the task | What the code names |
+| `The Codex turn failed (…)` (your code) | Failed Runner run | What the code in brackets names |
 | `Database query failed (40001)` | Failed run, Inbox | Retry, then check the server log |
 | `Couldn’t set up the task workspace.` | Task page | The project's workspace setup command |
 | `409 Conflict` on checkout | Run aborts | Another agent holds the task |
@@ -120,6 +121,16 @@ The **Run ledger** on the task shows the stop reason as `adapter failed`, follow
 - `adapter_reported_error` when the adapter reported an error with no exit code or signal, or `unknown_error` when nothing more specific was available.
 
 Runs from before your Paperclip version recorded a cause still read just `adapter failed`. The same code is on the run as `failureCause` (see [Runs for an issue](../api/activity.md#runs-for-an-issue)) and in the server's failure log line, so you can search for it there.
+
+### The Codex turn failed
+
+```text
+The Codex turn failed (<code>). Inspect the run events for the last recorded step.
+```
+
+A [Paperclip Runner](paperclip-runner.md) run failed, and no provider-specific check explained why. Instead of a generic message, Paperclip names the cause the Runner recorded for the failed turn. The message says `OpenCode` instead of `Codex` for an OpenCode agent, and the run's error code is `native_run_failed` either way.
+
+The code in brackets is the Runner's own failure code for the turn, or for Codex, the kind of error Codex reported. Open the run's events and look at the last step before the failure to see what the agent was doing. When nothing specific was recorded, the run instead reads `The native run ended in a failed state without a classified provider error. Inspect the run events for the last recorded step.`
 
 ### Database query failed
 

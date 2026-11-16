@@ -172,6 +172,16 @@ Still on **Access**, under **People**:
 
 A sponsor does not confer company membership or personal credentials.
 
+Who you can pick as a sponsor or **Responsible member** depends on your role.
+Managing the connection lets you pick only yourself. Company owners, company
+admins, and instance admins can pick any active company member who isn't a
+viewer. Paperclip checks this again when you save, so a request naming someone
+else from an ordinary member is refused with *"Only company owners, company
+admins, and instance admins can select another person as a task sponsor or
+responsible member"*. The check covers every sponsor and the responsible
+member in the configuration you save, so if they already name someone else,
+an ordinary member's save is refused even when only another setting changed.
+
 ## 6. Configure when it runs and what it publishes
 
 On **Settings**, set **When to run** and **Review results** as follows, then

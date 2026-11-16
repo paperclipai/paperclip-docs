@@ -47,6 +47,9 @@ What to expect:
 - **People who can read the task and use the Circleback connection see the cards.** Paperclip loads each card with the viewer's own access to the connection, so someone without it sees a short note instead. A card stays with the reply, so you can scroll back to it later.
 - **Cards can be interactive.** A button on a card calls Circleback the same way the agent would. Your action permissions still apply: an **Ask first** action sends a review request instead of running, and the card gets back *"This action needs approval first. It was sent for review."* To use a card's buttons you need the same rights as for a test call on the connection. See [Testing Before You Trust](../reference/api/tool-gateway.md#testing-before-you-trust).
 - **Links open in a new tab.** A card can't reach your Paperclip session, your camera, your microphone, or your clipboard.
+- **A card can go full screen.** Select **Open full screen** beside the card's heading, and **Exit full screen** to put it back. The card restarts when it switches, so anything you typed inside it resets.
+- **A card can suggest a message.** You see *"Circleback wants to send:"* with the text, and nothing is posted until you select **Send**. It goes out as your own comment. Select **Dismiss** to drop it.
+- **A card can tell the agent what you're looking at.** The task's next run gets that as app context, labelled as untrusted third-party data rather than instructions. See [Interactive cards in task chat](custom-mcp-servers.md#interactive-cards-in-task-chat).
 - **Long runs stay tidy.** A reply shows up to five cards, followed by a button such as **Show 3 more** for the rest. Cards load as you scroll near them.
 
 If a card can't be shown, you see a short note instead, and the agent's tool result is still in the activity. For example, *"This Circleback view is no longer available."* appears when the recorded card is gone or you can't use the connection. In a browser that can't keep the card safely contained, you see *"This browser can't show this app's widget safely. The tool result is still in the activity."*
@@ -89,4 +92,5 @@ Limitations: one Circleback user per connection, and browser sign-in is the only
 
 - [Circleback definition](https://github.com/paperclipai/paperclip/blob/ff971149c2c6e1a4a1f73231a0830c859a832c0b/packages/shared/src/app-definitions/circleback.json): method, server, scopes, guidance, and warnings.
 - [Circleback action classification](https://github.com/paperclipai/paperclip/blob/ff971149c2c6e1a4a1f73231a0830c859a832c0b/server/src/services/connectors/circleback/risk.ts): which tools count as reads, writes, and destructive actions.
-- [Task chat cards](https://github.com/paperclipai/paperclip/blob/ff971149c2c6e1a4a1f73231a0830c859a832c0b/ui/src/components/mcp-app/McpAppTurnViews.tsx): how cards appear under a reply.
+- [Task chat cards](https://github.com/paperclipai/paperclip/blob/081dacba1d44e5b2b357d7f5105adda82f99e450/ui/src/components/mcp-app/McpAppTurnViews.tsx): how cards appear under a reply, and the full-screen control.
+- [Card view](https://github.com/paperclipai/paperclip/blob/081dacba1d44e5b2b357d7f5105adda82f99e450/ui/src/components/mcp-app/McpAppView.tsx): suggested messages and the full-screen window.
