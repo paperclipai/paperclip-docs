@@ -135,6 +135,18 @@ Instance-admin only.
 
 ---
 
+## Server metrics
+
+```
+GET /api/instance/server-metrics
+```
+
+Check how hard one server process is working. The response covers only the process that answers the request, over about the last minute (`windowMs`): CPU (`processCpu`, `mainThreadCpu`), event-loop use and delay (`eventLoopUtilization`, `eventLoopDelayP99Ms`), database `statementsPerSecond`, how late run events arrive (`runEventLatenessP99Ms`), how long agent API requests wait before their handler runs (`agentApiPreHandlerP99Ms`), `leaseRenewalsMissed`, and `dedicatedConnections`, the use of the server's [dedicated database connections](../deploy/database.md#connection-pool-settings). It also names the process (`processId`, `buildRevision`, `uptimeSec`) and when it was sampled (`sampledAt`). Responses are never cached.
+
+The endpoint is off by default and returns `404` until you set [`PAPERCLIP_SERVER_METRICS=true`](../deploy/environment-variables.md#load-metrics-and-work-signal-logging) and restart. Instance-admin only: agent keys and company members get `403`.
+
+---
+
 ## Claim first instance admin
 
 ```
