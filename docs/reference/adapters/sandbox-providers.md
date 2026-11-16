@@ -130,7 +130,7 @@ Beyond `reuseLease`, two fields control how the `paperclip_runner` process lives
 
 `warm` trades a little idle cost for lower per-turn latency, since the runner and sandbox don't have to spin back up between turns. `runnerIdleTimeoutMs` is the backstop that suspends a warm runner nobody is using.
 
-When a warm run ends, its sandbox keeps running so the next turn on the task starts warm. Paperclip doesn't leave that to the provider's own idle auto-stop, which some background activity can keep resetting. About two minutes after the run's warm window ends, if no live run or run starting on the task is using the sandbox, Paperclip stops it and keeps it. The next run on the task resumes the same sandbox instead of creating a new one. Auto-stop settings such as Daytona's `autoStopInterval` stay in place as a backstop. Sandboxes held by plugin Runner tasks are left to their plugin.
+When a warm run ends, its sandbox keeps running so the next turn on the task starts warm. Paperclip doesn't leave that to the provider's own idle auto-stop, which some background activity can keep resetting. About two minutes after the run's warm window (its runner idle timeout) ends, if no live run or run starting on the task is using the sandbox, Paperclip stops it and keeps it. The next run on the task resumes the same sandbox instead of creating a new one. Auto-stop settings such as Daytona's `autoStopInterval` stay in place as a backstop. Sandboxes held by plugin Runner tasks are left to their plugin.
 
 ### Liveness timeout
 

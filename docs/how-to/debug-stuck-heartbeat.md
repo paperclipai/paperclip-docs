@@ -429,7 +429,7 @@ Other notices put the advice in the message itself. **Workspace validation faile
 
 - **The agent is full.** It's already running as many tasks as its limit allows, and this run is waiting its turn. The place in line is the order Paperclip starts that agent's waiting runs. Work people asked for, such as a **Retry**, goes ahead of Paperclip's own recovery work.
 - **A routine runs one task at a time.** An earlier task from the same routine is still open with its run, and this one starts when that task finishes. A private earlier task reads *Waiting for another task in this routine to finish*.
-- **Nothing more specific is known.** A turn still queued after 30 seconds reads **Waiting to start** rather than **Working**, so it never claims to be working when it isn't.
+- **Nothing more specific is known.** A turn still queued after 30 seconds reads **Waiting to start** rather than **Working**, so it doesn't keep claiming to be working when it isn't.
 
 **Fix.** Usually, wait. The task starts by itself. If an agent's line is always long, click **Configure** to open the agent's **Advanced** settings and raise how many runs it takes at once. To take one task out of line, press **Stop**: the waiting run is cancelled, an **In Progress** task goes back to **Todo**, and the agent moves on to its next task. If a task that Paperclip is continuing by itself has waited 15 minutes, **Move it forward now** moves it up the agent's line without starting a second run. See [Tasks waiting in an agent's line](../guides/day-to-day/issues.md#tasks-waiting-in-an-agents-line).
 

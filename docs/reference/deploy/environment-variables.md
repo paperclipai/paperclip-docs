@@ -426,7 +426,7 @@ Two more switches help when you're measuring how a busy server copes. Both are o
 | Variable | Default | Meaning |
 |---|---|---|
 | `PAPERCLIP_SERVER_METRICS` | off | Set to `true` (or `1`) to turn on the instance-admin [server metrics endpoint](../api/instance-admin.md#server-metrics), which reports one server process's CPU, event-loop, database and run-event load over about the last minute. `false` or `0` keeps it off. Any other value stops startup with an error. |
-| `PAPERCLIP_DEBUG_WORK_SIGNALS` | unset | Diagnostic only. A comma-separated list of internal work-signal topics, each optionally followed by `:N`, for example `stranded-assignments:10,run-dispatch`. For each listed topic the server writes JSON lines to stderr about the signals it sends and the recovery checks they trigger, with the calling code's stack on one signal in `N` (default 20). Lines carry internal IDs only (company, task, run), never secrets or user details, and each topic is capped at 10 lines a second per event, with a `suppressed` line counting what was dropped. Unset or empty turns it off completely. |
+| `PAPERCLIP_DEBUG_WORK_SIGNALS` | unset | Diagnostic only. A comma-separated list of internal work-signal topics, each optionally followed by `:N`, for example `stranded-assignments:10,queued-run-dispatch`. For each listed topic the server writes JSON lines to stderr about the signals it sends and the recovery checks they trigger, with the calling code's stack on one signal in `N` (default 20). Lines carry internal IDs only (company, task, run), never secrets or user details, and each topic is capped at 10 lines a second per event, with a `suppressed` line counting what was dropped. Unset or empty turns it off completely. |
 
 ---
 

@@ -112,7 +112,7 @@ The variable has three settings:
 | `false` | Paperclip never prepares statements. Use this behind a pooler that doesn't support them. |
 | `true` | Paperclip also prepares its ordinary queries, including the ones inside transactions. Only use this on a direct connection or a pooler that supports named prepared statements, so check your provider's settings first. Preparing caches statement metadata on the connection, never query results. |
 
-With `true`, each database client prepares at most 1,000 different statements and skips any statement longer than 8 KB. If a prepared statement fails because the pooler's copy went stale after a schema change, or was lost, Paperclip stops preparing that statement and retries it once without preparing it.
+With `true`, each database client prepares at most 1,000 different statements and skips any statement longer than 8 KB. If a prepared statement fails because the pooler's copy went stale after a schema change, or was lost, Paperclip stops preparing that statement. Outside a transaction it retries the statement once without preparing it; if the failure hits a transaction's first statement, it restarts the transaction and runs it unprepared. Later in a transaction, the error reaches the caller.
 
 > **Warning:** Use the direct connection for schema changes. Pointing migrations at the pooled endpoint is a common way to get avoidable connection errors.
 

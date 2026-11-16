@@ -555,7 +555,7 @@ The create route makes a draft connection, finds and pins the sign-in service, a
 | `authorizationServer` | no | The sign-in service's address, or its token URL. Leave it out and Paperclip finds it from the server. |
 | `clientId` | no | The client ID the provider gave you. With `paperclip_key` you can add it later, once the key is registered. |
 | `clientSecret` | no | For `client_secret`. Stored in the company vault and never returned. |
-| `scopes` | no | The scopes to request. |
+| `scopes` | no | The scopes to request, as one string separated with spaces. |
 | `name` | no | A name for the connection, up to 160 characters. |
 | `applicationId` | no | The app to attach the connection to. |
 
@@ -706,7 +706,7 @@ Provider tool icons come from:
 GET /api/companies/{companyId}/tool-icons
 ```
 
-It is board-only, needs `connections:read`, and returns `{ "icons": [...] }` for connections you can see. Icons are cleaned when the catalog refreshes and again on the way out: only `https:` URLs and `data:image/*` URIs are kept, SVG only as a `data:` URI, a `data:` icon is at most 32 KB, and a URL at most 2,048 characters.
+It is board-only, needs `connections:read`, and returns `{ "icons": [...] }` for connections you can see. Icons are cleaned when the catalog refreshes and again on the way out: only `https:` URLs and `data:` URIs for PNG, JPEG, GIF, WebP, ICO, or SVG images are kept, SVG only as a `data:` URI, a `data:` icon is at most 32 KB, and a URL at most 2,048 characters.
 
 You can also look up how decisions landed for a specific agent run:
 
