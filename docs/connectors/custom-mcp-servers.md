@@ -26,6 +26,8 @@ Many OAuth servers hand out short-lived access tokens. To keep a custom server c
 
 The provider still decides whether to issue one. If it does not, the connection needs a fresh sign-in each time the access token expires. An older custom connection made before this change picks up refresh support the next time you select **Reconnect**.
 
+To connect another Paperclip instance — for example a colleague's, so your agents can file tasks there — paste its `https://<host>/mcp/paperclip` address here. See [Connect two Paperclip instances](../how-to/connect-two-paperclip-instances.md).
+
 A server outside the reviewed catalog is labelled **Unverified server**. That label is a statement about review, not about whether the connection works.
 
 ## Paste a config

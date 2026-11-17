@@ -1,6 +1,6 @@
 {
   "$schema_version": 1,
-  "description": "Registry of UI screenshots — what each captures, what code it depends on, and when it was last verified. Maintained by the /sync-docs skill (staleness detection) and humans (capture).",
+  "description": "Registry of UI screenshots \u2014 what each captures, what code it depends on, and when it was last verified. Maintained by the /sync-docs skill (staleness detection) and humans (capture).",
   "viewports": {
     "default": "1440x900"
   },
@@ -699,7 +699,7 @@
       "captured_against": null,
       "captured_sha": null,
       "depends_on": [],
-      "_note": "Hand-annotated asset — never auto-captured (see routes.mjs \"Left manual on purpose\"). Docs reference the plain dashboard/dashboard-overview instead."
+      "_note": "Hand-annotated asset \u2014 never auto-captured (see routes.mjs \"Left manual on purpose\"). Docs reference the plain dashboard/dashboard-overview instead."
     },
     {
       "file": "dark/dashboard/dashboard-overview.png",
@@ -2276,7 +2276,7 @@
       "captured_against": null,
       "captured_sha": null,
       "depends_on": [],
-      "_note": "Hand-annotated asset — never auto-captured (see routes.mjs \"Left manual on purpose\"). Docs reference the plain dashboard/dashboard-overview instead."
+      "_note": "Hand-annotated asset \u2014 never auto-captured (see routes.mjs \"Left manual on purpose\"). Docs reference the plain dashboard/dashboard-overview instead."
     },
     {
       "file": "light/dashboard/dashboard-overview.png",
@@ -3158,6 +3158,154 @@
       "depends_on": [
         "ui/src/pages/ExecutionWorkspaceDetail.tsx"
       ]
+    },
+    {
+      "file": "light/connectors/paperclip-peer-receiver-address.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACM/apps/assistant-connection",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/pages/apps/AssistantConnection.tsx"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
+    },
+    {
+      "file": "dark/connectors/paperclip-peer-receiver-address.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACM/apps/assistant-connection",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/pages/apps/AssistantConnection.tsx"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
+    },
+    {
+      "file": "light/connectors/paperclip-peer-paste-address.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ROB/apps/byo",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/features/connections/ConnectionSetupFlow.tsx"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
+    },
+    {
+      "file": "dark/connectors/paperclip-peer-paste-address.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ROB/apps/byo",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/features/connections/ConnectionSetupFlow.tsx"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
+    },
+    {
+      "file": "light/connectors/paperclip-peer-check-link.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ROB/apps/byo",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/features/connections/ConnectionSetupFlow.tsx"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
+    },
+    {
+      "file": "dark/connectors/paperclip-peer-check-link.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ROB/apps/byo",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/features/connections/ConnectionSetupFlow.tsx"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
+    },
+    {
+      "file": "light/connectors/paperclip-peer-approve.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/mcp-connect/:requestId",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/pages/McpConnect.tsx"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
+    },
+    {
+      "file": "dark/connectors/paperclip-peer-approve.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/mcp-connect/:requestId",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/pages/McpConnect.tsx"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
+    },
+    {
+      "file": "light/connectors/paperclip-peer-connection.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ROB/apps/:connectionId/permissions",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/pages/apps/AppDetail.tsx",
+        "ui/src/features/connections/ConnectionInstructions.tsx",
+        "packages/shared/src/paperclip-peer.ts"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
+    },
+    {
+      "file": "dark/connectors/paperclip-peer-connection.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ROB/apps/:connectionId/permissions",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/pages/apps/AppDetail.tsx",
+        "ui/src/features/connections/ConnectionInstructions.tsx",
+        "packages/shared/src/paperclip-peer.ts"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
+    },
+    {
+      "file": "light/connectors/paperclip-peer-task-arrived.png",
+      "theme": "light",
+      "viewport": "1440x900",
+      "route": "/ACM/issues/ACM-1",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
+    },
+    {
+      "file": "dark/connectors/paperclip-peer-task-arrived.png",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "route": "/ACM/issues/ACM-1",
+      "captured_against": "master",
+      "captured_sha": "12635af2735a3dd3e7fd8f0b4296db0c0897ceef",
+      "depends_on": [
+        "ui/src/pages/IssueDetail.tsx"
+      ],
+      "_note": "Captured by hand with two local instances (sender local_trusted, receiver authenticated) and a real OAuth approval; the single-instance pipeline cannot produce it. Recapture by connecting two instances as in docs/how-to/connect-two-paperclip-instances.md."
     }
   ]
 }
