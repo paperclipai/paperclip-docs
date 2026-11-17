@@ -103,5 +103,11 @@
   "adapters/custom": "reference/adapters/creating-an-adapter",
   "adapters/configuration": "guides/org/agent-adapters",
   "adapters/ui": "reference/adapters/adapter-ui-parser",
+  "guides/board-operator/approvals": "guides/day-to-day/approvals",
+  "board-operator/approvals": "guides/day-to-day/approvals",
+  "guides/board-operator/activity-log": "guides/day-to-day/activity-log",
+  "board-operator/activity-log": "guides/day-to-day/activity-log",
+  "guides/agent-developer/writing-a-skill": "how-to/write-a-company-skill",
+  "agent-developer/writing-a-skill": "how-to/write-a-company-skill",
   "adapters/*": "reference/adapters/overview"
 }
