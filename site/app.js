@@ -451,12 +451,50 @@ function decorateHeadings(article, file, unlistedPage = null) {
   });
 }
 
+// A ```prompt block is text the reader pastes into an agent or assistant. It
+// gets a labelled header with an always-visible "Copy prompt" button, rather
+// than the hover-only icon code blocks use, so the action is obvious.
+function decoratePromptBlock(pre, copySvg, checkSvg) {
+  const wrap = document.createElement('div');
+  wrap.className = 'prompt-wrap';
+  pre.parentNode.insertBefore(wrap, pre);
+
+  const header = document.createElement('div');
+  header.className = 'prompt-header';
+  const label = document.createElement('span');
+  label.className = 'prompt-label';
+  label.textContent = 'Prompt';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'prompt-copy';
+  const idle = `${copySvg}<span>Copy prompt</span>`;
+  btn.innerHTML = idle;
+  btn.addEventListener('click', async () => {
+    try {
+      await copyText((pre.querySelector('code') || pre).textContent.trim());
+      btn.classList.add('is-copied');
+      btn.innerHTML = `${checkSvg}<span>Copied</span>`;
+      setTimeout(() => {
+        btn.classList.remove('is-copied');
+        btn.innerHTML = idle;
+      }, 1500);
+    } catch {}
+  });
+  header.append(label, btn);
+  wrap.append(header, pre);
+}
+
 function decorateCodeBlocks(article) {
   const COPY_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 0 1 1-1h7"/></svg>';
   const CHECK_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 3.5 3.5L13 5"/></svg>';
   const DOWNLOAD_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8"/><path d="M4.5 7 8 10.5 11.5 7"/><path d="M3 13h10"/></svg>';
   article.querySelectorAll('pre').forEach(pre => {
     if (pre.parentElement?.classList.contains('code-wrap')) return;
+    if (pre.parentElement?.classList.contains('prompt-wrap')) return;
+    if (pre.classList.contains('prompt-block')) {
+      decoratePromptBlock(pre, COPY_SVG, CHECK_SVG);
+      return;
+    }
     const wrap = document.createElement('div');
     wrap.className = 'code-wrap';
     pre.parentNode.insertBefore(wrap, pre);
@@ -1137,6 +1175,7 @@ function buildFlatList() {
 
 /* ─── Load page ─────────────────────────────────────────────────────────── */
 async function loadPage(file, targetHeading = null, historyMode = 'push', options = {}) {
+  imageGallery?.close();
   const page = allPages.find(candidate => candidate.file === file);
   if (document.querySelector('article[data-unlisted-page]') && page) {
     location.assign(targetHeading ? getPageHeadingUrl(page, targetHeading) : getPageUrl(page));
@@ -1174,6 +1213,7 @@ async function loadPage(file, targetHeading = null, historyMode = 'push', option
   postProcessCallouts(article);
   postProcessTabs(article);
   postProcessImages(article);
+  setupImageGallery(article);
   postProcessTables(article);
   postProcessInternalLinks(article);
   decorateCodeBlocks(article);
@@ -1405,6 +1445,9 @@ function getSkillAwareRenderer(marked) {
     if (tokens.includes('skill-source')) {
       return `<pre><code class="language-markdown" data-skill-download="SKILL.md">${escapeHtml(code)}\n</code></pre>\n`;
     }
+    if (tokens[0] === 'prompt') {
+      return `<pre class="prompt-block"><code class="language-prompt" data-copy-prompt>${escapeHtml(code)}</code></pre>\n`;
+    }
     return defaultCode(code, infostring, escaped);
   };
   skillAwareRenderer = renderer;
@@ -1436,7 +1479,7 @@ const TAG_MARKDOWN_ATTRS = {
   A: new Set(['href']),
   BUTTON: new Set(['type']),
   DETAILS: new Set(['open']),
-  CODE: new Set(['class', 'data-skill-download']),
+  CODE: new Set(['class', 'data-copy-prompt', 'data-skill-download']),
   IMG: new Set(['alt', 'height', 'loading', 'src', 'title', 'width']),
 };
 const SAFE_URL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);
@@ -1649,6 +1692,171 @@ function postProcessImages(root) {
       ph.className = 'img-placeholder';
       ph.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>Screenshot: <em>${escapeHtml(img.alt || img.src)}</em></span>`;
       img.replaceWith(ph);
+    });
+  });
+}
+
+/* ─── Image gallery ─────────────────────────────────────────────────────────
+   Every image in an article opens a full-screen gallery of the page's images:
+   arrow keys or buttons step through them, Esc closes, and a Download button
+   saves the image at full resolution. The alt text is shown as the caption.
+   Images are shown as large as fits but never above their natural size: a
+   2880px screenshot on a 2x display tops out at 1440 CSS pixels. */
+// `var` so loadPage can close it during the first render, before this runs.
+var imageGallery = (() => {
+  const ICONS = {
+    prev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>',
+    next: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>',
+    close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>',
+  };
+  let overlay = null;
+  let els = null;
+  let items = [];
+  let index = 0;
+  let returnFocus = null;
+  let touchStartX = null;
+
+  function build() {
+    overlay = document.createElement('div');
+    overlay.className = 'lightbox';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Image gallery');
+    overlay.innerHTML = `
+      <div class="lightbox-bar">
+        <span class="lightbox-counter" aria-live="polite"></span>
+        <a class="lightbox-btn lightbox-download" download>${ICONS.download}<span class="lightbox-btn-label">Download</span></a>
+        <button type="button" class="lightbox-btn lightbox-close" aria-label="Close gallery">${ICONS.close}</button>
+      </div>
+      <div class="lightbox-stage">
+        <button type="button" class="lightbox-btn lightbox-nav lightbox-prev" aria-label="Previous image">${ICONS.prev}</button>
+        <img class="lightbox-img" alt="" decoding="async">
+        <button type="button" class="lightbox-btn lightbox-nav lightbox-next" aria-label="Next image">${ICONS.next}</button>
+      </div>
+      <p class="lightbox-caption"></p>`;
+    document.body.appendChild(overlay);
+    els = {
+      counter: overlay.querySelector('.lightbox-counter'),
+      download: overlay.querySelector('.lightbox-download'),
+      close: overlay.querySelector('.lightbox-close'),
+      stage: overlay.querySelector('.lightbox-stage'),
+      img: overlay.querySelector('.lightbox-img'),
+      prev: overlay.querySelector('.lightbox-prev'),
+      next: overlay.querySelector('.lightbox-next'),
+      caption: overlay.querySelector('.lightbox-caption'),
+    };
+    els.close.addEventListener('click', close);
+    els.prev.addEventListener('click', () => step(-1));
+    els.next.addEventListener('click', () => step(1));
+    // Clicking the backdrop (not the image or a control) closes the gallery.
+    els.stage.addEventListener('click', (event) => { if (event.target === els.stage) close(); });
+    els.img.addEventListener('load', capSize);
+    overlay.addEventListener('keydown', onKeydown);
+    els.stage.addEventListener('touchstart', (event) => { touchStartX = event.touches[0]?.clientX ?? null; }, { passive: true });
+    els.stage.addEventListener('touchend', (event) => {
+      if (touchStartX === null) return;
+      const dx = (event.changedTouches[0]?.clientX ?? touchStartX) - touchStartX;
+      touchStartX = null;
+      if (Math.abs(dx) > 48) step(dx < 0 ? 1 : -1);
+    });
+  }
+
+  function fullSource(img) {
+    // The plain src is the full-resolution file for the current theme; srcset
+    // may point the page at a smaller variant.
+    return img.getAttribute('src') || img.currentSrc || img.src;
+  }
+
+  function capSize() {
+    const { img } = els;
+    if (!img.naturalWidth) return;
+    const source = items[index];
+    const dpr = window.devicePixelRatio || 1;
+    // Never above natural size on this display, and never smaller than the
+    // image already appeared on the page.
+    const onPage = source?.isConnected ? source.getBoundingClientRect().width : 0;
+    const cap = Math.max(img.naturalWidth / dpr, Math.min(onPage, img.naturalWidth));
+    img.style.maxWidth = `min(100%, ${Math.round(cap)}px)`;
+  }
+
+  function show(nextIndex) {
+    index = (nextIndex + items.length) % items.length;
+    const source = items[index];
+    const src = fullSource(source);
+    const caption = (source.getAttribute('alt') || source.getAttribute('title') || '').trim();
+    els.img.style.maxWidth = '';
+    els.img.src = src;
+    els.img.alt = caption;
+    els.caption.textContent = caption;
+    els.counter.textContent = items.length > 1 ? `${index + 1} / ${items.length}` : '';
+    els.download.href = src;
+    els.download.setAttribute('download', decodeURIComponent(src.split(/[?#]/)[0].split('/').pop() || 'image.png'));
+    els.download.setAttribute('aria-label', `Download image ${index + 1}`);
+    const single = items.length < 2;
+    els.prev.hidden = single;
+    els.next.hidden = single;
+    // Warm the neighbours so arrowing through feels instant.
+    if (!single) [index - 1, index + 1].forEach((i) => { new Image().src = fullSource(items[(i + items.length) % items.length]); });
+  }
+
+  function step(delta) {
+    if (items.length > 1) show(index + delta);
+  }
+
+  function onKeydown(event) {
+    if (event.key === 'Escape') { event.preventDefault(); close(); }
+    else if (event.key === 'ArrowRight') { event.preventDefault(); step(1); }
+    else if (event.key === 'ArrowLeft') { event.preventDefault(); step(-1); }
+    else if (event.key === 'Tab') {
+      // Keep focus inside the dialog while it is open.
+      const focusable = [...overlay.querySelectorAll('a[href], button:not([hidden])')];
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+  }
+
+  function open(list, start) {
+    if (!list.length) return;
+    if (!overlay) build();
+    items = list;
+    returnFocus = document.activeElement;
+    show(start);
+    overlay.classList.add('is-open');
+    document.body.classList.add('lightbox-open');
+    els.close.focus({ preventScroll: true });
+  }
+
+  function close() {
+    if (!overlay?.classList.contains('is-open')) return;
+    overlay.classList.remove('is-open');
+    document.body.classList.remove('lightbox-open');
+    els.img.removeAttribute('src');
+    if (returnFocus instanceof HTMLElement) returnFocus.focus({ preventScroll: true });
+  }
+
+  return { open, close };
+})();
+
+function setupImageGallery(article) {
+  const galleryImages = () => [...article.querySelectorAll('img')].filter((img) => img.isConnected && !img.closest('a'));
+  galleryImages().forEach((img) => {
+    if (img.dataset.gallery) return;
+    img.dataset.gallery = 'true';
+    img.classList.add('zoomable');
+    img.tabIndex = 0;
+    img.setAttribute('role', 'button');
+    const label = (img.getAttribute('alt') || '').trim();
+    img.setAttribute('aria-label', label ? `Open image: ${label}` : 'Open image');
+    const openFromHere = () => {
+      const list = galleryImages();
+      imageGallery.open(list, Math.max(0, list.indexOf(img)));
+    };
+    img.addEventListener('click', openFromHere);
+    img.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openFromHere(); }
     });
   });
 }

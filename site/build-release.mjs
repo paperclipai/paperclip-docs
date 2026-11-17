@@ -519,13 +519,25 @@ function screenshotVariantConfig(src) {
   return responsiveScreenshotVariants.get(match[1]) || null;
 }
 
+// marked hands the renderer alt and title text that is already HTML-escaped.
+// Decode it once so escapeAttr does not double-escape quotes into a visible
+// `&quot;` (screen readers and the image gallery caption read it literally).
+function decodeMarkedText(value) {
+  return String(value || "")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
 function releaseMarkdownImage(href, title, text) {
   const src = screenshotReleasePath(href);
   const attrs = [
     `src="${escapeAttr(src)}"`,
-    `alt="${escapeAttr(text || "")}"`,
+    `alt="${escapeAttr(decodeMarkedText(text))}"`,
   ];
-  if (title) attrs.push(`title="${escapeAttr(title)}"`);
+  if (title) attrs.push(`title="${escapeAttr(decodeMarkedText(title))}"`);
 
   const variantConfig = screenshotVariantConfig(src);
   if (variantConfig) {
@@ -1179,6 +1191,13 @@ function isSkillSourceInfo(infostring) {
   return String(infostring || "").trim().split(/\s+/).includes("skill-source");
 }
 
+// A fenced code block tagged `prompt` (```` ```prompt ````) is text a reader
+// pastes into an agent or assistant. It renders as a prompt box; the client adds
+// a labelled "Copy prompt" control (see decorateCodeBlocks in app.js).
+function isPromptInfo(infostring) {
+  return String(infostring || "").trim().split(/\s+/)[0] === "prompt";
+}
+
 // docs-root-relative markdown path -> the canonical HTML route for that page.
 // Markdown authors write relative `../foo.md` links, but every page is served
 // from a trailing-slash route directory, so a raw relative link resolves one
@@ -1286,6 +1305,9 @@ export function renderStaticMarkdown(markdown, { sourceFile = null, routeMap = n
   renderer.code = (code, infostring, escaped) => {
     if (isSkillSourceInfo(infostring)) {
       return `<pre><code class="language-markdown" data-skill-download="SKILL.md">${escapeHtml(code)}\n</code></pre>\n`;
+    }
+    if (isPromptInfo(infostring)) {
+      return `<pre class="prompt-block"><code class="language-prompt" data-copy-prompt>${escapeHtml(code)}</code></pre>\n`;
     }
     return defaultCode(code, infostring, escaped);
   };
