@@ -22,6 +22,9 @@ const sourceVendorDir = path.join(__dirname, "vendor");
 const screenshotsSourceDir = path.join(docsRoot, "user-guides", "screenshots");
 const defaultSiteUrl = "https://docs.paperclip.ing";
 const defaultSeoDescription = "Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows.";
+// Docs home only. Other pages keep authored seo_title/seo_description, and fall back to defaultSeoDescription.
+const homeSeoTitle = "Paperclip Docs: Control Plane for AI Agent Teams";
+const homeSeoDescription = "Docs for Paperclip, the org chart for AI agents. Install it, hire agents, connect Claude Code, Codex, and OpenCode, and set budgets and approvals.";
 const execFileAsync = promisify(execFile);
 
 function printUsage() {
@@ -1766,8 +1769,8 @@ async function main() {
     legacyRedirects: sourceRedirects,
   }));
   const rootMetadata = {
-    title: "Paperclip Docs",
-    description: defaultSeoDescription,
+    title: homeSeoTitle,
+    description: homeSeoDescription,
     url: siteUrlForPath(options.siteUrl, options.basePath),
     siteUrl: options.siteUrl,
     basePath: options.basePath,
