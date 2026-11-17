@@ -8,7 +8,7 @@ seo_description: Run a self-contained instance without installing Node or pnpm o
 
 Use Docker when you want a self-contained Paperclip instance without installing Node or pnpm on the host machine.
 
-This page covers the quickstart image, the manual image build, the cloud image variant, and what persists between container restarts.
+This page covers the compose quickstart, the published image, the manual image build, the cloud image variant, and what persists between container restarts.
 
 ---
 
@@ -50,6 +50,40 @@ Before the first start, put two secrets in `docker/.env`, each its own value fro
 Keep the same values across restarts. Don't generate new ones for an existing deployment.
 
 Both Compose files give the container a `stop_grace_period` of `90s`. That leaves time for running agents to settle and for final cleanup when you stop the stack.
+
+---
+
+## Run the Published Image
+
+To run Paperclip without cloning the repository, use the published image, `ghcr.io/paperclipai/paperclip:latest`.
+
+Create a file named `paperclip.env` with two secrets, each its own value from `openssl rand -hex 32`:
+
+```txt
+BETTER_AUTH_SECRET=<first value>
+PAPERCLIP_TOOL_ACTION_SIGNING_SECRET=<second value>
+```
+
+`BETTER_AUTH_SECRET` is required. Without it the server exits at startup with `BETTER_AUTH_SECRET (or PAPERCLIP_AGENT_JWT_SECRET) must be set`. Keep both values the same across restarts.
+
+Start the container:
+
+```sh
+docker run -d --name paperclip \
+  -p 3100:3100 \
+  --env-file paperclip.env \
+  -e PAPERCLIP_PUBLIC_URL=http://localhost:3100 \
+  -v "$PWD/paperclip-data:/paperclip" \
+  ghcr.io/paperclipai/paperclip:latest
+```
+
+Your data lives in `./paperclip-data`. Then claim the instance in your browser:
+
+1. Open `http://localhost:3100` and click **Sign in / Create account**.
+2. Click **Create one**, fill in your name, email, and password, and click **Create Account**.
+3. Click **Claim this instance**. You become the first admin and onboarding starts.
+
+> **Note:** The claim page also suggests `npx paperclipai auth bootstrap-ceo`. That command doesn't work inside this container, so claim the instance in the browser.
 
 ---
 
