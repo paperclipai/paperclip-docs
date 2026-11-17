@@ -6,7 +6,7 @@ seo_description: Run OpenCode on the Paperclip host when you want provider and m
 
 # OpenCode
 
-Configure OpenCode by answering the exact setting you searched for, then give the agent its first ticket. `opencode_local` runs OpenCode on the same machine as Paperclip with a required `provider/model`.
+To run OpenCode in Paperclip, set one required field, `model`, in `provider/model` form, then give the agent its first task. The `opencode_local` adapter runs OpenCode on the same machine as Paperclip. Every other field can stay at its default until you need it.
 
 > **Heads-up:** New OpenCode agents run on [Paperclip Runner](/reference/adapters/paperclip-runner/#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64 with GNU libc `2.39` or newer. Linux ARM64 stays on the Legacy runner. Those agents are saved as `paperclip_runner` with `provider: "opencode"` and don't need the experimental Runner setting. The Runner itself is documented as experimental. A custom `command`, `extraArgs`, a `variant` or `dangerouslySkipPermissions: false` only works on the classic adapter described on this page. To keep it, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
 
