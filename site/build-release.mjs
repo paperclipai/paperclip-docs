@@ -929,13 +929,17 @@ ${legacyRouteRedirects}
 }
 
 function buildCloudflareHeaders() {
-  return `/*
+  return `# GA4 gtag.js. script-src loads the async tag from googletagmanager.com.
+# connect-src allows collect beacons on google-analytics.com, including regional
+# hosts, plus analytics.google.com and googletagmanager.com. img-src already
+# allows https: image pixels, so it is unchanged.
+/*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.googletagmanager.com; upgrade-insecure-requests
 
 # PAP-16990 cache policy. HTML shells must always revalidate so a returning
 # visitor never renders a stale document that points at a since-changed bundle.
@@ -998,6 +1002,44 @@ function buildCloudflareHeaders() {
 `;
 }
 
+const GA_MEASUREMENT_ID = "G-1RQ1KXLQXP";
+
+// Insert the tag after the document is finished. Article HTML is spliced in
+// with String.replace, and a "$`" sequence in page content copies whatever is
+// already in the shell. Adding the tag here, before the first </head> only,
+// keeps it out of that copy.
+function googleAnalyticsSnippet({ pageView }) {
+  const pageViewCall = pageView
+    ? `
+    gtag('event', 'page_view', {
+      page_title: document.title,
+      page_path: location.pathname + location.search,
+      page_location: location.origin + location.pathname + location.search
+    });`
+    : "";
+  return `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });${pageViewCall}
+  </script>`;
+}
+
+function injectGoogleAnalytics(html, { pageView = false } = {}) {
+  const marker = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+  const headClose = html.indexOf("</head>");
+  if (headClose === -1) {
+    throw new Error("Cannot inject Google Analytics: missing </head>.");
+  }
+  const withTag = `${html.slice(0, headClose)}  ${googleAnalyticsSnippet({ pageView })}\n${html.slice(headClose)}`;
+  const count = withTag.split(marker).length - 1;
+  if (count !== 1) {
+    throw new Error(`Expected exactly one GA4 tag after injection, found ${count}.`);
+  }
+  return withTag;
+}
+
 function buildNotFoundPage(siteUrl, basePath) {
   const metadata = {
     title: "Not found | Paperclip Docs",
@@ -1006,7 +1048,7 @@ function buildNotFoundPage(siteUrl, basePath) {
     siteUrl,
     basePath,
   };
-  return `<!DOCTYPE html>
+  return injectGoogleAnalytics(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1023,7 +1065,7 @@ function buildNotFoundPage(siteUrl, basePath) {
   </main>
 </body>
 </html>
-`;
+`, { pageView: true });
 }
 
 function collectMarkdownLinks(markdown) {
@@ -1587,7 +1629,7 @@ function buildStaticPageNav(prev, next) {
 function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles, prev, next, linkOptions = {}) {
   const articleHtml = renderStaticMarkdown(markdown, linkOptions);
   const routeBaseHref = getPublicBasePath(basePath);
-  return removeLandingSubtree(
+  const html = removeLandingSubtree(
     inlineReleaseStyles(injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref }), releaseStyles),
   )
     .replace('<div id="article-view">', '<div id="article-view" class="is-active">')
@@ -1596,6 +1638,7 @@ function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseS
       '<div id="page-nav" style="display:none"></div>',
       `<div id="page-nav" style="display:flex">${buildStaticPageNav(prev, next)}</div>`,
     );
+  return injectGoogleAnalytics(html);
 }
 
 async function writeStaticRoutePages({
@@ -1799,10 +1842,10 @@ async function main() {
   };
   await fs.writeFile(
     path.join(options.outDir, "index.html"),
-    inlineReleaseStyles(
+    injectGoogleAnalytics(inlineReleaseStyles(
       injectSeo(buildRootPageHtml(sourceIndex, releaseNav, options.basePath, sectionIconPaths), rootMetadata),
       releaseStyles,
-    ),
+    )),
   );
   // A markdown link that no nav page publishes would ship as a raw `.md` href,
   // which 404s for every crawler. Collect them and fail the build rather than
