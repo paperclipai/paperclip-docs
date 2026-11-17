@@ -52,6 +52,8 @@ let markdownRendererPromise = null;
 const SEO_SITE_NAME = 'Paperclip Docs';
 const SEO_DEFAULT_TITLE = 'Paperclip Docs';
 const SEO_DEFAULT_DESCRIPTION = 'Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows.';
+const SEO_HOME_TITLE = 'Paperclip Docs: Control Plane for AI Agent Teams';
+const SEO_HOME_DESCRIPTION = 'Docs for Paperclip, the org chart for AI agents. Install it, hire agents, connect Claude Code, Codex, and OpenCode, and set budgets and approvals.';
 const APP_DIR_NAME = 'site';
 const APP_BASE_PATH = (() => {
   const marker = `/${APP_DIR_NAME}`;
@@ -287,8 +289,8 @@ function markdownToDescription(md) {
 
 function updateLandingSeo() {
   setSeoMetadata({
-    title: SEO_DEFAULT_TITLE,
-    description: SEO_DEFAULT_DESCRIPTION,
+    title: SEO_HOME_TITLE,
+    description: SEO_HOME_DESCRIPTION,
     url: getAbsolutePageUrl(null),
     type: 'website',
   });
