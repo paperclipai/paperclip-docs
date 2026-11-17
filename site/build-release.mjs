@@ -1884,6 +1884,7 @@ async function main() {
     siteUrl: options.siteUrl,
     basePath: options.basePath,
   }));
+  await fs.copyFile(path.join(__dirname, "llms.txt"), path.join(options.outDir, "llms.txt"));
 
   if (await pathExists(screenshotsSourceDir)) {
     const screenshotTargetDir = path.join(options.outDir, "user-guides", "screenshots");
