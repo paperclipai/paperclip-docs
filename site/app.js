@@ -296,6 +296,26 @@ function updateLandingSeo() {
   });
 }
 
+/* GA4 page views. The head snippet loads gtag.js with send_page_view: false,
+   so nothing is counted until this runs. Call it after the URL and
+   document.title have settled: once for the initial route, and once for each
+   later document change. Hash-only heading jumps are not document changes.
+   The same path is ignored so the first load cannot be counted twice.
+   This does not use enhanced measurement history events. That GA4 setting
+   listens for pushState/replaceState and would send a second page_view. */
+let lastAnalyticsPath = null;
+function trackPageView() {
+  if (typeof window.gtag !== 'function') return;
+  const pagePath = `${location.pathname}${location.search}`;
+  if (pagePath === lastAnalyticsPath) return;
+  lastAnalyticsPath = pagePath;
+  window.gtag('event', 'page_view', {
+    page_title: document.title,
+    page_path: pagePath,
+    page_location: `${location.origin}${pagePath}`,
+  });
+}
+
 function updatePageSeo(page, md) {
   if (!page) return;
   // Match the server-rendered head exactly. Authored frontmatter wins, so a
@@ -666,6 +686,7 @@ function showLanding() {
   document.getElementById('breadcrumb').innerHTML = '';
   history.replaceState(null, '', docsRootUrl());
   updateLandingSeo();
+  trackPageView();
 }
 function showArticleView() {
   // Only the docs root ships a homepage subtree, and once it hands off to an
@@ -940,6 +961,8 @@ async function init() {
   } catch (e) {
     // Server-rendered documents stay readable without the nav manifest; only
     // report a failure when there is nothing on the page to fall back to.
+    // Count this document: init will not reach loadPage or showLanding.
+    trackPageView();
     if (document.getElementById('article')?.children.length) return;
     showError('Could not load content.json. Check that the release bundle was uploaded intact and the base path is correct.', e.message);
     return;
@@ -971,6 +994,7 @@ async function init() {
       const target = findHeadingTarget(unlistedArticle, heading);
       if (target) focusHeading(target);
     }
+    trackPageView();
     return;
   }
 
@@ -1242,6 +1266,7 @@ async function loadPage(file, targetHeading = null, historyMode = 'push', option
     if (historyMode === 'replace') history.replaceState(null, '', nextUrl);
     else if (historyMode === 'push') history.pushState(null, '', nextUrl);
   }
+  trackPageView();
 }
 
 const DOCS_REPO_SLUG = 'paperclipai/paperclip-docs';
