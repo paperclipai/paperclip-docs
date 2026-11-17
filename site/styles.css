@@ -1204,7 +1204,8 @@
     .lightbox {
       position: fixed; inset: 0; z-index: 1000;
       display: none; flex-direction: column;
-      background: rgba(10,10,10,0.92);
+      background: rgba(10,10,10,0.95);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
       color: #f5f5f4;
     }
     .lightbox.is-open { display: flex; }
@@ -1234,7 +1235,6 @@
       max-width: 100%; max-height: 100%;
       border-radius: var(--radius-sm);
       box-shadow: 0 12px 48px rgba(0,0,0,0.5);
-      background: #fff;
       user-select: none;
     }
     .lightbox-nav {

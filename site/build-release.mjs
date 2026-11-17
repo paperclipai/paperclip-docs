@@ -516,13 +516,25 @@ function screenshotVariantConfig(src) {
   return responsiveScreenshotVariants.get(match[1]) || null;
 }
 
+// marked hands the renderer alt and title text that is already HTML-escaped.
+// Decode it once so escapeAttr does not double-escape quotes into a visible
+// `&quot;` (screen readers and the image gallery caption read it literally).
+function decodeMarkedText(value) {
+  return String(value || "")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
 function releaseMarkdownImage(href, title, text) {
   const src = screenshotReleasePath(href);
   const attrs = [
     `src="${escapeAttr(src)}"`,
-    `alt="${escapeAttr(text || "")}"`,
+    `alt="${escapeAttr(decodeMarkedText(text))}"`,
   ];
-  if (title) attrs.push(`title="${escapeAttr(title)}"`);
+  if (title) attrs.push(`title="${escapeAttr(decodeMarkedText(title))}"`);
 
   const variantConfig = screenshotVariantConfig(src);
   if (variantConfig) {

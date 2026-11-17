@@ -25,4 +25,9 @@ const page = await fs.readFile(path.join(root, "docs/how-to/connect-two-papercli
 const pageHtml = renderStaticMarkdown(page.replace(/^---[\s\S]*?\n---\n/, ""));
 assert.equal(pageHtml.split(OPEN).length - 1, 1, "the walkthrough should render exactly one prompt box");
 
-console.log("Prompt block verification passed (prompt box rendered and escaped, ordinary code blocks untouched).");
+// Image alt text with quotes must not be double-escaped (it becomes the
+// gallery caption and what screen readers read).
+const imageHtml = renderStaticMarkdown('![A "quoted" card & <b>](../user-guides/screenshots/light/dashboard/x.png)\n');
+assert.ok(imageHtml.includes('alt="A &quot;quoted&quot; card &amp; &lt;b&gt;"'), `image alt text was escaped incorrectly:\n${imageHtml}`);
+
+console.log("Prompt block verification passed (prompt box rendered and escaped, ordinary code blocks untouched, image alt text escaped once).");
