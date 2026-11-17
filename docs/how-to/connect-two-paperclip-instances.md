@@ -96,7 +96,9 @@ The connection's **Permissions** page shows who can use it and what it can do:
 
 Ask one of your agents to do it, in plain words, and name the other instance:
 
-> File a task on Acme Operations' Paperclip asking them to update the client onboarding checklist. Leave it unassigned.
+```prompt
+File a task on Acme Operations' Paperclip asking them to update the client onboarding checklist. Leave it unassigned.
+```
 
 When you create the task, choose who gets it:
 
