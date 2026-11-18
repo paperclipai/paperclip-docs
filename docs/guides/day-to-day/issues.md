@@ -463,7 +463,7 @@ Paperclip looks for these links across the surfaces you already use:
 
 Each place a link appears is recorded as a source, so a pill knows it was mentioned in, say, the description and twice in comments. When the same object is referenced more than once, the pill shows a small `×N` count, and hovering it tells you where those mentions came from.
 
-A pull request link written into task Markdown gets a preview card as well. Hover it for a moment, or tab to it, and a small card shows the pull request's title, author, and status, including **Merge conflicts** when it can't merge cleanly. Paperclip only looks it up when you hover or focus the link, uses your own GitHub connection when you have one, and keeps the result for you. If GitHub can't be reached, it stays a normal link. See [Chat-Style Tasks](../../experimental/task-chat.md#bubbles) for the full card.
+A pull request link written into task Markdown gets a preview card as well. Hover it for a moment, or tab to it, and a small card shows the pull request's title, author, and status, including **Merge conflicts** when it can't merge cleanly. Paperclip looks it up when you hover or focus the link, and quietly in the background once the page has loaded, uses your own GitHub connection when you have one, and keeps the result for you. If GitHub can't be reached, the card keeps the last status Paperclip saved, or with nothing saved, it stays a normal link. See [Chat-Style Tasks](../../experimental/task-chat.md#bubbles) for the full card.
 
 ### What the pill tells you
 
