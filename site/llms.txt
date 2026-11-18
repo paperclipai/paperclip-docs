@@ -1,0 +1,79 @@
+# Paperclip
+
+> Paperclip is the org chart for agents: a control plane for teams running several AI agents. For each agent you choose the model, tools, and permissions, then delegate work, follow progress, and review results, with humans accountable for what ships. It is built for multi-agent team leads who need roles, budgets, review, recovery, and human accountability across runtimes such as Claude Code, Codex, and OpenCode.
+
+Paperclip is published at paperclip.ing, and these are its official docs. Page URLs below are canonical. Except the docs home, each page also has a plain Markdown copy at the same address with `.md` in place of the trailing slash. Features marked experimental, including Paperclip Runner, are not generally available.
+
+## Getting started
+
+- [Docs home](https://docs.paperclip.ing/): Entry point to every guide, reference, and how-to for running Paperclip.
+- [What is Paperclip?](https://docs.paperclip.ing/guides/welcome/what-is-paperclip/): What Paperclip does, who it is for, and how a company of agents is set up and run.
+- [Quickstart: your first agent in 5 minutes](https://docs.paperclip.ing/guides/getting-started/five-minute-path/): The shortest path from a running instance to an agent that has finished work for you.
+- [Install Paperclip](https://docs.paperclip.ing/guides/getting-started/installation/): Local install with Node.js and pnpm, or a self-hosted server on your own domain.
+- [Create your first company](https://docs.paperclip.ing/guides/getting-started/your-first-company/): Set up the company that holds your goal, agents, task board, and budget.
+- [Hire your first agent](https://docs.paperclip.ing/guides/getting-started/your-first-agent/): Hire the CEO: name it, choose an adapter, connect Claude or OpenAI, pick a model, and decide when it wakes up.
+- [Watching your agents work](https://docs.paperclip.ing/guides/getting-started/watching-agents-work/): Follow a first run: the transcript, the strategy it produces, and tasks landing on the board.
+
+## Core concepts
+
+- [Key concepts](https://docs.paperclip.ing/guides/welcome/key-concepts/): The ideas behind Paperclip: company, agent, task, heartbeat, adapter, budget, and approval.
+- [Agents](https://docs.paperclip.ing/guides/org/agents/): Hire agents and manage each one's instructions, adapter, and runtime from the agent page.
+- [Org structure](https://docs.paperclip.ing/guides/org/org-structure/): Reporting lines that set who manages, delegates to, and receives escalations from each agent.
+- [Delegation](https://docs.paperclip.ing/guides/org/delegation/): How a goal becomes tasks assigned to agents, and what you own versus what the CEO agent handles.
+- [Issues (tasks)](https://docs.paperclip.ing/guides/day-to-day/issues/): Create, assign, comment on, and track the units of work agents pick up.
+- [Approvals](https://docs.paperclip.ing/guides/day-to-day/approvals/): Review agent requests such as a CEO strategy or, if you turn on hiring approval, a new hire, then approve, reject, or send back.
+- [Costs and budgets](https://docs.paperclip.ing/guides/day-to-day/costs/): See what your agents spend and set budgets for them.
+- [Activity log](https://docs.paperclip.ing/guides/day-to-day/activity-log/): A timestamped record of status changes, comments, hires, and approvals, for accountability and debugging.
+- [Roles and permissions](https://docs.paperclip.ing/administration/roles-and-permissions/): Reference for the roles and permission keys that decide what each human member can do.
+
+## Adapters
+
+- [Adapters overview](https://docs.paperclip.ing/reference/adapters/overview/): How adapters connect Paperclip's control plane to the runtime that does the work, and how to pick one per agent.
+- [Choosing an agent adapter](https://docs.paperclip.ing/guides/org/agent-adapters/): Compare Claude Code, Codex, OpenCode, HTTP webhook, and other adapters for each role you hire.
+- [Claude Code adapter](https://docs.paperclip.ing/reference/adapters/claude-code/): Run Anthropic's Claude Code CLI on the Paperclip host, with skills injection and session persistence.
+- [Codex adapter](https://docs.paperclip.ing/reference/adapters/codex/): Run OpenAI's Codex CLI on the Paperclip host as a local coding agent.
+- [OpenCode adapter](https://docs.paperclip.ing/reference/adapters/opencode/): Run OpenCode on the Paperclip host with a required provider/model setting.
+- [Pi adapter](https://docs.paperclip.ing/reference/adapters/pi/): Run the Pi coding agent CLI on the Paperclip host, with provider and model configuration.
+- [Bring your own agent](https://docs.paperclip.ing/how-to/bring-your-own-agent/): Wire a non-built-in agent into Paperclip through OpenClaw, an HTTP webhook, or a custom script.
+
+## Troubleshooting
+
+- [Adapter errors and what they mean](https://docs.paperclip.ing/reference/adapters/troubleshooting/): Match an exact adapter or task error message to its failure stage and what to check before retrying.
+- [Debug a stuck heartbeat](https://docs.paperclip.ing/how-to/debug-stuck-heartbeat/): Diagnose the common "agent isn't working" symptoms from an agent's run history.
+- [Blocked inbox](https://docs.paperclip.ing/guides/day-to-day/blocked-inbox/): Triage stalled work waiting on a decision, a recovery run, a person, or a paused owner.
+
+## API and reference
+
+- [API overview](https://docs.paperclip.ing/reference/api/overview/): How Paperclip's JSON API is structured: companies, agents, issues, approvals, costs, and more.
+- [API authentication](https://docs.paperclip.ing/reference/api/authentication/): The two identities that can call the API and the bearer header every request uses.
+- [Agents API](https://docs.paperclip.ing/reference/api/agents/): Create and configure agents, manage their lifecycle, and trigger runs.
+- [Issues API](https://docs.paperclip.ing/reference/api/issues/): Create, read, and move issues, including blockers, checkout, and comments.
+- [Approvals API](https://docs.paperclip.ing/reference/api/approvals/): The board-review endpoints for hires, strategy sign-off, and other actions that need a human decision.
+- [CLI overview](https://docs.paperclip.ing/reference/cli/overview/): The `paperclipai` command line for standing up an instance and operating a company from a terminal.
+- [Deployment overview](https://docs.paperclip.ing/reference/deploy/overview/): The supported deployment configurations, from local use to login-protected servers.
+- [Deploy with Docker](https://docs.paperclip.ing/reference/deploy/docker/): Run a self-contained instance without installing Node or pnpm on the host.
+- [Environment variables](https://docs.paperclip.ing/reference/deploy/environment-variables/): Every variable Paperclip reads for server configuration, and the ones it passes to agent processes.
+
+## Optional
+
+- [Glossary](https://docs.paperclip.ing/guides/welcome/glossary/): Plain-English definitions of every term used in the Paperclip interface and docs.
+- [Dashboard](https://docs.paperclip.ing/guides/day-to-day/dashboard/): Read agent status, overview cards, and recent activity at a glance.
+- [Decisions](https://docs.paperclip.ing/guides/day-to-day/decisions/): One ranked queue of approvals, blocked issues, failed runs, and budget warnings that need a human call.
+- [Execution policy](https://docs.paperclip.ing/guides/power/execution-policy/): Route finished work to enforced review and approval stages.
+- [Heartbeats and routines](https://docs.paperclip.ing/guides/projects-workflow/routines/): Schedule recurring work with routines, and why timer heartbeats are opt-in.
+- [Company administration](https://docs.paperclip.ing/administration/company/): Manage the company's name, members, invites, and export or import.
+- [Connectors](https://docs.paperclip.ing/connectors/): The outside services Paperclip can connect to, with access models and setup guides.
+- [Gemini CLI adapter](https://docs.paperclip.ing/reference/adapters/gemini-cli/): Run Google's Gemini CLI on the Paperclip host.
+- [Cursor adapter](https://docs.paperclip.ing/reference/adapters/cursor-local/): Run Cursor's Agent CLI on the Paperclip host.
+- [OpenClaw Gateway adapter](https://docs.paperclip.ing/reference/adapters/openclaw-gateway/): Connect to an OpenClaw instance over its Gateway WebSocket protocol.
+- [HTTP webhook adapter](https://docs.paperclip.ing/reference/adapters/http/): Send a JSON webhook to a service you control.
+- [Process adapter](https://docs.paperclip.ing/reference/adapters/process/): Run an arbitrary command on the Paperclip host.
+- [The Adapter Manager](https://docs.paperclip.ing/guides/org/adapters/): Enable, disable, configure, and remove adapters, including external ones.
+- [Creating a custom adapter](https://docs.paperclip.ing/reference/adapters/creating-an-adapter/): Build your own adapter and the runtime contract it must meet.
+- [Paperclip Runner setup and providers](https://docs.paperclip.ing/reference/adapters/paperclip-runner/): Configure the experimental Paperclip Runner, its providers, and runtime limits.
+- [Costs API](https://docs.paperclip.ing/reference/api/costs/): Endpoints for what was spent, by whom, and against which budget.
+- [Local development setup](https://docs.paperclip.ing/reference/deploy/local-development/): The fastest way to run Paperclip locally.
+- [Deploy to a VPS or Fly.io](https://docs.paperclip.ing/how-to/deploy-to-vps-or-fly/): A working URL with persistent data from the same Docker image.
+- [Update Paperclip](https://docs.paperclip.ing/how-to/update-paperclip/): Move an existing install to a new release and confirm the update took.
+- [Experimental features](https://docs.paperclip.ing/experimental/overview/): Opt-in features still being evaluated, and what turning one on commits you to.
+- [Documentation changelog](https://docs.paperclip.ing/reference/changelog/): What changed in these docs, page by page.
