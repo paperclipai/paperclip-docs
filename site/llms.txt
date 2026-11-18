@@ -65,7 +65,6 @@ Paperclip is published at paperclip.ing, and these are its official docs. Page U
 - [Connectors](https://docs.paperclip.ing/connectors/): The outside services Paperclip can connect to, with access models and setup guides.
 - [Gemini CLI adapter](https://docs.paperclip.ing/reference/adapters/gemini-cli/): Run Google's Gemini CLI on the Paperclip host.
 - [Cursor adapter](https://docs.paperclip.ing/reference/adapters/cursor-local/): Run Cursor's Agent CLI on the Paperclip host.
-- [Hermes adapter](https://docs.paperclip.ing/reference/adapters/hermes/): Run Hermes Agent by Nous Research on the Paperclip host.
 - [OpenClaw Gateway adapter](https://docs.paperclip.ing/reference/adapters/openclaw-gateway/): Connect to an OpenClaw instance over its Gateway WebSocket protocol.
 - [HTTP webhook adapter](https://docs.paperclip.ing/reference/adapters/http/): Send a JSON webhook to a service you control.
 - [Process adapter](https://docs.paperclip.ing/reference/adapters/process/): Run an arbitrary command on the Paperclip host.
