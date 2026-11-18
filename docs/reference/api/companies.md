@@ -428,10 +428,49 @@ Returns the status card the app shows when you hover a GitHub pull request link 
 ```
 
 - `state` is `open`, `draft`, `merged`, `closed`, `conflicts`, or `unknown`.
-- `preview` is `null` when the link isn't supported or GitHub can't be read with the credential available. A failed lookup is still a normal `200` response.
-- `maxAgeMs` says how long the result stays fresh. The server keeps each result per company, per user, and per pull request, for at most an hour.
+- `preview` is `null` when the link isn't supported, or when GitHub can't be read with the credential available and no status was saved for that link before. If one was, a failed lookup returns that last known `preview` instead. A failed lookup is still a normal `200` response.
+- `maxAgeMs` is how many more milliseconds the result counts as current, at most an hour. The server saves each result per company, per user, and per pull request. Once it's out of date, the saved status is still kept, so it can show straight away, until a newer lookup replaces it or it's cleaned out. Cleanup happens whenever Paperclip saves a status for you in that company: it removes your saved statuses that went out of date more than 30 days earlier, and any past your 1,000 most recently checked links there.
+- GitHub is read with the caller's own managed GitHub connection when one is configured, never the task assignee's. If that connection is configured but can't supply access, the lookup fails as above (`null`, or the last saved `preview`); it doesn't fall back to other credentials. With no managed connection, the server tries a company secret named `GITHUB_TOKEN`, `GH_TOKEN`, or `PAPERCLIP_GITHUB_TOKEN`, then the server's `GITHUB_TOKEN` or `GH_TOKEN`, and finally no token.
+
+Each person can make 600 lookups a minute per company on each server process. Past that, the call fails with `429`, `Link preview rate limit exceeded`, and a `Retry-After` header saying how many seconds to wait. Once `url` passes its check, the response carries `X-RateLimit-Limit` and `X-RateLimit-Remaining`, and `Cache-Control: private, no-store`.
+
+### Saved link statuses
+
+```
+GET /api/companies/{companyId}/link-previews/cached?url={url}&url={url}
+```
+
+Returns the statuses Paperclip already saved for you, without contacting GitHub. The app uses it to fill in pull request icons when a page loads. Like the single lookup, it's board-only and checks your company access first.
+
+Repeat `url` for each link, up to 50, each at most 2048 characters. No `url` at all, more than 50, or a link longer than that fails with `400` and `A bounded list of link URLs is required`. This route isn't rate limited.
+
+```json
+{
+  "results": {
+    "https://github.com/acme/app/pull/42": {
+      "preview": {
+        "target": {
+          "provider": "github",
+          "kind": "pull_request",
+          "canonicalUrl": "https://github.com/acme/app/pull/42",
+          "label": "acme/app#42"
+        },
+        "title": "Add billing export",
+        "state": "merged",
+        "author": "octocat",
+        "updatedAt": "2026-11-10T09:30:00Z"
+      },
+      "maxAgeMs": 0
+    }
+  }
+}
+```
+
+- `results` is keyed by each link's canonical URL, so links to the same pull request, such as its `/files` page, share one entry.
+- A link with no saved status, or one that isn't a GitHub pull request, is left out.
+- A saved status that's out of date still comes back, with `maxAgeMs` set to `0`. Call the single lookup above to refresh it.
+- A saved lookup that failed, with no earlier status to keep, comes back with `"preview": null`.
 - The response is sent with `Cache-Control: private, no-store`.
-- GitHub is read with the caller's own managed GitHub connection when one is configured, never the task assignee's. If that connection is configured but can't supply access, `preview` is `null`; it doesn't fall back to other credentials. With no managed connection, the server tries a company secret named `GITHUB_TOKEN`, `GH_TOKEN`, or `PAPERCLIP_GITHUB_TOKEN`, then the server's `GITHUB_TOKEN` or `GH_TOKEN`, and finally no token.
 
 ---
 

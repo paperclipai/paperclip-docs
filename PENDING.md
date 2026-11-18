@@ -2,28 +2,26 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1106.0` (`d69631b0`, on master) → parent master `27866014` (@ 2026-11-16T07:13Z). 24h quarantine applied (cutoff 2026-11-16T11:00Z). Master HEAD at run time was `ca34aca7`.
-- **Compare truncation:** 0 truncated leaves (increment: 1 leaf, 48 commits, 297 files).
-- **Already on nightly:** drafts for `d69631b0..68f641ba` (through #189). This run covers the 48 newer commits, `68f641ba..27866014`.
-- **Merge of `main` into `nightly`:** re-recorded as `c34d3a6` with every conflict resolved to nightly, as in `b8cf8d3`. The #189 squash had dropped that merge's ancestry again.
-- **Verification:** authors read the parent at the pin only, from a local clone (`git show 27866014:<path>`). `verify-edit` at the pin: 0 unverified records on added lines. The only unverified records are the 10 known `paperclip-runner.md` adapter-config values on old lines. A fresh reviewer then checked every added line against the pin and fixed 3 defects. Before the PR, a second independent reviewer re-checked every added line (124 claims) against `27866014` and fixed 4 more: `cli-auth/me` stored roles apply to every non-Cloud auth source, loopback hosts include `*.localhost`, a dedicated connection is kept only when its work finished without an error, and the person-owned examples in the lost-files paragraph were disambiguated. Nothing was run against a live instance.
-- **Drift:** none (`check-drift` against `27866014`, `source: snapshot`, no warnings).
-- **Auto-merge tier:** empty. No new env vars, CLI commands or adapter names in the increment.
+- **Window (cumulative):** base release tag `v2026.1106.0` (`d69631b0`, on master) → parent master `ca34aca7` (@ 2026-11-17T10:31Z). 24h quarantine applied (cutoff 2026-11-17T11:01Z). Master HEAD at run time was `1c556d53`.
+- **Increment:** `27866014..ca34aca7`, 43 first-parent commits, 233 files (diffed in a fresh local bare clone, so no compare-API truncation).
+- **Already on nightly:** drafts for `d69631b0..27866014` (through #201).
+- **Merge of `main` into `nightly`:** 10 main commits (#190 to #199). Conflicts in 8 files came from #185, which the #201 squash had dropped again. They were checked hunk by hunk against `ca34aca7`: nightly's lines were newer and correct in every doc page (Hermes still checks Python 3.10+ and suggests `pip install hermes-agent`, Codex defaults to `gpt-6.1-sol`, the agent form has no **Runner** setting), so nightly wins there. `site/redirects.json` takes main's superset. The OpenCode intro keeps #194's first-line fix, reworded because `model` defaults to `openai/gpt-5.2-codex` on master.
+- **Verification:** all reads at the pin only (`/tmp/pc-ca34aca7`, a worktree detached at `ca34aca7`). `verify-edit` at the pin: 0 unverified records on added lines; the 6 env-var records on `environment-variables.md` are the known fragments on old lines (50, 306, 307, 527). Two independent line-by-line reviewers then checked every added line: round 1 (about 60 claims) fixed 6 defects, round 2 (74 claims) fixed 9 more, mostly old link-preview lines that #21746 made wrong (a failed lookup now keeps the last saved status). Nothing was run against a live instance.
+- **Drift:** none (`check-drift` against `ca34aca7`, `source: snapshot`, no warnings).
+- **Auto-merge tier:** empty. No new env vars, CLI commands or adapter names. One existing variable, `PAPERCLIP_CHAT_WEBHOOK_PUBLIC_URL`, gained its missing row (PR tier, prose).
 
-## Applied this run (`68f641ba..27866014`)
+## Applied this run (`27866014..ca34aca7`)
 
-- **Subtasks fold under their parent in the sidebar** (#21649): Coordinator **Recents** and the Classic sidebar's **Recent Tasks** show a recent parent's readable direct subtasks, ten at a time, with **Show more** / **Show less** and an unread count when folded (`experimental/coordinator-workspace.md`, `guides/day-to-day/command-palette.md`).
-- **Issue summaries API** (#21649): `GET /api/companies/{companyId}/issues/summaries`, board-only `navigation=true`, and the board-only `includeReadState` list parameter (`api/issues.md`).
-- **Tasks continue on their own when saved files are permanently lost** (#21541): `guides/day-to-day/issues.md`, Recovering saved files.
-- **GitHub review task completion** (#21748): the score sets the check, not the task status; when a review-only task finishes at 5/5 and when it waits (`connectors/understanding-github-review-bots.md`, `connectors/github-review-bot-setup.md`).
-- **Made-up-host links become relative** (#21762): agent comments with links on hosts like `https://paperclip` or `paperclip.local` open on your own origin (`experimental/task-chat.md`, `reference/skills.md`).
-- **Messages a run's first turn took stay in that run** (#21747): `experimental/task-chat.md`.
-- **Dedicated database connections are kept for the next burst** (#21769): `deploy/database.md`. The worst case (52 dedicated, 73 total) is unchanged.
-- **Instance settings are cached per process for up to 2 seconds** (#21768): `administration/settings.md`, `administration/roles-and-permissions.md`.
-- **Cloud owners' effective instance-admin rights reach the board** (#21817): `isInstanceAdmin` on `GET /api/cli-auth/me` for `cloud_tenant` (`api/authentication.md`, `administration/roles-and-permissions.md`).
-- **OpenCode chat hides closing tool-call tags and model control tokens** (#21761): `adapters/paperclip-runner.md`.
+- **Pull request statuses fill in on their own** (#21746): saved statuses show as links appear, then missing and stale ones are looked up when the page is idle, for up to 200 links; a failed lookup keeps the last saved status (`experimental/task-chat.md`). API: the 600-a-minute lookup limit with `429`, and the new `GET /api/companies/{companyId}/link-previews/cached` batch route (`api/companies.md`).
+- **Database sessions name their server process** (#21956, #21946): the main pool reports `paperclip:<boot id>`, and the new *runner event intake stalled* warning lists pending writes, sessions and lock waits (`deploy/database.md`, `deploy/environment-variables.md`).
+- **Chat webhook ingress in private mode** (#18301): the callback hostname must be in `PAPERCLIP_ALLOWED_HOSTNAMES`, and the check reads `X-Forwarded-Host` first. Added the missing `PAPERCLIP_CHAT_WEBHOOK_PUBLIC_URL` row (`deploy/environment-variables.md`, `deploy/https.md`).
+- **Task trees a person started go first** (#21916): runs on a person-created task and its subtasks, up to 32 levels down, sit in the person tier; recovery runs don't (`guides/day-to-day/issues.md`).
+- **Coordinator Inbox badge counts your For you cards** (#21953): `experimental/coordinator-workspace.md`.
+- **Subtask fold arrow moved to the right of the row** (#21859): `experimental/coordinator-workspace.md`, `guides/day-to-day/command-palette.md`.
 
 ## Applied in earlier runs (still on nightly, unreleased)
+
+- `68f641ba..27866014` (#201): sidebar subtasks, issue summaries API, saved files permanently lost, GitHub review task completion, made-up-host links, first-turn messages, dedicated DB connections kept, instance settings cache, cloud owners' `isInstanceAdmin`, OpenCode control tokens.
 
 - `ff971149..68f641ba` (#189): DB connection cap, prepared-statement recovery, server metrics, work-signal debug logging, `retriedBy`, plugin SDK launch digests, Runner loop guard, Tailscale connector, MCP machine sign-in and app questions, queued and waiting work, Retry and continuations, automatic-work pause.
 
@@ -58,14 +56,17 @@ Everything after the `v2026.1106.0` tag is master-only, so release review must k
 
 ## Not documented this run
 
-- **`issue.child_deleted` activity** and `parentId` on `issue.deleted` details (#21649): neither activity page lists action names, so there was no row to add.
-- **Internal recovery, native-runtime, warm-session, Runner and queue fixes**, which is most of the window (#21867, #21861, #21853, #21835, #21831, #21821, #21795, #21791, #21786, #21782, #21774, #21770, #21765, #21729, #21686, #21681, #21788, #20756), plus perf, test, evals, scaling, release and CI work.
-- **Bug fixes with nothing new to see:** composer autocomplete adds a space (#21754), Cases and Status links keep the company (#21794), saved authorization cards no longer block replies (#21744), provider pack reuse (#21784, #21781).
-- **Parent docs only:** observability and run-log event catalogs trimmed (#21779), restart-chaos and runner-e2e READMEs split (#21743), `fix-failed-paperclip-run` dev skill lessons (#21745).
-- **After the pin:** everything after 2026-11-16T11:00Z.
+- **Claude Opus 4.5 in the static model list** (#12379): the effort table's "Other models" row already covers it.
+- **Saved sessions survive config edits the thread can't see** (#21862): no page says an edit resets a task session, so there was nothing to correct. A candidate for a short note on the agent settings page.
+- **Remote Runner reuses an identical `paperclip-runnerd`** (#21949): `PAPERCLIP_RUNNER_REMOTE_BINARY_PATH` and the other remote Runner variables aren't on our env-var page (see follow-ups).
+- **Bug fixes with nothing new to see:** Stop confirmed during preparation (#21906), satisfied connection cards retired on blocked and unstarted tasks (#21940), a person's comment reopens a finished task when it merged into a system wake (#21914, #21918), managed GitHub access across a controller restart (#21928), Claude sign-in failure detection on ACPX (#21921), released done blockers (#21948), faster recent-task opens (#21939, #21904).
+- **Internal recovery, native-runtime, Runner and queue fixes** (#21987, #21984, #21983, #21977, #21959, #21913, #21907, #21905, #21872, #21862 internals, #21533), plus perf, test, chaos, release, lockfile and CI work (#21986, #21979, #21726, #21942, #21941, #21943, #21903, #21925, #21936, #18720, #21924, #21917, #21860, #21915).
+- **After the pin:** everything after 2026-11-17T11:01Z.
 
 ## Follow-ups (pre-existing, not from this window)
 
+- `deploy/environment-variables.md` has no rows for the remote Runner variables (`PAPERCLIP_RUNNER_PUBLIC_URL`, `PAPERCLIP_RUNNER_CA_BUNDLE_PATH`, `PAPERCLIP_RUNNER_REMOTE_*`).
+- `deploy/environment-variables.md:28`: "`paperclip` otherwise" is loose; the private pools use their own names (explained on the database page).
 - `tool-gateway.md` mint table: `ownerNote` is optional with no minimum. (`allowedActions` now lists all six actions, fixed this run.)
 - `api/agents.md` permission row for `environments:manage` says environment reads need instance admin; the read routes also accept company membership.
 - `check-drift` doesn't compare embedded `skill-source` blocks with the catalog. Worth adding a class.

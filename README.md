@@ -44,6 +44,18 @@ Spotted a typo, a broken link, or something that could be clearer? There are two
 
 For larger changes, fork the repo and open a PR against `main`. Screenshots live under `docs/user-guides/screenshots/{light,dark}/` and should be provided in both themes when replacing UI captures.
 
+### Writing pages
+
+- **Prompts for the reader to copy.** Put text the reader should paste into an agent or assistant in a fenced block tagged `prompt`. It renders as a prompt box with a **Copy prompt** button:
+
+  ````markdown
+  ```prompt
+  File a task on Acme Operations' Paperclip asking them to update the client onboarding checklist.
+  ```
+  ````
+
+- **Images open in a gallery.** Every image on a page opens a full-screen gallery when clicked: arrow keys or buttons move between the page's images, Esc closes, and **Download** saves the full-resolution file. The image's alt text is the gallery caption, so write alt text as a sentence that describes what the screenshot shows.
+
 ## Community
 
 - [Discord](https://discord.gg/m4HZY7xNG3)
