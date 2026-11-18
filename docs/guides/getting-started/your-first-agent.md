@@ -6,7 +6,7 @@ seo_description: An agent is a role, an AI system, a budget, and a set of wake-u
 
 # Hire Your First Agent
 
-An agent isn't just "an AI". It's a configuration — a specific role, with a specific AI system powering it, operating under a specific budget, with defined rules for when and how it wakes up and works.
+To hire your first agent in Paperclip, click **New Agent** on the Agents page, name it, choose an adapter, connect Claude or OpenAI, pick a model, and run the connection test. An agent isn't just "an AI": it's a role, an AI system that powers it, and rules for when and how it wakes up and works.
 
 When you hire an agent, you're telling Paperclip: which AI system should run this agent, what role does it play in the company, and what constraints does it operate within. The AI itself (Claude, Codex, etc.) lives outside Paperclip. Paperclip is the management layer above it.
 

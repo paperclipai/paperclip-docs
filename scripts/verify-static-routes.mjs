@@ -79,7 +79,7 @@ const REPRESENTATIVE_ROUTES = [
     route: "/guides/welcome/what-is-paperclip/",
     file: "guides/welcome/what-is-paperclip/index.html",
     h1: '<h1 id="what-is-paperclip">What is Paperclip?</h1>',
-    contentMarker: "Paperclip is the operating system for your AI company",
+    contentMarker: "Paperclip is software for running a team of AI agents as a company",
   },
   {
     route: "/reference/api/overview/",
