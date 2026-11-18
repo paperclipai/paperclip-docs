@@ -42,7 +42,7 @@ Your three main destinations sit together in one group, between the **New task**
 
 - **Chat** opens your conversations with agents. Its badge counts chats with unread agent messages.
 - **Tasks** opens the company task list. Hover the row for a **New task** shortcut.
-- **Inbox** collects everything waiting on your decision. Its badge counts what's open.
+- **Inbox** collects everything waiting on your decision. Its badge counts your open [**For you**](../guides/day-to-day/decisions.md) cards, the ones meant for you, not everyone's.
 
 Want to hand off work right away? A **New task** button sits at the top, just above **Chat**, and opens the usual new-task form. It stays there when you collapse the sidebar too, as an icon you can hover to see its name.
 
@@ -54,7 +54,7 @@ You can pin agents too, from the chat [contact list](agent-chat.md#opening-a-cha
 
 Below **More**, **Recents** mixes the tasks you've opened, your agent conversations, and projects you've visited in this session, newest first. Chats show the agent's avatar and name. Expand a project there to see its most recently updated tasks without leaving the page. The list scrolls on its own, so a long history doesn't crowd the rest of the sidebar. It only appears once it has something to list, and it's hidden while the sidebar is collapsed. To tuck the whole list away, click the arrow beside the **Recents** heading.
 
-When a recent task has subtasks, they open out right under it, so you can hop between a parent and its pieces of work. You see its direct subtasks that you're allowed to read, ten at a time. Click **Show more (N)** to load the next ones, and **Show less** to go back to the first ten. Click the arrow beside the parent to fold the group, and it shrinks to a short count such as *4 subtasks · 2 unread*. A task with something new for you shows its title in bold with a small unread dot. Folding a group or loading more subtasks doesn't mark anything as read. If you've opened one of those subtasks yourself, it moves into its parent's group instead of getting a separate row. If it's past the first ten, you see it there once you click **Show more** or while you have it open.
+When a recent task has subtasks, they open out right under it, so you can hop between a parent and its pieces of work. You see its direct subtasks that you're allowed to read, ten at a time. Click **Show more (N)** to load the next ones, and **Show less** to go back to the first ten. Click the arrow at the right end of the parent's row to fold the group, and it shrinks to a short count such as *4 subtasks · 2 unread*. A task with something new for you shows its title in bold with a small unread dot. Folding a group or loading more subtasks doesn't mark anything as read. If you've opened one of those subtasks yourself, it moves into its parent's group instead of getting a separate row. If it's past the first ten, you see it there once you click **Show more** or while you have it open.
 
 On a phone, the bottom bar carries **Chat**, **Tasks**, **Inbox**, and **New task**.
 

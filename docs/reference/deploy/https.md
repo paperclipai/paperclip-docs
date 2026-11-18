@@ -69,7 +69,7 @@ Add the separate callback origin to Paperclip's environment and restart:
 PAPERCLIP_CHAT_WEBHOOK_PUBLIC_URL=https://paperclip.your-tailnet.ts.net:8443
 ```
 
-This value must be an HTTPS **origin only**: no callback path, query, or fragment. Reopen connection setup and use its regenerated webhook URL or app manifest. Add routes for any other callback paths the connector requires. Keep the server and Tailscale running so the provider can deliver events.
+This value must be an HTTPS **origin only**: no callback path, query, or fragment. Because the instance is private, the callbacks also go through Paperclip's hostname check. Here they use the board's own hostname (the check ignores the `:8443` port), which is already in `PAPERCLIP_ALLOWED_HOSTNAMES`. If your callbacks arrive on a different hostname, add that one too, or the providers get `403` before their events reach Paperclip. Reopen connection setup and use its regenerated webhook URL or app manifest. Add routes for any other callback paths the connector requires. Keep the server and Tailscale running so the provider can deliver events.
 
 Do not publish an entire `local_trusted` instance through Funnel: that mode has no board login. For a public board, use authenticated public deployment as below.
 

@@ -128,7 +128,7 @@ Paperclip keeps a pool of open connections to PostgreSQL and reuses them across 
 | `DATABASE_IDLE_TIMEOUT_SECONDS` | `60` | Closes a connection after it has sat idle this long, so a quiet server gives its connections back. `0` keeps idle connections open indefinitely. |
 | `DATABASE_CONNECT_TIMEOUT_SECONDS` | `30` | How long to wait for a new connection before giving up. |
 | `DATABASE_MAX_LIFETIME_SECONDS` | a random 30–60 minutes | Replaces a pooled connection with a fresh one once it's this old. |
-| `DATABASE_APPLICATION_NAME` | `paperclip` | The name Paperclip's connections show in PostgreSQL's `pg_stat_activity` view, so you can tell them apart from other clients. |
+| `DATABASE_APPLICATION_NAME` | `paperclip:<boot id>` (main pool) | The name Paperclip's connections show in PostgreSQL's `pg_stat_activity` view, so you can tell them apart from other clients. See below for what the boot id is. |
 | `DATABASE_DEDICATED_CONNECTION_MAX` | `24` | How many dedicated lock connections (see below) one server process uses at once. Past that, new requests for one wait in line. Work that already holds one, or is inside a database transaction, doesn't wait. |
 | `DATABASE_DEDICATED_CONNECTION_WAIT_MS` | `30000` | How long, in milliseconds, a request waits in that line. After that it gets a dedicated connection anyway, over the limit, so nothing stalls indefinitely. |
 | `DATABASE_PREPARED_STATEMENTS` | unset | Prepared statements. See [Hosted PostgreSQL](#hosted-postgresql). |
@@ -141,7 +141,9 @@ To see Paperclip's connections, run this against your database:
 SELECT * FROM pg_stat_activity WHERE application_name LIKE 'paperclip%';
 ```
 
-If you've set `DATABASE_APPLICATION_NAME`, the main pool uses your name instead, so search for that too. The private pools and dedicated lock connections below keep their own names.
+The server's main pool reports `paperclip:` followed by a boot id, a random id each server process picks when it starts. After a restart, or with several server processes, that tells you which process each session belongs to. The second pool you get with `DATABASE_MIGRATION_URL` reports plain `paperclip`. If you've set `DATABASE_APPLICATION_NAME`, both use your name instead, so search for that too. The private pools and dedicated lock connections below keep their own names.
+
+**When runs seem stuck on the database.** Paperclip watches the work of taking in a run's events: receiving them from the Runner, writing them to the database, and recording the identity of the process a run started (its process id and start time). If any of that stays unfinished for 30 seconds, the server logs a warning: *runner event intake stalled; pending run writes, database sessions and lock waits*. It lists the stalled operations and each run's pending work, the pool's size, how many database sessions each application name has in each state, and the sessions worth a look: ones waiting on a lock or holding one that others wait for, ones idle in a transaction, and ones whose transaction has been open longer than 30 seconds. Their query text is cut to 160 characters, with literal values left out. It also records how far the server's event loop is lagging. Each stalled run is reported once while it stays stalled, and the server logs at most one of these warnings every 30 seconds. When a reported operation finally finishes, an info line, *runner event intake stall cleared*, says how long it was pending. The check only runs while such work is pending, and it reads `pg_stat_activity` only when it has a stall to report.
 
 **Sizing `max_connections`.** Each server process can use more than `DATABASE_POOL_MAX` connections. When you set PostgreSQL's `max_connections`, budget for these per server process, plus your other clients:
 
