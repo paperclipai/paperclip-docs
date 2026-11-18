@@ -12,6 +12,8 @@ Paperclip has two settings surfaces, and it matters which one you're looking at.
 
 **Instance settings** are the admin controls. They don't live on a separate instance page — you reach them from the same **Settings** navigation as your organization (tabs like **Access**, **Experimental**, **Plugins**, and **Adapters**, plus the instance sections on **General**). Anything you change there applies to the whole Paperclip instance — every company, every user, every agent that runs against this install. If you're running Paperclip on a VPS that hosts five companies, an instance toggle flips for all five.
 
+> **Note:** A change you save in Settings applies right away on the server that saved it. Each server process keeps its own copy of the instance settings for up to 2 seconds, though, so if you edit the `instance_settings` row directly in the database, or save through a second server process, other processes can take up to 2 seconds to pick up the change.
+
 Company and instance settings now share one navigation. The instance-wide **General** controls described below live on the organization's own **General** page (see [Company Administration](./company.md#general-settings)), so instance admins reach them from the same place as the organization settings rather than a separate area.
 
 This guide walks through both, section by section.

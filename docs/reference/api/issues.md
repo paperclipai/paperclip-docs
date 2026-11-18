@@ -131,6 +131,7 @@ Return all issues visible to a company, ordered by priority unless a search quer
 | `includeRoutineExecutions` | Include routine execution issues. Default is `false` |
 | `includeAgentCreatedTasks` | `true` or `false`. Send `false` to keep only tasks a person created through the normal task or onboarding flow; tasks created by an agent, with no creating user, or from another origin (including every chat-channel task) are left out. Omit it to keep the previous behaviour |
 | `includeParticipatedTasks` | `true` or `false`. Board users only. With `includeAgentCreatedTasks=false`, also keeps agent-created tasks the signed-in user has taken part in |
+| `includeReadState` | `true` or `false`. Board users only. Adds your own read state to each task, `isUnreadForMe`, `myLastTouchAt`, and `lastExternalCommentAt`, without filtering the list |
 | `q` | Full-text search across title, identifier, description, and comments |
 | `limit` | Page size, a positive integer. Defaults to 500. A value above 1000 is treated as 1000 |
 | `offset` | How many tasks to skip, a non-negative integer. Defaults to `0` |
@@ -149,6 +150,7 @@ Notes:
 - `sortField=updated` orders by latest activity, `sortField=created` by creation time, and `sortField=id` by task ID; ties fall back to the ID so pages stay stable. With `q` set, `updated` still ranks by search match first. `updated` and `created` sort newest first unless you send `sortDir=asc`; `id` sorts ascending unless you send `sortDir=desc`. Any other `sortField` returns `400` with `sortField must be 'updated', 'created', or 'id' when provided`, and any other `sortDir` returns `400` with `sortDir must be 'asc' or 'desc' when provided`. `id` and `created` ordering aren't supported together with `attention=blocked`.
 - `displayStatus` is matched against the computed display status, so `in_progress` matches only tasks currently displayed that way, leaving out agent tasks showing as `monitoring`, `blocked`, `in_review`, or `todo`, while `status=in_progress` still includes them. The `/issues/count` endpoint accepts `displayStatus` too.
 - `includeAgentCreatedTasks` and `includeParticipatedTasks` return `400` for any value other than `true` or `false`. `includeParticipatedTasks=true` from a non-board caller returns `403`. The agent-created filter is applied before `limit` and pagination. The board's **show agent-created tasks** checkbox drives it.
+- `includeReadState` returns `400` with `includeReadState must be true or false` for any other value, and `includeReadState=true` from a non-board caller returns `403` with `includeReadState requires board authentication`.
 
 ### Page Through a Long List
 
@@ -176,6 +178,33 @@ curl -sS \
   -H "Authorization: Bearer {token}" \
   "https://paperclip.example.com/api/companies/{companyId}/issues?status=todo,in_progress&projectId={projectId}&limit=25"
 ```
+
+---
+
+## Issue Summaries
+
+```
+GET /api/companies/{companyId}/issues/summaries?ids={issueId},{issueId}
+```
+
+Use this when you already know which tasks you care about and just want their current title and status, for example to refresh a list of recently opened tasks. Send one to 50 task UUIDs in `ids`, separated by commas. Repeated IDs are only looked up once, and tasks you can't read are left out of the response.
+
+Each summary carries `id`, `companyId`, `title`, `identifier`, `status`, `displayStatus`, `updatedAt`, and `externalConversationState`. A blocked task can also carry `blockerAttention`, so it shows the same status icon as on the task page. Responses are sent with `Cache-Control: private, no-store`.
+
+Add `navigation=true` (board users only) to get what the sidebar needs to group tasks with their subtasks:
+
+| Field | Meaning |
+|---|---|
+| `parentId` | The task's parent, or `null` |
+| `isUnreadForMe` | Whether the task has something new for you |
+| `subtaskCount` | How many direct subtasks you can read. Chat conversation tasks aren't counted |
+| `unreadSubtaskCount` | How many of those subtasks are unread for you |
+
+Notes:
+
+- `navigation=true` is the only optional parameter. Anything else, or an `ids` value that isn't one to 50 UUIDs, returns `400` with `ids must contain one to 50 comma-separated UUIDs; navigation=true is the only optional parameter`.
+- `navigation=true` from a non-board caller returns `403` with `Navigation summaries require board authentication`.
+- Task bridge keys can't use this route; they get `403` with `Task bridge keys cannot use company-wide issue list APIs`.
 
 ---
 

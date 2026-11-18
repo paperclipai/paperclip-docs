@@ -178,13 +178,38 @@ A complete run finding the word scores 5/5; a complete run finding no matching
 page scores 3/5. A build failure leaves the assessment incomplete. With a 5/5
 threshold, only the first outcome passes.
 
-A low score, pending CI, or an unmerged PR doesn't call you into Paperclip on its
-own. After publishing, the bot's task waits in review for the next GitHub event
-and stays out of your **Mine** view. A later 5/5 review with its completion
-conditions met can finish the task quietly. You only hear from the bot when it
-genuinely needs your input, such as repository access.
-
 See [GitHub's Checks API guide](https://docs.github.com/en/rest/guides/using-the-rest-api-to-interact-with-checks).
+
+### When does the bot's Paperclip task finish?
+
+The score drives the **Paperclip Review** check. It doesn't set the status of
+the bot's Paperclip task. You decide when that task is finished by writing a
+completion rule into the agent's instructions or into **Instructions** on the
+bot's **Settings**. CI or a merge only counts when your rule explicitly asks for
+it.
+
+Say your rule lets a review-only assignment finish at 5/5. The agent marks the
+task done once a complete assessment of the current PR head is rated 5/5 and
+its publication on GitHub is confirmed. Its report includes the publication
+link, the reviewed commit, the score, coverage limits, and whatever check
+evidence is available. If CI results aren't available, it says so rather than
+claiming they passed. An incomplete assessment, a publication that is still
+queued or uncertain, or a newer head on the PR doesn't satisfy the rule. The
+agent also won't publish the same review again just to change the task's status.
+
+A plain discussion reply, such as an answer to a question someone asked the bot,
+finishes the same way. Once the reply is published and nothing else is assigned,
+the task is done. It doesn't need a new assessment or score.
+
+A low score, pending CI, or an unmerged PR doesn't call you into Paperclip on its
+own. The bot's task only waits for a later GitHub event when the assignment
+still needs an authorized reply or a later review, for example when you've told
+it to keep tracking PRs that score below 5. An open PR alone isn't a reason to
+wait. While it waits, it stays out of your **Mine** view. You only hear from the
+bot when it genuinely needs your input, such as repository access.
+
+[Set up a GitHub review bot](github-review-bot-setup.md#7-give-the-storybook-bot-a-concrete-review-instruction)
+includes an example completion rule you can paste.
 
 ## 4. GitHub's repository rules decide whether the check blocks merging
 

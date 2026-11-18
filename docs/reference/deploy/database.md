@@ -149,7 +149,7 @@ If you've set `DATABASE_APPLICATION_NAME`, the main pool uses your name instead,
 - a second pool of the same size when `DATABASE_MIGRATION_URL` is set
 - 9 connections in small private pools, so the work they do never waits behind slow queries: lease renewals that keep agent runs alive (`paperclip-controller-lease`, `paperclip-legacy-controller-lease`, `paperclip-controller-instance-lease`), Runner checkpoints (`paperclip-runner-checkpoint`), and file storage (`paperclip-file-storage`)
 - 2 connections that listen for database notifications, under the main pool's name
-- dedicated lock connections named `paperclip-workspace-finalization-lock`, for work that holds a database lock. `DATABASE_DEDICATED_CONNECTION_MAX` bounds how many are in use. The worst case is twice that value plus 4 idle ones kept for reuse, so 52 with the default of 24
+- dedicated lock connections named `paperclip-workspace-finalization-lock`, for work that holds a database lock. `DATABASE_DEDICATED_CONNECTION_MAX` bounds how many are in use. When work on one finishes without an error, Paperclip keeps it open for the next burst of work: always if fewer than 4 are idle, and beyond that while the idle and in-use ones together stay within `DATABASE_DEDICATED_CONNECTION_MAX`. A kept connection still closes after `DATABASE_IDLE_TIMEOUT_SECONDS` without use. The worst case is twice `DATABASE_DEDICATED_CONNECTION_MAX` plus 4, so 52 with the default of 24
 
 With every default, one server process can open up to 73 connections: 10 in the main pool, 9 in the private pools, 2 listeners, and 52 dedicated lock connections. If that doesn't fit your plan's `max_connections`, lower `DATABASE_DEDICATED_CONNECTION_MAX`.
 
