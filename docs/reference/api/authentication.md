@@ -98,7 +98,7 @@ They are created through the CLI auth challenge flow:
 
 `GET /api/cli-auth/me` is a board-only endpoint. It returns the resolved user, company IDs, instance-admin status, auth source, and key ID when the caller is using a board key.
 
-For someone who arrives through Paperclip Cloud (auth source `cloud_tenant`), `isInstanceAdmin` reports the instance-admin rights that request actually has, including the stack owner's elevation from `enableOwnerInstanceAdmin`, rather than stored instance-admin roles. For sessions and board keys it still comes from stored roles. The board reads this endpoint to decide which admin-only controls to show, such as managing Tailscale connections.
+For someone who arrives through Paperclip Cloud (auth source `cloud_tenant`), `isInstanceAdmin` reports the instance-admin rights that request actually has, including the stack owner's elevation from `enableOwnerInstanceAdmin`, rather than stored instance-admin roles. For every other auth source, such as sessions and board keys, it still comes from stored roles. The board reads this endpoint to decide which admin-only controls to show, such as managing Tailscale connections.
 
 ---
 
