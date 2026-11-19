@@ -55,7 +55,7 @@ You can still pick **Plan mode** or **Ask mode** in the composer, just like on a
 
 When a reply is finished, the conversation simply waits for your next message. An idle chat doesn't count as unfinished work.
 
-Sometimes a turn finishes while something else is holding the task: an approval, an execution stage, a blocker, or a card the turn didn't create (one from an earlier turn, or one addressed to someone else). The agent's reply still appears in the conversation, so you can read its answer while the task waits. On a [Paperclip Runner](../reference/adapters/paperclip-runner.md) turn, if Paperclip restarts before the reply is posted, it posts the same reply once it's back up. The exception is a turn that ends by asking you a question or asking you to confirm something: that card is the turn's reply.
+Sometimes a turn finishes while something else is holding the task: an approval, an execution stage, or a blocker. The agent's reply still appears in the conversation, so you can read its answer while the task waits. On a [Paperclip Runner](../reference/adapters/paperclip-runner.md) turn, if Paperclip restarts before the reply is posted, it posts the same reply once it's back up. The exception is a question or confirmation card waiting on the task: that card stands in for the turn's reply.
 
 ### Who gets the task
 

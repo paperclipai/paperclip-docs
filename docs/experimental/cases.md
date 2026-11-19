@@ -31,6 +31,8 @@ You start a case workflow by asking an agent to create one — for example, by t
 
 Paperclip saves the workflow text as the task's **Workflow** document, so every agent that picks up the task reads the same instructions. You can revise it later like any other task document.
 
+The Paperclip skill's `references/cases.md` explains the API your agents use.
+
 > **The workflow is guidance, not a rulebook.** Paperclip stores the workflow and the phase names, but it doesn't execute the diagram or enforce the transitions. Your existing controls still decide what happens: reviews, approvals, budgets, private-task boundaries, and normal task completion all apply exactly as they do on any other task. A phase called `review` is just a label — it isn't a review verdict.
 
 ### Passing the task along

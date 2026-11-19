@@ -12,7 +12,7 @@ Around that broker sit the pieces you configure. **Applications** and **connecti
 
 Every route below is company-scoped, and company access is checked on every request. If you are new to the API, read the [API Overview](./overview.md) first for base URL, authentication, and error-code conventions; this page builds on those and won't repeat them.
 
-> **Experimental — on by default.** The Tools, Profiles, and Apps surfaces are gated behind the `enableApps` instance experimental setting, which defaults to `true`. An operator can turn it off, and then none of this appears in your instance. The Smoke Lab described near the end of this page is gated separately behind `enableSmokeLab`, and while that flag is off every Smoke Lab route responds `404 Not Found` with `{ "error": "Smoke lab is disabled" }`. Because the whole surface is experimental, treat the request and response shapes below as subject to change between releases.
+> **Always on.** The Tools, Profiles, and Apps surfaces are no longer experimental. The old `enableApps` setting is kept only for compatibility: it reads `true`, and a stored or managed off value is ignored, so you can't turn this surface off. The Smoke Lab described near the end of this page is gated separately behind `enableSmokeLab`, and while that flag is off every Smoke Lab route responds `404 Not Found` with `{ "error": "Smoke lab is disabled" }`. The API is still young, so expect the request and response shapes below to change between releases.
 
 ---
 
@@ -167,7 +167,7 @@ Requires `tools:admin`, and `companyId` in the body. Responds `201 Created`.
 | `ownerNote` | yes | 1–1,000 characters — who owns it and why it exists. |
 | `subjectType` | no | Only `gateway_client` is accepted today. |
 | `subjectId` | no | 1–240 characters, or `null`. |
-| `allowedActions` | no | Any of `tools/list` and `tools/call`. Defaults to both. |
+| `allowedActions` | no | Any of `tools/list`, `tools/call`, `resources/list`, `resources/read`, `prompts/list`, and `prompts/get`. Defaults to `tools/list` and `tools/call`. |
 | `expiresAt` | no | A date, or `null` for a non-expiring token. |
 | `expiryOverrideReason` | no | Required when `expiresAt` is `null`. |
 
@@ -198,12 +198,15 @@ The `POST` speaks JSON-RPC. Authenticate with `Authorization: Bearer <gateway-to
 
 | Method | What happens |
 |---|---|
-| `initialize` | Returns `protocolVersion` `2025-03-26`, a `capabilities` block advertising `tools`, and `serverInfo` naming `Paperclip MCP Gateway`. |
+| `initialize` | Returns `protocolVersion` `2025-03-26`, a `capabilities` block advertising `tools`, `resources`, and `prompts`, and `serverInfo` naming `Paperclip MCP Gateway`. |
 | `notifications/initialized` | Acknowledged with `202 Accepted` and no body. |
 | `tools/list` | Returns the tools this gateway's profile allows, each with `name`, `title`, `description`, and `inputSchema`. |
 | `tools/call` | Runs a tool. Takes `params.name` and `params.arguments`; a missing name is a JSON-RPC error `-32602` with `params.name is required`. |
+| `resources/list`, `resources/read`, `prompts/list`, `prompts/get` | Lists and reads resources and prompts from connections fully assigned to the gateway. The same four are also offered as tools, `paperclip_list_resources`, `paperclip_read_resource`, `paperclip_list_prompts`, and `paperclip_get_prompt`, for clients that only call tools. |
 
 Anything else returns `404` with JSON-RPC error `-32601`, `Method not found`. When a call is refused, the JSON-RPC `error` object carries a `data.reasonCode` so you can tell a policy block apart from a broken upstream.
+
+Listing, calling, and the resource and prompt methods each need the matching action in the token's `allowedActions`. A method outside the token's list is refused with `403`, the message `Gateway bearer token is not allowed to perform this MCP action`, and `data.reasonCode` `gateway_token_action_denied`.
 
 A failure inside the provider is different: `tools/call` returns a normal result with `isError: true` and the message as text. That covers `tool_error` and `github_access_denied`, which is what you get when GitHub refuses a repository or account this connection can't reach. For GitHub, the text includes steps for repairing the connection's access. Don't retry the same call until that's done.
 

@@ -82,7 +82,7 @@ Implementation reference: [Tasks page and live updates](https://github.com/paper
 
 2. **Choose a project.**
 
-   Click **Project** above the text box. Search for a project, choose a recent one, or select **No project**. The project sets where the task belongs; the model picker below controls how the agent answers.
+   Click **Project** above the text box. Search for a project, choose a recent one, or select **No project**. The project sets where the task belongs; the model picker below controls how the agent answers. Paperclip remembers the last project you picked in this company and starts the next new task there.
 
 3. **Pick a work mode.**
 
@@ -526,6 +526,7 @@ At the bottom of the conversation sits the composer. [Chat-Style Tasks](../../ex
 - **Voting** — each comment has up/down vote controls. Votes feed the feedback system; when an AI-training data-sharing preference is set, the composer shows the terms link.
 - **Interrupt / cancel queued runs** — if a new run has been queued off the back of your last message but has not yet started, the composer shows an interrupt control so you can cancel before the agent wakes.
 - **Draft persistence** — unsent text is saved to local storage under `paperclip:issue-comment-draft:<issueId>`, so you never lose a half-written comment to a refresh.
+- **Sending while the connection drops** — if Paperclip loses its connection, one banner says *Connection interrupted. Reconnecting automatically…* (or *You're offline…*), and pages keep showing what they'd already loaded. A message you send meanwhile waits above the composer as **Sending when reconnected…** and goes out once the connection is back, with its original request ID, so it can't post twice. **Resend now** tries straight away, and **Cancel** gives you the text back. If Paperclip can't tell whether a send went through, it says *We couldn't confirm whether this message was sent.* Check the conversation before sending again.
 - **Disabled reasons** — when you cannot send, the composer explains why. A paused task replaces the inputs with a resume panel and preserves your draft. A completed task can be reopened when you send new work to an agent.
 
 ### Interrupts, handoffs, and scoped wakes

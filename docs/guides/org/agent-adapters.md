@@ -26,7 +26,7 @@ Without an adapter, an agent is just a record in a database. With one, it's a wo
 | `paperclip_runner` | Native sessions and Paperclip task tools | Runner enabled, prepared execution environment, compatible provider credential |
 | `pi_local` | Pi users wanting Pi's built-in tool set | Pi CLI installed, relevant API keys |
 | `grok_local` | xAI users — runs the Grok Build CLI | Grok CLI installed, xAI API key or SuperGrok login |
-| `hermes_local` | Persistent memory, 30+ tools, 80+ skills | Hermes Agent installed |
+| `hermes_local` | Persistent memory, 30+ tools, 80+ skills | Hermes Agent installed, Python 3.10+ |
 
 For most people getting started, **`claude_local`** is the right choice. It runs directly on your Mac using the same Claude that powers Anthropic's Claude.ai, and it only needs Claude Code plus an API key wired through environment variables.
 
@@ -144,9 +144,9 @@ The configuration is similar to the other local adapters, with an additional **M
 
 ## Other adapters you may see
 
-Three built-in adapter types are marked **"Coming soon"** in the agent-config dropdown and can't be picked directly from the UI today. They're fully functional in the runtime — you just configure them via the API or an imported company export until the UI picker lands.
+Three built-in adapter types aren't listed in the agent form's **Harness** dropdown, so you can't pick them directly from the UI today. They're fully functional in the runtime — you just configure them via the API or an imported company export until the UI picker lands.
 
-- `openclaw_gateway` — remote OpenClaw instances reached over the WebSocket gateway protocol. Today, the normal path is the OpenClaw invite-prompt flow on the Company Settings page. See [OpenClaw Gateway](../../reference/adapters/openclaw-gateway.md).
+- `openclaw_gateway` — remote OpenClaw instances reached over the WebSocket gateway protocol. Today, the normal path is the external-agent invite flow in the add-agent dialog. See [OpenClaw Gateway](../../reference/adapters/openclaw-gateway.md).
 - `http` — webhook-style invocation into your own service. Aimed at developers building custom agent integrations. See [HTTP](../../reference/adapters/http.md).
 - `process` — runs an arbitrary local command or script. See [Process](../../reference/adapters/process.md).
 

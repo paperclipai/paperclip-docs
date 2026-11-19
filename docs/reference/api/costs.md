@@ -392,7 +392,7 @@ The request body for both endpoints is the same:
 
 The budget window is calendar-month UTC for company and agent monthly budgets. Sending `0` turns the matching policy off rather than setting a zero-dollar cap.
 
-Both endpoints are board-only, and so is setting a budget anywhere else, such as `budgetMonthlyCents` on an agent update. See [Who can set a budget](agents.md#who-can-set-a-budget). An agent caller gets `403` with code `board_access_required` and a `remediation` that links the matching budget page: the company's budgets page, or that agent's budget tab ([Board-only denials](overview.md#board-only-denials)).
+Both endpoints are board-only. An agent caller gets `403` with code `board_access_required` and a `remediation` that links the matching budget page: the company's budgets page, or that agent's budget tab ([Board-only denials](overview.md#board-only-denials)).
 
 <!-- tabs: cURL, JavaScript, Python -->
 <!-- tab: cURL -->

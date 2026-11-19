@@ -21,7 +21,7 @@ seo_description: Run Hermes Agent by Nous Research on the Paperclip host, with p
 
 - The runtime lives behind a webhook or API. Use [OpenClaw Gateway](./openclaw-gateway.md) or [HTTP](./http.md).
 - You only need a one-shot shell command. Use [Process](./process.md).
-- Hermes Agent is not installed on the machine. Install it with the [Hermes installer](https://github.com/NousResearch/hermes-agent): `curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash` on Linux, macOS, or WSL2.
+- Hermes Agent is not installed on the machine, or the machine doesn't have Python 3.10+. Upgrade Python first if you need to, then install Hermes with `pip install hermes-agent`, which is the command Paperclip's environment test suggests. On Linux, macOS, or WSL2 you can use the [Hermes installer](https://github.com/NousResearch/hermes-agent) instead: `curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash`.
 
 ---
 

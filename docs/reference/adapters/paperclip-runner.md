@@ -203,6 +203,8 @@ A Runner agent with the **Warm session** or **Automatic** Runner lifecycle can a
 
 For Claude, the Runner loads three task tools up front — `set_task_title`, `paperclip_finish`, and `paperclip_block` — so Claude doesn't have to search for them before it can name or finish a simple task. Its other Paperclip tools load on demand, with the same access checks.
 
+A Runner agent reports how its task ended with `paperclip_finish` or `paperclip_block`, and Paperclip sets the task status from that report. While the run holds the task, the agent's own status change through `PATCH /api/issues/{id}` is refused with `409 native_run_status_reported_by_finish`. If your custom instructions or skills tell Runner agents to PATCH their own status, switch them to the finish tools.
+
 Runner agents can also manage their own task workspace. `get_workspace` shows the current folder, any pending selection, and what the agent can prepare. `list_workspaces` lists the existing folders it may use, and `list_project_repositories` lists its repository choices. `select_workspace` and `prepare_repository` only request a change: Paperclip validates and prepares it, and a different workspace applies at the task's next normal start rather than interrupting the current run. Grok Bot and Muse agents don't get `get_workspace`, `list_workspaces`, `select_workspace`, or `prepare_repository`.
 
 When an assigned tool returns more than about 500 KB, the Runner saves the full result and hands the agent a reference instead. The agent reads it in pages with `read_tool_result`, passing `artifactId` and then each `responseText.nextOffsetBytes` until it's `null`, so the original action never has to run twice.

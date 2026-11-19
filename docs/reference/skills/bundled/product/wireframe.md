@@ -6,22 +6,26 @@ seo_description: Produce low-fidelity black-and-white UI wireframes as standalon
 
 # Wireframe
 
-> Produce low-fidelity black-and-white UI wireframes as standalone SVG files, optionally bundled into a single-page HTML viewer and published via the here-now skill. Use when the user asks to "wireframe X", "sketch a screen for", "draft a layout", "low-fi mockup", "rough mock", "make a page to view the wireframes", "build a viewer for these screens", or to "deploy / publish / host the wireframes". Do NOT use when the user wants production UI code, branded designs, hi-fi mockups, or animated/interactive prototypes — use frontend-design or similar instead.
+> Produce low-fidelity black-and-white UI wireframes as SVGs or viewer pages. Use when asked to wireframe, sketch a screen, draft a layout, make a low-fi mockup, or publish wireframes.
 
-Produce low-fidelity, black-and-white UI wireframes as standalone SVG files: layout, hierarchy, and the components on a screen, without color, branding, or visual polish. The point is to agree on structure before anyone invests in high-fidelity design.
+Produce low-fidelity, black-and-white UI wireframes as standalone SVG files: what goes where, in what order, and at roughly what size, without colour, branding, or visual polish. When you have several screens, you can bundle them into a single scrollable viewer page, and hand publishing off to the `here-now` skill. The point is to agree on structure before anyone invests in high-fidelity design.
 
 This is a **bundled** catalog skill — part of the bundled baseline kit. For how to install, audit, update, assign, and reset catalog skills, see the [Skills reference](../../../skills.md#3-app-shipped-catalog).
 
 ## When to use
 
-- You need to communicate the structure of a screen or flow before visual design.
-- A product or engineering discussion needs a concrete layout to react to.
-- You're exploring several layout options cheaply and want them side by side.
+- You're asked to wireframe a screen, page, or flow, sketch a layout, or make a low-fi mockup.
+- You want to show how something would lay out before anyone builds it.
+- You have several wireframes and want them on one page you can scroll or click through.
+- You need to deploy, publish, or host the wireframes so others can review them.
 
 ### When not to use
 
-- The task needs production-ready, high-fidelity visual design — this is deliberately low-fidelity.
-- A concrete layout already exists and only needs visual polish.
+- The request is for production UI code, real components, colour palettes, a Figma export, or HTML/React deliverables — use `frontend-design` or write the code directly.
+- You need hi-fi or branded mockups — use Figma or another design tool.
+- You need an interactive prototype — these SVGs are static.
+- You're drawing system architecture, sequence flows, or data models — use Mermaid or PlantUML.
+- You want illustrations or art rather than a screen layout.
 
 ## Catalog metadata
 
@@ -41,14 +45,14 @@ This is a **bundled** catalog skill — part of the bundled baseline kit. For ho
 | Requires | — |
 | Tags | `design`, `wireframe`, `ux`, `prototyping`, `svg` |
 | Files | 7 |
-| Content hash | `sha256:0bd9a9fdc656d529e3f97c00cd504dcf72d3a4fecb8b0504ca2fe3e00d63287f` |
+| Content hash | `sha256:7106d84fc9db2053090f692706e41cfc586e7dd85a44f568e3319c4eefbdde46` |
 | Package | `@paperclipai/skills-catalog@0.3.1` |
 
 ## File inventory
 
 | Path | Kind | Bytes |
 |---|---|---:|
-| `SKILL.md` | `skill` | 11,887 |
+| `SKILL.md` | `skill` | 11,509 |
 | `assets/site-template.html` | `asset` | 14,791 |
 | `assets/template-mobile.svg` | `asset` | 925 |
 | `assets/template.svg` | `asset` | 1,262 |
@@ -63,7 +67,7 @@ The block below is the complete, authoritative `SKILL.md` for this skill — the
 ````markdown skill-source
 ---
 name: wireframe
-description: Produce low-fidelity black-and-white UI wireframes as standalone SVG files, optionally bundled into a single-page HTML viewer and published via the here-now skill. Use when the user asks to "wireframe X", "sketch a screen for", "draft a layout", "low-fi mockup", "rough mock", "make a page to view the wireframes", "build a viewer for these screens", or to "deploy / publish / host the wireframes". Do NOT use when the user wants production UI code, branded designs, hi-fi mockups, or animated/interactive prototypes — use frontend-design or similar instead.
+description: Produce low-fidelity black-and-white UI wireframes as SVGs or viewer pages. Use when asked to wireframe, sketch a screen, draft a layout, make a low-fi mockup, or publish wireframes.
 key: paperclipai/bundled/product/wireframe
 recommendedForRoles:
   - designer

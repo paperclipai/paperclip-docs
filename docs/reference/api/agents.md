@@ -37,7 +37,7 @@ The agent payload is a normal JSON object. These are the fields you will see mos
 | `adapterType` | Runtime type such as `process`, `http`, `paperclip_runner`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `hermes_local`, `cursor`, or `openclaw_gateway`. External adapters can also be registered. |
 | `adapterConfig` | Adapter-specific config. Secret references are allowed inside `env`. |
 | `runtimeConfig` | Runtime settings. `heartbeat.enabled` defaults to `false` when you create an agent. |
-| `budgetMonthlyCents` | Monthly budget in cents. Budgets are board-only: see [Who can set a budget](#who-can-set-a-budget). When a board user creates an agent with a value above `0`, the server creates a matching budget policy automatically. |
+| `budgetMonthlyCents` | Monthly budget in cents. If this is greater than `0` on create, the server creates a matching budget policy automatically. |
 | `status` | Lifecycle state. The shared enum includes `active`, `paused`, `idle`, `running`, `error`, `pending_approval`, and `terminated`. While setup, pause, or resume is in progress the agent reports `paused`; while termination or cleanup is in progress it reports `terminated`. Read `lifecycleState` for the precise step. |
 | `lifecycleState` | Read-only. Where the agent is in its hire-to-termination lifecycle: `pending_approval`, `preparing`, `verifying`, `ready`, `pausing`, `paused`, `resuming`, `terminating`, `cleaning_up`, `terminated`, or `rejected`. Only `ready` admits work; work assigned earlier stays queued. See [Lifecycle Steps and Retry](#lifecycle-steps-and-retry). |
 | `lifecycleError` | Read-only. A fixed, credential-free message naming the step that failed and what to fix, or `null`. |
@@ -410,7 +410,7 @@ Important behavior:
 - Duplicate names are deduplicated on create. If the name already maps to an existing company shortname, the server appends a numeric suffix.
 - `runtimeConfig.heartbeat.enabled` defaults to `false` if you omit it.
 - `adapterConfig.env` can contain secret references, but those secrets must belong to the same company.
-- Sending `budgetMonthlyCents` above `0` is board-only. An agent caller gets `403` with `Board access required`. When a board user sends it, the server creates a matching monthly budget policy, except for a `setupId` draft.
+- If `budgetMonthlyCents > 0`, the server creates a matching monthly budget policy automatically, except for a `setupId` draft.
 - An agent denied hiring because it lacks the grant gets `403`. The message adds that no other route overrides the denial, and that a board user can hire the agent directly or turn on hiring for this agent on its permissions page.
 - If you omit `appearance`, the server picks a random character palette for the new agent and saves it, so the agent keeps the same look from then on.
 - For adapters that support an instructions bundle, send the agent's instructions as `instructionsBundle.files` — for example `{"files": {"AGENTS.md": "You are the CTO. You own technical direction."}}`, with an optional `entryFile`. If you leave it out, the server seeds a short default `AGENTS.md`: a one-line role description for `role: "ceo"`, or a one-line generic placeholder for every other role. Keep it short — Paperclip's runtime and installed skills already supply the operating procedures. Don't use `adapterConfig.promptTemplate` or `bootstrapPromptTemplate` for new agents.
@@ -554,24 +554,10 @@ Important behavior:
 - You can include `sourceIssueId` or `sourceIssueIds` to link the hire back to one or more issues.
 - An agent on the `paperclip_runner` adapter can send `"inheritRuntimeFrom": "caller"` to give the new hire the calling agent's runner settings and default environment. The new agent must also use `adapterType: "paperclip_runner"`, and you can't combine this with `adapterConfig`, `runtimeConfig`, or `defaultEnvironmentId` — the server copies the adapter config and default environment from the calling agent. Board users can't use this option; it's rejected with `403 Forbidden`.
 - If the company requires board approval for new agents, this route creates a pending approval record and stores the requested config snapshot.
-- An agent can propose a `budgetMonthlyCents` above `0` only when the company requires board approval for new agents. The budget then takes effect when a board user approves the hire. Without that setting, an agent that sends a budget gets `403` with `Board access required`. A board user's hire that goes live straight away creates the matching monthly budget policy.
 - An agent denied hiring because it lacks the grant gets the same `403` message as on the create route.
 - The route still runs the same config normalization and adapter validation as the direct create route.
 - When obsolete Claude options were ignored, the returned `agent` object carries a `configurationWarnings` array, just like the create route. See [Configuration warnings](#configuration-warnings).
 - To finish an agent saved with `setupId` on the create route, send its ID as `setupAgentId`. The hire completes that same agent instead of creating a new one, and any board-approval requirement applies here. Repeating the call for an agent whose setup is already finished returns the agent and its approval with `idempotent: true`. An unknown ID returns `404` with `Agent setup not found`.
-
-### Who can set a budget
-
-Agent budgets are a board decision. These routes accept a budget only from a board user:
-
-- [Create Agent](#create-agent) with `budgetMonthlyCents` above `0`
-- [Hire Agent](#hire-agent) with `budgetMonthlyCents` above `0`, unless the company requires board approval for new agents (the board approves the proposed budget along with the hire)
-- [Update Agent](#update-agent) when `budgetMonthlyCents` differs from the current value
-- [Configuration rollback](#configuration) to a revision whose `budgetMonthlyCents` differs from the current value
-- [Built-in agent provisioning](built-in-agents.md#provision) with any `budgetMonthlyCents`
-- [Set agent budget](costs.md#set-agent-budget) and the other budget routes
-
-An agent caller gets `403` with `Board access required`. The response also carries `code: "board_access_required"` and a `remediation` telling the agent to hand the step to a person, with a link to the budget page to use. See [Board-only denials](overview.md#board-only-denials).
 
 ---
 
@@ -595,7 +581,6 @@ Important behavior:
 - Terminated agents cannot be resumed through a status patch.
 - Sending `status: "terminated"` is board-only, the same as [`POST /api/agents/{agentId}/terminate`](#pause-resume-terminate-delete). Any other caller gets `403`.
 - Sending `status: "paused"` is board-only, the same as `POST /api/agents/{agentId}/pause`. Sending `status: "idle"` gets the same check as `POST /api/agents/{agentId}/resume`: an agent caller needs a grant to change the target agent's configuration (`agents:configure`). If the agent's reporting chain is invalid, `status: "idle"` returns `409` until the chain is repaired, as resume does.
-- Changing `budgetMonthlyCents` is board-only. An agent caller gets `403` with `Board access required`, and the `remediation` links the agent's budget page. Use [Set agent budget](costs.md#set-agent-budget) for budget changes.
 - Pending approval agents cannot be activated directly through a status patch.
 - Saving a Claude agent on Paperclip Runner with obsolete options drops them and returns a `configurationWarnings` array. See [Configuration warnings](#configuration-warnings).
 - The response includes the agent's configuration fields and a fresh `configurationRevision`, so you can chain another guarded update without re-reading. See [Guard against stale writes](#guard-against-stale-writes-expectedconfigurationrevision).

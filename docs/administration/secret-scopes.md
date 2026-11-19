@@ -24,7 +24,7 @@ Binding decides which doors ask for a badge: a definition bound to a target — 
 
 ## How a run resolves a secret
 
-Start from the definition. Creating a secret means declaring its scope up front — in the scope selector these read **Company**, meaning one shared value, or **Each user**, meaning one value per human. Scope is a property of the definition, so everyone in the company sees the same definition either way; what differs is who is expected to fill it.
+Start from the definition. Creating a secret means declaring its scope up front. Under **Who provides the value?** in the **Create secret** dialog you pick **Organization**, meaning one shared value, or **Each user**, meaning one value per human. Scope is a property of the definition, so everyone in the company sees the same definition either way; what differs is who is expected to fill it.
 
 ![A user-scoped secret definition in the secrets UI, with the user scope distinct from company scope](../user-guides/screenshots/light/secrets/user-secret-definition.png)
 

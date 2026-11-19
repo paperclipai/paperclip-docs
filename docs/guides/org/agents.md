@@ -596,6 +596,8 @@ The **Permissions / Trust** page sets how much the agent is trusted and what it'
 
 **Turning off hiring, including for the CEO.** Your CEO can hire by default, and **Can create new agents** shows as on. If you'd rather do all the hiring yourself, switch it off on the CEO's page. Paperclip remembers that you made that choice, so the CEO title no longer overrides it: the CEO's hire requests are refused, and it can't switch hiring back on for itself or give it to another agent. Switching **Can create new agents** off on any agent also removes a separate hiring grant the agent might hold. Switch it back on whenever you like.
 
+If you switched a CEO's hiring off on an older version, that choice wasn't recorded this way, so after upgrading the CEO shows **Can create new agents** as on again and can hire. Switch it off once more on any CEO that shouldn't hire.
+
 The trust cards, boundary, and capability switches save the moment you change them — there's no save bar here. Allowed projects is the exception: it waits for **Save project access**.
 
 ---
@@ -707,8 +709,6 @@ Every agent can have its own monthly budget, so one busy agent can't run away wi
 
 - **Budget incidents** — when this agent's budget has crossed its warning or hard-stop threshold, an incident card appears at the top. Resolve a hard stop with **Raise budget & resume**, or click **Keep paused**. For a warning, the buttons are **Raise budget** and **Dismiss warning**. If an action fails, the reason appears right under that incident.
 - **The budget card** — what the agent has spent this month against its cap, what's **Remaining**, and a progress bar. Type an amount under **Budget (USD)** and click **Set budget** (or **Update budget** if a cap is already set). Under **Advanced settings** you can choose whether to block new work when usage has no reliable price, and set an amount to **Reserve per run (USD)**.
-
-Budgets are yours to set. Agents can't change their own or anyone else's budget; if one tries, it's told that a board user must do it, with a link to the budget page to use.
 
 The setup flow in the app doesn't set a budget, so new agents start with **No cap configured**. Set one here whenever you like. You can also use the CLI's `budget agent:update` command (see [Cost & budget commands](../../reference/cli/cost.md)) or the [Set agent budget](../../reference/api/costs.md#set-agent-budget) API. To see every budget in the company at once, open the company-wide **Audit** page and its **Budgets** tab.
 

@@ -92,7 +92,7 @@ A few cases work a little differently:
 
 Reusing a workspace is convenient, but it raises a fair question: what happens when two different agents — with two different intended environments — land in the same workspace? Paperclip closes that gap so a reused workspace never quietly drifts.
 
-- **No silent environment reuse.** Each task run has an intended environment, resolved in this order: an environment set explicitly on the issue always wins; otherwise the project's workspace-policy environment applies; otherwise the agent's own default environment; and the instance default is the final fallback. (An agent deliberately pinned to the local default is never promoted off it by a project policy — only an explicit issue-level environment can move it.) When a run reuses a workspace whose environment doesn't match the run's intended one, Paperclip treats that as a conflict to surface rather than silently inheriting whatever the previous occupant left behind.
+- **No silent environment reuse.** Each task run has an intended environment, resolved in this order: a sandbox an operator picked for a [low-trust](../../administration/trust-and-low-trust-review.md) task wins; otherwise the agent's own default environment; then the instance default; and running locally is the final fallback. Instance-wide execution policies still apply on top: forced Kubernetes execution sends runs to the Kubernetes environment, and managed-sandbox-only mode moves a run that would land on the local environment onto the managed sandbox. When a run reuses a workspace whose environment doesn't match the run's intended one, Paperclip treats that as a conflict to surface rather than silently inheriting whatever the previous occupant left behind.
 - **Dependent issues wait for finalize.** When an issue depends on another, its wake no longer fires before the upstream workspace has finished finalizing. The dependent task only starts once the workspace it relies on is in a consistent, settled state — so it never reads a half-written checkout.
 - **Accepting an interaction waits too.** Accepting a plan or review (`issue.interaction.accept`) now waits for the workspace to finalize before it proceeds, for the same reason.
 
@@ -291,7 +291,7 @@ The **Workspace settings** card holds the editable fields for the workspace. Mos
 - **Provider path / ref** — the path or reference used by the workspace provider. For git worktrees this is the worktree path; for other providers it's whatever reference that provider needs.
 - **Repo URL** — the remote URL the working directory was cloned from. Used for linking out to GitHub/GitLab in the UI.
 - **Base ref** — the ref the workspace branched off from, for example `origin/main`.
-- **Provision command** — runs when Paperclip prepares this execution workspace (for example, a script that clones a worktree and installs dependencies).
+- **Provision command** — runs when Paperclip prepares this execution workspace (for example, a script that clones a worktree and installs dependencies). If you leave it empty on a git worktree and your repository has a `scripts/provision-worktree.sh` file, Paperclip runs `bash ./scripts/provision-worktree.sh` instead. A command you set always wins.
 - **Teardown command** — runs when the execution workspace is archived or cleaned up.
 - **Cleanup command** — an optional workspace-specific cleanup step that runs before teardown (for example, killing a stuck `vite` process).
 

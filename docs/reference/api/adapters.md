@@ -92,7 +92,7 @@ Serves the adapter-supplied UI parser bundle. The Paperclip UI fetches this scri
 
 ## Adapter device login
 
-Some adapters authenticate with a **device login** — the kind where the tool prints a code and a URL, you approve it in a browser, and the CLI finishes signing in. These routes drive that flow from Paperclip for a company, scoped to one environment. They currently apply to the Codex adapter.
+Some adapters authenticate with a **device login** — the kind where the tool prints a code and a URL, you approve it in a browser, and the CLI finishes signing in. These routes drive that flow from Paperclip for a company, scoped to one environment. They currently apply to the Codex and Grok adapters.
 
 | Route | Purpose |
 |---|---|
@@ -100,4 +100,4 @@ Some adapters authenticate with a **device login** — the kind where the tool p
 | `GET /api/companies/{companyId}/adapters/{type}/login-sessions/{sessionId}` | Read the session — its state and the code/URL to complete the login in a browser. |
 | `POST /api/companies/{companyId}/adapters/{type}/login-sessions/{sessionId}/cancel` | Cancel the session. |
 
-These are board routes: the caller must be on the board, have access to the company, and be allowed to manage the company's adapters. `type` must be an adapter that supports device login (Codex today); other types are rejected.
+These are board routes: the caller must be on the board, have access to the company, and be allowed to manage the company's adapters. `type` must be an adapter that supports device login (Codex or Grok today); other types are rejected.

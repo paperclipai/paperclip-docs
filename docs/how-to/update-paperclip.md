@@ -83,6 +83,20 @@ Rolling back across this release needs the same full stop: drain and stop every 
 
 ---
 
+## Upgrading to v2026.1117.0 or later: plan for no way back
+
+> **Warning:** Treat this release as a rollback floor. After the upgrade, company skill packages move out of the database into your configured file or object storage, and older versions can't read them there. On S3-backed installs, new Runner task workspaces on sandbox environments can also enroll in remote workspace storage, which older versions can't read either. Take a backup before you update, and plan to fix forward rather than roll back.
+
+A few things to check before and after:
+
+- **Rolling upgrades with several servers.** Set `PAPERCLIP_SKILL_PACKAGE_STORAGE_ENABLED=false` on every process until all of them run the new version. See [Storage → Company skill packages](../reference/deploy/storage.md#company-skill-packages). To keep remote workspace storage off, store `remoteWorkspaceStorageEnabled: false` before you upgrade; see [Storage → Remote task workspaces](../reference/deploy/storage.md#remote-task-workspaces).
+- **Run Paperclip under a supervisor.** A server that loses its database lease while it holds work, for example because the database was unreachable for about a minute, now exits with code 1 so another server can recover that work. A service installed with `paperclipai service install` restarts automatically; in Docker or Kubernetes, give the container a restart policy. See `PAPERCLIP_CONTROLLER_INSTANCE_LEASE` in [Environment Variables](../reference/deploy/environment-variables.md#server-configuration).
+- **Some migrations block writes for a while.** Migration `0416` rebuilds a `heartbeat_runs` index and `0445` builds a `native_run_finalizations` index, each inside a transaction that blocks writes to that table until it finishes. `0434` briefly blocks writes to `issues`. On instances with long run, activity, or comment histories, expect the upgrade to take longer, and schedule it for a quiet time.
+- **systemd services.** Run `paperclipai service install` (or `paperclipai service restart`) once so the unit picks up `KillMode=mixed`. See [`paperclipai service`](../reference/cli/service.md).
+- **Settings you may want to change back.** The built-in [Google Workspace connector](../connectors/google-workspace.md#turn-on-the-built-in-connector) is now off until an admin turns it on, so saved Google Workspace connections stop working until then. If you had switched a CEO's hiring off, [switch it off again](../guides/org/agents.md#permissions-trust). Existing agents get a read-only `agents:read` grant you can remove; see [Reading agent configuration](../administration/roles-and-permissions.md#reading-agent-configuration).
+
+---
+
 ## Apply the update
 
 ```bash

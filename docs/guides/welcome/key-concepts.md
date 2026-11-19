@@ -128,7 +128,7 @@ Available adapter types:
 | `pi_local` | Runs a Pi agent locally |
 | `hermes_local` | Runs a Hermes Agent locally with persistent memory and 30+ tools |
 
-A few additional adapter types (`openclaw_gateway`, `process`, `http`) exist in the runtime but are currently marked **"Coming soon"** in the agent-config dropdown. See [Adapters Overview](../../reference/adapters/overview.md) for the full list.
+A few additional adapter types (`openclaw_gateway`, `process`, `http`) exist in the runtime but aren't listed in the agent form's **Harness** dropdown. See [Adapters Overview](../../reference/adapters/overview.md) for the full list.
 
 For most people getting started, `claude_local` is the right choice.
 

@@ -10,6 +10,8 @@ seo_description: Write the channel-appropriate release note — changelog, blog,
 
 Write the channel-appropriate release announcement — changelog, blog post, in-app note, or social post — that leads with user impact, names the audience, and includes upgrade or migration steps without filler. A reader of the chosen surface should know in under 30 seconds whether the release affects them and what to do.
 
+When it runs inside Paperclip with [Cases](../../../../experimental/cases.md) turned on (`experimental.enableCases`), the skill also records its output as durable cases before handing off the copy: a parent `release` case, with child `blog_post` or `tweet_storm` cases holding the finished copy as their `body` document. If Cases are disabled, it says so and still delivers the copy.
+
 This is an **optional** catalog skill — opt-in (install when you need it). For how to install, audit, update, assign, and reset catalog skills, see the [Skills reference](../../../skills.md#3-app-shipped-catalog).
 
 ## When to use
@@ -17,11 +19,12 @@ This is an **optional** catalog skill — opt-in (install when you need it). For
 - A version, feature, or fix is shipping and needs a writeup for at least one surface.
 - A previously private feature is going GA.
 - A breaking change needs broadcast before users hit it.
+- You're producing release content in a Paperclip company and want the blog post or social copy kept as inspectable cases linked to the release.
 
 ### When not to use
 
 - An internal-only change with no user impact — update internal docs instead.
-- The release is still in active development — wait until it ships.
+- The release is still in active development — wait until it ships, even if marketing wants the post now.
 
 ## Catalog metadata
 
@@ -41,14 +44,14 @@ This is an **optional** catalog skill — opt-in (install when you need it). For
 | Requires | — |
 | Tags | `release`, `changelog`, `announcement`, `communication` |
 | Files | 1 |
-| Content hash | `sha256:f22a9ed696e6614c6db2757a149f48b3295e81f78c27d065d9cb164cf4f8a9bd` |
+| Content hash | `sha256:efe8ea89b552df95222609867c9c75f1b40e16f457d34e7e4a124f54daa33efa` |
 | Package | `@paperclipai/skills-catalog@0.3.1` |
 
 ## File inventory
 
 | Path | Kind | Bytes |
 |---|---|---:|
-| `SKILL.md` | `skill` | 4,416 |
+| `SKILL.md` | `skill` | 6,945 |
 
 ## Full skill definition
 
@@ -84,6 +87,96 @@ Write the channel-appropriate announcement for a release without churn. Differen
 
 - An internal-only change with no user impact. Update internal docs; do not announce.
 - The release is incomplete (still in active development). Wait until it ships, even if marketing wants the post.
+
+## Paperclip Cases output
+
+When this skill runs inside Paperclip and `experimental.enableCases` is enabled,
+emit durable release-content cases before handing off the copy. Cases preserve
+the inspectable output; the issue coordinates the work.
+
+Use `skills/paperclip/references/cases.md` for the API contract. Include
+`X-Paperclip-Run-Id` on writes when `PAPERCLIP_RUN_ID` is set. If the API returns
+`403 Cases are disabled`, report that limitation and continue with the requested
+copy artifact.
+
+Upsert the parent release case first when it does not already exist:
+
+```json
+{
+  "caseType": "release",
+  "key": "paperclip-release:vYYYY.MDD.P",
+  "title": "Paperclip vYYYY.MDD.P release",
+  "status": "in_progress",
+  "fields": {
+    "schema_version": 1,
+    "version": "vYYYY.MDD.P",
+    "release_date": "YYYY-MM-DD",
+    "release_patch": 0,
+    "stable": true,
+    "channels": ["blog_post", "tweet_storm"],
+    "artifacts": {
+      "changelog_path": "releases/vYYYY.MDD.P.md",
+      "publish_url": null
+    }
+  }
+}
+```
+
+For a dev blog, upsert a child case with `parentCaseId` set to the release case:
+
+```json
+{
+  "caseType": "blog_post",
+  "key": "paperclip-release:vYYYY.MDD.P:blog-post",
+  "title": "Paperclip vYYYY.MDD.P launch post",
+  "status": "in_review",
+  "parentCaseId": "<release-case-id>",
+  "fields": {
+    "schema_version": 1,
+    "version": "vYYYY.MDD.P",
+    "slug": "paperclip-vYYYY-MDD-P",
+    "word_count_target": 650,
+    "target_audience": ["operators", "developers"],
+    "requires_screenshot": false,
+    "links": {
+      "release_notes": "releases/vYYYY.MDD.P.md",
+      "publish_url": null
+    },
+    "sections": ["hook", "whats_new", "upgrade", "whats_next"]
+  }
+}
+```
+
+For social output, upsert a sibling child case:
+
+```json
+{
+  "caseType": "tweet_storm",
+  "key": "paperclip-release:vYYYY.MDD.P:tweet-storm",
+  "title": "Paperclip vYYYY.MDD.P tweet storm",
+  "status": "in_review",
+  "parentCaseId": "<release-case-id>",
+  "fields": {
+    "schema_version": 1,
+    "version": "vYYYY.MDD.P",
+    "post_count": 1,
+    "channel": "x",
+    "target_audience": ["operators", "contributors"],
+    "links": {
+      "release_notes": "releases/vYYYY.MDD.P.md",
+      "publish_url": null
+    },
+    "review": {
+      "needs_human_copy_paste": true,
+      "approved_by": null
+    }
+  }
+}
+```
+
+Write the produced copy to `PUT /api/cases/:caseId/documents/body` with
+`format: "markdown"` and a `changeSummary`. Fetch the latest document revision
+and pass `baseRevisionId` when updating an existing body document.
 
 ## Determine the audience and channel first
 
