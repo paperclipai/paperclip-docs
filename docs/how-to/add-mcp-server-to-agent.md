@@ -19,6 +19,13 @@ For Paperclip, MCP is how you give an agent a capability that doesn't fit a [ski
 
 > **Adapter support today.** [Claude Code](../reference/adapters/claude-code.md) and [Hermes](../reference/adapters/hermes.md#tools) are the two adapters with documented MCP paths today. Claude Code inherits Claude Code's MCP client (configured at the Claude Code level); Hermes exposes MCP through its `toolsets` field. Codex, Cursor Local, Gemini CLI, OpenCode, and Pi follow the same pattern as Claude Code — whatever MCP support their CLI ships with, the adapter inherits — but that path is not documented here yet.
 
+> **Which agents this page applies to.** The steps below edit the runtime's own MCP config on the host, so they only reach agents that run with that host config: Claude Code on the **Legacy runner** (`claude_local`) and `hermes_local`. Two cases where the runtime's own config is not used:
+>
+> - **Paperclip Runner.** New Claude Code agents use [Paperclip Runner](../reference/adapters/paperclip-runner.md) by default on supported machines. Each Runner session gets a private, isolated provider home, so a `.mcp.json` file or a `claude mcp add` entry on the host isn't loaded. The exception is an agent an operator has set to [`homeMode: "preconfigured"`](../reference/adapters/paperclip-runner.md#keep-working-in-your-own-provider-home).
+> - **`claude_local` runs that carry Paperclip's own MCP servers.** When Paperclip attaches MCP servers to a run, for example from Connectors, it starts Claude with `--strict-mcp-config`. Claude then loads only those servers and ignores your `.mcp.json` and `claude mcp add` entries for that run.
+>
+> The supported path on every runner is a connector. Add the server on the **Connectors** page and Paperclip attaches it to the agent's runs: see [Connect a custom MCP server](../connectors/custom-mcp-servers.md).
+
 ---
 
 ## Architecture
@@ -52,7 +59,7 @@ The agent never speaks MCP directly — its runtime does. That means MCP server 
 - Paperclip running locally or on a server you control. See [Installation](../guides/getting-started/installation.md).
 - An agent already hired with one of the supported adapters. See [Hire Your First Agent](../guides/getting-started/your-first-agent.md).
 - For Claude Code: the [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed on the host running the agent.
-- For Hermes: [Hermes Agent](https://github.com/NousResearch/hermes-agent) installed (`pip install hermes-agent`).
+- For Hermes: [Hermes Agent](https://github.com/NousResearch/hermes-agent) installed (`curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash` on Linux, macOS, or WSL2).
 - The MCP server you want to attach. [Anthropic's directory](https://github.com/modelcontextprotocol/servers) and [Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers) are the two best starting points.
 
 ---
@@ -71,7 +78,7 @@ Claude Code keeps MCP server config in three possible scopes (precedence: local 
 | **Project** | `<repo-root>/.mcp.json` | Anyone running Claude Code with that `cwd`. Committed to source control. |
 | **User** | `~/.claude.json` user-wide | Every Claude Code run by that OS user, across all projects. |
 
-For Paperclip, **prefer project scope**: Claude Code's `cwd` already pins the agent to a specific working directory, and `.mcp.json` in that directory ships with the project so other contributors and other agents pointed at the same `cwd` get the same servers.
+For Paperclip, **prefer project scope**: each run already starts in the project's workspace, and `.mcp.json` in that directory ships with the project so other contributors and other agents working in the same project get the same servers.
 
 Add a server with the Claude CLI (run on the host, in the agent's `cwd`). All `claude mcp add` options come before the server name, then `--` separates the name from the command + args that get passed to the MCP server:
 
@@ -100,7 +107,7 @@ That writes a `.mcp.json` in the project root that looks like:
 }
 ```
 
-> **Why scope matters for Paperclip.** Two agents that share a project workspace — say a CTO and a coder both pointed at the same repo — will both see project-scoped MCP servers. That's almost always what you want. If you need an MCP server visible to *one* agent only, use a per-agent `cwd` (so the project file is unique to that agent) or use [the local scope](#path-a--claude-code) and add it manually only on the heartbeat host running that agent.
+> **Why scope matters for Paperclip.** Two agents that share a project workspace — say a CTO and a coder both pointed at the same repo — will both see project-scoped MCP servers. That's almost always what you want. If you need an MCP server visible to *one* agent only, give that agent's work its own project (so the project file is unique to that agent) or use [the local scope](#path-a--claude-code) and add it manually only on the heartbeat host running that agent.
 
 Verify the server is loaded by running a one-shot probe with the same env the heartbeat uses. Claude Code's `claude mcp list` reads the same config the agent will see at run time:
 
@@ -218,7 +225,7 @@ Claude Code's precedence when the same server name appears in two scopes is **lo
 Practical rules of thumb:
 
 - **One MCP server, all coders on a repo:** project `.mcp.json`, committed. Reviewers and coders both get it.
-- **One MCP server, just this agent:** give the agent a unique `cwd` and put the server in *that* project file. Or run that agent under a dedicated OS user.
+- **One MCP server, just this agent:** give the agent's work its own project and put the server in *that* project file. Or run that agent under a dedicated OS user.
 - **One MCP server, a personal experiment:** local scope (the default for `claude mcp add`) or `HERMES_CONFIG=~/.hermes/agent-X.yaml` overridden via `env`.
 
 The CLI command name on Paperclip's side is unchanged — there's no `paperclipai mcp add` because the source of truth is the runtime's config. Lean on the runtime.
@@ -324,13 +331,14 @@ The runtime sees the tool; the agent doesn't think it's relevant. Either the too
 Run the server's command directly in the same shell — the failure message will be more specific. The most common causes: the binary isn't on `PATH` for the heartbeat's user, the working directory the server expects doesn't exist, or a required env var (an API key, a database URL) isn't set.
 
 **Different tool list under Paperclip than from the terminal.**
-The heartbeat's `cwd` or `env` differs from your shell's. Compare them — `pwd && env | sort` from inside the agent's run versus from your own shell. The most common diff is `PATH`: graphical-launched processes sometimes inherit a leaner `PATH` than a terminal session, so `npx` or `node` is missing.
+First check [which agents this page applies to](#what-mcp-is): on Paperclip Runner, or on a `claude_local` run that carries Paperclip's own MCP servers, the host's `.mcp.json` and `claude mcp add` entries aren't loaded at all. Otherwise:
+the heartbeat's `cwd` or `env` differs from your shell's. Compare them — `pwd && env | sort` from inside the agent's run versus from your own shell. The most common diff is `PATH`: graphical-launched processes sometimes inherit a leaner `PATH` than a terminal session, so `npx` or `node` is missing.
 
 **Remote MCP server returns `401` after a few hours.**
 OAuth refresh failed. Re-run `claude` interactively to re-authorise. If the runtime is supposed to refresh automatically and isn't, file a bug with the runtime's project — not with Paperclip — since the token cache lives at the runtime layer.
 
 **Two agents that share a project see each other's MCP servers.**
-That's by design — project scope is shared. Move per-agent servers to user scope, or split the project into per-agent `cwd`s.
+That's by design — project scope is shared. Move per-agent servers to user scope, or split the work into separate projects.
 
 **A server I removed is still listed.**
 Claude Code caches the parsed config briefly. Restart any long-running heartbeat session (or just wait until the next heartbeat — Paperclip starts a fresh CLI invocation per run for `claude_local`). Hermes resumes the same session by default; force a fresh start by toggling `persistSession: false` once.

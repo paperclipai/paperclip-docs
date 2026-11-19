@@ -28,7 +28,7 @@ seo_description: Run Cursor's Agent CLI on the Paperclip host, keeping chat sess
 
 | Field | Required | Notes |
 |---|---:|---|
-| `cwd` | no | Absolute working directory. Recommended. Created when permissions allow; otherwise falls back to the process working directory. |
+| `cwd` | no | Deprecated. A legacy fallback working directory, used only when a run has no project workspace. The create flow no longer shows it, and an existing agent that still has a value shows it as **Working directory (deprecated)**. Set the repository on the [project](../../guides/projects-workflow/projects.md) instead. |
 | `model` | no | Cursor model id. Defaults to `auto`. Common choices include `auto`, `composer-2.5`, `claude-opus-5-5`, `gpt-5.6-sol`, `composer-1.5`, `gpt-5.3-codex`, `opus-4.6-thinking`, `sonnet-4.6`, `gemini-3-pro`, `grok`. |
 | `mode` | no | Cursor execution mode passed as `--mode`. Accepts `plan` or `ask`. Leave unset for normal autonomous runs. |
 | `promptTemplate` | no | Run prompt template. |
@@ -86,7 +86,6 @@ grok, kimi-k2.5
 {
   "adapterType": "cursor",
   "adapterConfig": {
-    "cwd": "/Users/me/projects/paperclip-workspace",
     "model": "auto",
     "promptTemplate": "You are the engineering lead. Work carefully and report progress.",
     "timeoutSec": 300,

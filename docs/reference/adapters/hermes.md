@@ -21,7 +21,7 @@ seo_description: Run Hermes Agent by Nous Research on the Paperclip host, with p
 
 - The runtime lives behind a webhook or API. Use [OpenClaw Gateway](./openclaw-gateway.md) or [HTTP](./http.md).
 - You only need a one-shot shell command. Use [Process](./process.md).
-- Hermes Agent is not installed on the machine (requires Python 3.10+).
+- Hermes Agent is not installed on the machine. Install it with the [Hermes installer](https://github.com/NousResearch/hermes-agent): `curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash` on Linux, macOS, or WSL2.
 
 ---
 
@@ -31,6 +31,7 @@ seo_description: Run Hermes Agent by Nous Research on the Paperclip host, with p
 
 | Field | Required | Default | Notes |
 |---|---:|---|---|
+| `model` | no | Hermes default | Optional model in `provider/model` form, passed to Hermes as `-m`. Leave it out to use the model set in `~/.hermes/config.yaml`. |
 | `provider` | no | `auto` | API provider. Accepts `auto`, `openrouter`, `nous`, `openai-codex`, `copilot`, `copilot-acp`, `anthropic`, `huggingface`, `zai`, `kimi-coding`, `minimax`, `minimax-cn`, `kilocode`. Usually leave this on `auto` — Hermes infers it from your model or `~/.hermes/config.yaml`. |
 | `timeoutSec` | no | `1800` | Execution timeout in seconds. |
 | `graceSec` | no | `10` | Seconds to wait after SIGTERM before killing the Hermes process. |
@@ -63,7 +64,9 @@ seo_description: Run Hermes Agent by Nous Research on the Paperclip host, with p
 
 ## Model Selection
 
-Hermes manages its own model. You set the model in `~/.hermes/config.yaml` or through Hermes's own configuration — there is no `model` field in the Paperclip adapter config. This keeps the "add a Hermes agent" flow one-click: if Hermes is already configured on your machine, you're done.
+Hermes manages its own model. Set it in `~/.hermes/config.yaml` or through Hermes's own configuration, and leave the adapter's `model` field empty. This keeps the "add a Hermes agent" flow one-click: if Hermes is already configured on your machine, you're done.
+
+To pin a different model for one agent, set the optional `model` field in the adapter config, for example `anthropic/claude-sonnet-4`. Paperclip passes it to Hermes with `-m`.
 
 ---
 

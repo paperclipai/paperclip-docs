@@ -775,6 +775,10 @@
               "file": "../docs/how-to/add-mcp-server-to-agent.md"
             },
             {
+              "title": "Connect Two Paperclip Instances",
+              "file": "../docs/how-to/connect-two-paperclip-instances.md"
+            },
+            {
               "title": "Write a Company Skill",
               "file": "../docs/how-to/write-a-company-skill.md"
             }

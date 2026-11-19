@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { mkdtempSync, readFileSync, rmSync, existsSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, existsSync, readdirSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -16,6 +16,33 @@ function assert(condition, message) {
 
 function read(relPath) {
   return readFileSync(join(outDir, relPath), "utf8");
+}
+
+const GA_TAG_SRC = "https://www.googletagmanager.com/gtag/js?id=G-1RQ1KXLQXP";
+const GA_CONFIG = "gtag('config', 'G-1RQ1KXLQXP', { send_page_view: false })";
+
+function assertAnalyticsTag(label, html, { pageViewInHtml }) {
+  const tagCount = html.split(GA_TAG_SRC).length - 1;
+  assert(tagCount === 1, `${label}: expected the GA4 tag exactly once, found ${tagCount}`);
+  const headEnd = html.indexOf("</head>");
+  const head = headEnd === -1 ? "" : html.slice(0, headEnd);
+  assert(head.includes(GA_TAG_SRC), `${label}: GA4 tag must be inside <head>`);
+  assert(head.includes(GA_CONFIG), `${label}: GA4 config must disable the automatic page_view`);
+  assert(html.includes("<script async src=\"" + GA_TAG_SRC + "\"></script>"), `${label}: GA4 loader must be async`);
+  const manualViews = html.split("gtag('event', 'page_view'").length - 1;
+  assert(
+    manualViews === (pageViewInHtml ? 1 : 0),
+    `${label}: expected ${pageViewInHtml ? "one" : "no"} inline page_view, found ${manualViews}`,
+  );
+}
+
+function walkHtmlFiles(dir, acc = []) {
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) walkHtmlFiles(full, acc);
+    else if (entry.endsWith(".html")) acc.push(full);
+  }
+  return acc;
 }
 
 function buildRelease(basePath, targetDir) {
@@ -139,6 +166,9 @@ try {
   assert(!existsSync(join(outDir, "app.js")), "release still emits an unversioned app.js that a stale cache could pin");
   const appJs = read(rootAppJsMatch[1]);
   assert(!appJs.includes("/#/"), "generated app JS still contains primary hash route URLs");
+  assert(appJs.includes("page_view"), "client bundle must send a GA4 page_view");
+  assert(appJs.includes("page_path"), "client bundle must set page_path");
+  assert(appJs.includes("page_title"), "client bundle must set page_title");
 
   const sitemap = read("sitemap.xml");
   assert(sitemap.includes("https://docs.paperclip.ing/reference/skills"), "sitemap is missing reference/skills");
@@ -203,6 +233,21 @@ try {
       existsSync(destinationIndexPath),
       `legacy redirect target is not a generated page: ${sourceRoute} -> ${destinationRoute}`,
     );
+    if (sourceRoute.endsWith("/*")) {
+      const splatRedirect = `/${sourceRoute} /${destinationRoute}/ 301`;
+      assert(redirects.includes(splatRedirect), `missing legacy splat redirect: ${splatRedirect}`);
+      const prefix = `/${sourceRoute.slice(0, -1)}`;
+      const splatIndex = redirects.indexOf(splatRedirect);
+      for (const line of redirects.split("\n")) {
+        if (line.startsWith(prefix) && line !== splatRedirect) {
+          assert(
+            redirects.indexOf(line) < splatIndex,
+            `specific redirect must precede the ${sourceRoute} splat or Cloudflare never reaches it: ${line}`,
+          );
+        }
+      }
+      continue;
+    }
     const noSlashRedirect = `/${sourceRoute} /${destinationRoute}/ 301`;
     const slashRedirect = `/${sourceRoute}/ /${destinationRoute}/ 301`;
     assert(redirects.includes(noSlashRedirect), `missing legacy no-slash redirect: ${noSlashRedirect}`);
@@ -253,6 +298,14 @@ try {
     headers.includes("connect-src 'self' https://api.github.com"),
     "Cloudflare CSP must allow the GitHub stars API",
   );
+  assert(
+    headers.includes("script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.googletagmanager.com"),
+    "Cloudflare CSP must allow the GA4 gtag.js loader",
+  );
+  assert(
+    headers.includes("https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com"),
+    "Cloudflare CSP must allow GA4 collect beacons, including regional hosts",
+  );
 
   const deployGuide = read("DEPLOY.md");
   assert(deployGuide.includes("Cloudflare Pages"), "deploy guide is missing Cloudflare Pages guidance");
@@ -283,6 +336,8 @@ try {
     // The homepage subtree must be physically absent from interior documents,
     // not hidden with CSS, JS, or ARIA.
     const hasLandingMarkup = /<section id="landing"/.test(html) || /id="landing-title"/.test(html);
+    assertAnalyticsTag(route, html, { pageViewInHtml: false });
+
     if (isDocsRoot) {
       assert(hasLandingMarkup, `${route}: the docs root must keep the landing hero`);
       assert(
@@ -344,6 +399,15 @@ try {
     !/<section id="landing"/.test(notFoundHtml),
     `${NONEXISTENT_ROUTE}: 404.html must stay separate from the homepage subtree`,
   );
+  assertAnalyticsTag("404.html", notFoundHtml, { pageViewInHtml: true });
+  const betaHtml = read("hosted-beta/index.html");
+  assertAnalyticsTag("/hosted-beta/", betaHtml, { pageViewInHtml: false });
+  const htmlFiles = walkHtmlFiles(outDir);
+  assert(htmlFiles.length > 100, `expected the build to emit every docs page, found ${htmlFiles.length} html files`);
+  for (const file of htmlFiles) {
+    const rel = file.slice(outDir.length + 1);
+    assertAnalyticsTag(rel, readFileSync(file, "utf8"), { pageViewInHtml: rel === "404.html" });
+  }
 
   /* ─── Subpath build resolves the same routes under its base path ───────── */
   buildRelease(SUBPATH_BASE, subpathOutDir);
@@ -354,6 +418,7 @@ try {
       `${subpathRoute}: no document generated at ${file} for the subpath build`,
     );
     const html = readFileSync(join(subpathOutDir, file), "utf8");
+    assertAnalyticsTag(subpathRoute, html, { pageViewInHtml: false });
     const h1Count = (html.match(/<h1[\s>]/g) || []).length;
     assert(h1Count === 1, `${subpathRoute}: expected exactly one H1, found ${h1Count}`);
     assert(html.includes(h1), `${subpathRoute}: raw HTML is missing its descriptive H1`);

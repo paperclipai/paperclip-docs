@@ -22,6 +22,9 @@ const sourceVendorDir = path.join(__dirname, "vendor");
 const screenshotsSourceDir = path.join(docsRoot, "user-guides", "screenshots");
 const defaultSiteUrl = "https://docs.paperclip.ing";
 const defaultSeoDescription = "Guides, references, and walkthroughs for running Paperclip, an AI company operating system for agent teams, governance, budgets, and workflows.";
+// Docs home only. Other pages keep authored seo_title/seo_description, and fall back to defaultSeoDescription.
+const homeSeoTitle = "Paperclip Docs: Control Plane for AI Agent Teams";
+const homeSeoDescription = "Docs for Paperclip, the org chart for AI agents. Install it, hire agents, connect Claude Code, Codex, and OpenCode, and set budgets and approvals.";
 const execFileAsync = promisify(execFile);
 
 function printUsage() {
@@ -516,13 +519,25 @@ function screenshotVariantConfig(src) {
   return responsiveScreenshotVariants.get(match[1]) || null;
 }
 
+// marked hands the renderer alt and title text that is already HTML-escaped.
+// Decode it once so escapeAttr does not double-escape quotes into a visible
+// `&quot;` (screen readers and the image gallery caption read it literally).
+function decodeMarkedText(value) {
+  return String(value || "")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
 function releaseMarkdownImage(href, title, text) {
   const src = screenshotReleasePath(href);
   const attrs = [
     `src="${escapeAttr(src)}"`,
-    `alt="${escapeAttr(text || "")}"`,
+    `alt="${escapeAttr(decodeMarkedText(text))}"`,
   ];
-  if (title) attrs.push(`title="${escapeAttr(title)}"`);
+  if (title) attrs.push(`title="${escapeAttr(decodeMarkedText(title))}"`);
 
   const variantConfig = screenshotVariantConfig(src);
   if (variantConfig) {
@@ -872,6 +887,13 @@ function cloudflarePathForRoute(basePath, routePath, { trailingSlash = false } =
 }
 
 function cloudflareRedirectLine(basePath, sourceRoute, destinationRoute) {
+  // A trailing `/*` is a Cloudflare splat: one line catches every old URL under
+  // that prefix. Cloudflare applies the first match, so specific entries for the
+  // same prefix must come earlier in redirects.json.
+  if (normalizeRouteKey(sourceRoute).endsWith("/*")) {
+    const destinationPath = cloudflarePathForRoute(basePath, destinationRoute, { trailingSlash: true });
+    return [`${cloudflarePathForRoute(basePath, sourceRoute)} ${destinationPath} 301`];
+  }
   const sourcePath = cloudflarePathForRoute(basePath, sourceRoute);
   const sourceSlashPath = cloudflarePathForRoute(basePath, sourceRoute, { trailingSlash: true });
   const destinationPath = cloudflarePathForRoute(basePath, destinationRoute, { trailingSlash: true });
@@ -907,13 +929,17 @@ ${legacyRouteRedirects}
 }
 
 function buildCloudflareHeaders() {
-  return `/*
+  return `# GA4 gtag.js. script-src loads the async tag from googletagmanager.com.
+# connect-src allows collect beacons on google-analytics.com, including regional
+# hosts, plus analytics.google.com and googletagmanager.com. img-src already
+# allows https: image pixels, so it is unchanged.
+/*
   Referrer-Policy: strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.github.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.googletagmanager.com; upgrade-insecure-requests
 
 # PAP-16990 cache policy. HTML shells must always revalidate so a returning
 # visitor never renders a stale document that points at a since-changed bundle.
@@ -976,6 +1002,44 @@ function buildCloudflareHeaders() {
 `;
 }
 
+const GA_MEASUREMENT_ID = "G-1RQ1KXLQXP";
+
+// Insert the tag after the document is finished. Article HTML is spliced in
+// with String.replace, and a "$`" sequence in page content copies whatever is
+// already in the shell. Adding the tag here, before the first </head> only,
+// keeps it out of that copy.
+function googleAnalyticsSnippet({ pageView }) {
+  const pageViewCall = pageView
+    ? `
+    gtag('event', 'page_view', {
+      page_title: document.title,
+      page_path: location.pathname + location.search,
+      page_location: location.origin + location.pathname + location.search
+    });`
+    : "";
+  return `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });${pageViewCall}
+  </script>`;
+}
+
+function injectGoogleAnalytics(html, { pageView = false } = {}) {
+  const marker = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+  const headClose = html.indexOf("</head>");
+  if (headClose === -1) {
+    throw new Error("Cannot inject Google Analytics: missing </head>.");
+  }
+  const withTag = `${html.slice(0, headClose)}  ${googleAnalyticsSnippet({ pageView })}\n${html.slice(headClose)}`;
+  const count = withTag.split(marker).length - 1;
+  if (count !== 1) {
+    throw new Error(`Expected exactly one GA4 tag after injection, found ${count}.`);
+  }
+  return withTag;
+}
+
 function buildNotFoundPage(siteUrl, basePath) {
   const metadata = {
     title: "Not found | Paperclip Docs",
@@ -984,7 +1048,7 @@ function buildNotFoundPage(siteUrl, basePath) {
     siteUrl,
     basePath,
   };
-  return `<!DOCTYPE html>
+  return injectGoogleAnalytics(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1001,7 +1065,7 @@ function buildNotFoundPage(siteUrl, basePath) {
   </main>
 </body>
 </html>
-`;
+`, { pageView: true });
 }
 
 function collectMarkdownLinks(markdown) {
@@ -1169,6 +1233,13 @@ function isSkillSourceInfo(infostring) {
   return String(infostring || "").trim().split(/\s+/).includes("skill-source");
 }
 
+// A fenced code block tagged `prompt` (```` ```prompt ````) is text a reader
+// pastes into an agent or assistant. It renders as a prompt box; the client adds
+// a labelled "Copy prompt" control (see decorateCodeBlocks in app.js).
+function isPromptInfo(infostring) {
+  return String(infostring || "").trim().split(/\s+/)[0] === "prompt";
+}
+
 // docs-root-relative markdown path -> the canonical HTML route for that page.
 // Markdown authors write relative `../foo.md` links, but every page is served
 // from a trailing-slash route directory, so a raw relative link resolves one
@@ -1276,6 +1347,9 @@ export function renderStaticMarkdown(markdown, { sourceFile = null, routeMap = n
   renderer.code = (code, infostring, escaped) => {
     if (isSkillSourceInfo(infostring)) {
       return `<pre><code class="language-markdown" data-skill-download="SKILL.md">${escapeHtml(code)}\n</code></pre>\n`;
+    }
+    if (isPromptInfo(infostring)) {
+      return `<pre class="prompt-block"><code class="language-prompt" data-copy-prompt>${escapeHtml(code)}</code></pre>\n`;
     }
     return defaultCode(code, infostring, escaped);
   };
@@ -1555,7 +1629,7 @@ function buildStaticPageNav(prev, next) {
 function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseStyles, prev, next, linkOptions = {}) {
   const articleHtml = renderStaticMarkdown(markdown, linkOptions);
   const routeBaseHref = getPublicBasePath(basePath);
-  return removeLandingSubtree(
+  const html = removeLandingSubtree(
     inlineReleaseStyles(injectSeo(sourceIndex, metadata, { baseHref: routeBaseHref }), releaseStyles),
   )
     .replace('<div id="article-view">', '<div id="article-view" class="is-active">')
@@ -1564,6 +1638,7 @@ function buildStaticPageHtml(sourceIndex, metadata, markdown, basePath, releaseS
       '<div id="page-nav" style="display:none"></div>',
       `<div id="page-nav" style="display:flex">${buildStaticPageNav(prev, next)}</div>`,
     );
+  return injectGoogleAnalytics(html);
 }
 
 async function writeStaticRoutePages({
@@ -1759,18 +1834,18 @@ async function main() {
     legacyRedirects: sourceRedirects,
   }));
   const rootMetadata = {
-    title: "Paperclip Docs",
-    description: defaultSeoDescription,
+    title: homeSeoTitle,
+    description: homeSeoDescription,
     url: siteUrlForPath(options.siteUrl, options.basePath),
     siteUrl: options.siteUrl,
     basePath: options.basePath,
   };
   await fs.writeFile(
     path.join(options.outDir, "index.html"),
-    inlineReleaseStyles(
+    injectGoogleAnalytics(inlineReleaseStyles(
       injectSeo(buildRootPageHtml(sourceIndex, releaseNav, options.basePath, sectionIconPaths), rootMetadata),
       releaseStyles,
-    ),
+    )),
   );
   // A markdown link that no nav page publishes would ship as a raw `.md` href,
   // which 404s for every crawler. Collect them and fail the build rather than
@@ -1809,6 +1884,7 @@ async function main() {
     siteUrl: options.siteUrl,
     basePath: options.basePath,
   }));
+  await fs.copyFile(path.join(__dirname, "llms.txt"), path.join(options.outDir, "llms.txt"));
 
   if (await pathExists(screenshotsSourceDir)) {
     const screenshotTargetDir = path.join(options.outDir, "user-guides", "screenshots");

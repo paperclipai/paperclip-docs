@@ -31,7 +31,7 @@ seo_description: Run Google's Gemini CLI on the Paperclip host, with session res
 
 | Field | Required | Notes |
 |---|---:|---|
-| `cwd` | no | Absolute working directory for the agent. Recommended in practice. If omitted, the adapter falls back to the current process working directory. Paperclip creates the path when permissions allow. |
+| `cwd` | no | Deprecated. A legacy fallback working directory, used only when a run has no project workspace. The create flow no longer shows it, and an existing agent that still has a value shows it as **Working directory (deprecated)**. Set the repository on the [project](../../guides/projects-workflow/projects.md) instead. |
 | `engine` | no | How Gemini is run: `auto` (the default — runs ACP), `acp` (always the Agent Client Protocol), or `cli` (always the classic Gemini CLI). See [ACP Engine](#acp-engine). |
 | `model` | no | Gemini model id. Defaults to `auto`. Common choices include `gemini-3.1-pro-preview`, `gemini-3.8-flash`, `gemini-2.5-pro`, and `gemini-2.5-flash`. See [Models](#models). |
 | `promptTemplate` | no | Prompt template used for the run. |
@@ -149,7 +149,6 @@ The test also detects auth and quota failures, so a passing install check does n
 {
   "adapterType": "gemini_local",
   "adapterConfig": {
-    "cwd": "/Users/me/projects/paperclip-workspace",
     "model": "gemini-2.5-pro",
     "instructionsFilePath": "/Users/me/projects/paperclip-workspace/INSTRUCTIONS.md",
     "promptTemplate": "You are the product engineer for this company. Stay focused on the task.",
