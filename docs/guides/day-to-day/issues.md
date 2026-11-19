@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Issues: Creating and Tracking Work
 seo_description: Each issue is one unit of work tied to your company goal. Create them yourself or let the CEO do it, then track progress, comment, and close them.
 ---
@@ -532,6 +532,7 @@ At the bottom of the conversation sits the composer. [Chat-Style Tasks](../../ex
 - **Voting** — each comment has up/down vote controls. Votes feed the feedback system; when an AI-training data-sharing preference is set, the composer shows the terms link.
 - **Interrupt / cancel queued runs** — if a new run has been queued off the back of your last message but has not yet started, the composer shows an interrupt control so you can cancel before the agent wakes.
 - **Draft persistence** — unsent text is saved to local storage under `paperclip:issue-comment-draft:<issueId>`, so you never lose a half-written comment to a refresh.
+- **Sending while the connection drops** — if Paperclip loses its connection, one banner says *Connection interrupted. Reconnecting automatically…* (or *You’re offline…*), and pages keep showing what they'd already loaded. A message you send meanwhile waits above the composer as **Sending when reconnected…** and goes out once the connection is back, with its original request ID, so it can't post twice. **Resend now** tries straight away, and **Cancel** gives you the text back. If a send can't be replayed safely, for example one saved by an older version, there's no **Resend now** and it says *We couldn’t confirm whether this message was sent.* Check the conversation before sending again.
 - **Disabled reasons** — when you cannot send, the composer explains why. A paused task replaces the inputs with a resume panel and preserves your draft. A completed task can be reopened when you send new work to an agent.
 
 ### Interrupts, handoffs, and scoped wakes

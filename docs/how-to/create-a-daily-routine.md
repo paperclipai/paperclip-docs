@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1117.0
 seo_title: Create a Routine That Runs Daily
 seo_description: Describe recurring work once, attach a cron trigger, and Paperclip mints a fresh issue every tick with the same owner, parent, project, and goal.
 ---
@@ -319,6 +319,8 @@ curl -X POST "$WEBHOOK_URL" \
 `app_webhook` accepts either that `Authorization: Bearer` header or an HMAC-SHA256 signature of the body in `X-Hub-Signature` / `X-Hub-Signature-256` — the "signing secret" most SaaS tools offer. It's what the UI's **Another app or script** setup creates.
 
 Signing modes: `app_webhook`, `bearer` (the API default when you omit `signingMode`), `hmac_sha256`, `github_hmac`, or `none`. Pick `github_hmac` for GitHub, `app_webhook` for other apps, `hmac_sha256` for timestamped signatures you compute yourself, `bearer` for one-line scripts. Avoid `none` — the URL becomes anonymously fireable. Only a board user can choose `none`; an agent that tries gets a `403` and has to use an authenticated mode or ask a person. The sender has to be able to reach the URL: public services need a publicly reachable HTTPS address, not `localhost` or a private network.
+
+Want a routine that repairs failed runs Paperclip reports to Sentry? It's a normal webhook trigger on the usual `/fire` URL, with Sentry's alert filters keeping repairs from repairing themselves. See [Example: repair failed runs reported by Sentry](../guides/projects-workflow/routines.md#example-repair-failed-runs-reported-by-sentry).
 
 Want a routine that repairs failed runs Paperclip reports to Sentry? It's a normal webhook trigger on the usual `/fire` URL, with Sentry's alert filters keeping repairs from repairing themselves. See [Example: repair failed runs reported by Sentry](../guides/projects-workflow/routines.md#example-repair-failed-runs-reported-by-sentry).
 

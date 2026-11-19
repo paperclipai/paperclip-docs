@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Sandbox Providers
 seo_description: Provider plugins that let Paperclip provision external compute as the execution environment for agent runs, instead of running them on the host.
 ---
@@ -110,6 +110,7 @@ Daytona counts a *stopped* sandbox against your org's storage quota — only an 
 | `autoStopInterval` | `15` (minutes) | Stops idle running sandboxes, which frees CPU/RAM and starts the archive clock. `0` disables auto-stop. Otherwise, a reusable sandbox that keeps a warm runner never auto-stops before the warm idle window plus 5 minutes, and a sandbox running a Paperclip runner never auto-stops before the host's runner reconnect grace plus 5 minutes. |
 | `autoArchiveInterval` | `60` (minutes) | Archives stopped sandboxes so they leave the disk quota. `0` uses Daytona's maximum interval. |
 | `autoDeleteInterval` | `10080` (minutes, 7 days) | Backstop reaper for sandboxes nobody resumes. `-1` disables auto-delete; `0` deletes immediately after stop. |
+| `ttlMinutes` | unset | Optional hard lifetime, in whole minutes from creation. Daytona destroys the sandbox and its files when it expires, in any state, even while it's running. It's separate from the inactivity intervals above. Leave it unset to keep the normal lifetime. |
 
 These defaults only apply when you leave a field unset — an explicit value (including `0` or `-1`) is forwarded to Daytona unchanged. Auto-archive is reversible: resuming an archived reusable sandbox restores it, so warm reuse still works under these defaults. If you genuinely need long-lived warm sandboxes, raise or disable the intervals.
 

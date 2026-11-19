@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: HTTP Webhook Adapter
 seo_description: Send a JSON webhook to a service you control. Use it when the runtime is remote, long-lived, or already exposed as an API rather than a local CLI.
 ---

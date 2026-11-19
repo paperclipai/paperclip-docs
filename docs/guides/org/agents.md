@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Agents: Your AI Employees
 seo_description: Hire agents, browse the agent list, and work the agent page — overview, identity, harness, history, and audit — for the AI employees doing your work.
 ---
@@ -813,7 +813,7 @@ These are exactly what you'll see in the Invocation card on any run — Papercli
 
 ### Cryptographic identity
 
-The agent's **Identity** panel shows its persistent Ed25519 fingerprint and lets you copy its public PEM. New agents receive a keypair when created; older agents receive one on their next supported managed run. Before then, the panel says **Not created yet**.
+Every agent has a persistent Ed25519 keypair. The agent's page doesn't show it; read the fingerprint and public PEM through `GET /api/agents/:id/identity`. New agents receive a keypair when created; older agents receive one on their next supported managed run. Before then, the route returns `null`.
 
 Managed runtimes receive the private key, including managed remote hosts. Choose hosts you trust with that identity. API bearer authentication stays separate, and company imports or agent copies get new identities. See [Agent cryptographic identity](agent-identity.md) for runtime variables and backup requirements.
 

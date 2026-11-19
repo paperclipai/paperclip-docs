@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Key Concepts: Companies, Agents, Tasks
 seo_description: The seven ideas behind Paperclip — company, agent, task, heartbeat, adapter, budget, approval — explained with analogies before the technical detail.
 ---
@@ -128,7 +128,7 @@ Available adapter types:
 | `pi_local` | Runs a Pi agent locally |
 | `hermes_local` | Runs a Hermes Agent locally with persistent memory and 30+ tools |
 
-A few additional adapter types (`openclaw_gateway`, `process`, `http`) exist in the runtime but are currently marked **"Coming soon"** in the agent-config dropdown. See [Adapters Overview](../../reference/adapters/overview.md) for the full list.
+A few additional adapter types (`openclaw_gateway`, `process`, `http`) exist in the runtime but aren't listed in the agent form's **Harness** dropdown. See [Adapters Overview](../../reference/adapters/overview.md) for the full list.
 
 For most people getting started, `claude_local` is the right choice.
 

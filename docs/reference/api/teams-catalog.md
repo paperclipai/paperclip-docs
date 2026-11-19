@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1117.0
 seo_title: Teams Catalog API
 seo_description: The surface behind catalog teams — ready-made starter groups bundling agents, projects, routines, and skills that install into a company in one step.
 ---

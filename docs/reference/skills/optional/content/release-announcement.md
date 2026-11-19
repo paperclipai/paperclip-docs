@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.618.0
+paperclip_version: v2026.1117.0
 seo_title: Release Announcement Skill
 seo_description: Write the channel-appropriate release note — changelog, blog, in-app, or social — leading with user impact and including upgrade guidance.
 ---

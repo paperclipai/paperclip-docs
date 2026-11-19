@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Handle Board Approvals for Hires
 seo_description: A manager agent cannot hire on its own; it files a request and waits. Read the proposal, approve it, and Paperclip wakes the requester to carry on.
 ---
@@ -44,6 +44,8 @@ curl -X POST "$PAPERCLIP_API_URL/api/companies/$COMPANY_ID/agent-hires" \
 ```
 
 With `requireBoardApprovalForNewAgents` on, this body lands as `pending_approval`, and the proposed budget takes effect only when you approve. With it off, the hire goes live straight away, so an agent can't include a budget: a `budgetMonthlyCents` above `0` gets `403` with `Board access required`, because budgets are a board decision. Leave the field out and set a budget yourself afterwards. Manager agents can produce this payload by following the bundled `paperclip-create-agent` skill, which encodes the governance flow end to end.
+
+> Want an agent, even the CEO, to stop hiring altogether? Switch off **Can create new agents** on its **Permissions / Trust** page. Its hire calls are then refused instead of queued. See [Permissions / Trust](../guides/org/agents.md#permissions-trust).
 
 > Want an agent, even the CEO, to stop hiring altogether? Switch off **Can create new agents** on its **Permissions / Trust** page. Its hire calls are then refused instead of queued. See [Permissions / Trust](../guides/org/agents.md#permissions-trust).
 

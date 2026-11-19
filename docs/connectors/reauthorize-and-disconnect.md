@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Reauthorize or Disconnect
 seo_description: Reconnect an expired credential, replace an API key, pause a connector, revoke one identity, or delete the connection entirely, and know what survives.
 ---

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Experimental File Viewer
 seo_description: Read the reports, code changes, and screenshots an agent produced without leaving the task — the files, not just the comment thread that describes them.
 ---

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Choosing an Agent Adapter
 seo_description: Compare the adapters that run your agents — Claude Code, Codex, OpenCode, HTTP webhook and more — and pick the right bridge for each role you hire.
 ---
@@ -144,9 +144,9 @@ The configuration is similar to the other local adapters, with an additional **M
 
 ## Other adapters you may see
 
-Three built-in adapter types are marked **"Coming soon"** in the agent-config dropdown and can't be picked directly from the UI today. They're fully functional in the runtime — you just configure them via the API or an imported company export until the UI picker lands.
+Three built-in adapter types aren't listed in the agent form's **Harness** dropdown, so you can't pick them directly from the UI today. They're fully functional in the runtime — you just configure them via the API or an imported company export until the UI picker lands.
 
-- `openclaw_gateway` — remote OpenClaw instances reached over the WebSocket gateway protocol. Today, the normal path is the OpenClaw invite-prompt flow on the Company Settings page. See [OpenClaw Gateway](../../reference/adapters/openclaw-gateway.md).
+- `openclaw_gateway` — remote OpenClaw instances reached over the WebSocket gateway protocol. Today, the normal path is the external-agent invite flow in the add-agent dialog. See [OpenClaw Gateway](../../reference/adapters/openclaw-gateway.md).
 - `http` — webhook-style invocation into your own service. Aimed at developers building custom agent integrations. See [HTTP](../../reference/adapters/http.md).
 - `process` — runs an arbitrary local command or script. See [Process](../../reference/adapters/process.md).
 

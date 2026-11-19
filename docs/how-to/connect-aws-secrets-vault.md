@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.525.0
+paperclip_version: v2026.1117.0
 seo_title: Connect an AWS Secrets Manager Vault
 seo_description: Let Paperclip discover the vaults you already use by region, namespace, and name prefix, instead of copying ARNs across by hand.
 ---

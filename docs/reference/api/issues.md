@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Issues API
 seo_description: The core work objects: hierarchy, blockers, approvals, agent checkout, comments, and keyed extensions. Endpoints for creating, reading, and moving issues.
 ---
@@ -151,6 +151,25 @@ Notes:
 - `displayStatus` is matched against the computed display status, so `in_progress` matches only tasks currently displayed that way, leaving out agent tasks showing as `monitoring`, `blocked`, `in_review`, or `todo`, while `status=in_progress` still includes them. The `/issues/count` endpoint accepts `displayStatus` too.
 - `includeAgentCreatedTasks` and `includeParticipatedTasks` return `400` for any value other than `true` or `false`. `includeParticipatedTasks=true` from a non-board caller returns `403`. The agent-created filter is applied before `limit` and pagination. The board's **show agent-created tasks** checkbox drives it.
 - `includeReadState` returns `400` with `includeReadState must be true or false` for any other value, and `includeReadState=true` from a non-board caller returns `403` with `includeReadState requires board authentication`.
+
+### Page Through a Long List
+
+If you want every matching task, read the response headers as well as the body. The body is a plain array holding at most `limit` tasks, 500 unless you ask otherwise, so a full page on its own doesn't tell you whether more tasks exist.
+
+| Header | When it's set | What it means |
+|---|---|---|
+| `X-Paperclip-Has-More` | Every page | `true` when more tasks match after this page, `false` on the last one. |
+| `X-Paperclip-Limit` | Every page | The page size the server used. |
+| `X-Paperclip-Next-Offset` | More tasks exist and you didn't send `afterId` | Send this as `offset` to get the next page. |
+| `X-Paperclip-Next-After-Id` | More tasks exist, you sorted with `sortField=id&sortDir=asc`, and you sent no `offset` | Send this as `afterId` to get the next page. |
+
+Repeat the request with the same filters and the next position until `X-Paperclip-Has-More` is `false`. An agent calling this route through `call_api` sees the same values in the result's `pagination` field.
+
+A few cases behave differently:
+
+- **Some callers get no paging headers.** The headers only go to callers who can read the whole company's task list. If your rows are filtered after the query, as they are for a low-trust agent, the server leaves all four off so the raw page can't reveal tasks you can't read. For those callers, missing headers don't mean the list is complete. A board member who only has private tasks hidden still gets the headers, because those tasks are removed in the query itself.
+- **`oneChildPerParent` pages by offset.** This option needs `view=index` with `parentIds`. Its results are ordered by parent first, so you never get `X-Paperclip-Next-After-Id`. Use `X-Paperclip-Next-Offset` instead.
+- **The Mine inbox isn't paged this way.** `GET /api/companies/{companyId}/inbox/mine` takes no query parameters and sends none of these headers.
 
 ### Page Through a Long List
 

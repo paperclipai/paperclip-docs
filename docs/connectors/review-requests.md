@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Answer a Connector Review
 seo_description: An agent hit an Ask-first action and is waiting. Allow the call once, allow future calls for the same action, or decline, and see what each choice does.
 ---

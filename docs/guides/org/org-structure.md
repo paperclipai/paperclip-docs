@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Building Your Org Structure
 seo_description: Reporting lines tell each agent who manages them, who delegates work, and who to escalate to. Common structures, plus adding managers and workers.
 ---

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1117.0
 seo_title: Storage Configuration
 seo_description: Where uploads, run logs, skill packages, agent files, and remote task workspaces are stored, and what S3 needs so a replacement server picks them up.
 ---

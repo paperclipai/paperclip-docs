@@ -93,6 +93,20 @@ Each method also carries a `management` block, so the agent can tell whether it 
 
 When `allowed` is `true`, the agent configures the connection through that route and only hands the person the steps that need them — signing in, consent, or credentials — at the saved `setupPath`. The rules behind `allowed` are in [How connector access works](../../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you).
 
+Each method also carries a `management` block, so the agent can tell whether it may do the setup itself instead of handing it to a person:
+
+| Field | Meaning |
+|---|---|
+| `allowed` | Whether this agent, acting for its responsible user, may configure this method itself. |
+| `reason` | Why it's allowed or refused. |
+| `operation` | The setup operation that was checked. |
+| `canUse` | Whether the agent can already use the connection. For a tool connection, at least one of its tools must be allowed. |
+| `requiresApproval` | `true` when some of the connection's tools are set to **Ask first**. |
+| `requiresHumanAuthentication` | `true` when the method needs a sign-in or key and nothing usable is connected yet. |
+| `nextApiOperation` | The API route to call next: `POST /api/companies/{companyId}/tools/apps/connect` for tools, `POST /api/companies/{companyId}/chat-endpoints` for chat, or `POST /api/companies/{companyId}/ai-connections` for AI. |
+
+When `allowed` is `true`, the agent configures the connection through that route and only hands the person the steps that need them — signing in, consent, or credentials — at the saved `setupPath`. The rules behind `allowed` are in [How connector access works](../../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you).
+
 Each result's `state` is one of `ready` (a connection is connected and usable by this agent right now, with `connectionId` set), `needs_user_action` (a matching connection exists but isn't usable yet), `available` (the service can be connected but nothing exists), or `unavailable` (the service offers no connection methods).
 
 #### Setup card, setup link, or setup by the agent

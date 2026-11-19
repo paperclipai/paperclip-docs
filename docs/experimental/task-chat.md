@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Chat-Style Tasks
 seo_description: Read what an agent said and what it actually did in one stream — thinking, commands, and diffs inline, instead of a comment thread beside a transcript.
 ---
@@ -243,7 +243,7 @@ Implementation reference: [composer](https://github.com/paperclipai/paperclip/bl
 
 The properties pane on the right becomes resizable and maximizable.
 
-Drag its left edge to set the width; the pane remembers it, and **double-clicking the edge** resets it to the default. Use **Maximize panel** in the header to glide it out across the page for a proper read — the center column doesn't reflow while it's out — and **Restore panel** to send it back.
+Drag its left edge to set the width; the pane remembers it, and **double-clicking the edge** resets it to the default. Use **Maximize side panel** in the header to glide it out across the page for a proper read — the center column doesn't reflow while it's out — and **Restore side panel** to send it back.
 
 The panel has a **+** menu for opening task surfaces and documents in tabs. The main views are:
 

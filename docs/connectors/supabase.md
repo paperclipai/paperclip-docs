@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1117.0
 seo_title: Supabase Connector
 seo_description: Let agents create Supabase projects, deploy Edge Functions, and configure Auth and the Data API. Pick a method, scope it, and gate risky actions.
 ---

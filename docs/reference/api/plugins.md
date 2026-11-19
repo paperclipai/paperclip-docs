@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.529.0
+paperclip_version: v2026.1117.0
 seo_title: Plugins API
 seo_description: The REST surface behind the Plugin Manager: installation, enable, disable, upgrade, config, jobs, webhooks, and local-folder development workflows.
 ---
