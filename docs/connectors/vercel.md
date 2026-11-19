@@ -27,7 +27,7 @@ The token's permissions come from your Vercel role. Paperclip cannot increase wh
 3. Fill in **Vercel team ID**.
 4. Paste the access token into the **Your Vercel key** field and continue.
 
-Access token is the only method. Paperclip checks that the token identifies the team you entered before it saves the connection, then keeps the token in its secret vault. Agents call Vercel through Paperclip and never receive the token itself.
+Access token is the only method. Paperclip checks that the token identifies the team you entered before it turns the connection on, and keeps the token in its secret vault. Agents call Vercel through Paperclip and never receive the token itself.
 
 ## What agents can do
 

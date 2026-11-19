@@ -22,7 +22,7 @@ This release is about the new standard workspace. The Coordinator layout and Age
 
 - [Coordinator workspace](../experimental/coordinator-workspace.md): the standard workspace, built around Chat, Tasks and Inbox, and how to switch back to the Classic workspace.
 - [Edit an agent as YAML](../guides/org/agent-configuration-yaml.md): view and edit an agent's settings as one `paperclip/v1` document, preview changes, and recover from conflicts or partial saves.
-- [1Password](../connectors/1password.md): let agents read and manage items in the vaults you choose, with archive and delete gated separately.
+- [1Password](../connectors/1password.md): let agents read and manage items in the vaults you choose, with archive and delete marked destructive so you can gate them separately.
 - [Vercel](../connectors/vercel.md): let agents deploy and manage projects, environment variables and domains, with preview deploys by default.
 
 **Updated pages**

@@ -165,7 +165,7 @@ The agent does this with **delegated authority**. It always acts for the run's r
 | --- | --- | --- |
 | Creating, editing, reconnecting, or removing a connection | `tools:manage_connections` | `tools:manage_connections`, or it's a connection they created or their own personal one |
 | Changing profiles, company tool policies, or trust rules | `tools:manage_profiles` | `tools:manage_profiles` (an Owner or Admin can rely on `tools:admin` instead) |
-| Choosing which agents a connection is installed on | `tools:manage_profiles` and `tools:manage_connections` | `tools:manage_connections` and `agents:configure`, unless it's a connection they created or their own personal one. Changing the company-wide install needs `tools:manage_profiles` (or `tools:admin` for an Owner or Admin) in place of `agents:configure` |
+| Choosing which agents a connection is installed on | `tools:manage_profiles`, plus `tools:manage_connections` to change the company-wide install | `agents:configure` and access to the connection (a company-wide connection, their own personal one, or one they created). Changing the company-wide install needs `tools:manage_connections` and `tools:manage_profiles` (or `tools:admin` for an Owner or Admin) instead, unless it's a connection they created |
 | Running a test call | `tools:use` | `tools:use` or `tools:manage_connections` |
 | Stopping or restarting a tool runtime | `tools:manage_runtime` | `tools:manage_runtime` |
 | Reading a connection's activity or the gateway audit | `tools:view_audit` | `tools:view_audit` |

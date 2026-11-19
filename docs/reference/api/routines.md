@@ -146,7 +146,7 @@ Important behavior:
 - assigned agents must belong to the same company and must not be terminated or pending approval.
 - if you mark a routine `active` without an assignee, the API will not leave it active.
 - if the title or description references variables, those variables must be valid and resolvable.
-- `responsibleUserId` isn't accepted on create. The server sets it: the signed-in user for a board request, or the user an agent's run or API key acts for. An agent stays the routine's creator. Without a bound user, the server falls back to the parent issue's user or the company's default.
+- `responsibleUserId` is ignored on create. The server sets it: the signed-in user for a board request, or the user an agent's run or API key acts for. An agent stays the routine's creator. Without a bound user, the server falls back to the parent issue's user or the company's default.
 
 ### Example
 
@@ -681,7 +681,7 @@ For timestamped HMAC validation, the server enforces the replay window from the 
 
 For `app_webhook` triggers, the validated JSON payload is appended to the execution issue's description inside a fenced data block, labelled as external data the agent must not treat as instructions. The block is capped at 16,384 characters; the full payload is always stored on the routine run. A signed `app_webhook` delivery without an idempotency key is deduplicated by a digest of the trigger and the exact body, so an identical signed retry does not start a second run.
 
-Paperclip copies that JSON as it arrives. There's no field allowlist and no scrubber: the full payload lands in routine history, which everyone in the company can read, and in the execution task. Only send data you're happy for everyone in the company to see, and strip secrets or personal data at the source. Authenticating the request, or attaching a verified caller, doesn't make the payload private.
+Paperclip copies that JSON as it arrives. There's no field allowlist and no scrubber: the full payload lands in routine history, which everyone in the company can read, and up to 16,384 characters of it land in the execution task. Only send data you're happy for everyone in the company to see, and strip secrets or personal data at the source. Authenticating the request, or attaching a verified caller, doesn't make the payload private.
 
 `fireflies_hmac` triggers keep their provider-specific handling: only authenticated meeting metadata (`event`, `meeting_id`, `timestamp`, and an optional `client_reference_id`) becomes run input, runs are deduplicated per meeting, and events other than `meeting.summarized` are acknowledged with `{ "status": "ignored", "routineStarted": false, "linkedIssueId": null }` without creating a run.
 

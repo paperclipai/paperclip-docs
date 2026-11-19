@@ -143,10 +143,11 @@ If you've set `DATABASE_APPLICATION_NAME`, the main pool uses your name instead,
 
 - the main pool, up to `DATABASE_POOL_MAX`
 - a second pool of the same size when `DATABASE_MIGRATION_URL` is set
-- up to 2 connections named `paperclip-controller-lease`, which keep agent runs alive so they never wait behind slow queries
+- up to 2 connections named `paperclip-controller-lease`, used for lease renewals so they never wait behind slow queries
 - up to 3 connections named `paperclip-runner-checkpoint`, which save Paperclip Runner checkpoints
 - up to 2 connections named `paperclip-file-storage`, used while agent files are written to storage
 - a short-lived single connection named `paperclip-workspace-finalization-lock` while a workspace is being finalized
+- one connection under the main pool's name while an installed plugin listens for agent lifecycle events
 
 Paperclip closes its pools when the server shuts down, and when startup fails after a pool has opened, so restarts don't leave idle connections behind.
 

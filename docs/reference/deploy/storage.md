@@ -143,10 +143,11 @@ When a task runs on [Paperclip Runner](../adapters/paperclip-runner.md) in a clo
 
 **It's on by default, but only kicks in when your instance can support it.** A new sandbox task uses remote workspace storage when all of these are true:
 
-- The database is an external PostgreSQL server set through `DATABASE_URL`. The embedded database doesn't qualify.
+- The database is an external PostgreSQL server, set through `DATABASE_URL` or your config file. The embedded database doesn't qualify.
 - Storage is `s3`. `local_disk` doesn't qualify.
-- The encryption key is stable: `PAPERCLIP_SECRETS_MASTER_KEY`, or a `PAPERCLIP_SECRETS_MASTER_KEY_FILE` you keep when you replace a server. Every replacement server needs the same key.
+- The encryption key is stable: `PAPERCLIP_SECRETS_MASTER_KEY`, or a master key file that exists on disk (`PAPERCLIP_SECRETS_MASTER_KEY_FILE` or the instance's key file) and that you keep when you replace a server. Every replacement server needs the same key.
 - The task starts from an empty folder, a repository URL, or a repository managed in the same project.
+- The task's project doesn't use a workspace storage plugin.
 
 If any of these is missing, new tasks keep using a folder on the web server, as before. Existing workspaces, local SSH and plugin environments, configured local folders, and older adapters are never converted automatically.
 

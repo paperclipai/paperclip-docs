@@ -75,7 +75,7 @@ Each tool call is one compact row: an icon for the kind of tool, what it did, an
 
 The row also tells you how it went. A command carries an exit chip, grey for `exit 0` and red for anything else, and a row shows how long the call took when the harness reports it. A call that a policy or rule refused reads **Blocked** and gives the reason in red.
 
-Click a row to expand its result. If the call edited a file, the row carries a `+34 −3` count and expands to the diff for that edit, with added lines in green and removed lines in red. A long diff shows **Show 12 more lines**. Every turn that changed files ends with a **Changed in this turn** card listing each file and its counts. Open a file there to read its diff, or use **Expand all** when there are several.
+Click a row to expand its result. If the call edited a file, the row carries a `+34 −3` count and expands to the diff for that edit, with added lines in green and removed lines in red. A long diff shows **Show 12 more lines**. On [Paperclip Runner](../reference/adapters/paperclip-runner.md), a turn that changed files ends with a **Changed in this turn** card listing each file and its counts. Open a file there to read its diff, or use **Expand all** when there are several.
 
 Where an agent had to ask permission for a call, the expanded row shows the outcome, such as **Permission allowed**.
 

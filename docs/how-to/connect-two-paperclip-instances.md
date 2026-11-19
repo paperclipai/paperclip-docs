@@ -1,5 +1,4 @@
 ---
-paperclip_version: v2026.1117.0
 seo_title: Connect Two Paperclip Instances
 seo_description: Let your agents file and follow up on tasks in a colleague's Paperclip instance by connecting it as an MCP server, with no code and no API keys.
 ---

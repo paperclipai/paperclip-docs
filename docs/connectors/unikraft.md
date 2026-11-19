@@ -24,7 +24,7 @@ There is no browser sign-in; the token is the only way in. A token acts for its 
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to narrow the agents or to reach the advanced setting below.
 3. Paste your API token into **Your Unikraft key** and select **Connect**.
 
-Paperclip checks the token with Unikraft before saving it, by reading your quotas in the default metro. The token stays in Paperclip's vault and is sent to Unikraft as a Bearer header; agents never see it.
+Paperclip checks the token with Unikraft before it turns the connection on, by reading your quotas in the default metro. The token stays in Paperclip's vault and is sent to Unikraft as a Bearer header; agents never see it.
 
 ### Optional setting
 

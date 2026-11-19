@@ -349,7 +349,7 @@ Naming a workspace yourself doesn't get around this. An `executionWorkspaceId` t
 
 ## Agent Task Depth Limit
 
-Tasks created or moved by an agent can be at most two levels deep: a top-level task and its children. A request that would make a grandchild isn't rejected. The server uses the requested parent's own parent instead, so the task lands beside the requester, and returns the usual `201` (create) or `200` (update).
+Tasks created or moved by an agent can be at most two levels deep: a top-level task and its children. A request that would make a grandchild isn't rejected. The server places it under the top-level task of that tree instead, so in a two-level tree it lands beside the requester, and returns the usual `201` (create) or `200` (update).
 
 This applies to agent callers of `POST /api/companies/{companyId}/issues`, `POST /api/issues/{issueId}/children`, and a `parentId` change through `PATCH /api/issues/{issueId}`, and to task creation from the Paperclip Runner tools.
 

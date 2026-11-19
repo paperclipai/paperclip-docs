@@ -59,7 +59,7 @@ Approval means approve and run: Paperclip attempts the stored call using its sav
 
 A declined request means the action did not happen. The agent is expected to change approach rather than retry the same call. If it retries anyway, it gets the same decline back and no new request opens.
 
-Changed your mind after declining? Post a new comment on the task asking for the action again. When that comment wakes the agent on a new run, the same call can open a new **Ask first** review. Your earlier decline doesn't approve anything, so the call goes through your current action settings like any other. This only works for the person who declined: a later comment from someone else leaves the decline in place.
+Changed your mind after declining? Post a new comment on the task asking for the action again. When that comment wakes the agent on a new run, the same call can open a new **Ask first** review. Your earlier decline doesn't approve anything, so the call goes through your current action settings like any other. This only works when the person who declined is also the run's responsible user, the person the agent works for, and writes the comment: a later comment from someone else leaves the decline in place.
 
 Pending requests expire. After expiry the item reads **Expired — send it again**, and the agent has to make a fresh call to open a new request.
 

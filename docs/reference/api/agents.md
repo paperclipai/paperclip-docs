@@ -789,7 +789,7 @@ Both routes are board-only. An agent caller gets `403`, and an agent outside you
 
 - `projectIds` is required: between 1 and 100 project UUIDs. No other fields are accepted.
 - Projects already allowed are skipped, and duplicates are collapsed.
-- Every other part of the agent's permissions and trust boundary stays exactly as it was. The new ids are appended to the existing list.
+- Every other part of the agent's permissions and trust boundary stays as it was, except that the boundary is marked as a `low_trust_review` boundary for this company if it wasn't already. The new ids are appended to the existing list.
 - The response has the same shape as `GET`, with the full updated `projectIds` and `canManage: true`.
 - When something new is added, the activity log records `agent.project_access_added` with the `addedProjectIds`.
 - Saving access doesn't start or retry any work. Retry the task separately.
@@ -820,7 +820,7 @@ Use this when you're moving a `claude_local`, `codex_local`, or `grok_local` age
 
 - `expectedEnvironmentId` is required and must be a UUID. No other fields are accepted.
 - You need permission to update the agent — the same check as editing its configuration. You don't need to be an instance admin.
-- The server probes the environment and returns a result with `ok`, `driver: "sandbox"`, a `summary`, and `details.platformQualificationRecorded`, which is `true` only when the computer was qualified.
+- The server probes the environment (for a `paperclip_runner` agent whose computer already has a valid saved qualification, it reuses that instead) and returns a result with `ok`, `driver: "sandbox"`, a `summary`, and `details.platformQualificationRecorded`, which is `true` only when the computer was qualified.
 - Every completed probe, whether it passes or fails, is logged as `agent.runner_qualification_tested`.
 
 Errors:

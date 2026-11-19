@@ -95,7 +95,7 @@ Treat recording as best effort: skip it for help output, status probes, and fail
 
 When a task's running agent has recorded a matching activity, Paperclip replaces `:entityId` with that agent's ID, adds `runId` and `issueId` query parameters for the active task, and asks your route whether the view is ready. It asks when the activity arrives and again when the task page loads or reconnects. If your route says no or fails, Paperclip tries up to three times, then waits for the activity to be recorded again. Client errors (4xx responses, such as access denials) aren't retried. There's no timer polling your route. When the route says yes, Paperclip opens your tab in the task's side panel the first time it becomes available. If someone closes the tab, it doesn't reopen by itself for the rest of that run, and they can reopen it from the launcher. Nothing opens automatically when the route says no or fails, the run history can't be read, the activity came from a different task, or the run isn't active; the view stays in the launcher either way. If your plugin is missing or disabled, the view isn't offered at all. Your plugin decides when the view is available and what it shows. Paperclip only remembers which tabs are open, never your route's answers.
 
-Board clients can read which task panels a run has activated with `GET /api/heartbeat-runs/:runId/events?view=plugin-panels`. It uses the same run-read access as the run's events and returns up to 128 `{ pluginKey, slotId }` pairs for installed plugins.
+Clients can read which task panels a run has activated with `GET /api/heartbeat-runs/:runId/events?view=plugin-panels`. It needs the same run-read access as the run's events and returns up to 128 `{ pluginKey, slotId }` pairs for installed plugins.
 
 The manifest is rejected if the rules aren't met: `taskSidePanel` on anything but a `detailTab` with `"agent"` in `entityTypes` fails with "taskSidePanel requires an agent detailTab", and a missing or mismatched route fails with "taskSidePanel availability requires a declared board GET route scoped to agent :entityId". The route can't be a WebSocket route.
 
@@ -404,7 +404,7 @@ These values never appear in lifecycle inbox listings or the company's secret li
 
 ##### Git credentials for a project's repositories
 
-A storage plugin that clones a project's private GitHub repositories can ask Paperclip for a short-lived Git token instead of storing one. Declare the trusted `projects.git-credentials` capability and call:
+A storage plugin that clones a project's private GitHub repositories can ask Paperclip for a short-lived Git token instead of storing one. Declare the `projects.git-credentials` capability and call:
 
 ```ts
 const token = await ctx.projects.resolveGitCredential(projectId, workspaceId, companyId);
@@ -507,12 +507,13 @@ A storage provider needs four things in its manifest:
 
 Without the capability and the project lifecycle stream, the manifest is rejected with "Workspace providers require workspaces.manage and project resource lifecycle".
 
-`workspaceProvider` also takes four optional fields:
+`workspaceProvider` also takes five optional fields:
 
 - `defaultForProjects` — a `{ mode, strategy }` pair that makes your plugin the [default storage for new projects](#becoming-the-default-for-projects).
 - `finalizationVersion: 1` — you support the lighter [`finalize`](#what-each-operation-does) step when a run completes.
 - `freshWorkspaceVersion: 1` — you can prepare [fresh retry workspaces](#fresh-retry-workspaces).
-- `supportsMergeAncestry: false` — your inspection can't tell whether a branch was merged. Automatic cleanup then inspects a workspace only once a matching pull request has merged, instead of re-checking it on a timer. Open or unknown pull requests keep the normal retries, and an explicit close still inspects the workspace. Leave the field out to keep the usual ancestry checks.
+- `supportsMergeAncestry: false` — your inspection can't tell whether a branch was merged. Automatic cleanup then checks GitHub first, using the head from your latest successful `finalize`, and inspects a workspace only once that commit is in the destination branch or a matching pull request has merged. Open or unknown delivery keeps a bounded retry, and an explicit close still runs its usual checks. Leave the field out to keep the usual ancestry checks.
+- `recoveryPullRequestVersion: 1` — Paperclip can add a `recoveryPullRequest` (`{ number, headSha }`) to `inspect` and `remove`. It's a recovery hint, not permission to delete: confirm that pull request still points at `headSha` in your own trusted repository, and check the workspace yourself.
 
 The same plugin implements two hooks. `onResourceLifecycle` creates and retains the project's storage as projects come and go. `onWorkspaceOperation(params: PluginWorkspaceParams): Promise<PluginWorkspaceResult>` manages the per-task checkouts inside that storage.
 
@@ -554,7 +555,7 @@ For Git projects attached to you, Paperclip also fills in your default mode and 
 A few rules keep the default predictable:
 
 - **Explicit choices win.** A project created with a specific plugin, or with `null` for Core / local, keeps that choice.
-- **Clashing settings fail clearly.** If a project's own mode or strategy isn't one you support, runs fail with a configuration error asking the operator to change the setting or pick another storage provider.
+- **Clashing settings fail clearly.** If a Git project's own mode or strategy isn't one you support, or it has turned execution workspaces off, runs fail with a configuration error asking the operator to change the setting or pick another storage provider.
 - **Only one default at a time.** If more than one enabled plugin claims the default, creating a project with no explicit choice is refused with "Multiple workspace storage plugins claim the project default: …". Existing projects aren't affected.
 - **No silent fallback.** An attached project never switches to local storage. If your worker is down, runs fail. If your plugin is disabled, uninstalled, or turned off for the company, runs fail with "The workspace storage plugin is unavailable".
 - **Existing workspaces keep their owner.** Adding a default never moves, resets, or recreates a workspace that already exists, local ones included.
@@ -615,7 +616,7 @@ To run agents against these checkouts, the environment the task runs in (its age
 
 Agents on the `paperclip_runner` adapter can now be assigned a plugin environment. When one of them starts work there, your plugin owns the task's workspace.
 
-A plugin environment whose driver declares `supportsTasks: true` is Runner-only. Codex, Claude, OpenCode, and Pi agents on it always resolve to Paperclip Runner — Paperclip doesn't need a reported platform for them, because your plugin provisions the host and launches its own Runner. The agent form greys out Legacy runner there and switches a Legacy choice to Paperclip Runner. The agent's **Test** button picks the runner first, then checks that the environment's driver is allowed for it. Paperclip doesn't prepare or reuse a Git worktree on its own disk for that environment. For projects backed by your storage provider, Paperclip uses the pinned workspace binding, and your declared `modes` and `strategies` still apply. When a run finishes, and again after a server restart, Paperclip checks the managed workspace through your storage provider rather than looking for a local folder.
+A plugin environment whose driver declares `supportsTasks: true` is Runner-only. Codex, Claude, OpenCode, Pi, and Grok agents on it resolve to Paperclip Runner — Paperclip doesn't need a reported platform for them, because your plugin provisions the host and launches its own Runner. The agent form switches a Legacy choice to Paperclip Runner there. The agent's **Test** button picks the runner first, then checks that the environment's driver is allowed for it. Paperclip doesn't prepare or reuse a Git worktree on its own disk for that environment. For projects backed by your storage provider, Paperclip uses the pinned workspace binding, and your declared `modes` and `strategies` still apply. When a run finishes, and again after a server restart, Paperclip checks the managed workspace through your storage provider rather than looking for a local folder.
 
 Paperclip refuses a few combinations up front, so the problem shows up as a clear error instead of a half-started run:
 
@@ -1010,7 +1011,7 @@ When `environmentAcquireLease` (or `environmentDestroyLease`) fails after someth
 
 The worker sends only that validated record back to the host — never the provider exceptions themselves, since those can contain credentials. The host stores it as a pending cleanup and retries teardown of that exact, ownership-matched allocation, so it can never delete another attempt's resource. A record that fails validation is simply dropped. The acquisition still fails either way; a cleanup error never produces a lease.
 
-A provider that's only briefly down shouldn't strand a task, and you don't have to do anything special for that. When `onEnvironmentAcquireLease` throws, the worker copies the HTTP status and error code from what you threw and its `cause` chain, using the same rules as [a refused resume](#when-a-sandbox-cant-be-resumed). For a `PluginEnvironmentCreationCleanupError`, it reads only the first error in the list, the create call itself, never a later lookup or delete. Those two fields cross to the host. On the Legacy runner, an HTTP `408`, `425`, `429`, `500`, `502`, `503`, or `504`, or a connection-level code (`ECONNRESET`, `ECONNREFUSED`, `ETIMEDOUT`, `EPIPE`, `EAI_AGAIN`, `ENETUNREACH`, `UND_ERR_CONNECT_TIMEOUT`, `UND_ERR_SOCKET`) fails setup with `environment_provider_unavailable`, and Paperclip retries with a small, bounded budget. `ENOTFOUND` and `ABORT_ERR` aren't retried, because trying again can't fix either. `environmentAcquireErrorData(error)` and `readEnvironmentAcquireErrorDiagnostic(error)` are the worker and host sides of this, and you don't need to call either yourself.
+A provider that's only briefly down shouldn't strand a task, and you don't have to do anything special for that. When `onEnvironmentAcquireLease` throws, the worker copies the HTTP status and error code from what you threw and its `cause` chain, using the same rules as [a refused resume](#when-a-sandbox-cant-be-resumed). For a `PluginEnvironmentCreationCleanupError`, it reads only the first error in the list, the create call itself, never a later lookup or delete. Those two fields cross to the host. While the run is still in setup, before any provider work starts, an HTTP `408`, `425`, `429`, `500`, `502`, `503`, or `504`, or a connection-level code (`ECONNRESET`, `ECONNREFUSED`, `ETIMEDOUT`, `EPIPE`, `EAI_AGAIN`, `ENETUNREACH`, `UND_ERR_CONNECT_TIMEOUT`, `UND_ERR_SOCKET`) fails setup with `environment_provider_unavailable`, and Paperclip retries with a small, bounded budget. `ENOTFOUND` and `ABORT_ERR` aren't retried, because trying again can't fix either. `environmentAcquireErrorData(error)` and `readEnvironmentAcquireErrorDiagnostic(error)` are the worker and host sides of this, and you don't need to call either yourself.
 
 Two helpers round this out: `readEnvironmentCreationCleanupError(error)` returns the validated `PluginEnvironmentCreationCleanup` from an error (or `null`), and `environmentCreationCleanupErrorData(error)` builds the wire payload the worker attaches to the JSON-RPC error. Drivers that can't leak an allocation this way can ignore all of it.
 

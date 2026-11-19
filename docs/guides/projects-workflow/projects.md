@@ -183,6 +183,7 @@ A few things to know:
 - **It's your connection.** Only your own active GitHub connections appear, and the GitHub Connector has to be installed for the company. If the list is empty, you'll see *"Connect your GitHub account and install the Connector for this company to authorize it."*
 - **It covers what the connection can reach.** The authorization follows your GitHub connection's current repository access, including repositories added to the project later. To change which repositories it can reach, manage them in the GitHub connection itself.
 - **It shares your connection's permissions.** The workspace provider gets a short-lived token with the connection's existing GitHub permissions. Paperclip checks your membership, your access to the project, and the connection every time before handing one out.
+- **Standard-trust projects only.** A project under [low-trust review](../../administration/trust-and-low-trust-review.md), or one whose trust policy Paperclip can't read, gets no token.
 - **Nothing starts without it.** Private repositories wait for an authorization before provisioning begins, so you won't end up with a half-made workspace. If the chosen connection stops working, Paperclip doesn't quietly switch to someone else's.
 - **Task runs aren't affected.** Running tasks keep using their own identity.
 

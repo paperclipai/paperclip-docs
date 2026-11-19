@@ -41,7 +41,7 @@ The natural response to that noise is to start pausing agents — which is why p
 
 ## Heartbeat settings on an agent
 
-An agent's heartbeat settings live in its `runtimeConfig`, under `heartbeat`. To see or change them, open the agent and, in its side menu under **Agent**, click **Advanced**. The settings open as a YAML document; an agent created from the **New Agent** flow starts with a block like this:
+An agent's heartbeat settings live in its `runtimeConfig`, under `heartbeat`. To see or change them, open the agent and, in its side menu under **Agent**, click **Advanced**. The settings open as a YAML document. Under `spec`, an agent created from the **New Agent** flow starts with a block like this:
 
 ```yaml
 runtimeConfig:
@@ -87,7 +87,7 @@ You'll find routines on the **Routines** page in the sidebar.
 
 When the trigger fires, Paperclip creates a task, assigns it to the agent, and that assignment wakes the agent immediately. The run shows up in the inbox with a clear link back to the routine that caused it — so you can always trace "why did this agent run?" back to a specific cause.
 
-> **Tip:** Want the result in your chat instead of buried in a task? Ask for it in the routine's instructions — "send the digest to my chat". The agent posts it to its chat with you, with a link back to the routine's task, and the chat shows as unread until you've seen it. See [Messages from tasks and routines](../../experimental/agent-chat.md#messages-from-tasks-and-routines).
+> **Tip:** Want the result in your chat instead of buried in a task? Ask for it in the routine's instructions — "send the digest to my chat". The agent posts it to its chat with the routine's [responsible user](#the-responsible-user), with a link back to the routine's task, and the chat shows as unread until you've seen it. See [Messages from tasks and routines](../../experimental/agent-chat.md#messages-from-tasks-and-routines).
 
 ### Routine policies worth knowing
 
