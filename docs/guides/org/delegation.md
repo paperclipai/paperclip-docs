@@ -187,7 +187,8 @@ A few things to know:
 
 - **You aren't affected.** Board users can create and move tasks to any depth, in the app or through the API.
 - **Existing deep trees stay valid.** Nothing is moved or flattened on upgrade.
-- **Some automation keeps its requested parent.** Task watchdogs and stranded-task recovery can still nest, and so can routines a person set up. Tasks from a routine an agent created follow the agent limit.
+- **Some automation keeps its requested parent.** Task watchdogs, stranded-task recovery, and email-channel tasks can still nest, and so can routines a person set up. Tasks from a routine an agent created follow the agent limit.
+- **Low-trust boundaries hold.** If moving the new task up would take it above the root task of a low-trust boundary, it stays under the parent the agent asked for.
 - **Task suggestions follow the limit too.** Accepting a set of tasks an agent suggested doesn't create a third level, even if the suggestion was nested deeper.
 
 See the [API reference](../../reference/api/issues.md#agent-task-depth-limit) for the response format.

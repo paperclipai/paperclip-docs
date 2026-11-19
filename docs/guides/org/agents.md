@@ -179,7 +179,7 @@ See [Roles & Permissions](../../administration/roles-and-permissions.md#the-perm
 
 Every agent page is built from the same shell:
 
-- A **header** with the agent's character, name, harness, title, and manager, plus its actions
+- A **header** with the agent's character, name, harness, and title, plus its actions
 - A **side menu** that lists the agent's pages in two groups
 - The **selected page's content** to the right
 

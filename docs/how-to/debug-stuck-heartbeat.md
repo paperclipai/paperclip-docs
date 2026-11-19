@@ -42,7 +42,7 @@ A handful of symptoms that cover almost every "this agent isn't working right" r
 2. Tighten context — prefer `GET /api/issues/{issueId}/heartbeat-context` over full-repo reads.
 3. Move long single-shot work to a routine off the heartbeat path.
 
-In a Paperclip-managed sandbox, the Claude Code adapter makes tool commands the first thing the kernel kills when memory runs out, so the agent usually sees one failed command instead of losing the whole run. See [Sandbox memory limits](../reference/adapters/claude-code.md#sandbox-memory-limits).
+In a sandbox environment, the Claude Code adapter makes tool commands the first thing the kernel kills when memory runs out, so the agent usually sees one failed command instead of losing the whole run. See [Sandbox memory limits](../reference/adapters/claude-code.md#sandbox-memory-limits).
 
 ---
 
