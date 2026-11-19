@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Update or Rotate a Provider API Key
 seo_description: Swap the credential a running agent uses — after a provider rotation, an expiry, or a move from subscription login to a console-issued key.
 ---
@@ -61,7 +61,7 @@ Use this when the env-var entry on the agent looks like:
 
 1. Open **Company Settings → Secrets**.
 2. Find the secret the agent is referencing — it's usually named after the provider (`anthropic-key`, `openai-key`, etc.).
-3. Click **Rotate**, paste the new value, and confirm. Paperclip stores it as a new version and bumps `latestVersion`.
+3. Click **Update value**, paste the new value, and confirm with **Update value**. Paperclip stores it as a new version and bumps `latestVersion`.
 4. Open the agent and click **Test environment** to confirm the new value is being injected.
 
 Every agent that references this secret with `version: "latest"` now resolves to the new value on its next heartbeat. Agents pinned to a numeric version (`"version": "3"`) stay on that historical value until you re-point them.

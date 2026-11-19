@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Codex Adapter
 seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding agent, with persistent session state and a managed CODEX_HOME per agent.
 ---
@@ -8,7 +8,7 @@ seo_description: Run OpenAI's Codex CLI on the Paperclip host as a local coding 
 
 Codex does the work; Paperclip hands it the ticket, the goal behind it and the reviewer. `codex_local` runs OpenAI's Codex CLI on the same machine as Paperclip. You configure the adapter once and test it. Then you assign a task, and Paperclip wakes Codex with that task, its place under the company goal and any review step that has to sign off before it closes.
 
-> **Heads-up:** New Codex agents run on [Paperclip Runner](/reference/adapters/paperclip-runner/#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer. Those agents are saved as `paperclip_runner` with `provider: "codex"`. The Runner is documented as experimental. To keep the classic adapter described on this page, choose **Legacy runner** under **Advanced → Runner** (or send `runner: "legacy"` from the API). Existing agents keep the runner they already have.
+> **Heads-up:** New Codex agents run on [Paperclip Runner](/reference/adapters/paperclip-runner/#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer. Those agents are saved as `paperclip_runner` with `provider: "codex"`. The Runner is documented as experimental. To keep the classic adapter described on this page, create or hire the agent with `runner: "legacy"` through the API, or `--runner legacy` in the CLI. The agent form no longer has a **Runner** setting. The classic adapter runs on local, SSH and sandbox environments only, so on a plugin environment the agent uses Paperclip Runner. Existing agents keep the runner they already have.
 
 ---
 
@@ -33,10 +33,10 @@ Use something else when:
 
 The short path, in order:
 
-1. **Create the agent.** Click **New Agent**, name it and pick the **Codex** card. If you want `codex_local` rather than the Runner, open **Advanced** and set **Runner** to **Legacy runner**.
-2. **Connect and configure.** Connect the Codex account, and set `model` if you don't want the Codex CLI default. The repository comes from the task's [project](/guides/projects-workflow/projects/), not from the agent. See [Configure the adapter](#configure-the-adapter).
+1. **Create the agent.** Click **New Agent**, name it and pick the **Codex** card. If you want `codex_local` rather than the Runner, create the agent with `runner: "legacy"` through the API or `--runner legacy` in the CLI instead, because the agent form no longer has a **Runner** setting.
+2. **Connect and configure.** Connect the Codex account, and set `model` if you don't want the default: `gpt-6.1-sol` in the agent form or on the Runner, or the Codex CLI's own default for a `codex_local` agent created through the API without one. The repository comes from the task's [project](/guides/projects-workflow/projects/), not from the agent. See [Configure the adapter](#configure-the-adapter).
 3. **Test it.** Run the environment test before any real heartbeat. See [Check auth and the environment](#check-auth-and-the-environment).
-4. **Place it on the org chart.** On **Harness / Runtime**, set **Title** and **Reports to** in the **Agent identity** card so delegation and escalations reach the right manager.
+4. **Place it on the org chart.** On the agent's **Overview**, set **Reports to:** in the **Profile** panel so delegation and escalations reach the right manager. To change the title, click it in the page header. See [Org Structure](/guides/org/org-structure/).
 5. **Assign its first ticket.** See [Give Codex its first ticket](#give-codex-its-first-ticket).
 6. **Reset the session when you need a clean start.** See [Reset a Codex session](#reset-a-codex-session).
 
@@ -50,13 +50,13 @@ Most agents need only a few of these fields. Set `model` if you want a specific 
 | --- | --- | --- |
 | `cwd` | no | Deprecated. A legacy fallback working directory, used only when a run has no project workspace. The create flow no longer shows it, and an existing agent that still has a value shows it as **Working directory (deprecated)**. Set the repository on the [project](/guides/projects-workflow/projects/) instead. |
 | `engine` | no | How Codex is run: `auto` (the default, runs ACP), `acp` (always the Agent Client Protocol) or `cli` (always the classic Codex CLI). See [ACP engine](#acp-engine). |
-| `model` | no | Codex model id. See [Models](#models). If you leave it unset, the adapter omits `--model` so the Codex CLI uses its own default. |
+| `model` | no | Codex model id. See [Models](#models). The agent form pre-fills `gpt-6.1-sol`. On a `codex_local` agent created through the API with no `model`, the adapter omits `--model` so the Codex CLI uses its own default. |
 | `promptTemplate` | no | Prompt template used for the run. |
 | `instructionsFilePath` | no | Markdown file prepended to the stdin prompt sent to `codex exec`. |
 | `modelReasoningEffort` | no | Reasoning effort override passed through Codex config. The choices depend on the model. See [Reasoning effort](#reasoning-effort). |
 | `search` | no | Runs Codex with `--search`. |
 | `fastMode` | no | Enables Codex Fast mode by setting `service_tier="fast"` and `features.fast_mode=true`, on the models listed in [Models](#models) that support it, and is passed through for manual model ids. When the configured model can't use it, Paperclip ignores the setting and notes why. |
-| `dangerouslyBypassApprovalsAndSandbox` | no | Runs Codex with `--dangerously-bypass-approvals-and-sandbox` so unattended runs never stop for approval. Defaults to on when you leave it unset. See [Permissions](#permissions). |
+| `dangerouslyBypassApprovalsAndSandbox` | no | Runs Codex with `--dangerously-bypass-approvals-and-sandbox` so unattended runs never stop for approval. On the classic CLI engine, defaults to on when you leave it unset; the ACP engine doesn't use it. See [Permissions](#permissions). |
 | `command` | no | Defaults to `codex`. |
 | `extraArgs` | no | Extra CLI arguments appended to the Codex invocation. |
 | `env` | no | Environment variables passed to the runtime. Secret refs are supported. |
@@ -68,7 +68,7 @@ Most agents need only a few of these fields. Set `model` if you want a specific 
 
 Codex receives the prompt through stdin and runs as `codex exec --json`.
 
-Some `codex_local` settings have no Runner equivalent, including a custom `command`, `extraArgs`, `search` and `fastMode`. If you set one and the Runner gets picked, saving fails with `agent_runner_config_incompatible` and names the fields. Remove them or choose **Legacy runner**.
+Some `codex_local` settings have no Runner equivalent, including a custom `command`, `extraArgs`, `search` and `fastMode`. If you set one and the Runner gets picked, saving fails with `agent_runner_config_incompatible` and names the fields. Remove them, or create the agent with `runner: "legacy"`.
 
 ### Example
 
@@ -76,7 +76,7 @@ Some `codex_local` settings have no Runner equivalent, including a custom `comma
 {
   "adapterType": "codex_local",
   "adapterConfig": {
-    "model": "gpt-5.6-sol",
+    "model": "gpt-6.1-sol",
     "instructionsFilePath": "/Users/me/projects/paperclip-workspace/INSTRUCTIONS.md",
     "modelReasoningEffort": "medium",
     "search": false,
@@ -96,7 +96,7 @@ Some `codex_local` settings have no Runner equivalent, including a custom `comma
 
 ### Permissions
 
-Codex agents run in full-auto mode by default. If you leave `dangerouslyBypassApprovalsAndSandbox` unset, Paperclip passes `--dangerously-bypass-approvals-and-sandbox`, so Codex works through a task without pausing for approvals no one is around to give.
+On the classic CLI engine (`engine: "cli"`), Codex runs in full-auto mode by default. If you leave `dangerouslyBypassApprovalsAndSandbox` unset, Paperclip passes `--dangerously-bypass-approvals-and-sandbox`, so Codex works through a task without pausing for approvals no one is around to give. The ACP engine, which is the default, keeps Codex in its writable workspace sandbox instead, with network access switched on for each turn.
 
 Paperclip skips the bypass, keeping Codex in its writable workspace sandbox or in the mode you picked, when any of these is true (the last three only count while `dangerouslyBypassApprovalsAndSandbox` is unset):
 
@@ -107,7 +107,7 @@ Paperclip skips the bypass, keeping Codex in its writable workspace sandbox or i
 
 The bypass applies to the classic Codex CLI lane (`engine: "cli"`). The ACP engine keeps Codex in its writable workspace sandbox, with network access switched on for each turn.
 
-> **Heads-up:** Earlier versions kept Codex in the workspace sandbox unless you opted in to the bypass. If you relied on that, set `dangerouslyBypassApprovalsAndSandbox` to `false` explicitly.
+> **Heads-up:** On the classic CLI engine, earlier versions kept Codex in the workspace sandbox unless you opted in to the bypass. If you relied on that, set `dangerouslyBypassApprovalsAndSandbox` to `false` explicitly.
 
 ### Service secrets in shell commands
 
@@ -115,11 +115,13 @@ Codex normally hides any variable whose name contains `KEY`, `SECRET` or `TOKEN`
 
 These stay out regardless:
 
-- Codex's own login keys (`OPENAI_API_KEY` and `CODEX_API_KEY`), plus managed provider keys, observability credentials and Paperclip's own `PAPERCLIP_GITHUB_*`, `PAPERCLIP_RUNNER_*`, `PAPERCLIP_NATIVE_*` and `PAPERCLIP_ACPX_*` secrets, even if you set them in `env`.
+- Codex's own login keys (`OPENAI_API_KEY` and `CODEX_API_KEY`), plus managed provider keys, observability credentials and any `PAPERCLIP_GITHUB_*`, `PAPERCLIP_RUNNER_*`, `PAPERCLIP_NATIVE_*` or `PAPERCLIP_ACPX_*` value you set in `env` yourself. The one exception is the GitHub broker capability Paperclip injects for a managed GitHub connection, described below.
 - Host secrets you didn't assign. Nothing is pulled from the Paperclip host's environment.
 - Names with wildcard characters.
 
 `PAPERCLIP_API_KEY` and the agent's identity variables are delivered as before. Remove a variable from `env` and the shell loses access to it at the next launch.
+
+When the agent has a [managed GitHub connection](/connectors/github/), Paperclip also passes the run's GitHub broker capability (`PAPERCLIP_GITHUB_BROKER_TOKEN` and `PAPERCLIP_GITHUB_BRIDGE_TOKEN`, whichever the run has) into the shell, so Paperclip's managed `git` and `gh` commands can fetch the run's GitHub credential. Earlier versions kept it out, and those commands printed `Paperclip: GitHub capability_missing; continuing without managed credentials.` and ran unauthenticated. You don't set these; Paperclip injects them for each run, and any value you put in `env` is dropped. The capability works only while the run is live. Without a managed GitHub connection, nothing is added.
 
 > **Warning:** Assigning a credential this way gives the run's shell commands real access to it, and a command the model chooses to run can read it. Only assign credentials the agent is meant to use, with no more service permissions than it needs.
 
@@ -135,7 +137,7 @@ Run the environment test before you assign real work. On the agent's **Harness /
 - The installed Codex CLI is new enough for the selected model. With ChatGPT sign-in, `gpt-6.1-sol` needs Codex `0.159.0` or newer, and `gpt-6-sol` and `gpt-6-luna` need `0.157.0` or newer. The test runs `codex --version` where the agent runs (locally, over SSH or in the sandbox) and reports `codex_cli_version_compatible` or `codex_cli_version_incompatible`. When the CLI is too old, the hello probe is skipped.
 - The hello probe can run `codex exec --json -` with the prompt `Respond with hello.`
 
-If the probe fails, fix the command or auth path before saving the adapter. If the Codex backend rejects the model for your ChatGPT account, the test reports `codex_hello_probe_model_rejected` and names the likely cause: a Codex CLI that's too old, a plan that doesn't include the model or a rollout that hasn't reached your account yet. In a sandbox, the fix for an old CLI is to promote an image that ships the Codex version Paperclip pins.
+If the probe fails, fix the command or auth path before saving the adapter. If the Codex backend rejects the model for your ChatGPT account, the test reports `codex_hello_probe_model_rejected` and names the likely cause: a Codex CLI that's too old, a plan that doesn't include the model or a rollout that hasn't reached your account yet. In a sandbox, the fix for an old CLI is to promote an image that ships the Codex version Paperclip pins. Adding a model to the catalog doesn't update the CLI baked into existing images. When the rejected model is one OpenAI retired from ChatGPT sign-in, the hint says so instead, for example *"OpenAI retired gpt-5.5 from Codex with ChatGPT sign-in on 2026-10-14. Choose gpt-6.1-sol (gpt-6-luna on Free and Go plans), or use an OpenAI API key; API-key sessions are not affected."* The same hint appears when the agent runs on [Paperclip Runner](/reference/adapters/paperclip-runner/).
 
 ### Authentication and per-agent homes
 
@@ -144,6 +146,7 @@ Each `codex_local` agent runs against its own managed Codex home, so one agent c
 - **The host Codex login is inherited by default.** If you're signed in to Codex on the Paperclip host with a ChatGPT-subscription login, Paperclip links that login into the agent's managed home. You don't log in again per company or per agent.
 - **A per-agent API key wins when you set one.** If the agent's `env` carries `OPENAI_API_KEY`, Paperclip writes that key into the managed home as API-key auth. On the ACP engine, `CODEX_API_KEY` works the same way.
 - **Your own `CODEX_HOME` is left alone.** If you point the adapter at a `CODEX_HOME` outside Paperclip's managed company tree, Paperclip treats it as self-managed and never seeds or overwrites it.
+- **A rejected credential on ACP asks you to sign in.** When the provider rejects Codex's credential with an error such as `401 Unauthorized` or `invalid_api_key`, the run fails with `acpx_auth_required` so it follows sign-in recovery instead of a generic failure. If the task escalates, its notice reads **Error: agent login required**.
 - **No silent credential-less runs.** If a managed home has no usable login and no configured API key, the run fails fast with a clear adapter error instead of hitting a `401` from the provider.
 
 **Signing in inside a sandbox.** When the agent runs in a Paperclip sandbox with no ready Codex login, the environment test reports that authentication is missing and Paperclip can start an interactive device login. Complete it in your browser and Paperclip promotes the subscription credential into the company scope, so later heartbeats reuse it. Paperclip also keeps a company-scoped, identity-keyed cache of subscription credentials (one per account). The cache never seeds an empty host and never switches which account an agent uses. Set `PAPERCLIP_CODEX_AUTH_CACHE` to `0`, `false`, `no` or `off` on the Paperclip host to turn it off.
@@ -202,6 +205,8 @@ On native Codex (Paperclip Runner, `provider: "codex"`), a few behaviors differ:
 - **Codex keeps its own base prompt.** Paperclip sends task context as additive `developerInstructions`, so Codex's stock base instructions stay in place. Conversations created before this change keep their saved prompt when resumed. Reset those sessions if you want the stock base instructions back.
 - **A model your ChatGPT account can't use says so.** The task shows **Model unavailable.** Paperclip doesn't retry that request automatically. Choose a supported model or clear the task's model override, then retry.
 - **A busy model retries on its own.** When the selected model is at capacity, Paperclip shows **Model at capacity** and retries after one minute, then after two.
+- **Local follow-ups start faster.** Under the **Automatic** [Runner lifecycle](/reference/adapters/paperclip-runner/#runner-lifecycle), a native Codex agent on a local target stays warm for 5 minutes after a run, so a follow-up skips the launch and session load. Pick **Turn by turn** in the agent form if you'd rather suspend after each run.
+- **It can make images on an OpenAI API key.** A native Codex agent on a direct OpenAI API-key connection gets a `generate_image` tool that uses that key. Conditions, limits and billing are in [Generate images](/reference/adapters/paperclip-runner/#generate-images).
 
 ---
 
@@ -235,7 +240,17 @@ The old standalone `acpx_local` adapter is retired, and its capabilities live he
 
 The `model` picker lists known Codex model ids, newest version first and most capable first within each version:
 
-`gpt-6.1-sol`, `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol` (the adapter default), `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5`, `gpt-5-mini`, `gpt-5-nano`, `o3`, `o4-mini`, `o3-mini` and `codex-mini-latest`.
+`gpt-6.1-sol` (the default for agents created in the UI or on Paperclip Runner), `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5`, `gpt-5-mini`, `gpt-5-nano`, `o3`, `o4-mini`, `o3-mini` and `codex-mini-latest`.
+
+> **Heads-up:** New Codex agents created in the UI or on Paperclip Runner default to `gpt-6.1-sol`. Agents that already have a saved model keep it, and `gpt-5.6-sol` stays in the picker. With ChatGPT sign-in, `gpt-6.1-sol` needs Codex CLI `0.159.0` or newer; see [Check auth and the environment](#check-auth-and-the-environment) for how Paperclip checks this.
+
+> **Heads-up:** OpenAI retired `gpt-5.5` (on 2026-10-14) and `gpt-5.4` and `gpt-5.4-mini` (on 2026-08-31) from Codex with ChatGPT sign-in. They stay in the picker because OpenAI API-key sessions still serve them. If you sign in with ChatGPT, switch to the replacement instead:
+>
+> | Retired model | Replacement with ChatGPT sign-in |
+> |---|---|
+> | `gpt-5.5` | `gpt-6.1-sol` (`gpt-6-luna` on Free and Go plans) |
+> | `gpt-5.4` | `gpt-6-sol` |
+> | `gpt-5.4-mini` | `gpt-6-luna` |
 
 Fast mode (`fastMode`) is supported on `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5` and `gpt-5.4`.
 
@@ -243,7 +258,7 @@ This is a curated list. The picker doesn't fill itself from OpenAI's model catal
 
 You can also type a model id that isn't in the list. Paperclip treats it as a manual model id and passes it straight to the Codex CLI. The environment test tells you whether Codex can run it for your account.
 
-Leave `model` empty to let Codex choose: the adapter omits `--model` and the Codex CLI uses its own default. The bare `gpt-5.6` alias is rewritten to `gpt-5.6-sol`, so an agent still set to the old alias keeps working without the CLI's "model metadata not found" warning.
+On a `codex_local` agent created through the API, leave `model` empty to let Codex choose: the adapter omits `--model` and the Codex CLI uses its own default. The bare `gpt-5.6` alias is rewritten to `gpt-5.6-sol`, so an agent still set to the old alias keeps working without the CLI's "model metadata not found" warning.
 
 ### Reasoning effort
 

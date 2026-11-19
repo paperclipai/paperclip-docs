@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1117.0
 seo_title: API Authentication
 seo_description: Two identities over the API and the bearer header shape every authenticated request uses. Which one to send, and what each is allowed to reach.
 ---
@@ -160,6 +160,8 @@ Paperclip still applies company scoping on top of authentication:
 If a request is authenticated but points at the wrong company, the server returns `403` instead of treating it as a missing token.
 
 This is enforced in route guards such as `assertCompanyAccess`, `assertBoard`, and `assertInstanceAdmin`.
+
+When an agent hits a board-only route, the `403` it gets usually includes `code: "board_access_required"` and a `remediation` telling it to hand the step to a person. See [Board-only denials](overview.md#board-only-denials).
 
 ---
 

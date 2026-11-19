@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Trust and Low-Trust Review
 seo_description: Contain work born from input you cannot vouch for. How presets are chosen, what changes at runtime, and how to review and promote low-trust output.
 ---
@@ -154,7 +154,45 @@ What makes this safe enough:
 
 One honest caveat: Paperclip checks *who* sent the message, not what it means, and it doesn't ask you to approve each edit. If the agent reads something hostile during your chat, prompt injection is still possible, so keep an eye on what it changes.
 
-When a save is refused, the agent should tell you which action was blocked and why — for example, that the current run isn't your direct chat, or that you don't have edit permission. You can then ask in your own chat or make the edit yourself on the [Instructions tab](../guides/org/agents.md#instructions-tab). Creating another task doesn't authorize the change.
+When a save is refused, the agent should tell you which action was blocked and why — for example, that the current run isn't your direct chat, or that you don't have edit permission. You can then ask in your own chat or make the edit yourself on the agent's [Identity page](../guides/org/agents.md#instructions-tab). Creating another task doesn't authorize the change.
+
+---
+
+## Allowed projects
+
+A low-trust agent whose boundary is set by project can only work in the projects on its list. That keeps it contained, but sometimes you do want it on a task in another project. Here's what happens then, and how to let it in.
+
+### When a task falls outside the list
+
+If the agent is assigned a task in a project it isn't allowed to use, workspace setup stops the run before the agent starts. The task tells you why with a **Project access** notice: "*Agent* can’t access this project". The notice says the agent hasn't started and your message is saved, so nothing is lost. Open **Run details** to see that it stopped during workspace setup because the project is outside the allowed scope.
+
+From the notice, choose **Manage project access** to go straight to the agent's settings. If you can't change the agent's access, the button reads **View agent access** instead, and the notice explains that a person with agent-management permission can add the project.
+
+### Adding a project
+
+The **Allowed projects** editor sits in the agent's **Permissions / Trust** settings while the agent is on **Low-trust review**. It lists the projects whose tasks and repositories the agent may access.
+
+1. Choose **Add project**, search for the project, and tick it. Projects already on the list show **Already allowed**.
+2. Choose **Done**. New projects appear in the list marked **To add**, and you can undo any of them before saving.
+3. Check the summary, then choose **Save project access**.
+
+When the save succeeds you'll see "Project access saved. Return to your task to retry." If you came from a task, **Return to task** takes you back. If a save fails, your selection is kept so you can choose **Try saving again**.
+
+### Who can add projects
+
+You need to be signed in as a board user with permission to create agents in the company (`agents:create`, which the Owner, Admin, and Operator roles have; see [Roles and permissions](roles-and-permissions.md)). It's the same permission that lets you change an agent's other permissions. You also need to be able to see every project you add; a project you can't read is refused. Agents can't add projects for themselves or for each other. An agent that's still waiting for board approval can't have its access changed yet. Without permission, you can still see the list, but you can't edit it.
+
+### What stays the same
+
+Adding a project only adds. Projects already on the list stay, and every other restriction on the agent stays exactly as it was: the sandbox and isolated-workspace requirements, secret and tool limits, and output quarantine. Each addition is recorded in the activity log.
+
+### Retrying the task
+
+Saving access doesn't start any work by itself. Go back to the task: the notice changes to **Project access is ready**, and you can choose **Retry task** to continue with your saved message.
+
+Paperclip checks every project the task's work needs, not just the task's own project. If you moved the task to an allowed project but it still uses a workspace or repository from a project the agent can't access, the notice keeps explaining the block. It changes to **Project access is ready** once those projects are allowed too, or once you switch the task to a workspace from an allowed project. If the selected workspace has been archived or no longer exists, adding projects can't fix it, so the task shows an ordinary failure instead, without **Retry task** or a project-access button.
+
+For the API behind the editor, see [Allowed Projects (Project Access)](../reference/api/agents.md#allowed-projects-project-access).
 
 ---
 

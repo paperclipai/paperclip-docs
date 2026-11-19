@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Reauthorize or Disconnect
 seo_description: Reconnect an expired credential, replace an API key, pause a connector, revoke one identity, or delete the connection entirely, and know what survives.
 ---
@@ -21,13 +22,15 @@ For an OAuth connection whose token expired or was revoked at the provider.
 
 1. Open the connector. It shows **Reconnect required — sign in again to restore access.**
 2. Select **Reconnect**.
-3. Complete the provider sign-in.
+3. Complete the provider sign-in in the tab or window that opens.
 
 The connection keeps its identity, its agent access, and every action setting. Only the stored token changes.
 
 Paperclip will not let a reconnect quietly change the identity. On resume the stored identity is authoritative, so a reconnect link for the wrong provider is refused with *"This reconnect link does not match the retained connection's provider."*
 
 For a personal connection, the person who owns it reconnects it. Paperclip proves the caller is the connection's retained subject before it will create OAuth state — a manager cannot re-consent on your behalf.
+
+Setting up a new personal connection is different from reconnecting one. If a personal connection with the same name was removed earlier, fresh setup leaves it alone and creates a separate connection under the next available name, such as `GitHub (2)`. This is true whoever owned the old one, including you.
 
 ## Replace an API key
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Database Configuration
 seo_description: Paperclip runs PostgreSQL through Drizzle ORM. One schema across every supported mode — what differs is where Postgres runs and how it is reached.
 ---
@@ -104,7 +104,13 @@ If you use the pooled connection in transaction mode and your pooler doesn't sup
 DATABASE_PREPARED_STATEMENTS=false
 ```
 
-Leave the variable unset everywhere else, so Paperclip keeps its normal behavior.
+The variable has three settings:
+
+| Value | What happens |
+|---|---|
+| Unset | Paperclip keeps its normal behavior. Leave it unset unless you have a reason to change it. |
+| `false` | Paperclip never prepares statements. Use this behind a pooler that doesn't support them. |
+| `true` | Paperclip also prepares its ordinary queries, including the ones inside transactions. Only use this on a direct connection or a pooler that supports named prepared statements, so check your provider's settings first. Preparing caches statement metadata on the connection, never query results. |
 
 > **Warning:** Use the direct connection for schema changes. Pointing migrations at the pooled endpoint is a common way to get avoidable connection errors.
 
@@ -131,13 +137,17 @@ To see Paperclip's connections, run this against your database:
 SELECT * FROM pg_stat_activity WHERE application_name LIKE 'paperclip%';
 ```
 
-If you've set `DATABASE_APPLICATION_NAME`, the main pool uses your name instead, so search for that too. The helper connection below keeps its own name.
+If you've set `DATABASE_APPLICATION_NAME`, the main pool uses your name instead, so search for that too. The named helper pools below keep their own names.
 
 **Sizing `max_connections`.** Each server process can use more than `DATABASE_POOL_MAX` connections. When you set PostgreSQL's `max_connections`, budget for these per server process, plus your other clients:
 
 - the main pool, up to `DATABASE_POOL_MAX`
 - a second pool of the same size when `DATABASE_MIGRATION_URL` is set
+- up to 2 connections named `paperclip-controller-lease`, used for lease renewals so they never wait behind slow queries
+- up to 3 connections named `paperclip-runner-checkpoint`, which save Paperclip Runner checkpoints
+- up to 2 connections named `paperclip-file-storage`, used while agent files are written to storage
 - a short-lived single connection named `paperclip-workspace-finalization-lock` while a workspace is being finalized
+- one connection under the main pool's name while an installed plugin listens for agent lifecycle events
 
 Paperclip closes its pools when the server shuts down, and when startup fails after a pool has opened, so restarts don't leave idle connections behind.
 

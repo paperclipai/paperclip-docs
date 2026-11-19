@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.916.0
+paperclip_version: v2026.1117.0
 seo_title: CLI Setup Commands
 seo_description: Stand up a Paperclip instance, repair a broken one, or change the settings the server runs on — the commands that touch install and launch.
 ---
@@ -121,7 +121,7 @@ It loads the config's `.env`, then runs these checks in order, stopping early on
 - config validity (must pass first)
 - deployment / auth mode compatibility
 - agent JWT secret
-- secrets adapter
+- secrets adapter (on Windows, this skips the local key file's permission check, because Windows can't restrict that file with `chmod`)
 - storage
 - database connectivity
 - LLM provider

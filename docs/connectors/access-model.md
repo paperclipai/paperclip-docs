@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: How Connector Access Works
 seo_description: Which access controls apply depends on the kind of connector. This explains the four gates on tool connections, and what governs channels and models.
 ---
@@ -96,7 +96,7 @@ Independently of the grant, each connection says which agents may use it at all.
 - **Any agent** — *"Available across your company."*
 - **Just agents I pick** — *"Available only to selected agents."* You then choose the agents.
 
-New tool connections normally default to `all_agents`; setup for a requesting agent narrows access to that agent. Methods and saved connections can carry more specific access. This does not bypass approval: creating the connection is itself an authorized, audited operation, and every individual action still has its own permission.
+New tool connections default to `all_agents`, whether you start from **Connectors** or from a connection card on a task. On a card you can narrow the list, but the agent that asked has to stay on it; otherwise setup stops with *"Include the requesting agent or choose all agents to continue this task."* Reusing an account you already connected from a card adds the requesting agent's access. AI account and inbox setup stay scoped to the agent that asked. Methods and saved connections can carry more specific access. Changing this list updates what those agents can actually reach in the same save. None of this bypasses approval: creating the connection is itself an authorized, audited operation, and every individual action still has its own permission.
 
 For a dedicated agent identity the question narrows to *"Which agent owns this GitHub account?"* — the identity and the agent are the same decision.
 
@@ -152,11 +152,57 @@ When a GitHub connection is bound to an agent as a dedicated identity, that iden
 
 This is not a general sandbox claim, and it is not a claim in the other direction either. Nothing about it says other connectors are sandboxed, and human approval of a tool call is a different thing from a code review on a pull request. [GitHub](github.md) has the detail.
 
+## When an agent sets up a connection for you
+
+You don't have to click through every setup step yourself. When you ask an agent to connect something, it can do most of the work on its own task: find the right connector, create or resume the saved setup, choose which agents get it, adjust profiles and policies, run a test call, and check on running tool processes. This covers tool connections, chat endpoints, email inboxes, and AI accounts.
+
+The agent does this with **delegated authority**. It always acts for the run's responsible user — the person the work is for — and never reaches further than that person could. Every change has to pass two checks:
+
+1. **The agent holds the matching permission key.**
+2. **The responsible user could make the same change themselves.** If you can't, the agent working for you can't either.
+
+| What the agent is doing | Key the agent needs | What the responsible user needs |
+| --- | --- | --- |
+| Creating, editing, reconnecting, or removing a connection | `tools:manage_connections`, plus `tools:manage_profiles` when the request also sets who can use it (its agents, installs, access, or ownership) | `tools:manage_connections`, or it's a connection they created or their own personal one. When the request also sets who can use it, they also need `tools:manage_profiles` (an Owner or Admin can rely on `tools:admin` instead) unless it's their own connection |
+| Changing profiles, company tool policies, or trust rules | `tools:manage_profiles` | `tools:manage_profiles` (an Owner or Admin can rely on `tools:admin` instead) |
+| Choosing which agents a connection is installed on | `tools:manage_profiles` and `tools:manage_connections` | `tools:manage_connections`, plus `agents:configure` and access to the connection. When the change adds or removes the company-wide install, they need `tools:manage_profiles` (an Owner or Admin can rely on `tools:admin` instead) in place of `agents:configure` and connection access. None of these keys is needed for a connection they created or their own personal one |
+| Running a test call | `tools:use` | `tools:use` or `tools:manage_connections` |
+| Stopping or restarting a tool runtime | `tools:manage_runtime` | `tools:manage_runtime` |
+| Reading a connection's activity or the gateway audit | `tools:view_audit` | `tools:view_audit` |
+| Creating or changing a named MCP gateway or its tokens | `tools:manage_connections` | `tools:admin` |
+
+When a change reaches other agents — installing a connection on them, or binding a profile that applies to them — both the acting agent and the responsible user also need permission to configure each of those agents. [Roles & Permissions](../administration/roles-and-permissions.md#the-permission-keys) explains the keys.
+
+### How an agent gets this authority
+
+New standard agents already hold `tools:manage_connections`, `tools:manage_profiles`, `tools:use`, `tools:manage_runtime`, and `tools:view_audit` when they're created or their hire is approved. Low-trust agents and managed built-in agents don't get them, and existing agents aren't backfilled, so grant the keys yourself to any other agent you want helping with setup.
+
+To keep an agent on a short leash, scope the grant. A connection-setup grant can be limited by `connectionId`, `profileId`, `gatewayId`, `provider`, `purpose`, or `operation`, and a request outside that scope is refused. The [Agents API](../reference/api/agents.md#grant-scope) covers grant scopes.
+
+### Where delegated authority stops
+
+Even with the keys, Paperclip refuses connection changes when:
+
+- The run has no responsible user, or that person is no longer an active member.
+- The agent is paused, terminated, or still waiting for hire approval.
+- The run no longer owns its task — it was reassigned, finished, or cancelled.
+- The task is in Ask or Plan mode. The agent can still read the setup, but not change it.
+- The run is a skill test, or uses a skill-test or task-bridge key.
+- The run is under the [low-trust review preset](../administration/trust-and-low-trust-review.md).
+
+An agent also can't give a personal credential to anyone but its responsible user, or use someone else's personal connection.
+
+### The steps that stay with you
+
+An agent never signs in for you. When setup reaches something only a person can do — signing in to the provider, approving consent, entering a secret, or confirming an identity — the agent saves its progress and hands just that step to the responsible user. The link it gives you opens the saved setup in Paperclip, and you start the provider sign-in from your own browser session. For a chat setup you'll see a card on the task that reads *"Complete the human sign-in step in the saved setup. Your task continues when the connection is ready."*, with **Continue authentication** and **Not now**. If the agent picked Google Workspace services, they're already selected when you open the sign-in.
+
+Some actions are still yours alone, whatever keys an agent holds. Approving or declining an **Ask first** call, typing the browser code for a local AI sign-in, linking your own GitHub identity to a chat endpoint, and replaying or resolving chat deliveries all need a signed-in person.
+
 ## Where this is enforced
 
 Access decisions resolve at call time, not at setup time. The tool gateway holds the effective policy for an agent — the connection's own settings, plus any tool profiles and company tool policies that apply — and decides allow, ask, or deny before the request reaches the provider. Changing a permission takes effect on the next call; it does not require reconnecting.
 
-> **Note:** Custom `tools:use` permission grants — the stored per-agent or per-person kind, not the connection identities described above — are enforced exactly as written. A grant whose `scope.allow` list names a different tool, connection, or application doesn't cover the call, and a grant with an unrecognised selector or a malformed restriction covers nothing. Review custom grants after upgrading: if an agent loses a tool it used before, check its grant first. The [Tool Gateway reference](../reference/api/tool-gateway.md#explicit-tool-grants) lists the matching rules.
+> **Note:** Custom `tools:use` permission grants — the stored per-agent or per-person kind, not the connection identities described above — are enforced exactly as written. A grant whose `scope.allow` list names a different tool, connection, or application doesn't cover the call, and a grant with an unrecognised selector or a malformed restriction covers nothing. A broad grant, such as the unscoped `tools:use` that new standard agents receive, also doesn't turn on an action that a connection's own settings leave **Off** for an agent those settings apply to. Review custom grants after upgrading: if an agent loses a tool it used before, check its grant first. The [Tool Gateway reference](../reference/api/tool-gateway.md#explicit-tool-grants) lists the matching rules.
 
 ## Related
 
@@ -172,3 +218,5 @@ Access decisions resolve at call time, not at setup time. The tool gateway holds
 - [Connection setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/ConnectionSetupFlow.tsx) — one-screen access choices and setup behavior.
 - [Remote MCP setup](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/ui/src/features/connections/remote-mcp/RemoteMcpConnectionSetup.tsx) — provider-specific connection controls.
 - [Connection grant type](https://github.com/paperclipai/paperclip/blob/abbd88007f059dbadbd3f266febf264577b6ee78/packages/shared/src/types/tool-access.ts) — recorded OAuth scopes and their source.
+- [Connection management policy](https://github.com/paperclipai/paperclip/blob/cff331f6ca0a652b5e41641c68dfa5fa584c22ae/server/src/services/connection-management-policy.ts) — the permission key behind each connection-setup action.
+- [Connection management checks](https://github.com/paperclipai/paperclip/blob/cff331f6ca0a652b5e41641c68dfa5fa584c22ae/server/src/services/connection-management.ts) — the responsible-user, task, and target-agent checks an agent's changes pass.

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Connect an Agent to GitHub and Open PRs
 seo_description: Wire a coding agent to a real repo so every issue you assign produces a branch, a working commit, and a pull request visible from both sides.
 ---
@@ -154,6 +154,8 @@ Two things make this the sturdiest option:
 - **Commits are authored as the connected GitHub identity automatically.** Paperclip sets `user.name`, `user.email`, and the `GIT_AUTHOR_*` / `GIT_COMMITTER_*` environment to the connected login and its GitHub `…@users.noreply.github.com` address — so PRs show the right author with no `git config` step (contrast the last item in [Troubleshooting](#7-troubleshooting)).
 - **It fails closed.** Once a GitHub connection is configured for an agent, that agent uses it — Paperclip does not silently fall back to a PAT. Exactly one identity has to resolve for a run; if none or more than one matches, the run is blocked with a clear reason rather than pushing as the wrong account.
 
+With this connection, the agent creates and forks repositories through the connection's actions rather than `gh repo create` or `gh repo fork` — see [Creating and forking repositories](../connectors/github-setup.md#3a-managed-path--authorize-and-choose-repositories-in-github).
+
 Paperclip also receives GitHub webhooks over this connection — see [Review workflow](#6-review-workflow) for how a merged PR flows back into the issue on its own.
 
 Setup lives on the **Connectors → Connections** page rather than in an `env` block. The exact enrollment steps depend on your Paperclip Cloud setup, so follow the in-product flow there.
@@ -283,8 +285,8 @@ A coder agent should refuse to resolve conflicts blindly. The right loop is: age
 **CI fails on the PR but the agent moved the issue to `in_review` anyway.**
 Tighten the rules in `AGENTS.md` (Step 4): "move to `in_review` only after `gh pr checks --watch` exits 0". Re-prompt agents that already cut PRs.
 
-**The PR shows commits authored by `noreply@github.com` instead of the agent's identity.**
-Set `git config user.name` and `user.email` in the worktree provision command on the project workspace. Many teams use `Paperclip Coder <noreply@paperclip.example.com>` so PRs are clearly machine-authored. If you use a managed GitHub connection (Section 3, Option C), Paperclip already stamps each commit with the connected GitHub identity and its `…@users.noreply.github.com` address, so you can skip this.
+**The PR shows commits authored by `noreply@github.com` or `Paperclip <noreply@paperclip.ing>` instead of the agent's identity.**
+When the run's `git` goes through Paperclip's managed launcher (for example in a sandbox environment, or when a managed GitHub connection can't supply an identity) and nothing else sets an author, Paperclip falls back to a default author, `Paperclip <noreply@paperclip.ing>`, so local commits don't fail for lack of one. On a local or SSH machine with no managed GitHub connection, the machine's own Git config applies instead. To use your own, set `git config user.name` and `user.email` in the worktree provision command on the project workspace. Repository settings and `git -c user.name=… -c user.email=…` take priority over the default; `git config --global` inside a run only lasts for that command, so use repository settings for anything persistent. Many teams use `Paperclip Coder <noreply@paperclip.example.com>` so PRs are clearly machine-authored. If you use a managed GitHub connection (Section 3, Option C), Paperclip already stamps each commit with the connected GitHub identity and its `…@users.noreply.github.com` address, so you can skip this.
 
 **The agent keeps creating new branches per heartbeat instead of reusing the existing one.**
 This is a workspace-mode problem — the project is set to **Project primary** instead of **Isolated**. Switch it. See [Workspaces → Workspace modes](../guides/projects-workflow/workspaces.md#workspace-modes).

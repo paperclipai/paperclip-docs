@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Connection Intents API
 seo_description: When an agent needs a service it cannot reach, it opens a connection intent so the responsible person can connect the app and unblock the task.
 ---
@@ -47,7 +47,7 @@ The two tools:
 | Tool | Arguments | Purpose |
 |---|---|---|
 | `connections_search` | `query` (string, optional) | List connectable services matching a service name or a plain-language description of the need, with each one's readiness for this agent. |
-| `connection_request` | `service` (string, required) | Ask for a specific service by slug; returns it ready if already usable, otherwise opens an intent. |
+| `connection_request` | `service` (string, required), `connectionId` (optional), `toolNames` (optional, 1–20 unique exact names), `targetService` (optional), `selectionInteractionId` (optional) | Ask for a specific service by slug; returns it ready if already usable, otherwise opens an intent. |
 
 ### REST convenience routes
 
@@ -80,6 +80,20 @@ POST /runtime-tools/connections/request
 
 Each method can carry a `purpose` of `tool`, `channel`, or `ai`. Channel and AI methods also carry a company-scoped `setupPath` pointing at their own setup flow, which the agent shares with the user. Tool methods and AgentMail use `connection_request` instead. Chat channel methods appear only when the instance's **Chat connectors** setting is on; AgentMail always appears. A search match is not proof that an account is authorized or that a tool is installed.
 
+Each method also carries a `management` block, so the agent can tell whether it may do the setup itself instead of handing it to a person:
+
+| Field | Meaning |
+|---|---|
+| `allowed` | Whether this agent, acting for its responsible user, may configure this method itself. |
+| `reason` | Why it's allowed or refused. |
+| `operation` | The setup operation that was checked. |
+| `canUse` | Whether the agent can already use the connection. For a tool connection, at least one of its tools must be allowed. |
+| `requiresApproval` | `true` when some of the connection's tools are set to **Ask first**. |
+| `requiresHumanAuthentication` | `true` when the method needs a sign-in or key and nothing usable is connected yet. |
+| `nextApiOperation` | The API route to call next: `POST /api/companies/{companyId}/tools/apps/connect` for tools, `POST /api/companies/{companyId}/chat-endpoints` for chat, or `POST /api/companies/{companyId}/ai-connections` for AI. |
+
+When `allowed` is `true`, the agent configures the connection through that route and only hands the person the steps that need them — signing in, consent, or credentials — at the saved `setupPath`. The rules behind `allowed` are in [How connector access works](../../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you).
+
 Each result's `state` is one of `ready` (a connection is connected and usable by this agent right now, with `connectionId` set), `needs_user_action` (a matching connection exists but isn't usable yet), `available` (the service can be connected but nothing exists), or `unavailable` (the service offers no connection methods).
 
 `request` takes a body of `{ "service": <string> }` — trimmed, 1–120 characters. A service that isn't available comes back `422` with `Connection service <slug> is not available`. Otherwise it returns:
@@ -99,6 +113,10 @@ For `agentmail`, the card is an inline API-key card addressed to the responsible
 
 If the service is already connected, `state` is `ready`, `connectionId` is set, `interactionId` is `null`, and the instruction says the service is available in this run. Requests are idempotent per run and service, so calling twice won't spawn two cards.
 
+An agent can already hold some of a connection's tools, for example when someone else connected the account and shared only part of it. A request without `toolNames` then comes back `ready`, because it only asks whether the agent can use the service at all. To get more, the agent passes `connectionId` and the exact `toolNames` it needs.
+
+An agent with no access yet can send a request without `toolNames` on a catalog of up to 500 indexed tools, and the person reviews them on one access card. Above 500, the request returns `422` with `Specify the tools needed for this task (up to 20).`, followed by the `connectionId` to reuse and the first 100 indexed tool names. No access is granted until the card is accepted, and tools on the card that aren't read-only start as **Ask first**.
+
 ---
 
 ## Board routes (human-facing)
@@ -111,7 +129,7 @@ These are mounted under `/api` and answer the connection card. Every one is a bo
 GET /api/connection-intents/{interactionId}/setup-options
 ```
 
-Returns what the person needs to answer the card: the interaction itself, the requested `service` (name, description, logo, and connection `methods`), any `existingConnections` for that service they're eligible to use, and the `requestedAgentId`. For an AgentMail card that was partly completed, it also returns `emailSetup` with the saved `credentialConnectionId` and `readyConnectionId`, so the card can resume. If the service is no longer offered, this responds `404` with `Connection service is no longer available`.
+Returns what the person needs to answer the card: the interaction itself, the requested `service` (name, description, logo, and connection `methods`), any `existingConnections` for that service they're eligible to use, and the `requestedAgentId`. For an AgentMail card that was partly completed, it also returns `emailSetup` with the saved `credentialConnectionId` and `readyConnectionId`, so the card can resume. When an agent already saved a chat setup and only needs the person's sign-in, it returns `chatSetup` with the `endpointId`, `connectionId`, and the `path` of the saved setup page, and the card offers **Continue authentication** there. If the service is no longer offered, this responds `404` with `Connection service is no longer available`.
 
 ### Update the phase
 
@@ -127,6 +145,8 @@ Moves the intent through its working phases. Body:
 
 Any other value returns `422` with `{ "error": "phase must be requested, authorizing, or needs_retry" }`.
 
+The card also uses this route to save the person's choice of agents before an OAuth sign-in. Alongside `phase: "authorizing"` it sends an optional `setupAccess` object: the draft's `connectionId` and `access`, which is either `"all_agents"` or `{ "agentIds": [...] }`. Saving grants nothing. Paperclip rechecks and applies the choice when the OAuth sign-in completes the intent.
+
 ### Complete the intent
 
 ```
@@ -139,7 +159,7 @@ Connects the chosen connection to the requesting agent and resolves the intent a
 |---|---|---|
 | `connectionId` | yes | A UUID for the connection to use. Must belong to the intent's service. |
 
-The chosen connection has to match the requested service (else `404`, `Connection does not match this intent`) and be `active` and `enabled` (else `409`, `Finish and test this connection before using it for the task`). An intent that's already resolved returns `409` with `Connection intent is already resolved`. Completing delegates the person's identity grant to the agent and installs the connection onto it; sharing a company-wide connection requires connection-management authority (`tools:manage_connections`). On success it logs an `issue.connection_intent_connected` activity and wakes the assigned agent's heartbeat.
+The chosen connection has to match the requested service (else `404`, `Connection does not match this intent`) and be `active` and `enabled` (else `409`, `Finish and test this connection before using it for the task`). An intent that's already resolved returns `409` with `Connection intent is already resolved`. Completing delegates the person's identity grant to the agent and installs the connection onto it; sharing a company-wide connection requires connection-management authority (`tools:manage_connections`). On success it logs an `issue.connection_intent_connected` activity and wakes the assigned agent's heartbeat. The wider set of agents saved with `setupAccess` is applied only when the OAuth sign-in completes the intent, not through this route.
 
 ### Decline the intent
 

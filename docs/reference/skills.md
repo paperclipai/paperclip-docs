@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Skills Reference
 seo_description: The reference for company skills: file shape on disk, the install pipeline, attaching to agents, scoping rules, canonical keys, and versioning.
 ---
@@ -143,7 +143,7 @@ A few smaller changes to the bundled skills are worth knowing about, because the
 
 - **Wake context comes in the prompt.** The `paperclip` skill now tells agents that adapters deliver the wake payload — the compact issue summary plus the batch of new comments that triggered the run — as a section of the run prompt, and to read that section first. Agents no longer look for it in a separate environment variable.
 - **Open questions get a text box.** When an agent needs a free-text answer from you, the `paperclip` skill now gives it a complete `ask_user_questions` payload that renders a text field (a `questionSet` question with `answerMode: "text"`), instead of inventing multiple-choice options for something that isn't a choice. Choice cards are reserved for real decisions with at least two meaningful alternatives.
-- **Hiring from Paperclip Runner.** The skill's API reference now tells native runner agents to use the `hire_agent` tool when it's available. The new teammate inherits the caller's validated runner, model, permission settings, default environment, and managed AI connection, but gets its own instructions — the caller's secrets, workspace paths, sessions, and instructions aren't copied. Over the REST API the same thing is `"inheritRuntimeFrom": "caller"` on the hire request, which can't be combined with a non-empty `adapterConfig`, `runtimeConfig`, or an explicit `defaultEnvironmentId`. Your hiring permissions and approval policy still apply.
+- **Hiring from Paperclip Runner.** The skill's API reference now tells native runner agents to use the `hire_agent` tool when it's available. The new teammate inherits the caller's validated runner, model, permission settings, default environment, and managed AI connection, but gets its own instructions — the caller's secrets, workspace paths, sessions, and instructions aren't copied. Over the REST API the same thing is `"inheritRuntimeFrom": "caller"` on the hire request, which can't be combined with a non-empty `adapterConfig`, `runtimeConfig`, or an explicit `defaultEnvironmentId`. Your hiring permissions and approval policy still apply. A hire can still pick up a credential *reference* the hiring agent already holds, when both are on the same harness in the same company and the request doesn't set `runtimeConfig.aiConnection`. The hiring agent must have no managed AI connection, and the value must be a secret reference, never a plain value. A key the hire request supplies wins, and a Claude hire that supplies any Claude key inherits none of them. The keys are `OPENROUTER_API_KEY` for OpenCode, `OPENAI_API_KEY` and `CODEX_API_KEY` for Codex, `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, and `CLAUDE_CODE_OAUTH_TOKEN` for Claude, and `XAI_API_KEY` for Grok.
 - **`paperclip-create-agent` on Paperclip Runner.** Runner agents don't get `PAPERCLIP_API_URL` or `PAPERCLIP_API_KEY`, so the skill now tells them to use the runner's Paperclip tools instead — `get_task_context` and `list_agents` for context, then `search_api` to find the hiring endpoints and `call_api` to call them. If those API tools aren't available, the agent reports that you need to enable runner API tools for the company, keeps the proposed hire in the conversation, and doesn't claim an agent was created.
 - **No second checkout when the harness already did it.** If the run's **Paperclip Wake Payload** or **Paperclip Resume Delta** says the harness already checked out this issue for the current run, the `paperclip` skill tells the agent not to call checkout again and to carry straight on. That only covers that issue in that run — an agent that switches to another task still checks it out first, and it never infers a checkout from the issue's status or an earlier run.
 - **The completion helper ships with the skill.** `scripts/paperclip-issue-update.sh` — the helper that writes a status and comment and checks the write really landed — is now bundled inside the installed `paperclip` skill. The skill tells agents to run it from the installed skill's own directory, not the task workspace, and to fall back to a verified `PATCH` (rather than searching the disk) when that path isn't available.
@@ -151,7 +151,7 @@ A few smaller changes to the bundled skills are worth knowing about, because the
 - **Incidental feedback.** The `paperclip` skill now mentions the `complain` and `suggestion-box` skills that sit alongside it, and encourages agents to use them when something about the work genuinely warrants it — once, quietly, without letting it interrupt the task. See [Agent complaints and suggestions](../administration/agent-commentary.md).
 - **Review handoffs need a real card.** When an agent opens a pull request that a person has to review or merge, the skill tells it to put the PR link in the work product's `url`, create a human-only interaction that names the action, and leave the task `in_review`. A `needs_board_review` flag or a periodic monitor on its own doesn't put a card in front of anyone.
 - **Sandboxed agents can read task context.** The skill's API reference now lists the routes a sandboxed agent can reach through its callback bridge to read what a task points at: company skill details and files (pass `path` to the skill files route to read a referenced script or instruction file), `GET /api/assets/{assetId}/content` for a screenshot embedded in the task, `GET /api/issues/{id}/diagnostics/wakes`, and `POST /api/issues/{id}/monitor/check-now`. Reaching a route doesn't grant access: Paperclip still checks company, task, and skill visibility and monitor-management permission, and changing assets or skill files, or resolving recovery actions, stays off-limits from the sandbox.
-- **Choosing a runner when hiring.** `paperclip-create-agent` now explains that new Codex and Claude Code agents use Paperclip Runner automatically on supported targets, so a saved agent can come back as `adapterType: paperclip_runner` with a resolved `provider`. The optional `runner` field on the create request takes `auto`, `paperclip`, or `legacy`; the skill points agents at `legacy` when someone needs CLI settings the native runtime can't honour (CLI: `paperclipai agent create --runner legacy` or `paperclipai agent hire --runner legacy`).
+- **Choosing a runner when hiring.** `paperclip-create-agent` explains that new Codex and Claude Code agents use Paperclip Runner automatically on supported targets, so a saved agent can come back as `adapterType: paperclip_runner` with a resolved `provider`. The optional `runner` field on the create request takes `auto`, `paperclip`, or `legacy`; the skill points agents at `legacy` when someone needs CLI settings the native runtime can't honour (CLI: `paperclipai agent create --runner legacy` or `paperclipai agent hire --runner legacy`).
 
 ---
 
@@ -168,11 +168,14 @@ Skills are installed at the **company** level. Once installed, any agent in that
 | Read a file from a skill | `GET /api/companies/{companyId}/skills/{skillId}/files?path=SKILL.md` |
 | Update a file (editable skills) | `PATCH /api/companies/{companyId}/skills/{skillId}/files` — see [Safe file updates](#safe-file-updates) |
 | Update status (GitHub-managed) | `GET /api/companies/{companyId}/skills/{skillId}/update-status` |
+| What a pending source update changes | `GET /api/companies/{companyId}/skills/{skillId}/update-diff` — see [`update-diff` response](#update-diff-response) |
 | Pull latest commit | `POST /api/companies/{companyId}/skills/{skillId}/install-update` |
 | Delete | `DELETE /api/companies/{companyId}/skills/{skillId}` |
 | Create empty (Paperclip-managed) | `POST /api/companies/{companyId}/skills` |
 | **Import from a source** | `POST /api/companies/{companyId}/skills/import` |
 | **Scan project workspaces** | `POST /api/companies/{companyId}/skills/scan-projects` |
+
+Wherever a route takes `{skillId}`, you can pass the skill's UUID, its key, or its slug if that slug is unique in the company. A reference that doesn't match any skill returns `404`.
 
 Mutating routes require either `agents:create` permission or `permissions.canCreateAgents=true` on the calling agent.
 
@@ -222,7 +225,13 @@ An agent using the native Runner can save a reusable procedure with `create_skil
 
 After a lost response, retry with exactly the same inputs and key to receive the original receipt. After a version conflict, read the current skill, reapply the edit, and use a new key. A key reused with different inputs is a conflict. Policy is checked again on exact retries.
 
-`create_skill` takes `name`, `description`, `markdown`, and `idempotencyKey`, plus an optional `slug`. The name is lowercase and hyphenated; the complete file's name and description must match those inputs, and a supplied slug must equal the name. Company, agent, task, and run identity come from the authenticated run. A successful creation appears as a **Skill created** card in the task thread; see [Skills your agents create during a task](../guides/org/skills.md#skills-your-agents-create-during-a-task).
+`create_skill` takes `name`, `description`, `markdown`, and `idempotencyKey`, plus an optional `slug`. The name is lowercase and hyphenated; the complete file's name and description must match those inputs, and a supplied slug must equal the name. Company, agent, task, and run identity come from the authenticated run. A successful creation appears as a **Skill created** card in the task thread; see [Skills your agents create during a task](../guides/org/skills.md#skills-your-agents-create-during-a-task). The tool is for newly written content. Its description tells agents to import a `SKILL.md` already in a local directory, repository, URL, or catalog, even when the company library has no match, so the skill keeps its source.
+
+`search_skills` and `load_skill` let a Runner agent use a company library skill that isn't assigned to it. Search takes an optional `query` (up to 240 characters), `limit` (1 to 20, default 10), and `cursor`, and matches key, slug, name, and description. It reads stored records only, so it never syncs a source or fetches a repository. Each result includes the skill's ID and `versionId`, and `nextCursor` gets the next page.
+
+`load_skill` takes `skill` (an ID, an exact key, or a slug that's unique) plus optional `versionId`, `path` (default `SKILL.md`), `offset`, and `fileOffset`. It reads a saved version, so supply the returned `versionId` for every further page or file. Each response carries up to 6,000 characters of text and up to 50 entries from the skill's file list, with `nextOffset` and `nextFileOffset` for more. It reads UTF-8 text up to 16 MiB per file, and refuses binary files and unsafe paths.
+
+Both tools check the run's own company and skill access on each call. Loading doesn't assign the skill or grant any tool or connection access. Completion reviews, skill test runs, and Muse agents don't have these tools.
 
 Implementation reference: [update tool contract](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/packages/paperclip-runner/src/protocol-actions/update-skill.ts) and [tool validation and REST binding](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/skill-tools.ts).
 
@@ -684,6 +693,46 @@ Behaviour depends on the source:
 For non-GitHub sources, `supported: false` is returned with a reason. Calling `install-update` on an unsupported skill rejects with `422 Unprocessable Entity`.
 
 For a skill that belongs to a GitHub skill source, `update-status` returns `supported: false` with the reason *"Source is disconnected. Reconnect it in Skills → Sources."* when the source is disconnected or the skill is no longer selected. `install-update` on such a skill returns `409` if it's no longer selected (*"This skill is no longer selected. Manage its source to resume syncing."*) or if the refresh left it in an error state or removed upstream.
+
+### `update-diff` response
+
+Before you install an update for a skill from a [GitHub skill source](#github-skill-sources), you can see exactly what it changes. `update-diff` compares the installed revision (`currentRef`) with the latest commit on the branch or revision the source follows, its `trackingRef` (`latestRef`), and lists each package file that differs, with a unified line diff. It's read-only: nothing is installed.
+
+```json
+{
+  "supported": true,
+  "reason": null,
+  "currentRef": "9f2a3b1c4d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a",
+  "latestRef": "0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b",
+  "hasUpdate": true,
+  "files": [
+    {
+      "path": "SKILL.md",
+      "change": "modified",
+      "binary": false,
+      "executableChanged": false,
+      "diff": "@@ -1,3 +1,3 @@\n # Code Review\n-Check for typos.\n+Check for typos and broken links.\n Keep comments short.",
+      "diffUnavailable": null
+    }
+  ],
+  "truncated": false
+}
+```
+
+- `hasUpdate` is `false`, and `files` is empty, when the installed revision is already the latest.
+- Each file's `change` is `added`, `removed`, `modified`, or `not_compared`. `not_compared` means the scan left that path out of at least one revision — it was too large, a symlink, or rejected by the safety checks — so Paperclip doesn't guess what changed.
+- In `diff`, lines starting with `-` exist only in the installed revision and lines starting with `+` only in the latest one. It's `""` when only the executable bit changed (`executableChanged: true`).
+- When `diff` is `null`, `diffUnavailable` says why: `binary`, `too_large`, `omitted` (the path is `not_compared`), or `budget`.
+- `truncated` is `true` when the response hit its size or work budget, or its limit of 1,000 listed files, so some files carry no diff or aren't listed.
+
+Some skills can't be diffed. You still get `200`, with `supported: false` and a `reason`:
+
+| Situation | `reason` |
+|---|---|
+| The skill isn't from a GitHub skill source | *"Only skills installed from a tracked GitHub source have an update diff."* |
+| The source is disconnected, or the skill is no longer selected | *"Source is disconnected. Reconnect it in Skills → Sources."* |
+| The installed revision isn't recorded as a full commit SHA | *"The installed source revision is unknown."* |
+| A repository package over the package limits | *"The repository is larger than the supported package size, so its revisions cannot be compared file by file."* |
 
 ### Install-update semantics
 

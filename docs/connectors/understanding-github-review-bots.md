@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Understanding GitHub PR Review Bots
 seo_description: Learn why installing a review bot, choosing when it runs, and requiring its check before merging are three independent decisions.
 ---
@@ -177,6 +177,12 @@ generate and build stories, render the pages, and look for visible `oogabooga`.
 A complete run finding the word scores 5/5; a complete run finding no matching
 page scores 3/5. A build failure leaves the assessment incomplete. With a 5/5
 threshold, only the first outcome passes.
+
+A low score, pending CI, or an unmerged PR doesn't call you into Paperclip on its
+own. When the bot is set to keep tracking the PR after publishing, its task waits
+in review for the next GitHub event and stays out of your **Mine** view. It
+finishes once the bot's configured completion conditions are met. You only hear from the bot when it
+genuinely needs your input, such as repository access.
 
 See [GitHub's Checks API guide](https://docs.github.com/en/rest/guides/using-the-rest-api-to-interact-with-checks).
 

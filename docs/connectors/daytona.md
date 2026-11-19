@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Daytona Sandbox Connector
 seo_description: Let agents manage your Daytona account's sandboxes, files, commands, Git, snapshots, and volumes with an organization API key and per-action controls.
 ---
@@ -20,7 +20,7 @@ Daytona appears in the catalog on every instance; no experimental setting is nee
 
 There is no browser sign-in; the key is the only way in. Be aware that any valid organization key can reach running sandboxes through Daytona's Toolbox, even with no scopes selected. Treat every key as broad access.
 
-## Add your Daytona key
+## Connect Daytona
 
 1. Open **Connectors** and select **Daytona**. The card says **Add key**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to narrow the agents or to reach the advanced setting below.

@@ -1,7 +1,7 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Unikraft Cloud Connector
-seo_description: Let agents manage Unikraft Cloud instances, services, volumes, and certificates, and run sandbox commands, with an API token and per-action permissions.
+seo_description: Let agents manage Unikraft Cloud instances, services, volumes, and certificates, and run sandbox commands, using an API token and per-action permissions.
 ---
 
 # Unikraft
@@ -18,13 +18,13 @@ Agents can manage resources in your own Unikraft Cloud organization — creating
 
 There is no browser sign-in; the token is the only way in. A token acts for its whole organization in every metro, and Unikraft does not offer narrower token permissions. That makes your choice of agents and your action permissions the real boundary, so plan those before you connect.
 
-## Add your Unikraft key
+## Connect Unikraft
 
 1. Open **Connectors** and select **Unikraft**. The card says **Add key**.
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to narrow the agents or to reach the advanced setting below.
 3. Paste your API token into **Your Unikraft key** and select **Connect**.
 
-Paperclip checks the token with Unikraft before saving the connection, by reading your quotas in the default metro. The token stays in Paperclip's vault and is sent to Unikraft as a Bearer header; agents never see it.
+Paperclip checks the token with Unikraft before it turns the connection on, by reading your quotas in the default metro. The token stays in Paperclip's vault and is sent to Unikraft as a Bearer header; agents never see it.
 
 ### Optional setting
 
@@ -36,7 +36,7 @@ Unikraft Cloud has no single global API; each metro serves its own. Every action
 
 ## Choose access
 
-The connection exposes Unikraft's published API: 105 actions, covering 89 platform operations and 16 sandbox operations. Action names come from Unikraft, such as `unikraft_get_instances`, `unikraft_create_instance`, `unikraft_delete_volume_by_uuid`, and `unikraft_sandbox_run_command`. Sandbox actions start with `unikraft_sandbox_` and take the name or UUID of the instance to work inside.
+The connection exposes Unikraft's published API: 105 actions, covering 89 platform operations and 16 sandbox operations. Action names come from Unikraft, such as `unikraft_get_instances`, `unikraft_create_instance`, `unikraft_delete_volume_by_uuid`, and `unikraft_sandbox_run_command`. Sandbox actions start with `unikraft_sandbox_` and take the instance name or UUID to work inside. You do not need a Paperclip task or workspace.
 
 Paperclip sorts the actions into three groups:
 
@@ -89,8 +89,7 @@ Limitations: one Unikraft organization token per connection. API token only; the
 
 ## Sources
 
-- [Unikraft definition](https://github.com/paperclipai/paperclip/blob/d69631b01b9c658f80bf8bed389863dce82643e1/packages/shared/src/app-definitions/unikraft.json) — method, token field, default metro, and warnings.
-- [Unikraft client](https://github.com/paperclipai/paperclip/blob/d69631b01b9c658f80bf8bed389863dce82643e1/server/src/services/connectors/unikraft/client.ts) — token check, metro hosts, sandbox routing, and the still-running wait result.
-- [Generated action catalog](https://github.com/paperclipai/paperclip/blob/d69631b01b9c658f80bf8bed389863dce82643e1/server/src/services/connectors/unikraft/operations.generated.json) — the 105 actions, their risk hints, and the streaming endpoint.
-- [Native REST client](https://github.com/paperclipai/paperclip/blob/d69631b01b9c658f80bf8bed389863dce82643e1/server/src/services/native-rest-client.ts) — risk grouping and the 8 MiB limit.
-- [Tool gateway](https://github.com/paperclipai/paperclip/blob/d69631b01b9c658f80bf8bed389863dce82643e1/server/src/services/tool-gateway.ts) — the 10-second default and 30-second cap.
+- [Unikraft definition](https://github.com/paperclipai/paperclip/blob/5e26b733b9668d24b005418704d43f66109a7dd8/packages/shared/src/app-definitions/unikraft.json) — method, token field, default metro, and warnings.
+- [Unikraft client](https://github.com/paperclipai/paperclip/blob/5e26b733b9668d24b005418704d43f66109a7dd8/server/src/services/connectors/unikraft/client.ts) — token check, metro hosts, sandbox routing, and the still-running wait result.
+- [Generated action catalog](https://github.com/paperclipai/paperclip/blob/5e26b733b9668d24b005418704d43f66109a7dd8/server/src/services/connectors/unikraft/operations.generated.json) — the 105 actions, their risk hints, and the streaming endpoint.
+- [Native REST client](https://github.com/paperclipai/paperclip/blob/5e26b733b9668d24b005418704d43f66109a7dd8/server/src/services/native-rest-client.ts) — risk grouping, 8 MiB limit, and deadline handling.

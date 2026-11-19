@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.529.0
+paperclip_version: v2026.1117.0
 seo_title: Plugins API
 seo_description: The REST surface behind the Plugin Manager: installation, enable, disable, upgrade, config, jobs, webhooks, and local-folder development workflows.
 ---
@@ -22,7 +22,7 @@ For the operator-facing walkthrough see [Administration → Plugins](../../admin
 | `GET /api/plugins/examples` | List the bundled plugins discovered in the current checkout (reference examples and vendored first-party plugins). See below. |
 | `GET /api/plugins/ui-contributions` | Aggregate of UI slots and launchers contributed by enabled plugins. The Paperclip UI consumes this on page load. |
 | `GET /api/plugins/tools` | Tools declared by enabled plugins. |
-| `POST /api/plugins/tools/execute` | Execute a plugin-declared tool by key. |
+| `POST /api/plugins/tools/execute` | Execute a plugin-declared tool by key. `runContext` needs `agentId`, `runId`, and `companyId`. `projectId` is optional: leave it out or send `null` for a run with no project, and the tool receives an empty `projectId`. Any other non-string value returns `400`. |
 
 ### Bundled plugin discovery
 
@@ -115,6 +115,8 @@ If your instance is managed by a Paperclip control plane rather than run by you,
 | `GET /api/plugins/:pluginId/jobs/:jobId/runs` | List recent runs for a job. |
 | `POST /api/plugins/:pluginId/jobs/:jobId/trigger` | Manually trigger a job run. |
 | `POST /api/plugins/:pluginId/webhooks/:endpointKey` | Inbound webhook delivery to the plugin worker's `handleWebhook`. |
+
+Plugin logs, job runs, and the webhook deliveries on the plugin dashboard are scoped to your companies. A board member sees only rows attributed to companies they belong to, so `GET /api/plugins/:pluginId/logs`, `GET /api/plugins/:pluginId/jobs/:jobId/runs`, and `GET /api/plugins/:pluginId/dashboard` never show another company's log messages or errors. Instance admins and the local trusted board keep the instance-wide view, including instance-level rows that belong to no company.
 
 ## Local folders
 

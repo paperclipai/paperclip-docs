@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Google People Connector
 seo_description: Let agents look up contacts and Workspace directory profiles. Read-only, no writes in any group. Account requirements, a lookup test, and troubleshooting.
 ---
@@ -8,7 +8,7 @@ seo_description: Let agents look up contacts and Workspace directory profiles. R
 
 > **Warning:** **Google verification pending.** Paperclip has not yet completed Google app verification. You may see an unverified-app warning during authorization. If Google offers an **Advanced** option to continue to Paperclip, you can choose to proceed after reviewing the requested access. This option is not available for every account; Workspace administrator restrictions and other Google access requirements still apply. Contact [support@paperclip.ing](mailto:support@paperclip.ing) if you cannot connect.
 
-> **Note:** This connector is no longer listed on the **Connectors** page for new setup; it appears there only when you have a saved connection to it, which keeps running unchanged. [Google Workspace](google-workspace.md), the connector for new Google accounts, does not include contacts or directory lookups. An agent that needs this service can still ask you for it with a connection card on its task.
+> **Note:** This connector is no longer listed on the **Connectors** page for new setup; it appears there only when you have a saved connection to it, which keeps running unchanged. [Google Workspace](google-workspace.md), the built-in connector for new Google accounts ([off by default](google-workspace.md#turn-on-the-built-in-connector)), does not include contacts or directory lookups. An agent that needs this service can still ask you for it with a connection card on its task.
 
 Agents can search your Google contacts, search your organization's Workspace directory, and read your own profile.
 

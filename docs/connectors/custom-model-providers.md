@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Custom AI Endpoints and Bedrock
 seo_description: Connect a Responses, Messages, Chat Completions, local, or Bedrock endpoint. Match its API format to the agent harness and select a model explicitly.
 ---
@@ -57,6 +57,8 @@ This connection supports a Bedrock API key and region. It does not accept a cust
 Open the agent's **Connection** selector and choose the named compatible account. Custom routed connections require explicit selection; you cannot make one the responsible user's provider default.
 
 When you create a new agent, the **Connect a model** step shows three tiles side by side: the provider's subscription, the provider's API key, and **Advanced** (tagged **Custom Gateway**). Choose **Advanced** to pick a saved compatible connection, or set up a new OpenRouter, Amazon Bedrock, **Custom gateway**, or **Local endpoint** connection without leaving agent setup. Then select **Use connection**.
+
+The first-agent setup wizard offers the same gateway form. After you pick Claude or OpenAI and switch to an API key, open **Advanced** and select **Use a custom gateway**, save the connection, and choose a model before **Connect** — see [Connecting a model in the wizard](../guides/getting-started/your-first-company.md#connecting-a-model-in-the-wizard).
 
 A personal account can be selected explicitly, or a connection manager can share an account with the company. Every run still needs a responsible user who may use the credential, and the connection must be available to the agent. See [How connector access works](access-model.md).
 

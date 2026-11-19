@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Goals and Projects API
 seo_description: Goals form the higher-level intent tree; projects group the concrete deliverables under them. Endpoints for both, and how the two link together.
 ---
@@ -139,6 +139,8 @@ PATCH /api/goals/{goalId}
 
 This is a partial update. Any field you omit stays unchanged.
 
+On create and update, `parentId` must point at a goal in the same company. Otherwise you get `422` with `Parent goal not found in this company`. A plugin that patches a goal gets the same check, and is refused with `Invalid goal update` for a bad patch or `Goal company cannot be changed` if it tries to move the goal to another company.
+
 ### Delete Goal
 
 ```
@@ -172,8 +174,8 @@ Projects have a few important implementation details:
 - `goalIds` is preferred for new code.
 - `workspace` can be supplied during create to seed the first workspace in the same request.
 - `env` is the project environment binding config. Secret bindings are normalized before storage.
-- `executionWorkspacePolicy` is an advanced runtime policy object. Its `storageProviderPluginId` decides who owns the project's storage and task workspaces (see [Plugins that store your project's code](../../administration/plugins.md#plugins-that-store-your-projects-code)): an installed plugin's ID for that plugin, `null` for Core / local, or leave it out to inherit the installed default, if there is one.
-- Project responses return the saved `executionWorkspacePolicy` as is, plus a separate `workspaceProvider` object showing what applies: `source` (`project` when the policy holds a choice, including `null`; `default` when it inherits from a plugin; `core` otherwise), the selected `pluginId` and `displayName`, the available `providers` (each with `id`, `displayName`, and `isDefault`), the resulting `effectivePolicy`, and any `error`, such as two plugins both claiming the default.
+- `executionWorkspacePolicy` is an advanced runtime policy object. Set its `storageProviderPluginId` to an installed plugin's ID to let that plugin own the project's storage and task workspaces (see [Plugins that store your project's code](../../administration/plugins.md#plugins-that-store-your-projects-code)); set it to `null` to keep Paperclip's local behavior. If you leave it unset when you create a project, the installed default applies when one plugin claims it, and more than one claim fails with a conflict. A plugin-backed project can't change its storage later: that request fails with a conflict too.
+- Project responses return the saved `executionWorkspacePolicy` as is, plus a separate `workspaceProvider` object showing what applies: `source` (`project` when the policy holds a saved choice, including `null`, or `core` when it holds none), the selected `pluginId` and `displayName`, the available `providers` (each with `id`, `displayName`, and `isDefault`), the resulting `effectivePolicy`, and any `error`.
 - `archivedAt` can be set when archiving a project.
 
 Project statuses are:
@@ -340,6 +342,38 @@ DELETE /api/projects/{projectId}/access-members/{memberId}
 - `DELETE` removes one member by its `memberId` and returns the removed entry. You can't remove the project's privacy owner (`422 The project privacy owner cannot be removed`).
 
 Adding and removing members are board-only, and only the project's privacy owner, a company owner or admin, or an instance administrator can do it — anyone else gets `403` with `Only the project privacy owner or an administrator can change project access`. Changes are logged as `project.access_member_added` and `project.access_member_removed`.
+
+### Project Git Authorization
+
+Some work on a project's repositories happens with no task attached, such as a storage plugin provisioning or cleaning up workspaces in the background. For private GitHub repositories, that work needs someone's explicit permission to use their GitHub connection. These routes read and set that permission. In the app, it's the **Background GitHub authorization** section of the project's configuration — see [Background GitHub authorization](../../guides/projects-workflow/projects.md#background-github-authorization).
+
+```
+GET /api/projects/{projectId}/git-authorization
+PUT /api/projects/{projectId}/git-authorization
+```
+
+Both routes are board-only and need a signed-in user (`403 A signed-in user is required` otherwise). `GET` needs read access to the project; `PUT` also needs permission to edit the project's workspaces. Both return the same shape:
+
+```json
+{
+  "grantId": "<grant-id or null>",
+  "authorizedByUserId": "<user-id or null>",
+  "options": [
+    { "grantId": "<grant-id>", "connectionName": "GitHub", "login": "octocat" }
+  ]
+}
+```
+
+- `grantId` and `authorizedByUserId` describe the current authorization, or are `null` when there isn't one.
+- `options` lists only *your own* GitHub connection grants that you could choose: active, personal, and on a GitHub connection that's enabled and installed for the company. Members with the `viewer` role get an empty list.
+
+To authorize the project, send one of your `options`:
+
+```json
+{ "grantId": "<grant-id>" }
+```
+
+Send `{ "grantId": null }` to revoke it. Choosing a grant that isn't one of your own eligible options returns `403 Select your own active company-installed GitHub authorization`, and you can't authorize an archived project (`404 Active project not found`). Paperclip stores only the grant ID and who consented, never a credential. Changes are logged as `project.git_authorized` and `project.git_authorization_revoked`. Agents can't call these routes.
 
 ---
 

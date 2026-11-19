@@ -107,6 +107,10 @@
           "file": "../docs/guides/org/agents.md"
         },
         {
+          "title": "Edit an Agent as YAML",
+          "file": "../docs/guides/org/agent-configuration-yaml.md"
+        },
+        {
           "title": "Agent Identity",
           "file": "../docs/guides/org/agent-identity.md"
         },
@@ -226,6 +230,10 @@
         {
           "title": "Connector Catalog",
           "pages": [
+            {
+              "title": "1Password",
+              "file": "../docs/connectors/1password.md"
+            },
             {
               "title": "AgentMail",
               "file": "../docs/connectors/agentmail.md"
@@ -540,6 +548,10 @@
               "file": "../docs/connectors/unikraft.md"
             },
             {
+              "title": "Vercel",
+              "file": "../docs/connectors/vercel.md"
+            },
+            {
               "title": "Webflow",
               "file": "../docs/connectors/webflow.md"
             },
@@ -656,6 +668,10 @@
         {
           "title": "Agent Chat",
           "file": "../docs/experimental/agent-chat.md"
+        },
+        {
+          "title": "Coordinator Workspace",
+          "file": "../docs/experimental/coordinator-workspace.md"
         },
         {
           "title": "Assistant Connections (MCP)",

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Environment Variables Reference
 seo_description: Every variable Paperclip reads for server configuration, plus the ones it injects into agent processes at runtime — the list to wire deployments from.
 ---
@@ -20,7 +20,7 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `HOST` | `127.0.0.1` | Server host binding |
 | `DATABASE_URL` | embedded PostgreSQL | PostgreSQL connection string |
 | `DATABASE_MIGRATION_URL` | falls back to `DATABASE_URL` | Optional PostgreSQL URL used only when running migrations — useful when your runtime user lacks DDL rights and a separate role applies schema changes. |
-| `DATABASE_PREPARED_STATEMENTS` | unset | Controls prepared statements on Paperclip's database connections. `false` turns them off, which you need behind a transaction-mode pooler that doesn't support named statements. Unset keeps the normal behavior. See [Database → Hosted PostgreSQL](database.md#hosted-postgresql). |
+| `DATABASE_PREPARED_STATEMENTS` | unset | Controls prepared statements on Paperclip's database connections. `false` turns them off, which you need behind a transaction-mode pooler that doesn't support named statements. `true` also prepares ordinary queries, which is only for a direct connection or a pooler that supports them. Unset keeps the normal behavior. See [Database → Hosted PostgreSQL](database.md#hosted-postgresql). |
 | `DATABASE_POOL_MAX` | `10` | Most connections the server's database pool opens at once. See [Database → Connection pool settings](database.md#connection-pool-settings) for how to size PostgreSQL's `max_connections`. |
 | `DATABASE_IDLE_TIMEOUT_SECONDS` | `60` | Seconds an idle pooled connection stays open before it's closed. `0` keeps idle connections open indefinitely. |
 | `DATABASE_CONNECT_TIMEOUT_SECONDS` | `30` | Seconds to wait for a new database connection before giving up. |
@@ -45,21 +45,35 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_ENABLED` | on (unset) | Whether the server deletes old failover copies of native agent sessions. A session that runs in a remote sandbox keeps a copy of its harness state on the Paperclip host so a replacement sandbox can resume it, and one copy can reach several gigabytes. An hourly sweep deletes a copy once every task the session worked on has been done or cancelled for longer than `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_DAYS` and nothing still uses it. Reopening such a task starts a fresh agent session instead of resuming the old conversation. Set to `false` to keep every copy. |
 | `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_DAYS` | `7` | How many days a native session's tasks must have been closed before its failover copy can be deleted. `0` is raised to `1`; a negative, empty, or non-numeric value falls back to the default. |
 | `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_DRY_RUN` | `false` | Set to `true` to have the sweep find and count the copies it would delete, and log the totals, without deleting anything or ending any session. |
+| `PAPERCLIP_NATIVE_RUNNER_EVIDENCE_RETENTION_DAYS` | `7` | How many days the same sweep keeps the leftovers native sessions write to disk. These are the archived state of a session that started over with a fresh provider session, and quarantined state from a session that lost its authority. Nothing is removed while its session is starting, running, warm, or closing, and quarantined state that native cleanup itself set aside is always kept. Once quarantined state is gone, a later run of that session may start fresh instead of refusing to continue. `0` is raised to `1`; a negative, empty, or non-numeric value falls back to the default. The `_ENABLED` and `_DRY_RUN` switches above apply here too. |
+| `PAPERCLIP_NATIVE_WORKSPACE_SYNC_RETENTION_ENABLED` | on (unset) | Whether the server deletes old per-run folders that native runs use to sync their workspace with a remote sandbox. A folder can hold seed archives of a gigabyte or more. It's removed once the run and its finalization have been settled for `PAPERCLIP_NATIVE_WORKSPACE_SYNC_RETENTION_DAYS` and no recovery or export still needs it. The sweep only runs on a server with `HEARTBEAT_SCHEDULER_ENABLED` on. Set to `false` to keep every folder. |
+| `PAPERCLIP_NATIVE_WORKSPACE_SYNC_RETENTION_DAYS` | `7` | How many days a run must have been settled before its sync folder can be deleted. `0` is raised to `1`; a negative, empty, or non-numeric value falls back to the default. |
+| `PAPERCLIP_NATIVE_WORKSPACE_SYNC_RETENTION_DRY_RUN` | `false` | Set to `true` to have the sweep only log what it would delete. |
 | `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` | `1` | How many days the terminal-workspace reaper waits after an issue tree becomes terminal before archiving its workspace. Someone can reopen the work inside this window. `0` disables the cooldown and restores immediate reaping; a negative or non-numeric value falls back to the default. (The default was `7` before workspace compaction arrived.) |
 | `PAPERCLIP_WORKSPACE_COMPACTION_DELAY_HOURS` | `1` | How many hours after an issue tree becomes terminal the reaper removes regenerable files (installed dependencies, build output, tool caches) from its isolated worktree. The worktree, branch, and every source file stay. `0` compacts on the next sweep; a negative, empty, or non-numeric value falls back to the default. See [Workspaces → Automatic cleanup of finished work](../../guides/projects-workflow/workspaces.md#automatic-cleanup-of-finished-work). |
 | `PAPERCLIP_WORKSPACE_COMPACTION_ENABLED` | on | Set to `false` to turn workspace compaction off. Any other value keeps it on. |
 | `PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED` | off | Set to `true` to let Paperclip remove Paperclip-owned isolated Git worktrees 24 hours after every task in their tree is done or cancelled, once it has proved their commits can be fetched again from upstream. A reopened task rebuilds the worktree at the exact saved commit. |
 | `PAPERCLIP_GIT_CACHE_EXPIRATION_DRY_RUN` | on | While on, Git expiration only logs what it would remove. Set to `false` to let it actually delete. |
 | `PAPERCLIP_GIT_BASE_EXPIRATION_ENABLED` | off | Set to `true` to also remove a task's private source clone once every workspace using it has expired and its contents are verified reproducible. Shared project clones are never removed. |
-| `PAPERCLIP_GIT_RESTORE_POINTS_ENABLED` | off | Set to `true` to let Git expiration save a worktree's unsaved work (uncommitted changes, untracked files, and unpushed commits, but never untracked `.env` files) as an encrypted restore point before removing it, and to expire idle worktrees of open tasks. Only takes effect while `PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED` is `true`. With S3 storage, `PAPERCLIP_SECRETS_MASTER_KEY` must be set, or worktrees that need a restore point stay on disk. See [Workspaces → Restore points for unsaved work](../../guides/projects-workflow/workspaces.md#restore-points-for-unsaved-work). |
+| `PAPERCLIP_GIT_RESTORE_POINTS_ENABLED` | off | Set to `true` to let Git expiration save a worktree's unsaved work (uncommitted changes, untracked files, unpushed commits, and non-regenerable ignored files, but never untracked `.env` files) as an encrypted restore point before removing it, and to expire idle worktrees of open tasks. Only takes effect while `PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED` is `true`. With S3 storage, `PAPERCLIP_SECRETS_MASTER_KEY` must be set, or worktrees that need a restore point stay on disk. See [Workspaces → Restore points for unsaved work](../../guides/projects-workflow/workspaces.md#restore-points-for-unsaved-work). |
 | `PAPERCLIP_GIT_RESTORE_POINT_TERMINAL_DELAY_DAYS` | `3` | How many days every task in the tree must have been done or cancelled before a worktree that needs a restore point is saved and removed. `0` means no delay beyond the 24 hours Git expiration already waits; a negative, empty, or non-numeric value falls back to the default. |
 | `PAPERCLIP_GIT_RESTORE_POINT_IDLE_DAYS` | `7` | How many days an open task's isolated worktree can sit with no task, workspace, or run activity before it's removed, with a restore point if it has unsaved work. `0` turns idle expiration off; a negative, empty, or non-numeric value falls back to the default. |
 | `PAPERCLIP_GIT_RESTORE_POINT_RETENTION_DAYS` | `90` | How many days after the task tree was last done or cancelled a restore point is kept before it's deleted. A task reopened after that gets a fresh worktree on its branch and a warning comment. `0` is raised to `1`; a negative, empty, or non-numeric value falls back to the default. |
+| `PAPERCLIP_TASK_DIRECTORY_RETENTION_ENABLED` | off | Set to `true` to let Paperclip reclaim plain task directories (tasks with no project repository, under the instance's `isolated-workspaces` folder). A finished directory is saved to an encrypted restore point and removed once its task tree has been done or cancelled for `PAPERCLIP_GIT_RESTORE_POINT_TERMINAL_DELAY_DAYS`, then restored when the task reopens. That part needs `PAPERCLIP_GIT_RESTORE_POINTS_ENABLED=true`; Git expiration doesn't have to be on. Orphaned directories are deleted after the grace period. See [Workspaces → Task directories without a repository](../../guides/projects-workflow/workspaces.md#task-directories-without-a-repository). |
+| `PAPERCLIP_TASK_DIRECTORY_RETENTION_DRY_RUN` | on | While on, task directory retention only logs what it would save and remove. Set to `false` to let it actually delete. |
+| `PAPERCLIP_TASK_DIRECTORY_ORPHAN_GRACE_DAYS` | `7` | How many days a task directory with no live workspace must sit untouched, with its task tree closed, before it's deleted. `0` is raised to `1`; a negative, empty, or non-numeric value falls back to the default. |
+| `PAPERCLIP_ISOLATED_SOURCE_REHOME_ENABLED` | off | Set to `true` to move open isolated workspaces that still have their own private repository clone onto the project's shared clone, then delete the private clone once nothing else uses it. Only takes effect while `PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED` is `true`. |
+| `PAPERCLIP_ISOLATED_SOURCE_REHOME_DRY_RUN` | off | Set to `true` to have the re-home only log what it would move. |
+| `PAPERCLIP_NESTED_CLONE_MIGRATION_ENABLED` | off | Set to `true` to convert standalone clones of extra project repositories (under `.paperclip-repositories/`) in open workspaces into worktrees of the project's shared clone, keeping their branches and local history, then delete the standalone clones. |
+| `PAPERCLIP_NESTED_CLONE_MIGRATION_DRY_RUN` | off | Set to `true` to have the migration only log what it would convert. |
 | `PAPERCLIP_SKILL_VERSION_RETENTION_ENABLED` | on | Set to `false` to stop the sweep that removes unused materialized skill version directories from disk. Removed versions are written again from their saved version on next use. |
 | `PAPERCLIP_SKILL_VERSION_RETENTION_DRY_RUN` | off | Set to `true` to have the skill version sweep only report what it would remove. |
 | `PAPERCLIP_SKILL_VERSION_RETENTION_KEEP` | `0` | How many of the newest materialized versions of each skill to keep on disk as a warm cache. A negative, empty, or non-numeric value falls back to the default. |
 | `PAPERCLIP_SKILL_VERSION_RETENTION_GRACE_MINUTES` | `60` | How long, in minutes, a materialized skill version stays on disk after its last use. A negative, empty, or non-numeric value falls back to the default. |
+| `PAPERCLIP_SKILL_PACKAGE_STORAGE_ENABLED` | on | Company skill package contents are kept in the configured storage provider, and packages still saved in the database move there in the background. Set to `false` only during a rolling upgrade while some servers run an older version: it stops new package writes to storage and pauses the move. See [Storage → Company skill packages](./storage.md#company-skill-packages). |
 | `PAPERCLIP_DB_BACKUP_IDLE_CHECKPOINT_ENABLED` | off | Set to `1` on an instance with automatic database backups so it can still sleep when idle: the server takes and verifies a fresh backup as the final check before it reports the instance quiet, and refuses sleep if that backup fails. Keep the database and backup volume attached across sleep. |
+| `PAPERCLIP_CONTROLLER_INSTANCE_LEASE` | on | Each server boot holds a lease in the database while it owns in-progress work, so a newer server can recover work left by a replaced or crashed one. If a server can't renew its lease for about 60 seconds while holding work (for example, the database was unreachable), it logs a fatal error and exits with code 1 so another server can take the work over. Run Paperclip under a supervisor that restarts it. Set to exactly `off` to turn the lease off. |
+| `PAPERCLIP_DB_RESPONSE_CAPTURE_WINDOW` | unset | Diagnostic only. Set to a UTC time window, `<start>/<end>` in ISO form such as `2026-11-17T10:00:00Z/2026-11-17T10:01:00Z`, to log row counts, timings, and sampled response sizes for the server's database queries during that window. The window can be at most 60 seconds long, must end in the future, and must start within the next 30 minutes; any other value is ignored. |
 | `PAPERCLIP_ISSUE_PRIVACY_MODE` | `enforce` | How private tasks and projects are enforced. `enforce` hides them from anyone without access. `shadow` only logs the reads it would deny, and `off` skips the check; use those two only to diagnose a rollout, never when private tasks must stay confidential. |
 | `PAPERCLIP_NATIVE_MCP_STDIO` | unset | Set on the **execution host**, not in task environments: a JSON array of local stdio MCP server bindings (`name`, `command`, `args`, `env`, `sha256`, `serialResource`) that Paperclip Runner offers to native sessions. Each command is checked against its digest before it runs. Read-only sessions leave these tools out. See [Local MCP tools on the execution host](../adapters/paperclip-runner.md#local-mcp-tools-on-the-execution-host). |
 | `PAPERCLIP_NATIVE_MCP_PROXY` | unset | Set on the execution host together with `PAPERCLIP_NATIVE_MCP_STDIO`: the path of the assigned Paperclip Runner executable. Neither variable is passed into configurable task environments or provider shells. |
@@ -85,7 +99,7 @@ These variables matter most once you move beyond a default local install.
 | `PAPERCLIP_AGENT_JWT_TTL_SECONDS` | Agent JWT lifetime in seconds. |
 | `PAPERCLIP_AGENT_JWT_ISSUER` | Agent JWT issuer. |
 | `PAPERCLIP_AGENT_JWT_AUDIENCE` | Agent JWT audience. |
-| `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` | Signing secret for tool action approvals. Unlike `BETTER_AUTH_SECRET` it has no fallback — if it is unset, the server cannot issue signed tool action approvals and raises `ToolActionSigningSecretMissingError`. Set it in the instance's own environment; worktrees inherit it from `.paperclip/.env`. For local development the `.env.example` ships `paperclip-dev-tool-action-signing-secret-change-me`. `docker-compose.quickstart.yml` and `docker-compose.yml` pass it through to the container. |
+| `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` | Signing secret for tool action approvals. Unlike `BETTER_AUTH_SECRET` it has no fallback — if it is unset, the server cannot issue signed tool action approvals and raises `ToolActionSigningSecretMissingError`. Set it in the instance's own environment; worktrees inherit it from `.paperclip/.env`. For local development the `.env.example` ships `paperclip-dev-tool-action-signing-secret-change-me`. `docker/docker-compose.quickstart.yml` and `docker/docker-compose.yml` pass it through to the container. |
 
 Related deployment variables:
 
@@ -121,7 +135,7 @@ A malformed value (a stray sign, leading zeros, or an unrecognised token) makes 
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `PAPERCLIP_MANAGED_CONFIG` | unset (self-hosted) | Set only by the Paperclip Cloud harness. Holds one JSON document describing which experimental feature flags the harness manages for this instance, the plugin keys it declares for auto-install, and optionally the sandbox environment it provisions for you at boot. **Absent** means self-hosted: no overlay, no behavior change. **Present but blank, or malformed, makes the server refuse to start.** |
+| `PAPERCLIP_MANAGED_CONFIG` | unset (self-hosted) | Set only by the Paperclip Cloud harness. Holds one JSON document describing which experimental feature flags the harness manages for this instance, the plugin keys it declares for auto-install, and optionally the environments it provisions for you at boot (one sandbox, plus any number of plugin environments), the process variables a plugin may read, and the companies a plugin serves without saved configuration. **Absent** means self-hosted: no overlay, no behavior change. **Present but blank, or malformed, makes the server refuse to start.** |
 
 You don't set this variable yourself. It exists so that a hosted instance gets its feature configuration from the fleet that runs it rather than from its own database, and it's documented here so you can recognise it in a running container's environment.
 
@@ -133,9 +147,17 @@ The value is a single JSON document:
   "mode": "cloud",
   "catalogVersion": "2026.720.0",
   "features": { "enableApps": false, "enableCases": true },
-  "plugins": { "autoInstall": ["daytona", "kubernetes"] },
+  "plugins": { "autoInstall": ["daytona", "remote-host"] },
   "environments": [
-    { "name": "Daytona", "provider": "daytona", "config": { "target": "us" } }
+    { "name": "Daytona", "provider": "daytona", "config": { "target": "us" } },
+    {
+      "name": "Remote Host",
+      "driver": "plugin",
+      "pluginKey": "example.remote-host-plugin",
+      "driverKey": "tasks",
+      "driverConfig": {},
+      "instanceDefault": true
+    }
   ]
 }
 ```
@@ -144,7 +166,7 @@ Six top-level keys are allowed — `v`, `mode`, `catalogVersion`, `features`, `p
 
 Five of them are required: `v`, `mode`, `catalogVersion`, `features`, and `plugins.autoInstall`, though `features` may be `{}` and `plugins.autoInstall` may be `[]`. `mode` is always `"cloud"`, and `catalogVersion` records the feature-catalog version the document was validated against.
 
-`environments` is the one **optional** section. It arrived later than the others, and documents delivered before it existed still have to boot on newer builds — a fleet image roll can't be lockstepped with a config re-delivery — so leaving it out simply means "this instance declares no managed environment". That's different from a missing `features` or `plugins.autoInstall`, where absence would silently drop a control the harness meant to be in force. When the section *is* present, it's validated just as strictly as everything else. [The sandbox environment it provisions](#the-sandbox-environment-it-provisions) below has the details.
+`environments` is the one **optional** section. It arrived later than the others, and documents delivered before it existed still have to boot on newer builds — a fleet image roll can't be lockstepped with a config re-delivery — so leaving it out simply means "this instance declares no managed environment". That's different from a missing `features` or `plugins.autoInstall`, where absence would silently drop a control the harness meant to be in force. When the section *is* present, it's validated just as strictly as everything else. [The sandbox environment it provisions](#the-sandbox-environment-it-provisions) and [Plugin environments](#plugin-environments) below have the details.
 
 ### It fails closed
 
@@ -156,7 +178,8 @@ Only an **absent** variable means self-hosted. Everything else is treated as a h
 - missing `features` or `plugins.autoInstall`
 - naming a feature key this build doesn't have, or one whose feature-catalog tier isn't `managed`
 - giving a non-boolean value for a feature, or a blank/duplicate plugin key
-- carrying a malformed `environments` section — more than one entry, an unknown key inside an entry, a blank `name` or `provider`, a `provider` that isn't also listed in `plugins.autoInstall`, a `config` that sets `provider` itself, or a `config` key that looks like a credential
+- carrying a malformed `plugins.workerEnv` or `plugins.enabledCompanies` section — see [Plugin variables and company access](#plugin-variables-and-company-access)
+- carrying a malformed `environments` section — more than one sandbox entry, a `driver` other than `"sandbox"` or `"plugin"` (an explicit `null` counts), an unknown key inside an entry, a blank or repeated `name`, a blank `provider`, a `provider` that isn't also listed in `plugins.autoInstall`, a `config` that sets `provider` itself, a `config` or `driverConfig` key that looks like a credential, or a plugin entry that breaks the rules in [Plugin environments](#plugin-environments)
 
 ### What it can and can't reach
 
@@ -178,7 +201,7 @@ If you open **Settings → Instance settings → Environments** on a hosted inst
 
 The feature overlay above is read-time only, but this part is different: an entry provisions a real environment row you can see in the UI, and the server re-applies it on every boot. That's safe to repeat — the step is idempotent, so a restart refreshes the row rather than piling up duplicates.
 
-Each entry looks like this:
+An entry with no `driver` key, or with `"driver": "sandbox"`, is the sandbox entry. It looks like this:
 
 ```json
 {
@@ -194,19 +217,121 @@ Each entry looks like this:
 - **`provider`** is the sandbox plugin's driver key — the same key the plugin uses in `plugins.autoInstall`, like `daytona` or `kubernetes`. It has to appear in that auto-install list too: on a managed instance the fleet is the only way a plugin gets installed, so an environment whose provider plugin isn't provisioned could never serve a run. That mismatch is caught at startup rather than at the first run.
 - **`config`** is stored verbatim on the environment row and validated by the provider plugin when it acquires a lease. See [Sandbox Providers](../adapters/sandbox-providers.md) for the fields each provider accepts.
 
-### One entry, and never any credentials
+### One sandbox entry, and never any credentials
 
 Two rules shape what this section is allowed to declare.
 
-**At most one entry.** The database enforces a single Paperclip-managed sandbox row per instance (a partial unique index named `environments_managed_sandbox_idx`), and every entry in the list provisions that one row — so a longer list could never be satisfied and is rejected at parse time. For the same reason, a **non-empty** `environments` section and a forced `PAPERCLIP_EXECUTION_MODE` are mutually exclusive: both claim the same row, and configuring both stops the server rather than letting boot order pick a winner. An empty `"environments": []` declares nothing, so it sits alongside a forced execution mode without complaint.
+**At most one sandbox entry.** The database enforces a single Paperclip-managed sandbox row per instance (a partial unique index named `environments_managed_sandbox_idx`), and every sandbox entry provisions that one row — so a second one could never be satisfied and is rejected at parse time. For the same reason, a sandbox entry and a forced `PAPERCLIP_EXECUTION_MODE` are mutually exclusive: both claim the same row, and configuring both stops the server rather than letting boot order pick a winner. Plugin entries don't use that row, so a section with only plugin entries, or an empty `"environments": []`, sits alongside a forced execution mode without complaint.
 
-**No secrets, ever.** A managed-config document carries no credentials, so any `config` key that *looks* like one — matching `api_key`, `apiKey`, `token`, `secret`, `password`, or `credential`, at any nesting depth — is treated as a misrouted credential and refuses startup. Provider credentials reach a managed instance as ordinary process environment variables instead: every bundled sandbox provider falls back to its own documented variable, such as `DAYTONA_API_KEY`, when `config` leaves the key out.
+**No secrets, ever.** A managed-config document carries no credentials, so any `config` or `driverConfig` key that *looks* like one — matching `api_key`, `apiKey`, `token`, `secret`, `password`, or `credential`, at any nesting depth, including inside arrays — is treated as a misrouted credential and refuses startup. Provider credentials reach a managed instance as ordinary process environment variables instead: every bundled sandbox provider falls back to its own documented variable, such as `DAYTONA_API_KEY`, when `config` leaves the key out.
+
+### Plugin environments
+
+This one is for hosting operators, the people running Paperclip instances for someone else. If your fleet's agents should run on a plugin's own environment driver, rather than in the single sandbox slot, you can declare it here and every instance gets it with no manual setup. Self-hosted instances have no managed document, so nothing here applies to them.
+
+A plugin entry sits beside the sandbox entry, and you can declare as many as you need:
+
+```json
+{
+  "name": "Remote Host",
+  "description": "Agent computers for this instance",
+  "driver": "plugin",
+  "pluginKey": "example.remote-host-plugin",
+  "driverKey": "tasks",
+  "driverConfig": {},
+  "instanceDefault": true
+}
+```
+
+| Key | Required | Meaning |
+|---|---|---|
+| `name` | yes | Display name of the instance-level environment row. Must be unique across the section. |
+| `description` | no | Non-empty text shown on the row. |
+| `driver` | yes | Always `"plugin"` for these entries. |
+| `pluginKey` | yes | The serving plugin's **manifest ID**, such as `example.remote-host-plugin`. This isn't its `plugins.autoInstall` catalog key. |
+| `driverKey` | yes | The plugin's environment driver key. It starts with a lowercase letter or digit and contains only lowercase letters, digits, dots, hyphens, and underscores. |
+| `driverConfig` | no | The driver's settings. Defaults to `{}`. The plugin validates it at boot with its own config check, and the [no-secrets rule](#one-sandbox-entry-and-never-any-credentials) applies. |
+| `instanceDefault` | no | `true` asks this environment to fill an unset instance default. See below. |
+
+The server refuses to start if a `pluginKey` isn't installed by any `plugins.autoInstall` catalog entry, if a `pluginKey` and `driverKey` pair appears twice, if more than one entry sets `instanceDefault`, or if a sandbox entry sets `instanceDefault`.
+
+**Check the release first.** A release that understands plugin entries carries `server/src/services/managed-config-capabilities.json` listing the `pluginEnvironments` capability: `{ "schemaVersion": 1, "capabilities": ["pluginEnvironments"] }`. Read that file at the release commit before you send a plugin entry, because a build that doesn't accept one refuses to start.
+
+**The instance default.** `instanceDefault: true` fills the default only when it's unset, names the local environment, or names one that's been deleted. A default that's already set is never changed, so existing instances keep theirs. The fill happens under a lock, right after that entry is provisioned at boot, and before the managed sandbox's own fill (which runs under `enableManagedSandboxOnly`). So on a new instance the plugin environment wins. If an active agent that follows the default hasn't been prepared by that plugin, the fill declines and the sandbox can fill as usual. Once filled, it's an ordinary setting that an admin can change, and nothing reverts it.
+
+**The row is locked.** Each entry owns one instance-level row, badged **Managed by Paperclip**. On a cloud-managed instance, nobody can edit or delete it, instance admins included; attempts fail with "Platform-provisioned environments are platform-managed on cloud-managed instances" (`environment_platform_managed`). Unlike the managed sandbox, its environment variables aren't editable either, and API responses return them empty.
+
+A few details about how the row is kept in step:
+
+- **First boot adopts.** An existing unmarked row for the same plugin and driver is taken over instead of duplicated, so agents pointing at a hand-made row keep working.
+- **Name clashes.** If no row can be adopted and another row already has the declared `name`, the entry fails and boot carries on without it. A row that's already this entry's keeps its current name when another row holds the declared one.
+- **Removing an entry** stops the refreshes but never deletes or archives the row. It stays locked until an instance admin clears its `managedByPaperclip` and `managedPluginEnvironment` markers, with a metadata-only update setting them to `null` or `false`.
+
+### Plugin variables and company access
+
+Say the fleet provisions a plugin that needs a service address to do its job, and you want it working in a company where nobody has ever opened its settings. Two optional keys under `plugins` cover that:
+
+```json
+{
+  "v": 1,
+  "mode": "cloud",
+  "catalogVersion": "2026.720.0",
+  "features": {},
+  "plugins": {
+    "autoInstall": ["daytona", "example-extension"],
+    "workerEnv": {
+      "example-extension": ["EXAMPLE_ORIGIN", "EXAMPLE_CAPABILITY"]
+    },
+    "enabledCompanies": {
+      "example-extension": ["3f2b8c1e-7a4d-4e9b-9c55-1d2e3f4a5b6c"]
+    }
+  }
+}
+```
+
+Both are maps keyed by the same catalog key you list in `plugins.autoInstall`, not the plugin's manifest ID, and every key must also be listed there. A key that isn't, an empty list, or a duplicate entry refuses startup. So does any document carrying these keys on a build too old to know them, because `plugins` rejects unknown keys.
+
+#### `plugins.workerEnv`: variables for one plugin
+
+Plugin workers run with a scrubbed environment. `workerEnv` lets one named plugin read specific variables from the server's process environment. The document holds **names only**, so you set the values on the server as usual, and they stay out of the document and the database.
+
+- Only the plugin with that key receives them.
+- A variable that's unset or blank on the server is skipped, and the worker simply doesn't get it.
+- Workers read the values when the server starts them, so a new value reaches the worker after a server restart.
+- A grant gives the plugin no access to any company. That's what `enabledCompanies` is for.
+
+Each name must match `^[A-Z][A-Z0-9_]*$`. The server also refuses to start, with `must not grant host credential or loader variable`, if a name:
+
+- **Has a credential word in it.** That's any of `AWS`, `CREDENTIAL`, `CREDENTIALS`, `DATABASE`, `DSN`, `JWT`, `KEY`, `KEYS`, `PASSWORD`, `POSTGRES`, `PRIVATE`, `SECRET`, `SECRETS`, `SIGNING`, or `TOKEN` as a whole word, meaning at the start or end of the name or between underscores. `API_KEY`, `DATABASE_URL`, `AWS_REGION`, and `SENTRY_DSN` are refused. `MONKEY` and `TOKENS` aren't, because the match is on whole words.
+- **Starts with a loader or database prefix.** That's `DB_`, `DYLD_`, `LD_`, or `NODE_`, which rules out `NODE_OPTIONS`, `LD_PRELOAD`, and `DB_HOST`.
+- **Is exactly** `PATH` or `PAPERCLIP_MANAGED_CONFIG`.
+
+The check catches mistakes, but it can't tell whether a value is sensitive. The plugin receives the real value in its own process, so only grant what you'd trust that plugin with. Give each variable a name of its own rather than reusing one the host already has.
+
+#### `plugins.enabledCompanies`: serving a company with no saved config
+
+Normally a plugin only gets [lifecycle events](../plugins/sdk.md#automatic-delivery-with-onresourcelifecycle) and [project instance secrets](../plugins/sdk.md#private-per-project-credentials) in companies where its configuration has been saved. Name a company here and both work there without that step.
+
+Each entry must be a lowercase company UUID. A few limits are worth knowing:
+
+- **Background worker calls aren't included.** A call from the plugin's `setup()`, timers, loops, or scheduled jobs that names this company is refused, usually with `company context is required`, until the plugin has a saved configuration for it. Read this company's events through lifecycle delivery instead. Calls that don't name a company aren't affected, such as `ctx.companies.list()`.
+- **A company can still turn the plugin off.** A company that has disabled the plugin gets no events.
+- **Unknown companies are ignored.** A valid UUID for a company that doesn't exist doesn't stop the server.
+- **The document is the only record.** Like the rest of the document, the list is never saved, so a database restore can't bring back access the document removed. Adding a new company takes a new document and a restart.
+
+Self-hosted instances have no managed document, so neither setting applies there.
 
 ### When the provider isn't ready
 
 Provisioning waits for the bundled-plugin startup pass to finish, then checks that the entry's provider plugin is installed, `ready`, **and** running a live worker. A plugin whose record says `ready` but whose activation failed has no worker and can't serve a lease, so that check matters.
 
 If the provider isn't up, Paperclip skips the entry rather than writing an active row — and if an earlier boot already provisioned one, it archives that row so run scheduling stops selecting an environment whose leases would fail. The server logs the reason and keeps booting; the cost is that this one environment is unavailable, not a fleet stuck in a crash loop.
+
+Plugin entries follow the same path after the sandbox entry, with one more check: the plugin also has to declare the entry's driver. If the plugin is `ready` and declares the driver but its worker is down, the row comes back by itself the next time the worker reports ready, even if a restart replaced the worker. The exceptions are worth knowing:
+
+- **The plugin rejects `driverConfig`.** Trying again can't help, so Paperclip logs it and leaves any row from an earlier boot as it was. Fix the document and restart.
+- **The check fails while the worker is still running**, for example on a timeout. Any row from an earlier boot stays as it is, so agents keep a working environment, and Paperclip tries again.
+- **Recovery never touches the instance default.** Only a successful ensure during boot can fill it.
 
 Recovery is automatic in the common case. When the plugin record is `ready` and only its worker is down — a crash in restart-backoff — Paperclip listens for the worker manager to respawn it and re-runs the setup the moment it comes back, so the environment returns without anyone restarting the server. A missing or non-`ready` plugin needs the next healthy boot instead.
 
@@ -241,6 +366,7 @@ These values are covered in more detail in [Secrets](./secrets.md).
 | `PAPERCLIP_STORAGE_S3_ENDPOINT` | Custom S3-compatible endpoint for MinIO, R2, and similar providers. |
 | `PAPERCLIP_STORAGE_S3_PREFIX` | Optional object key prefix. |
 | `PAPERCLIP_STORAGE_S3_FORCE_PATH_STYLE` | Enable path-style S3 requests when the provider needs them. |
+| `PAPERCLIP_DURABLE_AGENT_FILES` | Set to `true` to keep agents' personal files in S3, with the current version recorded in Postgres. Needs `s3` storage and a one-time import of existing files. Removing it later doesn't move files back to disk. See [Storage → Opt-in: keep agent files in S3](storage.md#opt-in-keep-agent-files-in-s3). |
 | `PAPERCLIP_IMPORT_ZIP_MAX_BYTES` | Maximum size, in bytes, of a company-import `.zip` upload. Defaults to `1073741824` (1 GB). Set it higher to accept larger packages, or lower to tighten the cap. Values are clamped to the range 1 byte – 64 GiB; anything non-numeric, fractional-to-zero, or out of range falls back to the 1 GB default. |
 
 ---
@@ -250,7 +376,7 @@ These values are covered in more detail in [Secrets](./secrets.md).
 | Variable | Default | Meaning |
 |---|---|---|
 | `HEARTBEAT_SCHEDULER_ENABLED` | `true` | Enables or disables timer-based scheduling. |
-| `HEARTBEAT_SCHEDULER_INTERVAL_MS` | `30000` | Scheduler poll interval in milliseconds. |
+| `HEARTBEAT_SCHEDULER_INTERVAL_MS` | `30000` | The scheduler's pacing and retry interval, in milliseconds. Agent timers, routines, and issue monitors aren't polled on this interval: they run at their saved due times. Agent timer passes are spaced at least this far apart, and a pass that leaves due work behind waits this long before the next one. Scheduled and background delivery work that failed, or still has items pending, is retried after this long. Values below `10000` are raised to `10000`. |
 
 ---
 
@@ -269,7 +395,7 @@ If neither variable is set, feedback submissions are stored locally and never le
 
 ### Turning off telemetry
 
-Paperclip ships anonymized usage telemetry (which adapters you run, and similar coarse signals) that helps the project understand how Paperclip is used. It carries no personal data, and you can turn it off completely by setting either of these variables. Both are checked for the exact value `1`, and either one on its own disables telemetry.
+Paperclip ships anonymized usage telemetry (which adapters you run, and similar coarse signals) that helps the project understand how Paperclip is used. When telemetry is on, the server also sends a `server.started` event at startup that records its operating system as `os_platform`. When a tool connection is created, changes status or is turned on or off, or finishes a call, it sends a `connection.created`, `connection.updated`, or `connection.invoked` event with coarse details such as the connector key, transport, and status. Telemetry carries no personal data, and you can turn it off completely by setting either of these variables. Both are checked for the exact value `1`, and either one on its own disables telemetry.
 
 | Variable | Meaning |
 |---|---|
@@ -308,11 +434,17 @@ To turn it on, set `SENTRY_DSN_BACKEND` and install the optional `@sentry/node` 
 | `SENTRY_DSN` | unset | Legacy fallback for whichever of the two variables above is unset. It still works, but the server logs a startup warning whenever it fills in for either one. With no DSN for the server, no Sentry is loaded there. |
 | `PAPERCLIP_SENTRY_RUN_FAILURES` | `off` | Whether failed agent runs are also reported to Sentry. `off` sends none. `unexpected` sends failed, timed-out, and unexpectedly cancelled runs, leaving out known configuration, quota, and external-connection failures. `all` sends every one of those runs, known failures included. Missing or unrecognized values count as `off`. |
 
-> **Note:** Before this variable existed, a DSN on its own also reported failed runs. If you relied on that, set `PAPERCLIP_SENTRY_RUN_FAILURES=unexpected` to keep getting those reports.
+> **Note:** Before this variable existed, a DSN on its own also reported failed runs. If you relied on that, set `PAPERCLIP_SENTRY_RUN_FAILURES=unexpected` to keep the same behaviour.
 
 A native run that's waiting to retry inside the same run isn't reported. It's reported once, only if the retry ends in a real failure.
 
 Server events tied to a saved run carry links back to Paperclip, so you can jump from Sentry straight to the work. They get a `run_url` tag pointing at the run page, plus `task_url` and `task_identifier` tags when the run has a task. The links are built from `PAPERCLIP_PUBLIC_URL`, so they're left out when that variable is missing or unsafe. Opening one still needs normal Paperclip access, and only newly captured events get them.
+
+Run-failure events also say where the failed work came from, whether or not `PAPERCLIP_PUBLIC_URL` is set. The alert behind the [Sentry repair routine](../../guides/projects-workflow/routines.md#example-repair-failed-runs-reported-by-sentry) filters on these tags to decide which failures start a repair:
+
+- `automation_origin_status`: `complete` when Paperclip could trace how the task was created and found at most five routines in that history, `unknown` otherwise.
+- `automation_routine_ids`: up to five routine IDs found in that history, comma-separated. `none` means no routine ID was found, which only rules out a routine when `automation_origin_status` is `complete`. It's `unknown` when the lookup didn't return an answer.
+- `task_shareable`: `false` when the failed task or a task it came from is private. `true` when none that Paperclip could read is private, which covers the full history only when `automation_origin_status` is `complete`. `unknown` otherwise.
 
 ---
 

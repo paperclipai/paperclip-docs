@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Costs and Budgets: Spend and Limits
 seo_description: Track API spend, subscription fees, and decision-model costs, and set budget limits Paperclip enforces automatically, from Audit's Costs and Budgets tabs.
 ---
@@ -388,12 +388,54 @@ An auto-paused agent doesn't lose its work — any tasks it had in progress rema
 
 ### When spend is uncertain
 
-A hard stop is only as good as the number behind it. So if a scope's spend can't be trusted yet, Paperclip holds new work for that scope even before it reaches 100%:
+A hard stop is only as good as the number behind it, so Paperclip counts a run's cost even while its accounting is unfinished. That counting opens no separate hold: a run that has ended without a recorded cost doesn't stop new work by itself, though its estimate counts toward a full budget, described below. The budget checks below apply only to a budget that has a hard stop turned on and an amount above zero.
 
-- **A finished run is still waiting for its cost to be recorded.** New work waits until it's counted. This usually clears on its own within moments.
-- **There's unpriced usage in the budget window.** By default the scope stays blocked, because Paperclip can't tell how close to the limit you really are.
+Only a few things refuse new work, and it helps to tell them apart.
 
-The policy card explains which one is happening — for example *"2 completed runs await accounting."* or *"3 usage events are unpriced. Known spend excludes their unknown cost."*
+**A hard stop** opens an incident, pauses the scope, and stops work that's already running. Only two things cause one:
+
+- Spend reaches the limit. Spend here means recorded charges plus what unfinished runs have reported so far. A reservation on its own doesn't count.
+- Usage in the budget window has no reliable price, or hosted browser work has an unconfirmed or uncapped cost, and the budget blocks on that (the default). Browser work counts whenever it's still unsettled, not just inside the budget window.
+
+**A pause** refuses new work too: a paused or inactive company, a paused project, or a paused agent. A scope that a budget paused but that no longer has a budget policy reads *Budget pause requires a policy or an explicit operator resume.*
+
+**A full budget** keeps a new run from starting, with *Available budget is reserved by unfinished runs*. Paperclip adds up recorded charges, held amounts for hosted browser work, and what unfinished runs are expected to cost:
+
+- A run with a reservation counts for the larger of its reservation and the cost it has reported so far.
+- A run without a reservation counts for the cost it has reported so far, which is zero until it reports something or its charge is recorded.
+
+If that total already meets the budget, or the new run's own reservation would push it over, the new run is refused. Reservations stay in place until a run's accounting closes, including across server restarts and into the next month.
+
+How unfinished runs affect other work:
+
+- A run that has ended without a recorded cost opens no hold of its own. It adds the estimate above, which can still fill the budget and refuse a new run.
+- A run that succeeded and reported its usage counts toward your spend straight away, and its final charge can still reach the hard stop.
+- Work that's already underway keeps going. A recovering run reuses its original reservation, so other runs' reservations can't refuse it, and the same goes for a running run's own task updates. Both stop only for a hard stop or a pause.
+- A task's earlier run that still owns its workspace or a lease can hold that task's next run. That's cleanup, not a budget check. It usually stays on that task, but a run that was the writer of a remote workspace also holds up another task using that workspace until its save and sandbox release settle.
+
+**How long a run's accounting stays open.** Most runs settle within moments, and until then their estimate keeps counting. If a Paperclip Runner run lost its final cost report, accounting closes as soon as Paperclip can prove the run is over: a failed run's local process is verified stopped, or every sandbox it used is confirmed stopped or destroyed. A run whose provider never started settles at once, with no charge. If that proof never arrives, the run settles anyway once its recovery has finished and 10 minutes have passed since it ended, and the activity log records `cost.accounting_closure_timed_out` naming the run. Its cost may be higher than what was recorded. A run whose usage capture failed settles at the same limit on any adapter: known cost, or tokens that can be priced, is recorded as a lower-bound **Estimated** figure, and otherwise the charge is **Unpriced**. A run on another adapter with an incomplete report stays open until its report is resolved.
+
+**What a lost cost report turns into.** Paperclip records what it knows and never shows the unknown part as `$0`:
+
+- If the run reported a cost before it was lost, that cost is recorded as **Estimated**.
+- If it reported tokens but no cost, and it's a Codex or Claude run, Paperclip prices the tokens from the published rates, also as **Estimated**. Either way the figure is a lower bound.
+- Otherwise the charge is **Unpriced**.
+
+**Which unpriced usage blocks work.** With the default setting, these no longer block or cause a hard stop, though they stay visible in Costs:
+
+- The final charge of a run whose cost report was lost.
+- A charge that has a known partial cost.
+- API or subscription billing with no observed tokens.
+
+These still count:
+
+- Usage from a complete report that has no price.
+- Unknown billing with no tokens, for example Cursor Cloud.
+- A run that settled at the 10-minute limit with no sign of a server restart, because its provider may have kept running, and a run whose usage capture failed. Those raise the normal reason, for example *Company cannot start work because recorded usage has no reliable price.* (or *Agent* or *Project* for those budgets).
+
+**What you see on tasks.** A `todo` task that has never started reads *Waiting for the budget to allow new work. The task starts automatically when it does.* when the budget refused its agent's wake and no pause or approval explains why. There's no **Retry** to press. A Retry the budget refused reads *Retry is waiting for the budget to allow new work. Check Costs for unrecorded or unpriced usage.* A real hard stop is different: tasks wait for a board decision, and the inbox row reads **Budget limit reached**.
+
+The policy card explains what it found, for example *"2 completed runs await accounting."* or *"3 usage events are unpriced. Known spend excludes their unknown cost."* The count of completed runs includes every run whose cost isn't final. It's there for information and never holds work.
 
 If you're comfortable treating unpriced usage as unknown, open the policy card's **Advanced settings** and clear **Block new work when usage has no reliable price**. Otherwise, the usage needs a price before the scope can resume — an operator can add one through the [accounting API](../../reference/api/costs.md#correct-a-charge).
 
@@ -415,9 +457,9 @@ A **warning** (amber, *budget warning*) means spend crossed the soft threshold. 
 A **hard stop** (red, *hard stop*) means the scope is paused — the card says *This scope is paused. New heartbeats will not start until you resolve the budget incident.* (or, for a project, that new work in the project won't start).
 
 - **Keep paused** — acknowledge the breach and leave the scope paused. Useful when you want the agent to stop for the rest of the month and resume naturally at rollover.
-- **Raise budget & resume** — increase the policy's amount (you enter the new cap in **New budget (USD)**; it must be higher than what's already been spent) and immediately un-pause the scope.
+- **Raise budget & resume** — increase the policy's amount (you enter the new cap in **New budget (USD)**; it must be higher than what's already been spent) and immediately un-pause the scope. Paperclip also retries, once each and on your behalf, the task runs the hard stop cancelled, so that work carries on. It skips runs a person stopped and tasks that have moved on since. See [Cancelled work continues after you resume](../../reference/api/costs.md#cancelled-work-continues-after-you-resume).
 
-Raising the budget won't work while the scope has runs awaiting accounting, or unpriced usage it's set to block on. In that case you'll see *Could not update the budget. Check any pending runs or unpriced usage shown on this page, then try again.* — sort those out first (see [When spend is uncertain](#when-spend-is-uncertain)).
+Raising the budget won't work while the scope has unpriced usage it's set to block on, or if the new amount isn't above what's already been spent. In that case you'll see *Could not update the budget. Check any pending runs or unpriced usage shown on this page, then try again.* — sort that out first (see [When spend is uncertain](#when-spend-is-uncertain)). Runs that are still awaiting accounting don't stop you raising it, but new work can keep waiting until they settle.
 
 Both actions are logged and become part of the audit trail.
 
@@ -500,7 +542,7 @@ If an agent hits its 100% limit and auto-pauses, you have two options:
 1. Open **Audit → Budgets**. The breach shows up as a card under **Active incidents**, and the agent's policy card under **Agent Budgets** is marked **Paused**.
 2. Either enter a higher amount in the incident card's **New budget (USD)** field and click **Raise budget & resume**, or type it into the policy card's **Budget (USD)** field and click **Update budget**.
 
-The agent will resume immediately. It won't wait for the month to roll over — as long as its spend is fully counted. If it still has runs awaiting accounting or unpriced usage, it stays paused until that's sorted out (see [When spend is uncertain](#when-spend-is-uncertain)).
+The agent will resume immediately. It won't wait for the month to roll over — as long as its spend is fully counted. If unpriced usage is still blocking, it stays paused until that's sorted out. Runs awaiting accounting don't keep it paused or hold new work, though their reservations and reported costs still count against the budget (see [When spend is uncertain](#when-spend-is-uncertain)).
 
 **Option 2: Wait for the month to reset**
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Environments: Remote Execution Targets
 seo_description: Run agents somewhere other than the Paperclip host. Define named targets over SSH or a provider sandbox, and assign them per instance or per agent.
 ---
@@ -40,6 +40,20 @@ Then route work onto it:
 
 For sandbox environments, editing the environment exposes a **Custom image** panel: start a throwaway setup sandbox, open a terminal in the browser, install and log in to whatever the agent needs, then capture the machine as a reusable image future runs boot from. The full walkthrough lives in the [Custom sandbox images guide](../guides/projects-workflow/custom-sandbox-images.md).
 
+### Delete an environment
+
+Open the environment and click the trash icon (its tooltip reads **Delete environment**). Before you confirm, the dialog checks what still depends on it. Two things block the delete outright, and the confirm button stays off until you've dealt with them:
+
+- You can't delete the managed local environment. You also can't delete the current instance default, so set a new default first.
+- While a sandbox cleanup is pending, wait for the cleanup sweep to finish, then retry.
+
+Once neither applies, the dialog walks you through the rest:
+
+- If agents use the environment as their default, choose where they move under **Reassign agents to** (**Reassign agent to** for a single agent).
+- If the environment still keeps sandboxes after their runs end, the dialog lists the workspaces holding them under **Sandbox leases held by**, and the confirm button becomes **Destroy 1 sandbox and delete** (or the number of sandboxes). Those workspaces stay open and provision a fresh sandbox on their next run.
+
+One kind of kept sandbox deserves a second look: a stopped sandbox kept as a failed run's workspace copy, for file recovery. The dialog calls these out as *"a failed run's workspace copy kept for file recovery; destroying it loses the files only it holds."* Confirming the delete lifts that recovery protection and destroys those sandboxes along with the others, so recover any files you need first.
+
 ## When it's off
 
 UI-only gate: the Environments page content, the agent override picker, and the project dropdown are hidden, but existing environments, the default-environment assignment, and captured images are all kept. Flip it back on and everything is where you left it.
@@ -48,6 +62,9 @@ UI-only gate: the Environments page content, the agent override picker, and the 
 
 - Sandbox environments require a provider plugin that supports run execution; custom-image capture additionally requires the provider to advertise interactive setup and template capture.
 - Some provider plugins run Paperclip's Runner inside their own environment instead of giving Paperclip a shell. For those, the **Test** button on an agent's configuration starts a short-lived private session, verifies that Runner starts and answers, and passes only once that session is cleaned up — so you can confirm the setup before real tasks reach it.
+- Those Runner-running plugin environments only run agents through [Paperclip Runner](../reference/adapters/paperclip-runner.md). Pick one for a Codex, Claude Code, OpenCode, or Pi agent and the agent uses Paperclip Runner, since those environments don't offer the Legacy runner. Move a Legacy agent onto one in the agent form and it switches to Paperclip Runner on its own.
+- Those environments also need an AI connection chosen for the agent, in an isolated Runner home, because the account signed in on the provider's machine isn't used. Without one, the agent's **Test** and its tasks stop with a message naming the fix, before anything is started on the provider.
+- On a hosted instance, environments badged **Managed by Paperclip** come from the fleet that runs the instance. You can't edit or delete them; the managed sandbox's environment variables are the one exception. See [Plugin environments](../reference/deploy/environment-variables.md#plugin-environments).
 - Environment management is restricted to board operators regardless of the flag.
 
 ## Where to go next

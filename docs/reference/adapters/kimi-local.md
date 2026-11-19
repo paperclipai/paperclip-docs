@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1117.0
 seo_title: Kimi Code Adapter
 seo_description: Run Moonshot's Kimi Code CLI on the Paperclip host as a local coding agent, on the shared ACP engine by default, with an optional headless-CLI lane.
 ---
@@ -9,6 +9,8 @@ seo_description: Run Moonshot's Kimi Code CLI on the Paperclip host as a local c
 `kimi_local` runs Moonshot's Kimi Code CLI (`kimi`) on the same machine as Paperclip. Use it when you want a local coding agent that streams a structured live transcript, resumes sessions across heartbeats, and gets your Paperclip skills injected without polluting your own Kimi skills home.
 
 Kimi Code runs on the same shared ACP engine as Claude, Codex, and Gemini by default. You can switch it to a headless CLI lane instead.
+
+> **Tip:** Kimi Code can also run on the experimental Paperclip Runner, using a pinned runtime and a `KIMI_API_KEY` company secret instead of your own CLI install. When you add an agent, that's the **Kimi Code (Runner)** tile; the **Kimi Code** tile still creates a `kimi_local` agent. Existing `kimi_local` agents aren't converted. See [Kimi Code on Paperclip Runner](paperclip-runner.md#kimi-code-on-paperclip-runner).
 
 ---
 

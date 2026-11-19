@@ -28,7 +28,7 @@ Paperclip recognizes that the address belongs to another Paperclip instance and 
 
 - **An account in their company.** You need an account on their instance that is a member of the company you'll send work to, with permission to create tasks. Ask its owner to [add you as a teammate](./add-a-human-teammate.md).
 - **A reachable address.** Your instance must be able to reach theirs over HTTPS — for example, two Paperclip Cloud workspaces, or a self-hosted instance with a public address. Two instances on separate laptops can't reach each other.
-- **A recent Paperclip.** Both instances need a release newer than `v2026.1106.0`.
+- **A recent Paperclip.** Both instances need a release newer than `v2026.1117.0`.
 
 ---
 

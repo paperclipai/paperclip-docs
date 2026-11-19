@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Update Paperclip to the Latest Version
 seo_description: Move an existing install to a new release without losing data — what to check first, how to run the update, and how to confirm it actually took.
 ---
@@ -83,6 +83,20 @@ Rolling back across this release needs the same full stop: drain and stop every 
 
 ---
 
+## Upgrading to v2026.1117.0 or later: plan for no way back
+
+> **Warning:** Treat this release as a rollback floor. After the upgrade, company skill packages move out of the database into your configured file or object storage, and older versions can't read them there. On S3-backed installs, new Runner task workspaces on sandbox environments can also enroll in remote workspace storage, which older versions can't read either. Take a backup before you update, and plan to fix forward rather than roll back.
+
+A few things to check before and after:
+
+- **Rolling upgrades with several servers.** Set `PAPERCLIP_SKILL_PACKAGE_STORAGE_ENABLED=false` on every process until all of them run the new version. See [Storage → Company skill packages](../reference/deploy/storage.md#company-skill-packages). To keep remote workspace storage off, store `remoteWorkspaceStorageEnabled: false` before you upgrade; see [Storage → Remote task workspaces](../reference/deploy/storage.md#remote-task-workspaces).
+- **Run Paperclip under a supervisor.** A server that loses its database lease while it holds work, for example because the database was unreachable for about a minute, now exits with code 1 so another server can recover that work. A service installed with `paperclipai service install` restarts automatically; in Docker or Kubernetes, give the container a restart policy. See `PAPERCLIP_CONTROLLER_INSTANCE_LEASE` in [Environment Variables](../reference/deploy/environment-variables.md#server-configuration).
+- **Some migrations block writes for a while.** Migration `0416` rebuilds a `heartbeat_runs` index and `0445` builds a `native_run_finalizations` index, each inside a transaction that blocks writes to that table until it finishes. `0434` briefly blocks writes to `issues`. On instances with long run, activity, or comment histories, expect the upgrade to take longer, and schedule it for a quiet time.
+- **systemd services.** Run `paperclipai service install` (or `paperclipai service restart`) once so the unit picks up `KillMode=mixed`. See [`paperclipai service`](../reference/cli/service.md).
+- **Settings you may want to change back.** The built-in [Google Workspace connector](../connectors/google-workspace.md#turn-on-the-built-in-connector) is now off until an admin turns it on, so saved Google Workspace connections stop working until then. If you had switched a CEO's hiring off, [switch it off again](../guides/org/agents.md#permissions-trust). Existing agents get a read-only `agents:read` grant you can remove; see [Reading agent configuration](../administration/roles-and-permissions.md#reading-agent-configuration).
+
+---
+
 ## Apply the update
 
 ```bash
@@ -100,6 +114,20 @@ Here's the sequence, so nothing is a surprise:
 5. **It prunes old payloads** it no longer needs to keep.
 
 If the restarted service fails to come back healthy at the new version, the update rolls itself back to the previous payload and restarts that instead, then reports the failure. You should not end up on a broken build.
+
+**What you see in the browser while the server restarts.** Any open Paperclip tab keeps what's already on screen. If the server stays unreachable for more than a couple of seconds, a small banner at the top says *"Connection interrupted. Reconnecting automatically…"* (or *"You’re offline. Reconnecting when your network is back…"* if your own network dropped). If you made changes in the meantime, it adds how many will send when you're back online. Once the server answers again, the banner briefly shows *"Back online."* and the page picks up where it left off — no manual refresh needed.
+
+**If you reload during an outage.** Paperclip keeps a small saved copy of what you've recently loaded in this browser, so reloading while the server can't answer doesn't leave you with an empty page. You get back your sidebar and organizations, your agent and project lists, the first page of your inbox, and up to 20 tasks you recently opened, with the same banner at the top. A restored task shows its header, description, and properties. Its conversation, comments, and documents aren't saved, so they fill in once the server answers. Changes you make after the reload wait until the server has confirmed you're still signed in.
+
+The page itself still has to load. With nothing saved, you see *"Reconnecting to Paperclip"* with a **Try again** button. If the server can't deliver the page at all, as when a self-hosted server is fully stopped, you usually see *"Paperclip is offline"* with a **Reload page** button instead.
+
+Each saved item expires 24 hours after it was loaded, and the whole copy is dropped when Paperclip moves to a new build. Signing out clears it in every tab, and so does the server rejecting your session. Until then, saved task content stays in this browser, so sign out when you finish on a shared computer. Sign-in tokens and credentials are never saved.
+
+**Your edits and messages wait for the server.** You can keep working while the server is away. Edits to a task title, description, or document show *"Will save when reconnected"* and save on their own once the server answers. A comment or new task you send shows *"Sending when reconnected…"* above the composer. Paperclip keeps your exact text on this device and sends it once, even if it has to retry, so it never posts twice. Each change stays tied to the task and account you started it on, even if you open another task in the meantime.
+
+If automatic retries run out, an edit says *"Automatic saving paused"* with a **Retry saving** link, and a send says *"Couldn’t send this comment yet."* (or *task* / *message*, depending on where you sent it) with **Resend now** and **Cancel**. **Cancel** keeps your text in the composer so nothing is lost. If Paperclip can't tell whether a send went through, it says *"We couldn’t confirm whether this comment was sent."* Check the conversation before you send it again. If the server turns a change down for good, the editor shows *"Couldn't save"* with the reason instead of retrying. A document that someone else changed while you were away is marked *"Out of date"* instead, so you can choose which version to keep.
+
+**Agents on remote computers keep going.** Paperclip Runner agents that work on a remote computer (for example a Daytona sandbox) can keep their current turn running for up to seven minutes while the main server is down or being replaced. When the new server comes up, it reconnects to them and carries on; tools that need the server simply wait for it. For that to work, the new server must use the same PostgreSQL database and the same secrets master key (`PAPERCLIP_SECRETS_MASTER_KEY` or the instance's key file). Agents that were already running before you moved to a version with this behaviour don't gain it retroactively. To check before you swap servers that every running task can carry on this way, an instance admin can read the [hot-upgrade readiness report](../reference/api/instance-admin.md#hot-upgrade-readiness).
 
 | Flag | Use |
 |---|---|
@@ -275,6 +303,12 @@ npx paperclipai@latest --version
 **Database migration fails on a source checkout** — Don't roll forward against a half-migrated database. Restore your last snapshot, file an issue with the migration error, and stay on the previous tag until it's resolved. See [Back Up and Restore a Company](./back-up-and-restore-a-company.md).
 
 **The server boots but the UI is blank or shows old assets** — Hard-refresh the browser (Cmd+Shift+R) to bypass cached UI bundles. If you're behind a reverse proxy, also flush its cache.
+
+**A task says Waiting for server restart** — The server is starting, recovering, or shutting down for the update. Queued work starts by itself when it's ready, and turns that never started go first, unless that agent has a run still being recovered. See [Queued run says Waiting for server restart](./debug-stuck-heartbeat.md#18-queued-run-says-waiting-for-server-restart).
+
+**New work waits on the budget right after a restart** — A run the restart cut off can still have an unsettled cost. That alone doesn't hold anything, but its reservation and reported cost keep counting against the budget until its accounting closes, so a nearly full budget can refuse new runs with *Available budget is reserved by unfinished runs*. Nothing is paused, and it usually clears by itself, normally within about 10 minutes of that run's recovery finishing. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain).
+
+**A task says Remote Runner is out of date** — The app updated before the remote Runner did, and Paperclip's automatic checks ran out first. Check that the Runner received this release's update, then retry the task.
 
 **Agents stop running after the update** — Check the run log for adapter errors. New releases occasionally tighten env-var validation or require a newer adapter binary (Claude Code, Codex, etc.). Update those binaries on the host and re-test.
 

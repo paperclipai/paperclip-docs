@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Activity API
 seo_description: Paperclip's audit trail: what changed, who changed it, which object, and when. Two reads of the same underlying log, for auditing and for debugging.
 ---
@@ -389,6 +389,14 @@ Why this is useful:
 - runs answers "which heartbeat runs were involved"
 
 The server links runs to issues using the run context snapshot and the issue activity log, so this endpoint can still find a run even when the activity trail is incomplete.
+
+Already know which runs you care about, for example to refresh a few runs you're showing? Pass their IDs as `runIds`, comma-separated, and you get back only those runs, and only if they belong to this issue:
+
+```
+GET /api/issues/{issueId}/runs?runIds={runId1},{runId2}
+```
+
+`runIds` takes 1 to 100 run UUIDs. An empty list, a value that isn't a UUID, or more than 100 IDs returns `400 Bad Request` with `"runIds must contain 1 to 100 UUIDs"`. IDs that don't match a run on this issue are simply left out of the response.
 
 The response includes run metadata such as:
 

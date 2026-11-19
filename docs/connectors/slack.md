@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Slack Connector
 seo_description: Connect a Slack bot so people can work with an agent from Slack: guided setup, account linking, Slack tools, approvals, scheduled messages, and fixes.
 ---
@@ -54,19 +54,20 @@ You can leave any setup with **Save & exit** and come back through **Finish setu
 
 Managed setup has two steps: **Choose agent** and **Connect**.
 
-1. On **Choose agent**, click **Continue**. **Connect to Slack** opens and setup starts by itself. The first time, Slack asks you to authorize Paperclip for a workspace.
-2. If you have authorized more than one workspace, setup waits for you. Choose one from **Choose a Slack workspace** and click **Continue**, or click **Connect another Slack workspace** to authorize a new one.
-3. Paperclip creates your agent's app, installs it, uploads the agent's avatar, links your Slack account, and sends you a welcome DM.
+1. On **Connect to Slack**, Paperclip shows which agent it will add to which workspace. If you have authorized more than one workspace, choose it from **Choose a Slack workspace**. To use a workspace you haven't authorized yet, click **Connect another Slack workspace**.
+2. With several workspaces, choose one and click **Continue**. With one workspace, or none authorized yet, setup starts by itself when you leave **Choose agent**. The first time, Slack opens in a separate tab or window so you can authorize Paperclip for that workspace, and your setup page stays open. If nothing opens, click **Open sign-in in a new tab**. If you're back on the connect screen afterwards, click **Continue**. Paperclip then creates your agent's app, installs it, uploads the agent's avatar, links your Slack account, and sends you a welcome DM.
 
-If your workspace requires an administrator to approve new apps, Paperclip sends you to Slack's install page instead. Come back to the saved setup once the app is approved.
+If your workspace requires an administrator to approve new apps, Slack's install page opens in a separate tab or window instead. Come back to the saved setup once the app is approved.
 
 #### Automatic setup with your own app
 
 Automatic setup has four steps: **Choose agent**, **App configuration access token**, **Install Slack app**, and **Send a message**.
 
 1. **App configuration access token.** Click **Get your App configuration access token**. In Slack app settings, find **Your App Configuration Tokens**, choose **Generate Token**, and pick the workspace for your bot. Copy the **Access Token** (not the refresh token) and paste it into the field. Click **Create Slack app**. Paperclip uses this token once to create and configure the app, then throws it away.
-2. **Install Slack app.** Slack opens in a new tab so you can approve the install. If the tab was blocked or you closed it, click **Install in Slack**. Use your own Slack account: Paperclip links the account that approves the install to you, and the bot sends you a welcome DM ("Your Slack account is connected to Paperclip").
+2. **Install Slack app.** Slack opens in a new tab so you can approve the install. If the tab was blocked or you closed it, click **Install in Slack**. If that's blocked too, click the **Open sign-in in a new tab** link that appears. Use your own Slack account: Paperclip links the account that approves the install to you, and the bot sends you a welcome DM ("Your Slack account is connected to Paperclip").
 3. **Send a message to your agent.** Click **Open Slack** and send the bot a message. Paperclip checks for it automatically and shows **Success** when it arrives. Click **Done**. If it keeps waiting, open **Didn't work?** for the **Event Subscriptions** and **Request URL** steps.
+
+After managed or automatic setup, the **Success** screen keeps an **Open Slack** link, so you can jump straight into the conversation. If Paperclip knows your workspace and your DM with the bot, and the linked Slack account is yours, it opens that DM. Otherwise it opens the app's saved Slack link, or Slack itself.
 
 Paperclip uploads the agent's avatar as the app icon. If the upload fails, setup carries on, and you can upload an icon in Slack later.
 
@@ -97,14 +98,16 @@ On the manual path, use the generated manifest rather than configuring scopes by
 | Paperclip isn't sure whether Slack created the app | Click **Open Slack app settings** and check. If no app exists, tick **I checked Slack and no app was created. Create a new app.** and try again. |
 | Your Slack app is saved, but its event settings still need to be applied | Paste a fresh configuration token and click **Retry app configuration**. Paperclip reuses the same app. |
 | Your credentials are saved but the connection check failed | Click **Retry connecting**. If Slack access changed, click **Authorize in Slack again**. |
+| **Reconnect your Slack workspace to continue setting up this agent.**, or another authorization error beside a **Reconnect Slack workspace** button | Click **Reconnect Slack workspace**. Slack opens its normal authorization, then you return to your saved setup. If setup doesn't continue by itself, click the button shown to carry on. |
+| You reopen a saved setup link after setup finished | Click **Done** to open the connection's settings. A paused bot stays paused. |
 
 ### How a conversation becomes work
 
 | In Slack | In Paperclip |
 | --- | --- |
 | A linked person mentions the agent in a channel | One task per new mentioned thread |
-| A linked person sends the agent a direct message | The agent replies in the DM (when **Allow direct messages** is on). No @mention needed. |
-| The conversation continues in the thread | It continues on the same task. With **Require at-mention** on, channel replies must @mention the bot. |
+| A linked person sends the agent a direct message | The agent replies in the DM (when **Allow direct messages** is on). No @mention needed. A new top-level DM starts a new task once the previous one is **Done** or **Cancelled**, or after you send your agent's slash command with `new` or `close` in the DM. |
+| The conversation continues in the thread | It continues on the same task, keeping its earlier comments, in channel threads and DM threads alike, even after the task is **Done** or **Cancelled**. A DM thread ended with your agent's slash command plus `new` or `close` starts a new task instead. With **Require at-mention** on, channel replies must @mention the bot. |
 | The agent has answered and nothing is left to do | The task shows as **Idle** |
 
 Paperclip acknowledges with a reaction so people can see a message was picked up before the agent has finished thinking. This works in direct messages too.
@@ -118,6 +121,31 @@ If you stop the agent's run from the Slack thread, the current response ends. Yo
 ### Reply from Paperclip
 
 A Slack-linked task shows a **Connected to Slack** banner with an **Open Slack** link. Messages you send on the task, and the agent's replies, are also posted to the Slack thread, labelled with your name. You can also write in the banner's composer and click **Send to channel**: your message is posted to Slack with your name and starts the agent. Your Slack account must be linked to this connection for your messages to go through.
+
+### Answer questions and reviews in Slack
+
+When the agent needs something from you on a Slack-started task, such as an answer, a decision, or a review, it posts a card in the same thread. The card shows the actual question with its context, help text, and any recommended option marked **(recommended)**, so you can decide without leaving Slack.
+
+Where Slack has a control that fits the request, you answer right on the card:
+
+| The agent asks for | What you see in Slack |
+| --- | --- |
+| One choice from a short list | A button for each option |
+| One choice from a longer list | A searchable **Choose an answer** dropdown |
+| One or more choices | Checkboxes (or a **Choose one or more** dropdown for long lists), then **Submit answer** |
+| A choice, or your own answer | A button for each option, plus **Other…** to type your own |
+| Typed answers or several questions | **Respond**, which opens a Slack form with any starting text already filled in |
+| A yes-or-no confirmation | **Accept** and **Reject**, or the labels the agent chose |
+| A checklist | **Select checks** checkboxes (a multi-select dropdown when there are more than 10), then **Save checks** (or the agent's label) |
+| A verdict on each item in a list | **Review decisions**, which opens a form with a verdict and a reason per item (optional unless the agent requires one for that verdict) |
+| Tasks it suggests creating | **Create task** and **Dismiss** for one task. For several, pick them under **Select tasks to create** and click **Create selected**. Either way, **Revise in Paperclip** lets you change them first |
+| Access to another service | **Review connection** to open the request in Paperclip, or **Not now** to decline it |
+
+Slack forms remind you that **Your answers will be shared in this Slack conversation.** If an answer doesn't match a required format, the form stays open and asks you to use the format shown.
+
+Some requests can't be answered faithfully in Slack, so the card gives you an **Open in Paperclip** link instead. These include confirmations that need a reason when you reject, ones that approve a tool action, secret, or connection, reviews of a document, item reviews with more than 12 items or with attachments, and requests too long for a Slack message. Granting a connection always happens in Paperclip, too. Answering from Slack never gives anyone extra approval rights.
+
+Once you answer, in Slack or in Paperclip, one response is saved and Paperclip checks again that you're allowed to give it. The card then updates to show the saved answer and its buttons go away. The task picks back up, and the agent's result arrives in the same Slack thread.
 
 ### What the agent can do from Slack
 
@@ -146,7 +174,7 @@ For something like "every weekday at 10am, post the standup summary in #team", u
 
 ### Settings and access
 
-The connection's page has **Settings**, **Access**, **Conversations**, and **Activity** tabs. **Open Slack configuration** at the top takes you straight to the app in Slack's settings.
+The connection's page has **Settings**, **Access**, **Conversations**, and **Activity** tabs. Once setup is finished, **Open Slack** at the top follows the same rule as the **Success** screen: your DM with the bot when Paperclip can open it, otherwise Slack. **Open Slack configuration** takes you straight to the app in Slack's settings.
 
 - **Send me a test message** checks the bot from Paperclip. It sends a DM to your linked Slack account, so **Allow direct messages** must be on. If your account isn't linked yet, pick it from the list and Paperclip sends you a connection invitation in Slack first; open it to link your account, and the test message follows.
 - **Settings** lists **Allowed Channels** (every channel the bot is in), the **Allow direct messages** and **Require at-mention** toggles, **Additional communication instructions**, and the **Slack tools** summary.
@@ -183,6 +211,8 @@ On the **Access** tab, **Personal Slack search** → **Your Slack search access*
 ## Slack as an agent tool
 
 This route connects an agent to Slack's own hosted MCP server, using a personal Slack authorization instead of a bot.
+
+On Paperclip Cloud, this route needs a Slack OAuth app you create yourself, so new setup skips it when **Chat connectors** is off. Under the **Composio** or **Arcade** filter on the **Connectors** page, or in search, Slack appears as a card that says *Connect through Composio or Arcade.*, and **Connect** opens the provider choice. An agent that needs Slack asks you which provider to use. See [Connect apps through an MCP aggregator](mcp-aggregators.md). You keep the native route if you run Paperclip yourself, if **Chat connectors** is on, or if you already have a saved Slack connection.
 
 If what you want is an agent that reads and posts in Slack, the chat connection above already gives its agent governed Slack tools. You don't need this route as well for that.
 
@@ -228,6 +258,7 @@ A read confirms the credential without putting a message in front of colleagues.
 | A reply in the thread doesn't reach the agent | **Require at-mention** is on, so channel replies need an @mention | @mention the bot in the reply, or turn **Require at-mention** off in **Settings** |
 | The agent reads a channel but won't reply there | The channel is off in **Allowed Channels** | Enable it in **Settings** |
 | **Settings** shows **Add permissions to unlock more tools** | The app predates the newer Slack tools | Add the listed Bot Token Scopes in Slack and reinstall the app |
+| A question card only offers **Open in Paperclip** | The request needs Paperclip's full review screen, such as a rejection reason, an approval with side effects, or a very long request | Click **Open in Paperclip** and answer there. The Slack card updates and the result still arrives in the thread |
 | A scheduled or requested DM doesn't arrive | The responsible person has no linked Slack account, or the app lacks `im:write` | Link the account from **Access**, or reinstall with the updated manifest |
 | Signature verification failures | The signing secret does not match the installed app | Copy the current signing secret and reconnect |
 | Agent-tool route: "Slack MCP access is disabled for this app" | MCP access is switched off in the Slack app's settings; signing in doesn't turn it on | Ask the Slack app owner to enable MCP access, then refresh the connection |

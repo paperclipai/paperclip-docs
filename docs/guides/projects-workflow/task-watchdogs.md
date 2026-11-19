@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Task Watchdogs: Catching Stalled Work
 seo_description: When an agent misreads a blocker or calls a task done without proof, a watchdog wakes. Set one up, write good instructions, and know its limits.
 ---
@@ -45,6 +45,8 @@ It will not take "I couldn't" or "waiting for approval" at face value — that's
 The review's outcome lands back in the watched issue's thread, so the record of who checked what — and what they found — lives with the work itself. The activity feed labels changes made through a watchdog review, so when you skim a thread later you can tell which actions came from the watchdog and which from the assignees.
 
 One refinement makes the loop livable: Paperclip fingerprints the stopped state it has already reviewed. If nothing has changed since the last review, no new review task is created. A stalled tree gets looked at once per distinct state, not once per scan, so the watchdog never fills the thread with duplicate reviews of the same silence.
+
+Paperclip reads the watched tree up to 100 levels deep, counting the watched issue as the first. If sub-issues continue below that, it can't prove the whole tree has stopped, so it doesn't open a review — and it rejects any change the watchdog tries to make — until the tree fits again. While a watched tree is over the limit, the server log reports `Delivery reconciliation failed` with an error saying the watchdog has an incomplete subtree, and keeps retrying. In practice this only matters for unusually deep chains of sub-issues.
 
 ---
 

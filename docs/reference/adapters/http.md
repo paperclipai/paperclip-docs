@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: HTTP Webhook Adapter
 seo_description: Send a JSON webhook to a service you control. Use it when the runtime is remote, long-lived, or already exposed as an API rather than a local CLI.
 ---
@@ -8,7 +8,7 @@ seo_description: Send a JSON webhook to a service you control. Use it when the r
 
 The `http` adapter sends a JSON webhook request to a service you control. Use it when the runtime is remote, long-lived, or already exposed as an API instead of a local command.
 
-> **Info:** `http` is a built-in internal adapter used by Paperclip's runtime. It's currently shown as **"Coming soon"** in the agent-config adapter-type dropdown and can't be selected manually. To target it today, configure the agent via the API or an imported company export.
+> **Info:** `http` is a built-in internal adapter used by Paperclip's runtime. It isn't listed in the agent form's **Harness** dropdown, so you can't select it manually. An agent already saved with it keeps it when you edit other settings. To target it today, configure the agent via the API or an imported company export.
 
 ---
 

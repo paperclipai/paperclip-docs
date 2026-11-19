@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Choosing an Agent Adapter
 seo_description: Compare the adapters that run your agents — Claude Code, Codex, OpenCode, HTTP webhook and more — and pick the right bridge for each role you hire.
 ---
@@ -26,7 +26,7 @@ Without an adapter, an agent is just a record in a database. With one, it's a wo
 | `paperclip_runner` | Native sessions and Paperclip task tools | Runner enabled, prepared execution environment, compatible provider credential |
 | `pi_local` | Pi users wanting Pi's built-in tool set | Pi CLI installed, relevant API keys |
 | `grok_local` | xAI users — runs the Grok Build CLI | Grok CLI installed, xAI API key or SuperGrok login |
-| `hermes_local` | Persistent memory, 30+ tools, 80+ skills | Hermes Agent installed |
+| `hermes_local` | Persistent memory, 30+ tools, 80+ skills | Hermes Agent installed, Python 3.10+ |
 
 For most people getting started, **`claude_local`** is the right choice. It runs directly on your Mac using the same Claude that powers Anthropic's Claude.ai, and it only needs Claude Code plus an API key wired through environment variables.
 
@@ -38,13 +38,13 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 ### Choose Paperclip Runner explicitly
 
-For the native lifecycle, choose **Paperclip Runner** and then select the provider: **Codex**, **OpenCode**, **Claude Managed**, **AWS AgentCore**, **ACP agents**, or **Grok Build**. Under **ACP agents**, you can pick Grok Build, Claude, Cursor, GitHub Copilot, or Pi. To run agents on your Copilot plan, see [GitHub Copilot](../../connectors/github-copilot.md). Existing direct-adapter agents keep their current runtime until you change the adapter.
+For the native lifecycle, choose **Paperclip Runner** and then select the provider: **Codex**, **OpenCode**, **Claude Managed**, **AWS AgentCore**, **ACP agents**, **Cursor Cloud (experimental)**, or **Grok Build**. Under **ACP agents**, you can pick Grok Build, Claude, Cursor, GitHub Copilot, Pi, or Kimi Code. To run agents on your Copilot plan, see [GitHub Copilot](../../connectors/github-copilot.md). Existing direct-adapter agents keep their current runtime until you change the adapter.
 
-You don't have to do anything for Codex, Claude Code, OpenCode, or Pi: a new agent on one of those harnesses runs on Paperclip Runner automatically when it runs on macOS or on Linux x64/ARM64 with GNU libc `2.39` or newer (OpenCode and Pi stay on the Legacy runner on Linux ARM64). To keep the classic `codex_local`, `claude_local`, `opencode_local`, or `pi_local` adapter, open **Advanced** and set **Runner** to **Legacy runner**. See [New Codex and Claude agents use the Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
+You don't have to do anything for Codex, Claude Code, OpenCode, or Pi: a new agent on one of those harnesses runs on Paperclip Runner automatically when it runs on macOS or on Linux x64/ARM64 with GNU libc `2.39` or newer (OpenCode and Pi stay on the Legacy runner on Linux ARM64). The agent form no longer has a **Runner** setting, so to keep the classic `codex_local`, `claude_local`, `opencode_local`, or `pi_local` adapter, create or hire the agent through the API or CLI with the `legacy` runner. See [New Codex and Claude agents use the Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner).
 
-Already have a Claude Code or Codex agent on the Legacy runner? If its environment qualifies, its **Harness / Runtime** page shows an **Upgrade to Paperclip Runner** notice. Click **Upgrade runner** to switch while keeping its model, account, and compatible settings. See [Upgrade an existing Claude or Codex agent](../../reference/adapters/paperclip-runner.md#upgrade-an-existing-claude-or-codex-agent).
+Already have a Claude Code, Codex, or Grok Build agent on the Legacy runner? If its environment qualifies, its **Harness / Runtime** page shows an **Upgrade to Paperclip Runner** notice. Click **Upgrade runner** to switch while keeping its model, account, and compatible settings. See [Upgrade an existing Claude or Codex agent](../../reference/adapters/paperclip-runner.md#upgrade-an-existing-claude-or-codex-agent).
 
-The Runner is experimental: for providers other than Codex, OpenCode, ACP Claude, ACP Pi, and ACP GitHub Copilot, `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. Cursor needs a prepared pinned runtime (`paperclipai runtime setup cursor`), an explicit model, and an Agent, Plan, or Ask session mode. Its token totals and per-run dollar cost are unavailable. See [Paperclip Runner](../../reference/adapters/paperclip-runner.md) and [native Cursor setup](../../reference/adapters/cursor-local.md#cursor-on-paperclip-runner).
+The Runner is experimental: for providers other than Codex, OpenCode, ACP Claude, ACP Pi, and ACP GitHub Copilot, `enableNativeRunner` defaults to on for self-hosted instances and off for Cloud-managed instances. Cursor needs a prepared pinned runtime (`paperclipai runtime setup cursor`), an explicit model, and an Agent, Plan, or Ask session mode. Its token totals and per-run dollar cost are unavailable. Kimi Code likewise needs its pinned runtime (`paperclipai runtime setup kimi`), a `KIMI_API_KEY` company secret, and an exact model; pick the **Kimi Code (Runner)** tile when you add the agent. Cursor Cloud needs no Paperclip computer because Cursor hosts it; see [Cursor Cloud on Paperclip Runner](../../reference/adapters/paperclip-runner.md#cursor-cloud-on-paperclip-runner-experimental). See [Paperclip Runner](../../reference/adapters/paperclip-runner.md), [native Cursor setup](../../reference/adapters/cursor-local.md#cursor-on-paperclip-runner), and [Kimi Code on Paperclip Runner](../../reference/adapters/paperclip-runner.md#kimi-code-on-paperclip-runner).
 
 ### Agents run in full auto by default
 
@@ -66,7 +66,7 @@ The `claude_local` adapter runs your agent using Claude Code — Anthropic's com
 
 **What it means in practice:** Your agent thinks like Claude, can read and write files on your computer, browse the web, and run terminal commands — all within the workspace of the task it's working on. It's capable of doing real coding work, writing documents, doing research, and more.
 
-> **Note:** On macOS and supported Linux machines, new Claude Code agents run on [Paperclip Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default, as **ACP agents → Claude**. Pick **Legacy runner** under **Advanced → Runner** to use `claude_local` instead.
+> **Note:** On macOS and supported Linux machines, new Claude Code agents run on [Paperclip Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default, as **ACP agents → Claude**. To use `claude_local` instead, create the agent through the API or CLI with the `legacy` runner.
 
 ### Prerequisites
 
@@ -88,8 +88,8 @@ When in doubt, start with Sonnet for workers and Opus for the CEO. The **effort*
 **Environment variables**
 The agent form includes an **Environment variables** section. Add `ANTHROPIC_API_KEY` there, either as a plain value or as a secret reference. If you're not sure what key name to use, `ANTHROPIC_API_KEY` is the standard one.
 
-**Timeout (sec)**
-How long a single heartbeat run is allowed to take before Paperclip cuts it off. You'll find it on an existing agent's **Harness / Runtime** page under **Run Policy → Advanced Run Policy**. It starts at `0`, which means no timeout. If you set one, leave plenty of headroom — complex coding tasks can run for 10 minutes or more, and a limit that's too low cuts agents off mid-task.
+**Timeout (`timeoutSec`)**
+How long a single heartbeat run is allowed to take before Paperclip cuts it off. On an existing agent, it's the `timeoutSec` key in `adapterConfig`, which you edit on the agent's **Advanced** page (see [Edit an agent as YAML](./agent-configuration-yaml.md)). It starts at `0`, which means no timeout. If you set one, leave plenty of headroom — complex coding tasks can run for 10 minutes or more, and a limit that's too low cuts agents off mid-task.
 
 ![The Adapter card on an agent's Harness / Runtime page, showing the Claude Code adapter type, Model, and Thinking effort, with the top of the Configuration card below](../../user-guides/screenshots/light/agents/claude-local-config-filled.png)
 
@@ -107,7 +107,7 @@ How long a single heartbeat run is allowed to take before Paperclip cuts it off.
 
 The `codex_local` adapter runs your agent using OpenAI's Codex CLI on your Mac. It works the same way as `claude_local` but uses OpenAI models instead of Anthropic.
 
-> **Note:** On macOS and supported Linux machines, new Codex agents run on [Paperclip Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default. Pick **Legacy runner** under **Advanced → Runner** to use `codex_local` instead.
+> **Note:** On macOS and supported Linux machines, new Codex agents run on [Paperclip Runner](../../reference/adapters/paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default. To use `codex_local` instead, create the agent through the API or CLI with the `legacy` runner.
 
 ### Prerequisites
 
@@ -119,8 +119,8 @@ The `codex_local` adapter runs your agent using OpenAI's Codex CLI on your Mac. 
 The fields are the same as `claude_local` — mainly model selection and environment variables — but pointing to OpenAI instead of Anthropic. As with Claude Code, **Working directory (deprecated)** only appears when you edit an older agent that already has one saved.
 
 **Model** examples for Codex:
-- `gpt-5.6-sol` — the default and the normal starting point
-- `gpt-6.1-sol` — the newest Codex model, with reasoning effort up to `ultra`
+- `gpt-6.1-sol` — the default and the normal starting point, with reasoning effort up to `ultra`
+- `gpt-5.6-sol` — the previous default, still available if you'd rather stay on it
 - `gpt-6-astra`, `gpt-6-sol`, or `gpt-6-luna` — the GPT-6 family, with extra reasoning-effort levels
 - `o4-mini` — fast and cost-effective for routine tasks
 
@@ -136,7 +136,7 @@ The `opencode_local` adapter runs your agent using OpenCode — a flexible, open
 
 **When to use this:** If you want to switch between providers easily, or use a model not available through `claude_local` or `codex_local` directly.
 
-> **Note:** On macOS and supported Linux x64 machines, new OpenCode agents run on [Paperclip Runner](../../reference/adapters/paperclip-runner.md#what-carries-over-for-opencode) by default, with `provider: "opencode"`. Pick **Legacy runner** under **Advanced → Runner** to use `opencode_local` instead.
+> **Note:** On macOS and supported Linux x64 machines, new OpenCode agents run on [Paperclip Runner](../../reference/adapters/paperclip-runner.md#what-carries-over-for-opencode) by default, with `provider: "opencode"`. To use `opencode_local` instead, create the agent through the API or CLI with the `legacy` runner.
 
 The configuration is similar to the other local adapters, with an additional **Model** field in `provider/model` format (e.g., `anthropic/claude-opus-4-6` or `openai/gpt-5.3-codex`).
 
@@ -144,9 +144,9 @@ The configuration is similar to the other local adapters, with an additional **M
 
 ## Other adapters you may see
 
-Three built-in adapter types are marked **"Coming soon"** in the agent-config dropdown and can't be picked directly from the UI today. They're fully functional in the runtime — you just configure them via the API or an imported company export until the UI picker lands.
+Three built-in adapter types aren't listed in the agent form's **Harness** dropdown, so you can't pick them directly from the UI today. They're fully functional in the runtime — you just configure them via the API or an imported company export until the UI picker lands.
 
-- `openclaw_gateway` — remote OpenClaw instances reached over the WebSocket gateway protocol. Today, the normal path is the OpenClaw invite-prompt flow on the Company Settings page. See [OpenClaw Gateway](../../reference/adapters/openclaw-gateway.md).
+- `openclaw_gateway` — remote OpenClaw instances reached over the WebSocket gateway protocol. Today, the normal path is the external-agent invite flow in the add-agent dialog. See [OpenClaw Gateway](../../reference/adapters/openclaw-gateway.md).
 - `http` — webhook-style invocation into your own service. Aimed at developers building custom agent integrations. See [HTTP](../../reference/adapters/http.md).
 - `process` — runs an arbitrary local command or script. See [Process](../../reference/adapters/process.md).
 

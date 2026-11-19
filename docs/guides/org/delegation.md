@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Delegation: How Work Reaches Agents
 seo_description: Set a goal, approve a plan, and the CEO breaks it into tasks and assigns them. What you own, what the CEO handles, and the agent-to-agent guardrails.
 ---
@@ -77,7 +77,7 @@ Review each hire request on its merits:
 - Is the proposed budget reasonable for that agent's workload?
 - Does the agent report to the right manager?
 
-Don't be surprised if the proposed instructions are only a sentence or two. Hire drafts now describe the role — who the agent is and what it owns — and leave the how-to-work-in-Paperclip procedures to the runtime and installed skills. If the new agent needs company-specific rules, ask for them in a revision or add them on its [Instructions tab](./agents.md#instructions-tab) after you approve.
+Don't be surprised if the proposed instructions are only a sentence or two. Hire drafts now describe the role — who the agent is and what it owns — and leave the how-to-work-in-Paperclip procedures to the runtime and installed skills. If the new agent needs company-specific rules, ask for them in a revision or add them on its [Identity page](./agents.md#instructions-tab) after you approve.
 
 If anything looks off, request a revision. If it looks good, approve. Once you approve, Paperclip creates the agent and queues it to wake automatically.
 
@@ -147,7 +147,7 @@ The message names the three ways out on purpose: pick an agent that can actually
 
 ### An agent can't delegate work back around a loop
 
-Here's the shape this catches. Agent A hits something it can't do — say it can't push to GitHub — and creates a child task for agent B. Agent B can't do it either, so it "resolves" its blocker by creating a grandchild task assigned straight back to A. Neither agent gained a capability, the chain of blocked tasks keeps growing, and nothing reaches the human who could actually fix the gap.
+Here's the shape this catches. Agent A hits something it can't do — say it can't push to GitHub — and creates a child task for agent B. Agent B can't do it either, so it "resolves" its blocker by creating another task assigned straight back to A. Neither agent gained a capability, the chain of blocked tasks keeps growing, and nothing reaches the human who could actually fix the gap.
 
 When an agent creates a child task and the assignee is the agent that created a **still-open** ancestor in the same chain, Paperclip refuses the creation with a conflict carrying the code `delegation_cycle`. The message names the ancestor task, then spells out the alternatives:
 
@@ -171,6 +171,28 @@ Paperclip now spots this. When an agent that can itself run work reports (direct
 
 You'll find more on the banner and where it appears in [Agents → The Agent Detail Page](./agents.md#the-agent-detail-page).
 
+### Agents build task trees two levels deep
+
+Left alone, an agent working on a subtask would keep creating subtasks of that subtask, and the tree quickly gets too deep to follow. So when an agent creates work, Paperclip limits the tree to two levels: a top-level task and its children.
+
+This one isn't a refusal. If an agent asks for a child of a task that's already a child, the request still succeeds, with no error. Paperclip creates the new task **beside** the requesting task, under the same parent. The response tells the agent what happened, in a `parentAdjusted` field, and the new task still shows which task it came from.
+
+For example, say an agent is working on *Build the API*, a child of *Ship the feature*. Its follow-up *Write the migration* lands under *Ship the feature*, next to *Build the API*, and shows **Created from** *Build the API*.
+
+The same rule covers moves. An agent that moves a task under a child sees it placed beside that child instead. An agent that tries to move a task with its own children under another task has only that move skipped: the rest of its update still applies, and the task stays where it was.
+
+Nesting isn't how one task waits for another. An agent that needs the new work finished first should set a blocker instead (`blockedByIssueIds`).
+
+A few things to know:
+
+- **You aren't affected.** Board users can create and move tasks to any depth, in the app or through the API.
+- **Existing deep trees stay valid.** Nothing is moved or flattened on upgrade.
+- **Some automation keeps its requested parent.** Task watchdogs, stranded-task recovery, and email-channel tasks can still nest, and so can routines a person set up. Tasks from a routine an agent created follow the agent limit.
+- **Low-trust boundaries hold.** If moving the new task up would take it above the root task of a low-trust boundary, it stays under the parent the agent asked for.
+- **Task suggestions follow the limit too.** Accepting a set of tasks an agent suggested doesn't create a third level, even if the suggestion was nested deeper.
+
+See the [API reference](../../reference/api/issues.md#agent-task-depth-limit) for the response format.
+
 ---
 
 ## Troubleshooting: CEO isn't delegating
@@ -183,13 +205,13 @@ If you've set a goal but nothing seems to be happening, work through these commo
 |---|---|
 | **Approval queue** | Is there a strategy approval waiting for your review? This is the most common reason — the CEO has submitted a plan and is waiting for sign-off. |
 | **Goal is set** | Go to the Goals section of your company. If no goal exists, the CEO has nothing to work from. |
-| **CEO heartbeat** | Is the CEO's heartbeat enabled? Go to the CEO's detail page and check that the heartbeat toggle is on and that recent runs appear in the **Runs** tab. |
+| **CEO heartbeat** | Is the CEO's heartbeat enabled? Open the CEO's **Advanced** page and check that `runtimeConfig.heartbeat.enabled` is `true` (see [Heartbeat settings on an agent](../projects-workflow/routines.md#heartbeat-settings-on-an-agent)). Then click **Runs** under **Audit** in its side menu and check that recent runs appear. |
 
 ### CEO isn't assigning to reports
 
 | Check | What to look for |
 |---|---|
-| **Reports have heartbeats** | Go to each agent's detail page. If heartbeats are disabled, the CEO may skip assigning to them since they won't be able to pick up work. |
+| **Reports have heartbeats** | Check each agent's heartbeat settings on its **Advanced** page. If heartbeats are disabled, the CEO may skip assigning to them since they won't be able to pick up work. |
 | **Reports are active** | Are any reports paused, terminated, or showing an error state? The CEO won't assign to agents it can't reach — an agent assigning to a paused agent is refused outright. |
 | **Escalation banners** | Open each agent's detail page and look for an amber **Escalation path is paused** banner. A paused manager means escalations from that agent have nowhere to go. |
 | **CEO's budget** | At 80% of its monthly budget, Paperclip warns you. At 100%, it auto-pauses entirely. |
@@ -198,11 +220,11 @@ If you've set a goal but nothing seems to be happening, work through these commo
 
 This is expected behaviour when you have no other active reports. Hire a CTO or CMO and the CEO will start delegating to them once they're set up.
 
-A new CEO starts with a one-line role description rather than a built-in routing playbook. If you want work routed a particular way — engineering to the CTO, marketing to the CMO — say so in the CEO's `AGENTS.md` on its [Instructions tab](./agents.md#instructions-tab).
+A new CEO starts with a one-line role description rather than a built-in routing playbook. If you want work routed a particular way — engineering to the CTO, marketing to the CMO — say so in the CEO's `AGENTS.md` on its [Identity page](./agents.md#instructions-tab).
 
 ### Strategy was approved but nothing happened
 
-After you approve a strategy, Paperclip queues the CEO to wake automatically so follow-up work usually starts shortly after approval. If you want to force it immediately, go to the CEO's detail page and click **Run now**.
+After you approve a strategy, Paperclip queues the CEO to wake automatically so follow-up work usually starts shortly after approval. If you want to force it immediately, go to the CEO's detail page, open the **⋯** actions menu at the top right, and choose **Run now**.
 
 ### A specific task is stuck
 
@@ -210,6 +232,8 @@ After you approve a strategy, Paperclip queues the CEO to wake automatically so 
 2. Check if the task status is `blocked` — read the blocker comment to understand what's needed
 3. Check the assigned agent's status — it may be paused or over budget
 4. If needed: reassign the task to a different agent, or add a comment with specific guidance for the current agent
+
+If the stuck task is waiting on a subtask or blocker that has stopped and needs the board, its page shows **A dependency needs the board**, with a **Retry** for that task when retrying can help. Its agent is woken once for that stop, too. See [When a subtask or blocker needs the board](../day-to-day/issues.md#when-a-subtask-or-blocker-needs-the-board).
 
 ---
 

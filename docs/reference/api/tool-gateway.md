@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Tool Gateway API
 seo_description: Agents decide what to do; the tool gateway decides whether they may. It sits between every agent and every external tool you have connected.
 ---
@@ -12,23 +12,46 @@ Around that broker sit the pieces you configure. **Applications** and **connecti
 
 Every route below is company-scoped, and company access is checked on every request. If you are new to the API, read the [API Overview](./overview.md) first for base URL, authentication, and error-code conventions; this page builds on those and won't repeat them.
 
-> **Experimental — on by default.** The Tools, Profiles, and Apps surfaces are gated behind the `enableApps` instance experimental setting, which defaults to `true`. An operator can turn it off, and then none of this appears in your instance. The Smoke Lab described near the end of this page is gated separately behind `enableSmokeLab`, and while that flag is off every Smoke Lab route responds `404 Not Found` with `{ "error": "Smoke lab is disabled" }`. Because the whole surface is experimental, treat the request and response shapes below as subject to change between releases.
+> **Always on.** The Tools, Profiles, and Apps surfaces are no longer experimental. The old `enableApps` setting is kept only for compatibility: it reads `true`, and a stored or managed off value is ignored, so you can't turn this surface off. The Smoke Lab described near the end of this page is gated separately behind `enableSmokeLab`, and while that flag is off every Smoke Lab route responds `404 Not Found` with `{ "error": "Smoke lab is disabled" }`. The API is still young, so expect the request and response shapes below to change between releases.
 
 ---
 
 ## Permissions
 
-Board callers need a permission key for the more sensitive routes. A local implicit board actor or an instance admin skips these checks; everyone else needs the key granted, or the request comes back `403 Forbidden` with `{ "error": "Missing permission: <key>" }`.
+Most routes on this page are connection-setup routes, and each one checks a permission key. A local implicit board actor or an instance admin skips these checks; everyone else needs the key granted, or the request comes back `403 Forbidden`.
 
 | Permission key | Covers |
 |---|---|
+| `tools:manage_connections` | Creating, updating, reconnecting, refreshing, and deleting applications and connections, and starting their sign-in. |
+| `tools:manage_profiles` | Profiles, profile entries and bindings, company tool policies, trust rules, and changing a connection's company-wide install. An Owner or Admin without this key can use `tools:admin` instead. |
 | `tools:admin` | Creating, listing, and updating named MCP gateways; minting and revoking gateway tokens; managing approved stdio command templates. |
 | `tools:manage_runtime` | Listing runtime slots, and stopping or restarting them. |
-| `tools:view_audit` | Reading the gateway audit feed. |
-| `tools:manage_connections` | Syncing a connection's installs. |
+| `tools:view_audit` | Reading the gateway audit feed and a connection's activity. |
 | `tools:use` | Running test calls against a connection (either this or `tools:manage_connections` is enough). |
 
-Several routes that create or edit configuration don't use a permission key at all — instead they require an **active, non-viewer** company membership. A viewer gets `403 Forbidden` with `{ "error": "Viewer access is read-only" }`, and someone with no active membership gets `{ "error": "User does not have active company access" }`.
+`GET` routes that only describe setup — connections, catalogs, profiles, installs — need an active membership, and Viewers can read them. Every change needs a role other than Viewer. You don't need `tools:manage_connections` or `tools:manage_profiles` to view, change, or install a connection you created yourself, though choosing which agents get it still needs `agents:configure` for those agents.
+
+### Agents calling these routes
+
+An agent can call the same routes with its own token when it's setting up a connection for someone. It acts for the run's responsible user, and both of them must pass the check:
+
+- The agent needs the key from the table, except that named-gateway routes check `tools:manage_connections` for the agent.
+- The responsible user must be allowed to make the same change.
+- A change that reaches other agents — an install, or a profile binding that applies to them — also needs permission to configure each of those agents, for both the agent and the responsible user.
+
+The request is refused when the run has no responsible user, the run no longer owns its task, the task is in Ask or Plan mode (reads still work), or the run is a skill test or low-trust (these two are refused even for reads). An agent can't set `responsibleUserId`, `onBehalfOfUserId`, `createdByUserId`, or `createdByAgentId` in a body (*"Management identity is derived from authentication"*), and any `ownerUserId` or `subjectUserId` it sends must be its responsible user (*"Personal credentials must belong to the responsible user"*). List routes only return the rows the agent may manage.
+
+When a step needs a person — signing in, consent, or credentials — an agent's response includes a `requiredUserAction` block alongside the usual result:
+
+| Field | Meaning |
+|---|---|
+| `kind` | `authenticate`, `consent`, `enter_credentials`, or `confirm_identity`. |
+| `userId` | The responsible user who must take the step. |
+| `resource` | `{ type, id, companyId }`, where `type` is `connection`, `chat_endpoint`, or `ai_login`. |
+| `setupPath` | The Paperclip page where that person finishes the saved setup. |
+| `reason` | What the person needs to do. |
+
+Approving or declining action requests, OAuth callbacks, creating or disabling stdio command templates, MCP JSON import, and the smoke routes stay board-only. [How connector access works](../../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you) explains the model in plain terms.
 
 ---
 
@@ -68,6 +91,8 @@ A grant's `scope` decides what it covers, and it is enforced exactly as written:
 - An `allow` value (a single string or a list) must name the tool being called. Each entry is `tool:<name>` (the gateway name or the upstream tool name), `connection:<connectionId>`, or `application:<applicationId>`. If nothing in the list matches, the grant doesn't cover the call. An empty `allow` list, or one with a blank or non-string entry, covers nothing.
 - Any other keys narrow the grant further, and every one of them must match. The understood keys are `actorType`, `agentId`, `projectId`, `routineId`, `issueId`, `gatewayId`, `applicationId`, `connectionId`, `catalogEntryId`, `applicationKey`, `providerType`, `toolName`, and `riskLevel`, each as a non-empty string, or its plural form (`agentIds`, `toolNames`, and so on) as a non-empty list of strings.
 - A key Paperclip doesn't recognise, a value of the wrong type, or a scope that isn't an object makes the grant cover nothing.
+
+For an agent calling a connection's tool, a broad grant doesn't override that connection's own access settings. When a profile that applies to the call governs the connection — the connection's own access profile, even one with every action turned off, or any entry in those profiles that names this connection or matches this call (conditions included) by action, application, or risk level — only a grant whose `scope` names what it covers still counts: one with an `allow` list, or a `toolName`, `catalogEntryId`, `connectionId`, `applicationId`, or `applicationKey` key (or its plural). A `null` scope, or one with only context keys such as `agentId` or `projectId`, doesn't turn on an action the connection leaves off. This includes the unscoped `tools:use` grant new standard agents receive. The rule applies to agents only, not to grants people hold.
 
 A grant that doesn't cover a call never widens into a broader allow. The call simply carries on to the profile check, and if no profile permits it either, it ends as `deny_default`. The same rules apply to discovery, so a tool outside the grant doesn't show up in the tool list. If an agent loses a tool it used before upgrading, check its grant's `scope` first.
 
@@ -142,7 +167,7 @@ Requires `tools:admin`, and `companyId` in the body. Responds `201 Created`.
 | `ownerNote` | yes | 1–1,000 characters — who owns it and why it exists. |
 | `subjectType` | no | Only `gateway_client` is accepted today. |
 | `subjectId` | no | 1–240 characters, or `null`. |
-| `allowedActions` | no | Any of `tools/list` and `tools/call`. Defaults to both. |
+| `allowedActions` | no | Any of `tools/list`, `tools/call`, `resources/list`, `resources/read`, `prompts/list`, and `prompts/get`. Defaults to `tools/list` and `tools/call`. |
 | `expiresAt` | no | A date, or `null` for a non-expiring token. |
 | `expiryOverrideReason` | no | Required when `expiresAt` is `null`. |
 
@@ -173,12 +198,19 @@ The `POST` speaks JSON-RPC. Authenticate with `Authorization: Bearer <gateway-to
 
 | Method | What happens |
 |---|---|
-| `initialize` | Returns `protocolVersion` `2025-03-26`, a `capabilities` block advertising `tools`, and `serverInfo` naming `Paperclip MCP Gateway`. |
+| `initialize` | Returns `protocolVersion` `2025-03-26`, a `capabilities` block advertising `tools`, `resources`, and `prompts`, and `serverInfo` naming `Paperclip MCP Gateway`. |
 | `notifications/initialized` | Acknowledged with `202 Accepted` and no body. |
 | `tools/list` | Returns the tools this gateway's profile allows, each with `name`, `title`, `description`, and `inputSchema`. |
 | `tools/call` | Runs a tool. Takes `params.name` and `params.arguments`; a missing name is a JSON-RPC error `-32602` with `params.name is required`. |
+| `resources/list`, `resources/read`, `prompts/list`, `prompts/get` | Lists and reads resources and prompts from connections fully assigned to the gateway. The same four are also offered as tools, `paperclip_list_resources`, `paperclip_read_resource`, `paperclip_list_prompts`, and `paperclip_get_prompt`, for clients that only call tools. |
 
 Anything else returns `404` with JSON-RPC error `-32601`, `Method not found`. When a call is refused, the JSON-RPC `error` object carries a `data.reasonCode` so you can tell a policy block apart from a broken upstream.
+
+Listing, calling, and the resource and prompt methods each need the matching action in the token's `allowedActions`. A method outside the token's list is refused with `403`, the message `Gateway bearer token is not allowed to perform this MCP action`, and `data.reasonCode` `gateway_token_action_denied`.
+
+A failure inside the provider is different: `tools/call` returns a normal result with `isError: true` and the message as text. That covers `tool_error` and `github_access_denied`, which is what you get when GitHub refuses a repository or account this connection can't reach. For GitHub, the text includes steps for repairing the connection's access. Don't retry the same call until that's done.
+
+Connectors behind an experimental setting that's off are refused with `403` and `connector_unavailable` (*"This connector is unavailable on this instance."*), and their tools don't appear in `tools/list`.
 
 Paperclip limits how many tool listings run at once. When that limit is reached and the waiting queue is full too, `tools/list` returns `503 Service Unavailable` with JSON-RPC error `-32603`, the message `Tool discovery is busy. Retry shortly.`, and `data.reasonCode` `tool_discovery_busy`. Nothing is wrong with your gateway or token — wait a moment and list again.
 
@@ -248,7 +280,7 @@ POST /api/agents/me/connections/{connectionId}/start-authorization
 POST /api/agents/me/connections/{connectionId}/token
 ```
 
-`start-authorization` kicks off an OAuth authorization and returns `{ "url": ... }` (plus a `handoff` block when one applies) — send the person to `url` to finish consent. Its body takes an optional `subjectUserId`, `scopes`, and `returnTo`.
+`start-authorization` prepares a sign-in for the run's responsible user. It's a connection-setup change, so it needs the same delegated authority as the other setup routes (see [Agents calling these routes](#agents-calling-these-routes)). Its body needs a `subjectUserId`, which must be the run's responsible user, and takes optional `scopes` and `returnTo`. The agent never receives a provider sign-in link of its own: `url` points at the saved setup page in Paperclip, where the person starts the provider sign-in in their own browser session, and the response's `requiredUserAction` (kind `authenticate`) names that person. For Google Workspace, any services the agent requests are saved and preselected for the person.
 
 `token` mints a short-lived token the agent can present to the upstream service. It needs a run id, so a token without one is refused `401` with `{ "error": "Agent run id required", "code": "run_id_required" }`, and if you also send an `X-Paperclip-Run-Id` header it must match the token's run or you get `403` with `run_id_mismatch`. A successful mint returns `200` with `status` `minted` and the `token`, `tokenType`, `expiresAt`, `ttlSeconds`, `scope`, and `grantId`. If the connection is backed by static credentials rather than a broker, minting is refused with `409 Conflict` and `status` `use_env_lease` — the signal to reach the credential through an audited environment lease instead.
 
@@ -421,7 +453,13 @@ POST   /api/tool-connections/{connectionId}/reconnect
 POST   /api/tool-connections/{connectionId}/catalog/refresh
 GET    /api/tool-connections/{connectionId}/catalog
 GET    /api/tool-connections/{connectionId}/activity
+GET    /api/tool-connections/{connectionId}/review-counts
+GET    /api/tool-connections/{connectionId}/profile-configuration
 ```
+
+`POST .../tools/connections` creates tool connections only. A `connectionPurpose` other than `tool` returns `422` with `Only tool connections can be created here`, and a `transport` of `chat_sdk` or `voice` returns `422` with `Chat and voice connections cannot be created here`. Neither writes anything. If you leave out `transportConfig`, the connection stores `config` there.
+
+`review-counts` returns `pendingActionRequestCount` and `quarantinedCatalogEntryCount` for the connection; both are `0` once the connection is archived. The connector sidebar uses it for the **Review** badge. `profile-configuration` returns `{ profiles }`: the saved profiles behind the connection's Permissions tab, with their `entries` and `bindings`. It lists only the profiles you can see, and it describes saved configuration, not effective access.
 
 Deleting a connection archives it rather than dropping it, and if it was the last connection on its application, that application is archived too.
 
@@ -432,7 +470,9 @@ GET /api/tool-connections/{connectionId}/installs
 PUT /api/tool-connections/{connectionId}/installs
 ```
 
-The `PUT` replaces the whole install set and requires `tools:manage_connections`.
+The `PUT` replaces the whole install set. If the company-wide install stays as it is, the check is `agents:configure` for each agent involved, and you must already have access to the connection. Adding or removing the company-wide install needs `tools:manage_profiles` and `tools:manage_connections` instead. An agent calling this route always needs both of those keys.
+
+Saving the install set gives the connection's app profile only to newly added targets. Targets that stay installed keep their current profile assignments, so a profile you removed from an agent stays removed. Removing a target and adding it back counts as a new install.
 
 #### Connection identities (grants)
 

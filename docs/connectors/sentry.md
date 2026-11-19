@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1117.0
 seo_title: Sentry Connector
 seo_description: Let agents investigate Sentry errors, releases, and production issues. Organization and project reach, a safe read test, and troubleshooting.
 ---
@@ -61,6 +61,7 @@ Limitations: one organization per connection. No project or environment filter i
 - [Connector overview](https://paperclip.ing/product/connectors/sentry/)
 
 - [PagerDuty](pagerduty.md) — incident response, often used alongside error tracking.
+- [Repair failed runs reported by Sentry](../guides/projects-workflow/routines.md#example-repair-failed-runs-reported-by-sentry) — a routine that opens a repair task when Sentry alerts on a failed Paperclip run. A repair agent with this connector can look deeper into the Sentry event behind it.
 - [Set action permissions](action-permissions.md)
 - [How connector access works](access-model.md)
 - [Sentry MCP server](https://mcp.sentry.dev/)

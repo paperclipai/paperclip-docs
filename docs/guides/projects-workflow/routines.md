@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Heartbeats and Routines: Scheduling Work
 seo_description: Why timer heartbeats are opt-in, and how routines schedule recurring work without paused agents, surprise token bills, or a dashboard you fight with.
 ---
@@ -41,18 +41,28 @@ The natural response to that noise is to start pausing agents — which is why p
 
 ## Heartbeat settings on an agent
 
-Open any agent and find the **Run Policy** section. You'll see:
+An agent's heartbeat settings live in its `runtimeConfig`, under `heartbeat`. To see or change them, open the agent and, in its side menu under **Agent**, click **Advanced**. The settings open as a YAML document. Under `spec`, an agent created from the **New Agent** flow starts with a block like this:
 
-- **Heartbeat on interval** — the master switch. Off by default. Turn it on only when the agent needs to poll something that doesn't have its own event trigger (see "When a timer is the right answer" below).
-- **Run heartbeat every _N_ sec** — only visible when the interval is on. If you need a timer at all, prefer minutes or hours, not seconds.
+```yaml
+runtimeConfig:
+  heartbeat:
+    enabled: false
+    intervalSec: 300
+    wakeOnDemand: true
+    skipTimerWhenNoActionableWork: true
+    cooldownSec: 10
+    maxConcurrentRuns: 20
+```
 
-Under **Advanced Run Policy** you'll also find:
+- **`enabled`** — the master switch for the timer. Off by default. Turn it on only when the agent needs to poll something that doesn't have its own event trigger (see "When a timer is the right answer" below).
+- **`intervalSec`** — how often the timer fires, in seconds. It only matters when `enabled` is `true`. If you need a timer at all, prefer minutes or hours, not seconds.
+- **`wakeOnDemand`** — leave this on. It's what lets assignments, comments, and routines reach the agent.
+- **`cooldownSec`** — minimum gap between runs, useful for bursty work.
+- **`maxConcurrentRuns`** — how many tasks the agent can work in parallel.
 
-- **Wake on demand** — leave this on. It's what lets assignments, comments, and routines reach the agent.
-- **Cooldown (sec)** — minimum gap between runs, useful for bursty work.
-- **Max concurrent runs** — how many tasks the agent can work in parallel.
+Change the values in place and click **Save changes**. Keep the other lines under `runtimeConfig` — the whole block replaces the saved one when you save. See [Edit an agent as YAML](../org/agent-configuration-yaml.md) for the details. You can also send the same `runtimeConfig` to the API with [Update Agent](../../reference/api/agents.md#update-agent).
 
-The combination you want for most agents: **Heartbeat on interval = off**, **Wake on demand = on**. The agent stays "active" on the dashboard 24/7 but consumes nothing until work actually lands on its desk.
+The combination you want for most agents: `enabled: false`, `wakeOnDemand: true`. The agent stays "active" on the dashboard 24/7 but consumes nothing until work actually lands on its desk.
 
 ---
 
@@ -77,6 +87,8 @@ You'll find routines on the **Routines** page in the sidebar.
 
 When the trigger fires, Paperclip creates a task, assigns it to the agent, and that assignment wakes the agent immediately. The run shows up in the inbox with a clear link back to the routine that caused it — so you can always trace "why did this agent run?" back to a specific cause.
 
+> **Tip:** Want the result in your chat instead of buried in a task? Ask for it in the routine's instructions — "send the digest to my chat". The agent posts it to its chat with the routine's [responsible user](#the-responsible-user), with a link back to the routine's task, and the chat shows as unread until you've seen it. See [Messages from tasks and routines](../../experimental/agent-chat.md#messages-from-tasks-and-routines).
+
 ### Routine policies worth knowing
 
 Two policies control what happens when schedules overlap or the scheduler has been offline. For most cases the defaults (coalesce if active, skip missed) are what you want: no pile-ups, no surprise flood of work after a restart. See [Catch-up behaviour](#catch-up-behaviour) for the options.
@@ -87,7 +99,7 @@ Two policies control what happens when schedules overlap or the scheduler has be
 
 ![Routines list](../../user-guides/screenshots/light/routines/list.png)
 
-The Routines page is reached from **Routines** in the sidebar. There are no tabs: a single toolbar across the top holds a **Search routines…** box, the **Sort** and **Group** menus, and the **View all runs** and **Create routine** buttons. The routine list sits right below. When you group by folder and have folders, a header above the list shows how many routines are in view.
+The Routines page is reached from **Routines** in the sidebar. There are no tabs: a single toolbar across the top holds a **Search routines…** box, the **Sort** and **Group** menus, and the **View all tasks** and **Create routine** buttons. The routine list sits right below. When you group by folder and have folders, a header above the list shows how many routines are in view.
 
 ### List rows and badges
 
@@ -137,7 +149,7 @@ Draft routines without a default agent are valid — they save and stay paused u
 
 ### Seeing every run
 
-To check on executions, click **View all runs** in the toolbar. It takes you to the **Runs** section of the Audit area (`/activity/runs`), where every heartbeat run is listed with its status and links to the work it produced. It's the fastest way to answer "did all my morning routines run?"
+To check on executions, click **View all tasks** in the toolbar. It opens the **Tasks** list filtered to the tasks your routines created, newest first (`/issues?view=all&originKind=routine_execution&sortField=created&sortDir=desc`), with the **Routine tasks** filter already ticked. It's the fastest way to answer "did all my morning routines run?" Untick **Routine tasks** under **Visibility** in the filter menu to go back to the full list.
 
 If **Streamlined UI** is turned off in Experimental settings, the Routines page instead shows **Routines** and **Recent Runs** tabs. Recent Runs is a task list filtered to the execution tasks your routines created, with live-run indicators that refresh every few seconds.
 
@@ -164,7 +176,7 @@ The left sub-sidebar lists the routine's sections in two groups, and each sectio
 
 The first group holds the editable parts of the template:
 
-- **Overview** — the assignment row ("For [assignee] in [project]") and the Markdown instructions editor. It also shows a quick summary of the routine's **Triggers** and **Next run** (for a webhook-only routine that reads **On webhook delivery**), plus the five most recent runs with **View all runs** and **View routine activity** links.
+- **Overview** — the routine's **Default agent** and [**Responsible user**](#the-responsible-user), and the Markdown instructions editor. It also shows a quick summary of the routine's **Triggers** and **Next run** (for a webhook-only routine that reads **On webhook delivery**), plus the five most recent runs with **View all runs** and **View routine activity** links.
 - **Triggers** — every trigger attached to the routine, each as its own card, plus a composer to add new ones.
 - **Variables** — the `{{name}}` placeholders detected in the title and instructions.
 - **Delivery** — the concurrency and catch-up policies.
@@ -178,6 +190,14 @@ The first group holds the editable parts of the template:
 The routine's revision history lives behind the **History** button in the header, where you can restore an earlier revision; **Back to overview** takes you out again.
 
 A small amber dot appears next to any section with unsaved edits, and a blue pulsing dot appears on **Runs** when a run is live. On narrow screens the sidebar collapses into a single grouped section picker at the top.
+
+### The responsible user
+
+Every task a routine creates runs under a person's authority. To see whose, look at **Responsible user** on **Overview**, beside **Default agent**. As the page puts it: *Automatic tasks use this person. Manual runs use the person who starts them.*
+
+To hand a routine to someone else, or adopt it yourself, click the name, search under **Find a person…**, and pick an active company member. The change saves straight away and applies to future automatic tasks. Tasks the routine already created keep the person they had. You need permission to assign tasks (`tasks:assign`). Everyone else, including agents and Viewers, sees the name without the picker. If someone edited the routine first, you'll see *This routine changed. Reload before changing responsibility.*
+
+When an agent creates a routine, the responsible user is the person the agent is acting for. If there's no such person, Paperclip uses the parent task's responsible user or creator, then the company's default. The agent is still recorded as the routine's creator.
 
 ### Saving edits
 
@@ -218,6 +238,8 @@ Every expanded card also has a **Pause trigger** button (or **Enable trigger** i
 The **Runs** section shows every task this routine has created, using the same issue list you know from the rest of Paperclip. That means you get the familiar columns — status and assignee — along with search and the list's own view controls, all scoped to this one routine. A run that's in progress right now is marked as live.
 
 Because it's a real issue list, you can manage runs right here: change a task's status or assignee inline without opening it, and the routine's run data refreshes as soon as the update lands. Click a row to open the task itself; the breadcrumb brings you back to **Runs** when you're done. Your view choices are remembered per routine.
+
+Going the other way works too. Every task a routine creates shows a **Routine** row in its **Properties** panel, just below **Parent**. It names the routine that made it and links straight back to the routine page, so you don't have to hunt for it by hand. If that routine has since been deleted, the row simply doesn't appear.
 
 When you fire the routine from the **Run** button, Paperclip drops you on **Runs** so you can watch the new task appear.
 
@@ -314,6 +336,40 @@ Choose **GitHub** and Paperclip gives you GitHub-shaped steps:
 2. Paste the **Webhook URL** into **Payload URL**, and set **Content type** to **application/json**.
 3. Paste the **Secret** into GitHub's **Secret** field. GitHub signs each request with an **`X-Hub-Signature-256`** header, so you don't use Bearer authentication on this path.
 4. Choose the events that should start the routine, enable the webhook, and save.
+
+### Example: repair failed runs reported by Sentry
+
+If your Paperclip instance reports failed runs to Sentry, a routine can turn each failure into a repair task for one of your agents. You don't have to watch Sentry and file each one by hand. This is a regular webhook on the **Another app or script** path. Sentry decides which failures to send, and Paperclip gives it the tags it needs to decide.
+
+Every run-failure event Paperclip sends to Sentry carries an `event_kind` tag of `run_failure`, plus `run_id`, `task_id`, and `company_id`. It also gets three tags about where the failed work came from:
+
+- `automation_origin_status`: `complete` when Paperclip could trace how the task was created and found at most five routines in that history, `unknown` otherwise.
+- `automation_routine_ids`: up to five routine IDs found in that history, comma-separated. `none` means no routine ID was found, which only rules out a routine when `automation_origin_status` is `complete`. It's `unknown` when the lookup didn't return an answer.
+- `task_shareable`: `false` when the failed task or a task it came from is private. `true` when none that Paperclip could read is private, which covers the full history only when `automation_origin_status` is `complete`. `unknown` otherwise.
+
+The routine-ID tag is what keeps the setup from looping. It covers child tasks and follow-ups too, so when a repair task itself fails, its event still names the repair routine. Filter that routine out in Sentry and the error stays in Sentry without starting another repair.
+
+To set it up:
+
+1. Turn on run-failure reporting with `PAPERCLIP_SENTRY_RUN_FAILURES` (for example `unexpected`), and set `PAPERCLIP_PUBLIC_URL` so events link back to the task and run. See [Error Monitoring (Sentry)](../../reference/deploy/environment-variables.md#error-monitoring-sentry). Only new events get the tags, so check a fresh failure in Sentry before you go on.
+2. Create the repair routine, assign it to an agent, and set its concurrency policy to **Always enqueue** so every failure gets its own task. Keep the routine paused for now. Sentry's alert JSON is attached to the task, with the IDs inside `data.event.tags`. So in the instructions, ask the agent to read `task_id` and `run_id` from there, check the failed task and run before changing anything, and reuse an existing repair task or PR when the same failure shows up again. Don't add required `{{task_id}}`-style variables: Sentry doesn't send them as top-level fields.
+3. Copy the routine's ID from its page URL. You'll exclude it in Sentry.
+4. Add a webhook trigger, choose **Another app or script**, and copy the **Webhook URL** and **Secret key**.
+5. In Sentry, create an internal integration with an alert action that posts to the **Webhook URL**, with a custom header `Authorization: Bearer <secret key>`.
+6. Add an alert that fires on every captured event, not only new or regressed issues, so repeat failures still reach the routine. Require **all** of these tag conditions, then send it to your integration:
+   - `event_kind` equals `run_failure`
+   - `company_id` equals your company's ID
+   - `automation_origin_status` equals `complete`
+   - `task_shareable` equals `true`
+   - `automation_routine_ids` does not contain the repair routine's ID. Add one of these per repair routine if you have several.
+7. Send a Sentry test notification while the trigger is still in setup mode, check the connection, click **Finish setup**, and unpause the routine.
+
+Two things to keep in mind:
+
+- **Duplicates.** Sentry can't send a different `Idempotency-Key` for each event, and a fixed one would swallow every failure after the first. Leave it out and let the agent spot repeats, as in step 2.
+- **Privacy.** Paperclip copies the whole Sentry event into routine history and the repair task, and anyone in the company can read routine history. Set up data scrubbing in Sentry for credentials, request data, and other sensitive fields before you turn the alert on.
+
+The [Fire Public Trigger](../../reference/api/routines.md#fire-public-trigger) reference covers the webhook details, including [routine-wide execution receipts](../../reference/api/routines.md#routine-wide-execution-receipts) for senders that can provide a stable key per event.
 
 ### Is your webhook URL reachable?
 

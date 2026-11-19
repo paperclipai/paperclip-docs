@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1117.0
 seo_title: Teams Catalog API
 seo_description: The surface behind catalog teams — ready-made starter groups bundling agents, projects, routines, and skills that install into a company in one step.
 ---
@@ -170,6 +170,8 @@ The install body accepts everything `preview` accepts, plus:
 | `secretValues` | object (`key` → `value`) | Provide values for the secret env inputs the team declares. |
 
 As with preview, `{catalogId}` is a catalog reference and the `ref` query parameter overrides it when present.
+
+The response includes `resourceLinks`, so you can send people straight to what was saved. Each entry has `kind` (`agent`, `project`, or `routine`), `id`, `name`, and an in-app `href` such as `/PAP/agents/{agentId}`.
 
 <!-- tabs: cURL, JavaScript, Python -->
 

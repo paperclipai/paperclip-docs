@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1005.0
+paperclip_version: v2026.1117.0
 seo_title: Routines API
 seo_description: Paperclip's recurring execution layer. Run an agent on a schedule, fire it from a webhook, or kick it off manually, and see what a routine does not do.
 ---
@@ -107,6 +107,7 @@ Returns one routine with:
 - triggers
 - recent runs
 - current active execution issue
+- `canChangeResponsibleUser` — whether you can change the routine's responsible person
 
 This endpoint is company-scoped. If the routine is not in your company, the request is rejected.
 
@@ -145,6 +146,7 @@ Important behavior:
 - assigned agents must belong to the same company and must not be terminated or pending approval.
 - if you mark a routine `active` without an assignee, the API will not leave it active.
 - if the title or description references variables, those variables must be valid and resolvable.
+- `responsibleUserId` is ignored on create. The server sets it: the signed-in user for a board request, or the user an agent's run or API key acts for. An agent stays the routine's creator. Without a bound user, the server falls back to the parent issue's user or the company's default.
 
 ### Example
 
@@ -259,7 +261,7 @@ PATCH /api/routines/{routineId}
 Content-Type: application/json
 ```
 
-All create fields are updatable.
+All create fields are updatable. You can also send `responsibleUserId` to change the person responsible for the routine. Only people can do this: an agent gets `403` with `Only people can change routine responsibility`, and a board user needs the `tasks:assign` permission. The new person must be an active company member, or the request returns `422` with `Responsible user must be an active company member`.
 
 Agent access is narrower than board access:
 
@@ -274,6 +276,19 @@ You can use this endpoint to:
 - move it to another project or goal
 - adjust variables or priority
 - turn the activity gate on or off
+- transfer the routine to another person with `responsibleUserId`
+
+### Change the responsible user
+
+Send `responsibleUserId` with the person's user ID, and `baseRevisionId` with the routine's latest revision ID. The change applies to future automatic tasks. Tasks that already exist keep their responsible user, and a manual run a person starts uses that person (a manual run an agent starts uses the routine's responsible user).
+
+| Status | When |
+|---|---|
+| `403` | An agent sent the field (`Only people can change routine responsibility`), or a board user without `tasks:assign` permission. |
+| `409` | `baseRevisionId` is out of date (`Routine was updated by someone else`). |
+| `422` | The person isn't an active member of the company (`Responsible user must be an active company member`). |
+
+You can't clear a routine's responsible user: `null` or a blank value fails validation. The `routine.updated` activity entry records `previousResponsibleUserId` and `responsibleUserId`.
 
 ---
 
@@ -666,9 +681,11 @@ For timestamped HMAC validation, the server enforces the replay window from the 
 
 For `app_webhook` triggers, the validated JSON payload is appended to the execution issue's description inside a fenced data block, labelled as external data the agent must not treat as instructions. The block is capped at 16,384 characters; the full payload is always stored on the routine run. A signed `app_webhook` delivery without an idempotency key is deduplicated by a digest of the trigger and the exact body, so an identical signed retry does not start a second run.
 
+Paperclip copies that JSON as it arrives. There's no field allowlist and no scrubber: the full payload lands in routine history, which everyone in the company can read, and up to 16,384 characters of it land in the execution task. Only send data you're happy for everyone in the company to see, and strip secrets or personal data at the source. Authenticating the request, or attaching a verified caller, doesn't make the payload private.
+
 `fireflies_hmac` triggers keep their provider-specific handling: only authenticated meeting metadata (`event`, `meeting_id`, `timestamp`, and an optional `client_reference_id`) becomes run input, runs are deduplicated per meeting, and events other than `meeting.summarized` are acknowledged with `{ "status": "ignored", "routineStarted": false, "linkedIssueId": null }` without creating a run.
 
-For deduplication the server reads an idempotency key from the `Idempotency-Key` header, falling back to `X-GitHub-Delivery`. Sending the same key on a retry prevents a duplicate run — and, during setup, prevents a retried test delivery from starting the routine once the trigger is enabled.
+For deduplication the server reads an idempotency key from the `Idempotency-Key` header, falling back to `X-GitHub-Delivery`. Sending the same key on a retry prevents a duplicate run — and, during setup, prevents a retried test delivery from starting the routine once the trigger is enabled. Keys are matched per trigger unless you opt into [routine-wide receipts](#routine-wide-execution-receipts).
 
 If the trigger is still [setup-pending](#webhook-setup-and-test-deliveries), the endpoint validates the delivery and records it as a test receipt, but does not create a run.
 
@@ -733,6 +750,46 @@ run = response.json()
 ```
 
 <!-- /tabs -->
+
+### Verified creation provenance
+
+Sometimes one Paperclip run calls another routine's webhook, for example a build agent that hands off to a follow-up routine. You can tell the receiving routine which run made the call, so the new task keeps a trustworthy record of the automation that created it.
+
+Add the optional `X-Paperclip-Source-Run-Token` header with the calling run's current Paperclip run JWT. On local adapters that's usually the `PAPERCLIP_API_KEY` Paperclip injects into the run. Board API keys and long-lived agent API keys don't qualify. If your agent only has a different kind of credential, call [Manual Run](#manual-run) instead. The trigger still needs its own authentication, so the header goes alongside the normal signing headers, never instead of them:
+
+```bash
+curl -X POST "$WEBHOOK_URL" \
+  -H "Authorization: Bearer $WEBHOOK_SECRET" \
+  -H "X-Paperclip-Source-Run-Token: $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"event": "build.failed", "build_id": "123"}'
+```
+
+Paperclip checks the token after the trigger's own authentication. It has to be a valid run JWT for the routine's company on this instance, and the run it names must still be running, not cancelled, with an agent that isn't terminated or pending approval. Anything else returns `401` and creates no run. Leave the header out and the call works as before, with no caller recorded.
+
+A verified caller is stored as `createdByRunId` on the routine run, separate from `triggerPayload`. Fields in the JSON body, such as a `createdByRunId` you put there yourself, stay ordinary payload data and prove nothing. The header records where the work came from. It gives the caller no extra permissions in the receiving routine.
+
+Agents don't need the header when they call [Manual Run](#manual-run) with their own run credentials: Paperclip records the validated caller run on those calls automatically.
+
+### Routine-wide execution receipts
+
+By default an `Idempotency-Key` is remembered per trigger. If the same event can reach one routine through more than one webhook trigger, add `X-Paperclip-Idempotency-Scope: routine` with a stable `Idempotency-Key`. A repeat of that key on any webhook trigger of the routine then returns the original run instead of starting a new one. That still holds after you delete the trigger that took the first delivery.
+
+| `X-Paperclip-Idempotency-Scope` | What the key is matched against |
+|---|---|
+| `trigger` (default) | Earlier deliveries to this trigger only. |
+| `routine` | Earlier webhook deliveries to any trigger on this routine. |
+
+A few rules:
+
+- Send the same key and the same scope on every retry of one event. Give a different event a different key.
+- Any other value returns `400` with `X-Paperclip-Idempotency-Scope must be trigger or routine`.
+- `hmac_sha256` triggers keep their trigger-scoped replay protection. Asking for `routine` scope there returns `400` with `Timestamped HMAC replay protection uses trigger-scoped receipts`.
+- The scope only affects deduplication. Concurrency policy, pausing, and the other routine controls still apply.
+
+Setup-pending triggers still create no runs, and their test receipts stay with the trigger you're setting up.
+
+For a worked example that combines a normal webhook with Sentry, see [Example: repair failed runs reported by Sentry](../../guides/projects-workflow/routines.md#example-repair-failed-runs-reported-by-sentry).
 
 ---
 

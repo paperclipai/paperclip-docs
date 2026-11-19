@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Skills: Reusable Agent Procedures
 seo_description: Package a checklist, runbook, or template once and share it across agents. Covers adding skills, folders, Skill Studio, and the cost and performance payoff.
 ---
@@ -40,6 +40,8 @@ When reviewing code, check the following...
 ```
 
 The agent sees the name and description for every available skill at the start of its heartbeat. If the description matches what the agent is doing, it loads the full skill content and follows the instructions.
+
+An agent isn't limited to the skills you've assigned to it. On Paperclip's native runner, an agent can use the `search_skills` and `load_skill` tools to find and read any company skill it has access to, even one that isn't assigned to it. Reading a skill this way doesn't assign it, and it doesn't give the agent any extra tools or connections. Completion reviews, skill test runs, and Muse agents don't have these tools. See [Native Runner skill tools](../../reference/skills.md#native-runner-skill-tools) for the details.
 
 ---
 
@@ -280,6 +282,8 @@ Studio is explicit about unsaved work, because a half-edited skill is not what y
 
 **Save** writes the file and creates the next version of the skill immediately — the header shows the current revision as `v1`, `v2`, and so on, and **Version history** opens the full list so you can look back or restore an earlier one.
 
+If someone else (a teammate or an agent) saved the skill after you opened it, your save doesn't overwrite their work. Studio keeps your edits in the editor and shows *"This skill changed since you opened it. Your unsaved edits are still here. Copy them before loading the latest file to reconcile the changes."* Copy what you need, then click **Load latest saved file**. Studio asks *"Discard unsaved edits and load the latest saved file?"* before replacing your draft, and anything you type while it loads stays put.
+
 The toolbar above the file tree covers the rest of the housekeeping: **Add file**, **Add folder**, **Delete file**, and **Delete folder**. Two things to know. `SKILL.md` cannot be deleted — the button stays disabled with a tooltip saying so, which makes sense given it's the file agents read first. And adding a folder seeds it with a `README.md`, because a folder with nothing in it has nowhere to show up in the tree.
 
 The **⋯** menu in the header has **Share link**, which copies the current Studio URL — including which input and which run you're looking at — so a teammate opens exactly the view you're describing.
@@ -317,6 +321,7 @@ A few things keep this predictable:
 - **It follows your skill policy.** Creating a skill this way goes through the same rules as creating one in Skill Studio. With no policy in place, agents are allowed; if you've restricted `skills.create`, the agent is refused just like anyone else. See [Who is allowed to change skills](#who-is-allowed-to-change-skills).
 - **It doesn't attach the skill to anyone.** The new skill lands in the library only. No agent starts using it until you (or an agent allowed to) assign it — see [Assigning a skill to an agent](#assigning-a-skill-to-an-agent).
 - **Retries don't make duplicates.** If the agent's request is interrupted and retried, it gets back the skill it already made instead of a second copy.
+- **Existing skills get imported, not re-created.** The tool is for new skills. Agents are told that a `SKILL.md` already in a local directory, repository, URL, or catalog counts as an existing skill, even when your library has no match, so they import it and keep its source.
 
 When a skill is created, a **Skill created** card appears in the task's thread with the skill's name and description. Click it and the skill opens in its own tab in the task's side panel, showing its slug, current revision, and instructions. That tab always reads the live library copy, so it's not a second version to keep in sync. Use **Open in Skill Studio** to edit it; when you come back to the task, the tab shows what you saved. If the skill is later deleted, or you don't have access to it, the tab tells you so — *"Skill no longer available."* or *"You do not have access to this skill."* — while the card in the thread stays as a record that it was created.
 
@@ -411,7 +416,7 @@ The skill **Key** (the stable identifier adapters use) and its **Mode** (Editabl
 
 ## Adapter sync preferences
 
-Different adapters handle skills differently. The Agent → Skills tab surfaces this as a small **skill application mode** badge next to the "*N* of *M* enabled" count, above the skill list — hover it for details:
+Different adapters handle skills differently. The agent's **Skills** page surfaces this as a small **skill application mode** badge next to the "*N* of *M* enabled" count, above the skill list — hover it for details:
 
 - **Kept in workspace** (`persistent`) — the adapter writes skill files into the agent's workspace directory and leaves them there between runs. Most long-running local adapters use this mode.
 - **Applied on next run** (`ephemeral`) — the adapter materialises skill files for each run, then cleans up afterwards. This is the default for sandboxed adapters that treat the workspace as disposable.
@@ -432,18 +437,18 @@ Skills live at the company level, but each agent decides which of those skills t
 **From the agent.** To see and change everything one agent uses:
 
 1. **Open the agent's detail page** from the Agents list or the org chart.
-2. **Switch to the Skills tab.** The top line reads "*N* of *M* enabled", next to the skill application mode badge and a **Search skills** box.
+2. **Open its Skills page.** It isn't listed in the agent's side menu (the **Overview** shows the enabled skills, but read-only), so open it from the company **Skills** page (the **View** link next to an agent that uses a skill), or go to it by address: add `/skills` to the end of the agent page's URL — for example, `…/agents/cto/skills`. The top line reads "*N* of *M* enabled", next to the skill application mode badge and a **Search skills** box.
 3. You will see these groups:
    - **Enabled on this agent** — the skills this agent uses now. Flip a row's switch off to detach it.
    - **Available from the library** — every other skill in the company library that the agent *could* use. Flip a row's switch on to assign it.
    - **Automatic and detected skills (read-only)** — a collapsible group for skills the adapter supplies or picked up from somewhere Paperclip does not control (for example, a global skill bundle on the host). These are shown for visibility only.
 4. Changes autosave shortly after you stop clicking — a small status chip shows "Saving soon…", then "Saving…", then "Saved". The agent will pick up the new skill list on its next run.
 
-A **Browse skills store** button at the top of the tab jumps to the company-wide Skills page, so you can open the underlying skill to tweak its instructions without losing your place.
+A **Browse skills store** button at the top of the page jumps to the company-wide Skills page, so you can open the underlying skill to tweak its instructions without losing your place.
 
 > **Tip:** If a skill you expect is not under **Available from the library**, it is not in the company library yet. Add it from the Skills page first, then come back.
 
-You may notice a `first-task` skill in your library and on the first agent you created during onboarding. That's Paperclip's own guide for your very first task — how the agent reads your answer to the opening question, proposes a plan or a single task, and waits for your go-ahead before hiring or doing the work. It only applies to that onboarding task, not to the agent's other work, and other agents don't get it automatically.
+You may notice a `first-task` skill in your library and on the first agent you created during onboarding. That's Paperclip's own guide for your very first task — how the agent reads your answer to the opening question, proposes a plan or a single task, and waits for your go-ahead before hiring or doing the work. Paperclip enforces that wait on its side too: until you accept the agent's latest proposal, the agent can't create new tasks while working on that first task, and an agent on Paperclip Runner can't mark it done. Answering the opening question doesn't count as acceptance, and if the agent wrote a plan document, you need to accept its current revision — an edit after your acceptance needs a fresh go-ahead. If you decline the proposal, the agent can wrap up the first task, but still can't create work from it. The skill only applies to that onboarding task, not to the agent's other work, and other agents don't get it automatically.
 
 ---
 
@@ -461,7 +466,7 @@ It is off by default everywhere — cloud and self-hosted alike — and it is no
 
 ### Pick a release
 
-Open the agent, go to the **Skills** tab, and find the Paperclip core skill row — it needs to be enabled for that agent. A **Skill release** dropdown appears alongside it:
+Open the agent's **Skills** page (add `/skills` to the end of the agent page's URL), and find the Paperclip core skill row — it needs to be enabled for that agent. A **Skill release** dropdown appears alongside it:
 
 - **Default — current (recommended)** — no pin at all. The agent runs the live skill and picks up every future change. This is where every agent starts.
 - Each frozen release, shown as its name plus the day it was cut — for example **V7 — Roster champion · released 2026-07-21** — carrying a small **Beta** badge.

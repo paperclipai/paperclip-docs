@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: GitHub Copilot Agents in Paperclip
 seo_description: Run agents on your GitHub Copilot plan. Save a Copilot token through the GitHub connector, pick a model, and test the runtime before you assign any work.
 ---
@@ -20,19 +20,9 @@ Copilot runs on macOS (Apple Silicon and Intel) and on Linux x64. The runtime is
 
 ## Connect Copilot
 
-There are two ways in, depending on where you are.
+First-run setup doesn't offer Copilot. The **Model source** tiles there are only **Claude** and **OpenAI**, so you connect Copilot once your company exists. If a setup draft you started earlier had GitHub Copilot selected, onboarding drops that choice, so you pick Claude or OpenAI instead.
 
-### During first-run setup
-
-When you create your first agent, onboarding offers **GitHub Copilot** as a recommended choice. Pick it and Paperclip shows **Connect GitHub Copilot and choose a model**:
-
-1. Add your token as a new AI connection, or choose one you already saved.
-2. Wait for the **Model** list to load, then pick a model.
-3. Continue. Paperclip won't create the agent until a connection and an available model are selected.
-
-If the account has no usable models, the lookup fails rather than showing an empty list, and you see the error instead, such as *"Copilot access is denied by the account entitlement or organization policy."* or *"Copilot metadata verification failed."* Select **Refresh models** after you fix the account.
-
-### In an existing company
+### From Connectors
 
 1. Open **Connectors** and find **GitHub**.
 2. Select **Connect Copilot**. This is separate from the GitHub repository connection on the same row.
@@ -53,7 +43,9 @@ A Copilot token represents one person's paid account, so a new connection starts
 4. Pick a **Model**. The list comes from your account, so you only see models you're allowed to use. Select **Refresh models** if you just changed plans.
 5. Save, then select **Test** to check the setup before assigning work.
 
-You have to pick a specific model. If the model is empty, or set to `auto` or `default`, Paperclip won't save the agent. Creating one fails with a message such as *"Select an available Copilot model before saving."* Paperclip also rejects a model your account can no longer use, rather than switching to a different one.
+You have to pick a specific model. If the model is empty, or set to `auto` or `default`, Paperclip won't save the agent. Saving fails with a message such as *"Select an available Copilot model before saving."* The new-agent dialog asks you to *"Refresh Copilot models and select an available model before creating this agent."* Paperclip also rejects a model your account can no longer use, rather than switching to a different one.
+
+If the account has no usable models, the lookup fails rather than showing an empty list, and you see the error instead, such as *"Copilot access is denied by the account entitlement or organization policy."* or *"Copilot metadata verification failed."* Select **Refresh models** after you fix the account.
 
 The saved configuration looks like this:
 
@@ -74,12 +66,12 @@ Use a model ID from your own model list. `gpt-5.6-luna` is only an example and m
 
 Looking up Copilot models starts the Copilot runtime in your chosen environment. In a sandbox environment, that can briefly start a sandbox. To keep this cheap, Paperclip refreshes the list only when you:
 
-- open a Copilot agent's configuration, or the model selector on one of its tasks,
+- open a model selector for a Copilot agent or task,
 - change the connection or the environment,
 - reconnect the account, or
 - select **Refresh models**.
 
-Reconnecting the same account refreshes the list. During first-run setup it also clears the old model, so pick a model again afterwards.
+Reconnecting the same account refreshes the list.
 
 To load models for an existing agent, you need permission to change that agent's configuration. People with read-only access don't trigger a lookup, and the token stays locked.
 
@@ -118,7 +110,7 @@ Usage is attributed to **GitHub**. Copilot reports AI units and model multiplier
 
 ## Copilot and the Paperclip Runner switch
 
-Like Codex and ACP Claude, Copilot agents run even when the **Paperclip Runner** experimental switch is off, and first-run setup still offers **GitHub Copilot**. Turning the switch off hides **Paperclip Runner** as a choice in the agent form, but the new-agent dialog still offers **GitHub Copilot**, and your existing Copilot agents keep running. See [Experimental features](../experimental/overview.md).
+Like Codex and ACP Claude, Copilot agents run even when the **Paperclip Runner** experimental switch is off. Turning the switch off hides **Paperclip Runner** as a choice in the agent form, but the new-agent dialog still offers **GitHub Copilot**, and your existing Copilot agents keep running. See [Experimental features](../experimental/overview.md).
 
 ## Try it
 

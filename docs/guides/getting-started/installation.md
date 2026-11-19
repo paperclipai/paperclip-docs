@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1117.0
 seo_title: Install Paperclip: Local or Self-Hosted
 seo_description: Two supported install paths: a local Node.js 24 setup via pnpm, or a self-hosted server on your own domain. Both finish at the same onboarding flow.
 ---
@@ -450,6 +450,14 @@ Common errors:
 ---
 
 <!-- /tabs -->
+
+---
+
+## Install Paperclip as an app (optional)
+
+If you'd rather have Paperclip in its own window than in a browser tab, you can install it. Open your Paperclip address in Chrome and use the browser's install option (for example the install icon in the address bar). Paperclip then opens in a standalone window with its own icon.
+
+The installed window has no address bar. On a phone, Paperclip makes up for that with three small buttons along the top: **Refresh**, **Share** (which copies the page link when your device has no share sheet), and **Open in Browser**. Installing doesn't change anything on your server — it's the same Paperclip, just in its own window.
 
 ---
 

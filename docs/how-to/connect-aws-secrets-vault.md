@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.525.0
+paperclip_version: v2026.1117.0
 seo_title: Connect an AWS Secrets Manager Vault
 seo_description: Let Paperclip discover the vaults you already use by region, namespace, and name prefix, instead of copying ARNs across by hand.
 ---
@@ -18,7 +18,7 @@ You need three things on the host running the Paperclip server:
 
 - AWS credentials the process can read (the usual chain: env vars, instance role, or `~/.aws/credentials`). The credentials need `secretsmanager:ListSecrets` — that's the only call discovery makes. Reading and writing secret values at runtime uses the usual `GetSecretValue` / `PutSecretValue` permissions on whatever ARNs the secrets resolve to, plus `secretsmanager:UpdateSecretVersionStage` if you want to [write values through to linked secrets](#change-the-value-of-a-linked-aws-secret) — that one backs the rollback on a failed write.
 - A region you intend to read from, for example `us-east-1`.
-- An owner role on the company in Paperclip — only owners can write `secret_provider_config` rows.
+- Board access to the company in Paperclip. Agents can't add or change vaults.
 
 Paperclip discovery reads **metadata only**. It does not call `GetSecretValue`, so candidate previews never pull plaintext.
 

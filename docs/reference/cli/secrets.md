@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.609.0
+paperclip_version: v2026.1117.0
 seo_title: CLI Secrets Commands
 seo_description: Manage the API keys, tokens, and credentials agents consume at runtime without ever pasting a raw value into an agent's configuration.
 ---
@@ -185,6 +185,8 @@ If `--yes` is missing, or `--confirm` does not match the argument, the command r
 ```sh
 paperclipai secrets doctor --company-id <company-id>
 ```
+
+On Windows, the local encrypted provider skips its key file permission check, so you won't see a warning that `chmod` can't fix.
 
 For AWS-backed secrets, `doctor` reports missing non-secret provider env and the expected AWS SDK runtime credential source. Do not store AWS bootstrap credentials *inside* Paperclip secrets — let the runtime resolve them from the standard AWS credential chain, and use `doctor` to confirm that chain is wired up.
 

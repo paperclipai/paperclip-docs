@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Adapters API
 seo_description: The control-plane surface for the server-side adapter registry: which agent runtimes Paperclip can reach, how each is configured, and how packages install.
 ---
@@ -22,7 +22,7 @@ GET /api/adapters
 
 Returns the registry of server-side adapters Paperclip currently knows about: built-in adapter types plus any external adapters installed on the instance.
 
-Each entry also carries `supportedRunners` and `defaultRunner`, which tell you which runners (`paperclip`, `legacy`) a new agent of that type can use and which one `runner: "auto"` would pick. Pass `companyId`, and optionally `environmentId`, as query parameters to check against a specific execution environment instead of the Paperclip server itself. `environmentId` requires `companyId`. Today `codex_local`, `claude_local`, `opencode_local`, and `pi_local` can resolve to `paperclip`.
+Each entry also carries `supportedRunners` and `defaultRunner`, which tell you which runners (`paperclip`, `legacy`) a new agent of that type can use and which one `runner: "auto"` would pick. Pass `companyId`, and optionally `environmentId`, as query parameters to check against a specific execution environment instead of the Paperclip server itself. `environmentId` requires `companyId`. Today `codex_local`, `claude_local`, `opencode_local`, `pi_local`, and `grok_local` can resolve to `paperclip`. `cursor_cloud` can also list `paperclip` in `supportedRunners`, but its `defaultRunner` stays `legacy` wherever `legacy` is available.
 
 ## Install an external adapter
 
@@ -92,7 +92,7 @@ Serves the adapter-supplied UI parser bundle. The Paperclip UI fetches this scri
 
 ## Adapter device login
 
-Some adapters authenticate with a **device login** — the kind where the tool prints a code and a URL, you approve it in a browser, and the CLI finishes signing in. These routes drive that flow from Paperclip for a company, scoped to one environment. They currently apply to the Codex adapter.
+Some adapters authenticate with a **device login** — the kind where the tool prints a code and a URL, you approve it in a browser, and the CLI finishes signing in. These routes drive that flow from Paperclip for a company, scoped to one environment. They currently apply to the Codex and Grok adapters.
 
 | Route | Purpose |
 |---|---|
@@ -100,4 +100,4 @@ Some adapters authenticate with a **device login** — the kind where the tool p
 | `GET /api/companies/{companyId}/adapters/{type}/login-sessions/{sessionId}` | Read the session — its state and the code/URL to complete the login in a browser. |
 | `POST /api/companies/{companyId}/adapters/{type}/login-sessions/{sessionId}/cancel` | Cancel the session. |
 
-These are board routes: the caller must be on the board, have access to the company, and be allowed to manage the company's adapters. `type` must be an adapter that supports device login (Codex today); other types are rejected.
+These are board routes: the caller must be on the board, have access to the company, and be allowed to manage the company's adapters. `type` must be an adapter that supports device login (Codex or Grok today); other types are rejected.

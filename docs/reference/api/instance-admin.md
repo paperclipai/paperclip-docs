@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Instance Admin API
 seo_description: Instance-scoped endpoints that fit nowhere else: general and experimental settings, on-demand database backups, and the LLM reflection endpoint.
 ---
@@ -43,7 +43,7 @@ Task drain is an instance-wide pause on picking up new work: while it is on, age
 | `POST /api/instance/task-drain` | Start (or refresh) a drain. Body is validated against `startTaskDrainRequestSchema`; pass an optional `ttlMs` to have the drain expire automatically after that many milliseconds, or omit it for a drain that stays on until you stop it. Returns the resulting drain state. |
 | `DELETE /api/instance/task-drain` | Stop draining. Returns `{ "wasActive": <boolean> }` — whether a drain was in effect when you called. |
 
-Reading the status needs only authenticated org access; starting and stopping a drain require instance-admin. Overlapping start/stop calls are serialised, so the audit log and the live drain state always agree.
+Reading the status needs only authenticated org access; starting and stopping a drain require instance-admin. Overlapping start/stop calls are serialised, so the audit log and the live drain state always agree. Runs that queued while the drain was on, task-chat turns included, start on their own once you stop the drain or it expires.
 
 ### Idle holds
 
@@ -54,6 +54,21 @@ A host that wants to stop an idle instance (to save compute) can take a short, o
 - **Release it** with `DELETE /api/instance/task-drain?ownerId=<ownerId>`. A release with the wrong owner fails with `409 Conflict`.
 
 If you set `PAPERCLIP_DB_BACKUP_IDLE_CHECKPOINT_ENABLED=1` (see [Environment Variables](../deploy/environment-variables.md)), the safety check also takes and verifies a fresh database backup before it reports `none`. On cloud-managed instances, only the Paperclip Cloud control plane can run that backup-checkpoint check.
+
+### Hot-upgrade readiness
+
+Before you replace the server while agents are still working, you can ask whether every running task would survive the swap. Call `GET /api/instance/task-drain?upgradeReadiness=1`. Alongside the usual drain status you get an `upgradeReadiness` object. This read needs instance-admin, because it covers work across every company. It's only a snapshot: it doesn't start a drain, hold new work, or disconnect any runner.
+
+The fields you'll care about most:
+
+- `ready` — `true` only when nothing would be lost by replacing the server right now.
+- `activeRuns`, `recoverableRuns`, `blockingRuns` — how many runs are in progress, how many can carry on through a replacement, and how many can't.
+- `retainedBlockedRuns` — [Paperclip Runner](../adapters/paperclip-runner.md) runs left over from an earlier server that no server owns any more: the run was interrupted before its process started, the old server's hold on it has expired, and there's no saved checkpoint. They're counted here instead of in `activeRuns`, so they don't stop `ready` from being `true`, and they wait for Paperclip's normal recovery. A run this server is still tracking as active stays in `activeRuns`.
+- `pendingWakes` and `draining` — queued wakeups and whether a drain is on.
+- `truncated` — `true` if more than 1,000 running runs were found and the report stopped counting.
+- `observedAt`, `version`, `controllerBootId`, `supportedOutageMs` (five minutes) and `recoveryGraceMs` (seven minutes).
+
+Only [Paperclip Runner](../adapters/paperclip-runner.md) runs on a remote computer, with a saved checkpoint and a live hold from this server, count as recoverable. Everything else, apart from the leftover runs in `retainedBlockedRuns`, counts as blocking. `ready` is `false` whenever any run is blocking, wakeups are pending, a drain is on, or the report was truncated. If it's `false`, drain and let the work finish before you upgrade. The report can go stale as work starts and stops, so read it right before you act.
 
 ---
 
@@ -67,6 +82,17 @@ HEAD /api/liveness
 A lightweight, anonymous check that the server process is up. It doesn't resolve a session or touch the database, so frequent monitoring won't keep an idle database awake, and it still answers during an idle hold. It returns `200` with `{ "status": "ok", "commit": "<sha or null>" }` once startup recovery has finished, and `503` with `"status": "starting"` until then. Responses are never cached.
 
 Use `/api/liveness` for routine "is it running?" probes. Keep `/api/health` for real readiness checks: it's the one that tests the database and reports bootstrap state.
+
+---
+
+## Readiness probe
+
+```
+GET  /api/ready
+HEAD /api/ready
+```
+
+Point your load balancer or deploy platform here to decide when a new server can take traffic. Like the liveness probe, it's anonymous, never cached, and doesn't touch the database. It returns `200` with `{ "status": "ready" }` once startup recovery has finished. While the server is starting, recovering, or draining, it returns `503` with the current phase in `status` and a `Retry-After: 1` header.
 
 ---
 
@@ -156,9 +182,9 @@ Execution workspaces are the materialised working directories Paperclip creates 
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /api/companies/:companyId/execution-workspaces` | List execution workspaces for the company. |
-| `GET /api/execution-workspaces/:id` | Read one workspace. |
-| `GET /api/execution-workspaces/:id/close-readiness` | Whether the workspace is safe to close (no pending operations, no dirty state). |
+| `GET /api/companies/:companyId/execution-workspaces` | List execution workspaces for the company. With `summary=true` you can page through results by adding `limit` (1 to 101, default 51) and `cursor` (the last row's `id`). The paged response is still a plain array, sorted by `id`. Invalid values return `422` with `Invalid workspace summary pagination`. |
+| `GET /api/execution-workspaces/:id` | Read one workspace. It returns the stored metadata and runtime service state without running Git or contacting a storage provider, so its delivery state is always `unknown`. Use close-readiness for a current Git safety check. |
+| `GET /api/execution-workspaces/:id/close-readiness` | Whether the workspace is safe to close (no pending operations, no dirty state). This is the read that inspects current Git state. |
 | `GET /api/execution-workspaces/:id/workspace-operations` | List the operations recorded against the workspace. |
 | `PATCH /api/execution-workspaces/:id` | Update a workspace. Body validated against `updateExecutionWorkspaceSchema`. |
 | `POST /api/execution-workspaces/:id/runtime-services/:action` | Run a runtime-service control action against the workspace. |

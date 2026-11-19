@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.707.0
+paperclip_version: v2026.1117.0
 seo_title: Secret Scopes and the Responsible User
 seo_description: Company-scoped secrets share one value; user-scoped secrets hold one per person. How a run resolves each, and how to see who reached for a secret.
 ---
@@ -24,7 +24,7 @@ Binding decides which doors ask for a badge: a definition bound to a target — 
 
 ## How a run resolves a secret
 
-Start from the definition. Creating a secret means declaring its scope up front — in the scope selector these read **Company**, meaning one shared value, or **Each user**, meaning one value per human. Scope is a property of the definition, so everyone in the company sees the same definition either way; what differs is who is expected to fill it.
+Start from the definition. Creating a secret means declaring its scope up front. Under **Who provides the value?** in the **Create secret** dialog you pick **Organization**, meaning one shared value, or **Each user**, meaning one value per human. Scope is a property of the definition, so everyone in the company sees the same definition either way; what differs is who is expected to fill it.
 
 ![A user-scoped secret definition in the secrets UI, with the user scope distinct from company scope](../user-guides/screenshots/light/secrets/user-secret-definition.png)
 

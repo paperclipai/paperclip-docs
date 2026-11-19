@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Building Your Org Structure
 seo_description: Reporting lines tell each agent who manages them, who delegates work, and who to escalate to. Common structures, plus adding managers and workers.
 ---
@@ -96,9 +96,7 @@ Manager-level agents (CTO, CMO, Head of Design, etc.) report directly to the CEO
 
 4. **Give it a title (and check its manager)**
 
-   Click **Edit configuration** on the confirmation screen (or open the agent and click **Harness / Runtime** in its side menu). In the **Agent identity** card, add a **Title** (e.g. "CTO") and confirm **Reports to** shows your CEO. Click **Save changes**.
-
-   ![The Agent identity card on Harness / Runtime, with the Reports to picker open and the CEO selected](../../user-guides/screenshots/light/agents/new-agent-reports-to-field.png)
+   Open the agent. Its title is the large heading at the top of the page, with the agent's name below it — click the heading, type a title (e.g. "CTO"), and press Enter. Then find **Reports to:** in the **Profile** panel on the agent's **Overview** page, and check that it names your CEO.
 
    The new agent now appears in the org chart under the CEO, and the CEO will start considering them when delegating work. Agent budgets are managed from **Audit → Budgets**.
 
@@ -106,14 +104,14 @@ Manager-level agents (CTO, CMO, Head of Design, etc.) report directly to the CEO
 
 ## Adding workers
 
-Workers report to a manager rather than directly to the CEO. The steps are identical to adding a manager — except that, after setup, you change **Reports to** from the CEO to a manager-level agent.
+Workers report to a manager rather than directly to the CEO. The steps are identical to adding a manager — except that, after setup, you move the new agent from the CEO to a manager-level agent.
 
 For example, to add a Backend Engineer who reports to your CTO:
 
 1. Click **New Agent**, name it "Jordan", and pick an adapter
 2. Configure the adapter, then click **Finish setup**
-3. Open **Harness / Runtime**, set **Title** to "Backend Engineer" and **Reports to** to your CTO
-4. Click **Save changes**
+3. Open Jordan's page, click the large title at the top, type "Backend Engineer", and press Enter
+4. Point Jordan at the CTO, as described in [Changing an agent's manager](#changing-an-agents-manager)
 
 The CTO can now delegate subtasks to Jordan. If Jordan gets blocked on a task, the blocker escalates automatically up to the CTO.
 
@@ -123,7 +121,31 @@ The CTO can now delegate subtasks to Jordan. If Jordan gets blocked on a task, t
 
 You can reassign an agent to a different manager at any time — after a reorg, or when you want to move someone to a different workstream.
 
-Open the agent, click **Harness / Runtime** in its side menu, and change **Reports to** in the **Agent identity** card. Click **Save changes** and the change takes effect immediately. Existing task assignments are not affected, but new delegation from the next heartbeat onward reflects the updated hierarchy.
+1. **Open the agent you're moving.** Its **Overview** page opens first. If you're on another of its pages, click **Overview** in the side menu.
+2. **Find Reports to: in the Profile panel.** It shows the current manager, linking to their page.
+3. **Click the pencil button** (**Change manager**) beside the manager. If the agent has no manager yet, the button reads **No manager** instead.
+4. **Pick the new manager.** The list shows the company's agents by name, leaving out anyone terminated. To have the agent report straight to the board, choose **No manager** at the top of the list.
+
+There's no save button: the change takes effect the moment you pick, and the **Reports to:** link in the **Profile** panel updates to the new manager. It's also recorded in the agent's [Agent history](./agents.md#agent-history). Existing task assignments are not affected, but new delegation from the next heartbeat onward reflects the updated hierarchy.
+
+A few things to know about the picker:
+
+- **Some agents are greyed out.** You can't choose the agent itself or anyone below it in the chart, at any depth. Hover one of them to see *Would create a reporting loop*.
+- **Paused agents can be picked.** An agent that can run work then shows an **Escalation path is paused** warning until that manager is resumed — see [Banners at the top of the page](./agents.md#banners-at-the-top-of-the-page).
+- **You need permission to configure the agent** (`agents:configure`). The picker still appears without it, but your choice is refused. When a change is refused for any reason, the reason appears under the picker and the agent keeps its current manager. See [Roles & Permissions](../../administration/roles-and-permissions.md#the-permission-keys).
+
+### Change it in YAML or through the API
+
+The picker saves the same `reportsTo` setting you can edit by hand, through the same permission checks and rules. To change it as YAML, for example alongside other settings in one save:
+
+1. **Copy the new manager's ID.** Open the manager's page, open the **⋯** actions menu at the top right, and click **Copy agent ID**.
+2. **Open the agent you're moving.** In its side menu, under **Agent**, click **Advanced**. This opens the agent's settings as a YAML document.
+3. **Set `reportsTo`.** Under `spec`, add or change the line `reportsTo: <manager's agent ID>`. To have the agent report straight to the board, write `reportsTo: null`.
+4. **Click Save changes.**
+
+Nothing is greyed out in the editor, so a bad choice is refused when you save, with *Agent cannot report to itself* or *Reporting relationship would create cycle*. See [Edit an agent as YAML](./agent-configuration-yaml.md) for more on the editor.
+
+If you'd rather script it, send the same field to the API: `PATCH /api/agents/{agentId}` with `{"reportsTo": "<manager's agent ID>"}` — see [Update Agent](../../reference/api/agents.md#update-agent).
 
 ---
 
@@ -165,21 +187,18 @@ For a text-only view, switch to **List view**. It shows the same agents as a fla
 
 ## Reassigning an agent via the chart
 
-You can reassign any agent to a different manager without leaving the chart. The flow is:
+The chart is the quickest way to get to the agents you want to rearrange. You can't drag cards between managers, but you can start a reassignment from it:
 
-1. **Click the card of the agent you want to move.** The chart opens the agent's page.
-2. **Click Harness / Runtime** in the agent's side menu and change **Reports to** in the **Agent identity** card to the new manager.
-3. **Click Save changes.** The reporting line is updated immediately, and when you return to the org chart, the card re-parents under the new manager. Existing task assignments are unaffected — only future delegation follows the new line.
-
-![The Agent identity card on Harness / Runtime with the Reports to picker open, selecting a new manager](../../user-guides/screenshots/light/org/reassign.png)
+1. **Click the card of the agent you want to move.** The chart opens the agent's **Overview** page.
+2. **Click the pencil button** beside **Reports to:** in the **Profile** panel, and pick the new manager. The reporting line is updated immediately, and when you return to the org chart, the card re-parents under the new manager. Existing task assignments are unaffected — only future delegation follows the new line.
 
 A few guardrails apply:
 
-- You cannot assign an agent to a manager that reports to it (no cycles).
-- A CEO starts with no manager, which means it reports to the board.
+- You cannot assign an agent to a manager that reports to it (no cycles). The picker greys those agents out.
+- A CEO starts with no manager, which means it reports to the board. Everyone below it is greyed out in its picker.
 - Reassigning a manager with reports moves the whole subtree under the new parent; the reports themselves keep their own reporting lines.
 
-> **Tip:** If you are doing a bigger reorg (swapping teams between two managers, for example), open the Agents page's org chart view in one browser tab and the agent's Harness / Runtime page in another. The chart refreshes automatically when you save, so you can use it as a live preview of the new structure.
+> **Tip:** If you are doing a bigger reorg (swapping teams between two managers, for example), open the Agents page's org chart view in one browser tab and the agent's **Overview** page in another. The chart refreshes automatically when a change saves, so you can use it as a live preview of the new structure.
 
 ---
 
@@ -189,8 +208,8 @@ The lines between cards are not just decorative — they encode the company's de
 
 - Every line points from a **manager** (top) to a **direct report** (bottom). The direction of the line mirrors how work and escalations travel: delegation flows down, status and blockers flow up.
 - **Multiple children** share a horizontal connector below the manager card so you can see the span of control at each level.
-- **Separate subtrees** mean separate reporting lines. If you ever end up with more than one root, it usually means an agent lost its manager (for example, after a termination) — fix it on the agent's **Harness / Runtime** page by setting **Reports to** again.
-- **Terminated agents** don't appear on the chart. If a terminated agent had reports, they show as their own separate roots at the top of the chart — a cue to give them a new **Reports to**.
+- **Separate subtrees** mean separate reporting lines. If you ever end up with more than one root, it usually means an agent lost its manager (for example, after a termination) — fix it by choosing a new manager with the **Reports to:** picker on its **Overview** page (see [Changing an agent's manager](#changing-an-agents-manager)).
+- **Terminated agents** don't appear on the chart. If a terminated agent had reports, they show as their own separate roots at the top of the chart — a cue to give them a new manager.
 
 Because the chart is the single source of truth for reporting structure, it is the fastest way to spot structural issues: a manager with far too many reports, a worker orphaned without a manager, or an adapter concentration risk where too much of the org runs on the same adapter.
 

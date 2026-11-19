@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Deploy Paperclip with Docker
 seo_description: Run a self-contained instance without installing Node or pnpm on the host. Covers the quickstart image, manual builds, and configuration.
 ---
@@ -116,6 +116,8 @@ The shipped image starts with `node server/dist-runtime/index.mjs`, a precompile
 Paperclip publishes a second image alongside the regular one: the **cloud variant**. If you are self-hosting, you almost certainly want the plain tag. The cloud variant exists for managed deployments and carries extra weight you do not need.
 
 The only difference is what is pre-built inside it. The cloud variant is the production image plus a small set of sandbox-provider plugins that have already been compiled. Managed instances receive a `plugins.autoInstall` list through `PAPERCLIP_MANAGED_CONFIG` and install those plugins from the bundled catalog at boot, which works only when each plugin's `dist/` output is already present in the image. The default image ships the plugin source but not the build output, so auto-install skips those plugins and logs that the bundle is not present.
+
+If one of those plugins needs deployment values, the same document can name them in `plugins.workerEnv`, and you set the values in the container's environment. See [Plugin variables and company access](./environment-variables.md#plugin-variables-and-company-access).
 
 Cloud images are published under the same tag set as the regular image, each tag carrying a `-cloud` suffix:
 

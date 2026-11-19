@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Projects: Grouping Related Work
 seo_description: Projects bind work to a repository, a working directory, and a budget envelope. Tour the tasks, workspaces, configuration, and budget tabs.
 ---
@@ -16,9 +16,9 @@ This guide walks through the project list, then the tabs you see when you open a
 
 ## Project List
 
-The Projects page lists every active (non-archived) project in the currently selected company. A toolbar across the top holds a **Search projects…** box, a **Sort: Name** control, and an **Add Project** button.
+The Projects page lists every active (non-archived) project in the currently selected company. A toolbar across the top holds a **Search projects…** box, a **Sort: Name** control, and a **Create project** button.
 
-![The Projects page with the Sort: Name control, a My Projects section listing two projects, and the Add Project button](../../user-guides/screenshots/light/projects/list.png)
+![The Projects page with the Sort: Name control, a My Projects section listing two projects, and the create button under its earlier name (screenshot from an earlier label)](../../user-guides/screenshots/light/projects/list.png)
 
 Projects are grouped into **My Projects** and, if you've left any, **Other Projects** (shown dimmed). Each section header shows how many projects it holds.
 
@@ -41,9 +41,9 @@ Archived projects are filtered out of this list. You can still reach them by fol
 
 To find a project quickly, type in the **Search projects…** box. It matches words in each project's name and description; if nothing matches, you'll see *"No projects match your search."* There are no other filters, but you can change the order. Click **Sort: Name** and choose **Name**, **Updated**, **Created**, or **Target date**. Click the active option again to flip between ascending and descending.
 
-The **Add Project** button opens the **Create project** dialog. Give the project a name and, if you want, pick source repositories or connect GitHub. Paperclip assigns a random color and starts the project in `planned` status. The Configuration tab is where you come back later to change repository bindings, environment variables, and execution workspace behaviour — the create dialog only covers the minimum a project needs to exist.
+The **Create project** button opens the **Create project** dialog. Give the project a name and, if you want, pick source repositories or connect GitHub. Paperclip assigns a random color and starts the project in `planned` status. The Configuration tab is where you come back later to change repository bindings, environment variables, and execution workspace behaviour — the create dialog only covers the minimum a project needs to exist.
 
-If the company has no projects yet, the list is replaced with an empty state prompting you to add the first one.
+If the company has no projects yet, the list is replaced with a large illustration, the message *No projects yet.*, and its own **Create project** button.
 
 ### Keeping projects (and agents) in your sidebar
 
@@ -167,6 +167,26 @@ Repository changes don't auto-save. When you've made your picks, click **Save ch
 
 When a workspace points at a GitHub repository, Paperclip imports that repository's skills into your library in the background and keeps them up to date. See [Skills from your project repositories](../org/skills.md#skills-from-your-project-repositories). The skill source follows the branch set on the workspace, so change the branch here, not in Skills.
 
+### Background GitHub authorization
+
+When a task runs, it reaches GitHub as that task's own identity. But some repository work happens with no task at all — a [storage plugin](../../administration/plugins.md#plugins-that-store-your-projects-code) setting up or cleaning out the project's workspaces, for example. For private repositories, that background work needs your permission to use your GitHub connection. Public repositories never need it.
+
+The **Background GitHub authorization** section, just below **Source repos**, is where you give that permission. Anyone who can edit the project's workspaces can authorize it or revoke the authorization; agents can't.
+
+1. Open **Select your GitHub account** and pick one of your own GitHub connections. Each is shown as your GitHub login and the connection's name.
+2. Click **Authorize project**.
+
+The section then shows **Authorized:** with the GitHub login in use. If the authorization belongs to another member, or the connection is no longer available, it reads *"selected grant (unavailable or owned by another member)"* instead. Click **Revoke authorization** to take the permission back, or pick a different account and authorize again to replace it.
+
+A few things to know:
+
+- **It's your connection.** Only your own active GitHub connections appear, and the GitHub Connector has to be installed for the company. If the list is empty, you'll see *"Connect your GitHub account and install the Connector for this company to authorize it."*
+- **It covers what the connection can reach.** The authorization follows your GitHub connection's current repository access, including repositories added to the project later. To change which repositories it can reach, manage them in the GitHub connection itself.
+- **It shares your connection's permissions.** The workspace provider gets a short-lived token with the connection's existing GitHub permissions. Paperclip checks your membership, your access to the project, and the connection every time before handing one out.
+- **Standard-trust projects only.** A project under [low-trust review](../../administration/trust-and-low-trust-review.md), or one whose trust policy Paperclip can't read, gets no token.
+- **Nothing starts without it.** Private repositories wait for an authorization before provisioning begins, so you won't end up with a half-made workspace. If the chosen connection stops working, Paperclip doesn't quietly switch to someone else's.
+- **Task runs aren't affected.** Running tasks keep using their own identity.
+
 ### Codebase and local folder
 
 Below the first divider, the **Codebase** section shows where the project's code lives on the machine running Paperclip. Use **Set local folder** (or **Change local folder**) to point the project at a directory. Agents work directly in this folder, or in isolated worktrees derived from it. If the project's primary workspace defines runtime services, they're listed here too.
@@ -189,7 +209,7 @@ When isolated workspaces are enabled, the Configuration tab shows an **Execution
 
 Click **Show advanced checkout settings** for the rest:
 
-- **Environment** — which environment isolated runs use (only shown when environments are enabled and more than one is available).
+- **Environment** — saves an environment choice on the project, and the task's workspace card shows it (only shown when environments are enabled and more than one is available). It doesn't pick where runs go: a run uses the agent's override, then the instance default. See [Environments](../../experimental/environments.md).
 - **Base ref** — the git ref (branch, tag, or commit) new isolated workspaces branch from.
 - **Branch template** — the naming convention Paperclip uses for new branches (for example, a template that includes the task identifier).
 - **Worktree parent dir** — where Paperclip places new git worktrees on disk.

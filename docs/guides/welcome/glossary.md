@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1023.0
+paperclip_version: v2026.1117.0
 seo_title: Glossary of Paperclip Terms
 seo_description: Every term in Paperclip's interface and docs, defined in plain English and sorted A-Z — the place to look when a word in a guide isn't clicking.
 ---
@@ -140,7 +140,7 @@ A scheduled, recurring instruction that fires on a defined schedule — for exam
 
 ### Run history
 
-A log of every heartbeat an agent has executed, with timestamps, status, and a full transcript of what happened. The run history is available on the agent detail page and is the primary tool for understanding what an agent did, and why.
+A log of every heartbeat an agent has executed, with timestamps, status, and a full transcript of what happened. On the agent's page, click **Runs** under **Audit** in its side menu to see it. It's the primary tool for understanding what an agent did, and why.
 
 ---
 
@@ -160,7 +160,7 @@ The CEO agent's initial plan for achieving the company goal. After its first hea
 
 ### Task
 
-The unit of work in Paperclip. Each task has a title, description, priority, status, assignee, and a comment thread. Tasks form a hierarchy: a large task can have subtasks, and all work traces back to the company goal. Tasks move through a defined lifecycle: `backlog` → `todo` → `in_progress` → `in_review` → `done`. They can also be `blocked` or `cancelled`.
+The unit of work in Paperclip. Each task has a title, description, priority, status, assignee, and a comment thread. Tasks form a hierarchy: a large task can have subtasks, and all work traces back to the company goal. Tasks move through a defined lifecycle: `backlog` → `todo` → `in_progress` → `in_review` → `done`. They can also be `blocked` or `cancelled`. An agent's `in_progress` task that's waiting on a scheduled monitor check, with no run going, shows as **Monitoring** in the UI, but its stored status is still `in_progress`.
 
 ---
 

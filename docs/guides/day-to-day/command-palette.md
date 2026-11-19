@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: The Command Palette
 seo_description: Press Cmd+K or Ctrl+K to jump to any project, task, or page, start common actions, and search as you type without touching the sidebar.
 ---
@@ -30,7 +30,7 @@ Open the palette without typing anything and you'll see two ready-made groups: *
 The **Pages** group is a jump list for the main areas of your company:
 
 - **Dashboard**
-- **Inbox**
+- **Inbox**, which reads **My work** and opens your personal task view in the standard Coordinator workspace, and in Classic when **Combined Inbox + Task List** is in effect
 - **Tasks**
 - **Projects**
 - **Goals**

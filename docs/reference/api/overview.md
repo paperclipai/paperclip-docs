@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: API Overview
 seo_description: The shared reference for Paperclip's JSON control-plane API — companies, agents, issues, approvals, costs, routines, secrets, activity, and dashboard state.
 ---
@@ -89,7 +89,7 @@ When a route is not company-scoped, it is usually because it operates on a globa
 
 ## Request Format
 
-For agent-submitted product feedback, see [Complaints and suggestions](../../administration/agent-commentary.md#submit-through-the-api). That endpoint requires an active authenticated agent run; board users cannot submit on an agent's behalf. Board users read submitted feedback through the separate [commentary read routes](../../administration/agent-commentary.md#read-commentary-through-the-api), which need `commentary:view`.
+For agent-submitted product feedback, see [Complaints and suggestions](../../administration/agent-commentary.md#submit-through-the-api). That endpoint requires an active authenticated agent run; board users cannot submit on an agent's behalf. Board users read submitted feedback through the separate [commentary read routes](../../administration/agent-commentary.md#read-commentary-through-the-api), which need `commentary:view`, except for the local board and instance admins. An agent can use those routes to read its own entries, or every entry if it holds `commentary:view`, which no agent has by default.
 
 Most API calls use JSON request bodies:
 
@@ -115,7 +115,7 @@ Error responses also return JSON and usually look like:
 }
 ```
 
-Some validation and domain errors also include a `details` field with structured context.
+Some validation and domain errors also include a `details` field with structured context. Others carry a top-level `code` and a `remediation` string you can act on, like the [board-only denials](#board-only-denials) below.
 
 ## Error Codes
 
@@ -136,6 +136,22 @@ Two useful distinctions:
 
 - `401` means the server does not accept the caller identity.
 - `403` means the caller is known, but not allowed to do this.
+
+### Board-only denials
+
+Some actions belong to people, not agents: budgets, secrets, members, plugin management, and similar controls. When an agent calls a board-only route, the `403` it gets usually carries a body built to stop it from hunting for a workaround:
+
+```json
+{
+  "error": "Board access required",
+  "code": "board_access_required",
+  "remediation": "This action is board-only by design and this denial is final: no agent credential, tool or other API route can do it, so do not search for one. Stop working on this step and reply now: tell the person that a board user must do it. ..."
+}
+```
+
+The `remediation` goes on to say where a person can do it. When Paperclip knows the board page that holds the control, it includes a Markdown link such as `[Open budgets](/<prefix>/activity/budgets)`, where the agent fills in `<prefix>` from its company's task prefix. Plugin management links only while plugin settings aren't hidden on the instance. These denials don't include a `details` field.
+
+Other callers that aren't board users get just `{ "error": "Board access required" }`.
 
 ## Health Check
 

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Sandbox Providers
 seo_description: Provider plugins that let Paperclip provision external compute as the execution environment for agent runs, instead of running them on the host.
 ---
@@ -11,6 +11,44 @@ Sandbox provider plugins let Paperclip provision external compute as the executi
 A sandbox provider plugin registers an `environmentDriver` of kind `sandbox_provider`. Once installed, the provider is available when you configure a sandbox environment under **Settings → Instance settings → Environments**.
 
 > **Note:** This overview covers selected configuration fields, not a complete schema reference. The fields below come from each provider's `README.md` in the parent repo at `v2026.512.0`; check your installed provider's documentation for its complete configuration.
+
+---
+
+## boxd (`provider: "boxd"`)
+
+Package: `@paperclipai/plugin-boxd`
+
+Reach for boxd when you want each agent run in its own isolated [boxd](https://boxd.sh) microVM, and you want a reused sandbox to pick up where it left off. With reuse on, the machine is suspended between runs and resumed with its disk, memory, and running processes intact, so later runs on the same issue skip the setup cost. Install it from the [Plugins](../../administration/plugins.md) page like the other first-party providers.
+
+Configure it from **Settings → Instance settings → Environments** with core `driver: "sandbox"` and `provider: "boxd"`; the driver shows up as **boxd Machine**. Put the boxd API key (`bxd_...`) on the sandbox environment itself. You can paste it or pick a saved Paperclip secret. The key decides which boxd org the machines belong to. `BOXD_API_KEY` remains an optional host-level fallback when an environment omits the key. One of the two is required; validation fails without it.
+
+The driver's `configSchema` exposes:
+
+| Field | Default | Purpose |
+|---|---|---|
+| `apiKey` | (none) | boxd API key: a pasted key or an existing Paperclip secret reference. Falls back to `BOXD_API_KEY` when omitted. |
+| `reuseLease` | `false` | Suspend the machine after a run and resume it for the next run on the same issue, instead of deleting it. |
+| `snapshot` | (none) | Optional snapshot name or ID to restore for each run, such as a machine with your tools preinstalled. Leave blank to start from the default boxd image (Ubuntu 24.04 with Node 24, git, Docker, Claude Code, Codex, and OpenCode). |
+| `vcpu` | (org default) | Size for fresh machines: `1` (1 vCPU/4 GB), `2` (8 GB), `4` (16 GB), or `8` (32 GB). Any other value is rejected. |
+| `org` | (API key's org) | Optional org name or ID. |
+| `namePrefix` | `paperclip` | Prefix for machine names. Machines are reachable at `https://<name>.boxd.sh`. |
+| `timeoutMs` | `3600000` | Default command timeout in milliseconds, also used as the default run timeout for this environment. Validated between `1` and `86400000`. |
+
+Everything below `reuseLease` sits behind **Advanced options**: `snapshot`, `vcpu`, `org`, and `namePrefix` in the **Machine** group, and `timeoutMs` in the **Runtime** group.
+
+A snapshot keeps its own size, so `vcpu` only applies to fresh machines. Setting both `vcpu` and `snapshot` fails validation; clear one of them.
+
+Each run's workspace is a `paperclip-workspace` folder in the machine's home directory, unless the run asks for a specific directory. **Test** (or **Test provider** on a saved environment) creates a short-lived probe machine, checks that it can set up the workspace, then deletes it.
+
+### Reusable leases (opt-in)
+
+Leave `reuseLease` off and every run gets a fresh machine that's deleted when the run releases it. Turn it on and the release suspends the machine instead. The next run resumes the same machine, waking it from whichever state it's in. Paperclip turns off boxd's own auto-suspend on the machines it creates, so the machine is suspended only when a run releases it.
+
+A few edge cases:
+
+- **The suspend fails.** Paperclip logs a warning and deletes the machine instead, so nothing is left running.
+- **The run is cancelled mid-work.** The machine is stopped rather than suspended.
+- **The machine is gone.** If it was deleted or failed in the meantime, the old lease counts as expired and the next run gets a fresh machine.
 
 ---
 
@@ -67,9 +105,10 @@ Daytona counts a *stopped* sandbox against your org's storage quota — only an 
 
 | Field | Default | Notes |
 |---|---|---|
-| `autoStopInterval` | `15` (minutes) | Stops idle running sandboxes, which frees CPU/RAM and starts the archive clock. `0` disables auto-stop. |
+| `autoStopInterval` | `15` (minutes) | Stops idle running sandboxes, which frees CPU/RAM and starts the archive clock. `0` disables auto-stop. Otherwise, a reusable sandbox that keeps a warm runner never auto-stops before the warm idle window plus 5 minutes, and a sandbox running a Paperclip runner never auto-stops before the host's runner reconnect grace plus 5 minutes. |
 | `autoArchiveInterval` | `60` (minutes) | Archives stopped sandboxes so they leave the disk quota. `0` uses Daytona's maximum interval. |
 | `autoDeleteInterval` | `10080` (minutes, 7 days) | Backstop reaper for sandboxes nobody resumes. `-1` disables auto-delete; `0` deletes immediately after stop. |
+| `ttlMinutes` | unset | Optional hard lifetime, in whole minutes from creation. Daytona destroys the sandbox and its files when it expires, in any state, even while it's running. It's separate from the inactivity intervals above. Leave it unset to keep the normal lifetime. |
 
 These defaults only apply when you leave a field unset — an explicit value (including `0` or `-1`) is forwarded to Daytona unchanged. Auto-archive is reversible: resuming an archived reusable sandbox restores it, so warm reuse still works under these defaults. If you genuinely need long-lived warm sandboxes, raise or disable the intervals.
 

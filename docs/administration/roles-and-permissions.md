@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Roles and Permissions Reference
 seo_description: The lookup table behind company access: four roles, every permission key, how grants combine by precedence, and where instance admin sits above it all.
 ---
@@ -48,23 +48,24 @@ A fifth option, **Unset**, appears in the role drop-down. It leaves the member w
 
 ## The permission keys
 
-There are twenty-one permission keys. Sixteen of them show up as defaults on one or more roles; five are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
+There are twenty-two permission keys. Sixteen of them show up as defaults on one or more roles; six are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
 
 | Permission key | What it allows | In which role by default |
 |---|---|---|
 | `agents:create` | Create (hire) new agents in the company | Owner, Admin, Operator |
-| `agents:configure` | Change an existing agent's setup — its adapter config, instructions, role, and budget | Owner, Admin, Operator |
-| `agents:suggest-changes` | Propose changes to an agent's setup for review, without applying them directly | — (explicit only) |
+| `agents:read` | Read an agent's redacted configuration, skill settings, instruction content, and configuration and instruction history. It can't change anything, roll back, or run an environment test | — (explicit only) |
+| `agents:configure` | Read and change an existing agent's setup — its adapter config, instructions, role, and budget | Owner, Admin, Operator |
+| `agents:suggest-changes` | Read an agent's setup and propose changes for review, without applying them directly | — (explicit only) |
 | `skills:create` | Create and manage company skills | Owner, Admin, Operator |
 | `skills:suggest-changes` | Propose changes to a company skill for review, without applying them directly | — (explicit only) |
 | `environments:manage` | Reserved for managing execution environments. Roles carry it, but the environment routes don't check it yet: creating and editing environments needs instance admin access. | Owner, Admin, Operator |
 | `tools:admin` | Set up the tool plumbing a company shares — the stdio command templates behind tool apps, and the MCP gateways agents connect through (including minting and revoking gateway tokens) | Owner, Admin, Operator |
-| `tools:manage_connections` | Choose which agents and projects a tool connection is installed on | Owner, Admin, Operator |
-| `tools:manage_profiles` | Reserved for tool profile management. It is grantable today but nothing checks it yet — see the note below | Operator |
-| `tools:view_audit` | Read the gateway's audit trail of tool calls | Operator |
+| `tools:manage_connections` | Create, change, reconnect, and remove the company's connections — tools, chat endpoints, email inboxes, and AI accounts | Owner, Admin, Operator |
+| `tools:manage_profiles` | Edit tool profiles, company tool policies, and trust rules, and — together with `tools:manage_connections` — turn a connection's company-wide install on or off | Operator |
+| `tools:view_audit` | Read the gateway's audit trail of tool calls, and a connection's activity history | Operator |
 | `audit:view_agent_actions` | Open the company's **Audit** feed — the record of what agents did — and download it as CSV | Operator |
 | `commentary:view` | Read agent complaints and suggestions on the **Commentary** tab in **Audit** | Owner, Admin, Operator, Viewer |
-| `tools:use` | Try a connection's tools from the board — the test-call surface | Owner, Admin, Operator |
+| `tools:use` | Try a connection's tools — the test-call surface. `tools:manage_connections` also covers test calls for a person | Owner, Admin, Operator |
 | `tools:manage_runtime` | Inspect the tool runtime slots that are running, and stop or restart them | Owner, Admin, Operator |
 | `inbox:manage` | Act on *another* person's inbox. An agent working its own responsible user's inbox does not need this key — see the note below | — (explicit only) |
 | `users:invite` | Create and revoke company invite links | Owner, Admin, Operator |
@@ -78,13 +79,14 @@ There are twenty-one permission keys. Sixteen of them show up as defaults on one
 
 Two of the keys come in matched pairs — a *direct* key that applies a change immediately, and a *suggest* key that only proposes one for review:
 
-- **`agents:configure`** lets a member change an existing agent directly. **`agents:suggest-changes`** is the softer counterpart: an agent that holds it (but not `agents:configure`) can *propose* a change to another agent's instructions or profile, which takes effect only once the change is accepted. This is what powers coaching flows like the built-in [Reflection Coach](../reference/api/built-in-agents.md#the-reflection-coach) — it can suggest an improvement to an agent's `AGENTS.md` without hot-swapping it.
+- **`agents:configure`** lets a member change an existing agent directly. **`agents:suggest-changes`** is the softer counterpart: an agent that holds it (but not `agents:configure`) can *propose* a change to another agent's instructions or profile, which takes effect only once the change is accepted. This is what powers coaching flows like the built-in [Reflection Coach](../reference/api/built-in-agents.md#the-reflection-coach) — it can suggest an improvement to an agent's `AGENTS.md` without hot-swapping it. Both keys also let the holder read the agent's setup, so neither needs `agents:read` as well. Neither key lets an agent terminate another agent. Termination needs a board user on both routes: an agent that calls `POST /api/agents/:id/terminate`, or `PATCH /api/agents/:id` with `status: "terminated"`, gets a `403` with a link to the agent's profile.
 - **`skills:create`** lets a member author and edit company skills directly. **`skills:suggest-changes`** is meant for proposing a skill edit for review, but neither key decides on its own: the [company skill policy](../reference/api/company-skill-policy.md) governs who can edit company skills.
 
 ### About the explicit-only keys
 
-Five keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
+Six keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
 
+- **`agents:read`** is the read-only way to look at how an agent is set up. See [Reading agent configuration](#reading-agent-configuration).
 - **`agents:suggest-changes`** and **`skills:suggest-changes`** — the review-gated proposal keys described just above. Grant them to an agent you want proposing improvements without direct write access.
 - **`tasks:assign_scope`** is how you let someone delegate *within their lane* without giving them company-wide assignment power. When a member has `tasks:assign_scope` but not `tasks:assign`, Paperclip evaluates the grant against the scope attached to it and allows the assignment only if the target falls inside that scope. Set the scope in the grant payload (via the member editor's grant, or `member role-and-grants` on the CLI).
 - **`tasks:manage_active_checkouts`** is an escape hatch. Normally an issue that an agent has checked out is off-limits to others until it's released; this grant lets the holder reassign or clear that active checkout — handy when an agent has stalled mid-task.
@@ -92,15 +94,63 @@ Five keys never appear in a role's defaults, so a member only receives them thro
 
 > **`inbox:manage` and the low-trust preset.** Agents running under the low-trust review preset are denied `inbox:manage` by default, alongside the other company-wide and privileged actions. Raising an agent's trust preset is a separate decision from granting the key — a low-trust agent holding the grant is still refused.
 
+### Reading agent configuration
+
+Use `agents:read` when you want an agent to check how its teammates are set up without being able to change them. For example, an agent that hires a teammate can confirm the instructions were saved.
+
+Any one of these three keys lets an agent read another agent's setup:
+
+- **`agents:read`** only reads. The holder sees redacted configuration, skill settings, instruction content, and configuration and instruction history. It can't make changes, roll back a revision, or run an environment test.
+- **`agents:configure`** reads and changes directly.
+- **`agents:suggest-changes`** reads, and applies a change only after it's been accepted.
+
+A grant with a scope, such as `{ "agentIds": ["<agent-id>"] }`, covers only those agents. For an agent to list every agent's configuration at once, it needs a company-wide grant.
+
+**Who gets it by default:**
+
+- **People:** no role includes it. A company member can already read redacted configuration, skills, and configuration history through their membership alone.
+- **New standard agents:** they receive it when they're created or their hire is approved, along with `agents:configure` and `agents:suggest-changes`.
+- **Low-trust agents:** they don't receive it. Paperclip also refuses configuration reads from a low-trust agent that holds a grant.
+- **Managed built-in agents:** they don't receive it and keep their own narrower grants. The [Reflection Coach](../reference/api/built-in-agents.md#the-reflection-coach) reads through `agents:suggest-changes`.
+
+**Existing agents get one read-only grant on upgrade.** A one-time migration adds `agents:read`, and nothing else, to existing standard agents that are ready, pausing, paused, or resuming and have an active company membership. It adds the grant even if the agent has no `agents:configure` or `agents:suggest-changes` grant. It skips:
+
+- Managed built-in agents
+- Low-trust agents, and any agent with a non-standard trust policy
+- Agents that are pending approval or terminated
+- Agents still in setup
+- Agents with a scoped `agents:configure` or `agents:suggest-changes` grant
+
+An agent that already holds `agents:read` keeps its scope. Each addition appears in the activity log as `agent.permissions_updated`. If you remove the grant afterwards, it stays removed: ordinary updates and restarts don't add it back.
+
+**Agents can read themselves.** A standard agent doesn't need any of these keys to read its own redacted configuration, skills, and configuration history, though the responsible-user rule below still applies. A low-trust agent can't, and gets a narrower view of itself instead.
+
+**The responsible user still counts.** When an agent acts for a responsible user, that person needs one of the three keys too. Owners, Admins, and Operators have `agents:configure`. An agent working for a Viewer, or for a member with no role and no grant, is refused with `RESPONSIBLE_USER_UNAUTHORIZED`. Giving that person `agents:read` is enough to lift the limit for reads.
+
 ### About the tool, audit, and commentary keys
 
 These keys are no longer explicit-only, but they're spread unevenly across the roles, so it helps to see them together:
 
-- **The six `tools:*` keys.** Operators get all six. Owners and Admins get four — `tools:manage_connections` (decide which agents get a connection), `tools:manage_runtime` (babysit running tool processes), `tools:use` (test-call a tool), and `tools:admin` (wire up apps and gateways) — but not `tools:view_audit` (read the gateway's call trail without touching the setup) or `tools:manage_profiles` (reserved and unchecked — see the note below). Viewers get none. Note that `tools:admin` is not a superset, so holding it does not imply the others. Grant each key you actually need.
+- **The six `tools:*` keys.** Operators get all six. Owners and Admins get four — `tools:manage_connections` (set up and change connections), `tools:manage_runtime` (babysit running tool processes), `tools:use` (test-call a tool), and `tools:admin` (wire up apps and gateways) — but not `tools:view_audit` (read the gateway's call trail without touching the setup) or `tools:manage_profiles` (edit profiles and policies — see the note below). Viewers get none. Note that `tools:admin` is not a superset, so holding it does not imply the others. Grant each key you actually need.
 - **`audit:view_agent_actions`** is part of the **Operator** bundle; anyone else needs an explicit grant. It opens the **Audit** page in the sidebar — the company-wide feed of what your agents did, and the matching **Audit** tab on an individual agent. It also covers the **Export CSV** button on that page. Without the grant, the page still loads but shows a permission notice instead of the feed, so you can hand it out to an auditor or a compliance reviewer without giving them anything else. Two exceptions bypass the check: instance admins, and a board running in local trusted mode. Worth knowing before you grant it — the export is itself recorded in the log, together with who ran it, which filters they used, and how many rows left the system. This key is separate from `tools:view_audit`: that one covers the tool gateway's call trail, this one covers agent actions across the company.
-- **`commentary:view`** is in every role's bundle, Viewer included. It lets a member read the **Commentary** tab in **Audit**, where your agents' [complaints and suggestions](./agent-commentary.md) land, and the matching read API. People who accept an invite get it even when the invite carries a hand-picked list of grants. Because it's a role default, the server adds it back on restart if a member is missing it, like any other role default. It doesn't open the agent-action feed or its CSV export — those stay with `audit:view_agent_actions` — and it never shows a message from a task the member can't see. Instance admins and a board in local trusted mode can read commentary without it.
+- **`commentary:view`** is in every role's bundle, Viewer included. It lets a member read the **Commentary** tab in **Audit**, where your agents' [complaints and suggestions](./agent-commentary.md) land, and the matching read API. People who accept an invite get it even when the invite carries a hand-picked list of grants. Because it's a role default, the server adds it back on restart if a member is missing it, like any other role default. It doesn't open the agent-action feed or its CSV export — those stay with `audit:view_agent_actions` — and it never shows a message from a task the member can't see. Instance admins and a board in local trusted mode can read commentary without it. Agents don't hold this key by default: without it, an agent can read only its own commentary. See [Read commentary through the API](./agent-commentary.md#read-commentary-through-the-api).
 
-> **`tools:manage_profiles` is not wired up yet.** The key exists and you can grant it, but no endpoint checks it in this build. Editing tool profiles today only requires an active membership with any role other than Viewer. Treat the key as reserved: granting it changes nothing, and withholding it blocks nothing.
+> **How the tool keys apply to connection setup.** Viewing a connection's setup only needs an active membership, Viewer included. Changing anything needs a role other than Viewer plus the key from the table above. A few shortcuts apply:
+>
+> - **Your own connections.** You can view, change, and install a connection you created, or one where each person signs in separately and you've connected your own account, without `tools:manage_connections` or `tools:manage_profiles`.
+> - **Choosing which agents get a connection.** If the company-wide install stays as it is, you need `agents:configure` for the agents involved and access to the connection yourself — not `tools:manage_profiles`.
+> - **Owners and Admins without `tools:manage_profiles`.** Their `tools:admin` key covers profile, policy, and company-wide install changes instead.
+> - **Named MCP gateways.** A person needs `tools:admin` to create or change one, or to mint or revoke its tokens.
+>
+> Agents use the same keys when they set up connections for someone, and they're also limited to what their responsible user could do. See [When an agent sets up a connection for you](../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you).
+
+### Checking a person's role
+
+An agent that needs to confirm who approved something, for example that the approver is an Owner, can read the company's user directory without any admin key:
+
+`GET /api/companies/{companyId}/user-directory`
+
+The response is `{ "users": [...] }`, with one entry per active person in the company: `principalId`, `status`, `membershipRole`, and `user` (`id`, `name`, `email`, `image`). `membershipRole` is the person's exact role, such as `owner`, or `null` if they have none. Any board user or agent in the company can read it. The member list and member changes still need `users:manage_permissions`.
 
 ---
 

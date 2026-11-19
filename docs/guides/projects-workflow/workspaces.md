@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Execution Workspaces
 seo_description: Give agents a real folder with your code checked out. Covers workspace modes, keeping reused workspaces consistent, runtime services, and HTTPS previews.
 ---
@@ -64,10 +64,27 @@ This is the right choice for tasks that make code changes — features, fixes, e
 **Reuse existing workspace**
 The task shares a workspace with another task or a previous run. Multiple tasks can share one workspace so they can work against the same branch and see the same running services.
 
-This is useful when tasks are closely related and need to coordinate on the same state — for example, multiple issues working against the same feature branch.
+This is useful when tasks are closely related and need to coordinate on the same state — for example, multiple issues working against the same feature branch. It works between tasks that aren't parent and child. A subtask can't reuse a workspace from the task above it; see [Subtasks get their own workspace](#subtasks-get-their-own-workspace).
 
 **Project primary workspace**
 The task runs in the project's primary checkout, not an isolated copy. Use this carefully — changes made here affect the shared working copy directly.
+
+### Subtasks get their own workspace
+
+A parent task and its subtask often run at the same time. To stop them from overwriting each other's files, Paperclip gives a subtask its own execution workspace, built from the project base the same way a top-level task's workspace is.
+
+A subtask keeps its parent's project and workspace strategy: the mode, base ref, branch template, provision and teardown commands, environment, and runtime settings. It never gets the parent's checkout, branch, or unmerged changes. If a subtask needs work the parent hasn't merged yet, merge that work first.
+
+The exception is shared workspace mode. There, every task uses the project's one folder, subtasks included. A branch the project itself pins also applies to every task in the project.
+
+A few cases work a little differently:
+
+- **The parent reuses a workspace or works on a named branch.** Those modes point at specific files, so they don't carry over. The project's default applies instead.
+- **The subtask is in a different project.** It doesn't take the parent's strategy. It uses its own project's defaults.
+- **The parent has no project workspace.** The parent worked in its own task files, so the subtask takes the project's defaults, like a top-level task.
+- **Something names a workspace from above.** If a create request sets `executionWorkspaceId` or an `existing` workspace selection to a workspace that the new task's parent, or another task above it, created or is bound to, Paperclip drops that choice and keeps only the strategy.
+- **`inheritExecutionWorkspaceFromIssueId`.** This field copies only the source task's project and workspace strategy, whether or not the source is the new task's parent. The new task still gets its own workspace.
+- **An older subtask already shares a workspace from above.** It moves to its own workspace the next time it starts normally. A run still going finishes where it is, and so does a retry that keeps the current workspace or a run that still has workspace cleanup or recovery to settle. The parent and its workspace aren't changed, and anything the subtask left there stays put.
 
 ---
 
@@ -75,7 +92,7 @@ The task runs in the project's primary checkout, not an isolated copy. Use this 
 
 Reusing a workspace is convenient, but it raises a fair question: what happens when two different agents — with two different intended environments — land in the same workspace? Paperclip closes that gap so a reused workspace never quietly drifts.
 
-- **No silent environment reuse.** Each task run has an intended environment, resolved in this order: an environment set explicitly on the issue always wins; otherwise the project's workspace-policy environment applies; otherwise the agent's own default environment; and the instance default is the final fallback. (An agent deliberately pinned to the local default is never promoted off it by a project policy — only an explicit issue-level environment can move it.) When a run reuses a workspace whose environment doesn't match the run's intended one, Paperclip treats that as a conflict to surface rather than silently inheriting whatever the previous occupant left behind.
+- **No silent environment reuse.** Each task run has an intended environment, resolved in this order: a sandbox an operator picked for a [low-trust](../../administration/trust-and-low-trust-review.md) task wins; otherwise the agent's own default environment; then the instance default; and running locally is the final fallback. Instance-wide execution policies still apply on top: forced Kubernetes execution sends runs to the Kubernetes environment, and managed-sandbox-only mode moves a run that would land on the local environment onto the managed sandbox. When a run reuses a workspace whose environment doesn't match the run's intended one, Paperclip treats that as a conflict to surface rather than silently inheriting whatever the previous occupant left behind.
 - **Dependent issues wait for finalize.** When an issue depends on another, its wake no longer fires before the upstream workspace has finished finalizing. The dependent task only starts once the workspace it relies on is in a consistent, settled state — so it never reads a half-written checkout.
 - **Accepting an interaction waits too.** Accepting a plan or review (`issue.interaction.accept`) now waits for the workspace to finalize before it proceeds, for the same reason.
 
@@ -274,7 +291,7 @@ The **Workspace settings** card holds the editable fields for the workspace. Mos
 - **Provider path / ref** — the path or reference used by the workspace provider. For git worktrees this is the worktree path; for other providers it's whatever reference that provider needs.
 - **Repo URL** — the remote URL the working directory was cloned from. Used for linking out to GitHub/GitLab in the UI.
 - **Base ref** — the ref the workspace branched off from, for example `origin/main`.
-- **Provision command** — runs when Paperclip prepares this execution workspace (for example, a script that clones a worktree and installs dependencies).
+- **Provision command** — runs when Paperclip prepares this execution workspace (for example, a script that clones a worktree and installs dependencies). If you leave it empty on a git worktree and your repository has a `scripts/provision-worktree.sh` file, Paperclip runs `bash ./scripts/provision-worktree.sh` instead. A command you set always wins.
 - **Teardown command** — runs when the execution workspace is archived or cleaned up.
 - **Cleanup command** — an optional workspace-specific cleanup step that runs before teardown (for example, killing a stuck `vite` process).
 
@@ -384,7 +401,7 @@ If nothing about a failure is obvious from the excerpt, remember that excerpts a
 
 ## Tasks tab
 
-The Tasks tab shows every issue that has ever run against this execution workspace — not just the source issue that created it, but any follow-ups, retries, and related tasks that inherited the workspace.
+The Tasks tab shows every issue that has ever run against this execution workspace — not just the source issue that created it, but also retries and any other task set to reuse the workspace.
 
 ![Tasks tab](../../user-guides/screenshots/light/workspaces/issues.png)
 
@@ -408,9 +425,9 @@ If an issue in the list needs to be reassigned or rescheduled before you can clo
 Two different relationships show up on the Tasks tab and in the Configuration tab's Workspace context card, and it's worth keeping them straight:
 
 - The **source issue** is the single issue that originally caused Paperclip to provision this workspace. It's stored on the workspace itself and appears in the Workspace context card. For isolated worktrees created from a specific task, this will typically be the task that kicked the whole flow off.
-- The **linked issues** listed on the Tasks tab are every issue that has ever been attached to this workspace, including the source issue, follow-up child issues that inherited the workspace, and any issue whose `inheritExecutionWorkspaceFromIssueId` pointed back here.
+- The **linked issues** listed on the Tasks tab are every issue that has ever been attached to this workspace, including the source issue and any issue set to reuse it. Subtasks normally aren't in this list, because each one [gets its own workspace](#subtasks-get-their-own-workspace).
 
-When you're deciding whether it's safe to archive, look at the full linked list, not just the source issue. An archived workspace takes all its branch state with it, and a follow-up issue that still references it will end up without a valid cwd the next time it runs.
+When you're deciding whether it's safe to archive, look at the full linked list, not just the source issue. An archived workspace takes all its branch state with it, and a task that still references it will end up without a valid cwd the next time it runs.
 
 ---
 
@@ -422,6 +439,8 @@ Closing a workspace is a two-step operation in Paperclip:
 2. **Teardown** — the teardown command then dismantles the workspace itself. For git worktrees this typically removes the worktree directory and prunes the branch; for other providers it does whatever that provider considers cleanup.
 
 If both succeed, the workspace transitions to `archived` and disappears from the default workspace list. If either fails, the workspace transitions to `cleanup_failed` — it's still there, still visible, and the **Close workspace** button changes to **Retry close** so you can try again after fixing whatever went wrong. Until a retry succeeds, the workspace keeps whatever state it had before the close was attempted.
+
+A shared workspace that's a plain folder, with no Git repository, can close normally: Paperclip treats it as having no Git state to lose. If a folder has a `.git` entry that Paperclip can't read, such as a broken pointer, the close is still blocked with *Paperclip could not verify the workspace git status. Retry before destructive cleanup.*
 
 Some practical tips:
 
@@ -447,18 +466,18 @@ Plain Git expiration only removes a worktree it can rebuild exactly from upstrea
 
 Restore points build on Git expiration, so they only do anything while `PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED` is `true` (and they follow its dry-run setting). Turn them on with `PAPERCLIP_GIT_RESTORE_POINTS_ENABLED=true`. They're off by default, and they only cover Paperclip-owned isolated Git worktrees, not workspaces a storage plugin manages.
 
-**What a restore point saves.** Your uncommitted and staged changes, untracked files, local commits that aren't on upstream, and file permissions. Each nested project repository under `.paperclip-repositories/` that has unsaved work gets its own restore point. A few things are never saved:
+**What a restore point saves.** Your uncommitted and staged changes, untracked files, local commits that aren't on upstream, file permissions, and ignored files that aren't regenerable build output or caches. Each nested project repository under `.paperclip-repositories/` that has unsaved work gets its own restore point. If a nested checkout was converted from an older standalone clone, it can still carry copies of upstream branches that were later deleted or force-pushed. Their commits go into the restore point too, so they no longer keep the worktree on disk. Another local branch (or, in a standalone nested clone, a tag) with commits its remote doesn't have still keeps the worktree on disk. A few things are never saved:
 
-- Files named `.env` or `.env.*` that Git doesn't track. Paperclip deliberately leaves them out. When the worktree has other unsaved work to save, they don't keep it on disk, so they're gone once it's removed. Recreate them, for example from your provision command. If they're the only unsaved files in the worktree, there's nothing to save and the worktree stays on disk.
+- Files named `.env` or `.env.*` that Git doesn't track. Paperclip deliberately leaves them out, and they don't keep the worktree on disk either, so they're gone once the worktree is removed. Recreate them, for example from your provision command.
 - Regenerable folders such as `node_modules` and `dist`. The provision command rebuilds them, just as it does after compaction.
 
-If a worktree can't be captured, it simply stays on disk as before. That happens, for example, when it has other ignored files, submodules, special files, a nested repository Git doesn't track, files that go through a Git filter such as LFS, unresolved merge conflicts, or a draft commit message left by an aborted commit. It also happens when the save would be too big: more than 20,000 changed files, a single file over 64 MiB, more than 256 MiB of changes in total, or more than 1,000 unpushed commits. A nested repository also keeps the worktree on disk when another local branch or tag has commits its remote doesn't.
+If a worktree can't be captured, it simply stays on disk as before. That happens, for example, when it has submodules, special files, a nested repository Git doesn't track, files that go through a Git filter such as LFS, unresolved merge conflicts, or a draft commit message left by an aborted commit. It also happens when the save would be too big: more than 20,000 changed files, a single file over 64 MiB, more than 256 MiB of changes in total, or more than 1,000 unpushed commits. The limits are much higher when `PAPERCLIP_ISOLATED_SOURCE_REHOME_ENABLED` moves a workspace's private clone onto the project's shared clone (see [Extra project repositories share one clone](#extra-project-repositories-share-one-clone)): up to 500,000 changed files and 1 GiB of changes, because that transfer stays on the same machine. Converting nested clones still uses the normal limits.
 
-**When it happens.** A finished task tree gets a restore point once all of its tasks have been done or cancelled for `PAPERCLIP_GIT_RESTORE_POINT_TERMINAL_DELAY_DAYS` (three days by default). Restore points can also clear out worktrees of tasks that are still open but have gone quiet. If nothing in the task tree, in other tasks using the workspace, or in their runs has changed for `PAPERCLIP_GIT_RESTORE_POINT_IDLE_DAYS` (seven days by default), Paperclip removes the worktree, saving a restore point first if it has unsaved work. A queued or running run, a running service, or a pending recovery always keeps the worktree in place.
+**When it happens.** A finished task tree gets a restore point once all of its tasks have been done or cancelled for `PAPERCLIP_GIT_RESTORE_POINT_TERMINAL_DELAY_DAYS` (three days by default). Only the tasks that actually use the workspace count here. If you close a parent task while its children stay open in their own workspaces, the parent's worktree can still be saved and removed. Restore points can also clear out worktrees of tasks that are still open but have gone quiet. If nothing in the task tree, in other tasks using the workspace, or in their runs has changed for `PAPERCLIP_GIT_RESTORE_POINT_IDLE_DAYS` (seven days by default), Paperclip removes the worktree, saving a restore point first if it has unsaved work. A queued or running run, a running service, or a pending recovery always keeps the worktree in place.
 
 **Where it's kept.** Each restore point is encrypted with its own key, which is in turn protected by the instance's secrets master key. The encrypted file goes into the instance's configured [storage](../../reference/deploy/storage.md). If that storage is S3, set `PAPERCLIP_SECRETS_MASTER_KEY` as an environment variable. Without it, worktrees that need a restore point stay on disk, because a key that only lives on the server's disk might not outlast the bucket.
 
-**Getting the work back.** You don't have to do anything. When an agent picks the task up again, or a comment or agent update reopens it, Paperclip rebuilds the worktree at its saved commit and then applies the restore point on top, so the agent finds its files as it left them. If the restore fails, nothing starts in an empty workspace: the run fails, or the comment or update that reopened the task is rejected with a retryable error, and you can try again. Paperclip never overwrites a worktree that has diverged from the saved state.
+**Getting the work back.** You don't have to do anything. When an agent picks the task up again, or a comment or agent update reopens it, Paperclip rebuilds the worktree at its saved commit and then applies the restore point on top, so the agent finds its files exactly as it left them. If the restore fails, nothing starts in an empty workspace: the run fails, or the comment or update that reopened the task is rejected with a retryable error, and you can try again. Paperclip never overwrites a worktree that has diverged from the saved state.
 
 **How long they last.** `PAPERCLIP_GIT_RESTORE_POINT_RETENTION_DAYS` (90 by default) counts from when the last task in the tree was done or cancelled. While any task in the tree is open, the restore point is kept. Once the window passes, Paperclip deletes the restore point and records that it has expired. Deleting the task or the company removes its restore points promptly.
 
@@ -469,6 +488,23 @@ If a task's workspace comes back after its restore point has been deleted, inclu
 > The saved state of this workspace expired, so it was reopened as a fresh workspace on its branch. Unpushed and uncommitted work from before it was cleaned up is no longer available.
 
 The branch picks up from its tip if the repository still has it. Otherwise Paperclip creates it again from the base ref. Anything you pushed is still on your remote, but treat unpushed and uncommitted work from before the cleanup as gone. The same warning is recorded on the workspace's `execution_workspace.reopened` activity.
+
+#### Private repositories
+
+When expiration, a re-home, a nested clone migration, or a reopen needs to reach a workspace's remote, it signs in as the task itself: the task's responsible user and assigned agent, the same identity the agent's own runs use. So workspaces with private repositories expire, move, and come back just like public ones, instead of staying on disk because the remote couldn't be read.
+
+### Task directories without a repository
+
+A task in a project with no repository doesn't get a Git worktree. Its agent works in a plain task directory under the instance's `isolated-workspaces` folder, one per company and task. Git expiration can't help with those, so operators can let Paperclip reclaim them separately:
+
+1. **Saved, then removed.** Once every task in the tree has been done or cancelled for `PAPERCLIP_GIT_RESTORE_POINT_TERMINAL_DELAY_DAYS` (three days by default), Paperclip saves the whole task directory as an encrypted restore point, archives the workspace, and removes the directory. A `node_modules` folder that sits next to a `package.json` is left out, because it can be reinstalled. The same size limits as worktree restore points apply. A directory that's too big stays on disk. One that changes while it's being saved stays too, and Paperclip tries again later.
+2. **Restored on reopen.** When the task reopens, Paperclip puts the directory back exactly as it was before the agent starts. If the restore point has already expired, the task gets an empty directory and this system comment:
+
+   > The saved files of this task directory expired, so it was reopened as an empty directory. Files from before it was cleaned up are no longer available.
+
+3. **Orphans cleared after a grace period.** Some task directories have no live workspace attached, for example because a shared workspace was archived by hand and the task no longer points at it. Paperclip deletes one once two things are true for `PAPERCLIP_TASK_DIRECTORY_ORPHAN_GRACE_DAYS` (seven days by default): its task tree has been closed that long, and none of its files has changed in that time. If the task no longer exists, only the file check applies. No restore point is made for these, and an active run, service, lease, or recovery action always keeps the directory.
+
+Turn it on with `PAPERCLIP_TASK_DIRECTORY_RETENTION_ENABLED=true`. It doesn't need Git expiration, but saving and removing finished directories needs restore points (`PAPERCLIP_GIT_RESTORE_POINTS_ENABLED=true`, plus `PAPERCLIP_SECRETS_MASTER_KEY` on S3 storage). It starts in dry-run mode, where it only logs each directory it inspects (look for `Isolated task directory retention inspected` and `Isolated task directory inspected`, with an outcome of `dry_run` and the bytes it would free). Set `PAPERCLIP_TASK_DIRECTORY_RETENTION_DRY_RUN=false` when you're happy with what it reports.
 
 ---
 
@@ -481,7 +517,7 @@ When something doesn't behave, run through this checklist before filing a bug:
 - **Does the runtime config actually apply?** Look at Runtime config source on the Configuration tab. If it says "None", no service commands will be available.
 - **Is another workspace holding the port?** Two isolated worktrees on the same machine that both inherit a dev server config will both try to bind. Either override the port on one of them or only start one at a time.
 - **Did a previous close fail?** If the workspace is in `cleanup_failed`, you'll keep getting stale state until you either retry the close or manually fix the underlying problem and then retry.
-- **Is the agent looking at the right workspace?** When follow-up tasks are created, make sure either `parentId` or `inheritExecutionWorkspaceFromIssueId` is set on the child issue so Paperclip can resolve it back to this workspace.
+- **Is the agent looking at the right workspace?** A subtask, or a task created with `inheritExecutionWorkspaceFromIssueId`, gets [its own workspace](#subtasks-get-their-own-workspace) and won't see this one's files. To work here on purpose, choose **Reuse existing workspace** on a task that isn't a subtask of the one using this workspace.
 
 Most workspace-level issues come down to one of these six questions.
 
@@ -491,6 +527,8 @@ Two workspace problems show up in the task thread, as a notice or a **Retry** bu
 
 - **The starting branch doesn't exist.** If a task asks for a branch the repository doesn't have (say `main` in a repository that only has `master`), the notice says the branch wasn't found. When Paperclip can read the repository's default branch, it offers a **Use `<branch>` & retry** button. Otherwise, choose **Choose another branch**, type one under **Starting branch**, and click **Save branch & retry**. This changes only that task's starting branch, and Paperclip never switches branches silently.
 - **The task couldn't start because its workspace is restricted.** An older task can keep its workspace inside a shared project checkout that also holds another task's workspace. If this run can't read that other task, Paperclip stops before the agent starts rather than copy restricted files, and a **Retry** button appears above the task's message box in place of the usual notice. Click **Retry** and Paperclip moves the task to its own isolated workspace from the project's repository, on a fresh branch for the task, then starts it again with the same agent, model, and environment. You don't need to pick a workspace or ask for access to the other task. The old workspace is kept as it was: its local files aren't copied over or deleted, so push any unpublished work from it if you still need it. If you've already chosen a new workspace for the task, Retry uses your choice instead. When Retry is greyed out, hover it to see why (for example, *"Wait for the current run to finish."*). A fresh task that uses the project's default workspace doesn't hit this: in the same situation it gets its own clone of the project's remote repository instead.
+
+Other workspace problems do fail the run, and the task page tells you why. Once Paperclip has stopped retrying, the status line reads *Couldn’t prepare the task folders.* followed by the reason, for example *Import the local folder for project "Billing" before attaching it to a remote task.* or *A saved project folder is no longer accessible or its trust policy no longer permits this task.* Sensitive details are redacted first. Fix what it names, then click **Retry**.
 
 If a task's sandbox was destroyed before its edits were saved, the last run stays failed and the task offers **Continue from saved sources**. A board member with runtime access picks the task attachments to rebuild from, records what's still missing and which external actions must not be repeated, and clicks **Rebuild and continue**. Paperclip starts a fresh session through its normal execution checks. The lost edits themselves aren't recovered, so attach any surviving source files to the task first.
 
@@ -513,9 +551,28 @@ When Paperclip provisions an isolated workspace:
 
 From the agent's perspective, all of this is invisible — it just gets a `cwd` that's ready to read, edit, and run. From your perspective as a board operator, the Concrete location card on the Configuration tab shows exactly which path and branch were picked, so you can always drop into that directory yourself to inspect or debug.
 
+### Extra project repositories share one clone
+
+When a project has more than one repository, each task worktree also gets a checkout of every extra repository under `.paperclip-repositories/<name>`. Paperclip makes these checkouts Git worktrees of a single shared clone per project and repository, the same way task worktrees share the project's main clone. The repository's history is stored once, and each new task only adds its own working files. This applies to extra repositories that have a repository URL and no local folder.
+
+Instances that ran older versions may still have full standalone clones lying around. Operators can move them onto the shared clone, keeping each workspace's exact state:
+
+- `PAPERCLIP_NESTED_CLONE_MIGRATION_ENABLED=true` converts standalone nested clones in open workspaces into worktrees of the shared clone, keeping their branches and local history, and then deletes the standalone clones.
+- `PAPERCLIP_ISOLATED_SOURCE_REHOME_ENABLED=true` moves open isolated workspaces that still have their own private clone onto the project's shared clone, then deletes the private clone once nothing else uses it and everything in it can be fetched again: its checkout is clean and its history is either in the shared clone or on the remote. A clone holding work that exists nowhere else is kept. This one also needs Git expiration (`PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED=true`).
+
+Both are off by default. Each has a matching `_DRY_RUN` variable that only logs what it would change. Any workspace that can't move safely is left exactly as it is.
+
 ### When a plugin stores the project
 
-Some projects keep their code somewhere other than the Paperclip host — for example inside remote agent computers — through a [storage plugin](../../administration/plugins.md#plugins-that-store-your-projects-code). The idea is the same: each task still gets its own branch and checkout. The difference is that the plugin prepares, checks, and removes those checkouts in its own storage, so there's no host folder for you to drop into, and file browsing isn't available for those workspaces.
+Some projects keep their code somewhere other than the Paperclip host — for example inside remote agent computers — through a [storage plugin](../../administration/plugins.md#plugins-that-store-your-projects-code). The idea is the same: each task still gets its own branch and checkout. The difference is that the plugin prepares, checks, and removes those checkouts in its own storage, so there's no host folder for you to drop into, and file browsing isn't available for those workspaces. A project stays on the storage it was given when it was created: installing a storage plugin doesn't move existing projects, and once a project is on a plugin it stays there. A project with no repository or folder ignores its saved storage when a task runs, and its tasks use a plain task directory. On a remote environment, this only applies if the project has no other saved workspace settings. If the project uses private GitHub repositories, the plugin can only set up and clean out workspaces in the background once someone has given the project a [background GitHub authorization](projects.md#background-github-authorization). If a storage operation fails, the run names what went wrong and whether trying again can help; see [Workspace storage operation failed](../../how-to/debug-stuck-heartbeat.md#21-workspace-storage-operation-failed).
+
+### When the workspace lives in a sandbox
+
+On an instance with an external PostgreSQL database and S3 storage, a new task that runs on [Paperclip Runner](../../reference/adapters/paperclip-runner.md) in a cloud sandbox keeps its working files in that sandbox, not on the Paperclip host. Paperclip saves encrypted copies to S3 when the workspace is prepared and when each run finishes. If the server is replaced or the sandbox goes away, the task carries on from the last saved copy, unpushed commits included. Changes made since the last save only exist in the live sandbox. Closing a clean, saved workspace frees the sandbox and keeps the saved copy for when you reopen the task. You can't run manual workspace commands, jobs, or services against it: do that work through an agent task. Your operator sets this up; see [Storage → Remote task workspaces](../../reference/deploy/storage.md#remote-task-workspaces).
+
+Saved copies leave out an untracked Python virtual environment (a folder with a `pyvenv.cfg` at its root), the same way they leave out an untracked `node_modules`, so a restored workspace won't have one until something recreates it. If the sandbox's disk is full, Paperclip makes one attempt to copy a standalone workspace out without writing to the sandbox. If that fails, the sandbox's files are kept.
+
+Need code from another project in this kind of workspace? @-mention that project in the task's title, description, or a comment. Each Git repository configured on it then appears in the workspace under `.paperclip-repositories/<repo>-<hash>` as a writable copy for this task, and it's saved along with the rest of the workspace. A run can attach up to 10 extra projects this way, and it skips a newly mentioned project it isn't allowed to read. If access to a project already saved with the workspace is lost, or a project's trust policy doesn't permit the task, the task stops instead. A mentioned project that uses a local folder has to be imported first; until then the task stops and tells you so (see [When a task stops before the agent starts](#when-a-task-stops-before-the-agent-starts)).
 
 ### When isolation is overkill
 
@@ -567,7 +624,7 @@ A few concrete patterns show up often enough to be worth calling out:
 4. Link the resulting evidence to the issue — the operation timestamp is enough.
 
 **Reusing a workspace across tasks**
-1. When creating the follow-up issue, set `parentId` if it's a child task, or `inheritExecutionWorkspaceFromIssueId` if it's a sibling that should share the same workspace.
+1. On the task that should join in, choose **Reuse existing workspace** and pick the workspace. Setting `parentId` or `inheritExecutionWorkspaceFromIssueId` won't do this, because those give the new task [its own workspace](#subtasks-get-their-own-workspace). A subtask of a task that created or uses the workspace can't reuse it either.
 2. Paperclip will wire the new issue up to the existing workspace on checkout.
 3. On the Tasks tab of the workspace, you'll see the new issue alongside the original.
 
