@@ -306,7 +306,7 @@ npx paperclipai@latest --version
 
 **A task says Waiting for server restart** — The server is starting, recovering, or shutting down for the update. Queued work starts by itself when it's ready, and turns that never started go first, unless that agent has a run still being recovered. See [Queued run says Waiting for server restart](./debug-stuck-heartbeat.md#18-queued-run-says-waiting-for-server-restart).
 
-**New work waits on the budget right after a restart** — A run the restart cut off still has an unsettled cost. This holds new work only, nothing is paused, and it usually clears by itself, normally within about 10 minutes of that run's recovery finishing. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain).
+**New work waits on the budget right after a restart** — A run the restart cut off can still have an unsettled cost. That alone doesn't hold anything, but its reservation and reported cost keep counting against the budget until its accounting closes, so a nearly full budget can refuse new runs with *Available budget is reserved by unfinished runs*. Nothing is paused, and it usually clears by itself, normally within about 10 minutes of that run's recovery finishing. See [When spend is uncertain](../guides/day-to-day/costs.md#when-spend-is-uncertain).
 
 **A task says Remote Runner is out of date** — The app updated before the remote Runner did, and Paperclip's automatic checks ran out first. Check that the Runner received this release's update, then retry the task.
 

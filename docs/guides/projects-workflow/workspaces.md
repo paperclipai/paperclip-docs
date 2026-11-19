@@ -466,7 +466,7 @@ Plain Git expiration only removes a worktree it can rebuild exactly from upstrea
 
 Restore points build on Git expiration, so they only do anything while `PAPERCLIP_GIT_CACHE_EXPIRATION_ENABLED` is `true` (and they follow its dry-run setting). Turn them on with `PAPERCLIP_GIT_RESTORE_POINTS_ENABLED=true`. They're off by default, and they only cover Paperclip-owned isolated Git worktrees, not workspaces a storage plugin manages.
 
-**What a restore point saves.** Your uncommitted and staged changes, untracked files, local commits that aren't on upstream, file permissions, and ignored files that aren't regenerable build output or caches. Each nested project repository under `.paperclip-repositories/` that has unsaved work gets its own restore point. If a nested checkout was converted from an older standalone clone, it can still carry copies of upstream branches that were later deleted or force-pushed. Their commits go into the restore point too, so they no longer keep the worktree on disk. Only branches that are genuinely local hold it back. A few things are never saved:
+**What a restore point saves.** Your uncommitted and staged changes, untracked files, local commits that aren't on upstream, file permissions, and ignored files that aren't regenerable build output or caches. Each nested project repository under `.paperclip-repositories/` that has unsaved work gets its own restore point. If a nested checkout was converted from an older standalone clone, it can still carry copies of upstream branches that were later deleted or force-pushed. Their commits go into the restore point too, so they no longer keep the worktree on disk. Another local branch (or, in a standalone nested clone, a tag) with commits its remote doesn't have still keeps the worktree on disk. A few things are never saved:
 
 - Files named `.env` or `.env.*` that Git doesn't track. Paperclip deliberately leaves them out, and they don't keep the worktree on disk either, so they're gone once the worktree is removed. Recreate them, for example from your provision command.
 - Regenerable folders such as `node_modules` and `dist`. The provision command rebuilds them, just as it does after compaction.
@@ -477,13 +477,13 @@ If a worktree can't be captured, it simply stays on disk as before. That happens
 
 **Where it's kept.** Each restore point is encrypted with its own key, which is in turn protected by the instance's secrets master key. The encrypted file goes into the instance's configured [storage](../../reference/deploy/storage.md). If that storage is S3, set `PAPERCLIP_SECRETS_MASTER_KEY` as an environment variable. Without it, worktrees that need a restore point stay on disk, because a key that only lives on the server's disk might not outlast the bucket.
 
-**Getting the work back.** You don't have to do anything. When an agent picks the task up again, or someone reopens it, Paperclip rebuilds the worktree at its saved commit and then applies the restore point on top, so the agent finds its files exactly as it left them. If the restore fails, nothing starts in an empty workspace: the run fails, or the comment or update that reopened the task is rejected with a retryable error, and you can try again.
+**Getting the work back.** You don't have to do anything. When an agent picks the task up again, or a comment or agent update reopens it, Paperclip rebuilds the worktree at its saved commit and then applies the restore point on top, so the agent finds its files exactly as it left them. If the restore fails, nothing starts in an empty workspace: the run fails, or the comment or update that reopened the task is rejected with a retryable error, and you can try again. Paperclip never overwrites a worktree that has diverged from the saved state.
 
 **How long they last.** `PAPERCLIP_GIT_RESTORE_POINT_RETENTION_DAYS` (90 by default) counts from when the last task in the tree was done or cancelled. While any task in the tree is open, the restore point is kept. Once the window passes, Paperclip deletes the restore point and records that it has expired. Deleting the task or the company removes its restore points promptly.
 
 #### When the saved state has expired
 
-If someone reopens a task after its restore point has been deleted, Paperclip doesn't fail. It reopens a fresh worktree on the task's branch, rebuilds the nested project repositories from the project, and posts this system comment on the task:
+If a task's workspace comes back after its restore point has been deleted, including one belonging to a nested repository, Paperclip doesn't fail. It reopens a fresh worktree on the task's branch, clones the project's nested repositories again before the provision command runs, and posts this system comment on the task:
 
 > The saved state of this workspace expired, so it was reopened as a fresh workspace on its branch. Unpushed and uncommitted work from before it was cleaned up is no longer available.
 

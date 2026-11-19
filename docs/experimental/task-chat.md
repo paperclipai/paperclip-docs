@@ -98,7 +98,7 @@ If an MCP server can't start, a warning sits at the top of that run, naming the 
 
 ### The live status line
 
-While a run is in flight, a status line sits at the bottom of the thread with a pulsing dot, a ticking elapsed timer, and a label for what's happening right now — **Thinking**, **Responding**, **Searching**, **Running a command**, **Reading files**, **Editing files**, **Fetching the web**, **Delegating**, or **Using *ToolName*** for an MCP tool. A run that hasn't started yet reads **Queued · Waiting to start**. If an instance admin has paused new work for maintenance, the turn reads **Waiting for maintenance** instead and starts on its own as soon as the maintenance pause ends or expires — you don't need to retry. If the server is starting up, recovering, or shutting down for a restart, the turn reads **Waiting for server restart** and likewise starts on its own when that's done. The message that started the turn stays in the conversation while it waits.
+While a run is in flight, a status line sits at the bottom of the thread with a pulsing dot, a ticking elapsed timer, and a label for what's happening right now — **Thinking**, **Responding**, or what the current tool call is doing, such as **Running a command**, **Reading a file**, **Searching the web**, or **Starting a subagent**. When there's nothing more specific to say, it shows a rotating word such as **Clipping**. A run that hasn't started yet shows **Queued** next to the agent's name, with *Waiting to start...* in the thread. If an instance admin has paused new work for maintenance, the turn reads **Waiting for maintenance** instead and starts on its own as soon as the maintenance pause ends or expires — you don't need to retry. If the server is starting up, recovering, or shutting down for a restart, the turn reads **Waiting for server restart** and likewise starts on its own when that's done. The message that started the turn stays in the conversation while it waits.
 
 When the run ends, that line is replaced in place by the folded turn summary — the same spot, so your eye doesn't have to move.
 
@@ -229,7 +229,7 @@ Implementation reference: [composer](https://github.com/paperclipai/paperclip/bl
 
 The properties pane on the right becomes resizable and maximizable.
 
-Drag its left edge to set the width; the pane remembers it, and **double-clicking the edge** resets it to the default. Use **Maximize panel** in the header to glide it out across the page for a proper read — the center column doesn't reflow while it's out — and **Restore panel** to send it back.
+Drag its left edge to set the width; the pane remembers it, and **double-clicking the edge** resets it to the default. Use **Maximize side panel** in the header to glide it out across the page for a proper read — the center column doesn't reflow while it's out — and **Restore side panel** to send it back.
 
 The panel has a **+** menu for opening task surfaces and documents in tabs. The main views are:
 

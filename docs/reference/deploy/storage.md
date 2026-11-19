@@ -135,7 +135,7 @@ A few things to plan for:
 
 - **Your provider must support conditional writes.** Paperclip relies on `If-None-Match: *` and ETag `If-Match` uploads and prefix-scoped listing. It runs a quick check the first time it writes a log, and rejects a provider that ignores these conditions with *"Object storage does not enforce conditional publication"*. Being "S3-compatible" isn't always enough, so test your provider before relying on it in production.
 - **Keep the bucket and prefix stable.** Changing them doesn't move anything. Copy the complete namespace, keeping its keys, before you change the configuration. Switching to `local_disk` doesn't bring existing logs back from S3, and Paperclip won't show an empty log in place of one it can't reach — point it back at the original storage to read that history.
-- **Raw traces need your existing secrets key.** Captured traces stored in S3 are encrypted with a key derived from the instance key (`PAPERCLIP_SECRETS_MASTER_KEY` or the existing key file). Paperclip never creates a new key for this; if the key is missing, trace storage fails with *"Secrets master key file is missing"* instead. Keep that key with your other secrets when you replace a server. Capturing traces is still off unless you turn it on per agent, and each trace is still deleted after 24 hours.
+- **Raw traces need your existing secrets key.** Captured traces stored in S3 are encrypted with a key derived from the instance key (`PAPERCLIP_SECRETS_MASTER_KEY` or the existing key file). Paperclip never creates a new key for this; if the key is missing, trace storage fails with *"Secrets master key file is missing"* instead. Keep that key with your other secrets when you replace a server. Capturing traces is still off unless you turn it on for an agent or request it for a single run, and each trace is still deleted after 24 hours.
 
 ### Remote task workspaces
 
@@ -146,8 +146,8 @@ When a task runs on [Paperclip Runner](../adapters/paperclip-runner.md) in a clo
 - The database is an external PostgreSQL server, set through `DATABASE_URL` or your config file. The embedded database doesn't qualify.
 - Storage is `s3`. `local_disk` doesn't qualify.
 - The encryption key is stable: `PAPERCLIP_SECRETS_MASTER_KEY`, or a master key file that exists on disk (`PAPERCLIP_SECRETS_MASTER_KEY_FILE` or the instance's key file) and that you keep when you replace a server. Every replacement server needs the same key.
-- The task starts from an empty folder, a repository URL, or a repository managed in the same project.
-- The task's project doesn't use a workspace storage plugin.
+- The task starts from an empty folder, or from a project Git repository that has a remote URL and no local folder. Any other repositories in that project need remote URLs and no local folder too.
+- The project the task's workspace comes from doesn't use a workspace storage plugin.
 
 If any of these is missing, new tasks keep using a folder on the web server, as before. Existing workspaces, local SSH and plugin environments, configured local folders, and older adapters are never converted automatically.
 

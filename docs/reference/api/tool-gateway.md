@@ -39,7 +39,7 @@ An agent can call the same routes with its own token when it's setting up a conn
 - The responsible user must be allowed to make the same change.
 - A change that reaches other agents — an install, or a profile binding that applies to them — also needs permission to configure each of those agents, for both the agent and the responsible user.
 
-The request is refused when the run has no responsible user, the run no longer owns its task, the task is in Ask or Plan mode (reads still work), or the run is a skill test or low-trust. An agent can't set `responsibleUserId`, `onBehalfOfUserId`, `createdByUserId`, or `createdByAgentId` in a body (*"Management identity is derived from authentication"*), and any `ownerUserId` or `subjectUserId` it sends must be its responsible user (*"Personal credentials must belong to the responsible user"*). List routes only return the rows the agent may manage.
+The request is refused when the run has no responsible user, the run no longer owns its task, the task is in Ask or Plan mode (reads still work), or the run is a skill test or low-trust (these two are refused even for reads). An agent can't set `responsibleUserId`, `onBehalfOfUserId`, `createdByUserId`, or `createdByAgentId` in a body (*"Management identity is derived from authentication"*), and any `ownerUserId` or `subjectUserId` it sends must be its responsible user (*"Personal credentials must belong to the responsible user"*). List routes only return the rows the agent may manage.
 
 When a step needs a person — signing in, consent, or credentials — an agent's response includes a `requiredUserAction` block alongside the usual result:
 
@@ -51,7 +51,7 @@ When a step needs a person — signing in, consent, or credentials — an agent'
 | `setupPath` | The Paperclip page where that person finishes the saved setup. |
 | `reason` | What the person needs to do. |
 
-Approving or declining action requests, OAuth callbacks, stdio command templates, MCP JSON import, and the smoke routes stay board-only. [How connector access works](../../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you) explains the model in plain terms.
+Approving or declining action requests, OAuth callbacks, creating or disabling stdio command templates, MCP JSON import, and the smoke routes stay board-only. [How connector access works](../../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you) explains the model in plain terms.
 
 ---
 
