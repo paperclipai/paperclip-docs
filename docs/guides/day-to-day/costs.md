@@ -431,7 +431,7 @@ These still count:
 
 - Usage from a complete report that has no price.
 - Unknown billing with no tokens, for example Cursor Cloud.
-- A run that settled at the 10-minute limit with no sign of a server restart, because its provider may have kept running, and a run whose usage capture failed. Those raise the normal reason, *Company cannot start work because recorded usage has no reliable price.*
+- A run that settled at the 10-minute limit with no sign of a server restart, because its provider may have kept running, and a run whose usage capture failed. Those raise the normal reason, for example *Company cannot start work because recorded usage has no reliable price.* (or *Agent* or *Project* for those budgets).
 
 **What you see on tasks.** A `todo` task that has never started reads *Waiting for the budget to allow new work. The task starts automatically when it does.* when the budget refused its agent's wake and no pause or approval explains why. There's no **Retry** to press. A Retry the budget refused reads *Retry is waiting for the budget to allow new work. Check Costs for unrecorded or unpriced usage.* A real hard stop is different: tasks wait for a board decision, and the inbox row reads **Budget limit reached**.
 

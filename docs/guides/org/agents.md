@@ -569,7 +569,7 @@ Edits are tracked as you make them, on Harness / Runtime, [Identity](#identity),
 
 The [Identity](#identity) page uses a lighter version: the bar only appears once you've changed something. After a save it reads **Saved changes** for a couple of seconds and then slides away.
 
-**Discard** puts every changed field back the way it was; **Save changes** saves them. Saving a change to the agent's settings (Harness / Runtime, Secrets, or the YAML on Advanced) adds an entry to its [Agent history](#agent-history). Instruction files on the Identity page have their own per-file history instead.
+**Discard** puts every changed field back the way it was; **Save changes** saves them. Saving a change to the agent's settings (Harness / Runtime, Secrets, or the YAML on Advanced) adds an entry to its [Agent history](#agent-history). Saving instruction files on the Identity page doesn't, and a managed bundle keeps only the current files — see [Agent files persist across tasks](#agent-files-persist-across-tasks).
 
 **Leaving with unsaved changes.** If you click a link to another page while you have unsaved changes, Paperclip asks **Discard unsaved changes?** Choose **Keep editing** to stay, or **Discard changes** to drop your edits and go. Using the browser's Back button, or a header action that would take you away (such as **Run now**), shows your browser's own confirmation instead.
 

@@ -141,7 +141,7 @@ Paperclip checks the catalog before it runs any plugin code. The folder's conten
 
 Upgrading the image upgrades these plugins in place, but with one safeguard: if the new version asks for capabilities the installed one didn't have, the plugin lands in `upgrade_pending` and stays offline until an operator approves it on the plugin's detail page — exactly like any other upgrade. Disabled plugins stay disabled, and a plugin someone deliberately uninstalled stays uninstalled on a self-hosted instance.
 
-On a managed instance, the fleet's document can also give one of these plugins named process variables and let it serve specific companies without saved configuration. See [Plugin variables and company access](../reference/deploy/environment-variables.md#plugin-variables-and-company-access) for the keys and the variable names the server refuses. It can provision an environment served by one of these plugins too, and make it the instance default on a new instance. See [Plugin environments](../reference/deploy/environment-variables.md#plugin-environments).
+On a managed instance, the fleet's document can also give any plugin on its auto-install list, whether it's one of these or a built-in key from the table above, named process variables and let it serve specific companies without saved configuration. See [Plugin variables and company access](../reference/deploy/environment-variables.md#plugin-variables-and-company-access) for the keys and the variable names the server refuses. It can provision an environment served by an auto-installed plugin too, and make it the instance default on a new instance. See [Plugin environments](../reference/deploy/environment-variables.md#plugin-environments).
 
 ---
 

@@ -75,7 +75,7 @@ This card sits above the instance-wide sections, and only affects you.
 | Beta skills | Lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill without removing saved pins. |
 | [Built-in Agents](../reference/api/built-in-agents.md) | Paperclip-managed built-in agent surfaces: roster badges and setup controls. |
 | [Cases](cases.md) | Durable work products that tasks create and iterate on, with one primary task that agents hand off phase by phase. Adds the **Cases** tab and the agent case API ([API reference](../reference/api/cases.md)). |
-| [Chat connectors](../connectors.md#chat-channels-experimental) | Connect agents to Slack, GitHub, Discord, Microsoft Teams, and Telegram conversations. Existing chat connections keep running when it's off. |
+| [Chat connectors](../connectors.md#chat-channels-experimental) | Connect agents to Slack, Discord, Microsoft Teams, and Telegram conversations. Existing chat connections keep running when it's off. |
 | [Combined Inbox + Task List](task-chat.md#an-optional-combined-task-list) | **Classic workspace only.** Reach inbox and task views from one **Tasks** navigation entry. Coordinator always includes personal views in Tasks. |
 | Command/Ctrl+Enter to Submit | Restores the previous keyboard shortcut for task replies and new tasks: Command/Ctrl+Enter submits and Enter adds a new line. Off by default, so Enter submits and Shift+Enter adds a new line. |
 | [Decisions](../guides/day-to-day/decisions.md) | **Classic workspace only.** Shows the **Decisions** item in the main sidebar, where the tasks awaiting your input collect. Coordinator always has **Inbox**. |

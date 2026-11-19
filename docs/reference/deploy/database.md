@@ -137,13 +137,15 @@ To see Paperclip's connections, run this against your database:
 SELECT * FROM pg_stat_activity WHERE application_name LIKE 'paperclip%';
 ```
 
-If you've set `DATABASE_APPLICATION_NAME`, the main pool uses your name instead, so search for that too. The two helper connections below keep their own names.
+If you've set `DATABASE_APPLICATION_NAME`, the main pool uses your name instead, so search for that too. The named helper pools below keep their own names.
 
 **Sizing `max_connections`.** Each server process can use more than `DATABASE_POOL_MAX` connections. When you set PostgreSQL's `max_connections`, budget for these per server process, plus your other clients:
 
 - the main pool, up to `DATABASE_POOL_MAX`
 - a second pool of the same size when `DATABASE_MIGRATION_URL` is set
 - up to 2 connections named `paperclip-controller-lease`, which keep agent runs alive so they never wait behind slow queries
+- up to 3 connections named `paperclip-runner-checkpoint`, which save Paperclip Runner checkpoints
+- up to 2 connections named `paperclip-file-storage`, used while agent files are written to storage
 - a short-lived single connection named `paperclip-workspace-finalization-lock` while a workspace is being finalized
 
 Paperclip closes its pools when the server shuts down, and when startup fails after a pool has opened, so restarts don't leave idle connections behind.

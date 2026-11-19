@@ -280,7 +280,7 @@ You can use this endpoint to:
 
 ### Change the responsible user
 
-Send `responsibleUserId` with the person's user ID, and `baseRevisionId` with the routine's latest revision ID. The change applies to future automatic tasks. Tasks that already exist keep their responsible user, and manual runs use the person who starts them.
+Send `responsibleUserId` with the person's user ID, and `baseRevisionId` with the routine's latest revision ID. The change applies to future automatic tasks. Tasks that already exist keep their responsible user, and a manual run a person starts uses that person (a manual run an agent starts uses the routine's responsible user).
 
 | Status | When |
 |---|---|

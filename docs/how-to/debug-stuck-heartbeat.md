@@ -16,7 +16,7 @@ A handful of symptoms that cover almost every "this agent isn't working right" r
 
 **Cause.** Empty inbox plus a timer.
 
-**Fix.** Agent → **Advanced**, then set `runtimeConfig.heartbeat.enabled` to `false` and click **Save changes**. Rely on assignment-driven wakes instead. See [Heartbeats & Routines](../guides/projects-workflow/routines.md).
+**Fix.** Agent → **Advanced**, then in the YAML set `spec.runtimeConfig.heartbeat.enabled` to `false` and click **Save changes**. Rely on assignment-driven wakes instead. See [Heartbeats & Routines](../guides/projects-workflow/routines.md).
 
 ---
 

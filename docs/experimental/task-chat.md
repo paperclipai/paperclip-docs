@@ -92,7 +92,7 @@ Tool calls aren't the only thing a run does. These get rows of their own, so you
 
 ### Status chips
 
-A harness also reports on itself: it compacts its context, retries a failed request, or falls back to another model. Those reports stay out of the agent's answer and show as small chips between the activity rows, such as **Compacting context…**, **Context compacted**, **Retrying (attempt 2 of 5)**, **Reconnecting**, and **Fell back to** a named model. A retry fades to **Recovered after retry** once the run moves on. Click a chip to read the full message. A provider error that won't be retried shows as a red **Provider error** row with the provider's own message.
+A harness also reports on itself: it compacts its context, retries a failed request, or falls back to another model. Those reports stay out of the agent's answer and show as small chips between the activity rows, such as **Compacting context**, **Context compacted**, **Retrying (attempt 2 of 5)**, **Reconnecting**, and **Fell back to** a named model. A retry fades to **Recovered after retry** once the run moves on. Click a chip to read the full message. A provider error that won't be retried shows as a red **Provider error** row with the provider's own message.
 
 If an MCP server can't start, a warning sits at the top of that run, naming the server and the reason — for example **github MCP server failed to start**. Expand it to read *"The agent ran without these tools. Fix the server's command or credentials, then try again."* That's usually the explanation when an agent says it can't reach its tools.
 

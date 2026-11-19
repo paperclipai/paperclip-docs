@@ -376,7 +376,7 @@ These values are covered in more detail in [Secrets](./secrets.md).
 | Variable | Default | Meaning |
 |---|---|---|
 | `HEARTBEAT_SCHEDULER_ENABLED` | `true` | Enables or disables timer-based scheduling. |
-| `HEARTBEAT_SCHEDULER_INTERVAL_MS` | `30000` | How often, in milliseconds, the scheduler runs its periodic recovery sweep, and how long it waits before retrying scheduled work that failed. Values below `10000` are raised to `10000`. Agent timers, routines, and issue monitors aren't polled on this interval; they're scheduled from their saved due times. |
+| `HEARTBEAT_SCHEDULER_INTERVAL_MS` | `30000` | The scheduler's pacing and retry interval, in milliseconds. Agent timers, routines, and issue monitors aren't polled on this interval: they run at their saved due times, but each runs at most once per interval. Scheduled and background delivery work that failed, or still has items pending, is retried after this long. Values below `10000` are raised to `10000`. |
 
 ---
 
