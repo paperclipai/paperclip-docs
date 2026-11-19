@@ -6,7 +6,7 @@ seo_description: Adapters connect Paperclip's control plane to the runtime that 
 
 # Adapters Overview
 
-Adapters connect Paperclip's control plane to the runtime that actually does the work. Use this section when you need to choose an adapter, understand what Paperclip expects from one, or build a new adapter package.
+An adapter connects Paperclip's control plane to the runtime that does an agent's work, such as Claude Code or Codex running on your machine. Each agent you hire uses one adapter, and this section helps you choose one, understand what Paperclip expects from it, or build a new adapter package.
 
 ---
 
