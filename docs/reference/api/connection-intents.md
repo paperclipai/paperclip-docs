@@ -93,20 +93,6 @@ Each method also carries a `management` block, so the agent can tell whether it 
 
 When `allowed` is `true`, the agent configures the connection through that route and only hands the person the steps that need them — signing in, consent, or credentials — at the saved `setupPath`. The rules behind `allowed` are in [How connector access works](../../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you).
 
-Each method also carries a `management` block, so the agent can tell whether it may do the setup itself instead of handing it to a person:
-
-| Field | Meaning |
-|---|---|
-| `allowed` | Whether this agent, acting for its responsible user, may configure this method itself. |
-| `reason` | Why it's allowed or refused. |
-| `operation` | The setup operation that was checked. |
-| `canUse` | Whether the agent can already use the connection. For a tool connection, at least one of its tools must be allowed. |
-| `requiresApproval` | `true` when some of the connection's tools are set to **Ask first**. |
-| `requiresHumanAuthentication` | `true` when the method needs a sign-in or key and nothing usable is connected yet. |
-| `nextApiOperation` | The API route to call next: `POST /api/companies/{companyId}/tools/apps/connect` for tools, `POST /api/companies/{companyId}/chat-endpoints` for chat, or `POST /api/companies/{companyId}/ai-connections` for AI. |
-
-When `allowed` is `true`, the agent configures the connection through that route and only hands the person the steps that need them — signing in, consent, or credentials — at the saved `setupPath`. The rules behind `allowed` are in [How connector access works](../../connectors/access-model.md#when-an-agent-sets-up-a-connection-for-you).
-
 Each result's `state` is one of `ready` (a connection is connected and usable by this agent right now, with `connectionId` set), `needs_user_action` (a matching connection exists but isn't usable yet), `available` (the service can be connected but nothing exists), or `unavailable` (the service offers no connection methods).
 
 #### Setup card, setup link, or setup by the agent
@@ -138,7 +124,7 @@ If the service is already connected, `state` is `ready`, `connectionId` is set, 
 
 An agent can already hold some of a connection's tools, for example when someone else connected the account and shared only part of it. A request without `toolNames` then comes back `ready`, because it only asks whether the agent can use the service at all. To get more, the agent passes `connectionId` and the exact `toolNames` it needs.
 
-An agent with no access yet can send a request without `toolNames` on a catalog of up to 500 indexed tools, and the person reviews them on one access card. Above 500, the request returns `422` with `Specify the tools needed for this task (up to 20).`, followed by the `connectionId` to reuse and the first 100 indexed tool names. No access is granted until the card is accepted, and write tools on the card start as **Ask first**.
+An agent with no access yet can send a request without `toolNames` on a catalog of up to 500 indexed tools, and the person reviews them on one access card. Above 500, the request returns `422` with `Specify the tools needed for this task (up to 20).`, followed by the `connectionId` to reuse and the first 100 indexed tool names. No access is granted until the card is accepted, and tools on the card that aren't read-only start as **Ask first**.
 
 ---
 
@@ -168,7 +154,7 @@ Moves the intent through its working phases. Body:
 
 Any other value returns `422` with `{ "error": "phase must be requested, authorizing, or needs_retry" }`.
 
-The card also uses this route to save the person's choice of agents before an OAuth sign-in. Alongside `phase: "authorizing"` it sends an optional `setupAccess` object: the draft's `connectionId` and `access`, which is either `"all_agents"` or `{ "agentIds": [...] }`. Saving grants nothing. Paperclip rechecks and applies the choice when the intent completes.
+The card also uses this route to save the person's choice of agents before an OAuth sign-in. Alongside `phase: "authorizing"` it sends an optional `setupAccess` object: the draft's `connectionId` and `access`, which is either `"all_agents"` or `{ "agentIds": [...] }`. Saving grants nothing. Paperclip rechecks and applies the choice when the OAuth sign-in completes the intent.
 
 ### Complete the intent
 
@@ -182,7 +168,7 @@ Connects the chosen connection to the requesting agent and resolves the intent a
 |---|---|---|
 | `connectionId` | yes | A UUID for the connection to use. Must belong to the intent's service. |
 
-The chosen connection has to match the requested service (else `404`, `Connection does not match this intent`) and be `active` and `enabled` (else `409`, `Finish and test this connection before using it for the task`). An intent that's already resolved returns `409` with `Connection intent is already resolved`. Completing delegates the person's identity grant to the agent and installs the connection onto it, along with any wider set of agents the person saved during sign-in; sharing a company-wide connection requires connection-management authority (`tools:manage_connections`). On success it logs an `issue.connection_intent_connected` activity and wakes the assigned agent's heartbeat.
+The chosen connection has to match the requested service (else `404`, `Connection does not match this intent`) and be `active` and `enabled` (else `409`, `Finish and test this connection before using it for the task`). An intent that's already resolved returns `409` with `Connection intent is already resolved`. Completing delegates the person's identity grant to the agent and installs the connection onto it; sharing a company-wide connection requires connection-management authority (`tools:manage_connections`). On success it logs an `issue.connection_intent_connected` activity and wakes the assigned agent's heartbeat. The wider set of agents saved with `setupAccess` is applied only when the OAuth sign-in completes the intent, not through this route.
 
 ### Decline the intent
 

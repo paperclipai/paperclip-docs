@@ -322,8 +322,6 @@ Signing modes: `app_webhook`, `bearer` (the API default when you omit `signingMo
 
 Want a routine that repairs failed runs Paperclip reports to Sentry? It's a normal webhook trigger on the usual `/fire` URL, with Sentry's alert filters keeping repairs from repairing themselves. See [Example: repair failed runs reported by Sentry](../guides/projects-workflow/routines.md#example-repair-failed-runs-reported-by-sentry).
 
-Want a routine that repairs failed runs Paperclip reports to Sentry? It's a normal webhook trigger on the usual `/fire` URL, with Sentry's alert filters keeping repairs from repairing themselves. See [Example: repair failed runs reported by Sentry](../guides/projects-workflow/routines.md#example-repair-failed-runs-reported-by-sentry).
-
 ### Manual (`api`)
 
 Use when you want the routine in the run history but no automatic trigger. Useful for "run on demand from a button" or scripting from CI.

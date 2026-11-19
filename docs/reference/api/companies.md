@@ -576,7 +576,7 @@ Naming specific items also switches that section on: a non-empty `agents`, `proj
 | Field | Notes |
 |---|---|
 | `source` | Required. The package to import. |
-| `target` | Required. `{ "mode": "existing_company", "companyId": "<route company>" }` or `{ "mode": "new_company", "newCompanyName": "..." }`. `apply` on a new-company import returns `422` if the source company has no active user membership. Preview doesn't check this. A different `companyId` returns `403` with `Safe import route can only target the route company`. |
+| `target` | Required. `{ "mode": "existing_company", "companyId": "<route company>" }` or `{ "mode": "new_company", "newCompanyName": "..." }`. `apply` on a new-company import returns `422` if the route company has no active user member. Preview doesn't check this. A different `companyId` returns `403` with `Safe import route can only target the route company`. |
 | `include` | Optional, with the same defaults as export. |
 | `agents` | Optional. `"all"` or a list of agent slugs. |
 | `collisionStrategy` | Optional, defaults to `rename`. `rename` or `skip` on these routes. `replace` returns `403` with `Safe import route does not allow replace collision strategy`, so an existing agent is never overwritten. |

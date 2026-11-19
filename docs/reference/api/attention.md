@@ -234,83 +234,6 @@ When an interaction reviewed a specific document revision, its `href` opens that
 
 ---
 
-## Read just the counts
-
-Sometimes you only need the numbers, like a badge or a quick "how much is waiting" check, and not the full decision cards. These two lighter routes give you the counts, or the list of tasks that need attention, without downloading every item.
-
-```
-GET /api/companies/{companyId}/attention/summary
-GET /api/companies/{companyId}/attention/tasks
-```
-
-Both need company access, board access, and a board user context. Without a user context they return `403` with `"Board user context required"`. They take no query parameters and always cover the whole queue as the feed's defaults would show it to you: items you've dismissed or snoozed and archived items are left out.
-
-`/attention/summary` returns an `AttentionSummary`: the same `companyId`, `generatedAt`, `totalCount`, `deskBadgeCount`, and `countsBySourceKind` you get at the top of the feed, with no `items` and no `nextCursor`.
-
-```bash
-curl -s \
-  "http://localhost:3100/api/companies/{companyId}/attention/summary" \
-  -H "Authorization: Bearer <token>"
-```
-
-`/attention/tasks` returns an `AttentionTaskIndex`: those same summary fields plus `taskIds`, the IDs of every issue with something waiting on it, without duplicates. An item counts toward its `relatedIssue`, or toward its subject when the subject is itself an issue. Items that aren't tied to an issue, such as a budget alert, add to the counts but not to `taskIds`. The [Coordinator workspace](../../experimental/coordinator-workspace.md) uses this to filter its task list down to the tasks that need you.
-
----
-
-## Read decision history
-
-The feed above only shows what is still open. Once something has been answered, use the history route to see the record of what was decided. This is the list behind **Decision history** and **Recent Decisions** in the [Coordinator workspace](../../experimental/coordinator-workspace.md).
-
-```
-GET /api/companies/{companyId}/attention/history
-```
-
-The route needs company access, board access, and a board user context. Without a user context it returns `403` with `"Board user context required"`. It's read-only. Each entry points back at the record that holds the actual decision.
-
-The history merges two kinds of resolved records: issue-thread interactions that are no longer `pending` (answered questions, accepted or rejected confirmations, item reviews, and so on) and [decisions](./decisions.md) that are no longer `open`. It only includes records on issues you're allowed to read. A decision also needs every issue it targets to be readable by you.
-
-```bash
-curl -s \
-  "http://localhost:3100/api/companies/{companyId}/attention/history?outcome=accepted&sort=newest&limit=40" \
-  -H "Authorization: Bearer <token>"
-```
-
-### Query Parameters
-
-| Param | Description |
-|---|---|
-| `search` | Case-insensitive match against the record's title, the issue identifier, or the issue title. Up to 200 characters. |
-| `outcome` | Only records with this outcome, such as `accepted`, `rejected`, `answered`, `cancelled`, `expired`, or `decided`. Item reviews match `accepted` or `rejected` according to the verdicts they recorded, so a mixed review can match both. `answered` leaves out item reviews. |
-| `agentId` | Only records raised by this agent (UUID). |
-| `projectId` | Only records on issues in this project (UUID). |
-| `since` | ISO datetime. Only records resolved at or after this time. |
-| `sort` | `newest` (default) or `oldest`, by resolution time. |
-| `cursor` | Continue from a previous page's `nextCursor`. A cursor only works with the `sort` it was created under. |
-| `limit` | Integer between 1 and 100. Defaults to 40. |
-
-Unknown or malformed parameters return `400 Bad Request` with `"Invalid decision history filters"`. A bad cursor returns `"Invalid decision history cursor"`.
-
-The response is a page of `{ items, nextCursor }`. `nextCursor` is `null` when you've reached the end. Each item has:
-
-| Field | What you get |
-|---|---|
-| `id` | A stable key: `issue_thread_interaction:<uuid>` or `decision:<uuid>`. |
-| `sourceKind` / `sourceId` | Which kind of record this is, and its ID. |
-| `issueId`, `issueIdentifier`, `issueTitle` | The issue the decision belongs to. For a decision, this is its origin issue. |
-| `agentId`, `agentName` | The agent that raised it, or `null`. |
-| `projectId`, `projectName` | The issue's project, or `null`. |
-| `title` | The record's title, falling back to the issue title. |
-| `outcome` | The raw status, for example `accepted`, `answered`, or `decided`. |
-| `label` | A short, readable result, such as `Approved`, `Changes requested`, `Answers recorded`, `Superseded`, `Answered in task`, a tally like `2 approved · 1 rejected` for item reviews, or the label of the chosen option for a decision. |
-| `resolvedAt` | When it was resolved. |
-| `resolvedByUserId` / `resolvedByAgentId` | Who resolved it, when that's recorded. |
-| `href` | An in-app link to the decision in its issue. |
-| `target` | What was reviewed: `{ kind: "issue_document", key, revisionId, issueId? }`, `{ kind: "issue_attachment", attachmentId }`, or `null`. |
-
-When an interaction reviewed a specific document revision, its `href` opens that exact revision, not the latest one.
-
----
-
 ## Agent-addressed issue-thread interactions
 
 An `issue_thread_interaction` item is a card an agent raised on an issue thread — a question, a confirmation, a set of verdicts. Historically every such card waited for the board. Cards can now be **addressed to a specific agent** and resolved by an **eligible agent under company governance**, which changes both who can answer and whether the card shows up in this feed at all.
@@ -547,7 +470,7 @@ curl -s -X PUT \
   -d '{ "coordinatorWorkspaceEnabled": false }'
 ```
 
-The preference itself isn't tied to a company: it applies across every company on the instance. The company in the path is where the change is recorded in the activity log, as `workspace_preferences.updated`. You need an active membership in that company (local trusted boards are exempt). Viewers count too. Without access you get `403` with `"User does not have access to this company"` or `"User does not have active company access"`. On a local trusted instance, an unknown company returns `404`. The response is the saved preference, in the same shape as `GET`.
+The preference itself isn't tied to a company: it applies across every company on the instance. The company in the path is where the change is recorded in the activity log, as `workspace_preferences.updated`. You need an active membership in that company (local trusted boards and instance admins only need company access). Viewers count too. Without access you get `403` with `"User does not have access to this company"` or `"User does not have active company access"`. On a local trusted instance, an unknown company returns `404`. The response is the saved preference, in the same shape as `GET`.
 
 ---
 

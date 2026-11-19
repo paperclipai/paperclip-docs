@@ -29,13 +29,13 @@ A read-only token (no **Write Items**) can still connect. Reads work; writes are
 2. Read the access line above the main button. It says who the connection belongs to and which agents can use it. Select **Change** to narrow the agents.
 3. Paste your service account token (it starts with `ops_`) and connect.
 
-Paperclip checks the token by listing the vaults it can reach before saving it. It accepts tokens for 1Password.com, 1Password.ca, and 1Password.eu accounts. The token stays in Paperclip's vault; agents never see it, and Paperclip redacts it from any result, even if it happens to be stored in an item an agent reads.
+Paperclip checks the token by listing the vaults it can reach before it turns the connection on. It accepts tokens for 1Password.com, 1Password.ca, and 1Password.eu accounts. The token stays in Paperclip's vault; agents never see it, and Paperclip redacts it from any result, even if it happens to be stored in an item an agent reads.
 
 ## Choose access
 
 The connection offers eight actions, each with a reviewed risk level:
 
-| Action | What it does | Group |
+| Action | What it does | Risk level |
 | --- | --- | --- |
 | `onepassword_list_vaults` | Lists the vaults this service account can reach | Read |
 | `onepassword_list_items` | Lists item summaries in a vault, without secret values | Read |

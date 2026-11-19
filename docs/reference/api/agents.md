@@ -637,7 +637,7 @@ The create, hire, update, and [configuration rollback](#configuration) responses
 |---|---|
 | `code` | `runner_option_ignored` for a dropped Runner option, or `protected_environment_variable` for an environment variable a plugin environment sets itself (see below). |
 | `field` | For `runner_option_ignored`, the ignored `adapterConfig` key, such as `maxTurnsPerRun` or `chrome`. For `protected_environment_variable`, the variable's path, such as `adapterConfig.env.KEY`. |
-| `message` | A readable explanation you can show to people. |
+| `message` | A readable explanation you can show to people. For `runner_option_ignored`, it ends with "The agent can still run." |
 
 In the agent's settings, these messages appear in the **Agent saved** toast.
 
@@ -870,7 +870,7 @@ Both routes are board-only. An agent caller gets `403`, and an agent outside you
 
 - `projectIds` is required: between 1 and 100 project UUIDs. No other fields are accepted.
 - Projects already allowed are skipped, and duplicates are collapsed.
-- Every other part of the agent's permissions and trust boundary stays exactly as it was. The new ids are appended to the existing list.
+- Every other part of the agent's permissions and trust boundary stays as it was, except that the boundary is marked as a `low_trust_review` boundary for this company if it wasn't already. The new ids are appended to the existing list.
 - The response has the same shape as `GET`, with the full updated `projectIds` and `canManage: true`.
 - When something new is added, the activity log records `agent.project_access_added` with the `addedProjectIds`.
 - Saving access doesn't start or retry any work. Retry the task separately.
@@ -887,11 +887,11 @@ Errors:
 
 ## Qualify the Agent's Computer for Paperclip Runner
 
-Checks that a Claude or Codex agent's saved computer can run Paperclip Runner, and records the result.
+Checks that an agent's saved computer can run Paperclip Runner, and records the result.
 
 `POST /api/agents/{agentId}/qualify-runner`
 
-Use this when you're moving a `claude_local` or `codex_local` agent onto Paperclip Runner and its default environment is a sandbox. Send the environment id you expect the agent to use:
+Use this when you're moving a `claude_local`, `codex_local`, or `grok_local` agent onto Paperclip Runner, or re-testing a `paperclip_runner` agent's saved computer, and its default environment is a sandbox. Send the environment id you expect the agent to use:
 
 ```json
 {
@@ -901,15 +901,15 @@ Use this when you're moving a `claude_local` or `codex_local` agent onto Papercl
 
 - `expectedEnvironmentId` is required and must be a UUID. No other fields are accepted.
 - You need permission to update the agent — the same check as editing its configuration. You don't need to be an instance admin.
-- The server probes the environment and returns a result with `ok`, `driver: "sandbox"`, a `summary`, and `details.platformQualificationRecorded`, which is `true` only when the computer was qualified.
+- The server probes the environment (for a `paperclip_runner` agent whose computer already has a valid saved qualification, it reuses that instead) and returns a result with `ok`, `driver: "sandbox"`, a `summary`, and `details.platformQualificationRecorded`, which is `true` only when the computer was qualified.
 - Every completed probe, whether it passes or fails, is logged as `agent.runner_qualification_tested`.
 
 Errors:
 
 | Status | When |
 |---|---|
-| `409` | The agent's computer can't be resolved or has changed since you loaded it (`The agent's computer changed. Save any environment changes, reload, and retry the upgrade.`). |
-| `422` | The agent isn't a `claude_local` or `codex_local` agent (`This agent does not need a runner upgrade.`), or its computer isn't a sandbox (`This computer does not need sandbox qualification.`). |
+| `409` | The agent's computer can't be resolved or has changed since you loaded it (`The agent's computer changed. Save any environment changes, reload, and retry the upgrade.`, or for a `paperclip_runner` agent `The agent's computer changed. Save the computer selection, reload, and run its test again.`). |
+| `422` | The agent isn't a `claude_local`, `codex_local`, `grok_local`, or `paperclip_runner` agent (`This agent does not support computer qualification.`), or its computer isn't a sandbox (`This computer does not need sandbox qualification.`). |
 
 ---
 

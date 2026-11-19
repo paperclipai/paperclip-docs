@@ -47,8 +47,6 @@ With `requireBoardApprovalForNewAgents` on, this body lands as `pending_approval
 
 > Want an agent, even the CEO, to stop hiring altogether? Switch off **Can create new agents** on its **Permissions / Trust** page. Its hire calls are then refused instead of queued. See [Permissions / Trust](../guides/org/agents.md#permissions-trust).
 
-> Want an agent, even the CEO, to stop hiring altogether? Switch off **Can create new agents** on its **Permissions / Trust** page. Its hire calls are then refused instead of queued. See [Permissions / Trust](../guides/org/agents.md#permissions-trust).
-
 ---
 
 ## 3. Review in the board UI

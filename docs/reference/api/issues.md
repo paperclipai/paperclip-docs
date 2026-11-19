@@ -171,25 +171,6 @@ A few cases behave differently:
 - **`oneChildPerParent` pages by offset.** This option needs `view=index` with `parentIds`. Its results are ordered by parent first, so you never get `X-Paperclip-Next-After-Id`. Use `X-Paperclip-Next-Offset` instead.
 - **The Mine inbox isn't paged this way.** `GET /api/companies/{companyId}/inbox/mine` takes no query parameters and sends none of these headers.
 
-### Page Through a Long List
-
-If you want every matching task, read the response headers as well as the body. The body is a plain array holding at most `limit` tasks, 500 unless you ask otherwise, so a full page on its own doesn't tell you whether more tasks exist.
-
-| Header | When it's set | What it means |
-|---|---|---|
-| `X-Paperclip-Has-More` | Every page | `true` when more tasks match after this page, `false` on the last one. |
-| `X-Paperclip-Limit` | Every page | The page size the server used. |
-| `X-Paperclip-Next-Offset` | More tasks exist and you didn't send `afterId` | Send this as `offset` to get the next page. |
-| `X-Paperclip-Next-After-Id` | More tasks exist, you sorted with `sortField=id&sortDir=asc`, and you sent no `offset` | Send this as `afterId` to get the next page. |
-
-Repeat the request with the same filters and the next position until `X-Paperclip-Has-More` is `false`. An agent calling this route through `call_api` sees the same values in the result's `pagination` field.
-
-A few cases behave differently:
-
-- **Some callers get no paging headers.** The headers only go to callers who can read the whole company's task list. If your rows are filtered after the query, as they are for a low-trust agent, the server leaves all four off so the raw page can't reveal tasks you can't read. For those callers, missing headers don't mean the list is complete. A board member who only has private tasks hidden still gets the headers, because those tasks are removed in the query itself.
-- **`oneChildPerParent` pages by offset.** This option needs `view=index` with `parentIds`. Its results are ordered by parent first, so you never get `X-Paperclip-Next-After-Id`. Use `X-Paperclip-Next-Offset` instead.
-- **The Mine inbox isn't paged this way.** `GET /api/companies/{companyId}/inbox/mine` takes no query parameters and sends none of these headers.
-
 ### Example
 
 ```bash
@@ -250,7 +231,7 @@ The response includes the issue itself and these related fields:
 - `workProducts`
 - `createdFrom`
 
-Issue records, here and in list responses, can also carry a read-only `displayStatus`. It's the status the UI shows, and it equals `status` except on an `in_progress` task assigned to an agent. That task reports `displayStatus: "in_progress"` only while a run for the task is `queued` or `running`. Without one it reports, in this order: `blocked` for an active or escalated recovery action; `in_review` for a pending execution stage with a current participant, or an active pending interaction; `monitoring` for an ordinary scheduled monitor; and otherwise `todo`. Monitors waiting on provider usage limits never report `monitoring`. The stored `status` stays `in_progress`, you can't write `displayStatus`, and it never grants execution authority. Company search (`GET /api/companies/{companyId}/search`) accepts the same `displayStatus` filter and returns `displayStatus` on each task result. Its artifact results (agent documents, work products, and attachments) only come from tasks you can read, so a private task's outputs don't show up for someone it isn't shared with.
+Issue records, here and in list responses, can also carry a read-only `displayStatus`. It's the status the UI shows, and it equals `status` except on an `in_progress` task that's assigned to an agent and has no user assignee. That task reports `displayStatus: "in_progress"` only while a run for the task is `queued` or `running`. Without one it reports, in this order: `blocked` for an active or escalated recovery action; `in_review` for a pending execution stage with a current participant, or an active pending interaction; `monitoring` for an ordinary scheduled monitor; and otherwise `todo`. Monitors waiting on provider usage limits never report `monitoring`. The stored `status` stays `in_progress`, you can't write `displayStatus`, and it never grants execution authority. Company search (`GET /api/companies/{companyId}/search`) accepts the same `displayStatus` filter and returns `displayStatus` on each task result. Its artifact results (agent documents, work products, and attachments) only come from tasks you can read, so a private task's outputs don't show up for someone it isn't shared with.
 
 If you can't open the task, you get `404` with `{ "error": "Issue not found" }`. The answer is the same whether the task was deleted, is private and wasn't shared with you, or belongs to another company, so it never reveals which. Agents get two extra fields: `code: "issue_not_visible"` and a `remediation` telling the agent the lookup is final, so it should tell the person it can't open the task (they can share it from its sharing controls or paste what's needed) instead of searching other routes for it.
 
@@ -398,7 +379,7 @@ Naming a workspace yourself doesn't get around this. An `executionWorkspaceId` t
 
 ## Agent Task Depth Limit
 
-Tasks created or moved by an agent can be at most two levels deep: a top-level task and its children. A request that would make a grandchild isn't rejected. The server uses the requested parent's own parent instead, so the task lands beside the requester, and returns the usual `201` (create) or `200` (update).
+Tasks created or moved by an agent can be at most two levels deep: a top-level task and its children. A request that would make a grandchild isn't rejected. The server places it under the top-level task of that tree instead, so in a two-level tree it lands beside the requester, and returns the usual `201` (create) or `200` (update).
 
 This applies to agent callers of `POST /api/companies/{companyId}/issues`, `POST /api/issues/{issueId}/children`, and a `parentId` change through `PATCH /api/issues/{issueId}`, and to task creation from the Paperclip Runner tools.
 
@@ -458,6 +439,7 @@ Behavior to know:
 - Only board users can interrupt an active run from issue comments.
 - Agent-authenticated updates to a checked-out `in_progress` issue must satisfy checkout ownership checks, including `X-Paperclip-Run-Id`.
 - `hiddenAt` hides or unhides the issue from list responses.
+- While a native Runner run holds the task, the assigned agent can't change the task's status itself. A status change from that run (keeping the same assignee) returns `409` with code `native_run_status_reported_by_finish`. The run reports its outcome with `paperclip_finish` or `paperclip_block` instead, and Paperclip sets the status from that report. The same check applies when the run resolves a recovery action with a `sourceIssueStatus`. Conversation tasks are exempt.
 - An agent's `parentId` change follows the [agent task depth limit](#agent-task-depth-limit), and the response reports any adjustment in `parentAdjusted`.
 - `visibility` switches the issue between `open` and `private`. An agent that can update the task may make it `private`; any other change needs someone who can manage the task's privacy (see [Privacy and access grants](#privacy-and-access-grants)). Making a task public fails with `422` while it inherits privacy from a parent or a shared private project (`A task cannot be made public while it inherits private access`, `Move this task out of its private project before making it public`). In a personal private project, making the task public moves it out of that project instead. Existing private children stay private.
 - `expectedExecutionPolicy` is an optional snapshot of the `executionPolicy` you last read. When you send it, the update must change only `executionPolicy` (otherwise `422`, `expectedExecutionPolicy requires a policy-only update`), and the server rejects it with `409` and code `execution_policy_changed` if the stored policy changed since. The board uses this when you cancel a monitor from its card.

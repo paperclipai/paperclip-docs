@@ -144,7 +144,7 @@ If you supply an `instructionsFilePath`, Paperclip prefers staging it into the w
 
 `grok_local` isn't the only way to run Grok. Grok Build is also available on **Paperclip Runner** (`paperclip_runner`), Paperclip's experimental native runner, which talks to Grok over the Agent Client Protocol (ACP) instead of wrapping the CLI. Pick it when you want the runner's durable sessions — a run that survives a server restart and picks up the same Grok conversation — and its built-in Paperclip tools.
 
-Your existing `grok_local` agents keep running on `grok_local` until you upgrade them yourself. On a macOS ARM64 computer, or a Linux x64 computer with GNU libc `2.39` or newer, open the agent's **Harness / Runtime** page and click **Upgrade runner**. The agent keeps its model, account, instructions, and history; its next run starts a fresh session. **Advanced** also offers an explicit Runner choice. Settings the Runner can't honor — a custom `command`, `extraArgs`, `permissionMode`, `maxTurns`, or `alwaysApprove: false` — are rejected before saving, so remove them or stay on Legacy.
+Your existing `grok_local` agents keep running on `grok_local` until you upgrade them yourself. On a macOS ARM64 computer, or a Linux x64 computer with GNU libc `2.39` or newer, open the agent's **Harness / Runtime** page and click **Upgrade runner**. The agent keeps its model, account, instructions, and history; its next run starts a fresh session. Settings the Runner can't honor — a custom `command`, `extraArgs`, `permissionMode`, `maxTurns`, or `alwaysApprove: false` — are rejected before saving, so remove them or stay on Legacy.
 
 The upgrade carries your Grok settings across:
 

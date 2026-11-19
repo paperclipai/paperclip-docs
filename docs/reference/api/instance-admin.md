@@ -45,7 +45,7 @@ Task drain is an instance-wide pause on picking up new work: while it is on, age
 | `POST /api/instance/task-drain` | Start (or refresh) a drain. Body is validated against `startTaskDrainRequestSchema`; pass an optional `ttlMs` to have the drain expire automatically after that many milliseconds, or omit it for a drain that stays on until you stop it. Returns the resulting drain state. |
 | `DELETE /api/instance/task-drain` | Stop draining. Returns `{ "wasActive": <boolean> }` — whether a drain was in effect when you called. |
 
-Reading the status needs only authenticated org access; starting and stopping a drain require instance-admin. Overlapping start/stop calls are serialised, so the audit log and the live drain state always agree. Task-chat turns that queued while the drain was on start on their own as soon as you stop it or it expires.
+Reading the status needs only authenticated org access; starting and stopping a drain require instance-admin. Overlapping start/stop calls are serialised, so the audit log and the live drain state always agree. Runs that queued while the drain was on, task-chat turns included, start on their own once you stop the drain or it expires.
 
 ### Idle holds
 
@@ -211,8 +211,8 @@ Execution workspaces are the materialised working directories Paperclip creates 
 | Endpoint | Purpose |
 |---|---|
 | `GET /api/companies/:companyId/execution-workspaces` | List execution workspaces for the company. With `summary=true` you can page through results by adding `limit` (1 to 101, default 51) and `cursor` (the last row's `id`). The paged response is still a plain array, sorted by `id`. Invalid values return `422` with `Invalid workspace summary pagination`. |
-| `GET /api/execution-workspaces/:id` | Read one workspace. |
-| `GET /api/execution-workspaces/:id/close-readiness` | Whether the workspace is safe to close (no pending operations, no dirty state). |
+| `GET /api/execution-workspaces/:id` | Read one workspace. It returns the stored metadata and runtime service state without running Git or contacting a storage provider, so its delivery state is always `unknown`. Use close-readiness for a current Git safety check. |
+| `GET /api/execution-workspaces/:id/close-readiness` | Whether the workspace is safe to close (no pending operations, no dirty state). This is the read that inspects current Git state. |
 | `GET /api/execution-workspaces/:id/workspace-operations` | List the operations recorded against the workspace. |
 | `PATCH /api/execution-workspaces/:id` | Update a workspace. Body validated against `updateExecutionWorkspaceSchema`. |
 | `POST /api/execution-workspaces/:id/runtime-services/:action` | Run a runtime-service control action against the workspace. |

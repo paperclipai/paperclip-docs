@@ -48,7 +48,7 @@ Use it when you are wiring a deployment, debugging a startup issue, or checking 
 | `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_DAYS` | `7` | How many days a native session's tasks must have been closed before its failover copy can be deleted. `0` is raised to `1`; a negative, empty, or non-numeric value falls back to the default. |
 | `PAPERCLIP_NATIVE_HARNESS_BACKUP_EXPIRATION_DRY_RUN` | `false` | Set to `true` to have the sweep find and count the copies it would delete, and log the totals, without deleting anything or ending any session. |
 | `PAPERCLIP_NATIVE_RUNNER_EVIDENCE_RETENTION_DAYS` | `7` | How many days the same sweep keeps the leftovers native sessions write to disk. These are the archived state of a session that started over with a fresh provider session, and quarantined state from a session that lost its authority. Nothing is removed while its session is starting, running, warm, or closing, and quarantined state that native cleanup itself set aside is always kept. Once quarantined state is gone, a later run of that session may start fresh instead of refusing to continue. `0` is raised to `1`; a negative, empty, or non-numeric value falls back to the default. The `_ENABLED` and `_DRY_RUN` switches above apply here too. |
-| `PAPERCLIP_NATIVE_WORKSPACE_SYNC_RETENTION_ENABLED` | on (unset) | Whether the server deletes old per-run folders that native runs use to sync their workspace with a remote sandbox. A folder can hold seed archives of a gigabyte or more. It's removed once the run and its finalization have been settled for `PAPERCLIP_NATIVE_WORKSPACE_SYNC_RETENTION_DAYS` and no recovery or export still needs it. Set to `false` to keep every folder. |
+| `PAPERCLIP_NATIVE_WORKSPACE_SYNC_RETENTION_ENABLED` | on (unset) | Whether the server deletes old per-run folders that native runs use to sync their workspace with a remote sandbox. A folder can hold seed archives of a gigabyte or more. It's removed once the run and its finalization have been settled for `PAPERCLIP_NATIVE_WORKSPACE_SYNC_RETENTION_DAYS` and no recovery or export still needs it. The sweep only runs on a server with `HEARTBEAT_SCHEDULER_ENABLED` on. Set to `false` to keep every folder. |
 | `PAPERCLIP_NATIVE_WORKSPACE_SYNC_RETENTION_DAYS` | `7` | How many days a run must have been settled before its sync folder can be deleted. `0` is raised to `1`; a negative, empty, or non-numeric value falls back to the default. |
 | `PAPERCLIP_NATIVE_WORKSPACE_SYNC_RETENTION_DRY_RUN` | `false` | Set to `true` to have the sweep only log what it would delete. |
 | `PAPERCLIP_WORKSPACE_REAPER_COOLDOWN_DAYS` | `1` | How many days the terminal-workspace reaper waits after an issue tree becomes terminal before archiving its workspace. Someone can reopen the work inside this window. `0` disables the cooldown and restores immediate reaping; a negative or non-numeric value falls back to the default. (The default was `7` before workspace compaction arrived.) |
@@ -102,7 +102,7 @@ These variables matter most once you move beyond a default local install.
 | `PAPERCLIP_AGENT_JWT_TTL_SECONDS` | Agent JWT lifetime in seconds. |
 | `PAPERCLIP_AGENT_JWT_ISSUER` | Agent JWT issuer. |
 | `PAPERCLIP_AGENT_JWT_AUDIENCE` | Agent JWT audience. |
-| `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` | Signing secret for tool action approvals. Unlike `BETTER_AUTH_SECRET` it has no fallback — if it is unset, the server cannot issue signed tool action approvals and raises `ToolActionSigningSecretMissingError`. Set it in the instance's own environment; worktrees inherit it from `.paperclip/.env`. For local development the `.env.example` ships `paperclip-dev-tool-action-signing-secret-change-me`. Both shipped Docker Compose files pass it through to the container. |
+| `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` | Signing secret for tool action approvals. Unlike `BETTER_AUTH_SECRET` it has no fallback — if it is unset, the server cannot issue signed tool action approvals and raises `ToolActionSigningSecretMissingError`. Set it in the instance's own environment; worktrees inherit it from `.paperclip/.env`. For local development the `.env.example` ships `paperclip-dev-tool-action-signing-secret-change-me`. `docker/docker-compose.quickstart.yml` and `docker/docker-compose.yml` pass it through to the container. |
 
 Related deployment variables:
 
@@ -379,7 +379,7 @@ These values are covered in more detail in [Secrets](./secrets.md).
 | Variable | Default | Meaning |
 |---|---|---|
 | `HEARTBEAT_SCHEDULER_ENABLED` | `true` | Enables or disables timer-based scheduling. |
-| `HEARTBEAT_SCHEDULER_INTERVAL_MS` | `30000` | How often, in milliseconds, the scheduler runs its periodic recovery sweep, and how long it waits before retrying scheduled work that failed. Values below `10000` are raised to `10000`. Agent timers, routines, and issue monitors aren't polled on this interval; they're scheduled from their saved due times. |
+| `HEARTBEAT_SCHEDULER_INTERVAL_MS` | `30000` | The scheduler's pacing and retry interval, in milliseconds. Agent timers, routines, and issue monitors aren't polled on this interval: they run at their saved due times. Agent timer passes are spaced at least this far apart, and a pass that leaves due work behind waits this long before the next one. Scheduled and background delivery work that failed, or still has items pending, is retried after this long. Values below `10000` are raised to `10000`. |
 
 ---
 
@@ -398,7 +398,7 @@ If neither variable is set, feedback submissions are stored locally and never le
 
 ### Turning off telemetry
 
-Paperclip ships anonymized usage telemetry (which adapters you run, and similar coarse signals) that helps the project understand how Paperclip is used. When telemetry is on, the server also sends a `server.started` event at startup that records its operating system as `os_platform`. Telemetry carries no personal data, and you can turn it off completely by setting either of these variables. Both are checked for the exact value `1`, and either one on its own disables telemetry.
+Paperclip ships anonymized usage telemetry (which adapters you run, and similar coarse signals) that helps the project understand how Paperclip is used. When telemetry is on, the server also sends a `server.started` event at startup that records its operating system as `os_platform`. When a tool connection is created, changes status or is turned on or off, or finishes a call, it sends a `connection.created`, `connection.updated`, or `connection.invoked` event with coarse details such as the connector key, transport, and status. Telemetry carries no personal data, and you can turn it off completely by setting either of these variables. Both are checked for the exact value `1`, and either one on its own disables telemetry.
 
 | Variable | Meaning |
 |---|---|

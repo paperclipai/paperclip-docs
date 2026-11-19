@@ -717,7 +717,7 @@ For a skill that belongs to a GitHub skill source, `update-status` returns `supp
 
 ### `update-diff` response
 
-Before you install an update for a skill from a [GitHub skill source](#github-skill-sources), you can see exactly what it changes. `update-diff` compares the installed revision (`currentRef`) with the latest commit on the branch or revision the source follows, its `trackingRef` (`latestRef`) and lists each package file that differs, with a unified line diff. It's read-only: nothing is installed.
+Before you install an update for a skill from a [GitHub skill source](#github-skill-sources), you can see exactly what it changes. `update-diff` compares the installed revision (`currentRef`) with the latest commit on the branch or revision the source follows, its `trackingRef` (`latestRef`), and lists each package file that differs, with a unified line diff. It's read-only: nothing is installed.
 
 ```json
 {
@@ -744,7 +744,7 @@ Before you install an update for a skill from a [GitHub skill source](#github-sk
 - Each file's `change` is `added`, `removed`, `modified`, or `not_compared`. `not_compared` means the scan left that path out of at least one revision — it was too large, a symlink, or rejected by the safety checks — so Paperclip doesn't guess what changed.
 - In `diff`, lines starting with `-` exist only in the installed revision and lines starting with `+` only in the latest one. It's `""` when only the executable bit changed (`executableChanged: true`).
 - When `diff` is `null`, `diffUnavailable` says why: `binary`, `too_large`, `omitted` (the path is `not_compared`), or `budget`.
-- `truncated` is `true` when the response hit its size or work budget, so some files carry no diff or aren't listed. A response lists at most 1,000 files.
+- `truncated` is `true` when the response hit its size or work budget, or its limit of 1,000 listed files, so some files carry no diff or aren't listed.
 
 Some skills can't be diffed. You still get `200`, with `supported: false` and a `reason`:
 

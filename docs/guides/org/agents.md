@@ -188,7 +188,7 @@ See [Roles & Permissions](../../administration/roles-and-permissions.md#the-perm
 
 Every agent page is built from the same shell:
 
-- A **header** with the agent's character, name, harness, title, and manager, plus its actions
+- A **header** with the agent's character, name, harness, and title, plus its actions
 - A **side menu** that lists the agent's pages in two groups
 - The **selected page's content** to the right
 
@@ -248,7 +248,7 @@ The actions menu holds everything else:
 
 If the agent's reporting chain is broken, **New task** and **Run now** stay disabled until you repair it (see [Banners at the top of the page](#banners-at-the-top-of-the-page)).
 
-When the agent is recording the exact traffic to its model provider, a small **Raw tracing on** label appears next to the actions (on wider screens). To trace a single run, open a finished run and click **Re-run with provider trace**, which starts a one-off traced copy of it. To trace every run, turn on **Capture raw provider traces** in the **Debugging** panel on the agent's [Harness / Runtime](#harness-runtime) page and save. Tracing then applies to every future run until you switch it off, and each trace is deleted after 24 hours.
+When the agent is recording the exact traffic to its model provider, a small **Raw tracing on** label appears next to the actions (on wider screens). Turning tracing on is for instance administrators (or anyone on a local trusted instance). To trace a single run, open a finished run and click **Re-run with provider trace**, which starts a one-off traced copy of it. To trace every run, turn on **Capture raw provider traces** in the **Debugging** panel on the agent's [Harness / Runtime](#harness-runtime) page and save. Tracing then applies to every future run until you switch it off, and each trace is deleted after 24 hours.
 
 > **Danger:** Terminate permanently shuts the agent down. Use Pause if you might want it back. See [Approvals — Board Override Powers](../day-to-day/approvals.md#board-override-powers) for the broader discussion of Pause vs Terminate vs Delete.
 
@@ -359,10 +359,10 @@ Local adapters (Claude Code, Codex, Cursor, Gemini, OpenCode) support an **instr
 
 #### Point the agent at a folder on disk
 
-To switch to an external folder, open **Advanced settings** above the file list. (It's already open when the agent uses an external folder.) The **External management** panel asks for two things:
+To switch to an external folder, open **Advanced management** above the file list. (It's already open when the agent uses an external folder.) The **External management** panel asks for two things:
 
 - **Root path** — the folder that holds the files. Use an absolute path that starts with `/` or `~`.
-- **Entry file** — the file the agent reads first, such as `AGENTS.md`. It can have any name, as long as it sits inside the root path.
+- **Root file** — the entry file the agent reads first, such as `AGENTS.md`. It can have any name, as long as it sits inside the root path.
 
 Click **Load profile**. Paperclip only switches over if the folder and the entry file already exist; it never creates them for you here. If something's missing, the switch is refused and the panel tells you why, so you can fix the path and try again. When it works, a green dot appears with a confirmation such as *Loaded AGENTS.md from /home/you/prompts*. Servers that run without a local disk don't allow external folders at all; there the switch is refused with *Volume-free servers require managed agent instructions*.
 
@@ -581,7 +581,7 @@ Edits are tracked as you make them, on Harness / Runtime, [Identity](#identity),
 
 If nothing has changed, there's no bar at all.
 
-**Discard** puts every changed field back the way it was; **Save changes** saves them. Saving a change to the agent's settings (Harness / Runtime, Secrets, or the YAML on Advanced) adds an entry to its [Agent history](#agent-history). Instruction files on the Identity page have their own per-file history instead.
+**Discard** puts every changed field back the way it was; **Save changes** saves them. Saving a change to the agent's settings (Harness / Runtime, Secrets, or the YAML on Advanced) adds an entry to its [Agent history](#agent-history). Saving instruction files on the Identity page doesn't, and a managed bundle keeps only the current files — see [Agent files persist across tasks](#agent-files-persist-across-tasks).
 
 **Leaving with unsaved changes.** If you click a link to another page while you have unsaved changes, Paperclip asks **Discard unsaved changes?** Choose **Keep editing** to stay, or **Discard changes** to drop your edits and go. Using the browser's Back button, or a header action that would take you away (such as **Run now**), shows your browser's own confirmation instead.
 
@@ -607,6 +607,8 @@ The **Permissions / Trust** page sets how much the agent is trusted and what it'
 - **Capabilities** — a panel of switches for **Can create new agents**, **Can create/import skills**, and **Can assign tasks**. Task assignment is switched on automatically for the CEO and for any agent that can create agents.
 
 **Turning off hiring, including for the CEO.** Your CEO can hire by default, and **Can create new agents** shows as on. If you'd rather do all the hiring yourself, switch it off on the CEO's page. Paperclip remembers that you made that choice, so the CEO title no longer overrides it: the CEO's hire requests are refused, and it can't switch hiring back on for itself or give it to another agent. Switching **Can create new agents** off on any agent also removes a separate hiring grant the agent might hold. Switch it back on whenever you like.
+
+If you switched a CEO's hiring off on an older version, that choice wasn't recorded this way, so after upgrading the CEO shows **Can create new agents** as on again and can hire. Switch it off once more on any CEO that shouldn't hire.
 
 The trust cards, boundary, and capability switches save the moment you change them — there's no save bar here. Allowed projects is the exception: it waits for **Save project access**.
 
@@ -902,8 +904,8 @@ Use pause liberally — it's reversible, cheap, and the right default when somet
 ### Raise a capped agent's budget
 
 1. Click **Budgets** under **Audit** in the agent's side menu.
-2. If the agent hit its hard stop, find its card under **Active incidents** and click **Raise budget & resume** — that raises the cap and resumes the agent in one step. Tasks whose runs the stop cancelled are retried once each, unless a person stopped them or the task has moved on since. See [Cancelled work continues](../../reference/api/costs.md#cancelled-work-continues-after-you-resume).
-3. Otherwise, find the agent's card under **Agent budgets**, change the amount, and click **Update budget**.
+2. If the agent hit its hard stop, find the incident card at the top of the page and click **Raise budget & resume** — that raises the cap and resumes the agent in one step. Tasks whose runs the stop cancelled are retried once each, unless a person stopped them or the task has moved on since. See [Cancelled work continues](../../reference/api/costs.md#cancelled-work-continues-after-you-resume).
+3. Otherwise, change the amount under **Budget (USD)** on the budget card and click **Update budget**.
 4. If the agent is still paused, choose **Resume** from the actions menu in its page header. If a Budget Override approval was created instead, see [Approvals](../day-to-day/approvals.md).
 
 ---
