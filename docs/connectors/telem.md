@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Telem.AI Web Search Connector
 seo_description: Give agents web search and page reading across many search providers with one Telem.AI API key. Optional routing, tier, and provider include lists.
 ---

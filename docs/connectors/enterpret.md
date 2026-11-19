@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Enterpret Connector
 seo_description: Let agents ask Enterpret about customer feedback and pull cited quotes. Connect with an org auth token or sign-in, and keep graph queries on Ask first.
 ---

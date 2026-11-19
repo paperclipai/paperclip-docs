@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Watching Your Agents Work
 seo_description: Turn on the CEO's heartbeat and follow its first execution cycle: read the run transcript, review the strategy, and watch tasks reach the board.
 ---

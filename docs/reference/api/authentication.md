@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.831.1
+paperclip_version: v2026.1117.0
 seo_title: API Authentication
 seo_description: Two identities over the API and the bearer header shape every authenticated request uses. Which one to send, and what each is allowed to reach.
 ---

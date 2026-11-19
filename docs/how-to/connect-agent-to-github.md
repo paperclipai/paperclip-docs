@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Connect an Agent to GitHub and Open PRs
 seo_description: Wire a coding agent to a real repo so every issue you assign produces a branch, a working commit, and a pull request visible from both sides.
 ---

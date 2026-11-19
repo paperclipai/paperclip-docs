@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Daytona Sandbox Connector
 seo_description: Let agents manage your Daytona account's sandboxes, files, commands, Git, snapshots, and volumes with an organization API key and per-action controls.
 ---

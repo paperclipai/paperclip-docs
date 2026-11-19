@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Ditto Connector
 seo_description: Let agents search approved product copy in Ditto, follow your style guide, and edit or translate text. Set deletes and link actions to Ask first.
 ---

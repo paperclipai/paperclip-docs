@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Key Concepts: Companies, Agents, Tasks
 seo_description: The seven ideas behind Paperclip — company, agent, task, heartbeat, adapter, budget, approval — explained with analogies before the technical detail.
 ---

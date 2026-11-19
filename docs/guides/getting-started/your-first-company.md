@@ -1,7 +1,7 @@
 ---
 seo_title: Create Your First Company
 seo_description: A company holds your goal, your agents, your task board, and your budget. Set one up before hiring, and learn when running more than one makes sense.
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 ---
 
 # Create Your First Company

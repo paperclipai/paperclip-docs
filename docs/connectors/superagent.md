@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Superagent Connector
 seo_description: Let agents review Superagent security findings, start red-team reports, and score content. Use a dedicated API key and gate billable or deleting tools.
 ---

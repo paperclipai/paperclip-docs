@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: OpenClaw Gateway Adapter
 seo_description: Connect to an OpenClaw instance over the Gateway WebSocket protocol when OpenClaw runs on another machine, in Docker, or behind a network boundary.
 ---

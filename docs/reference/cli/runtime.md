@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Install Paperclip Runner Runtimes
 seo_description: Install and verify Paperclip's pinned Cursor, Pi, Kimi Code, and Antigravity runtimes on a supported host, import a Linux Pi companion, and more.
 ---

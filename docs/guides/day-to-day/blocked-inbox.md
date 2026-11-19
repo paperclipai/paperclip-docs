@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Blocked Inbox: Triaging Stalled Work
 seo_description: The Blocked tab surfaces issues waiting on a decision, a recovery run, an external person, or a paused owner — and shows who owns each unblock.
 ---

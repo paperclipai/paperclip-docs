@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Tavily Web Search Connector
 seo_description: Give agents web search and page extraction through your Tavily account. Browser sign-in, which Tavily key gets used, the HTTPS callback rule, and fixes.
 ---

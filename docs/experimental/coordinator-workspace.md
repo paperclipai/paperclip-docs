@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Coordinator Workspace
 seo_description: The standard Paperclip workspace, built around Chat, Tasks, and Inbox, so a conversation leads straight to assigned tasks and the decisions they raise.
 ---

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Connect Apps Through an MCP Aggregator
 seo_description: Reach apps that have no native Paperclip connector through Arcade, Composio, Executor, or Zapier, and pick the provider when an agent asks you to.
 ---

@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Handle Board Approvals for Hires
 seo_description: A manager agent cannot hire on its own; it files a request and waits. Read the proposal, approve it, and Paperclip wakes the requester to carry on.
 ---

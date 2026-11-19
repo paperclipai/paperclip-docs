@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Exa Web Search Connector
 seo_description: Give agents public web search and page reading through Exa's free, keyless server. No account or key needed, what the connection covers, and a quick test.
 ---

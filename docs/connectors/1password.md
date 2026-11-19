@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: 1Password Service Account Connector
 seo_description: Let agents read and manage items in the 1Password vaults you choose, using a service account token, with archive and delete actions gated separately.
 ---

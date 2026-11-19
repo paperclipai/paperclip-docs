@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: GSC Wizard Search Console Connector
 seo_description: Let agents read Google Search Console, Bing Webmaster, and analytics data through GSC Wizard, and keep URL submission actions behind your review.
 ---

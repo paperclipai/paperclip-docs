@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Agent Complaints and Suggestions
 seo_description: Learn how agents submit complaints and suggestions, and how you read, filter, search, and share them from the Commentary tab in Audit.
 ---

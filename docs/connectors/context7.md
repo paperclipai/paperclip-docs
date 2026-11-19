@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Context7 Library Docs Connector
 seo_description: Let agents look up current, public library documentation and code examples through Context7's hosted server. No account, key, or sign-in needed.
 ---

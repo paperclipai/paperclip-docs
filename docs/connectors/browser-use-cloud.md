@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Browser Use Cloud Connector
 seo_description: Delegate website tasks to Browser Use Cloud, watch the live browser in Paperclip, and choose saved profiles, agent access, and spending limits.
 ---

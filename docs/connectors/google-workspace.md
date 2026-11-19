@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Google Workspace Connector
 seo_description: Connect Gmail, Drive, and Calendar with one Google account, choose read-only or read and write per service, and see what agents can do with each.
 ---

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Edit an Agent as YAML
 seo_description: Use the agent Advanced tab to view and edit an agent's settings as one compact paperclip/v1 YAML document, preview changes, and recover from conflicts.
 ---

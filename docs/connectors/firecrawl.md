@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Firecrawl Web Scraping Connector
 seo_description: Let agents search, scrape, and parse public web pages with Firecrawl. Keyless, sign-in, and API key methods compared, credit-using jobs, a test, and fixes.
 ---

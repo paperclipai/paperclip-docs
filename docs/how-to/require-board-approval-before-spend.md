@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Require Board Approval Before Spend
 seo_description: Caps are reactive. For lumpy, discrete spend — a $40/month SaaS signup — make agents ask a human first instead of warning you at 80 percent.
 ---

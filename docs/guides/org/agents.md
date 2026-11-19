@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Agents: Your AI Employees
 seo_description: Hire agents, browse the agent list, and work the agent page — overview, identity, harness, history, and audit — for the AI employees doing your work.
 ---

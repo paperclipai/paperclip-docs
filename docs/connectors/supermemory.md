@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Supermemory Connector
 seo_description: Connect Supermemory through browser sign-in, select the workspace and tags it may reach, and review memory actions and saved agent guidance in Paperclip.
 ---

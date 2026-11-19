@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Calendly Scheduling Connector
 seo_description: Let agents review Calendly event types and availability, and decide which booking actions they may take. Browser sign-in, scopes, a safe test, and fixes.
 ---

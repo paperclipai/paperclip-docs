@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1106.0
+paperclip_version: v2026.1117.0
 seo_title: Documentation Changelog
 seo_description: What changed in these docs — pages added, rewritten, or expanded — with every documentation update. For product releases, see the Paperclip changelog.
 ---
@@ -13,6 +13,36 @@ The docs track Paperclip's [calendar-versioned](https://github.com/paperclipai/p
 ---
 
 <details class="accordion" open>
+<summary>Docs for v2026.1117.0 <span class="accordion-meta">November 17, 2026</span></summary>
+<div class="accordion-body">
+
+This release is about the new standard workspace. The Coordinator layout and Agent Chat are on for everyone, and task chat shows what a Runner agent did: its plan, diffs, tool calls and subagents. Agents can now set up connections within the authority you delegate to them, and you can edit an agent as one YAML document. Before you upgrade, read the new section on rollbacks and the Google Workspace change below.
+
+**New pages**
+
+- [Coordinator workspace](../experimental/coordinator-workspace.md): the standard workspace, built around Chat, Tasks and Inbox, and how to switch back to the Classic workspace.
+- [Edit an agent as YAML](../guides/org/agent-configuration-yaml.md): view and edit an agent's settings as one `paperclip/v1` document, preview changes, and recover from conflicts or partial saves.
+- [1Password](../connectors/1password.md): let agents read and manage items in the vaults you choose, with archive and delete gated separately.
+- [Vercel](../connectors/vercel.md): let agents deploy and manage projects, environment variables and domains, with preview deploys by default.
+
+**Updated pages**
+
+- [Update Paperclip](../how-to/update-paperclip.md): plan for no way back. Skill packages and remote workspaces set a rollback floor, a few migrations block writes while they run, and some settings need re-checking after you upgrade.
+- [Google Workspace](../connectors/google-workspace.md) and [Experimental features](../experimental/overview.md): the built-in connector is now off by default, and the setting that turns it back on.
+- [Task chat](../experimental/task-chat.md), [Agent Chat](../experimental/agent-chat.md) and [Issues](../guides/day-to-day/issues.md): the new run rows, status chips such as **Compacting context**, documents and image galleries in the thread, what happens when a subtask or blocker needs the board, and sending messages over a dropped connection.
+- [Access model](../connectors/access-model.md) and [Tool gateway API](api/tool-gateway.md): what an agent may set up for you, where its delegated authority stops, and the steps that stay with you.
+- [Agents](../guides/org/agents.md), [Agents API](api/agents.md) and [Org structure](../guides/org/org-structure.md): the redesigned agent page (header, metric tiles, Profile and Skills), and why a CEO whose hiring you switched off can hire again after upgrading.
+- [Trust and low-trust review](../administration/trust-and-low-trust-review.md): the projects each agent is allowed to work in, and what happens when a task falls outside the list.
+- [Paperclip Runner](adapters/paperclip-runner.md) and the [Codex](adapters/codex.md), [OpenCode](adapters/opencode.md) and [Grok Build](adapters/grok-local.md) adapter pages: warm runners by default for local Codex and OpenCode, the new `gpt-6.1-sol` Codex default, and the agent form without a **Runner** setting.
+- [Plugin SDK](plugins/sdk.md) and [Plugins](../administration/plugins.md): plugin environments, workspace finalization, Git credential brokering, and managed plugin settings.
+- [Storage](deploy/storage.md), [Database](deploy/database.md) and [Environment variables](deploy/environment-variables.md): run logs and skill packages in your configured storage, remote workspace storage on S3, named database pools, and new controller-lease and capture settings.
+- [Debug a stuck heartbeat](../how-to/debug-stuck-heartbeat.md), [Workspaces](../guides/projects-workflow/workspaces.md), [Environments](../experimental/environments.md), [Costs](../guides/day-to-day/costs.md) and [Routines](../guides/projects-workflow/routines.md): new recovery sections, subtask workspaces, deleting an environment, unpriced usage, and who a routine's tasks belong to.
+- [Supabase](../connectors/supabase.md), [Slack](../connectors/slack.md), [Sandbox providers](adapters/sandbox-providers.md) and smaller fixes across the connector guides, the API reference and the bundled skill pages.
+
+</div>
+</details>
+
+<details class="accordion">
 <summary>Docs for v2026.1106.0 <span class="accordion-meta">November 6, 2026</span></summary>
 <div class="accordion-body">
 

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Status Cards API
 seo_description: A standing question about your company's work plus its living answer. Give the card one plain-language brief and read the update whenever you need it.
 ---

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Honcho Memory Connector
 seo_description: Connect Honcho with an API key and workspace, give selected agents access, and keep peer and session context clear when they recall or save memory.
 ---

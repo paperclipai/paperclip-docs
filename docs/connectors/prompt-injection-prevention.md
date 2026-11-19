@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Prompt Injection Prevention
 seo_description: Add a model-backed check that stops tool results from smuggling instructions to your agents, with built-in detection as an always-on fallback.
 ---

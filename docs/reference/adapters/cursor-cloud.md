@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.512.0
+paperclip_version: v2026.1117.0
 seo_title: Cursor Cloud Adapter
 seo_description: Run Cursor Cloud Agents through the official SDK so Cursor handles remote code execution while Paperclip keeps the task state and history.
 ---

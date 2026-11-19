@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Braintrust Connector
 seo_description: Let agents explore Braintrust traces, datasets, and evaluations. Pick the US or EU region, sign in or paste a key, and gate dataset edits and automations.
 ---

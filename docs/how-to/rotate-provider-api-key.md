@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Update or Rotate a Provider API Key
 seo_description: Swap the credential a running agent uses — after a provider rotation, an expiry, or a move from subscription login to a console-issued key.
 ---

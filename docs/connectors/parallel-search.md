@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Parallel Search Connector
 seo_description: Give agents keyless public web search and page reading through Parallel Search. No account needed, what the two actions do, and a quick test to run first.
 ---

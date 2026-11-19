@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Bitly Connector
 seo_description: Let agents read Bitly links, QR codes, and click analytics, while keeping link deletion, Sites publishing, and custom-domain changes switched off.
 ---

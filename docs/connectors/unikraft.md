@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Unikraft Cloud Connector
 seo_description: Let agents manage Unikraft Cloud instances, services, volumes, and certificates, and run sandbox commands, using an API token and per-action permissions.
 ---

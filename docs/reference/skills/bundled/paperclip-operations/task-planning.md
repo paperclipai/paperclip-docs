@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.618.0
+paperclip_version: v2026.1117.0
 seo_title: Task Planning Skill
 seo_description: Write or revise a plan sized to the work: the outcome, the approach, how you'll verify it, and when splitting into child tasks is worth it.
 ---

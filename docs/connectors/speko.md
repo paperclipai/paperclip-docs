@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Speko Voice Connector
 seo_description: Talk to a Paperclip agent out loud with Speko. Connect a voice persona, start calls from a task, and set up callbacks and incoming phone calls.
 ---

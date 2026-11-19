@@ -1,5 +1,5 @@
 ---
-paperclip_version: v2026.1012.0
+paperclip_version: v2026.1117.0
 seo_title: Process Adapter
 seo_description: Run an arbitrary command on the Paperclip host. The right choice when your agent is really a script, a shell command, or a custom runtime.
 ---

@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Saved Connection Instructions
 seo_description: Give agents guidance from a saved connection, edit or disable provider defaults, and see when the instructions apply without changing tool permissions.
 ---

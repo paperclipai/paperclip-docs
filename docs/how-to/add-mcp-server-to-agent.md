@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Add an MCP Server to an Agent
 seo_description: Attach a Model Context Protocol server so one agent picks up new tools — query Postgres, search a vector index, file issues — without changing Paperclip.
 ---

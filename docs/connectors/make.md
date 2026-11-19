@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Make Automation Connector
 seo_description: Let agents run the Make scenarios you expose to MCP. Connect with browser sign-in or a scoped MCP token, choose a zone, and gate the actions that change data.
 ---

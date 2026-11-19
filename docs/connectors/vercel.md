@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1117.0
 seo_title: Vercel Connector
 seo_description: Let agents deploy websites and manage Vercel projects, environment variables, and domains in one team, with preview deploys by default and approvals.
 ---

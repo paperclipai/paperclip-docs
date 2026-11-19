@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Connect Dot, Grok Bot, or Muse as an Agent
 seo_description: Bring OpenAI Dot, a Grok Bot, or your personal Muse into Paperclip as an agent. Turn on the experiment, pair it, verify delivery, and assign work.
 ---

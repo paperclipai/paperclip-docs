@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Memory Connectors in Paperclip
 seo_description: Choose an experimental memory provider, enable its setup, and help agents recall useful context while keeping access and saved guidance under your control.
 ---

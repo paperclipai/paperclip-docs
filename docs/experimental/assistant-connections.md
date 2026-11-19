@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Connect an Assistant to Paperclip
 seo_description: Connect Codex, Claude, or another assistant to your organization. Review consent, delegate tasks, retrieve results, and revoke access when needed.
 ---

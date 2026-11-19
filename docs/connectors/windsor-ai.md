@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Windsor.ai Marketing Data Connector
 seo_description: Let agents query marketing, analytics, CRM, and warehouse data through Windsor.ai, and hold back any action that changes campaigns, budgets, or posts.
 ---

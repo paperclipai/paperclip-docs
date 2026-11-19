@@ -1,4 +1,5 @@
 ---
+paperclip_version: v2026.1106.0
 seo_title: Gauge AI Visibility Connector
 seo_description: Let agents read Gauge AI visibility, SEO, and traffic data and run content workflows, with publish actions held behind Ask first before any CMS goes live.
 ---
