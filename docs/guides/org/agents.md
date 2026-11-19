@@ -24,7 +24,7 @@ The agent list is the front door. Open **Agents** in the sidebar and you land on
 
 A toolbar at the top of the page holds a **Search agents…** box, the view toggle, and the **New Agent** button. Type in the search box to narrow the list by name, role, or title — it works in both the list and the org chart.
 
-In the list view, a filter button sits above the roster. Click it to open **Filters** and pick a **Harness** — for example only your Codex agents — or **All harnesses** to see everyone again. A small count shows how many agents match. If nothing matches, you'll see *"No agents match these filters."*
+In the list view, a filter button sits above the roster. Click it to open **Filters** and pick a **Harness** — for example only your Codex agents — or **All harnesses** to see everyone again. A small count shows how many agents match. If nothing matches, you'll see *"No agents match these filters."* (or *"No agents match your search and selected status."* in the org chart).
 
 There are no status tabs any more. Paused agents stay in the full roster and carry a `paused` status badge, so you can spot them without switching views. Old bookmarks such as `/agents/active` or `/agents/paused` simply open the full roster at `/agents/all`.
 
@@ -348,10 +348,10 @@ Local adapters (Claude Code, Codex, Cursor, Gemini, OpenCode) support an **instr
 
 #### Point the agent at a folder on disk
 
-To switch to an external folder, open **Advanced settings** above the file list. (It's already open when the agent uses an external folder.) The **External management** panel asks for two things:
+To switch to an external folder, open **Advanced management** above the file list. (It's already open when the agent uses an external folder.) The **External management** panel asks for two things:
 
 - **Root path** — the folder that holds the files. Use an absolute path that starts with `/` or `~`.
-- **Entry file** — the file the agent reads first, such as `AGENTS.md`. It can have any name, as long as it sits inside the root path.
+- **Root file** — the entry file the agent reads first, such as `AGENTS.md`. It can have any name, as long as it sits inside the root path.
 
 Click **Load profile**. Paperclip only switches over if the folder and the entry file already exist; it never creates them for you here. If something's missing, the switch is refused and the panel tells you why, so you can fix the path and try again. When it works, a green dot appears with a confirmation such as *Loaded AGENTS.md from /home/you/prompts*. Servers that run without a local disk don't allow external folders at all; there the switch is refused with *Volume-free servers require managed agent instructions*.
 
@@ -801,7 +801,7 @@ These are exactly what you'll see in the Invocation card on any run — Papercli
 
 ### Cryptographic identity
 
-The agent's **Identity** panel shows its persistent Ed25519 fingerprint and lets you copy its public PEM. New agents receive a keypair when created; older agents receive one on their next supported managed run. Before then, the panel says **Not created yet**.
+Every agent has a persistent Ed25519 keypair. The agent's page doesn't show it; read the fingerprint and public PEM through `GET /api/agents/:id/identity`. New agents receive a keypair when created; older agents receive one on their next supported managed run. Before then, the route returns `null`.
 
 Managed runtimes receive the private key, including managed remote hosts. Choose hosts you trust with that identity. API bearer authentication stays separate, and company imports or agent copies get new identities. See [Agent cryptographic identity](agent-identity.md) for runtime variables and backup requirements.
 
@@ -890,8 +890,8 @@ Use pause liberally — it's reversible, cheap, and the right default when somet
 ### Raise a capped agent's budget
 
 1. Click **Budgets** under **Audit** in the agent's side menu.
-2. If the agent hit its hard stop, find its card under **Active incidents** and click **Raise budget & resume** — that raises the cap and resumes the agent in one step. Tasks whose runs the stop cancelled are retried once each, unless a person stopped them or the task has moved on since. See [Cancelled work continues](../../reference/api/costs.md#cancelled-work-continues-after-you-resume).
-3. Otherwise, find the agent's card under **Agent budgets**, change the amount, and click **Update budget**.
+2. If the agent hit its hard stop, find the incident card at the top of the page and click **Raise budget & resume** — that raises the cap and resumes the agent in one step. Tasks whose runs the stop cancelled are retried once each, unless a person stopped them or the task has moved on since. See [Cancelled work continues](../../reference/api/costs.md#cancelled-work-continues-after-you-resume).
+3. Otherwise, change the amount under **Budget (USD)** on the budget card and click **Update budget**.
 4. If the agent is still paused, choose **Resume** from the actions menu in its page header. If a Budget Override approval was created instead, see [Approvals](../day-to-day/approvals.md).
 
 ---

@@ -35,7 +35,7 @@ The callback URI comes from Paperclip and the client credentials come from Asana
 
 1. Open **Connectors** and select **Asana**.
 2. Read the access line above the main button, and select **Change** if you want a different identity or fewer agents.
-3. Select **Use your own Asana OAuth app**. On an instance without Paperclip Cloud this is the only method, and the screen opens on **Asana needs its own OAuth app**. Paperclip displays the exact callback URI — copy it. It is the `/api/tools/oauth/callback` route on your instance's origin. Leave this screen open.
+3. Select **Use your own Asana OAuth app**. On an instance without Paperclip Cloud this is the only method, and the screen opens on **Your OAuth app**. Paperclip displays the exact callback URI — copy it. It is the `/api/tools/oauth/callback` route on your instance's origin. Leave this screen open.
 
 > **Note:** For local development Paperclip uses `localhost` in the callback, even if you opened Paperclip at `127.0.0.1`. Public deployments should use their canonical HTTPS address.
 

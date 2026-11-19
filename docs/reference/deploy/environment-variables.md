@@ -99,7 +99,7 @@ These variables matter most once you move beyond a default local install.
 | `PAPERCLIP_AGENT_JWT_TTL_SECONDS` | Agent JWT lifetime in seconds. |
 | `PAPERCLIP_AGENT_JWT_ISSUER` | Agent JWT issuer. |
 | `PAPERCLIP_AGENT_JWT_AUDIENCE` | Agent JWT audience. |
-| `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` | Signing secret for tool action approvals. Unlike `BETTER_AUTH_SECRET` it has no fallback — if it is unset, the server cannot issue signed tool action approvals and raises `ToolActionSigningSecretMissingError`. Set it in the instance's own environment; worktrees inherit it from `.paperclip/.env`. For local development the `.env.example` ships `paperclip-dev-tool-action-signing-secret-change-me`. Both shipped Docker Compose files pass it through to the container. |
+| `PAPERCLIP_TOOL_ACTION_SIGNING_SECRET` | Signing secret for tool action approvals. Unlike `BETTER_AUTH_SECRET` it has no fallback — if it is unset, the server cannot issue signed tool action approvals and raises `ToolActionSigningSecretMissingError`. Set it in the instance's own environment; worktrees inherit it from `.paperclip/.env`. For local development the `.env.example` ships `paperclip-dev-tool-action-signing-secret-change-me`. `docker/docker-compose.quickstart.yml` and `docker/docker-compose.yml` pass it through to the container. |
 
 Related deployment variables:
 
@@ -395,7 +395,7 @@ If neither variable is set, feedback submissions are stored locally and never le
 
 ### Turning off telemetry
 
-Paperclip ships anonymized usage telemetry (which adapters you run, and similar coarse signals) that helps the project understand how Paperclip is used. When telemetry is on, the server also sends a `server.started` event at startup that records its operating system as `os_platform`. When a connection is created, updated, or used, it sends a `connection.created`, `connection.updated`, or `connection.invoked` event with coarse details such as the connector key, transport, and status. Telemetry carries no personal data, and you can turn it off completely by setting either of these variables. Both are checked for the exact value `1`, and either one on its own disables telemetry.
+Paperclip ships anonymized usage telemetry (which adapters you run, and similar coarse signals) that helps the project understand how Paperclip is used. When telemetry is on, the server also sends a `server.started` event at startup that records its operating system as `os_platform`. When a tool connection is created, updated, or finishes a call, it sends a `connection.created`, `connection.updated`, or `connection.invoked` event with coarse details such as the connector key, transport, and status. Telemetry carries no personal data, and you can turn it off completely by setting either of these variables. Both are checked for the exact value `1`, and either one on its own disables telemetry.
 
 | Variable | Meaning |
 |---|---|

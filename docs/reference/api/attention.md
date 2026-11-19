@@ -311,7 +311,7 @@ curl -s -X PUT \
   -d '{ "coordinatorWorkspaceEnabled": false }'
 ```
 
-The preference itself isn't tied to a company: it applies across every company on the instance. The company in the path is where the change is recorded in the activity log, as `workspace_preferences.updated`. You need an active membership in that company (local trusted boards are exempt). Viewers count too. Without access you get `403` with `"User does not have access to this company"` or `"User does not have active company access"`. On a local trusted instance, an unknown company returns `404`. The response is the saved preference, in the same shape as `GET`.
+The preference itself isn't tied to a company: it applies across every company on the instance. The company in the path is where the change is recorded in the activity log, as `workspace_preferences.updated`. You need an active membership in that company (local trusted boards and instance admins only need company access). Viewers count too. Without access you get `403` with `"User does not have access to this company"` or `"User does not have active company access"`. On a local trusted instance, an unknown company returns `404`. The response is the saved preference, in the same shape as `GET`.
 
 ---
 

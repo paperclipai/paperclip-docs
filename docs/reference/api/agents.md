@@ -806,11 +806,11 @@ Errors:
 
 ## Qualify the Agent's Computer for Paperclip Runner
 
-Checks that a Claude or Codex agent's saved computer can run Paperclip Runner, and records the result.
+Checks that an agent's saved computer can run Paperclip Runner, and records the result.
 
 `POST /api/agents/{agentId}/qualify-runner`
 
-Use this when you're moving a `claude_local` or `codex_local` agent onto Paperclip Runner and its default environment is a sandbox. Send the environment id you expect the agent to use:
+Use this when you're moving a `claude_local`, `codex_local`, or `grok_local` agent onto Paperclip Runner, or re-testing a `paperclip_runner` agent's saved computer, and its default environment is a sandbox. Send the environment id you expect the agent to use:
 
 ```json
 {
@@ -827,8 +827,8 @@ Errors:
 
 | Status | When |
 |---|---|
-| `409` | The agent's computer can't be resolved or has changed since you loaded it (`The agent's computer changed. Save any environment changes, reload, and retry the upgrade.`). |
-| `422` | The agent isn't a `claude_local` or `codex_local` agent (`This agent does not need a runner upgrade.`), or its computer isn't a sandbox (`This computer does not need sandbox qualification.`). |
+| `409` | The agent's computer can't be resolved or has changed since you loaded it (`The agent's computer changed. Save any environment changes, reload, and retry the upgrade.`, or for a `paperclip_runner` agent `The agent's computer changed. Save the computer selection, reload, and run its test again.`). |
+| `422` | The agent isn't a `claude_local`, `codex_local`, `grok_local`, or `paperclip_runner` agent (`This agent does not support computer qualification.`), or its computer isn't a sandbox (`This computer does not need sandbox qualification.`). |
 
 ---
 
