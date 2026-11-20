@@ -126,9 +126,9 @@ Pi also needs its pinned runtime installed on the execution host before it can r
 
 | Provider | Runtime and setup |
 | --- | --- |
-| **Codex** (`codex`) | Native Codex app-server route, pinned to Codex `0.160.0`. Configure an OpenAI connection or another compatible Responses route. |
+| **Codex** (`codex`) | Native Codex app-server route, pinned to Codex `0.170.0`. Configure an OpenAI connection or another compatible Responses route. |
 | **OpenCode** (`opencode`) | Native OpenCode server route, pinned to `1.18.34`. Use a model in `provider/model` form. |
-| **ACP agents → Claude** (`acpx`, `claude`) | Qualified Claude ACP runtime — Claude Agent SDK `0.3.286`, which runs Claude Code `2.1.286`. Configure a Claude-compatible AI connection. |
+| **ACP agents → Claude** (`acpx`, `claude`) | Qualified Claude ACP runtime — Claude Agent SDK `0.3.328`, which runs Claude Code `2.1.328`. Configure a Claude-compatible AI connection. |
 | **ACP agents → Grok Build** (`acpx`, `grok`) | Qualified Grok Build runtime. See [Grok setup](grok-local.md#grok-build-on-paperclip-runner). |
 | **ACP agents → Cursor** (`acpx`, `cursor`) | Pinned Cursor runtime with an explicit model and Agent, Plan, or Ask mode. See [Cursor setup](cursor-local.md#cursor-on-paperclip-runner). |
 | **ACP agents → GitHub Copilot** (`acpx`, `copilot`) | Qualified Copilot runtime, pinned to Copilot CLI `1.0.88` and installed with Paperclip's packages on macOS and Linux x64. Connect a Copilot token through **Connectors → GitHub → Connect Copilot** and pick an explicit model. See [GitHub Copilot](../../connectors/github-copilot.md). |
@@ -211,6 +211,8 @@ Runner agents can also manage their own task workspace. `get_workspace` shows th
 When an assigned tool returns more than about 500 KB, the Runner saves the full result and hands the agent a reference instead. The agent reads it in pages with `read_tool_result`, passing `artifactId` and then each `responseText.nextOffsetBytes` until it's `null`, so the original action never has to run twice.
 
 Some model hosts drop tool arguments or send them in the wrong shape, and a model can then resend the same refused call over and over. The Runner stops that loop. When a Paperclip tool rejects the same call as invalid a second time with the same error, the agent gets the original error plus the names of the arguments that actually arrived. From the third identical attempt on, Paperclip doesn't run that exact call again in the run, and tells the agent to change the arguments or stop and tell you what blocked it. A call with different arguments runs normally. Only rejections that would come back the same every time count: a call refused before it's sent, and a route's own `400` or `422` validation answer. Timeouts, rate limits, conflicts and server errors never count. Because a route can reject a call for the state it found, its answer is forgotten as soon as a different call succeeds. When a host sends an object argument as JSON text, the Runner parses it back into the object if that makes the call valid, and records the change as a run event.
+
+ACP agents, such as Claude, also learn what was wrong with a refused call. Instead of a bare *Paperclip semantic operation failed*, the agent sees the error code and up to five failing fields with the rule each one broke, for example `Paperclip semantic operation failed: invalid input: payload.prompt: too_big, string max 1000`. It never sees the error's free text or the values it sent. Server errors (status `500` or higher), and refusals with no recognizable code or field, keep the short generic message.
 
 If the agent keeps sending the refused call anyway, Paperclip ends the turn for it. That happens on the 6th refusal of one exact call, or the 20th refusal across the run. The task then carries on by itself in a fresh session, with a hint to use a dedicated Paperclip tool such as `set_task_title`, `report_progress` or `write_document` instead of `call_api`. You don't get a **Retry** banner, because nothing needs you, and the agent stops holding a slot your other work is waiting for.
 
@@ -404,14 +406,28 @@ Existing `cursor`, `cursor_cloud`, `grok_local`, `claude_local`, `codex_local`, 
 
 ## Sandbox images and runtime versions
 
-When native Codex runs in a remote sandbox, the Runner checks the Codex version installed there before it starts. Any stable release from `0.149.0` up to but excluding `0.161.0` is accepted, so an image doesn't have to match the `0.160.0` install pin exactly; a compatible version that differs from the pin is noted in the run log. A version outside that window, or a prerelease, stops the run with `runner_remote_provider_artifact_incompatible`. The message tells you to install a supported stable Codex release or set `PAPERCLIP_RUNNER_REMOTE_CODEX_NPM_SPEC` to the pinned package.
+When native Codex runs in a remote sandbox, the Runner checks the Codex version installed there before it starts. Any stable release from `0.149.0` up to but excluding `0.171.0` is accepted, so an image doesn't have to match the `0.170.0` install pin exactly; a compatible version that differs from the pin is noted in the run log. A version outside that window, or a prerelease, stops the run with `runner_remote_provider_artifact_incompatible`. The message tells you to install a supported stable Codex release or set `PAPERCLIP_RUNNER_REMOTE_CODEX_NPM_SPEC` to the pinned package.
 
-Some Codex models need a newer CLI when you sign in with ChatGPT: `gpt-6.1-sol` needs `0.159.0` or newer, and `gpt-6-sol` and `gpt-6-luna` need `0.157.0` or newer. If a fresh run's sandbox has a Codex release that's too old for the selected model, the Runner switches to the closest older model in the same family before launch, or to `gpt-5.6-sol`, which has no minimum CLI version. The task shows a warning such as *"Using gpt-5.6-sol because the sandbox's Codex 0.156.1 does not support gpt-6-sol."*, and the run log records a `runner.model_fallback` event. The agent and task settings keep the model you asked for. Update the sandbox's Codex CLI to use it.
+Some Codex models need a newer CLI when you sign in with ChatGPT: `gpt-6.2-sol` and `gpt-6.2-astra` need `0.169.1` or newer, `gpt-6.1-sol` needs `0.159.0` or newer, and `gpt-6-sol` and `gpt-6-luna` need `0.157.0` or newer. If a fresh run's sandbox has a Codex release that's too old for the selected model, the Runner switches to the closest older model in the same family before launch, or to `gpt-5.6-sol`, which has no minimum CLI version. The task shows a warning such as *"Using gpt-5.6-sol because the sandbox's Codex 0.156.1 does not support gpt-6-sol."*, and the run log records a `runner.model_fallback` event. The agent and task settings keep the model you asked for. Update the sandbox's Codex CLI to use it.
+
+ACP agents on the Runner use the Claude Code and Codex versions bundled with the Runner itself, so there's no sandbox CLI to fall back from. If you pick a model that needs a newer CLI than the Runner bundles, the run stops before it starts with `paperclip_runner_claude_cli_version_incompatible` or `paperclip_runner_codex_cli_version_incompatible`, and the message names both versions:
+
+```
+<model> requires Claude Code <minimum> or newer; this Paperclip Runner bundles Claude Code <bundled version>. Choose another model or use the legacy Claude runner until the Runner is updated.
+```
+
+The Codex message reads the same way. The versions bundled today, Claude Code `2.1.328` and Codex `0.170.0`, already meet the minimums for Claude Fable 5.2 and GPT-6.2, so neither model hits this check.
 
 If you build your own sandbox images, keep two things in mind when you upgrade:
 
 - **Deploy first, then promote the image.** Upgrade the Paperclip controller and Runner before you promote a sandbox image that carries the new runtime pins. Older controllers reject the new provider-pack pins.
 - **Rebuild old Claude Code images for Sonnet 5.5.** An image built with Claude Code older than `2.1.284` must be rebuilt before Claude Sonnet 5.5 works on the CLI path. See the [Claude Code model requirements](claude-code.md#model-discovery).
+
+### When the sandbox disk fills up
+
+An agent can fill its sandbox's disk, and then the Runner can't save its own state or relaunch. To keep that from stranding the task, Paperclip holds back a small reserve, 256 MiB, in each managed sandbox once the Runner has started, and only while at least 2 GiB more is still free, so it never takes space from an agent that's already close to the limit. The reserve lives in `.paperclip-runtime/paperclip-runner/disk-reserve` inside the workspace, which saved copies and Git leave out.
+
+When the Runner has to relaunch, Paperclip frees the reserve first, so the relaunch has room and the agent's turn carries on, with its tools reporting the full disk. If the disk is still full and there's no reserve left to free, the launch stops with `sandbox_disk_full` (*"the sandbox disk is full, so the runner cannot be started"*) instead of retrying for the rest of the recovery window. SSH machines don't get a reserve.
 
 ## Running several Runners on one machine
 
@@ -440,14 +456,16 @@ An execution host can hand a native session its own local stdio MCP servers, alo
 
 These variables belong to the execution host. They can't be set through task environment configuration, and provider shells don't inherit them.
 
+For ACP Claude agents, the bearer token for each HTTP MCP server stays out of the process's command-line arguments, so it doesn't show up in process listings. The Runner passes each token to Claude in a launch environment variable named `PAPERCLIP_ACPX_MCP_BEARER_<n>`, and the MCP configuration refers to it as `${PAPERCLIP_ACPX_MCP_BEARER_<n>}`, which Claude Code fills in when it connects. Other ACP agents still receive the header value directly.
+
 ## Experimental external providers
 
 Three more Runner providers connect an assistant that runs outside Paperclip, rather than a coding runtime on your machine. The Runner still owns the assignment lifecycle, durable waits, Paperclip tools, and completion review, but the provider manages its own model and billing. Each has its own switch under **Settings → Experimental**, and all three are off by default:
 
 | Provider | Setting | Also needs | Notes |
 | --- | --- | --- | --- |
-| **Grok Bot** (`grok_bot`) | `enableGrokBot` | **Assistant connections (MCP)** and **Paperclip Runner** | An existing Grok Bot joins as an agent. It isn't the [Grok Build](grok-local.md#grok-build-on-paperclip-runner) coding runtime. Usage isn't reported. |
-| **OpenAI Dot** (`openai_dot`) | `enableOpenAiDot` | **Assistant connections (MCP)** | A standalone agent choice that wakes your existing Dot. It doesn't need the general **Paperclip Runner** setting and doesn't turn on other Runner providers. Pair your Dot and verify event delivery before assigning work. Dot doesn't report token usage or cost, so Paperclip can't enforce a provider spend ceiling, though known company and agent budget limits still apply. |
+| **Grok Bot** (`grok_bot`) | `enableGrokBot` | **Paperclip Runner** | An existing Grok Bot joins as an agent. It isn't the [Grok Build](grok-local.md#grok-build-on-paperclip-runner) coding runtime. Usage isn't reported. |
+| **OpenAI Dot** (`openai_dot`) | `enableOpenAiDot` | No other setting | A standalone agent choice that wakes your existing Dot. It doesn't need the general **Paperclip Runner** setting and doesn't turn on other Runner providers. Pair your Dot and verify event delivery before assigning work. Dot doesn't report token usage or cost, so Paperclip can't enforce a provider spend ceiling, though known company and agent budget limits still apply. |
 | **Muse — Personal agent** (`muse`) | `enableMuse` | **Paperclip Runner** | Your personal Meta Muse. Muse runs report no usage or cost, so Paperclip can't enforce a spend ceiling for Muse, though known company and agent budget limits still apply. The Costs page says *"Paperclip cannot enforce a Muse spend ceiling."* |
 
 All three need an authenticated instance with a public HTTPS URL. Trying to save one while its switch is off fails with `paperclip_runner_grok_disabled`, `paperclip_runner_dot_disabled`, or `paperclip_runner_muse_disabled`. Their permission policy belongs to the provider, so there's no Runner permission mode to pick. Live steering, provider transcripts, and stopping remote work are unavailable or best effort. Stopping the Paperclip work revokes the session's Paperclip access, but the assistant may keep going on its own side.

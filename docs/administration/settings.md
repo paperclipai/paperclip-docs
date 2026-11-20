@@ -28,13 +28,20 @@ To get here, click your avatar at the bottom of the sidebar to open the account 
 
 > **Tip:** The account menu also has an **Invite** row when you're allowed to invite people. On a self-hosted instance it opens the **Members** page on its **Invites** tab, and it shows for company owners and admins, instance admins, and local boards. On Paperclip Cloud it opens the People settings for your stack instead, and shows only to the stack's owner or admins.
 
-You get three things to work with:
+The profile form has three fields:
 
 - **Avatar** — click the round image (or the **Upload photo** button) to pick a new image from disk. It's uploaded into Paperclip's file storage under the currently selected company's asset space. If no company is selected you can't upload — the page will tell you to select one first. Once an image is set, a **Remove** button appears next to the upload control.
 - **Display name** — the name shown in the sidebar account footer and as the author on any comments you post. It falls back to "Board" if left blank. The field is capped at 120 characters.
 - **Email** — read-only. Your email is managed by the auth session (the login provider), not by this page. If you need to change it, update it wherever you signed in from.
 
 Click **Save profile** to persist name or avatar changes. The button is disabled while the name is empty or a save is in flight.
+
+On Paperclip Cloud, when browser analytics are switched on for your instance, the page also shows a **Product analytics** switch below the form. It controls whether this browser shares usage analytics with Paperclip, plus session recordings where those are enabled. Recordings hide what you type and your messages, documents, and connected accounts, but may show page names like task titles. Your choice is saved in this browser only:
+
+- **Where consent is required**, such as the EU and EEA, the UK, and Switzerland, it starts off until you turn it on here or select **Accept** on the analytics banner. There, if your browser sends Do Not Track or Global Privacy Control, analytics stays off and the switch is disabled.
+- **Everywhere else**, it starts on, and you can turn it off here.
+
+Self-hosted instances never show this switch, because they don't send browser analytics at all.
 
 > **Note:** The avatar is stored as an asset under the *selected company*, but the profile itself is a user-level record. If you switch which company is selected in the sidebar later, your avatar keeps working — it's just that new uploads go to whichever company is active when you upload.
 
@@ -224,7 +231,6 @@ Above those sections, and above the warning, sits one personal card. **[Classic 
 
 **Experimental features** — *"Optional product features that are still being evaluated."*
 
-- **[Assistant connections (MCP)](../experimental/assistant-connections.md)** — connect Codex, Claude, and other assistants to your Paperclip organization so people can review work, delegate tasks, and add feedback. Needs an authenticated instance with a configured public URL.
 - **Beta skills** — lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill, without removing the pins you saved.
 - **[Built-in Agents](../reference/api/built-in-agents.md)** — shows Paperclip-managed built-in agent surfaces (built-in roster badges and the built-in agent setup controls) and makes the built-in-agent API available. Turn it on before you provision `briefs`, `learning`, or `reflection-coach`; with it off, the built-in-agent routes return `404 Not Found`.
 - **[Cases](../reference/api/cases.md)** — durable work products (blog posts, tweet storms…) that tasks create and iterate on. Adds the **Cases** tab and the agent case API. Turning it off hides the tab and blocks the API; existing case data is kept.
@@ -238,10 +244,10 @@ Above those sections, and above the warning, sits one personal card. **[Classic 
 - **[Experimental File Viewer](../experimental/file-viewer.md)** — task-detail controls for browsing and previewing workspace files.
 - **First task: propose with a plan document** — when someone's first request is a single task, the chief of staff writes a short plan document and a checkbox card instead of a one-card confirmation. Applies to organizations created after you flip it.
 - **[GitHub review bots](../connectors/understanding-github-review-bots.md)** — connect agents to GitHub with their own App identity to review pull requests and respond to issues. It's independent of Chat connectors: turning it off hides setup and management, existing bots keep running, and GitHub tool connections stay available.
-- **[Grok Bot](../experimental/external-agents.md)** — connect an existing Grok Bot as an agent. Needs Assistant connections (MCP), Paperclip Runner, and authenticated public HTTPS. Usage isn't reported. Turning it off blocks Grok calls and new dispatch.
+- **[Grok Bot](../experimental/external-agents.md)** — connect an existing Grok Bot as an agent. Needs Paperclip Runner and authenticated public HTTPS. Usage isn't reported. Turning it off blocks Grok calls and new dispatch.
 - **[Memory connectors](../connectors/memory-connectors.md)** — exposes Mem0, Zep, Supermemory, Cognee, and Honcho setup. Hiding setup does not stop saved connections.
 - **[Muse — Personal agent](../experimental/external-agents.md)** — connect your personal Meta Muse: pair it, detect its receiver, and verify a background reply before assigning tasks. Needs Paperclip Runner and an authenticated instance with a public HTTPS URL. Provider usage and cost aren't available. Turning it off blocks new work.
-- **[OpenAI Dot](../experimental/external-agents.md)** — adds OpenAI Dot as a standalone agent choice. Pair your Dot and verify event delivery before assigning work. Needs Assistant connections (MCP) and an authenticated instance with a public HTTPS URL. Turning it off blocks Dot calls and new work, but saved connections are kept.
+- **[OpenAI Dot](../experimental/external-agents.md)** — adds OpenAI Dot as a standalone agent choice. Pair your Dot and verify event delivery before assigning work. Needs an authenticated instance with a public HTTPS URL. Turning it off blocks Dot calls and new work, but saved connections are kept.
 - **[Paperclip Runner](../reference/adapters/paperclip-runner.md)** — lets agents select the experimental Rust Paperclip Runner. On by default on self-hosted instances and off by default on Cloud unless managed configuration changes it. Turning it off hides the choice without affecting existing native runs. Codex, Claude Code, OpenCode, and Pi are the exceptions: the server resolves new agents on those harnesses to the Runner on supported macOS and Linux hosts whether or not this card is on (OpenCode and Pi stay on the Legacy runner on Linux ARM64), unless you create the agent through the API or CLI with the `legacy` runner. The card still gates the Runner's other providers, such as Muse and Grok Bot.
 - **[Simplified English Interactions](../reference/skills/optional/content/simplified-english.md)** — tells agents to write confirmations, questions, suggested tasks, and checkbox prompts in ASD-STE100 Simplified Technical English, with brief context on what each decision needs.
 - **[Status Cards](../experimental/status-cards.md)** — the shared status-card board and its gated API. Enabling Status Cards also enables Summaries.
@@ -268,6 +274,7 @@ Above those sections, and above the warning, sits one personal card. **[Classic 
 If you're coming from an older release, a few toggles you may remember are gone:
 
 - **[Coordinator workspace](../experimental/coordinator-workspace.md)** — no toggle any more. It's the standard workspace for everyone, and an earlier "off" setting no longer counts. Choose **Classic workspace** if you want the previous interface.
+- **[Assistant connections (MCP)](../experimental/assistant-connections.md)** — no toggle any more. Connecting Codex, Claude, and other assistants is always available on an authenticated instance with a configured public URL, Cloud included. `enablePublicMcp` remains as a compatibility key, and stored or managed values are ignored.
 - **[Agent Chat](../experimental/agent-chat.md)** — no toggle any more. It's available to everyone, even on instances that had it off. `enableAgentChat` remains as a compatibility key, and stored or managed values are ignored.
 - **[Task Watchdogs](../experimental/task-watchdogs.md)** — no flag any more. Watchdog controls are always available on tasks.
 - **[Artifacts V1](../guides/day-to-day/artifacts.md)** — no toggle any more. Stacks, tiles, and compact rows are how artifacts look on every instance. A hosting operator can still [hold the older cards in place](../guides/day-to-day/artifacts.md#if-your-instance-shows-the-older-cards).

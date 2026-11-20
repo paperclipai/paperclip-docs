@@ -7,11 +7,11 @@ seo_description: Integrate an assistant as a consenting Paperclip user. Discover
 
 Connect an external assistant to one organization as a consenting human. Use the MCP tools to inspect work, delegate tasks, add feedback, retrieve results, and make the configuration changes your consent permits.
 
-This interface is experimental and requires `enablePublicMcp`. For a guided setup, see [Assistant connections](../../experimental/assistant-connections.md).
+Assistant connections are always on; they are no longer behind an experimental setting. For a guided setup, see [Assistant connections](../../experimental/assistant-connections.md).
 
 ## Instance requirements
 
-Enable **Assistant connections (MCP)** in Experimental settings. The default is off on self-hosted and Cloud-managed instances. The instance also needs authenticated user accounts and organization memberships; implicit local operator access and agent API keys cannot approve human OAuth grants.
+There is no setting to turn on. The instance needs authenticated user accounts and organization memberships; implicit local operator access and agent API keys cannot approve human OAuth grants.
 
 Use the configured authentication public URL or set an origin explicitly:
 
@@ -21,7 +21,7 @@ PAPERCLIP_PUBLIC_URL=https://YOUR-PAPERCLIP-HOST
 
 The origin cannot contain a path, embedded credentials, query parameters, or a fragment. HTTP is allowed only for localhost or loopback development. Private self-hosted deployments need a client that can reach the endpoint directly. Configure trusted proxies correctly at your deployment edge.
 
-`enablePublicMcp` takes effect immediately. Turning it off blocks discovery, sign-in, tool calls, and event delivery. Existing connection management and revocation remain available, and delegated work continues.
+`enablePublicMcp` is now only a compatibility key. Older stored settings, `PATCH` bodies, and Cloud-managed configs that still send it are accepted, but the value is always `true` and an off value is ignored.
 
 ## Protocol and authorization
 
@@ -65,12 +65,12 @@ Call `paperclip_connection` first. Verify the person and organization, then use 
 
 `tools/list` returns the current schemas. `paperclip_search_api` searches the same closed catalog and returns operation schemas; `paperclip_call_api` invokes a discovered operation with those exact arguments. Neither tool accepts arbitrary REST endpoints, URLs, headers, or additional authority.
 
-The direct instance catalog contains 37 tools:
+The direct instance catalog contains 38 tools:
 
 | Tools | Purpose and mutation scope |
 | --- | --- |
 | `paperclip_connection` | Connected person, organization, scopes, and management link. |
-| `paperclip_list_agents`, `paperclip_list_projects`, `paperclip_search_tasks`, `paperclip_read_task` | Find agents, projects, and durable work. |
+| `paperclip_list_agents`, `paperclip_list_people`, `paperclip_list_projects`, `paperclip_search_tasks`, `paperclip_read_task` | Find agents, people, projects, and durable work. `paperclip_list_people` returns each active human member's `userId`, `name`, and `role`, without email addresses. |
 | `paperclip_create_task`, `paperclip_add_comment`, `paperclip_update_task`, `paperclip_finish_task`, `paperclip_block_task` | Create, guide, or change work. Write scope. |
 | `paperclip_list_deliverables`, `paperclip_read_document`, `paperclip_list_document_revisions` | Retrieve saved results and document history. |
 | `paperclip_write_document`, `paperclip_register_deliverable`, `paperclip_update_deliverable` | Save documents and task deliverables. Write scope. |
@@ -96,7 +96,9 @@ An `outcome: unknown` response means the action is in progress or its result is 
 
 Read a document or instruction file before changing it, and supply the returned revision or hash. Skill-file writes require the current version ID. Stale writes fail rather than replacing newer work.
 
-Task assignment and feedback may schedule agent work and spend the company's configured budget. Task creation returns before execution finishes; it is not proof that the agent ran. Active execution ownership, review gates, dependencies, and normal approvals still apply.
+`paperclip_create_task` takes at most one assignee: `assigneeAgentId` (from `paperclip_list_agents`) or `assigneeUserId` (a `userId` from `paperclip_list_people`). Passing both is a validation error. Omit both to leave the task unassigned. An agent assignee is submitted to normal scheduling and may start a run. A person or no assignee creates a `todo` task without waking any agent, so, for example, [another Paperclip instance](../../how-to/connect-two-paperclip-instances.md) can file work without spending your company's budget. A person outside the company is refused like an unknown user ID.
+
+Assigning a task to an agent, and feedback, may schedule agent work and spend the company's configured budget. Task creation returns before execution finishes; it is not proof that the agent ran. Active execution ownership, review gates, dependencies, and normal approvals still apply.
 
 ## Transfer task files
 
@@ -123,7 +125,7 @@ Events-capable clients use `server/discover`, `events/list`, `events/subscribe`,
 
 Delivery is by verified webhook. Your client supplies the callback URL and, optionally, a signing secret, then manages refresh and unsubscribe. Connect only when the user asks to monitor that task. Read current work after receiving an event; notifications carry identifiers rather than document or comment bodies.
 
-Connecting alone does not subscribe. Clients without Events support, including the CLI stdio proxy, can poll the read tools. Disabling the feature or revoking access stops future delivery.
+Connecting alone does not subscribe. Clients without Events support, including the CLI stdio proxy, can poll the read tools. Revoking access stops future delivery.
 
 ## Manage and revoke connections
 
@@ -135,7 +137,7 @@ GET    /api/mcp/connections
 DELETE /api/mcp/connections/{id}
 ```
 
-The setup response provides the live gate, canonical server URL, and non-secret invitation. It does not grant access. The delete operation requires the configured browser origin and the grant's owner.
+The setup response provides an `enabled` flag (always `true` for assistant connections), the canonical server URL, and a non-secret invitation. It does not grant access. The delete operation requires the configured browser origin and the grant's owner.
 
 Each item in the connections list carries `id`, `companyId`, `clientName`, `companyName`, `scopes`, `createdAt`, and `revokedAt`, plus a `user` object with the authorizing person's `name` and `image`. `user` is `null` when the person's name isn't available, and older servers omit it, so treat it as optional. The list still includes revoked grants (with `revokedAt` set); Paperclip's own pages filter those out and show only active connections.
 

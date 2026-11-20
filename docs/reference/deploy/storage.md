@@ -143,17 +143,18 @@ A few things to plan for:
 
 ### Remote task workspaces
 
-When a task runs on [Paperclip Runner](../adapters/paperclip-runner.md) in a cloud sandbox, its working files can live in that sandbox instead of on your web server. Paperclip saves encrypted copies of the workspace to S3 when it's prepared and when each run finishes. A replacement server picks up where the old one left off, and if the sandbox goes away, a new one is restored from the last saved copy. That copy includes Git history you haven't pushed yet.
+When a task runs on [Paperclip Runner](../adapters/paperclip-runner.md) in a cloud sandbox, or in an SSH environment, its working files can live on that sandbox or SSH computer instead of on your web server. Paperclip saves encrypted copies of the workspace to S3 when it's prepared and when each run finishes. A replacement server picks up where the old one left off, and if the sandbox goes away, a new one is restored from the last saved copy. That copy includes Git history you haven't pushed yet.
 
-**It's on by default, but only kicks in when your instance can support it.** A new sandbox task uses remote workspace storage when all of these are true:
+**It's on by default, but only kicks in when your instance can support it.** A new task uses remote workspace storage when all of these are true:
 
+- The task runs on Paperclip Runner in a sandbox environment, or in an SSH environment with Paperclip Runner, Claude Code, Codex, Cursor, Gemini, Grok, Kimi, OpenCode, or Pi.
 - The database is an external PostgreSQL server, set through `DATABASE_URL` or your config file. The embedded database doesn't qualify.
 - Storage is `s3`. `local_disk` doesn't qualify.
 - The encryption key is stable: `PAPERCLIP_SECRETS_MASTER_KEY`, or a master key file that exists on disk (`PAPERCLIP_SECRETS_MASTER_KEY_FILE` or the instance's key file) and that you keep when you replace a server. Every replacement server needs the same key.
 - The task starts from an empty folder, or from a project Git repository that has a remote URL and no local folder. Any other repositories in that project need remote URLs and no local folder too.
 - The project the task's workspace comes from doesn't use a workspace storage plugin.
 
-If any of these is missing, new tasks keep using a folder on the web server, as before. Existing workspaces, local SSH and plugin environments, configured local folders, and older adapters are never converted automatically.
+If any of these is missing, new tasks keep using a folder on the web server, as before. Existing workspaces, plugin environments, configured local folders, and adapters that can't run in a sandbox or SSH environment are never converted automatically.
 
 **Give the bucket the right permissions.** Paperclip needs to put, read, and delete objects. To expire old saved copies, it also needs `s3:ListBucketVersions` on the bucket and `s3:DeleteObjectVersion` on the snapshot prefix, so S3-compatible providers must support listing object versions. Test these with your deployment credentials before you rely on it. A denied permission or an object lock doesn't lose data; Paperclip simply keeps retrying the cleanup.
 

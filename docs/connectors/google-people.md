@@ -20,13 +20,13 @@ This connector is read-only. There is no capability group that writes, so an age
 
 - A Google account with Developer Preview registration confirmed.
 - For directory search, a Google Workspace account. Directory availability depends on the Workspace account and its administrator's settings — a personal Google account has contacts but no organization directory.
-- Without Paperclip Cloud enrollment, your own Google OAuth client with the **People API** and **People MCP API** enabled. [Set up your own Google OAuth app](google-setup.md) is the complete procedure — do it before you start here.
+- Your own Google OAuth client with the **People API** and **People MCP API** enabled. **Connect with Paperclip** is no longer offered for new Google People setup, because its permissions are outside the 14 that Paperclip's Google app covers. [Set up your own Google OAuth app](google-setup.md) is the complete procedure — do it before you start here.
 
 ## Connect Google People
 
 1. Open **Connectors** and select **Google People**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
-3. Paperclip uses **Connect with Paperclip** when your instance offers it. To use your own client instead, select **Use your own Google OAuth app** and supply the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
+3. Supply the client ID and secret of your own Google OAuth app, from [Set up your own Google OAuth app](google-setup.md).
 4. Complete Google's consent screen.
 
 There is one capability group, **Read contacts**, requesting `directory.readonly`, `userinfo.profile`, and `contacts.readonly`.
@@ -67,7 +67,8 @@ If more than one person matches anyway, ask which source each result came from: 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
 | Google refuses before the consent screen | Developer Preview registration is incomplete | Finish registration and retry |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the People profile | Use your own Google OAuth app |
+| **Connect with Paperclip** is not offered | Paperclip's Google app no longer covers People's permissions | Use your own Google OAuth app |
+| Reconnecting a saved **Connect with Paperclip** connection is refused with *"Google People can no longer be connected through Paperclip with these permissions. Connect Google Workspace, or set up Google People with your own Google OAuth app."* | The same limit applies to saved connections when they sign in again | Set Google People up with your own Google OAuth app, then remove the old connection |
 | Directory searches return nothing, contacts work | The account is not a Workspace account, or an administrator has restricted directory sharing | Ask your Workspace administrator about directory visibility |
 | A colleague is missing from directory results | They are outside the shared directory scope your administrator configured | Nothing to fix in Paperclip |
 | An agent cannot add or edit a contact | Expected — this connector is read-only | Do it in Google Contacts |

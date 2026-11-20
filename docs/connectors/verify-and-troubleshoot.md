@@ -88,6 +88,19 @@ Checking the grant's recorded scopes can help, but read them with care: some pro
 
 *"Authorization did not complete. Finish setup in the sign-in window or try again."* usually means the sign-in was declined or failed at the provider, or the provider is waiting on an administrator. For providers whose authorization needs tenant approval, the warning on the provider page says so.
 
+When you sign in from a connection request an agent made on a task, Paperclip tells you why the sign-in failed when it can:
+
+| Message | What to do |
+| --- | --- |
+| *"The sign-in took too long or was already used. Try again and finish signing in within a few minutes."* | Start again and finish signing in without a long pause. |
+| *"Sign-in finished in a different Paperclip session. Stay signed in to Paperclip in this browser and try again."* | Use the same browser, and stay signed in to Paperclip while you sign in to the provider. |
+| *"Sign-in returned to a different Paperclip address than the one you started from. Open Paperclip at its usual address and try again."* | Open Paperclip at the address you normally use, not an alias or another port. |
+| *"The provider accepted your sign-in but didn’t give Paperclip access. Try again; if it keeps happening, check that your account or organization allows this app."* | Check that your account or organization allows the app. |
+| *"The provider didn’t grant the access Paperclip asked for. Try again and approve every requested permission."* | Approve every permission on the provider's screen. |
+| *"You signed in, but the Paperclip for GitHub app isn’t installed on any account you can use. Install it and choose at least one repository, then try again. An organization owner may need to approve the install."* | Select **Install Paperclip on GitHub** or **Manage repositories on GitHub**, then try again. See [Set up GitHub](github-setup.md#3a-managed-path--authorize-and-choose-repositories-in-github). |
+
+Any other cause still shows *"Authorization did not complete. Try again when you’re ready."*
+
 Provider sign-in opens in its own tab or window. If you close it early, Paperclip usually tells you the sign-in window closed, and you can try again. If your browser blocks it, Paperclip offers a sign-in link instead, usually **Open sign-in in a new tab**, sometimes with a message such as *"Paperclip couldn’t open the sign-in window. Open sign-in in a new tab to continue."* Click the link, or allow pop-ups for your Paperclip address and try again.
 
 ### The action is refused

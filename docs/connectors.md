@@ -122,6 +122,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
 | [1Password](connectors/1password.md) | Read and manage items and secrets in the vaults a service account can reach. Item reads return secret values to the agent; archive and delete are destructive. | API key |
+| [AWS](connectors/aws.md) | Work in an AWS account through AWS's hosted server, with short-lived credentials made for each connection. **Read only** by default. Experimental: hidden until an administrator turns on **AWS connector**, which is off by default. | Access key · AWS role (no stored keys) |
 | [Braintrust](connectors/braintrust.md) | AI evaluation and observability. Agents query traces, manage datasets and scorers, and run evaluations, in the US or EU region. Dataset row edits and automation activation are destructive, and evaluations can use credits. | Sign in with Braintrust · API key |
 | [Browser Use Cloud](connectors/browser-use-cloud.md) | Run browser tasks in Browser Use Cloud, open a live browser session from the task, and reuse a browser profile. | API key |
 | [Cloudflare](connectors/cloudflare.md) | DNS, CDN, and edge compute. Agents work with the account your Cloudflare sign-in can reach. | Sign in with Cloudflare · API key |
@@ -241,6 +242,8 @@ The catalog above describes the documented connectors for this release. If the s
 **Check your own instance first.** Your installed version may offer a different catalog, and the methods it offers you depend on whether the instance is enrolled with Paperclip Cloud and whether chat channels are switched on. What **Connectors** shows you is authoritative; this page is not.
 
 **Connect it as a custom server.** If the service publishes its own remote MCP server, you can connect it directly without waiting for a catalog entry. It gets the same identity, grant, agent-selection, and per-action controls as a catalog connector. See [Connect a custom MCP server](connectors/custom-mcp-servers.md) for the compatibility requirements and the two ways to supply a URL.
+
+**Add it with a plugin.** A plugin can add its own connector types to the catalog. Once the plugin is installed and enabled, its connectors appear on **Connectors** and you set them up like any other, with the same agent access and action permissions. See [Plugins that add connectors](administration/plugins.md#plugins-that-add-connectors), and [Plugin connectors](reference/plugins/sdk.md#plugin-connectors) if you are building one.
 
 **Reach it through an MCP aggregator.** [Arcade, Composio, Executor, and Zapier](connectors/mcp-aggregators.md) each connect to many apps on your behalf. You do not always have to go looking: when an agent needs an app with no native connector, it asks you which of these providers to use, or **None for now**. With Zapier you pick the actions on Zapier's side, which also means the agent cannot exceed them.
 

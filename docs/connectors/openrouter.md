@@ -30,7 +30,7 @@ Select the named account in the agent's **Connection** selector and save. Routed
 
 Each run needs a responsible user who may use the credential, and the connection must be installed for that agent or company-wide. The account owner must remain an active company member. Selecting an account does not bypass those checks.
 
-Use the model ID shown by the selected connection. If you leave the connection's model list empty, Paperclip discovers choices from OpenRouter's public catalog and offers a refresh. You can also enter a provider ID yourself. For OpenCode, `anthropic/claude-sonnet-4.5` becomes `openrouter/anthropic/claude-sonnet-4.5`; Claude, Codex, and Hermes retain `anthropic/claude-sonnet-4.5`.
+Use the model ID shown by the selected connection. If you leave the connection's model list empty, Paperclip discovers choices from OpenRouter's public catalog and offers a refresh. You can also enter a provider ID yourself. When you create an agent on a routed connection, the model picker is searchable: type to filter the catalog, or type an ID that isn't listed and choose **Use manual model**. For OpenCode, `anthropic/claude-sonnet-4.5` becomes `openrouter/anthropic/claude-sonnet-4.5`; Claude, Codex, and Hermes retain `anthropic/claude-sonnet-4.5`.
 
 Older OpenRouter accounts without routing metadata retain their OpenCode-only behavior and `openrouter/` model requirement. An existing responsible-user default for that older account can keep working; reconnecting does not silently convert it to a routed connection. Create a new connection when you need the expanded harness support.
 

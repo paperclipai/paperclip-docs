@@ -255,6 +255,10 @@
               "file": "../docs/connectors/asana.md"
             },
             {
+              "title": "AWS",
+              "file": "../docs/connectors/aws.md"
+            },
+            {
               "title": "Bitly",
               "file": "../docs/connectors/bitly.md"
             },
@@ -710,6 +714,10 @@
           "file": "../docs/experimental/status-cards.md"
         },
         {
+          "title": "Areas & Responsibilities",
+          "file": "../docs/experimental/responsibilities.md"
+        },
+        {
           "title": "Cloud Sync",
           "file": "../docs/experimental/cloud-sync.md"
         },
@@ -998,6 +1006,10 @@
         {
           "title": "Status Cards",
           "file": "../docs/reference/api/status-cards.md"
+        },
+        {
+          "title": "Responsibilities",
+          "file": "../docs/reference/api/responsibilities.md"
         },
         {
           "title": "Dashboard",

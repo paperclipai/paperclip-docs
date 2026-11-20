@@ -131,7 +131,7 @@ Run the environment test before you assign real work. On the agent's **Harness /
 - The Codex CLI is installed and executable.
 - The working directory is absolute and usable.
 - Authentication is ready through `OPENAI_API_KEY` or Codex's own login state.
-- The installed Codex CLI is new enough for the selected model. With ChatGPT sign-in, `gpt-6.1-sol` needs Codex `0.159.0` or newer, and `gpt-6-sol` and `gpt-6-luna` need `0.157.0` or newer. The test runs `codex --version` where the agent runs (locally, over SSH or in the sandbox) and reports `codex_cli_version_compatible` or `codex_cli_version_incompatible`. When the CLI is too old, the hello probe is skipped.
+- The installed Codex CLI is new enough for the selected model. With ChatGPT sign-in, `gpt-6.2-sol` and `gpt-6.2-astra` need Codex `0.169.1` or newer, `gpt-6.1-sol` needs `0.159.0` or newer, and `gpt-6-sol` and `gpt-6-luna` need `0.157.0` or newer. The test runs `codex --version` where the agent runs (locally, over SSH or in the sandbox) and reports `codex_cli_version_compatible` or `codex_cli_version_incompatible`. When the CLI is too old, the hello probe is skipped.
 - The hello probe can run `codex exec --json -` with the prompt `Respond with hello.`
 
 If the probe fails, fix the command or auth path before saving the adapter. If the Codex backend rejects the model for your ChatGPT account, the test reports `codex_hello_probe_model_rejected` and names the likely cause: a Codex CLI that's too old, a plan that doesn't include the model or a rollout that hasn't reached your account yet. In a sandbox, the fix for an old CLI is to promote an image that ships the Codex version Paperclip pins. Adding a model to the catalog doesn't update the CLI baked into existing images. When the rejected model is one OpenAI retired from ChatGPT sign-in, the hint says so instead, for example *"OpenAI retired gpt-5.5 from Codex with ChatGPT sign-in on 2026-10-14. Choose gpt-6.1-sol (gpt-6-luna on Free and Go plans), or use an OpenAI API key; API-key sessions are not affected."* The same hint appears when the agent runs on [Paperclip Runner](/reference/adapters/paperclip-runner/).
@@ -237,9 +237,9 @@ The old standalone `acpx_local` adapter is retired, and its capabilities live he
 
 The `model` picker lists known Codex model ids, newest version first and most capable first within each version:
 
-`gpt-6.1-sol` (the default for agents created in the UI or on Paperclip Runner), `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5`, `gpt-5-mini`, `gpt-5-nano`, `o3`, `o4-mini`, `o3-mini` and `codex-mini-latest`.
+`gpt-6.2-sol`, `gpt-6.2-astra`, `gpt-6.1-sol` (the default for agents created in the UI or on Paperclip Runner), `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5`, `gpt-5.4`, `gpt-5.4-mini`, `gpt-5`, `gpt-5-mini`, `gpt-5-nano`, `o3`, `o4-mini`, `o3-mini` and `codex-mini-latest`.
 
-> **Heads-up:** New Codex agents created in the UI or on Paperclip Runner default to `gpt-6.1-sol`. Agents that already have a saved model keep it, and `gpt-5.6-sol` stays in the picker. With ChatGPT sign-in, `gpt-6.1-sol` needs Codex CLI `0.159.0` or newer; see [Check auth and the environment](#check-auth-and-the-environment) for how Paperclip checks this.
+> **Heads-up:** New Codex agents created in the UI or on Paperclip Runner default to `gpt-6.1-sol`. Agents that already have a saved model keep it, and `gpt-5.6-sol` stays in the picker. With ChatGPT sign-in, `gpt-6.1-sol` needs Codex CLI `0.159.0` or newer, and the newer `gpt-6.2-sol` and `gpt-6.2-astra` need `0.169.1` or newer; see [Check auth and the environment](#check-auth-and-the-environment) for how Paperclip checks this.
 
 > **Heads-up:** OpenAI retired `gpt-5.5` (on 2026-10-14) and `gpt-5.4` and `gpt-5.4-mini` (on 2026-08-31) from Codex with ChatGPT sign-in. They stay in the picker because OpenAI API-key sessions still serve them. If you sign in with ChatGPT, switch to the replacement instead:
 >
@@ -249,7 +249,7 @@ The `model` picker lists known Codex model ids, newest version first and most ca
 > | `gpt-5.4` | `gpt-6-sol` |
 > | `gpt-5.4-mini` | `gpt-6-luna` |
 
-Fast mode (`fastMode`) is supported on `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5` and `gpt-5.4`.
+Fast mode (`fastMode`) is supported on `gpt-6.2-sol`, `gpt-6.2-astra`, `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`, `gpt-5.5` and `gpt-5.4`.
 
 This is a curated list. The picker doesn't fill itself from OpenAI's model catalog, because that catalog also includes image, audio and embedding models Codex can't run. To add models to the dropdown, for example ones served through your own gateway, declare them with [`PAPERCLIP_ADAPTER_MODELS`](/reference/deploy/environment-variables/#adding-models-to-the-model-picker).
 
@@ -261,7 +261,7 @@ On a `codex_local` agent created through the API, leave `model` empty to let Cod
 
 | Model | Effort levels |
 | --- | --- |
-| `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6-sol`, `gpt-5.6-sol`, `gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` |
+| `gpt-6.2-sol`, `gpt-6.2-astra`, `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6-sol`, `gpt-5.6-sol`, `gpt-5.6-terra` | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` |
 | `gpt-6-luna`, `gpt-5.6-luna` | `low`, `medium`, `high`, `xhigh`, `max` |
 | Other models | `minimal`, `low`, `medium`, `high`, `xhigh` |
 

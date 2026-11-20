@@ -15,8 +15,8 @@ Each provider has its own setting under **Instance settings → Experimental**, 
 
 | Provider | Turn on | Also needs |
 | --- | --- | --- |
-| OpenAI Dot | **OpenAI Dot** | **Assistant connections (MCP)** |
-| Grok Bot | **Grok Bot** | **Assistant connections (MCP)** and **Paperclip Runner** |
+| OpenAI Dot | **OpenAI Dot** | Nothing else |
+| Grok Bot | **Grok Bot** | **Paperclip Runner** |
 | Muse | **Muse — Personal agent** | **Paperclip Runner** |
 
 All three also need an instance with authenticated sign-in and a stable public HTTPS address, because the remote assistant has to reach Paperclip over the internet. A local-only or tailnet-only address isn't enough. Paperclip Cloud already meets this requirement. If you self-host, set `PAPERCLIP_PUBLIC_URL` to your public HTTPS address.

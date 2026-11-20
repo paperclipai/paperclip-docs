@@ -66,9 +66,21 @@ Your picks decide what Paperclip asks Google for:
 | --- | --- | --- |
 | Gmail | `gmail.readonly` | `gmail.readonly`, `gmail.compose` |
 | Drive | `drive.readonly`, `documents.readonly`, `spreadsheets.readonly`, `presentations.readonly` | `drive.readonly`, `drive.file`, `documents`, `spreadsheets`, `presentations` |
-| Calendar | `calendar.calendarlist.readonly`, `calendar.events.freebusy`, `calendar.events.readonly` | `calendar.calendarlist.readonly`, `calendar.events` |
+| Calendar | `calendar.calendarlist.readonly`, `calendar.events.freebusy`, `calendar.events.readonly` | `calendar.calendarlist.readonly`, `calendar.events`, `calendar.events.freebusy` |
 
 A service you switch off is not requested at all, and nothing it would have unlocked becomes available later.
+
+Together, these are the 14 Google permissions this connector can ever ask for. If Google reports a permission outside them, for example one your account granted Paperclip in the past, Paperclip ignores it and it never turns on an action.
+
+### Read what you're agreeing to
+
+Below the services, the picker shows a short data-use summary that follows your current choices. It's the last thing you see in Paperclip before Google's consent screen.
+
+- **What agents can do** has one line for each service you switched on, worded for the access level you picked. Services you switched off aren't mentioned. For Gmail on **Read & write**, it points out that Google's permission screen mentions sending email, and that Paperclip does not send email.
+- **How your data is used** explains that agents read the content only to do the tasks you give them, that the content is sent to the AI model provider configured for your workspace, that it isn't used to train general AI models, and that results are saved in the task and its run history until you delete them, even after you disconnect.
+- A link, **Read our privacy policy, including how we meet Google's Limited Use requirements**, opens Paperclip's privacy policy in a new tab.
+
+With every service switched off, the picker shows *"Select at least one service to continue."* instead of the summary.
 
 ## Connect Google Workspace
 
@@ -110,9 +122,22 @@ An agent that calls an action you have not granted gets *"This Google action nee
 
 The same limit applies the other way. If your Google account already granted Paperclip broader access in the past, the connection still stops at what you picked this time.
 
-**Reconnect** signs you in again with the access you saved. It does not open the picker, so you cannot widen or narrow access there. If Paperclip cannot find your saved choices, it stops rather than falling back to the defaults, so a reconnect never quietly asks for more than you had.
+When a connection shows **Reconnect required**, selecting **Reconnect** on its page opens the picker again, filled in with the access you saved, along with the data-use summary. Select **Continue** to sign in with the same access, or change a service first and Google is asked for the new set instead. Connecting another identity from the connection's page, such as **Connect as me**, goes through the same picker. If Paperclip can't load your saved access, the picker says so and leaves the connection unchanged, so a reconnect never quietly falls back to the defaults.
 
-To change access, select **Add account** on the **Google Workspace** row in **Connectors**, make your choices in the picker, and complete Google's consent. That creates a new connection, so set its actions on the **Permissions** tab, then remove the old connection.
+To change access on a connection that's working, select **Add account** on the **Google Workspace** row in **Connectors**, make your choices in the picker, and complete Google's consent. That creates a new connection, so set its actions on the **Permissions** tab, then remove the old connection.
+
+## Remove a connection
+
+When you remove a connection that uses the Paperclip-managed sign-in, or revoke an identity on it whose sign-in nothing else in Paperclip still uses, Paperclip also asks Paperclip Cloud to end Paperclip's access at Google. Cloud ends it only when no other Paperclip connection could still rely on that Google grant. The removal in Paperclip always goes ahead, even when Google can't be reached, and the confirmation tells you how it went:
+
+| You see | What it means |
+| --- | --- |
+| *"Paperclip's access to this Google account was also ended at Google."* | Done. Google no longer lists Paperclip for that account |
+| *"Other Paperclip connections still use this Google account, so Google keeps Paperclip's access until you remove those too."* | Expected. Remove the other connections too if you want access to end |
+| *"Paperclip's access was ended at Google. If more than one Google account was connected here, check your Google account's third-party connections to be sure."* | Access ended for at least one Google sign-in on the connection, but another is still used by other Paperclip connections, so Google keeps that one. Select **Open Google account connections** to check which accounts still list Paperclip |
+| *"Paperclip removed the connection but couldn't end its access at Google. You can remove Paperclip from your Google account's third-party connections."* | Google wasn't reached or refused. Select **Open Google account connections** and remove Paperclip there yourself |
+
+A connection made with your own Google OAuth app is only removed in Paperclip. To end its access, remove the app from the Google account's third-party connections. Either way, results agents already saved in tasks and run history stay until you delete them; see [Reauthorize, revoke, or disconnect](reauthorize-and-disconnect.md).
 
 ## Try it
 

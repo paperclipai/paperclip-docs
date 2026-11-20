@@ -107,7 +107,18 @@ If you are the responsible person and simply haven't connected your own OpenAI a
 
 ## See which account is connected
 
-Open the saved connection's **Permissions** tab and look under **Connected account**. It shows the **OpenAI account** label Paperclip saved for the credential (or **Not available**), the **Sign-in method** (**ChatGPT subscription** or **API key**), and **Access**: **Company shared**, or **Personal** with the owner's name.
+Open the saved connection's **Permissions** tab and look under **Connected account**:
+
+| Field | What it shows |
+| --- | --- |
+| **OpenAI account** | The label Paperclip saved for the credential, such as your email, or **Not available** |
+| **ChatGPT workspace** | For a ChatGPT subscription, the workspace this connection uses, or **Not available** |
+| **Sign-in method** | **ChatGPT subscription** or **API key** |
+| **Access** | **Company shared**, or **Personal** with the owner's name |
+
+One OpenAI email can belong to both a personal and a business ChatGPT workspace, so **ChatGPT workspace** tells you which one your agents will use. For a connected subscription, Paperclip asks OpenAI for the name of the workspace saved with this connection when you open the page, and shows *"Checking account details…"* meanwhile. It never guesses the workspace from your email or picks a default one. A personal workspace with no name shows **Personal workspace**. API-key connections don't show this field.
+
+If OpenAI can't supply the name, the field reads **Not available** with a message such as *"OpenAI did not return the selected workspace name."* or *"OpenAI did not permit this connection to read the workspace name."* When the check failed for a temporary reason, select **Retry account check**. The connection keeps working either way, and the account details never block the controls below them.
 
 If the page can't load the account at all, it shows the error and a **Retry** button instead of waiting forever on *"Loading AI account…"*.
 

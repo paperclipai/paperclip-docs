@@ -241,7 +241,7 @@ curl -X POST "$PAPERCLIP_API_URL/api/routines/<routine-id>/run" \
   -d '{ "source": "manual" }'
 ```
 
-Check the resulting issue from the routine detail page's **Runs** tab. The first run will post one message per currently-pending approval and currently-blocked high-priority issue, then write its cursor. The next minute's tick should be a no-op.
+Check the resulting task under **History** on the routine's page. The first run will post one message per currently-pending approval and currently-blocked high-priority issue, then write its cursor. The next minute's tick should be a no-op.
 
 ---
 

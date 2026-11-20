@@ -82,6 +82,7 @@ You won't see this field when you create a new agent. It only appears when you e
 Which Claude model to use. If you leave it blank, Paperclip uses `claude-opus-5-5`. Some common choices:
 - `claude-opus-5-5` or `claude-opus-5` — most capable, best reasoning, highest cost. Good for your CEO or complex strategic agents.
 - `claude-sonnet-5-5` or `claude-sonnet-5` — fast, capable, lower cost. Good for worker agents doing routine tasks. Sonnet 5.5 needs Claude Code `2.1.284` or newer.
+- `claude-fable-5-2` — Claude Fable 5.2, at the top of the picker. It needs Claude Code `2.1.321` or newer.
 
 When in doubt, start with Sonnet for workers and Opus for the CEO. The **effort** options next to the model change with the model you pick — newer Opus, Sonnet 5 and 5.5, and Fable models add `xhigh` and `max`. See [Claude Code — Reasoning Effort](../../reference/adapters/claude-code.md#reasoning-effort).
 
@@ -120,6 +121,7 @@ The fields are the same as `claude_local` — mainly model selection and environ
 
 **Model** examples for Codex:
 - `gpt-6.1-sol` — the default and the normal starting point, with reasoning effort up to `ultra`
+- `gpt-6.2-sol` or `gpt-6.2-astra` — the newest GPT-6.2 models, at the top of the picker. With ChatGPT sign-in they need Codex CLI `0.169.1` or newer
 - `gpt-5.6-sol` — the previous default, still available if you'd rather stay on it
 - `gpt-6-astra`, `gpt-6-sol`, or `gpt-6-luna` — the GPT-6 family, with extra reasoning-effort levels
 - `o4-mini` — fast and cost-effective for routine tasks

@@ -44,17 +44,23 @@ Your three main destinations sit together in one group, between the **New task**
 - **Tasks** opens the company task list. Hover the row for a **New task** shortcut.
 - **Inbox** collects everything waiting on your decision. Its badge counts your open [**For you**](../guides/day-to-day/decisions.md) cards, the ones meant for you, not everyone's.
 
-Want to hand off work right away? A **New task** button sits at the top, just above **Chat**, and opens the usual new-task form. It stays there when you collapse the sidebar too, as an icon you can hover to see its name.
+Want to hand off work right away? A **New task** button sits at the top, just above **Chat**, and opens the usual new-task form.
 
-Looking for something? Click the search icon beside the organization menu, at the very top of the sidebar. It's there when the sidebar is collapsed too, and it opens the same quick search as ⌘K (Ctrl+K), covering tasks, agents, and projects.
+Looking for something? Click the search icon beside the organization menu, at the very top of the sidebar. It opens the same quick search as ⌘K (Ctrl+K), covering tasks, agents, and projects.
 
 Other pages live under **More**: **Search**, **Dashboard**, **Projects**, **Routines**, **Artifacts**, **Agents**, **Skills**, **Connectors**, **Audit**, and **Settings**, plus **Cases** when that experiment is on. Hover any of them and click the pin to add it to your pinned links, which sit just after **Inbox** and above **More**. To take one back off, hover it and click its unpin icon.
 
 You can pin agents too, from the chat [contact list](agent-chat.md#opening-a-chat) or the **Agents** list. A pinned agent opens straight into your chat with it. Pages and agents share one list, in the order you pinned them, and you can drag a row by its grip to reorder it (or use the keyboard on the grip). Pins are saved in this browser, for your account, and a pinned agent only shows while its company is selected.
 
-Below **More**, **Recents** mixes the tasks you've opened, your agent conversations, and projects you've visited in this session, newest first. Chats show the agent's avatar and name. Expand a project there to see its most recently updated tasks without leaving the page. The list scrolls on its own, so a long history doesn't crowd the rest of the sidebar. It only appears once it has something to list, and it's hidden while the sidebar is collapsed. To tuck the whole list away, click the arrow beside the **Recents** heading.
+Below **More**, **Recents** mixes your recent tasks, your agent conversations, and projects you've visited in this session, newest first. Opening a task moves it to the top. Chats show the agent's avatar and name. The list scrolls on its own, so a long history doesn't crowd the rest of the sidebar. It only appears once it has something to list. To tuck the whole list away, click the arrow beside the **Recents** heading.
 
-When a recent task has subtasks, they open out right under it, so you can hop between a parent and its pieces of work. You see its direct subtasks that you're allowed to read, ten at a time. Click **Show more (N)** to load the next ones, and **Show less** to go back to the first ten. Click the arrow at the right end of the parent's row to fold the group, and it shrinks to a short count such as *4 subtasks · 2 unread*. A task with something new for you shows its title in bold with a small unread dot. Folding a group or loading more subtasks doesn't mark anything as read. If you've opened one of those subtasks yourself, it moves into its parent's group instead of getting a separate row. If it's past the first ten, you see it there once you click **Show more** or while you have it open.
+Recents only lists tasks you've taken part in yourself: ones you created, are assigned, have commented on or changed, or that are waiting on a request to you. Opening a task you haven't been involved in doesn't add it, and neither does work that agents or routines did in your name. A task you archive from your inbox leaves Recents. Done and cancelled tasks stay. A task whose title or status changes is kept up to date without jumping up the list; only what you do yourself moves it.
+
+Each task, subtask included, has its own row. A task with something new for you shows its title in bold with a small unread dot.
+
+To keep something from Recents close at hand, pin it. Hover a task, chat, or project row (or move to it with the keyboard) and click its pin button; the button also shows on the row for the page you're on. Pinned items join your pinned links above **More**, in the same draggable order as pinned pages and agents, and stay there even after they drop out of Recents.
+
+A project link, in Recents or pinned, opens the project's **Tasks** tab. Click the arrow at the right of the project's row to see up to 12 of its most recently updated tasks without leaving the page, each with its status and unread marker.
 
 On a phone, the bottom bar carries **Chat**, **Tasks**, **Inbox**, and **New task**.
 

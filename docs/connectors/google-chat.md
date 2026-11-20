@@ -27,7 +27,7 @@ This is the gate worth checking before anything else, because the two paths cost
 
 | Path | What it takes | Offered when |
 | --- | --- | --- |
-| **Connect with Paperclip** | Sign-in only, no Cloud console work | Only when the instance is enrolled with Paperclip Cloud *and* Cloud advertises the Chat profile. If it is not on the setup screen, it is unavailable to you |
+| **Connect with Paperclip** | Sign-in only, no Cloud console work | Not for new setup. Chat's permissions are outside the 14 that Paperclip's Google app covers, so this path stays only for connections you already saved, and those can't be signed in again through Paperclip |
 | **Use your own Google OAuth app** | A Cloud project with the **Chat API** and **Chat MCP API** enabled, a registered callback URI, **and a configured Chat app** | Always |
 
 **Chat is the one Google connector that needs a configured Chat app**, not merely an enabled API. In the Cloud console, open **Chat API** → **Configuration** and complete the app's identity — app name, avatar URL, and description — then set its functionality and visibility. Google will not authorize against a Chat API with no configured app, and the failure appears at the consent screen rather than earlier.
@@ -47,7 +47,7 @@ The group is fixed for the life of the connection.
 
 1. Open **Connectors** and select **Google Chat**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
-3. Check the capability group. Setup starts on the group that can make changes; to connect read-only, select **Change** and pick it under **What should Paperclip be able to do?**. Paperclip uses **Connect with Paperclip** when your instance offers it. To use your own client instead, select **Use your own Google OAuth app** and supply the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
+3. Check the capability group. Setup starts on the group that can make changes; to connect read-only, select **Change** and pick it under **What should Paperclip be able to do?**. Then supply the client ID and secret of your own Google OAuth app, from [Set up your own Google OAuth app](google-setup.md).
 4. Complete Google's consent screen with the registered Workspace account.
 
 ## Choose access
@@ -86,7 +86,8 @@ If you must confirm sending, post to a space created for the purpose that contai
 | --- | --- | --- |
 | Google refuses before the consent screen | Developer Preview registration is incomplete | Finish registration and retry |
 | Authorization fails on a self-managed client | No Google Chat app is configured in the Cloud project | Configure the Chat app, then retry |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Chat profile | Use your own Google OAuth app |
+| **Connect with Paperclip** is not offered | Paperclip's Google app no longer covers Chat's permissions | Use your own Google OAuth app |
+| Reconnecting a saved **Connect with Paperclip** connection is refused with *"Google Chat can no longer be connected through Paperclip with these permissions. Connect Google Workspace, or set up Google Chat with your own Google OAuth app."* | The same limit applies to saved connections when they sign in again | Set Google Chat up with your own Google OAuth app, then remove the old connection |
 | A space is missing from results | The authorizing account is not a member of it | Join the space in Google Chat; no reconnect needed |
 | `send_message` is absent | The connection was made with **Read only** | Make a connection with **Read & send** |
 | People expect to message an agent and get no reply | Google Chat is not a Paperclip conversation channel | Use a supported channel instead |

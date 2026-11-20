@@ -26,7 +26,7 @@ If you plan to use **Connect with Paperclip** rather than your own OAuth client,
 
 ## 2. If you are bringing your own OAuth client
 
-Skip this section if your instance is enrolled with Paperclip Cloud and **Connect with Paperclip** is offered.
+Skip this section if your instance is enrolled with Paperclip Cloud, **Connect with Paperclip** is offered, and you don't need the **Read & archive** group.
 
 In the [Google Cloud console](https://console.cloud.google.com/auth/clients):
 
@@ -46,7 +46,7 @@ This is the decision that matters, and it is fixed for the life of the connectio
 | **Read & create drafts** | `gmail.readonly`, `gmail.compose` | An agent should leave a draft for a person to review and send. |
 | **Read & archive** | `gmail.readonly`, `gmail.modify` | An agent should clear processed threads out of the inbox. Archiving removes only the Inbox label; nothing is deleted. |
 
-No group makes sending reachable. Setup starts on **Read & create drafts**. If agents only need to read, switch to **Read only** while you connect (step 4) — it is the safer choice unless you have a concrete reason for drafts. **Read & archive** is opt-in; you only get it by choosing it. If you use your own OAuth app for it, add `gmail.modify` alongside `gmail.readonly` under **Data Access** — see [Set up your own Google OAuth app](google-setup.md).
+No group makes sending reachable. Setup starts on **Read & create drafts**. If agents only need to read, switch to **Read only** while you connect (step 4) — it is the safer choice unless you have a concrete reason for drafts. **Read & archive** is opt-in; you only get it by choosing it, and it needs your own OAuth app, because **Connect with Paperclip** doesn't cover `gmail.modify`. Add `gmail.modify` alongside `gmail.readonly` under **Data Access** — see [Set up your own Google OAuth app](google-setup.md).
 
 Even though `gmail.modify` allows more at Google's end, an archive connection can only remove the Inbox label. Trashing, marking spam, and other label changes stay unavailable — see [Gmail](gmail.md#how-archiving-stays-narrow).
 
@@ -88,7 +88,7 @@ Do not verify by creating a draft.
 | Symptom | Cause |
 | --- | --- |
 | Google refuses before the consent screen | The signing-in Workspace account or the Cloud project is not registered for Developer Preview. |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Gmail profile. |
+| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Gmail profile. On **Read & archive** it is never offered: that group needs your own OAuth app. |
 | Consent completes but the connection shows **Setup incomplete** | The final step was not finished. Select **Finish setup**. |
 | Redirect URI mismatch | The callback URI registered on your Google OAuth client does not match the one Paperclip displays. |
 

@@ -47,7 +47,7 @@ All identifiers below are exported from `@paperclipai/plugin-sdk`. They are the 
 Most UI slots mount on one page or one entity. Two slot types in `PLUGIN_UI_SLOT_TYPES` instead attach to the signed-in application shell itself:
 
 - **`appShellOverlay`** — a persistent piece of UI that lives alongside the whole app, such as a floating panel. It needs the `ui.action.register` capability and gets the same host context as a widget. It stays mounted while the user navigates between pages, and it's torn down when the user switches account or company, signs out, or enters onboarding — so cancel any requests or subscriptions when your component unmounts. Your plugin is responsible for the panel's accessibility.
-- **`organizationSwitcher`** — replaces the organization menu at the top of the sidebar with your own component. It needs the `ui.sidebar.register` capability, and it must be a React component (a custom-element export isn't supported for this slot). The host passes `PluginOrganizationSwitcherProps`, whose `organizationSwitcher` object holds the current company's `name` and `logoUrl` in `currentCompany`, the sidebar's `collapsed` and `open` state with `onOpenChange`, `onNavigate` to close mobile navigation before you leave the page, `onSignOut` and `signingOut` so you use the host's own sign-out, and `renderIcon` to draw a company icon the way the host does.
+- **`organizationSwitcher`** — replaces the organization menu at the top of the sidebar with your own component. It needs the `ui.sidebar.register` capability, and it must be a React component (a custom-element export isn't supported for this slot). The host passes `PluginOrganizationSwitcherProps`, whose `organizationSwitcher` object holds the current company's `name` and `logoUrl` in `currentCompany`, `collapsed` (always `false`, since the desktop sidebar no longer collapses to an icon rail), the menu's `open` state with `onOpenChange`, `onNavigate` to close mobile navigation before you leave the page, `onSignOut` and `signingOut` so you use the host's own sign-out, and `renderIcon` to draw a company icon the way the host does.
 
 The organization switcher is deliberately cautious. The host reserves the space while plugins load, and falls back to its built-in menu if no plugin contributes the slot, more than one does, discovery fails, or your component throws — so users can always reach their organizations. `currentCompany` describes the company inside this Paperclip instance; if your menu shows an external account or organization, fetch that from the service that owns it. For both slots, treat the props and host context as display information, not proof of who the user is: authenticate anything sensitive at the service that owns it. Replacing the menu changes only how it looks, not who can access which company.
 
@@ -268,6 +268,7 @@ Don't cancel useful work just to look idle. The SDK already counts requests and 
 | `PluginDataClient` | Register data feeds the UI can query (`ctx.data.register(...)`). |
 | `PluginActionsClient` | Register host-invokable actions. |
 | `PluginStreamsClient` | Stream-style host APIs. |
+| `PluginConnectorsClient` | Serve the tools of the connectors your plugin adds to the Connectors catalog (`ctx.connectors.register(...)`, `ctx.connectors.listTools(...)`) — see [Plugin connectors](#plugin-connectors). Requires `connectors.provide`. |
 | `PluginToolsClient` | Register tool implementations declared in the manifest (`ToolRunContext`, `ToolResult`). `ToolRunContext.projectId` is an empty string when the run has no project, so check it before you use it as a project ID. |
 | `PluginMetricsClient`, `PluginTelemetryClient` | Emit metrics and telemetry. |
 | `PluginTracer`, `PluginSpan` | Open tracing spans around your plugin's work (`ctx.tracer.startSpan(...)`). |
@@ -735,7 +736,7 @@ On a `PluginUiSlotDeclaration`, the optional `taskSidePanel` object (`{ availabi
 | `PaperclipPluginManifestV1` | Top-level manifest shape. |
 | `PluginJobDeclaration` | Scheduled / triggered job. |
 | `PluginWebhookDeclaration` | Inbound webhook endpoint. |
-| `PluginToolDeclaration` | Tool exposed to agents. |
+| `PluginToolDeclaration` | Tool exposed to agents (legacy; prefer a [plugin connector](#plugin-connectors)). |
 | `PluginEnvironmentDriverDeclaration` | Environment / sandbox driver. |
 | `PluginManagedAgentDeclaration` (+ `PluginManagedAgentResolution`) | Plugin-managed agent. |
 | `PluginManagedProjectDeclaration` (+ `PluginManagedProjectResolution`) | Plugin-managed project. |
@@ -1025,6 +1026,81 @@ Return an `AiConnectionRouterResult`:
 
 Your result is only a proposal. The host rechecks authorization and can't be made to use an account the responsible person isn't allowed to use. The SDK re-exports the related types: `AiConnectionPool`, `AiConnectionPoolConfig`, `AiConnectionPoolMember`, `AiConnectionRouterRequest`, `AiConnectionRouterResult`, and `AiConnectionRouterSelection`.
 
+### Plugin connectors
+
+A plugin can add its own connector types to the **Connectors** catalog. Operators then set them up, sign in, choose which agents get them, and set action permissions exactly as they would for a built-in connector. This is the recommended way for a new plugin to give agents tools.
+
+Declare each connector in the manifest's `apps` array and add the `connectors.provide` capability:
+
+```ts
+capabilities: ["connectors.provide"],
+apps: [
+  {
+    schemaVersion: 1,
+    slug: "records",
+    // ...name, description, categories, branding, urlPatterns...
+    methods: [
+      {
+        key: "default",
+        transport: "plugin",
+        auth: "none",
+        timeoutMs: 30000,
+        settingsSchema: { /* simple per-connection settings */ },
+        tools: {
+          kind: "static",
+          list: [
+            { name: "lookup_record", risk: "read", parametersSchema: { type: "object" } },
+            { name: "build_report", risk: "read", parametersSchema: { type: "object" }, timeoutMs: 60000 },
+          ],
+        },
+        // ...ownershipModes, whenToUse, guidanceMd, riskTier...
+      },
+    ],
+  },
+],
+```
+
+Each entry uses the same app-definition schema as Paperclip's built-in connectors. The manifest validator rejects `apps` without `connectors.provide`, duplicate slugs, and the fields the host fills in itself (`plugin`, `aiConnectionRouter`, `experimentalFeatureKey`, `availability`). Paperclip prefixes each slug with your plugin key, so your connector can't replace a built-in one or another plugin's.
+
+A method can use one of three transports:
+
+- `mcp_remote` or `local_stdio`: Paperclip runs the connector like any built-in MCP connector, with your definition supplying the setup details.
+- `plugin`: your worker serves the tools. Declare `tools` as `{ kind: "static", list }`, with a `risk` (`read`, `write`, or `destructive`) on each tool, or as `{ kind: "dynamic" }` to list tools per connection. Tool names use lowercase letters, digits, and underscores. `auth` must be `none` or `api_key`. An optional `settingsSchema` describes per-connection settings, limited to string, number, integer, and boolean fields.
+
+Methods that need provider code inside Paperclip, such as REST adapters, chat channels, and AI sign-ins, are rejected. A definition can also declare `reviewedTools` to say which tool names are reads, writes, and destructive actions, and what risk an unlisted tool gets.
+
+For `plugin` methods, register a handler for every static tool before `setup` returns, or the worker fails to start:
+
+```ts
+ctx.connectors.register("records", "lookup_record", async (params, runCtx) => {
+  // runCtx.connection: { id, appSlug, methodKey, grantId, settings, credential? }
+  return { content: `Record for ${runCtx.connection.settings.region}` };
+});
+
+// Only for tools: { kind: "dynamic" }
+ctx.connectors.listTools("records", async (connection) => [
+  { name: "lookup_record", risk: "read", parametersSchema: { type: "object" } },
+]);
+```
+
+Paperclip keeps every access decision: grants, action permissions, approvals, rate limits, and audit. It validates settings against `settingsSchema`, resolves an `api_key` method's credential for that one call, and passes it in `runCtx.connection.credential`. Your worker never reads the vault and never sees another connection's credential. The run context comes from the gateway session, so tool arguments can't change it. Paperclip caches a dynamic connector's tool list in the connection's catalog and refreshes it on connect, when settings change, and on request. If your worker is stopped, calls fail with the retryable `plugin_connector_unavailable` error.
+
+#### Tool timeouts
+
+Paperclip waits 30 seconds for a plugin connector tool by default. If your backend needs longer, set `timeoutMs` (an integer from `1000` to `60000`) on the method, or on a single static tool to override the method's value. Values outside that range fail manifest validation. A call that a person approved under an **Ask first** permission always gets Paperclip's fixed 60-second budget for approved calls instead. A timed-out call can still finish in your worker, so make write tools safe to retry with the same arguments.
+
+#### How agents get your connector's tools
+
+- Installing or enabling the plugin grants no tools. It only adds your connector types to the catalog.
+- Connecting an account grants no tools either.
+- An agent gets the tools only from an active connection installed for that agent, or for the whole company. For `plugin` connections Paperclip checks this before it looks at grants, trust rules, or policies, so none of them can stand in for the install. An agent without one is denied with `deny_connection_not_installed`.
+- A `plugin` method with agent grants (`grantKinds: ["agent"]`) and no sign-in, or an API key, belongs to one agent. The connect form asks *"Which agent uses this connection?"* and requires exactly one agent. An API key is stored on that agent's grant.
+- While your plugin is not `ready`, or after an upgrade removes an app, its connector types and connections are hidden and reach no agent. Settings, credentials, installs, and grants are kept and come back when the plugin is ready again. Uninstalling the plugin archives its connections, revokes their grants, and deletes the credentials they own.
+
+#### Legacy top-level tools
+
+Top-level `tools` with `ctx.tools.register` still work. Paperclip now offers them as one implicit connector named after your plugin, with no sign-in, and the tools keep their names. A plugin that was already installed when this change arrived gets one connection installed for the whole company in each company, so its agents keep exactly the tools they had. A plugin installed after that follows the rules above: an operator connects it on the **Connectors** page and installs it for the agents that should have its tools.
+
 ### JSON-RPC protocol
 
 The SDK speaks JSON-RPC 2.0 between host and worker. Most plugin authors never call these directly, but they are exported for advanced use (custom transports, tests, replay tools).
@@ -1047,7 +1123,7 @@ It also includes `INVOCATION_SCOPE_DENIED`, raised when a worker-to-host call as
 
 The worker-to-host method table `WorkerToHostMethods` gained the calls that back the clients above: `issues.listInteractions`, `issues.respondInteraction`, `issues.listAttachments`, `issues.getAttachmentContent`, `approvals.list`, `approvals.get`, and `approvals.decide`.
 
-Protocol types: `JsonRpcId`, `JsonRpcInvocationScope`, `JsonRpcInvocationContext`, `JsonRpcRequest`, `JsonRpcSuccessResponse`, `JsonRpcError`, `JsonRpcErrorResponse`, `JsonRpcResponse`, `JsonRpcNotification`, `JsonRpcMessage`, `JsonRpcErrorCode`, `PluginRpcErrorCode`, the invocation-scope shapes `PluginInvocationScope`, `PluginInvocationContext`, and `WorkerHostCallContext`, plus the parameter shapes for each RPC method: `InitializeParams`, `InitializeResult`, `ConfigChangedParams`, `ValidateConfigParams`, `OnEventParams`, `RunJobParams`, `GetDataParams`, `PerformActionParams`, `PluginPerformActionActorType`, `PluginPerformActionActorContext`, `PluginPerformActionContext`, `ExecuteToolParams`, and the host method tables `HostToWorkerMethods` / `HostToWorkerMethodName` / `WorkerToHostMethods` / `WorkerToHostMethodName` / `HostToWorkerRequest` / `HostToWorkerResponse` / `WorkerToHostRequest` / `WorkerToHostResponse` / `WorkerToHostNotifications` / `WorkerToHostNotificationName`.
+Protocol types: `JsonRpcId`, `JsonRpcInvocationScope`, `JsonRpcInvocationContext`, `JsonRpcRequest`, `JsonRpcSuccessResponse`, `JsonRpcError`, `JsonRpcErrorResponse`, `JsonRpcResponse`, `JsonRpcNotification`, `JsonRpcMessage`, `JsonRpcErrorCode`, `PluginRpcErrorCode`, the invocation-scope shapes `PluginInvocationScope`, `PluginInvocationContext`, and `WorkerHostCallContext`, plus the parameter shapes for each RPC method: `InitializeParams`, `InitializeResult`, `ConfigChangedParams`, `ValidateConfigParams`, `OnEventParams`, `RunJobParams`, `GetDataParams`, `PerformActionParams`, `PluginPerformActionActorType`, `PluginPerformActionActorContext`, `PluginPerformActionContext`, `ExecuteToolParams`, `ListConnectorToolsParams`, `ListConnectorToolsResult` (for the optional `listConnectorTools` method behind [dynamic plugin connectors](#plugin-connectors)), and the host method tables `HostToWorkerMethods` / `HostToWorkerMethodName` / `WorkerToHostMethods` / `WorkerToHostMethodName` / `HostToWorkerRequest` / `HostToWorkerResponse` / `WorkerToHostRequest` / `WorkerToHostResponse` / `WorkerToHostNotifications` / `WorkerToHostNotificationName`.
 
 External-object protocol shapes: `PluginExternalObjectUrlCandidate`, `PluginExternalObjectSourceContext`, `DetectExternalObjectsParams`, `PluginExternalObjectDetection`, `DetectExternalObjectsResult`, `PluginExternalObjectRecordSnapshot`, `ResolveExternalObjectParams`, `PluginExternalObjectResolvedSnapshot`, `PluginExternalObjectResolveResult`, `RefreshExternalObjectsParams`, `RefreshExternalObjectsResult`. See [External-object reference providers](#external-object-reference-providers) for the lifecycle that uses them.
 
@@ -1270,13 +1346,13 @@ The SDK validates every operation and result for you. Each result must carry the
 
 | `operation.kind` | Return `kind` | What you do |
 |---|---|---|
-| `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. Add `freshWorkspaceVersion: 1`, `workspaceFileReadVersion: 1`, `warmTaskVersion: 1`, `releaseResumeVersion: 1`, `resumeLaunchInputsVersion: 1`, `githubCredentialBrokerVersion: 1`, `configuredEnvironmentVersion: 1`, or `launchDigestVersion: 1` for the optional features below. Add `codexSourceRecoveryVersion: 1` or `acpxSourceRecoveryVersion: 1` only if your host can verify and restore a stopped session for that provider without starting another turn; the two are separate promises. |
+| `describe` | `description` | Report the installed Runner `version` and SHA-256 `digest`. Add `launchPreparationVersion: 1` and `projectAuthCheckVersion: 1` if you support those steps — native execution needs both. Add `freshWorkspaceVersion: 1`, `workspaceFileReadVersion: 1`, `warmTaskVersion: 1`, `releaseResumeVersion: 1`, `resumeLaunchInputsVersion: 1`, `resumeRelaunchedRunnerVersion: 1`, `resumeIdentityVersion: 1`, `githubCredentialBrokerVersion: 1`, `configuredEnvironmentVersion: 1`, or `launchDigestVersion: 1` for the optional features below. Add `codexSourceRecoveryVersion: 1` or `acpxSourceRecoveryVersion: 1` only if your host can verify and restore a stopped session for that provider without starting another turn; the two are separate promises. |
 | `prepare` | `prepared` | Build the provider configuration for the exact `requirements` (schema `paperclip.runner.launch-requirements.v1`) without starting a process. Return a `launch` with a `configurationId`, a `requirementsDigest`, and a `provider` descriptor. For a provider that works in a filesystem directory, the descriptor's `cwd` sets the working directory (see below). You can add `projectAuthCheckAtSubmit: true` to leave the authentication check to `submit`, or `projectAuthChecked: true` once you've already run it inside this preparation; either skips the separate `check_project_auth` step (see below). On a warm attach, which has no `submit`, only `projectAuthChecked` skips it. A warm handoff also sends `priorIdentity` and `accountIdentity`. If you advertise the GitHub broker, it can also carry a `githubBroker` (see below). |
 | `check_project_auth` | `project_auth` | Check that nothing in the prepared configuration for these projects can replace or redirect the selected account. Return `allowed: true` only if the checks pass. |
 | `read_file` | `file` | Only sent if you advertise `workspaceFileReadVersion: 1`. Read one file from the active task — see [Reading task output files](#reading-task-output-files). |
 | `submit` | `accepted` (or `admission_rejected`) | Start the task at most once, using the structured launch inputs — the Runner protocol range, Runner identity, `bootstrapTicket`, and optional `preparedLaunchId`, `credential`, `configuredEnvironment` (see [Passing the run's environment variables](#passing-the-runs-environment-variables)), and `launch` limits. Paperclip never sends a command line or a guest path. If you decide not to start it at all, return `admission_rejected` instead (see [Telling Paperclip why a task failed](#telling-paperclip-why-a-task-failed)). |
 | `connection` | `connection` | Return an `authenticated_websocket` endpoint: a `wss://` `websocketUrl` with no user info, query, or fragment, `secretHeaders` for authentication, and a `generation`. |
-| `status` | `status` | Report the `phase` and, once the Runner and everything it started have stopped, `executionStopped: true`. |
+| `status` | `status` | Report the `phase` and, once the Runner and everything it started have stopped, `executionStopped: true`. A released task that can still be resumed reports `executionStopped: false`, even if its Runner process has stopped (see [Releasing and resuming a settled Runner](#releasing-and-resuming-a-settled-runner-gated)). |
 | `read_state` / `archive_state` | `state` | Read, or archive under an idempotent `archiveKey`, that task's retained Runner state. |
 | `credentials` | `credentials` | Return the selected account's credential after the process has stopped. |
 | `copilot_metadata` | `copilot_metadata` | Check a Copilot account and model on a private setup lease without sending a prompt. |
@@ -1366,6 +1442,13 @@ If any of those is missing, the task keeps its ordinary warm lifecycle. No bundl
 Anything else stays an error: a source mismatch, failed authentication, a conflicting claimant, a transport failure, or an ambiguous claim must never become `unavailable`.
 
 **Retries.** Replay the original result. A repeated `release` must not release a session that has since resumed, and a repeated `resume` with the same source, claimant, and ticket returns the original outcome. A changed claimant or ticket is a conflict. Keep your replay fencing even after you reclaim the resources, so a delayed request can't change a newer owner.
+
+**Starting the Runner again on resume.** If your host stops a released Runner and has to start it again to resume, two optional `describe` capabilities cover that:
+
+- `resumeRelaunchedRunnerVersion: 1` — every `resume` then carries `relaunchedRunnerVersion: 1`, and you may start the Runner on a different build, as long as its version can read the parked Runner's state: the same version or a newer semantic version (a prerelease counts as older than its release). Report the build as `runner: { version, digest }` on the `resumed` result. Paperclip treats a build that can't read the state as `unavailable`. Without this capability, restart only on the parked build and leave `runner` off the result.
+- `resumeIdentityVersion: 1` — advertise it only if every `resume` starts the Runner again. Paperclip moves the session to the claiming run before it calls `resume`, and adds that run's `runner: { runId, turnId, itemId }` to the request. Archive the source's `runner-state.json` out of the Runner state directory so the Runner starts with fresh state, start the Runner as the claiming run with the new `bootstrapTicket`, and return `runner: { version, digest }` and the archived state as `archivedState` on the `resumed` result. Paperclip accepts that state only if the source had settled: `suspended`, or `ready` with nothing waiting to be sent, every event acknowledged, and no command in progress. A retry with the same source, ticket, and `runner` must return the original result without starting a second Runner.
+
+Either way, while a released task can still be resumed, its `status` must report `executionStopped: false`, even when the Runner process is stopped. If it reports a stop, Paperclip replaces the task and can no longer resume the released session on it. Report the stop only once the task can't be resumed. Older Paperclip versions reject these fields, so advertise them only to a version that accepts them.
 
 If you evict a released session gracefully and save it as suspended first, a later run can still continue it through ordinary `resumeFrom` recovery once Paperclip has recorded the physical stop. Missing state, a foreign identity, or an unsettled checkpoint refuses the continuation rather than starting a replacement session.
 

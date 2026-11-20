@@ -57,7 +57,7 @@ After **Create your first agent**, the wizard's next screen is **Connect a model
 
 First-run setup keeps the choice short: the only tiles are **Claude** and **OpenAI** (Codex). Want GitHub Copilot or another provider? Finish setup with one of these two, then add more agents from the **Agents** page, where every supported provider is available. If an administrator has turned off both Claude and Codex, the wizard says *"Claude and Codex are unavailable on this instance."* Ask them to enable one, or exit setup and choose **New Agent** on the **Agents** page.
 
-Signing in with a subscription opens the provider in a new tab, whether you use the link on the card or the **Sign in to Claude** / **Sign in to OpenAI** button at the bottom. Either one switches the button to **Waiting for code…** for Claude or **Waiting for auth…** for OpenAI, so you can't open a second sign-in by accident. With Claude, paste the code you get back into the field. If you type it instead, press Enter or click **Submit code**. If a sign-in fails or expires, the card says so and the button becomes **Retry sign-in**, which starts fresh with a new sign-in and keeps the rest of your setup.
+Signing in with a subscription opens the provider in a new tab, whether you use the link on the card or the **Sign in to Claude** / **Sign in to OpenAI** button at the bottom. Either one switches the button to **Waiting for code…** for Claude or **Waiting for auth…** for OpenAI, so you can't open a second sign-in by accident. With Claude, paste the code you get back into the field. Pasting submits it for you, and Paperclip checks the code before going on: the button reads **Connecting** while it does. When you sign in on the machine running Paperclip, the card shows *Finishing sign-in…* instead, and **Connect** stays unavailable until the sign-in is confirmed. If you type the code instead, press Enter or click **Submit code**. If a sign-in fails or expires, the card says so and the button becomes **Retry sign-in**, which starts fresh with a new sign-in and keeps the rest of your setup.
 
 Already run your own model gateway? When you pick **Claude** or **OpenAI** and switch to an API key, open **Advanced** below the key card and click **Use a custom gateway**. It opens **Custom gateway connection**, the same form you'd use from **Connectors**, with the **API format** already set to match — **Anthropic Messages · Claude** for Claude, **OpenAI Responses · Codex** for OpenAI. Fill in your gateway's details and click **Save connection**.
 
@@ -69,17 +69,22 @@ The connection test has a two-minute limit. If it runs out, the wizard says *"Th
 
 Want a different account after you've reached the review screen? Go **Back** to **Connect** and change it. Paperclip checks and saves the new choice on the agent you already have, so you don't end up with a second agent. If the check fails, you stay on **Connect**. One switch isn't possible: an agent already using a connected account can't move to a saved secret. The wizard asks you to choose a connected API account or enter a new key.
 
-### Your first task
+### Your first chat
 
-The wizard finishes by creating your first task, and the agent opens it with a question card offering two choices: **Interview me and propose a plan and an agent team to execute it.** or **I have a task in mind**.
+The review screen announces that your agent is ready to work. Click **Get started**, and the wizard opens your [chat](../../experimental/agent-chat.md) with the new agent. It doesn't create a task or a project for you: no work starts until you've agreed what it is.
 
-If you choose the interview, the agent asks its questions, saves a plan, and asks you to approve it. Approving a plan for real work starts that work, so you won't be asked to approve the same thing twice. If you only want a plan, say so, and the agent stops once the plan is approved. Hiring rules and budgets still apply either way.
+Once the chat is on screen, the agent greets you in its own words and asks what you want to achieve. It already knows your organization's name and any company goals, so you don't have to repeat them. If the welcome can't start, the chat says so and offers **Retry welcome**.
 
-If you have one thing in mind, the agent proposes doing it right on your first task and asks you to accept the scope. Once you accept, it does the work there and saves the result on that task. It only opens a separate task when the proposal you accepted said it would.
+From there, talk it through however suits you:
 
-With [Agent Chat](../../experimental/agent-chat.md), you can ask the agent to run the interview in chat instead. The questions move there, so you only ever answer one card. If the task has nothing else waiting on it, it closes itself with a note that onboarding continues in chat.
+- **Ask to be interviewed.** The agent offers this, but only starts an interview when you ask. It asks focused questions about your goal, the background, any constraints, and what "done" looks like.
+- **Just describe it.** In an ordinary conversation, the agent asks only what it needs to understand the outcome and how you'll know it's finished.
 
-Optional in-app announcements wait until your first task is done or cancelled. After that, on desktop, they sit in the sidebar above your account menu, so they never cover the task you're reading.
+When the goal and the finish line are clear, the agent suggests a task for you to accept. Accepting it creates the task; until then, nothing has been created. If you'd rather skip the suggestion, ask the agent to create the task outright and it will, once any open questions about the scope are answered. Hiring rules and budgets still apply either way, and the chat stays open afterwards for whatever comes next.
+
+Your chat doesn't use up a task number, so the first task you accept is number 1 in your company, such as `ABC-1` with your company's own prefix.
+
+On desktop, optional in-app announcements sit in the sidebar above your account menu, so they never cover the work you're reading.
 
 ---
 

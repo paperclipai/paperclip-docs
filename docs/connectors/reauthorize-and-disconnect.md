@@ -69,7 +69,47 @@ Revocation is immediate. Runs in flight lose the identity at their next call.
 DELETE /api/tool-connections/{connectionId}
 ```
 
-Deleting in Paperclip does not revoke the grant at the provider. If the service keeps a record of the authorization — an OAuth app authorization, a bot installation, an API key — remove it there too. Start from the provider console links on the connector's own page.
+Removing a connection does not, by itself, delete what Paperclip saved from that connection's tool calls. To remove that too, tick **Also delete data read through this connection** in the remove dialog before you select **Remove connection**. Paperclip removes the connection and starts deleting its saved data in the background. The option isn't offered for connection pools or chat connections. See [Delete data read through a connection](#delete-data-read-through-a-connection) for what is and isn't deleted.
+
+Deleting in Paperclip does not revoke the grant at the provider, with one exception: removing a Google connection that uses **Connect with Paperclip** also asks Paperclip Cloud to end Paperclip's access at Google. See [Remove a connection](google-workspace.md#remove-a-connection) for how that works and what the confirmation means. For everything else, if the service keeps a record of the authorization — an OAuth app authorization, a bot installation, an API key — remove it there too. Start from the provider console links on the connector's own page.
+
+## Delete data read through a connection
+
+When an agent uses a connected app, Paperclip keeps part of what the app returned so you can review the work later: short previews of each tool call's request and result, approval previews and results, interactive app views, and the transcripts of the runs that used the connection. That data stays until you delete it. You can delete it for any tool connection without removing the connection.
+
+1. Open the connector's page in **Connectors**.
+2. Near the bottom, next to **Delete data read through this app**, select **Delete data**.
+3. Check the counts in the confirmation, such as *"Paperclip will delete what it saved from 12 tool calls and the full transcripts of 3 runs that used Gmail or received its results."*, then select **Delete data**.
+
+You need permission to configure the connection, and you have to be signed in as a person. Agents can't start a deletion.
+
+Deletion starts right away and keeps going in the background, so you can close the dialog. If it gets interrupted, the dialog reads *"Deleting was interrupted. Paperclip keeps trying until it finishes."* When it's done, the dialog shows when the data was last deleted.
+
+What gets deleted:
+
+- Request and result previews for the calls made through the connection before you asked.
+- Approval previews, arguments, and results for those calls.
+- Interactive app views from those calls.
+- The whole transcript of every run that called the connection or received an approved action's result. That includes the run's other steps.
+
+What stays:
+
+- The record that each call happened. Call times, sizes, and outcomes stay in the activity history.
+- **Anything your agents wrote into tasks**, such as comments, documents, and files, even if an agent copied data from the app into them. Delete or edit those yourself.
+
+Paperclip doesn't touch a run that is still working. The confirmation tells you how many runs it will skip. Select **Delete data** again after they finish.
+
+Deleted data can't be recovered.
+
+The routes behind the dialog:
+
+```http
+GET  /api/tool-connections/{connectionId}/stored-content
+POST /api/tool-connections/{connectionId}/stored-content/deletion
+GET  /api/tool-connections/{connectionId}/stored-content/deletion
+```
+
+To remove the connection and its saved data in one call, use `DELETE /api/tool-connections/{connectionId}?deleteStoredContent=true`.
 
 ## After you disconnect
 

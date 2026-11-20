@@ -142,6 +142,14 @@ Low trust doesn't stop an agent from organizing its own work. It can create task
 - New tasks keep the creator's containment and its quarantined source attribution.
 - An exact `issueIds` allow-list doesn't automatically cover new child tasks, and a permitted parent doesn't open up an unrelated project. A `rootIssueId` scope does include its descendants.
 
+### Scheduling its own follow-up check
+
+A low-trust agent, such as a pull request reviewer, can schedule a timed follow-up check (a monitor) on its own task with the `set_task_monitor` tool that [Paperclip Runner](../reference/adapters/paperclip-runner.md) agents get, so it can come back to a review on time instead of waiting for some other event. It can also clear that check. This works only within narrow limits:
+
+- **Its own task, its own wake.** The task has to be assigned to the agent and be in progress or in review, and the check can only wake the agent itself. The usual read and update permissions on the task still apply.
+- **The same boundary on wake.** The agent's, project's, and task's own trust settings have to put the agent in the same low-trust boundary as the current run, so the run the check starts keeps the same limits. A boundary that only the current run carries isn't enough.
+- **Nothing beyond that.** Only that tool gets this exception; the HTTP task routes don't change. A monitor that would create a recovery task or escalate to the board still needs company-wide runtime management, which `low_trust_review` denies. The agent also can't clear or replace a check that the board scheduled, or one used for recovery, escalation, or provider usage limits.
+
 ### Instruction edits from your own chat
 
 Normally a low-trust agent can't change its own instructions. There's one exception: when you, in **your own** Agent Chat with that agent, ask it to update its instructions, it can save its own `AGENTS.md` — even under `low_trust_review`.

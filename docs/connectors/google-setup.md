@@ -27,6 +27,10 @@ Two paths exist, and it is worth knowing which you are on before spending time i
 
 Either way, **Google's Developer Preview registration in step 1 applies.** On the managed path Google still has to have registered the Workspace account that signs in; only the Cloud project differs.
 
+**Connect with Paperclip** only covers the 14 Google permissions listed on the [Google Workspace](google-workspace.md#choose-services-and-access) page. Anything that needs more, namely Gmail's **Read & archive** group, [Google Chat](google-chat.md), [Google People](google-people.md), and [Google Workspace Search](google-workspace-search.md), is no longer offered through Paperclip for new setup. Saved connections of those kinds keep working, but they can't be signed in again through Paperclip: a reconnect is refused with a message naming the connector, such as *"Google Chat can no longer be connected through Paperclip with these permissions. Connect Google Workspace, or set up Google Chat with your own Google OAuth app."* Connections made with your own OAuth app are not affected.
+
+The two paths also differ when you remove a connection. Removing a **Connect with Paperclip** connection also asks Paperclip Cloud to end Paperclip's access at Google, when nothing else in Paperclip still relies on it, and the confirmation says whether that worked. Removing a connection made with your own OAuth app only removes it in Paperclip. [Google Workspace → Remove a connection](google-workspace.md#remove-a-connection) lists the messages.
+
 ## 1. Get Developer Preview access
 
 Google's Workspace MCP servers are in Developer Preview. Google registers two things separately: the **Workspace email** that will sign in, and the **Google Cloud project** that owns the OAuth client. Registration covers only what you name.
@@ -104,7 +108,7 @@ Each connector page has a worked example for its own resource type.
 | `redirect_uri_mismatch` | The redirect URI on the OAuth client does not match the one Paperclip shows | Copy the URI from Paperclip's setup screen exactly |
 | Consent completes but the connection shows **Setup incomplete** | The final step was not finished | Select **Finish setup** |
 | An API-not-enabled error at first use | One of the APIs in step 2 is missing on the project — often the MCP API rather than the service API | Enable it and retry; no reconnect needed |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising that profile | Use your own OAuth client, or ask an administrator about enrollment |
+| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, Cloud is not advertising that profile, or the connector needs permissions outside the 14 Paperclip's Google app covers | Use your own OAuth client, or ask an administrator about enrollment |
 | A tool you expected is missing or disabled | It is outside the reviewed operation list for the capability group you connected | Check the connector page's action list; a preview tool outside the list is blocked and no switch enables it |
 | Google Chat authorization fails though the API is enabled | No Chat app is configured on the project | Complete [step 4](#4-google-chat-only-configure-a-chat-app) |
 

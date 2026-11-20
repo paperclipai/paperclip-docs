@@ -26,7 +26,7 @@ One decision matters more than the rest, and it is fixed for the life of the con
 | **Read & create drafts** | The above, plus create a draft for a person to review and send | `gmail.readonly`, `gmail.compose` |
 | **Read & archive** | Read as above, plus archive a thread by removing only its Inbox label | `gmail.readonly`, `gmail.modify` |
 
-Setup starts on **Read & create drafts**; switch to **Read only** under **Change** when you connect unless you have a concrete reason for drafts. **Read & archive** is opt-in: you only get it by choosing it under **Change**, and **Use your own Google OAuth app** always offers it. **Connect with Paperclip** offers it when Paperclip Cloud advertises the archive profile. To change groups later, create a second connection with the group you want and remove the first; the group is not a switch on an existing connection.
+Setup starts on **Read & create drafts**; switch to **Read only** under **Change** when you connect unless you have a concrete reason for drafts. **Read & archive** is opt-in: you only get it by choosing it under **Change**, and only with **Use your own Google OAuth app**. **Connect with Paperclip** no longer offers it, because `gmail.modify` is outside the 14 permissions Paperclip's Google app covers. A saved archive connection made through Paperclip keeps working, but signing it in again through Paperclip is refused with *"Gmail can no longer be connected through Paperclip with these permissions. Connect Google Workspace, or set up Gmail with your own Google OAuth app."* To change groups later, create a second connection with the group you want and remove the first; the group is not a switch on an existing connection.
 
 ## Why sending is not reachable
 

@@ -21,7 +21,7 @@ Time to first scheduled run: about 10 minutes.
 - The id of the agent that should run each tick (`AGENT_ID`). Agents can only create routines they assign to themselves; board callers can target any agent.
 - A `projectId` to anchor the work — every routine is project-scoped, and the runs inherit it.
 
-If you'd rather click through the UI, the same fields exist on the Routines page composer and the [Routines guide](../guides/projects-workflow/routines.md) walks the screens. Everything below is the API path so you can wire it from a script.
+If you'd rather click through the UI, most of these fields are in the **New routine** dialog on the Routines page, and the [Routines guide](../guides/projects-workflow/routines.md) walks the screens. Everything below is the API path so you can wire it from a script.
 
 ---
 
@@ -73,7 +73,7 @@ Cron is the standard 5-field syntax. The five worth memorising:
 | `0 */4 * * *` | Every 4 hours, on the hour |
 | `0 0 1 * *` | First of the month at 00:00 |
 
-`timezone` is an IANA name — `UTC`, `America/New_York`, `Asia/Tokyo`. Paperclip evaluates the cron in that zone, so a 9am routine stays at 9am local through DST switches instead of drifting an hour. The `Next:` countdown on the routine detail page is computed server-side from this combination, not from the browser clock.
+`timezone` is an IANA name — `UTC`, `America/New_York`, `Asia/Tokyo`. Paperclip evaluates the cron in that zone, so a 9am routine stays at 9am local through DST switches instead of drifting an hour. The **Next run** time beside the routine page's **Status** switch comes from the server's next-run calculation for this combination, not from the browser clock.
 
 A routine can have more than one trigger. Same `POST` route, different bodies — overlap is fine, all triggers fire independently.
 
@@ -132,25 +132,11 @@ In the UI, any `env` value with `type: "secret_ref"` is rendered through a secre
 
 A daily routine on a quiet project is mostly noise — thirty standups in a row that all say "nothing changed". The activity gate turns that off: a scheduled tick only fires if something actually happened since the routine last ran.
 
-### Turn it on from the routine page
+### Set it from the API
 
-Open the routine and go to its **Delivery** section — the same place you set concurrency and catch-up. Under those, you'll find **Advanced run policy** with two cards:
+The routine page doesn't have a control for the activity gate, so you turn it on through the API (or `paperclipai routine update`). Once it's on, the routine page lists it under **Run rules** as "Skips scheduled runs when nothing changed", or "Skips scheduled runs when nothing changed in its project" for the project scope.
 
-- **Run on every scheduled tick** — "Fire on the schedule no matter what — the default behavior."
-- **Skip when there's been no activity since the last run** — "On a scheduled tick, only run if something happened since the last run that finished. Lets a watcher-style routine stay asleep while the system is settled instead of burning tokens."
-
-Pick the second card and an **Activity scope** picker appears underneath it, with two more cards:
-
-- **Company-wide** — "Any activity across the company counts as a reason to run."
-- **This project** — "Only activity in the routine's project counts as a reason to run."
-
-Save the routine and the gate is live from the next tick.
-
-If the routine doesn't have a schedule trigger yet, you'll see the cards greyed out rather than missing, with the reason spelled out: "Add a schedule trigger to gate runs on activity. Webhook, manual, and API fires always run." Add a schedule trigger (step 2) and the control wakes up.
-
-### Or set it from the API
-
-The two fields behind those cards are `activityGatePolicy` and `activityGateScope`, so you can script the whole thing:
+The two fields are `activityGatePolicy` and `activityGateScope`:
 
 ```bash
 curl -X PATCH "$PAPERCLIP_API_URL/api/routines/$ROUTINE_ID" \
@@ -176,7 +162,7 @@ Those last two matter more than they look. Without them a routine would keep re-
 
 `activityGateScope` decides how wide to look. `company` counts activity anywhere in the company; `project` counts only activity tied to the routine's project — its issues, its routines and their runs, and agent runs working on its issues. Reach for `project` on the standup and triage patterns below, where a busy neighbouring project shouldn't wake up a quiet one. One catch: a routine with `activityGateScope: "project"` and no `projectId` can never match anything, so it will never fire on a schedule.
 
-A gated-off tick is not an error and not a backlog. It shows up in the run history as a `skipped` run with `failureReason: "no_external_activity"` — labelled **Skipped — no activity since last run** on the run row — the schedule advances to the next tick, and nothing is backfilled when the project wakes up again.
+A gated-off tick is not an error and not a backlog. It shows up in the routine's runs (`GET /api/routines/{routineId}/runs`) as a `skipped` run with `failureReason: "no_external_activity"`, the schedule advances to the next tick, and nothing is backfilled when the project wakes up again.
 
 The gate only applies to schedule triggers. Webhook firings and `POST /api/routines/{routineId}/run` always dispatch — if an external system took the trouble to call you, that call *is* the activity.
 
@@ -381,7 +367,7 @@ A skipped run tells you why in `failureReason`:
 
 A skipped run with no `failureReason` was dropped by the concurrency policy — a `skip_if_active` routine whose previous execution issue is still open, for instance. That case isn't a mystery either: its `linkedIssueId` points at the execution issue that caused the skip.
 
-In the UI, the routine's **Runs** section lists the execution issues the routine created, where you can search them and update status, priority, or assignee in place. Skipped ticks don't create an issue, so look for them under recent runs on the routine's **Overview** instead.
+In the UI, **History** on the routine page lists the execution issues the routine created, newest first. Skipped ticks don't create an issue, so they aren't listed there. Runs folded into a task that was still in progress are counted in a note under History; for the rest, use the `runs` endpoint above.
 
 For a deeper look at what the agent actually did, follow `linkedIssueId` to the execution issue and read its comments.
 
