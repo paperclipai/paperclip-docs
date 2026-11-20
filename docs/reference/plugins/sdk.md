@@ -1094,7 +1094,7 @@ Paperclip waits 30 seconds for a plugin connector tool by default. If your backe
 - Installing or enabling the plugin grants no tools. It only adds your connector types to the catalog.
 - Connecting an account grants no tools either.
 - An agent gets the tools only from an active connection installed for that agent, or for the whole company. For `plugin` connections Paperclip checks this before it looks at grants, trust rules, or policies, so none of them can stand in for the install. An agent without one is denied with `deny_connection_not_installed`.
-- A `plugin` method with agent grants (`grantKinds: ["agent"]`) and no sign-in, or an API key, belongs to one agent. The connect form asks *"Which agent uses this connection?"* and requires exactly one agent. An API key is stored on that agent's grant.
+- A `plugin` method with agent grants (`grantKinds: ["agent"]`) belongs to one agent, whether its `auth` is `none` or `api_key`. The connect form asks *"Which agent uses this connection?"* and requires exactly one agent. An API key is stored on that agent's grant.
 - While your plugin is not `ready`, or after an upgrade removes an app, its connector types and connections are hidden and reach no agent. Settings, credentials, installs, and grants are kept and come back when the plugin is ready again. Uninstalling the plugin archives its connections, revokes their grants, and deletes the credentials they own.
 
 #### Legacy top-level tools

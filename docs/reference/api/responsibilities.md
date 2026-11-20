@@ -85,7 +85,7 @@ Areas have no owner: any board user with access to the company manages them, and
 
 ## Dashboard conversations and versions
 
-A person's dashboard is drafted and changed by talking to an agent. Every applied change is saved as a version you can restore.
+A person's dashboard is drafted and changed by talking to an agent. Every applied change is saved as a version you can restore. Paperclip keeps the latest 30 versions per person and prunes older ones.
 
 | Method | Path | What it does |
 |---|---|---|

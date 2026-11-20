@@ -35,7 +35,7 @@ This connector only searches. It returns results with links; it does not read a 
 ## Connect Google Workspace Search
 
 1. Open **Connectors** and select **Google Workspace Search**.
-2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity or narrow the agents, select **Change**.
 3. Supply the client ID and secret of your own Google OAuth app, from [Set up your own Google OAuth app](google-setup.md).
 4. Complete Google's consent screen with the registered Workspace account.
 

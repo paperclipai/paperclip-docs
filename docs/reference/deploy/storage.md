@@ -154,7 +154,7 @@ When a task runs on [Paperclip Runner](../adapters/paperclip-runner.md) in a clo
 - The task starts from an empty folder, or from a project Git repository that has a remote URL and no local folder. Any other repositories in that project need remote URLs and no local folder too.
 - The project the task's workspace comes from doesn't use a workspace storage plugin.
 
-If any of these is missing, new tasks keep using a folder on the web server, as before. Existing workspaces, plugin environments, configured local folders, and adapters that can't run in a sandbox or SSH environment are never converted automatically.
+If any of these is missing, new tasks keep using a folder on the web server, as before. Existing workspaces, plugin environments, configured local folders, and any other adapter and environment combination (such as Claude Code in a sandbox) are never converted automatically.
 
 **Give the bucket the right permissions.** Paperclip needs to put, read, and delete objects. To expire old saved copies, it also needs `s3:ListBucketVersions` on the bucket and `s3:DeleteObjectVersion` on the snapshot prefix, so S3-compatible providers must support listing object versions. Test these with your deployment credentials before you rely on it. A denied permission or an object lock doesn't lose data; Paperclip simply keeps retrying the cleanup.
 

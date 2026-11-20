@@ -722,7 +722,7 @@ POST /api/companies/{companyId}/chats/{agentRef}
 | `GET .../chats/{agentRef}` | Returns the signed-in user's conversation with that agent, or `null` if there isn't one yet. Read-only — it never creates anything. |
 | `POST .../chats/{agentRef}` | Returns the existing conversation, or creates it. A new one is titled `Chat with <agent name>`, assigned to the agent, and starts `in_review` with `conversationState: "waiting"`. Creation is logged as `issue.conversation_opened`. |
 
-Chat conversations don't get a task number: their `identifier` is `null`, and creating one doesn't advance the company's task counter, so your regular tasks keep consecutive numbers. If you rename an agent, any of its chats still titled `Chat with <old name>` are renamed to `Chat with <new name>`. A chat you've given a different title keeps it.
+New chat conversations don't get a task number: their `identifier` is `null`, and creating one doesn't advance the company's task counter, so your regular tasks keep consecutive numbers. Chats created before this change keep the identifier they already had. If you rename an agent, any of its chats still titled `Chat with <old name>` are renamed to `Chat with <new name>`. A chat you've given a different title keeps it.
 
 `{agentRef}` accepts an agent ID or the agent's URL reference. Notes:
 

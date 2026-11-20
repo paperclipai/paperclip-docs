@@ -110,8 +110,8 @@ Paperclip never shows AWS's own error text, because it can contain account IDs a
 
 | Message | Likely cause | Fix |
 | --- | --- | --- |
-| *"AWS did not accept this connection's access key. Check that the key is active, or reconnect AWS with a new key."* | The key was deleted, deactivated, or mistyped | Create a new access key for the IAM user and reconnect |
-| *"AWS refused a read-only session for this access key. Allow sts:GetFederationToken for this IAM user."* | The connection is on **Read only** with no **Role ARN (optional)** set, and the user can't call `sts:GetFederationToken` | Add that permission to the IAM user |
+| *"This AWS connection has no saved access key. Reconnect AWS."* | The connection's stored key is missing | Reconnect AWS with the IAM user's access key |
+| *"AWS refused a read-only session for this access key. Allow sts:GetFederationToken for this IAM user."* | The connection is on **Read only** with no **Role ARN (optional)** set, and AWS refused `sts:GetFederationToken`: the user lacks that permission, or the key is no longer valid | Add that permission to the IAM user, or create a new access key and reconnect |
 | *"AWS refused the MCP sign-in. Attach the AWSMCPSignInOAuthAccessPolicy managed policy to this connection's role or user."* | The policy is missing | Attach `AWSMCPSignInOAuthAccessPolicy` |
 | *"AWS refused this connection's role. Check that the role exists and trusts this connection."* | The role in the role field doesn't exist, the IAM user can't assume it, or (for the role method) its trust doesn't match this connection | Check the role ARN and its trust policy |
 | *"The AWS role method needs this Paperclip instance to have a stable public HTTPS address. Use an access key instead."* | The role method on an instance AWS can't reach | Use **Access key** |
@@ -119,6 +119,8 @@ Paperclip never shows AWS's own error text, because it can contain account IDs a
 | *"This AWS connection's settings are incomplete. Reconnect AWS."* | A required setting is missing, or the saved address doesn't match the region | Reconnect AWS |
 | *"AWS did not respond. Try again shortly."* | AWS timed out or throttled the request. The connection shows as degraded rather than broken | Wait and retry |
 | AWS refuses a change on a working connection | The connection is on **Read only**, or the user or role lacks the permission | Expected on **Read only**. Otherwise, adjust the IAM permissions in AWS |
+
+A deleted, deactivated, or mistyped access key doesn't get a message of its own. It shows up as whichever of the read-only session, role, or MCP sign-in messages matches the first AWS call it fails, so if one of those appears and the permissions look right, check that the key is still active.
 
 Limitations: one connection reaches one AWS account through one IAM user or role, in one endpoint region. Paperclip can't undo anything an agent does in AWS. To stop a connection, remove it in Paperclip, or delete the user's access key or the role's trust in AWS; a token Paperclip already made stops working within the hour.
 
@@ -131,7 +133,7 @@ The role method relies on a per-company workload identity issuer. Outside clouds
 | `GET` | `/oidc/companies/{companyId}/.well-known/openid-configuration` | The OIDC discovery document |
 | `GET` | `/oidc/companies/{companyId}/jwks.json` | The public key set (`ES256`, P-256) |
 
-Both answer `404` until the company has a signing key, which Paperclip creates the first time it signs a token for one of the company's connections. A token is only signed for a connection that's switched on, or a draft still being set up. The discovery document is also `404` while the instance has no public HTTPS address, or its address has a port or is a loopback host. Responses can be cached for five minutes.
+Both answer `404` until the company has a signing key, which Paperclip creates the first time it signs a token for one of the company's connections, or when an AWS role connection is saved as a draft through the API. A token is only signed for a connection that's switched on, or a draft still being set up. The discovery document is also `404` while the instance has no public HTTPS address, or its address has a port or is a loopback host. Responses can be cached for five minutes.
 
 Two board-only routes show and rotate the keys. Agent credentials are rejected.
 
