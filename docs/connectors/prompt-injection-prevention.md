@@ -20,7 +20,13 @@ The check runs on results that come back from tool calls made through Paperclip'
 | `instruction_hijack` | The content poses as new system or developer instructions. |
 | `secret_exfiltration` | The content asks the agent to send out secrets, tokens, API keys, or credentials. |
 
-Tool arguments — what your agent sends *to* a tool — aren't checked for injection.
+The same check covers resources an agent reads through a [named tool gateway](../reference/api/tool-gateway.md), whether it calls `resources/read` or the `paperclip_read_resource` tool. A flagged resource is blocked exactly like a flagged tool result, so content from connections such as [Google Workspace](google-workspace.md), like email bodies, documents, and calendar events, is screened whether it arrives as a tool result or as a resource.
+
+Some things aren't checked for injection:
+
+- Tool arguments — what your agent sends *to* a tool.
+- Tool names and descriptions, and the prompt templates an agent fetches with `prompts/get`.
+- What's inside file contents delivered as base64 bytes, and images. The check reads the result as it arrives and doesn't decode them.
 
 ## Built-in detection and the model check
 

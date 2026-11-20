@@ -14,7 +14,7 @@ This hosted beta is invitation-only.
 
 ## Start delegating work
 
-Your first agent will ask about the work you want to delegate. Let it interview you and propose a plan, or select **I have a task in mind**.
+Selecting **Get started** opens a chat with your first agent. Nothing starts until you agree on the work: the agent asks what you want to achieve, and you can ask it to interview you or just describe what you need. When the goal and the finish line are clear, it suggests a task for you to accept, or you can ask it to create the task outright.
 
 Bring a task, an ongoing workflow, or a larger project. Explain the outcome you want and share relevant context. You can add agents and connect the tools they need as you build your team.
 
@@ -77,6 +77,19 @@ See [Costs and Budgets](https://docs.paperclip.ing/guides/day-to-day/costs/) and
 <div class="accordion-body">
 
 Use **Connectors** to see the available connections and authorize access. Set them up in your hosted organization; connections from your local installation don’t carry over.
+
+</div>
+</details>
+
+<details class="accordion">
+<summary>Does Paperclip collect analytics while I use the beta?</summary>
+<div class="accordion-body">
+
+It can. When product analytics is on for your workspace, Paperclip uses analytics, and session recordings where they're turned on, to improve the product. Recordings hide what you type and your messages, documents, and connected accounts, but may show page names like task titles.
+
+If you're in the EU, the EEA, the UK, or Switzerland, browser analytics and recordings don't start until you choose **Accept** on the banner at the bottom of the page. In those regions, if your browser sends Do Not Track or Global Privacy Control, Paperclip treats that as a decline and doesn't show the banner. Elsewhere, analytics is on by default.
+
+You can change your choice for this browser at any time with the **Product analytics** switch on your profile settings page. When Do Not Track or Global Privacy Control has turned analytics off in those regions, the switch stays off and can't be changed. See the [privacy policy](https://paperclip.ing/privacy/) for details.
 
 </div>
 </details>

@@ -34,6 +34,12 @@ The **Chat** entry in the main navigation also carries a count of how many of yo
 
 The contact list and header stay in the same place whether or not you've picked an agent, so switching between conversations doesn't make the page jump around.
 
+### Your first chat after onboarding
+
+When you finish setting up a new company, **Get started** brings you straight here, to your chat with the agent you just created. The welcome waits until the chat is actually on screen: if the tab is in the background, the agent greets you when you come back to it. If you type a message or start a fresh session with `/new` before the welcome begins, the agent answers you instead of greeting you, and refreshing the page doesn't repeat a welcome you've already had.
+
+The agent then helps you shape a first task with a clear goal and finish line, and suggests it for you to accept. Onboarding itself creates no task or project. See [Your first chat](../guides/getting-started/your-first-company.md#your-first-chat) for the walk-through.
+
 ## One conversation per agent
 
 You get exactly one conversation with each agent. Opening an agent you've already talked to just reopens it, so you never end up with duplicates to keep track of.
@@ -45,6 +51,8 @@ Long conversations open quickly: the chat loads your most recent messages first,
 The right side panel starts on **Tasks**, showing tasks this agent has worked on across the company, rather than just tasks created in this chat. Search, filter, or sort the cards, then open one to read the work in a new browser tab. **Artifacts** shows files the agent produced, with a link back to the task for each one. The panel shows up to 200 recent tasks and 500 recent artifacts and tells you when it reaches that limit; use the company Tasks or Artifacts page for the wider view.
 
 You can open **Artifacts** or **Properties** from the panel's **+** menu. The conversation stays alongside them while you review the result.
+
+When a message links a document to open in the side panel, it opens right there in the chat, at the revision the link points to, even when the document belongs to another task. Click **Open source task** at the top of the document to go to the task it came from. On a desktop screen, if the open document would leave the conversation too narrow, the chat list folds away to make room. Click **Browse chats** in the header to pick another conversation or reach your saved chats; the list comes back once there's room again.
 
 Conversations follow your company's normal task visibility. Teammates can read your conversation with an agent, but only you can send messages in it. Each person has their own conversation with each agent.
 

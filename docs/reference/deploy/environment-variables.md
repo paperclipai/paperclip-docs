@@ -398,12 +398,40 @@ If neither variable is set, feedback submissions are stored locally and never le
 
 ### Turning off telemetry
 
-Paperclip ships anonymized usage telemetry (which adapters you run, and similar coarse signals) that helps the project understand how Paperclip is used. When telemetry is on, the server also sends a `server.started` event at startup that records its operating system as `os_platform`. When a tool connection is created, changes status or is turned on or off, or finishes a call, it sends a `connection.created`, `connection.updated`, or `connection.invoked` event with coarse details such as the connector key, transport, and status. Telemetry carries no personal data, and you can turn it off completely by setting either of these variables. Both are checked for the exact value `1`, and either one on its own disables telemetry.
+Paperclip ships anonymized usage telemetry (which adapters you run, and similar coarse signals) that helps the project understand how Paperclip is used. When telemetry is on, the server also sends a `server.started` event at startup that records its operating system as `os_platform`. When a tool connection is created, changes status or is turned on or off, or finishes a call, it sends a `connection.created`, `connection.updated`, or `connection.invoked` event with coarse details such as the connector key, transport, and status.
+
+It also sends a small set of product-path events, once per real change: `model.connected` (a new AI provider connection), `task.created`, `task.completed`, `task.blocked`, `plan.created`, `plan.approved`, and `artifact.created`. These carry only fixed codes, yes/no flags, and counts, such as who made the change (a person, an agent, or the system) or why a task is blocked. They never include a task title, a document body, a plan step, a connection or account name, an email, a URL, or a repository name. When an agent run fails, times out, or is interrupted, its run event also carries a `failure_cause` code from a fixed list, never the error text itself.
+
+On a self-hosted instance, telemetry carries no personal data (Paperclip Cloud works differently; see [below](#paperclip-cloud-analytics-posthog)), and you can turn it off completely by setting either of these variables. Both are checked for the exact value `1`, and either one on its own disables telemetry.
 
 | Variable | Meaning |
 |---|---|
 | `PAPERCLIP_TELEMETRY_DISABLED` | Set to `1` to disable Paperclip's anonymized telemetry. |
 | `DO_NOT_TRACK` | The cross-tool [Console Do Not Track](https://consoledonottrack.com/) convention. Set to `1` to disable telemetry. |
+
+### Paperclip Cloud analytics (PostHog)
+
+This section only matters on Paperclip Cloud. A self-hosted instance ignores every variable below: it keeps sending telemetry the way the section above describes, never loads PostHog in the browser, and doesn't serve the PostHog proxy. The Cloud fleet sets these on each stack, and they're listed here so you can recognise them in a hosted container's environment.
+
+On a Cloud-managed stack that has a PostHog project token and a stack ID, two things change:
+
+- **Server telemetry goes straight to PostHog** instead of through the collector, as long as `PAPERCLIP_POSTHOG_ENVIRONMENT` is also set. Because Cloud is Paperclip's own service, these events carry real identifiers (agent and task IDs, the stack ID, and the company and acting person when known) rather than hashed ones. The event names and fields are otherwise the same.
+- **Browser analytics can be turned on** for the board UI: page views, clicks, Web Vitals, and session recordings, sent through a same-origin proxy at `/_ph`. Visitors in the EU, the EEA, the UK, and Switzerland see a banner and must choose **Accept** before anything loads. Everyone else has it on by default. Anyone can change their choice later with the **Product analytics** switch on their profile settings page. In those consent regions, a browser that sends Do Not Track or Global Privacy Control counts as a decline, and the switch stays off. Recordings hide what you type and customer content such as messages, documents, and connected accounts, but show other page text, such as task titles.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PAPERCLIP_POSTHOG_PROJECT_TOKEN` | unset | PostHog project token. Cloud direct delivery and browser analytics both need it, plus `PAPERCLIP_CLOUD_STACK_ID`. |
+| `PAPERCLIP_CLOUD_STACK_ID` | unset | The Cloud stack's ID, used as the workspace key on every event. |
+| `PAPERCLIP_POSTHOG_HOST` | `https://us.i.posthog.com` | PostHog ingest host. |
+| `PAPERCLIP_POSTHOG_ENVIRONMENT` | unset | `staging` or `production`, added to every event. Server events stay on the collector until it's set. |
+| `PAPERCLIP_POSTHOG_DIRECT` | on | `0` sends server telemetry through the collector again. |
+| `PAPERCLIP_POSTHOG_BROWSER_ENABLED` | off | `1` turns browser analytics on for the stack. |
+| `PAPERCLIP_POSTHOG_REPLAY_ENABLED` | on when browser analytics is on | `0` turns session recordings off and keeps the rest of browser analytics. |
+| `PAPERCLIP_POSTHOG_PROXY_MAX_IN_FLIGHT` | `1024` | Most proxy requests in flight for the whole server. |
+| `PAPERCLIP_POSTHOG_PROXY_MAX_IN_FLIGHT_PER_CLIENT` | `128` | Most proxy requests in flight from one public client address. |
+| `PAPERCLIP_POSTHOG_COUNTRY_HEADER` | unset | Name of a request header that the platform edge fills with the visitor's two-letter country code. When it's unset, the browser decides whether to ask for consent from its time zone. |
+
+The two proxy limits take a whole number from 1 to 65536. The server reads them at startup, and an invalid value logs a warning and falls back to the default. A request over a limit gets a `429` with `Retry-After: 1`, and the browser retries it later. The per-client limit uses `req.ip`, so it only applies when `TRUST_PROXY` (see [above](#deployment-and-auth)) lets the server see the visitor's public address. Behind an untrusted platform hop, only the server-wide limit applies.
 
 ---
 

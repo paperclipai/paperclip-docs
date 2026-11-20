@@ -2,24 +2,31 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1106.0` (`d69631b0`, on master) → parent master `ca34aca7` (@ 2026-11-17T10:31Z). 24h quarantine applied (cutoff 2026-11-17T11:01Z). Master HEAD at run time was `1c556d53`.
-- **Increment:** `27866014..ca34aca7`, 43 first-parent commits, 233 files (diffed in a fresh local bare clone, so no compare-API truncation).
-- **Already on nightly:** drafts for `d69631b0..27866014` (through #201).
-- **Merge of `main` into `nightly`:** 10 main commits (#190 to #199). Conflicts in 8 files came from #185, which the #201 squash had dropped again. They were checked hunk by hunk against `ca34aca7`: nightly's lines were newer and correct in every doc page (Hermes still checks Python 3.10+ and suggests `pip install hermes-agent`, Codex defaults to `gpt-6.1-sol`, the agent form has no **Runner** setting), so nightly wins there. `site/redirects.json` takes main's superset. The OpenCode intro keeps #194's first-line fix, reworded because `model` defaults to `openai/gpt-5.2-codex` on master.
-- **Verification:** all reads at the pin only (`/tmp/pc-ca34aca7`, a worktree detached at `ca34aca7`). `verify-edit` at the pin: 0 unverified records on added lines; the 6 env-var records on `environment-variables.md` are the known fragments on old lines (50, 306, 307, 527). Two independent line-by-line reviewers then checked every added line: round 1 (about 60 claims) fixed 6 defects, round 2 (74 claims) fixed 9 more, mostly old link-preview lines that #21746 made wrong (a failed lookup now keeps the last saved status). Nothing was run against a live instance.
-- **Drift:** none (`check-drift` against `ca34aca7`, `source: snapshot`, no warnings).
-- **Auto-merge tier:** empty. No new env vars, CLI commands or adapter names. One existing variable, `PAPERCLIP_CHAT_WEBHOOK_PUBLIC_URL`, gained its missing row (PR tier, prose).
+- **Window (cumulative):** base release tag `v2026.1117.0` (`c0f13289`, cut off master; merge-base with master `09e24dd1`) → parent master `70a43513` (@ 2026-11-19T09:50Z). 24h quarantine applied (cutoff 2026-11-19T11:00Z). Master HEAD at run time was `fe0c4aa9`.
+- **Increment:** `ca34aca7..70a43513`, 143 first-parent commits, 1,647 files (diffed in a fresh local bare clone, so no compare-API truncation).
+- **Already on nightly:** drafts for `d69631b0..ca34aca7` (through #202), re-anchored on the `v2026.1117.0` release by `eacf02e`.
+- **Merge of `main` into `nightly`:** nothing to merge (`main` has no commits that `nightly` lacks).
+- **Authoring:** seven cluster agents, then one agent for the edits they needed in each other's files. All reads at the pin only (`/tmp/pc-70a43513`, a worktree detached at `70a43513`).
+- **Verification:** `verify-edit` at the pin: 0 unverified records on added lines (the env-var records on `environment-variables.md` and the adapter-config records are the known fragments on old lines). Three exhaustive review rounds then checked every added line against the pin: round 1 (four reviewers, ~725 claims) fixed 37 defects, round 2 (four fresh reviewers on reshuffled pages, ~710 claims) fixed 17 more, and round 3 (four fresh reviewers, ~780 claims) fixed 8 more (AWS key-error messages, Google Workspace Search **Change** wording, chat identifiers, responsibility version pruning, storage conversion scope, plugin agent-grant wording). Nothing was run against a live instance.
+- **Drift:** one item at the start of the run, now fixed: `connectors/circleback.md` linked `server/src/services/connectors/circleback/risk.ts`, which #22004 folded into `packages/shared/src/app-definitions/circleback.json` (`reviewedTools`). `check-drift` against `70a43513` now reports 0 (`source: snapshot`, no warnings).
+- **Auto-merge tier:** empty. The new environment variables are Cloud-fleet PostHog settings, documented as prose (PR tier) on the env-var page; the others in the diff are internal or TypeScript constants (see below).
+- **New pages:** `connectors/aws.md` (Connector Catalog), `experimental/responsibilities.md` (Experimental), `reference/api/responsibilities.md` (API Reference).
 
-## Applied this run (`27866014..ca34aca7`)
+## Applied this run (`ca34aca7..70a43513`)
 
-- **Pull request statuses fill in on their own** (#21746): saved statuses show as links appear, then missing and stale ones are looked up when the page is idle, for up to 200 links; a failed lookup keeps the last saved status (`experimental/task-chat.md`). API: the 600-a-minute lookup limit with `429`, and the new `GET /api/companies/{companyId}/link-previews/cached` batch route (`api/companies.md`).
-- **Database sessions name their server process** (#21956, #21946): the main pool reports `paperclip:<boot id>`, and the new *runner event intake stalled* warning lists pending writes, sessions and lock waits (`deploy/database.md`, `deploy/environment-variables.md`).
-- **Chat webhook ingress in private mode** (#18301): the callback hostname must be in `PAPERCLIP_ALLOWED_HOSTNAMES`, and the check reads `X-Forwarded-Host` first. Added the missing `PAPERCLIP_CHAT_WEBHOOK_PUBLIC_URL` row (`deploy/environment-variables.md`, `deploy/https.md`).
-- **Task trees a person started go first** (#21916): runs on a person-created task and its subtasks, up to 32 levels down, sit in the person tier; recovery runs don't (`guides/day-to-day/issues.md`).
-- **Coordinator Inbox badge counts your For you cards** (#21953): `experimental/coordinator-workspace.md`.
-- **Subtask fold arrow moved to the right of the row** (#21859): `experimental/coordinator-workspace.md`, `guides/day-to-day/command-palette.md`.
+- **Areas & Responsibilities dashboard** (#22069, #22180), experimental `enableResponsibilities`: new guide and API pages (45 routes), the dashboard callout, routine offers in the `paperclip` skill, and the new `heartbeat` ("standing check") routine trigger (`experimental/responsibilities.md`, `api/responsibilities.md`, `day-to-day/dashboard.md`, `reference/skills.md`, `api/routines.md`, `projects-workflow/routines.md`, `experimental/overview.md`).
+- **Onboarding starts in chat** (#22077, #22102): **Get started** opens the CEO chat, onboarding creates no task or project, the composer reads *Work with <agent>*, onboarding chat routes, chats keep their titles when an agent is renamed (`your-first-company.md`, `agent-chat.md`, `watching-agents-work.md`, `task-chat.md`, `hosted-beta.md`, `api/issues.md`, `org/skills.md`, `experimental/overview.md`).
+- **Redesigned routine page** (#22205, #22182, #22009, #22177): two-column page, Repeats/History/Edit dialog, list toolbar and saved views, testing a live webhook again, run rules now read-only in the UI (`projects-workflow/routines.md`, `create-a-daily-routine.md`, `api/routines.md`, `cli/routine.md`, `wire-slack-discord-notifications.md`).
+- **Sidebar Recents and pins** (#22219, #22251, #22264, #22024, #22055): Recents lists only your own tasks, pins, project task expander, no icon-rail collapse (`coordinator-workspace.md`, `command-palette.md`).
+- **Connectors:** AWS connector, experimental `enableAwsConnector` (#22195, #22083 workload identity issuer); Google managed sign-in limited to the 14 submitted scopes, data-use disclosure, removal ends access at Google (#22001, #21998, #22065, #22026); delete data read through a connection (#22010); plugin connectors (#22004, #22019, #22249, #22237, #22201); failed app sign-ins and GitHub app install (#22234); ChatGPT workspace (#22023); OpenRouter model search (#22034); Railway restricted environments (#22214); safe remote MCP errors and screened resource reads (#22025, 65eac248); identity across connection request handoffs (875e4d37).
+- **Assistant connections graduate** (#22015): always on, no toggle, removed as a prerequisite for Dot and Grok Bot; `paperclip_create_task` can assign a person or no one, new `paperclip_list_people`, 38 tools (#22011) (`assistant-connections.md`, `api/assistant-mcp.md`, `cli/mcp.md`, `settings.md`, `external-agents.md`, `paperclip-runner.md`).
+- **Tasks and recovery:** merged PR deliverables before Runner completion (#22244), cancel active subtasks (#22228), live usage-limit countdown in your time zone (#22225), held tasks show Blocked (#22215), Runner self-blockers (#22140), provider-outage waits with no Retry (#22139, #22194, #22128), rate limits with no reset (#22216), sandbox disk full (#22239, #22068), due automatic retries (#22306), low-trust monitor self-wake (#22212), bulk document reads (#22105), GitHub review steering and queued pushes (#22066, #22223), instruction history (#19515).
+- **Runner and adapters:** Claude Fable 5.2 and GPT-6.2 with CLI floors (#22222), Codex `0.170.0` and Agent SDK `0.3.328` pins (#22278), ACP refusals name fields (#22037), MCP bearer tokens out of process arguments (#22206), durable SSH task workspaces (#22078, #22063, #21957), Daytona retries (#22087), Runner restart on resume in the plugin SDK (#21976, #22288).
+- **Cloud analytics** (#22012, #22186, #22057, #22052, #22243, #22006, #22183, #22250, #22260): Cloud-only PostHog variables and proxy limits, consent banner and **Product analytics** switch, new lifecycle telemetry events and `failure_cause` (`environment-variables.md`, `hosted-beta.md`, `settings.md`).
 
-## Applied in earlier runs (still on nightly, unreleased)
+## Applied in earlier runs (still on nightly, unreleased unless they shipped in `v2026.1117.0`)
+
+- `27866014..ca34aca7` (#202): link status loading, DB session names, chat webhook allowlist, person-tier task trees, Coordinator Inbox badge, subtask fold arrow.
 
 - `68f641ba..27866014` (#201): sidebar subtasks, issue summaries API, saved files permanently lost, GitHub review task completion, made-up-host links, first-turn messages, dedicated DB connections kept, instance settings cache, cloud owners' `isInstanceAdmin`, OpenCode control tokens.
 
@@ -50,20 +57,33 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 
 Everything after the `v2026.1106.0` tag is master-only, so release review must keep it off `main` until the matching stable release. Phase 5.7 handles that.
 
+
+Everything after the `v2026.1117.0` tag is master-only, so release review must keep it off `main` until the matching stable release. Phase 5.7 handles that.
+
 ## ↻ Reconcile
 
 - No disappeared entries and no revert commits in the increment.
 
 ## Not documented this run
 
-- **Claude Opus 4.5 in the static model list** (#12379): the effort table's "Other models" row already covers it.
-- **Saved sessions survive config edits the thread can't see** (#21862): no page says an edit resets a task session, so there was nothing to correct. A candidate for a short note on the agent settings page.
-- **Remote Runner reuses an identical `paperclip-runnerd`** (#21949): `PAPERCLIP_RUNNER_REMOTE_BINARY_PATH` and the other remote Runner variables aren't on our env-var page (see follow-ups).
-- **Bug fixes with nothing new to see:** Stop confirmed during preparation (#21906), satisfied connection cards retired on blocked and unstarted tasks (#21940), a person's comment reopens a finished task when it merged into a system wake (#21914, #21918), managed GitHub access across a controller restart (#21928), Claude sign-in failure detection on ACPX (#21921), released done blockers (#21948), faster recent-task opens (#21939, #21904).
-- **Internal recovery, native-runtime, Runner and queue fixes** (#21987, #21984, #21983, #21977, #21959, #21913, #21907, #21905, #21872, #21862 internals, #21533), plus perf, test, chaos, release, lockfile and CI work (#21986, #21979, #21726, #21942, #21941, #21943, #21903, #21925, #21936, #18720, #21924, #21917, #21860, #21915).
-- **After the pin:** everything after 2026-11-17T11:01Z.
+- **Google Workspace REST tools** (#22000, #22014, #22016, #22017, #22027, #22028, #22029, 56023fe8): every service is set to `google_mcp` at the pin, so the REST transport, its result-size limit and the `update_event` destructive flag never apply yet.
+- **Cloud fleet internals:** online durable-data moves (#22051, #22240, #22263, #22270, #22294), tenant-sync request holds (#21997), customer-success inspection authority (#22005, `PAPERCLIP_CUSTOMER_SUCCESS_*`).
+- **Not operator settings:** `PAPERCLIP_LISTEN_PORT` (the server sets it itself), and `PAPERCLIP_CLOUD_GRANT_REVOCATION_OUTCOMES`, `PAPERCLIP_CORE_SKILL_KEYS`, `PAPERCLIP_PEER_MCP_PATH`, `PAPERCLIP_PEER_INSTRUCTIONS_TEMPLATE_ID` (TypeScript constants).
+- **GitHub star prompt** (#22031): not documented anywhere; this only narrows when it shows.
+- **Small fixes with nothing new to see:** unprefixed link forwarding (#22100), GitHub identity widgets in replies (#22217), responsive permission forms (#22008), Grok SSH skill copies (#22120), chat verification retry spacing (#22102).
+- **Internal recovery, native-runtime, Runner and wake-queue work** (#22046, #22096, #22101, #22118, #22248, #22106, #22043, #22213, #22207, #22209, #22267, #21584, #22210, #22235, #22088, #22064, #22091, #22190, #22054, #21947, #21887, #21499, #22039, #22266, #22268, #22272, #22273, #22276, #22277, #22279, #22280, #22282), plus restart-chaos, test, lockfile, CI, release-notes and plan docs.
+- **After the pin:** everything after 2026-11-19T11:00Z, including guided AWS role setup (#22233), responsibilities for a person (#22253, #22261, #22274, #22275) and the GitHub Copilot connector split (#22238).
+
+## Open questions from this run
+
+- **AWS role method.** At the pin the setup screen can't finish a role connection (`saveDraft` is refused for non-remote-MCP connectors, and the role's trust has to name a connection that doesn't exist yet), so `connectors/aws.md` steers readers to **Access key**. #22233, after the pin, changes this; revisit next run.
+- **Assistant connections page location.** The feature graduated, but the page still lives at `experimental/assistant-connections.md` under Experimental. Moving it needs a page move and a redirect; left for a human decision.
+- **Agents still told about old routine buttons.** The parent's agent guidance (`server/src/routes/openapi.ts` ~5610) still says **Generate new key** / **Edit webhook**, which the redesigned page no longer has; `routines.md` warns readers about it.
+- **Codex on remote Runner:** `codex-local/src/index.ts:129` falls back to `gpt-6.1-sol` / `gpt-6-astra` remotely because the Runner's pinned Codex CLI predates `0.169.1`. Not stated on the Codex page.
+- **`sync:check` screenshot gate fails** on six `connectors/paperclip-peer-*` screenshots (added with the release) that have no target in `scripts/screenshots/routes.mjs`. Pre-existing; the docs build and all `docs:test` gates pass.
 
 ## Follow-ups (pre-existing, not from this window)
+
 
 - `deploy/environment-variables.md` has no rows for the remote Runner variables (`PAPERCLIP_RUNNER_PUBLIC_URL`, `PAPERCLIP_RUNNER_CA_BUNDLE_PATH`, `PAPERCLIP_RUNNER_REMOTE_*`).
 - `deploy/environment-variables.md:28`: "`paperclip` otherwise" is loose; the private pools use their own names (explained on the database page).
@@ -80,4 +100,3 @@ Everything after the `v2026.1106.0` tag is master-only, so release review must k
 - `github-review-bot-setup.md`: an instance admin who isn't a member of the company can't save a sponsor either; not stated.
 - `paperclip-runner.md`: says a looping task always continues in a fresh session; if the continuation wake can't be queued, the refusal just reaches the model and is logged (#21734). Edge case, not stated.
 - `circleback.md`: "The card restarts when it switches" to full screen is inferred from the frame remounting.
-- `command-palette.md`: the existing "keeps your **five** most recent tasks" bullet wasn't re-checked this run.

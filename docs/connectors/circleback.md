@@ -91,6 +91,6 @@ Limitations: one Circleback user per connection, and browser sign-in is the only
 ## Sources
 
 - [Circleback definition](https://github.com/paperclipai/paperclip/blob/ff971149c2c6e1a4a1f73231a0830c859a832c0b/packages/shared/src/app-definitions/circleback.json): method, server, scopes, guidance, and warnings.
-- [Circleback action classification](https://github.com/paperclipai/paperclip/blob/ff971149c2c6e1a4a1f73231a0830c859a832c0b/server/src/services/connectors/circleback/risk.ts): which tools count as reads, writes, and destructive actions.
+- [Circleback action classification](https://github.com/paperclipai/paperclip/blob/70a43513433d96537b1e5b26430fddd1c06ca0d0/packages/shared/src/app-definitions/circleback.json): the `reviewedTools` list, which says which tools count as reads, writes, and destructive actions.
 - [Task chat cards](https://github.com/paperclipai/paperclip/blob/081dacba1d44e5b2b357d7f5105adda82f99e450/ui/src/components/mcp-app/McpAppTurnViews.tsx): how cards appear under a reply, and the full-screen control.
 - [Card view](https://github.com/paperclipai/paperclip/blob/081dacba1d44e5b2b357d7f5105adda82f99e450/ui/src/components/mcp-app/McpAppView.tsx): suggested messages and the full-screen window.

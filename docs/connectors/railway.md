@@ -51,6 +51,7 @@ Compare with the consented workspaces and inspect the connector call. A successf
 | A workspace is missing | Review the workspaces selected at Railway consent. |
 | Railway rejects API access | Reconnect with the required permissions. Paperclip does not fall back to another credential. |
 | An action requires a target | Select the required workspace, project, environment, and service. |
+| *"This Railway environment is restricted. The connected account can see it but cannot read its services, deployments, or logs. …"* (`railway_environment_restricted`) | Railway's environment access controls let the connected account see this environment but not read inside it. Ask a Railway project admin for access, or use an environment the account can reach. Reconnecting doesn't change this. The environment list shows `canAccess` for each environment, so agents can pick one they can read. |
 | Container commands are unavailable | Check the separate SSH setup and its permissions. |
 | The general Railway agent is absent | It is intentionally unavailable in Paperclip. |
 

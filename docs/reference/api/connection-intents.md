@@ -79,6 +79,8 @@ POST /runtime-tools/connections/request
 
 Each method can carry a `purpose` of `tool`, `channel`, or `ai`. Channel and AI methods also carry a company-scoped `setupPath` pointing at their own setup flow, which the agent shares with the user. Tool methods and AgentMail use `connection_request` instead. Chat channel methods appear only when the instance's **Chat connectors** setting is on; AgentMail always appears. While the setting is off, a search that matches a chat service offering nothing else can still list it, with `state: "unavailable"`, empty `methods`, and a `reason` explaining that an instance admin turns on **Chat connectors** in Experimental settings. A search match is not proof that an account is authorized or that a tool is installed.
 
+When a result's `state` is `needs_user_action` because a saved connection's sign-in has expired, the `reason` names that connection, for example `"Sentry" must be signed in again. A person who manages this connection must reconnect it on its app page`. That way the agent can tell the person exactly what to do instead of passing on a general *"Connection needs attention"*. Paperclip names a connection only when the expired sign-in belongs to this agent's audience: an organization sign-in, the agent's own sign-in, or the sign-in of the person responsible for the run. Another person's private connection is never named.
+
 Each method also carries a `management` block, so the agent can tell whether it may do the setup itself instead of handing it to a person:
 
 | Field | Meaning |
@@ -194,6 +196,14 @@ Nobody calls a route for these. Paperclip moves a pending intent to `expired` it
 | The task was reassigned while the card was still waiting | *"The task was reassigned before the connection request was answered, so the &lt;service&gt; connection is still not connected. Reconnect it or choose an available connection."* For AI-account requests the reason says *the AI account* instead. The connection is still missing; reassignment only retired the card. |
 
 Before retiring a request as already satisfied, Paperclip rechecks the person's company membership, the connection's health, the grant and the agent's install, and the task's tool policy. Requests for AI accounts, channels, extra permissions, and upstream providers keep their own paths and are not expired this way.
+
+### Whose identity the agent continues with
+
+When the addressed person connects an account from the card, the agent's next run continues for that person. If they aren't the person the run was working for before, the new run records a connection handoff and keeps the original run's identity as its audit parent. The handoff grants no credentials by itself: Paperclip still checks that person's grants and policies before it uses any connection.
+
+When the person declines, or Paperclip retires the request on its own, the agent keeps the identity it had before. An automatic retirement only notices access that already exists. It never makes the agent work as the addressed person or use that person's accounts.
+
+A retry keeps the latest accepted identity from the previous run. If that identity is no longer available, a retry that refers to a connection request stops instead of falling back to another person.
 
 ---
 

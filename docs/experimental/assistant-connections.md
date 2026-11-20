@@ -7,13 +7,9 @@ seo_description: Connect Codex, Claude, or another assistant to your organizatio
 
 Use your everyday assistant to review your Paperclip organization, delegate a task, and come back for the result in another conversation. The connection acts as your human account, with access to one organization you approve.
 
-This feature is experimental. **Assistant connections (MCP)** (`enablePublicMcp`) is off by default on self-hosted and Cloud instances.
+Assistant connections are no longer experimental. They're always on, on self-hosted and Cloud instances alike, so there's nothing to switch on. The old **Assistant connections (MCP)** toggle is gone from **Settings → Experimental**, and a saved or Cloud-managed `enablePublicMcp` value of off is ignored. You'll find the setup under **Connectors → Assistant Connection (MCP)**.
 
-## Turn it on
-
-1. Open **Settings → Experimental** as an instance administrator.
-2. Turn on **Assistant connections (MCP)**.
-3. Return to **Connectors → Assistant Connection (MCP)**.
+## Before you start
 
 Your instance needs authenticated user accounts and a canonical URL reachable by the assistant. Public connections need HTTPS; loopback HTTP is supported for local development. A self-hosted private endpoint must be reachable directly from your client. See the [Assistant MCP reference](../reference/api/assistant-mcp.md#instance-requirements) for operator setup.
 
@@ -63,7 +59,7 @@ The **Write all of your Paperclip data** checkbox approves the requested write a
 
 First ask your assistant to identify the connected organization and list agents and open tasks. These reads verify access without starting work.
 
-When you are ready, ask it to create a task for an available agent. Keep the returned task link. In a later conversation, ask it to find that task, read progress, and retrieve its saved report or attachments. Feedback comments can wake the assigned agent or queue more work.
+When you are ready, ask it to create a task. It can assign the task to an available agent, to a person in the organization, or to no one. Only an agent assignee can start work and spend the company's budget; a task for a person or for no one waits as a `todo` without waking any agent. Keep the returned task link. In a later conversation, ask it to find that task, read progress, and retrieve its saved report or attachments. Feedback comments can wake the assigned agent or queue more work.
 
 Agent execution uses the credentials, environment, budgets, and approvals configured in Paperclip. Your assistant subscription does not provide execution capacity. The assistant can list pending approvals and link you to Paperclip, where you make the decision.
 
@@ -71,19 +67,17 @@ Direct connections expose work, configuration, file-transfer, and API discovery 
 
 ## Direct connections and hosted distribution
 
-The direct instance endpoint exposes 37 tools. A hosted directory broker has a separate, smaller work-oriented catalog; do not expect direct-instance configuration, file-transfer, or Events features through that broker.
+The direct instance endpoint exposes 38 tools. A hosted directory broker has a separate, smaller work-oriented catalog; do not expect direct-instance configuration, file-transfer, or Events features through that broker.
 
 You can configure a direct client without a store listing. Hosted broker deployment, browser-client compatibility, and public store or directory availability have separate release requirements. This guide does not establish that a listing is available for your assistant account.
 
-## Revoke or disable access
+## Revoke access
 
 Return to **Assistant Connection (MCP)** to review and revoke your connections for the selected organization. `/assistant-connections` also provides account-wide management.
 
 Each connection appears under your profile picture with a name built from your first name and the assistant client, such as *Alex’s Codex connection*, followed by its access (for example *Connected as you · Read and write*, with *Configure agents, projects and skills* added when you approved configuration access). Agent connections, such as a paired [Dot or Grok Bot](external-agents.md), are managed from the agent instead and don't appear here. Only your own active connections are listed. When you select **Revoke**, the connection disappears from the list right away; Paperclip keeps the audit record.
 
 Revocation blocks future calls. Work you already delegated continues, and an in-flight change may already have completed. Manage that task or run in Paperclip if you need to stop it.
-
-Turning off the experimental setting blocks discovery, new sign-ins, tool calls, and event delivery immediately. Connection management remains available, and delegated work continues. Turning it back on lets unexpired connections resume.
 
 ## Related guides
 

@@ -112,7 +112,7 @@ The CEO cannot create tasks or assign work until you approve its strategy. This 
 
    Agents post updates as they work — explaining what they're doing, what decisions they made, and what they found. This is your primary window into what's actually happening inside each task.
 
-   You can reply too, using the message box at the bottom ("Message CEO — describe what you want done…"). Your message reaches the agent the task is assigned to, so this is how you give direct feedback or ask questions without waiting for the next scheduled heartbeat. @-mentioning a different agent (e.g. `@CEO`) only adds context — it doesn't start a run. To bring another agent in, assign the task to them or request their review.
+   You can reply too, using the message box at the bottom ("Work with CEO"). Your message reaches the agent the task is assigned to, so this is how you give direct feedback or ask questions without waiting for the next scheduled heartbeat. @-mentioning a different agent (e.g. `@CEO`) only adds context — it doesn't start a run. To bring another agent in, assign the task to them or request their review.
 
 ---
 

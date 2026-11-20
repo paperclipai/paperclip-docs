@@ -10,6 +10,8 @@ The dashboard is your control centre. When your AI company is running, this is t
 
 Think of it like the cockpit instruments on a plane. You don't need to read every dial every second, but you do want a clear signal when something is off. The dashboard gives you that signal.
 
+> **Experimental alternative:** with **Areas & Responsibilities dashboard** turned on in **Settings → Experimental**, a dashboard built around the areas you care about and the responsibilities you own replaces this one in the navigation and becomes your company's home page. Turning it off brings this page back. See [Areas & Responsibilities](../../experimental/responsibilities.md).
+
 ![The Paperclip dashboard showing the current overview cards, charts, recent activity, and recent tasks](../../user-guides/screenshots/light/dashboard/dashboard-overview.png)
 
 ---

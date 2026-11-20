@@ -306,9 +306,11 @@ The call body takes:
 |---|---|---|
 | `tool` | yes | The tool name. A missing or non-string value returns `400` with `"tool" is required and must be a string`. |
 | `parameters` | no | The tool's arguments. Defaults to `{}`. |
-| `timeoutMs` | no | How long to wait on the upstream tool, capped at 60 seconds. Without it, most tools get 10 seconds; tools on a connected remote server, such as a remote MCP server, get 30 seconds (Railway's `run-command` tool has its own budget); REST and native-provider connectors are capped at 30 seconds whatever `timeoutMs` says; GitHub review bot tools get the full 60, so a slow review publication can finish and return its receipt. A remote MCP call that runs out of time fails with `504` and `tool_timeout`, and the next call starts a fresh MCP session. |
+| `timeoutMs` | no | How long to wait on the upstream tool, capped at 60 seconds. Without it, most tools get 10 seconds; tools on a connected remote server, such as a remote MCP server, get 30 seconds (Railway's `run-command` tool has its own budget); REST and native-provider connectors are capped at 30 seconds whatever `timeoutMs` says; GitHub review bot tools get the full 60, so a slow review publication can finish and return its receipt. Without it, tools served by a [plugin connector](../plugins/sdk.md#plugin-connectors) get the `timeoutMs` the connector declares for that tool or method, or 30 seconds if it declares none. A remote MCP call that runs out of time fails with `504` and `tool_timeout`, and the next call starts a fresh MCP session. |
 | `approvedActionRequestId` | no | The approval you are cashing in, when a previous attempt returned `require_approval`. |
 | `idempotencyKey` | no | Makes a retry safe — the same key won't run the tool twice. |
+
+When a remote MCP server answers a call, or a read of its context, with a JSON-RPC error, the gateway returns `502` with the reason code `remote_mcp_error`. The details keep the server's numeric error `code` and the connection's identifiers. If the server sent a message with the error, the gateway adds it after the generic text as `Upstream message (untrusted): …`, so you can see what actually went wrong. Treat it as the provider's words, not an instruction or a Paperclip decision. Before the message reaches you, Paperclip removes credentials, sensitive header and query values, and sensitive arguments, strips control characters, and cuts it to 1,000 characters. It also runs the same prompt-injection screen used on tool results. A message that fails the screen is dropped, only the generic text comes back, and Paperclip writes a `tool_gateway.call_failed` audit event without the provider's text. The server's `error.data`, stack traces, and raw response body are never returned.
 
 #### When an app pauses a call
 
@@ -513,6 +515,9 @@ GET    /api/tool-connections/{connectionId}/catalog
 GET    /api/tool-connections/{connectionId}/activity
 GET    /api/tool-connections/{connectionId}/review-counts
 GET    /api/tool-connections/{connectionId}/profile-configuration
+GET    /api/tool-connections/{connectionId}/stored-content
+POST   /api/tool-connections/{connectionId}/stored-content/deletion
+GET    /api/tool-connections/{connectionId}/stored-content/deletion
 ```
 
 `POST .../tools/connections` creates tool connections only. A `connectionPurpose` other than `tool` returns `422` with `Only tool connections can be created here`, and a `transport` of `chat_sdk` or `voice` returns `422` with `Chat and voice connections cannot be created here`. Neither writes anything. If you leave out `transportConfig`, the connection stores `config` there.
@@ -520,6 +525,10 @@ GET    /api/tool-connections/{connectionId}/profile-configuration
 `review-counts` returns `pendingActionRequestCount` and `quarantinedCatalogEntryCount` for the connection; both are `0` once the connection is archived. The connector sidebar uses it for the **Review** badge. `profile-configuration` returns `{ profiles }`: the saved profiles behind the connection's Permissions tab, with their `entries` and `bindings`. It lists only the profiles you can see, and it describes saved configuration, not effective access.
 
 Deleting a connection archives it rather than dropping it, and if it was the last connection on its application, that application is archived too.
+
+For a Google connection managed by Paperclip Cloud (**Connect with Paperclip**), removing it also asks Cloud to end Paperclip's access at Google, and the response reports how that went in `removal.providerAccess`. Revoking one of its identities with `DELETE .../grants/{grantId}` does the same and returns `providerAccess` next to the grant. Both look like `{ "provider": "google", "result": "...", "outcomes": [...] }`, where `result` is `ended`, `ended_unconfirmed`, `other_connections_remain`, or `not_ended`, and `outcomes` holds one diagnostic code per Google sign-in Paperclip tried to end, in order. The field is absent for every other connection, and when every sign-in on it is still used by another Paperclip connection (so there was nothing to end), and a failure at Google never undoes the removal in Paperclip. See [Remove a connection](../../connectors/google-workspace.md#remove-a-connection) for what each result means.
+
+The three `stored-content` routes count and delete what Paperclip saved from the connection's tool calls: result previews, approval previews, app views, and the transcripts of runs that used the connection. They need a signed-in person (not an agent) with permission to configure the connection. `GET .../stored-content` returns the counts, `POST .../stored-content/deletion` starts a background deletion and returns `202` with `{ deletion }`, and `GET .../stored-content/deletion` returns the latest deletion's status (`pending` or `completed`). Add `?deleteStoredContent=true` to `DELETE /api/tool-connections/{connectionId}` to start the same deletion while removing the connection; the response then includes `contentDeletion`. See [Delete data read through a connection](../../connectors/reauthorize-and-disconnect.md#delete-data-read-through-a-connection).
 
 A connection can be **installed** onto a `company` or an `agent`, which is how you say who gets to see it at all:
 

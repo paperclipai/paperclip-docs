@@ -1670,6 +1670,18 @@ Run synchronization saves only changed or deleted files. If separate runs or a b
 
 Implementation reference: [file store](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-file-store.ts), [managed directory path](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instructions.ts), and [instruction entry validation](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-instruction-files.ts).
 
+### Instruction history
+
+`GET /api/agents/{agentId}/instructions-bundle/history?path=AGENTS.md&cursor={id}`
+`GET /api/agents/{agentId}/instructions-bundle/revision/{revisionId}?path=AGENTS.md`
+`GET /api/agents/{agentId}/instructions-bundle/diff?from={id}&to={id}&path=AGENTS.md`
+
+Every save of an instruction file shows up in its history, whether it came from the board, the API, or an agent's tool. `history` returns `{ revisions, nextCursor }`, newest first, up to 50 at a time; pass `nextCursor` back as `cursor` for the next page. Leave out `path` to use the agent's entry file.
+
+Each entry credits whoever actually wrote it: `actorAgentId` or `actorUserId`, plus `responsibleUserId`, the run (`sourceRunId`), `source`, and `createdAt`. Simply reading a file never makes you its writer.
+
+A history entry's `id` is either a revision from before agent files arrived or a save record. `revision` and `diff` accept either, plus the ID of the current content, which `GET .../instructions-bundle/file` reports as the file's revision. A malformed ID returns `422`, and one that isn't in this file's history returns `404`. Paperclip keeps only the current content of a file, so reading a save whose content has since changed returns `404` with code `INSTRUCTION_REVISION_CONTENT_NOT_RETAINED`. The save itself stays in the history list.
+
 ### Older revision and conflict routes
 
 `GET /api/agents/{agentId}/instructions-bundle/history`
@@ -1679,7 +1691,7 @@ Implementation reference: [file store](https://github.com/paperclipai/paperclip/
 `GET /api/agents/{agentId}/instructions-bundle/candidates`
 `POST /api/agents/{agentId}/instructions-bundle/candidates/{runId}/resolve`
 
-These exist for compatibility with instances that saved instruction revisions before agent files arrived. New saves never add revisions, so `history` only lists entries recorded before the upgrade. `restore` takes `path`, `revisionId`, and `baseRevisionId`. The `candidates` routes list and resolve edits preserved from older instruction-only sessions; `resolve` takes `baseRevisionId` and `content`.
+The first three are the current history routes described in [Instruction history](#instruction-history). The rest exist for compatibility with instances that saved instruction revisions before agent files arrived. `restore` takes `path`, `revisionId`, and `baseRevisionId`. The `candidates` routes list and resolve edits preserved from older instruction-only sessions; `resolve` takes `baseRevisionId` and `content`.
 
 Notes:
 

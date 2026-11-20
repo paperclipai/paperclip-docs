@@ -302,6 +302,24 @@ The agent reviews the new commit, submits a complete 5/5, and Paperclip publishe
 a successful check. The PR has now satisfied **this** merge requirement. Other
 required checks or human approvals may still be outstanding.
 
+What if you push while the agent is still reviewing the previous commit? When
+the bot's agent runs on [Paperclip Runner](../reference/adapters/paperclip-runner.md),
+Paperclip tries to hand the new push, or a new message to the bot, straight to
+the review that's already running, so the agent can pick up the newest head
+without starting over. That only happens when the running review belongs to the
+same task, agent, and conversation, on behalf of the same person and with the
+same trust level. A message with attachments, or one that needs a fresh session,
+waits for its own turn. If the running review can't take the update, the update
+waits, and it starts the next turn, ahead of any automatic continuation of a
+review that stopped on a blocker. That way the next review is bound to the
+newest commit rather than to the one the stopped review started on.
+
+A complete assessment has to cover every changed file in the PR that isn't
+excluded, not only the files that changed since the last review. If the agent
+leaves some out, Paperclip refuses the submission and names up to 20 of the
+missing files, so the agent can review them, or submit an incomplete assessment
+that lists what it couldn't cover.
+
 A repeat review mention can also request a fresh assessment of the same commit.
 The conversation continues in the same Paperclip task, with review history
 retained and one current summary updated. Old executions cannot overwrite the

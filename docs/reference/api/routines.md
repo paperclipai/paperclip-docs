@@ -346,7 +346,7 @@ The gate is only consulted for scheduled ticks. Webhook firings and manual runs 
 
 ## Trigger Types
 
-Routines support three trigger kinds:
+Routines support three trigger kinds you'll use day to day, plus an experimental fourth:
 
 ### Schedule
 
@@ -419,6 +419,16 @@ The `webhookUrl` is built from the server's public origin. External senders such
 ```
 
 API triggers do not create a public URL. They exist so the routine can be fired explicitly through the routine run endpoint.
+
+### Heartbeat (standing check)
+
+```json
+{
+  "kind": "heartbeat"
+}
+```
+
+A `heartbeat` trigger is a standing check. It never starts a run of its own: the routine's agent carries out the routine's instructions each time its heartbeat timer wakes it. It's part of the experimental [Areas & Responsibilities dashboard](../../experimental/responsibilities.md), so while the `enableResponsibilities` setting is off, creating one fails with `422` (`Standing checks are not enabled`, code `standing_checks_not_enabled`). See [Automation and standing checks](responsibilities.md#automation-and-standing-checks) for how an agent reports what it found.
 
 ---
 
@@ -514,8 +524,24 @@ The `lastWebhookDelivery` object has:
 | `status` | `received`, `rejected` | `received` means the signature and payload passed; `rejected` means authentication failed. |
 | `receivedAt` | ISO timestamp | When the delivery landed. |
 | `test` | boolean | `true` for a setup-pending test delivery. |
+| `previous` | object or `null` | Only on a test delivery: the last real (non-test) delivery from before testing started, or `null` if there wasn't one. |
 
 To finish setup, `PATCH /api/routine-triggers/{triggerId}` with `setupPending: false`. From that point on, real deliveries create runs. The test delivery you sent during setup is **not** replayed — only events received after the trigger is enabled fire the routine.
+
+### Testing a live webhook again
+
+You can put a live webhook back into test mode with `PATCH /api/routine-triggers/{triggerId}` and `{ "setupPending": true }`. While it's testing, every authenticated delivery, real events from the sender included, is recorded as a test and never starts the routine.
+
+Only some triggers can go back into test mode:
+
+| Case | Response |
+|---|---|
+| The trigger isn't a webhook | `422` — *Only webhooks can be tested* |
+| The webhook was removed (`archived`) | `409` — *This webhook was removed* |
+| The webhook is disabled | `409` — *Turn the webhook on before testing it* |
+| The routine is archived | `409` — *This routine is archived* |
+
+Send `{ "setupPending": false }` to go live again. Paperclip puts the last real delivery back as `lastWebhookDelivery` (from the test delivery's `previous`), so a stale test result doesn't linger. Events received while testing aren't replayed. Starting a test is logged as `routine.trigger_test_started`; finishing it is logged as `routine.trigger_setup_finished`.
 
 ---
 
@@ -532,7 +558,7 @@ You can update:
 - `enabled`
 - `cronExpression` and `timezone` for schedule triggers
 - `signingMode` and `replayWindowSec` for webhook triggers (agents can't change an authenticated webhook to `none` — see [Agents can only create authenticated webhooks](#agents-can-only-create-authenticated-webhooks))
-- `setupPending` — only the value `false` is accepted, which finishes setup and enables the webhook for real deliveries (see [Webhook setup and test deliveries](#webhook-setup-and-test-deliveries))
+- `setupPending` — `false` finishes setup (or testing) and enables the webhook for real deliveries; `true` puts a live, enabled webhook back into test mode (see [Webhook setup and test deliveries](#webhook-setup-and-test-deliveries) and [Testing a live webhook again](#testing-a-live-webhook-again))
 - `archived` — `true` archives the trigger (retires it from the active set), `false` restores it
 
 If you enable a schedule trigger, the routine must still have resolvable required variables.
@@ -858,7 +884,7 @@ A run skipped by the concurrency policy carries no `failureReason` — it record
 
 The list view also shows the current active issue for a routine when one exists.
 
-In the UI, a routine's **Runs** section lists the execution issues the routine created — the same issue list used elsewhere, filtered to this routine's `routine_execution` issues — so you can search them and change status, priority, or assignee in place. Runs that never created an issue, such as skipped ticks, appear only in this endpoint and in the recent runs on the routine's overview.
+In the UI, **History** on the routine page lists the execution issues the routine created, newest first, 20 at a time — the same tasks you get from `GET /api/companies/{companyId}/issues?originKind=routine_execution&originId={routineId}`. Runs that never created an issue, such as skipped ticks, appear only in this endpoint. The page just counts runs that were folded into a task that was still in progress.
 
 ---
 

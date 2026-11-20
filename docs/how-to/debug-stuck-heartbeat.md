@@ -100,6 +100,8 @@ If you would rather not pay for these wakes at all, the cure is upstream: have y
 
 A [Paperclip Runner](../reference/adapters/paperclip-runner.md) task can also stay open for a different reason: it asked for a document or file, and the agent called it done without publishing one. Paperclip checks for the published output before it marks the task `done`. If it's missing, the task stays open and the agent gets another turn with instructions to publish it, so a final message about a local file doesn't close the task.
 
+Pull requests work the same way. When a Runner agent registers a pull request as the task's deliverable, opening the PR doesn't finish the task. Paperclip asks GitHub, through the company's GitHub connection, whether each declared PR has merged, and only a confirmed merge counts. While a PR is open, a draft, closed without merging, or can't be read, the task stays open and the agent is told to see it through CI, review, and merge, to use the task's monitor if it's waiting on someone else, or to report a concrete blocker. Paperclip verifies up to 20 PRs per task; with more than that it won't check any, and the task stays open until the agent narrows what it delivers. A PR link that's only mentioned in the text, as something to review or as background, doesn't count as a deliverable. Moving into a configured review stage doesn't need the merge first, and chat conversations and review runs Paperclip assigns to a reviewing agent keep their own finishing rules.
+
 ---
 
 ## 8. Run fails with a red provider notice
@@ -110,13 +112,15 @@ A [Paperclip Runner](../reference/adapters/paperclip-runner.md) task can also st
 
 **Fix.** Act on the message: wait out a rate limit, add allowance, reconnect the account, or pick another model. The notice itself only explains the failure. Separately, when a run fails during startup and the provider reported a rate limit or usage limit, Paperclip waits that out before its next attempt. If it says *Paperclip will retry automatically.*, you can leave it alone. If **Retry** is there, click it once you've fixed the cause.
 
-**When the usage limit runs out mid-task.** If the provider ends a Runner agent's turn because the account's usage allowance ran out, the run shows **Usage limit reached** with *The model provider has reached its current usage limit. Try again after the limit resets.* You don't have to come back and click **Retry** yourself. Paperclip reads when the limit resets from the provider's message, including dated resets such as "resets Nov 12, 6pm (UTC)" that weekly limits use, and the task's recovery action tells you what happens next. The time is shown in UTC:
+**When the usage limit runs out mid-task.** If the provider ends a Runner agent's turn because the account's usage allowance ran out or it hit a rate limit, the run shows **Usage limit reached** with *The model provider has reached its current usage limit. Try again after the limit resets.* You don't have to come back and click **Retry** yourself. Paperclip reads when the limit resets from the provider's message, including dated resets such as "resets Nov 12, 6pm (UTC)" that weekly limits use, and the task's recovery action tells you what happens next. A reported reset time is shown in your own time zone with a live countdown, such as *in 44 minutes (Nov 18, 2026, 12:17 PM PST)*; the rate-limit retry time is shown in UTC:
 
 | Recovery action says | What it means |
 |---|---|
 | *The provider usage limit resets at …. Paperclip will retry this task then; Retry starts it sooner if usage capacity is already restored.* | Paperclip retries the task for you once the limit resets. The automatic Retry uses the authority of the person who asked for the run, or the run's accountable user, and goes through the same checks as a click. If you've already raised the limit, click **Retry** to start sooner. |
 | *The provider usage limit resets at …. Retry the task after that time, or sooner if usage capacity is restored.* | The reset is more than eight days away (a monthly limit, say), or no user is accountable for the run, so Paperclip leaves the Retry to you. |
-| *Restore model provider usage capacity, then retry the task. The provider did not report when its usage limit resets.* | There's no reset to wait for. Restore capacity, then click **Retry**. |
+| *The provider did not report when its rate limit resets. Paperclip will retry this task at …; Retry starts it sooner if usage capacity is already restored.* | The provider hit a rate limit, such as Claude's *try again later*, without saying when it lifts. A rate limit passes by itself, so Paperclip waits one hour from the failure and then retries for you. Click **Retry** to start sooner. |
+| *The provider did not report when its rate limit resets. Retry the task after …, or sooner if usage capacity is restored.* | The same one-hour wait, but no user is accountable for the run, so the Retry is yours. |
+| *Restore model provider usage capacity, then retry the task. The provider did not report when its usage limit resets.* | The usage allowance is used up and the provider didn't say when it comes back. An exhausted allowance doesn't refill on its own, so there's nothing to wait for. Restore capacity, then click **Retry**. |
 
 Paperclip retries at most three times in a row without a successful run in between, so a provider that keeps reporting resets that don't restore capacity doesn't loop. If it doesn't retry after it said it would, the action changes to *Paperclip did not retry this task after the provider usage limit reset because* followed by the reason, for example *the task changed* or *three automatic Retries in a row did not restore usage*, and ends *Retry the task when usage capacity is available.* **Retry** stays on the task either way.
 
@@ -248,9 +252,10 @@ Any other wait reads *Retry is waiting for execution checks. Your message is sav
 
 **Symptom.** The task reads *Trying again in …*, sometimes with no **Retry** button, or it names a step such as *Checking that the previous attempt stopped. Trying again in 30s…*
 
-**Cause.** Paperclip already has this in hand. There are two common cases:
+**Cause.** Paperclip already has this in hand. There are three common cases:
 
 - **The same run is resuming by itself.** After a server restart, a Paperclip Runner run that couldn't rejoin its provider resumes automatically. The countdown shows when. Once that time arrives, the task shows as working for up to two minutes while the resume starts.
+- **An automatic retry is lined up.** After a failure that Paperclip retries by itself, such as a temporary error, the countdown shows when the retry is due. Once that time arrives, the task shows as working for up to two minutes while Paperclip starts the retry, so it doesn't briefly look failed or offer a **Retry** that would compete with it. If the retry still hasn't started after those two minutes, you get one **Retry**.
 - **Saved work is being recovered.** Before the task continues, Paperclip shows the step it's on: *Checking that the previous attempt stopped*, *Saving files from the previous attempt*, or *Finishing recovery of saved work*.
 
 **Fix.** Usually, wait. If you'd rather not and **Retry** is offered during the countdown, click it: it starts the scheduled attempt right away instead of adding another one. If it can't start yet, the task says why, for example *The retry remains scheduled. Paperclip will check again at the scheduled time.* While a saved-work step is only counting down to its next attempt, **Retry** is still there if you want it sooner. **Retry** stays hidden during an automatic resume, because a manual one would compete with it, while a recovery step is running, and while a Retry is already being prepared. If an automatic resume ends or never starts, you get one working **Retry** back. When saved-work recovery runs out of attempts, the handoff to the board names the last cause it recorded, such as `sandbox_not_running` or `transport_timeout`.
@@ -291,11 +296,14 @@ Only a company owner or admin, an instance admin, or a board user on a local tru
 
 **Cause.** The underlying problem is usually short-lived:
 
-- The sandbox provider refused to create a sandbox with a temporary error, such as HTTP 429, 502, or 503, or a timeout. Paperclip retries a limited number of times, and while it does the notice adds *Paperclip will retry automatically.*
-- A new sandbox didn't finish starting in time. On [Daytona](../reference/adapters/sandbox-providers.md#when-a-new-sandbox-is-slow-to-start), one attempt to get a fresh sandbox stops after at most 180 seconds instead of waiting out the whole operation timeout. The run ends with the code `environment_provider_unavailable`, and the notice reads *The sandbox for "…" did not finish starting in time. No agent work had started. Paperclip retries automatically; if those retries are used up, use Retry once the provider is available.* Paperclip tries again after about 30 seconds, then after about 60 seconds.
+- The sandbox provider refused to create a sandbox with a temporary error, such as HTTP 429, 502, or 503, or a timeout. While Paperclip retries, the notice adds *Paperclip will retry automatically.*
+- A new sandbox didn't finish starting in time. On [Daytona](../reference/adapters/sandbox-providers.md#when-a-new-sandbox-is-slow-to-start), one attempt to get a fresh sandbox stops after at most 180 seconds instead of waiting out the whole operation timeout. The run ends with the code `environment_provider_unavailable`, and the notice reads *The sandbox for "…" did not finish starting in time. No agent work had started. Paperclip keeps retrying automatically until the provider is back; if it stays unavailable for 30 minutes, use Retry once it is available.*
+- The provider created a sandbox but couldn't start it. When Daytona puts a new sandbox in its `error` state, it removes that sandbox and Paperclip treats this as a temporary provider failure too, naming it *the provider could not start the sandbox*, and retries the same way. A sandbox whose snapshot build failed isn't retried like this, because the same build would fail again.
 - During a release, the app can update before the remote Runner does. Paperclip checks again every 60 seconds, up to 10 times, and this doesn't use up the task's normal retries. An agent going through verification keeps checking and isn't parked for it.
 
-**Fix.** While the notice says *Paperclip will retry automatically.*, wait. No agent work started, so nothing is lost. A recovery notice means automatic retries have run out: check the provider's status, or that the Runner received this release's update, then click **Retry**.
+For a sandbox provider problem, Paperclip first tries again after about 30 seconds, then after about 60 seconds. If the provider is still down, it doesn't hand the task to you yet. It waits for the provider instead: the task keeps showing as working with no **Retry**, the line reads *Waiting for "…" to come back. Paperclip continues this task automatically when it does.*, the banner reads **Waiting for the sandbox provider** with no countdown, and the **Sandbox** row in the task's properties reads **Waiting for the provider**. Only one waiting task per environment checks the provider, after 1, 2, and then every 5 minutes, so a long outage doesn't flood it with requests. The other waiting tasks start by themselves, a few at a time, once the provider hands out a sandbox again. This wait doesn't use up the task's normal retries.
+
+**Fix.** While the notice says *Paperclip will retry automatically.*, or the task is waiting for the provider, wait. No agent work started, so nothing is lost. If the provider stays unavailable for 30 minutes, the task gets the recovery notice **Environment provider was temporarily unavailable**: *Paperclip kept retrying automatically for 30 minutes, but the provider was still unavailable. No agent work started. Retry the task once the provider is available.* A recovery notice means automatic retries have run out: check the provider's status, or that the Runner received this release's update, then click **Retry**.
 
 ---
 
@@ -442,6 +450,16 @@ Other notices put the advice in the message itself. **Workspace validation faile
 **Cause.** When most of a company's recent automatic runs fail before the agent starts, Paperclip pauses its own automatic work for that company so the outage doesn't multiply itself. Separately, each task gets at most six automatic attempts an hour.
 
 **Fix.** Fix the underlying problem if it's yours, or wait for the provider. Paperclip tries one run now and then and resumes by itself once runs start normally again, so you don't need to retry every task. To see what's happening, read `automaticWork` in [Check for Stranded Assigned Work](../reference/api/agents.md#when-automatic-work-is-paused).
+
+---
+
+## 28. Run stops because the sandbox disk is full
+
+**Symptom.** A [Paperclip Runner](../reference/adapters/paperclip-runner.md) run in a sandbox fails while the agent is working, and the task's chat shows **Disk full**: *The agent filled the disk of its computer, so the run stopped. Ask the agent to use less disk space, then retry.* The run's failure code is `sandbox_disk_full`.
+
+**Cause.** The agent's work, such as installing dependencies or building, filled the sandbox's disk, and its runner stopped with an error like *No space left on device*. A fresh sandbox has the same disk size, so the same work would fill it again. Paperclip doesn't retry this by itself. The task is blocked and handed to the board with the recovery action *The agent filled the disk of its computer, so its runner stopped. Paperclip does not repeat this automatically: a new computer has the same disk size, and the same work would fill it again. Ask the agent to use less disk space, for example by deleting build output, caches or dependencies it no longer needs, then press Retry.*
+
+**Fix.** Leave a comment telling the agent how to use less space, for example to clean up build output, caches, or dependencies it no longer needs, then click **Retry**. Retry starts a new run. If the disk filled while Paperclip was saving the workspace after the agent finished, that's a different case: see [Run fails after the agent finished](#13-run-fails-after-the-agent-finished).
 
 ---
 

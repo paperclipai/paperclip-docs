@@ -47,6 +47,13 @@ An SSH environment runs tasks on a computer you already own. Paperclip doesn't c
 
 To use the login that's already on the machine instead, open **Advanced** in the SSH form and turn on **Use authentication configured on the remote machine**. SSH environments created before this setting existed show it turned on, and upgrading doesn't change their saved configuration. The setting works the same for direct and Tailscale connections.
 
+**Task files that outlive the server.** When your instance can keep [remote task workspaces](../reference/deploy/storage.md#remote-task-workspaces) (an external PostgreSQL database, S3 storage, and a stable encryption key), a new task on an SSH machine can keep its files there too. This works for Claude Code, Codex, Cursor, Gemini, Grok, Kimi, OpenCode, Pi, and Paperclip Runner agents. Each task gets its own private folder inside `.paperclip-workspaces`, below the environment's remote path, and the agent works directly in it. Paperclip records that folder and saves copies of it, so a restarted or replaced server reconnects to the same files. This is also how these agents run on a server with no persistent disk of its own. A few things to know:
+
+- **The machine needs Node.js and Git** on the SSH login `PATH`, as well as the agent's harness. Paperclip uses them to prepare the folder and check saved copies.
+- **ACP runs there too.** With an AI account selected for the agent in Paperclip, Claude Code, Codex, Gemini, and Kimi can keep their default ACP engine and run straight in the task folder. The ACP server command, such as `claude-agent-acp`, has to be on the login `PATH`. The CLI engines work in the same folder. Picking SSH doesn't change the agent's engine or permission settings.
+- **Existing workspaces stay where they are.** A workspace that already lives on the Paperclip server isn't moved to the SSH machine.
+- **The machine is yours.** If a run ends uncertainly or a save fails, the files on the machine are kept and no other run may overwrite them. Paperclip never stops or deletes the SSH computer.
+
 > **Tip:** A passing SSH test proves Paperclip can reach the machine, not that the harness can sign in to its provider. Test the agent too.
 
 ### Custom sandbox images

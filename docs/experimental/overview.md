@@ -71,7 +71,8 @@ This card sits above the instance-wide sections, and only affects you.
 
 | Feature | What it adds |
 | --- | --- |
-| [Assistant connections (MCP)](assistant-connections.md) | Connect an external assistant as your user through OAuth, with separate read, write, and configuration scopes. |
+| [Areas & Responsibilities dashboard](responsibilities.md) | **Off by default.** Replaces the classic dashboard with one built around the areas you care about and the responsibilities you own in each; an agent can interview you to draft it. Turning it off brings back the classic dashboard and keeps your areas and responsibilities. |
+| [AWS connector](../connectors/aws.md#turn-on-the-connector) | **Off by default.** Lets agents work in AWS through AWS's hosted MCP server, with short-lived credentials made for each connection. While it's off, the AWS connector can't be set up or run. |
 | Beta skills | Lets agents pin beta releases of the Paperclip core skill. Turning it off returns every agent to the default live skill without removing saved pins. |
 | [Built-in Agents](../reference/api/built-in-agents.md) | Paperclip-managed built-in agent surfaces: roster badges and setup controls. |
 | [Cases](cases.md) | Durable work products that tasks create and iterate on, with one primary task that agents hand off phase by phase. Adds the **Cases** tab and the agent case API ([API reference](../reference/api/cases.md)). |
@@ -85,13 +86,13 @@ This card sits above the instance-wide sections, and only affects you.
 | [Enable Isolated Workspaces](isolated-workspaces.md) | Execution-workspace controls: per-run isolated copies of a project so agents don't step on each other. Turning it on reveals a **Use Isolated Workspaces By Default** card. |
 | Experimental fast responses | Lets agents post a short acknowledgement while they begin work. You configure it in **Settings → Connections**, which is always visible now. Its cost history is under **Audit → Costs → Fast responses** ([details](../guides/day-to-day/costs.md#fast-responses)). |
 | [Experimental File Viewer](file-viewer.md) | Task-detail controls for browsing and previewing workspace files relative to a task. |
-| First task: propose with a plan document | For a single-task first request, the chief of staff writes a short plan document and a checkbox card. Applies to organizations created after you flip it. |
+| First task: propose with a plan document | For a single-task first request, the chief of staff writes a short plan document and a checkbox card. New companies now start in a chat with your agent and get no automatic first task, so this only affects a company's first task when it's created through the API with `onboardingFirstTask: true`. |
 | [GitHub review bots](../connectors/understanding-github-review-bots.md) | Connect agents to GitHub with their own App identity to review pull requests and respond to issues. Separate from Chat connectors; turning it off hides setup, but existing bots keep running. |
 | [Google Workspace connector (Paperclip)](../connectors/google-workspace.md#turn-on-the-built-in-connector) | Shows the built-in Google Workspace connector for Gmail, Drive, and Calendar while Google verification is pending. Off by default; while it's off, Google apps are offered through Composio and Arcade, and the built-in connector can't be set up or run. |
-| [Grok Bot](external-agents.md) | Connect an existing Grok Bot as an agent. Needs Assistant connections (MCP), Paperclip Runner, and authenticated public HTTPS. |
+| [Grok Bot](external-agents.md) | Connect an existing Grok Bot as an agent. Needs Paperclip Runner and authenticated public HTTPS. |
 | [Memory connectors](../connectors/memory-connectors.md) | Set up Mem0, Zep, Supermemory, Cognee, or Honcho for agents. Existing connections keep running when setup is hidden. |
 | [Muse — Personal agent](external-agents.md) | Connect your personal Meta Muse and verify a background reply before assigning tasks. Needs Paperclip Runner and an authenticated instance with a public HTTPS URL. |
-| [OpenAI Dot](external-agents.md) | Adds OpenAI Dot as a standalone agent choice. Needs Assistant connections (MCP) and an authenticated instance with a public HTTPS URL. |
+| [OpenAI Dot](external-agents.md) | Adds OpenAI Dot as a standalone agent choice. Needs an authenticated instance with a public HTTPS URL. |
 | [Paperclip Runner](../reference/adapters/paperclip-runner.md) | Native agent execution, on by default for self-hosted instances and off by default on Cloud. The switch controls the Runner's other providers (Muse and Grok Bot need it, for example). New Codex, Claude Code, OpenCode, and Pi agents resolve to the Runner on supported macOS and Linux hosts even when it's off (OpenCode and Pi stay on the Legacy runner on Linux ARM64), unless you create them with the `legacy` runner through the API or CLI. Copilot agents keep running when the switch is off; turning it off only hides the **Paperclip Runner** choice. See [GitHub Copilot](../connectors/github-copilot.md) and [Experimental external providers](../reference/adapters/paperclip-runner.md#experimental-external-providers). |
 | [Simplified English Interactions](../reference/skills/optional/content/simplified-english.md) | Agents write confirmations, questions, and suggested tasks in ASD-STE100 Simplified Technical English. |
 | [Status Cards](status-cards.md) | A shared board of living summaries, kept current by the Summarizer. Enabling it also enables Summaries. |
@@ -129,6 +130,7 @@ These have pages in this section but no toggle in this release:
 | --- | --- |
 | [Task-pinned AI routing](task-pinned-ai-routing.md) | Experimental and off by default, but the `enableAiConnectionRouters` flag has no card on the Experimental page. Needs a router plugin. |
 | [Coordinator workspace](coordinator-workspace.md) | **No toggle any more.** The standard workspace for everyone. An earlier "off" setting no longer counts; choose **Classic workspace** above if you want the previous interface. |
+| [Assistant connections (MCP)](assistant-connections.md) | **No toggle any more.** Always on for every authenticated instance with a public URL, Cloud included. `enablePublicMcp` remains as a compatibility key, and stored or managed values are ignored. |
 | [Agent Chat](agent-chat.md) | **No toggle any more.** Available to everyone, even on instances that had it off. `enableAgentChat` remains as a compatibility key, and stored or managed values are ignored. |
 | [Task Watchdogs](task-watchdogs.md) | **No flag any more.** Watchdog controls are always available on tasks. |
 | [Artifacts V1](../guides/day-to-day/artifacts.md) | **No toggle any more.** Stacks, tiles, and compact rows are how artifacts look on every instance. A hosting operator can still [hold the older cards in place](../guides/day-to-day/artifacts.md#if-your-instance-shows-the-older-cards). |

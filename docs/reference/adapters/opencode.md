@@ -123,7 +123,7 @@ If the task doesn't move, open the agent's **Runs**, then the latest run. A mode
 
 ## Models and custom providers
 
-`model` must be a full `provider/model` id that your provider serves. Common ids include `openai/gpt-5.2-codex`, `openai/gpt-5.6-sol`, `anthropic/claude-sonnet-5-5`, `anthropic/claude-haiku-5-5`, `google/gemini-4-argon` and `xai/grok-4.7`. Run `opencode models` for the authoritative list on your machine.
+`model` must be a full `provider/model` id that your provider serves. Common ids include `openai/gpt-5.2-codex`, `openai/gpt-5.6-sol`, `openai/gpt-6.2-sol`, `anthropic/claude-sonnet-5-5`, `anthropic/claude-fable-5-2`, `anthropic/claude-haiku-5-5`, `google/gemini-4-argon` and `xai/grok-4.7`. Run `opencode models` for the authoritative list on your machine.
 
 **The model pre-flight.** Before a run, Paperclip checks your configured model against `opencode models`:
 

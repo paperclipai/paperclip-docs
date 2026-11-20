@@ -93,6 +93,16 @@ An agent owner is woken exactly once per block, under the reason `issue_unblock_
 
 If a task bounces out of Blocked and later goes back in, that's a fresh block: a new owner and action get recorded, and the new owner is woken again. Leaving Blocked clears the recorded owner and action entirely — there's no stale ownership hanging around on a task that's moving again.
 
+### When a Runner agent reports a blocker it can't hand on
+
+A [Paperclip Runner](../../reference/adapters/paperclip-runner.md) agent can end its run by reporting a blocker on the whole task, naming the system or itself as the owner rather than a person. Waking the same agent over and over wouldn't help, so Paperclip makes sure each such blocker has a next step:
+
+- **A blocker owned by the system**, such as a broken tool or an unavailable environment, is continued automatically in a fresh session, at most twice. So is one the agent owns with the reason `environment_unavailable` or `tool_unavailable`. If the agent still reports the blocker after that, the task goes to the board with its saved work kept. Blockers that only a person can clear (`permission_denied`, `credential_missing`, `policy_restricted`, and `budget_exhausted`) aren't continued this way.
+- **Any other blocker the agent says it owns itself** gets one fresh-session continuation, about 30 seconds later, as long as no other automatic retry has already run for it and the task isn't paused.
+- **Anything else, or the same blocker again,** goes to the board with the agent's recorded unblock action. The task reads *The agent stopped and needs your help to continue. Read its last comment, do what it asks, then Retry.* with a **Retry** button, and its Inbox row reads **The agent needs your help**. Do what the agent's last comment asks, then click **Retry**. If the agent asked you a question on the task, answering it still wakes the agent.
+
+If a new chat message for the same agent is already queued on the task when the blocker is reported, such as a fresh GitHub review request after a push, that message takes the next turn instead of the continuation. This doesn't apply while the task is paused or when the blocker is owned by the board.
+
 ### Tasks blocked before this shipped
 
 Recording an unblock owner started on **23 July 2026, at 18:13 UTC**. Anything blocked before that instant keeps the previous behaviour: no owner is recorded, no one was woken, and nothing appears in your attention feed on its behalf. Paperclip deliberately doesn't backfill old blocked work, because doing so would have woken half your company at once on upgrade.

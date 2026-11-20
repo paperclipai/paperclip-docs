@@ -8,7 +8,7 @@ seo_description: Why timer heartbeats are opt-in, and how routines schedule recu
 
 When you first hire a few agents, it's tempting to give each one a timer — "wake up every few minutes and see if there's anything to do." It feels proactive. In practice, it's the fastest way to end up with a sidebar full of paused agents, surprise token bills, and a dashboard you have to fight with just to keep things quiet.
 
-Paperclip is designed around a different default: agents stay dormant until real work arrives. This guide explains the two mechanisms that drive an agent — **heartbeats on an interval** and **routines** — and when to reach for each one. It also walks through the Routines UI, from the list view down to the detail page where you configure triggers, variables, and run history.
+Paperclip is designed around a different default: agents stay dormant until real work arrives. This guide explains the two mechanisms that drive an agent — **heartbeats on an interval** and **routines** — and when to reach for each one. It also walks through the Routines UI, from the list view down to the routine page where you see and change its triggers, variables, and history.
 
 ---
 
@@ -79,11 +79,11 @@ You'll find routines on the **Routines** page in the sidebar.
 
 ### Creating a routine
 
-1. Open the **Routines** page and click **New Routine**
-2. Give it a title and a short description of what the task should do
-3. Add a trigger. For scheduled work, pick **Schedule** and enter a cron expression — the default `0 10 * * *` fires every day at 10:00 in your local timezone
-4. Assign it to the agent that should handle the work
-5. Save and enable it
+1. Open the **Routines** page and click **New routine**
+2. Give it a title and write the instructions: what the task should do each time
+3. Choose a **Default agent** to handle the work
+4. For scheduled work, click **Add schedule** under **Repeats**. The new schedule starts as weekdays at 9:00 AM (`0 9 * * 1-5`) in your browser's time zone, and you can change it right there
+5. Click **Create routine**
 
 When the trigger fires, Paperclip creates a task, assigns it to the agent, and that assignment wakes the agent immediately. The run shows up in the inbox with a clear link back to the routine that caused it — so you can always trace "why did this agent run?" back to a specific cause.
 
@@ -91,7 +91,7 @@ When the trigger fires, Paperclip creates a task, assigns it to the agent, and t
 
 ### Routine policies worth knowing
 
-Two policies control what happens when schedules overlap or the scheduler has been offline. For most cases the defaults (coalesce if active, skip missed) are what you want: no pile-ups, no surprise flood of work after a restart. See [Catch-up behaviour](#catch-up-behaviour) for the options.
+Two policies control what happens when schedules overlap or the scheduler has been offline. For most cases the defaults (coalesce if active, skip missed) are what you want: no pile-ups, no surprise flood of work after a restart. See [Catch-up behaviour](#catch-up-behaviour) for the options. You set these through the [Routines API](../../reference/api/routines.md) or the [CLI](../../reference/cli/routine.md); the routine page shows them under **Run rules** whenever they differ from the defaults.
 
 ---
 
@@ -99,47 +99,58 @@ Two policies control what happens when schedules overlap or the scheduler has be
 
 ![Routines list](../../user-guides/screenshots/light/routines/list.png)
 
-The Routines page is reached from **Routines** in the sidebar. There are no tabs: a single toolbar across the top holds a **Search routines…** box, the **Sort** and **Group** menus, and the **View all tasks** and **Create routine** buttons. The routine list sits right below. When you group by folder and have folders, a header above the list shows how many routines are in view.
+The Routines page is reached from **Routines** in the sidebar. There are no tabs: a single toolbar runs across the top. **New routine** sits on the left. On the right, in this order, you'll find a **Search routines…** box, then icon buttons for **Sort**, **Filter**, **Group**, and **Columns**, and finally a **View all tasks** button. The routine list sits right below.
 
-### List rows and badges
+### List rows and columns
 
-Each routine row shows:
+Each row starts with the routine's **title**. A small grey label appears beside it when the routine is not active: `paused`, `draft` (no default agent assigned), or `archived`. The columns after the title are up to you. Open **Columns** to tick the ones you want:
 
-- **Title** — the routine name. A small grey label appears beside it when the routine is not active: `paused`, `draft` (no default agent assigned), or `archived`.
-- **Project** — a coloured dot and the project name, or "No project" when the routine has none set.
-- **Default agent** — the agent's icon and name, or "No default agent" for drafts.
+- **Project** — a coloured square and the project name, or "No project" when the routine has none set.
+- **Agent** — the default agent's icon and name, or "No default agent" for drafts.
+- **Responsible user** — the person automatic tasks run for (see [The responsible user](#the-responsible-user)), or "No responsible user".
 - **Last run** — a localised timestamp for the most recent execution, followed by its status. Rows that have never fired show "Never".
-- **Run now** — a button that fires the routine straight away (see below).
-- **Enabled toggle** — a switch that flips the routine between `active` and `paused`. The label beside it reads `On`, `Off`, `Draft`, or `Archived`. The toggle is disabled for archived routines.
-- **More menu** — the `⋯` button exposes **Edit**, **Run now**, **Pause**/**Enable**, and **Archive**/**Restore**.
+- **Enabled** — a switch that flips the routine between `active` and `paused`. The label beside it reads `On`, `Off`, `Draft`, or `Archived`. The switch is disabled for archived routines.
 
-Clicking the row opens the detail page. The buttons, toggle, and menu don't navigate — they keep you on the list.
+All five are on until you change them, and **Reset columns** brings them all back. On a narrow screen the row scrolls sideways to fit them.
 
-### Folders, sorting, and grouping
+At the end of each row are two buttons:
 
-Routines can live in folders. By default the list is grouped by folder, and routines you haven't filed yet sit in an **Unfiled** group. Until you've made a folder, a banner suggests grouping your routines, with a **Create your first folder** button (you can dismiss it), and the toolbar shows a **New folder** button.
+- **Run now** — a play button that fires the routine straight away (see below). It turns into a spinner while the run starts.
+- **More menu** — the `⋯` button exposes **Edit**, **Run now**, **Move to...**, **Pause**/**Enable**, and **Archive**/**Restore**.
 
-Once you have folders, a folder rail lets you jump between **All routines**, each folder, and **Unfiled**. Use a folder's menu to **Rename** it, **Edit color**, or **Delete** it — deleting a folder moves its routines to Unfiled rather than deleting them. To file several routines at once, click **Select**, tick the routines, and use **Move to...**; click **Done** when you're finished.
+Clicking the row opens the routine page. The buttons, switch, and menu don't navigate — they keep you on the list.
 
-Two menus in the toolbar shape the list:
+### Folders, sorting, filtering, and grouping
 
-- **Sort** — order routines by **Updated**, **Created**, **Last run**, or **Title**. Click the active option again to flip between ascending and descending.
+Routines can live in folders. By default the list is grouped by folder, and routines you haven't filed yet sit in an **Unfiled** group. Until you've made a folder, a banner suggests grouping your routines, with a **Create your first folder** button (you can dismiss it), and the **Group** menu offers **New folder**.
+
+Once you have folders, a folder rail lets you jump between **All routines**, each folder, and **Unfiled**, each with its routine count. Use a folder's menu to **Rename** it, **Edit color**, or **Delete** it — deleting a folder moves its routines to Unfiled rather than deleting them. To file a routine, open its `⋯` menu and choose **Move to...**. The toast that confirms the move has an **Undo** button. If the folders can't be loaded, the page says so with a **Retry** button, and your routines stay readable in the meantime.
+
+Four toolbar buttons shape the list:
+
+- **Sort** — order routines by **Updated**, **Created**, **Last run**, or **Title**. Click the active option again to flip between ascending and descending. A fresh view starts on **Title**, A to Z.
+- **Filter** — narrow the list by **Project**, **Agent**, **Enabled**, **Responsible user**, and **Source**. Tick as many options as you like. **Project**, **Agent**, and **Responsible user** also offer **No project**, **No default agent**, and **No responsible user**. Under **Enabled**, pick **Enabled**, **Paused**, or **Archived**. Archived routines stay hidden unless you tick **Archived**. Under **Source**, **Custom** means routines someone created, whether that was you, a teammate, or an agent, and **Built-in** means routines that came bundled with an agent. The panel's header shows how many filters are on, and **Clear** turns them all off.
 - **Group** — group by **Folder** (the default), **Project**, **Agent**, or **None**. Project grouping puts routines without one under "No project"; Agent grouping puts drafts under "Unassigned".
+- **Columns** — choose which columns each row shows (see above).
 
-Group headers are collapsible, and your sort, grouping, and collapsed groups are remembered per company, so reloading keeps your view.
+Group headers are collapsible. To find a routine by name, type in the **Search routines…** box. It matches words in each routine's title and description, and works alongside your folders, filters, sort, and grouping. If nothing matches, the list reads *"No routines match your search."* Clear the box to see everything again.
 
-To find a routine by name, type in the **Search routines…** box. It matches words in each routine's title and description, and works alongside your folder, sort, and grouping choices. If nothing matches, the list reads *"No routines match your search."* Clear the box to see everything again.
+Your search, filters, sort, and grouping are written into the page address, so you can bookmark a view or send the link to a teammate and they'll see the same list. Paperclip also remembers your view, including your columns and collapsed groups, for you in this company, so the list looks the same when you come back.
 
 ### Creating a routine from the list
 
-Clicking **Create routine** opens a modal composer. The composer walks you through the minimum a routine needs to exist:
+Clicking **New routine** opens the same form you use to edit a routine, titled **New routine**. It has:
 
-- **Title** — an auto-sizing text area. Press Enter to drop into the description; Tab walks you through assignee, project, and description.
-- **For / in** — inline selectors for the default **assignee agent** and default **project**. Both are optional at creation time. Recently-used assignees float to the top of the list.
-- **Instructions** — a Markdown editor. Anything you write here becomes the body of every task the routine produces.
-- **Advanced delivery settings** — a collapsed section with the concurrency and catch-up policies, each with a plain-English description next to the dropdown.
+- **Title** — what the routine does, for example "Send the weekly digest".
+- **Instructions** — a Markdown editor. Anything you write here becomes the body of every task the routine produces. Type `/` for skills and routines, `@` to mention, and `{{name}}` to ask for a value (see [Variable templates](#variable-templates)).
+- **Variables** — appears once your title or instructions contain a `{{name}}` placeholder.
+- **Repeats** — **Add schedule** to give the routine a schedule and a **Time zone**.
+- **Default agent**, **Project**, and **Default responsible user** pickers, plus **Responsibility** when the **Areas & Responsibilities dashboard** experimental setting is on.
+- **Secrets** — **Add secret** to give the routine's tasks environment values.
 
-Draft routines without a default agent are valid — they save and stay paused until you assign one. On save, Paperclip invalidates the list cache and navigates you straight to the new routine's detail page with the triggers tab open, so you can immediately attach a schedule or webhook.
+Only the title is required. Draft routines without a default agent are valid — they save and stay off until you assign one. A new routine goes into the folder the list is showing and gets the default priority and delivery settings. When you click **Create routine**, Paperclip opens the new routine's page, where you can add a webhook.
+
+If the routine is created but a later step doesn't save, such as the schedule, you'll see *Routine created* with a note saying what's missing and to open Edit to try again.
 
 ### Run now, pause, archive
 
@@ -155,95 +166,100 @@ If **Streamlined UI** is turned off in Experimental settings, the Routines page 
 
 ---
 
-## The routine detail page
+## The routine page
 
 ![Routine detail](../../user-guides/screenshots/light/routines/detail.png)
 
-Opening a routine drops you on the detail page. A slim header runs across the top, and a **sub-sidebar** down the left splits the routine into focused sections so you edit one thing at a time instead of scrolling one long form.
+Opening a routine takes you to its page at `/routines/<routine-id>`. Everything about the routine is on this one page, in two columns: what it is and when it runs on the left, its instructions and the tasks it made on the right. On a narrow screen the columns stack. Older links to the routine's sections, and old `?tab=` links, still work: they open this page.
 
-### Header
+### Header actions
 
-The header packs the always-available controls into one row:
+Three controls sit at the top of the page. With **Streamlined UI** on and a desktop-sized window they're in the bar next to the breadcrumbs; otherwise they sit above the page on the right.
 
-- **Editable title** — the title is an inline text field. Press Enter to jump to the Overview section (and into the description when you're already there).
-- **Run button** — opens the same "run now" dialog as the list row. This is the manual override for any routine.
-- **Automation toggle** — the large switch. On = `active`, off = `paused`. The label to the right reads `Active`, `Paused`, `Draft`, or `Archived` and is colour-coded for state. Flipping it on while no default agent is set is refused with a "Default agent required" prompt.
-- **Plugin badge** — when a routine is managed by a plugin, a badge shows the plugin's name and resource key so you know not to hand-edit it. The plugin owns the routine's title, instructions, schedule, and assignee, and you change them in that plugin's settings. Agents are told not to rewrite or copy a plugin-managed routine, and to reply with a link to the plugin's settings page and the routine instead. When your hosting operator manages plugins for you, there's no settings page to link, so agents say that the hosting operator controls the plugin's settings and link the routine instead.
+- **Edit routine** — the pencil button. It opens the Edit dialog (see [Editing a routine](#editing-a-routine)).
+- **More routine actions** — the `⋯` menu with **Version history**, **Audit log**, and **Archive routine**. On an archived routine it offers **Restore routine** instead, which brings the routine back paused.
+- **Run now** — opens the same run dialog as the list row. This is the manual override for any routine. Once the run starts you'll see *Routine run started*, and the new task appears under **History**.
 
-### The sub-sidebar: sections, not tabs
+An archived routine has no Edit or Run now button.
 
-The left sub-sidebar lists the routine's sections in two groups, and each section is its own sub-route (`/routines/:id/<section>`) so you can deep-link and use the browser's back button. Older `?tab=` links still resolve — they redirect to the matching section.
+### The left column
 
-The first group holds the editable parts of the template:
+The left column answers "what is this, and when does it run?":
 
-- **Overview** — the routine's **Default agent** and [**Responsible user**](#the-responsible-user), and the Markdown instructions editor. It also shows a quick summary of the routine's **Triggers** and **Next run** (for a webhook-only routine that reads **On webhook delivery**), plus the five most recent runs with **View all runs** and **View routine activity** links.
-- **Triggers** — every trigger attached to the routine, each as its own card, plus a composer to add new ones.
-- **Variables** — the `{{name}}` placeholders detected in the title and instructions.
-- **Delivery** — the concurrency and catch-up policies.
-- **Secrets** — environment values the routine's task can reference.
+- **Title** — the routine's name. When a plugin manages the routine, a line under the title reads *Managed by* and the plugin's name. The plugin owns the routine's title, instructions, schedule, and assignee, and you change them in that plugin's settings. Agents are told not to rewrite or copy a plugin-managed routine, and to reply with a link to the plugin's settings page and the routine instead. When your hosting operator manages plugins for you, there's no settings page to link, so agents say that the hosting operator controls the plugin's settings and link the routine instead.
+- **Status** — a switch that turns the routine on (`Active`) or off (`Paused`). The label beside it reads `Active`, `Paused`, `Draft`, or `Archived`, followed by a short note: when it runs next (for example "Next run tomorrow at 9:00 AM"), "Runs when a webhook arrives", "Only runs when you start it", "Run now still works" for a paused routine, or "No longer runs" for an archived one. A paused routine also tells you what it's skipping, such as *Scheduled runs are skipped until this routine is on.* A draft has no default agent, so its switch is off and greyed out, and the page offers **Choose a default agent** to turn it on.
+- **Repeats** — one row per trigger. See [Repeats: schedules, webhooks, and other triggers](#repeats-schedules-webhooks-and-other-triggers). A routine with no triggers reads *Doesn't repeat. Runs only when you start it.*
+- **Default agent** — the agent that does the work, linking to its page. A routine without one shows **Choose an agent**.
+- **Default responsible user** — see [The responsible user](#the-responsible-user).
+- **Project** — the routine's project, linking to its page, or "No project".
+- **Asks for** — shown when the routine has variables. Each one is listed with its default ("Usually …"), or as **Required** or **Optional**.
+- **Secrets** — shown when the routine has secrets. Only their names are listed.
+- **Run rules** — shown only when the routine's delivery settings differ from the defaults, in plain words. For example, "Queues every run, even while one is still working", "Skips a run while one is still working", "Catches up on runs missed while paused", or "Skips scheduled runs when nothing changed".
 
-**Operate** keeps the routine's day-to-day operation inside the routine itself, so you never have to leave for a separate audit screen:
+With the **Areas & Responsibilities dashboard** experimental setting on, a **Responsibility** field also lists the responsibilities the routine falls under, whether directly or through its project.
 
-- **Runs** — the tasks this routine has produced, which you can search and update in place (see [Run history](#run-history) below).
-- **Activity** — a timeline of routine, trigger, and run events — edits, enables, pauses, trigger changes, webhook deliveries, and key rotations — grouped by day.
+### Instructions
 
-The routine's revision history lives behind the **History** button in the header, where you can restore an earlier revision; **Back to overview** takes you out again.
+The right column starts with the routine's **Instructions**. Long instructions show their first paragraph with a **Show all** button (**Show less** folds them again). The copy button next to the heading copies the whole Markdown text. If the routine has no instructions, the page says *No instructions yet. The agent only gets the title.* with an **Add instructions** button.
 
-A small amber dot appears next to any section with unsaved edits, and a blue pulsing dot appears on **Runs** when a run is live. On narrow screens the sidebar collapses into a single grouped section picker at the top.
+You can comment on the instructions the same way you comment on an issue document. Select some text and click **Comment** (or, while the comments panel is open, press `⌘⇧M` / `Ctrl+Shift+M`) to start a thread anchored to exactly that text. Once there are open threads, a **comments** button with the count appears next to the heading; click it to open the comments panel beside the full instructions. A link to one of the comments opens the page with the panel already open.
 
-### The responsible user
+New comments need a saved revision to anchor to, so the **Comment** button is disabled while that isn't possible, with a short reason in its tooltip.
 
-Every task a routine creates runs under a person's authority. To see whose, look at **Responsible user** on **Overview**, beside **Default agent**. As the page puts it: *Automatic tasks use this person. Manual runs use the person who starts them.*
+### History
 
-To hand a routine to someone else, or adopt it yourself, click the name, search under **Find a person…**, and pick an active company member. The change saves straight away and applies to future automatic tasks. Tasks the routine already created keep the person they had. You need permission to assign tasks (`tasks:assign`). Everyone else, including agents and Viewers, sees the name without the picker. If someone edited the routine first, you'll see *This routine changed. Reload before changing responsibility.*
+Below the instructions, **History** lists the tasks this routine created, newest first, 20 at a time. Click **Load more** to see older ones. Click a task to open it; the breadcrumb brings you back to the routine when you're done. If the routine hasn't created a task yet, History says when the first one starts, or *No tasks yet. Each run creates a task here.*
 
-When an agent creates a routine, the responsible user is the person the agent is acting for. If there's no such person, Paperclip uses the parent task's responsible user or creator, then the company's default. The agent is still recorded as the routine's creator.
-
-### Saving edits
-
-Each editable section has its own sticky **save bar** that stays hidden until you change something. When the section is dirty it slides up from the bottom showing how many unsaved changes you have (click the count to see exactly which fields), with **Discard** and **Save changes** buttons — `⌘S` / `Ctrl+S` saves, `Esc` opens a discard confirmation. If someone else edited the routine while you were working, the bar switches to a conflict surface offering **Reload latest** or **Overwrite anyway**. Non-owners see a read-only strip instead of the save bar.
-
-### Commenting on the routine description
-
-You can now treat a routine's instructions the same way you'd treat an issue document: comment on them, and edit them inline. The Markdown instructions editor in the **Overview** section is wrapped in the same annotation surface that issue documents use, so the description isn't static text anymore — it's a document you and your teammates can discuss.
-
-Above the instructions editor you'll see a small **comment count chip** with a speech-bubble icon and a number. The chip's tooltip reads "Open comments on description" when there are none yet, or "Open *N* unresolved comments on description" once threads exist. Click the chip to open the comments panel beside the description; click it again to close it. On a wide screen the panel docks to the side of the document and stays clamped below the top nav as you scroll, so a thread never tucks under the nav bar.
-
-To start a comment, select some text in the description and ask for a comment on that selection — `⌘⇧M` / `Ctrl+Shift+M` does this while the panel is open. The comment anchors to the exact text you highlighted, so the discussion stays attached to the part of the instructions it's about. Comments load with their replies in one go, and the count chip and the panel read from the same source, so a new or resolved thread updates the count without a manual refresh.
-
-New comments are only allowed when the description is in a clean, saved state. If you have unsaved edits in the Overview section, are in the middle of saving, or the routine has a save conflict, the "new comment" action is disabled with a short reason — for example "Save the draft to anchor new comments" or "Resolve the document conflict before adding new comments." That's deliberate: a comment has to anchor to a saved revision, so Paperclip asks you to land your edit first.
-
-### When a save fails
-
-Editing the description is a routine save like any other, and Paperclip surfaces failures rather than swallowing them. If your save runs into a conflict — someone else changed the routine while you were typing — you get a "Routine changed" toast telling you to reload for the latest revision, and the save bar flips into its conflict surface. Any other save error raises a "Failed to save routine" toast that includes the underlying reason (falling back to "Paperclip could not save the routine." when there's no specific message). Either way you keep your edits in the editor until the save actually goes through.
-
-### Trigger cards and human-readable schedules
-
-On the **Triggers** section, each trigger is a card with its kind icon, a title, and a short status line underneath. For a schedule trigger, the title is the cron in **plain English** — "Every weekday at 09:00", "Every day at 10:00", "Every 15 minutes" — translated from the raw expression. (Shapes the translator doesn't recognise fall back to the title **Schedule**.) The status line shows the schedule's time zone. Other kinds are titled **Webhook**, **GitHub webhook**, or **API trigger**, and their status line tells you how things stand — for example "Ready · Waiting for an event", "Receiving events", or "Authentication failed · Check the key in your app". A paused trigger simply reads **Paused**.
-
-On the right of each card you'll find an **Edit** button (**Edit schedule**, **Edit webhook**, or **Edit api**) and a trash-can icon that removes the trigger. Removing shows a short "removed" note with an **Undo** button, in case you clicked it by mistake. A trigger whose setup isn't finished shows **Resume setup** instead of Edit.
-
-Click **Edit** to expand the card (the button then reads **Close**):
-
-- **Schedule triggers** show the schedule editor and a **Time zone** field, with **Save schedule** and **Cancel** buttons.
-- **Webhook triggers** show the **Webhook URL** in a read-only field you can copy, a **Replace key** button when the webhook is signed, and a **Check connection** button that waits for an event from your app.
-- **API triggers** just note that the trigger starts the routine through the API.
-
-Every expanded card also has a **Pause trigger** button (or **Enable trigger** if it's paused), so you can stop a trigger from firing without removing it.
-
-### Run history
-
-![Run history](../../user-guides/screenshots/light/routines/run-history.png)
-
-The **Runs** section shows every task this routine has created, using the same issue list you know from the rest of Paperclip. That means you get the familiar columns — status and assignee — along with search and the list's own view controls, all scoped to this one routine. A run that's in progress right now is marked as live.
-
-Because it's a real issue list, you can manage runs right here: change a task's status or assignee inline without opening it, and the routine's run data refreshes as soon as the update lands. Click a row to open the task itself; the breadcrumb brings you back to **Runs** when you're done. Your view choices are remembered per routine.
+Runs that didn't create a task have no row here. When runs were folded into a task that was still open (the default concurrency policy), a note under the list counts them, for example *2 runs were folded into a task that was still in progress.* Other skipped ticks, such as ones stopped by the activity gate, aren't shown on the page; the API's [List Runs](../../reference/api/routines.md#list-runs) endpoint gives the full record, including `failureReason`.
 
 Going the other way works too. Every task a routine creates shows a **Routine** row in its **Properties** panel, just below **Parent**. It names the routine that made it and links straight back to the routine page, so you don't have to hunt for it by hand. If that routine has since been deleted, the row simply doesn't appear.
 
-When you fire the routine from the **Run** button, Paperclip drops you on **Runs** so you can watch the new task appear.
+If History can't load, it shows an error with a retry button in its place. If the page can't refresh, it keeps what it already loaded on screen and shows the error above it.
 
-Runs that didn't create a task — a tick skipped by the concurrency policy or the activity gate, for example — have nothing to list here. You'll still see them on the **Overview** under recent runs, with their status badge, and the API's [List Runs](../../reference/api/routines.md#list-runs) endpoint gives the full record including `failureReason`.
+### Repeats: schedules, webhooks, and other triggers
+
+Each trigger is a row under **Repeats**, so you see at a glance when the routine runs. Rows are greyed out while the routine or the trigger is paused.
+
+- **Schedule** — the cron in **plain English**, such as "Weekdays at 9:00 AM" (an expression that matches no preset is shown as the raw cron), with its time zone on the right (or **Paused**). Click the row to change it in place: the popover has the [schedule editor](#cron-picker), a note saying which time zone the times are in, and **Remove schedule**, **Pause** (or **Resume**), and **Save schedule** buttons.
+- **Webhook** or **GitHub webhook** — with its label if it has one, and a status on the right: **Setup unfinished**, **Testing · events don't run**, **Waiting for the first event**, **Receiving events**, **Key rejected**, or **Paused**. While the routine is off, a live webhook reads **Ignoring events**. Click the row to open the [webhook dialog](#webhook-triggers).
+- **Standing check** — "Each time the agent wakes up". The agent carries out the instructions each time it wakes and reports what it found, without creating a task by itself. Standing checks come from the experimental [Areas & Responsibilities dashboard](../../experimental/responsibilities.md), and new ones can only be added while it's turned on.
+- **API** — "Started by an API call".
+
+Click a standing check or API row for a small popover with **Remove** and **Pause** (or **Resume**).
+
+Removing a trigger from the page leaves a line such as *Weekdays at 9:00 AM removed.* under Repeats, with an **Undo** button in case you clicked it by mistake.
+
+### The responsible user
+
+Every task a routine creates runs under a person's authority. To see whose, look at **Default responsible user** on the routine page. Automatic tasks run for this person. Manual runs use the person who starts them: if you click **Run now** on a teammate's routine and pick your own agent, the task and the agent's run both use your account, and the routine keeps its saved responsible user.
+
+To hand a routine to someone else, or adopt it yourself, open **Edit**, search under **Find a person…** in **Default responsible user**, pick an active company member, and save. The change applies to future automatic tasks. Tasks the routine already created keep the person they had. You need permission to assign tasks (`tasks:assign`). For everyone else, including agents and Viewers, the picker is disabled. Once a routine has a responsible user you can change it, but you can't clear it.
+
+When an agent creates a routine, the responsible user is the person the agent is acting for. If there's no such person, Paperclip uses the parent task's responsible user or creator, then the company's default. The agent is still recorded as the routine's creator.
+
+### Editing a routine
+
+Click **Edit routine** to open the **Edit routine** dialog. It's the same form as [New routine](#creating-a-routine-from-the-list), filled in with the routine's current values, plus a **Webhooks** list. Change what you need, then click **Save changes**. The button stays disabled until something has changed. `⌘Enter` / `Ctrl+Enter` in the instructions editor saves too.
+
+A few things to know:
+
+- **Repeats** in the dialog edits the routine's first schedule: its timing and **Time zone**, or **Remove schedule**. If there's no schedule, **Add schedule** creates one. Change any other schedule from its row on the page.
+- **Webhooks** are saved straight away, not when you click Save changes. **Add webhook** opens the [webhook dialog](#webhook-triggers) on top of the Edit dialog; click a webhook to open it, or use its **×** button to remove it, with **Undo** if you change your mind.
+- The concurrency, catch-up, and activity-gate settings and the priority aren't in the dialog, and saving never changes them. Use the [API](../../reference/api/routines.md) or [CLI](../../reference/cli/routine.md) for those.
+- If you close the dialog with unsaved changes, it asks *Discard your changes?* with **Keep editing** and **Discard**. It can't be closed while it's saving.
+
+### When a save fails
+
+If someone else changed the routine while you had the dialog open, saving is refused and the dialog says *This routine changed while you were editing. Reload to see the latest version.* Click **Reload latest** to load their version into the form, then make your change again.
+
+Saving can take a few steps: the routine's details, then its schedule, then its responsibility. If one step fails after another succeeded, the dialog tells you what was saved and what wasn't, and to save again to finish. Any other error shows its reason next to the save button. Either way, the dialog stays open with your edits until the save goes through.
+
+### Version history and audit log
+
+The `⋯` menu opens two views of the routine's past. Each one has a back button with the routine's title at the top.
+
+- **Version history** (`/routines/<routine-id>/history`) lists the routine's revisions, where you can compare and restore an earlier one. If the restore brings back a webhook, Paperclip shows its new key once so you can copy it.
+- **Audit log** (`/routines/<routine-id>/activity`) is a timeline of routine, trigger, and run events — edits, enables, pauses, trigger changes, webhook tests, deliveries, and key replacements.
 
 ---
 
@@ -251,7 +267,7 @@ Runs that didn't create a task — a tick skipped by the concurrency policy or t
 
 ![Cron picker](../../user-guides/screenshots/light/routines/cron-picker.png)
 
-When you add or edit a schedule trigger, Paperclip replaces the raw cron input with a **ScheduleEditor**. The editor is a small form with a preset dropdown plus follow-up fields that appear based on what you picked:
+When you add or change a schedule — in the Edit dialog's **Repeats**, or by clicking a schedule row on the routine page — Paperclip gives you a schedule editor instead of a raw cron input. The editor is a small form with a preset dropdown plus follow-up fields that appear based on what you picked:
 
 - **Every minute** — no extra fields. Emits `* * * * *`.
 - **Every hour** — a minute selector. Emits `M * * * *`.
@@ -265,13 +281,13 @@ Hours are shown in 12-hour format with AM/PM labels in the UI, even though the u
 
 The editor is two-way: if you paste a cron expression into the custom field that matches one of the presets, the form picks it up on the next render and switches back. Expressions it can't classify stay on "Custom" so you never lose an edit.
 
-Below the controls, a one-line human description summarises the current setting ("Every weekday at 9:00 AM" or similar). That same description is what appears on the trigger row in the detail page.
+The editor itself doesn't print a summary line. Once saved, the schedule's row under **Repeats** on the routine page describes it in plain words, such as "Weekdays at 9:00 AM" or "Every day at 10:00 AM". An expression that matches no preset shows as the raw cron.
 
 ### Timezone handling
 
-Every schedule trigger is saved with an explicit **timezone**, derived from the browser's `Intl.DateTimeFormat().resolvedOptions().timeZone` at creation time. The scheduler evaluates cron expressions in that timezone, not in UTC. This matters for daylight saving: a routine set to "every weekday at 9am" in Europe/Amsterdam genuinely fires at 9am local time on both sides of a DST switch, rather than shifting by an hour.
+Every schedule trigger is saved with an explicit **timezone**. A schedule you add in the UI starts in your browser's time zone (`Intl.DateTimeFormat().resolvedOptions().timeZone`). The scheduler evaluates cron expressions in that timezone, not in UTC. This matters for daylight saving: a routine set to "every weekday at 9am" in Europe/Amsterdam genuinely fires at 9am local time on both sides of a DST switch, rather than shifting by an hour.
 
-If you need to change the timezone later (for example, you moved), click **Edit schedule** on the trigger card, update the **Time zone** field, and click **Save schedule**. The card's status line always shows the timezone the trigger is saved with.
+To change the time zone later (for example, you moved), open **Edit**, pick another zone in the **Time zone** menu under **Repeats**, and click **Save changes**. The menu offers the schedule's current zone, your browser's zone, `America/Los_Angeles`, `America/Chicago`, `America/New_York`, `Europe/London`, and `UTC`; for any other zone, use the [API](../../reference/api/routines.md). The Edit dialog changes the routine's first schedule. The schedule's row under **Repeats** always shows the time zone it's saved with.
 
 ---
 
@@ -279,29 +295,24 @@ If you need to change the timezone later (for example, you moved), click **Edit 
 
 A schedule is one way to start a routine; a webhook is the other. Instead of firing on a clock, a webhook trigger hands you a URL that an outside system POSTs to — a GitHub event, a deploy script, another SaaS tool — and that inbound call starts the routine. Reach for it whenever the work should happen *because something happened elsewhere*, not at a fixed time.
 
-You add a webhook trigger the same place you add a schedule: open a routine, go to its **Triggers** section, and add a trigger. A short wizard walks you through the rest.
+To add one, open the routine, click **Edit routine**, and click **Add webhook** under **Webhooks**. The webhook dialog opens on top of the Edit dialog. Everything you do in it is saved straight away, so you don't need to click **Save changes** for the webhook.
 
-### Choosing schedule or webhook
+### Choosing what's sending the webhook
 
-The first step asks **"When should this routine run?"** and offers two choices:
-
-- **On a schedule** — every day, on weekdays, or once a week. That's the cron path covered above.
-- **When another app sends a webhook** — when something happens in GitHub, another app, or a script.
-
-Pick the webhook option and Paperclip asks **what's sending the webhook**: **Another app or script**, or **GitHub**. Your answer only changes the setup instructions you see next — the underlying trigger is the same either way. Paperclip also reminds you here that **public services need a publicly reachable HTTPS webhook URL** — more on that in [Is your webhook URL reachable?](#is-your-webhook-url-reachable).
+The dialog first asks **what's sending the webhook**: **Another app or script**, or **GitHub**. Your answer decides the setup steps you see and how the webhook checks each delivery (see [Signing modes and the replay window](#signing-modes-and-the-replay-window)). Click **Create webhook** to make it.
 
 ### Copying the URL and secret
 
-As soon as you continue, Paperclip creates the webhook and shows you two things to copy into the sending system:
+As soon as the webhook exists, the dialog shows you two things to copy into the sending system:
 
-- a **Webhook URL** (labelled **Payload URL** on the GitHub path) — the address the outside system POSTs to
-- a **Secret key** (labelled **Secret** on the GitHub path) — the credential that proves a delivery really came from your system
+- a **Webhook URL** (labelled **Payload URL** for GitHub) — the address the outside system POSTs to
+- a **Secret key** (labelled **Secret** for GitHub) — the credential that proves a delivery really came from your system
 
-Copy both now. **The secret is only visible during setup** — once you leave the wizard it's hidden, and the field is replaced by a **Generate new key** button. If you didn't save it, generate a fresh one rather than hunting for the old value (see [Rotating the secret](#rotating-the-secret)).
+Copy both now. **The key is only shown once** — *Copy it now. It's hidden after you close this.* Later the dialog just says *The secret key is hidden.* with a **Replace key** button. If you didn't save it, replace it rather than hunting for the old value (see [Rotating the secret](#rotating-the-secret)).
 
-If an agent sets up the webhook for you, Paperclip tells it not to paste the secret into chat, a comment, or a task. Instead, the agent links you to the routine's **Triggers** page, where you choose **Generate new key** (for a trigger still waiting for setup) or **Edit webhook**, then **Replace key**, and copy the key Paperclip shows you there. Replacing the key stops the earlier one from working. The same goes for the URL of a webhook with no signing, because that URL alone is enough to start the routine.
+If an agent sets up the webhook for you, Paperclip tells it not to paste the secret into chat, a comment, or a task. Instead, the agent links you to the routine. Its message may still mention **Generate new key** or **Edit webhook** from the older layout; on the routine page, open the webhook from its row under **Repeats**, click **Replace key**, and copy the key Paperclip shows you there. Replacing the key stops the earlier one from working. The same goes for the URL of a webhook with no signing, because that URL alone is enough to start the routine.
 
-Paperclip also gives you a copy-ready **Agent instructions** block bundling the URL, the key, and step-by-step wiring — handy when you'd rather hand the connection off to one of your agents to set up.
+While the key is on screen, the dialog also gives you a copy-ready **Agent instructions** block bundling the URL, the key, and step-by-step wiring — handy when you'd rather hand the connection off to one of your agents to set up.
 
 ### The generic path (another app or script)
 
@@ -317,7 +328,7 @@ For a custom app or a script, the setup is:
 
 Whatever JSON the app sends is attached to the task the routine creates, inside a clearly marked data block that tells the agent to read it as data, not as instructions. Very large payloads are trimmed in the task description (the full payload is still kept on the routine run).
 
-> Webhooks created before this shared setup used Bearer-only authentication. They keep working unchanged, and for those the wizard still shows the ready-to-paste **Authorization header value**.
+> Webhooks created before this shared setup used Bearer-only authentication. They keep working unchanged, and for those the webhook dialog still shows the ready-to-paste **Authorization header value**.
 
 ### Example: Fireflies meeting summaries
 
@@ -326,7 +337,7 @@ A common use of the generic path is kicking off a routine whenever a meeting sum
 1. Give the routine's agent access to your Fireflies connection (see [Fireflies](../../connectors/fireflies.md)) — the webhook only tells the agent *which* meeting is ready; the agent reads the meeting through that connection.
 2. Add a webhook trigger and choose **Another app or script**.
 3. In Fireflies' Webhooks V2 settings, paste the **Webhook URL**, and paste Paperclip's **Secret key** into Fireflies' **Signing Secret** field. That's the routine's own key, not your Fireflies API key.
-4. Subscribe only to the `meeting.summarized` event (**Meeting Summarized** in Fireflies), save, then check the connection and click **Finish setup** as usual.
+4. Subscribe only to the `meeting.summarized` event (**Meeting Summarized** in Fireflies), save, then send a test event and finish setup as usual (see [Finishing setup to enable the webhook](#finishing-setup-to-enable-the-webhook)).
 
 Fireflies needs to reach the URL over the public internet, so the reachability notes below apply.
 
@@ -364,7 +375,7 @@ To set it up:
    - `automation_origin_status` equals `complete`
    - `task_shareable` equals `true`
    - `automation_routine_ids` does not contain the repair routine's ID. Add one of these per repair routine if you have several.
-7. Send a Sentry test notification while the trigger is still in setup mode, check the connection, click **Finish setup**, and unpause the routine.
+7. Send a Sentry test notification while the webhook dialog is still open, wait for **Test event received**, click **Done**, and turn the routine on.
 
 Two things to keep in mind:
 
@@ -375,7 +386,7 @@ The [Fire Public Trigger](../../reference/api/routines.md#fire-public-trigger) r
 
 ### Is your webhook URL reachable?
 
-A webhook only works if the sending app can actually reach the URL Paperclip gives you. When the URL looks like it won't be reachable from outside, the wizard and the trigger's saved settings show a yellow warning banner explaining why:
+A webhook only works if the sending app can actually reach the URL Paperclip gives you. When the URL looks like it won't be reachable from outside, the webhook dialog shows a yellow warning banner explaining why:
 
 - **Other apps can’t reach this localhost URL** — the address points at `localhost` or a loopback address, which means "this machine" to whoever sends the request.
 - **This webhook URL appears to be private** — a private-network address or an internal hostname. Only senders on the same network can reach it; public apps like GitHub usually can't.
@@ -389,30 +400,40 @@ The warning is advice, not a block: you can continue for local or private-networ
 
 A brand-new webhook trigger starts in a **setup-pending** state, and that's on purpose. While setup is pending, any delivery that arrives **only tests the connection** — it doesn't start the routine or create a task. That lets you wire things up and confirm they work without kicking off real work by accident.
 
-The wizard's last step, **Check connection**, is where you verify it:
+Verify it while the webhook dialog is still open. The status at the top reads **Waiting for a test event**:
 
 - Send a test event from the sending app. In GitHub, open the webhook's **Recent Deliveries** and choose **Redeliver**; in another app, use its "send test" button or simply perform the action that should fire the webhook.
-- Keep the page open. The status flips to **Test event received · Connection working** once a signed delivery arrives and authentication passes — no run and no task are created. If you see **Event arrived, but the key was rejected**, go back, fix the key in the sending app, and resend.
-- Click **Finish setup** to enable the webhook. From then on, real events start the routine.
+- Keep the dialog open; it checks for new deliveries every couple of seconds. The status changes to **Test event received** (*The connection works. No task was created.*) once a delivery arrives and authentication passes. If you see **The last event was rejected**, the key didn't match: fix the key in the sending app, or replace it, and resend.
+- Click **Done** to enable the webhook. If no test event has arrived yet, the button reads **Finish without testing** instead. Closing the dialog any other way finishes setup too. From then on, real events start the routine.
 
-One thing to know: **the test event is not replayed.** Finishing setup does not re-fire the delivery you sent while testing — only events that arrive *after* you enable the webhook start the routine. And if the routine itself is paused, finishing setup saves the webhook but leaves it dormant until you enable the routine's automatic triggers.
+One thing to know: **the test event is not replayed.** Finishing setup does not re-fire the delivery you sent while testing — only events that arrive *after* you enable the webhook start the routine. And if the routine itself is paused, finishing setup saves the webhook but leaves it dormant until you turn the routine on. Until then, the webhook's row reads **Ignoring events**, and the sending app gets an error.
+
+### Testing a live webhook again
+
+Changed something in the sending app and want to check it without starting real work? Open the webhook from its row under **Repeats** (or from **Webhooks** in the Edit dialog) and click **Test webhook**. The button is there for a webhook that's finished setup and isn't paused.
+
+While it's testing, every delivery that passes authentication, including real events from the sender, is recorded as a test and **doesn't start the routine**. The dialog's footer reads *Testing. No tasks are created.* Send an event, wait for **Test event received**, and click **Finish testing** to go live again. Closing the dialog finishes testing too. Events that arrived while testing aren't replayed, and the webhook's status goes back to its last real delivery.
+
+If a webhook that was already live is left in test mode, for example because someone started a test and never finished it, its row under **Repeats** reads **Testing · events don't run**. Open it and click **Finish testing**.
+
+Each test start is recorded in the routine's [audit log](#version-history-and-audit-log) as *Started testing a webhook*.
 
 ### Signing modes and the replay window
 
 Under the hood, each webhook trigger carries a **signing mode** that decides how Paperclip authenticates an inbound call, plus — for the timestamped mode — a **replay window**:
 
-- **Signing mode** — `app_webhook`, `bearer`, `hmac_sha256`, `github_hmac`, or `none`. `app_webhook` is what the **Another app or script** path creates: it accepts either a Bearer token or an HMAC-SHA256 body signature. `github_hmac` matches the GitHub path, and `bearer` is the older Bearer-only mode. Each option has a short description below the dropdown explaining how the fire endpoint will authenticate the request.
+- **Signing mode** — `app_webhook`, `bearer`, `hmac_sha256`, `github_hmac`, or `none`. `app_webhook` is what **Another app or script** creates: it accepts either a Bearer token or an HMAC-SHA256 body signature. `github_hmac` is what **GitHub** creates, and `bearer` is the older Bearer-only mode. The webhook dialog only creates those first two; to pick another mode, use the [API](../../reference/api/routines.md#update-trigger). The dialog's setup steps follow whichever mode the webhook has.
 
-  Only you and other board users can pick `none`. When an agent sets up a webhook for you, it has to use an authenticated mode such as `bearer` (the default) or `hmac_sha256`. If the app sending events can't authenticate its requests, Paperclip tells the agent to ask a person to choose the unauthenticated option on the board.
+  Only you and other board users can pick `none`. When an agent sets up a webhook for you, it has to use an authenticated mode such as `bearer` (the default) or `hmac_sha256`. If the app sending events can't authenticate its requests, Paperclip tells the agent to ask a person to choose the unauthenticated option.
 - **Replay window (seconds)** — how far back a signed request's timestamp may be, used only by the timestamped `hmac_sha256` mode. It defaults to 300 seconds and doesn't apply to the other modes, which don't carry a timestamp.
 
 ### Rotating the secret
 
-If a secret leaks — or you just want to reissue credentials — click **Edit webhook** on the trigger card, then **Replace key** and confirm the "Replace the webhook key?" prompt (the wizard's **Generate new key** button does the same thing). Rotation mints a fresh secret, invalidates the old one immediately, and **keeps the same webhook URL**, so you only have to update the secret in the sending app, never the endpoint. The new secret is shown once, in the same banner, so copy it right away.
+If a secret leaks — or you just want to reissue credentials — open the webhook from its row under **Repeats** and click **Replace key**. There's no confirmation: the key is replaced as soon as you click. Rotation mints a fresh secret, invalidates the old one immediately, and **keeps the same webhook URL**, so you only have to update the secret in the sending app, never the endpoint. The new secret is shown once in the dialog, so copy it right away.
 
 ### Enabling, disabling, and archiving a trigger
 
-Each trigger has its own **enabled** state, so you can switch a single trigger off without touching the rest of the routine. You can also **archive** a trigger to retire it from the active set and **restore** it later, or **Delete** it to remove it for good. A routine can carry several triggers at once — a nightly schedule and a GitHub webhook side by side, for example — and they all fire independently.
+Each trigger has its own **enabled** state, so you can switch a single trigger off without touching the rest of the routine. In the UI that's **Pause** and **Resume**: in a schedule's popover, in a standing check's or API trigger's popover, and in the webhook dialog's footer. **Remove** (or **Remove schedule**) archives a trigger, retiring it from the active set with an **Undo** to bring it back. To delete a trigger for good, use the [API](../../reference/api/routines.md#delete-trigger). A routine can carry several triggers at once — a nightly schedule and a GitHub webhook side by side, for example — and they all fire independently.
 
 ---
 
@@ -422,20 +443,22 @@ Routines can accept **variables**: named inputs that you reference inside the ti
 
 ### Defining variables
 
-Variables are detected automatically. Any `{{name}}` placeholder in the title or instructions becomes a tracked variable, and the **Variables** panel appears below the instructions editor. For each detected variable you can set:
+Variables are detected automatically. Any `{{name}}` placeholder in the title or instructions becomes a tracked variable, and a **Variables** table appears below the instructions in the New routine and Edit dialogs, one row per variable under **Name**, **Type**, **Default**, and **Required**. For each detected variable you can set:
 
 - **Type** — `text`, `textarea`, `number`, `boolean`, `select`, or `date`.
-- **Label** — a friendly name shown on the run-now dialog.
-- **Default value** — the baseline used when nothing else is provided.
+- **Default** — the baseline used when nothing else is provided.
+- **Required** — whether a run needs a value.
 - **Options** — a comma-separated list, only for `select`. The options become a dropdown on the run dialog.
+
+A variable can also carry a **label**, a friendly name shown on the run-now dialog and under **Asks for** on the routine page. The dialogs keep a saved label as it is but don't edit it; set it through the [API](../../reference/api/routines.md).
 
 The `date` type renders a date picker in the run-now dialog. Use it when a routine's prompt needs to reference a specific date — for example `{{reportDate}}` — so you can pick the date each time without editing the routine body.
 
-Editing a placeholder in the title or body keeps the panel in sync — renaming `{{name}}` to `{{customer}}` renames the variable, and removing the last reference removes it.
+Editing a placeholder in the title or body keeps the table in sync — renaming `{{name}}` to `{{customer}}` renames the variable, and removing the last reference removes it.
 
 ### Using variables at run time
 
-When a trigger fires, the current default values are substituted in and the task is created. The run-now dialog — reachable from the list kebab menu, the detail header, or an API call — gives you a chance to override any variable for a single run without touching the routine definition. It also lets you override the assignee and project just for that run.
+When a trigger fires, the current default values are substituted in and the task is created. The run-now dialog — reachable from a row's **Run now** button or `⋯` menu on the list, **Run now** at the top of the routine page, or an API call — gives you a chance to override any variable for a single run without touching the routine definition. It also lets you override the assignee and project just for that run.
 
 Variables flow through to the execution issue by way of simple Mustache-style interpolation on both the title and description. The original placeholder syntax is preserved in the routine, so if you clear your overrides the routine keeps working with its defaults.
 
@@ -451,6 +474,8 @@ Two policies control what happens when schedules overlap or the scheduler has be
 - **Catch-up policy** — what to do about ticks that were missed while the routine or the scheduler was paused. Options: skip the missed windows, or catch up in capped batches.
 
 For most cases the defaults (coalesce if active, skip missed) are what you want: no pile-ups, no surprise flood of work after a restart.
+
+The routine page and its Edit dialog don't change these settings. Set them as `concurrencyPolicy` and `catchUpPolicy` through the [Routines API](../../reference/api/routines.md) or the [CLI](../../reference/cli/routine.md). When a routine uses something other than the defaults, its page lists it under **Run rules**.
 
 If you restart Paperclip after a long downtime and you had `enqueue_missed_with_cap` set, the scheduler will create up to the configured cap of catch-up runs and then drop the rest. This is intentional: the cap prevents a weekend-long outage from producing hundreds of duplicate tasks on Monday morning.
 

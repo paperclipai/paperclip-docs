@@ -30,13 +30,13 @@ This connector only searches. It returns results with links; it does not read a 
 
 - A Google Workspace account whose mail, files, calendar, and chat you are willing to make searchable.
 - Google Workspace Developer Preview registration for that account, confirmed by Google. Apply at [Google Workspace Developer Preview](https://developers.google.com/workspace/preview).
-- Without Paperclip Cloud enrollment, your own Google OAuth client with the **Gmail API**, **Drive API**, **Calendar API**, **Chat API**, and **Workspace MCP API** enabled — five APIs, more than any single-app connector needs. [Set up your own Google OAuth app](google-setup.md) is the complete procedure.
+- Your own Google OAuth client with the **Gmail API**, **Drive API**, **Calendar API**, **Chat API**, and **Workspace MCP API** enabled — five APIs, more than any single-app connector needs. [Set up your own Google OAuth app](google-setup.md) is the complete procedure. **Connect with Paperclip** is no longer offered for new Google Workspace Search setup, because its permissions are outside the 14 that Paperclip's Google app covers.
 
 ## Connect Google Workspace Search
 
 1. Open **Connectors** and select **Google Workspace Search**.
-2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity, narrow the agents, or use another sign-in method, select **Change**.
-3. Paperclip uses **Connect with Paperclip** when your instance offers it. To use your own client instead, select **Use your own Google OAuth app** and supply the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
+2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. To pick a different identity or narrow the agents, select **Change**.
+3. Supply the client ID and secret of your own Google OAuth app, from [Set up your own Google OAuth app](google-setup.md).
 4. Complete Google's consent screen with the registered Workspace account.
 
 One capability group, **Search Workspace**, requesting `gmail.readonly`, `drive.readonly`, `calendar.readonly`, and `chat.messages.readonly`. There is a single operation, `search_corpus`.
@@ -66,7 +66,8 @@ Expect a handful of results, each identifying its source app with a link. Compar
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
 | Google refuses before the consent screen | Developer Preview registration is incomplete | Finish registration and retry |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the search profile | Use your own Google OAuth app |
+| **Connect with Paperclip** is not offered | Paperclip's Google app no longer covers this connector's permissions | Use your own Google OAuth app |
+| Reconnecting a saved **Connect with Paperclip** connection is refused with *"Google Workspace Search can no longer be connected through Paperclip with these permissions. Connect Google Workspace, or set up Google Workspace Search with your own Google OAuth app."* | The same limit applies to saved connections when they sign in again | Set Google Workspace Search up with your own Google OAuth app, then remove the old connection |
 | Results only ever come from one app | The query matches in one corpus, or the account has little content in the others | Try a phrase you know appears elsewhere |
 | A result is found but the agent cannot read the whole item | Expected — this connector searches, it does not read | Add the relevant app connector |
 | You need a connection dedicated to Drive | This connection requests access across multiple Workspace services | Use [Google Drive](google-drive.md) and review its scopes and actions |

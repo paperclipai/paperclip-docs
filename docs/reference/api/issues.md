@@ -722,6 +722,8 @@ POST /api/companies/{companyId}/chats/{agentRef}
 | `GET .../chats/{agentRef}` | Returns the signed-in user's conversation with that agent, or `null` if there isn't one yet. Read-only — it never creates anything. |
 | `POST .../chats/{agentRef}` | Returns the existing conversation, or creates it. A new one is titled `Chat with <agent name>`, assigned to the agent, and starts `in_review` with `conversationState: "waiting"`. Creation is logged as `issue.conversation_opened`. |
 
+New chat conversations don't get a task number: their `identifier` is `null`, and creating one doesn't advance the company's task counter, so your regular tasks keep consecutive numbers. Chats created before this change keep the identifier they already had. If you rename an agent, any of its chats still titled `Chat with <old name>` are renamed to `Chat with <new name>`. A chat you've given a different title keeps it.
+
 `{agentRef}` accepts an agent ID or the agent's URL reference. Notes:
 
 - Only signed-in board users can call these routes; anything else gets `403` with `Board user access required`.
@@ -734,6 +736,22 @@ A comment whose trimmed body is exactly `/new` starts a fresh provider session w
 An agent can post into its chat from other task work with [`POST /api/agents/me/chat/messages`](agents.md#send-a-message-to-your-chat).
 
 Implementation reference: [conversation session boundaries](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/agent-conversations.ts) and [handoff completion delivery](https://github.com/paperclipai/paperclip/blob/a6306ba606eb87c89b9ef0344e9fe8e0025580f9/server/src/services/chat-completion-delivery.ts).
+
+### Onboarding chat
+
+When someone finishes setting up a new company, the app opens a chat with its first agent instead of creating a first task. Two routes drive that:
+
+```
+POST /api/companies/{companyId}/chats/{agentRef}/onboarding
+POST /api/companies/{companyId}/chats/{agentRef}/onboarding/greeting
+```
+
+| Route | What it does |
+|---|---|
+| `POST .../onboarding` | Returns your existing conversation with the agent, or creates it with the company's name, goals, and the idea you entered during setup as context. Opening it never starts work. Creation is logged as `issue.conversation_opened`. |
+| `POST .../onboarding/greeting` | Asks the agent for its welcome message (the app calls it once the chat is on screen) and returns `{ "started": true }` when it starts a welcome or one is already under way. It returns `{ "started": false }` once the chat has any comment (your reply, or the welcome itself), after you've sent `/new`, or when the chat isn't an onboarding chat. With no conversation yet, it returns `404` (`Conversation not found`). |
+
+Both are for signed-in board users only (`403` with `Board user access required` otherwise). An unknown agent, or a reference that matches more than one agent, returns `404` (`Agent not found`).
 
 ---
 
@@ -931,6 +949,42 @@ GET /api/issues/{issueId}/documents/{key}
 ```
 
 Return a single document by key.
+
+### Get One Document Across Many Issues
+
+```
+GET /api/companies/{companyId}/issue-documents?key=notes&issueIds={id1},{id2},...
+```
+
+Read the document with the same key from up to 200 issues in one request, instead of one request per issue. This suits a script or agent that keeps the same document, such as `notes`, on many tasks and needs to check them all.
+
+| Query parameter | Required | Meaning |
+|---|---|---|
+| `key` | Yes | The document key to read, such as `notes` or `plan`. |
+| `issueIds` | Yes | Comma-separated issue UUIDs, at most 200. Duplicates are ignored. |
+| `includeBody` | No | `true` (default) returns each document's current body. `false` returns only its metadata, such as `latestRevisionId`, `latestRevisionNumber`, and `updatedAt`. |
+
+The response keeps the order of `issueIds`:
+
+```json
+{
+  "key": "notes",
+  "items": [
+    { "issueId": "…", "document": { "key": "notes", "title": "…", "format": "markdown", "body": "…", "latestRevisionId": "…", "latestRevisionNumber": 4, "updatedAt": "…" } },
+    { "issueId": "…", "document": null }
+  ]
+}
+```
+
+Each document has the same fields as [Get Document By Key](#get-document-by-key), without `body` when `includeBody=false`. An issue that has no document with that key comes back with `"document": null`. An issue you can't read, or that doesn't exist, is left out of `items` entirely, so the response doesn't reveal it.
+
+To keep a large sync cheap, fetch with `includeBody=false` first, compare `latestRevisionId` with what you already have, and then fetch bodies only for the issues that changed. Don't rely on an issue's own `updatedAt` to tell you whether its document changed.
+
+Limits and errors:
+
+- A response larger than 8 MiB is refused with `413` and *Document batch exceeds 8 MiB; split issueIds into smaller requests or use includeBody=false*.
+- Each caller can have two of these reads running at once, and the server runs at most eight. Past that you get `429` with a `Retry-After: 1` header. Wait for an earlier read to finish, then try again.
+- Task bridge keys can't use this route and get `403`.
 
 ### Create Or Update Document
 

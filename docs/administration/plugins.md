@@ -179,6 +179,14 @@ If you disable or uninstall one of those plugins, the agents that rely on it can
 
 An environment plugin can also bring skills its agents need, such as instructions for a desktop or browser it provides. Agents using that environment get those skills automatically, and newly installed ones appear in your skill library with names starting `plugin-`. If an agent also has a company skill with the same name, the plugin's skill is used for the run and the run log notes which skill was skipped; nothing in your library or the agent's assignments changes.
 
+### Plugins that add connectors
+
+A plugin can add its own connector types to the **Connectors** catalog. Its manifest asks for the `connectors.provide` permission. You set these connectors up the same way as a built-in one: open **Connectors**, add a connection, and choose which agents get it. Enabling the plugin only adds its connector types to the catalog. No agent gets their tools until you connect one and install it for that agent or for the whole company. See [Connectors](../connectors.md).
+
+While the plugin is disabled, or in `error` or `upgrade_pending`, its connector types and connections disappear from **Connectors** and no agent can reach them. Their settings, credentials, and agent access are kept and come back when you re-enable it. Uninstalling the plugin removes its connections and the credentials they own.
+
+Older plugins that give agents tools directly now offer those tools as a connector named after the plugin. If such a plugin was already installed when your instance picked up this change, Paperclip gave it one connection for the whole company in each company, so your agents keep the tools they had. If you install one later, connect it on the **Connectors** page and install it for the agents that need its tools.
+
 ### Plugins that store your project's code
 
 A plugin can also take over where a project's repository lives. Instead of Paperclip keeping the code on its own disk and making each task's checkout there, the plugin keeps the project's storage — inside remote agent computers, for example — and prepares a checkout there for each task.

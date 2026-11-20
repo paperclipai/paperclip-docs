@@ -145,7 +145,11 @@ Getting a fresh sandbox for a run has its own limit: 180 seconds, or `timeoutMs`
 - **It's still preparing its snapshot** (`pending_build`, `building_snapshot`, or `pulling_snapshot`). The driver keeps waiting, within the 180-second limit.
 - **Anything else.** The attempt ends there, and the half-made sandbox is cleaned up as usual.
 
-A sandbox that ran out of time like this hasn't started any agent work, so Paperclip treats it as a temporary provider problem rather than a setup failure. The run ends with `environment_provider_unavailable` and retries by itself, after about 30 seconds and then after about 60 seconds. The task only offers **Retry** once those attempts are used up. See [Task can't reach its sandbox provider or remote Runner](../../how-to/debug-stuck-heartbeat.md#19-task-cant-reach-its-sandbox-provider-or-remote-runner).
+A sandbox that ran out of time like this hasn't started any agent work, so Paperclip treats it as a temporary provider problem rather than a setup failure. The run ends with `environment_provider_unavailable` and retries by itself, after about 30 seconds and then after about 60 seconds. If both fail, Paperclip keeps waiting for the provider instead of handing the task to you: it checks again after 1, 2, and then every 5 minutes, and the task reads *Waiting for "<environment name>" to come back. Paperclip continues this task automatically when it does.* Only one waiting task per environment checks the provider; the others carry on by themselves once it hands out sandboxes again. The task offers **Retry** only if the provider is still unavailable after 30 minutes. See [Task can't reach its sandbox provider or remote Runner](../../how-to/debug-stuck-heartbeat.md#19-task-cant-reach-its-sandbox-provider-or-remote-runner).
+
+The same automatic retries apply when the driver can't reach Daytona at all while getting a sandbox, for example after a dropped connection or a connection timeout. The run ends with `environment_provider_unavailable` instead of a setup failure, and the error message is still Daytona's own.
+
+They also apply when Daytona creates the sandbox but can't start it and puts it in its `error` state. The driver deletes that sandbox, and Paperclip tries again with a new one, since no agent work had started. A sandbox in `build_failed` is different: its snapshot build failed, and a new sandbox would fail the same way, so that stays a setup failure and isn't retried by itself.
 
 ### When the live log stream drops
 

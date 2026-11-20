@@ -88,17 +88,17 @@ It keeps the best few project matches and, when projects are showing, trims the 
 
 ## Recent tasks in the sidebar
 
-The palette isn't the only quick way back to a task. Whenever you open a task's detail page, Paperclip remembers it under a **Recent Tasks** heading near the bottom of the sidebar — so the handful of tasks you've been looking at stay one click away, no searching or scrolling the full Tasks list required.
+The palette isn't the only quick way back to a task. In the sidebar of the [Classic workspace](../../experimental/coordinator-workspace.md#use-the-classic-workspace-instead), the tasks you've been working on are listed under a **Recent Tasks** heading near the bottom, so they stay one click away, no searching or scrolling the full Tasks list required. (The standard [Coordinator workspace](../../experimental/coordinator-workspace.md) has its own **Recents** list instead.)
 
 A few things worth knowing:
 
-- It keeps your **five** most recently opened tasks for the current company, newest first. Open a sixth and the oldest drops off the list.
+- Opening a task's detail page moves it to the top of the list, newest first.
+- It only lists tasks you've taken part in yourself: ones you created, are assigned, have commented on or changed, or that are waiting on a request to you. Opening someone else's task just to read it doesn't add it, and neither does work that agents or routines did in your name.
 - The list is scoped to you and the company you're in, and it lives in your browser — so it follows the work *you've* personally been looking at rather than the whole team's.
+- A task you archive from your inbox leaves the list. Done and cancelled tasks stay.
+- Each task, subtask included, has its own row. A task with something new for you shows its title in bold with a small unread dot.
 - A task that's actively running shows a live indicator, the same signal you see elsewhere in the sidebar.
 - Hover a row (on a pointer device) and a **More actions** menu appears with quick actions: **Rename** the task, **Archive** it from your inbox, or **Pause/Restart** its work.
-- A task with subtasks shows its direct subtasks that you can read in a group right under it, ten at a time. Click **Show more (N)** for the next ones and **Show less** to go back to the first ten. Click the arrow at the right end of the task's row to fold the group down to a count such as *3 subtasks · 1 unread*. Subtask rows have the same **More actions** menu.
-- A task with something new for you shows its title in bold with a small unread dot. Folding a group or loading more subtasks doesn't mark anything as read.
-- If you've opened a subtask whose parent is also in the list, it sits inside the parent's group instead of on its own row. While the sidebar is collapsed, the list stays flat.
 
 ---
 

@@ -44,10 +44,14 @@ For anything that pushes code, a dedicated account is the better answer. Its act
 
 ### 3a. Managed path — authorize and choose repositories in GitHub
 
+Before you sign in, the setup screen explains that Paperclip connects through the **Paperclip for GitHub** app: you sign in to GitHub, then install the app on the account or organization that owns your repositories. An organization owner may need to approve the install.
+
 1. Select **Continue to GitHub** and authorize.
 2. On GitHub's installation screen, select the specific repositories the agent should reach. Avoid **All current and future repositories** unless that is genuinely the intent — Paperclip flags such an installation in the repository row, because it widens on its own as the organization grows.
 
 Back in Paperclip, the identity card shows **Accessible GitHub repositories**. To change the list later use **Add More Repos on GitHub** or **Configure access on GitHub**, then **Refresh access** so Paperclip re-reads the installation.
+
+If you sign in but the app isn't installed on any account you can use, setup says so and, when GitHub sends back the links, offers **Install Paperclip on GitHub** and **Manage repositories on GitHub** above the **Try again** button. Install the app, choose at least one repository, and try again.
 
 This branch is the only one that produces a durable identity for shell Git and `gh`.
 

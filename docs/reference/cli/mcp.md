@@ -7,7 +7,7 @@ seo_description: Authorize an assistant through browser device consent, then exp
 
 Use `mcp` to connect an assistant as your human Paperclip account. Device login works without a local browser callback listener; the proxy gives a stdio-only MCP client access to the authorized remote tools.
 
-Assistant connections are experimental and off by default. These commands require an authenticated instance with [Assistant connections (MCP)](../../experimental/assistant-connections.md) enabled.
+These commands need an authenticated instance. [Assistant connections (MCP)](../../experimental/assistant-connections.md) are always on, so there is no setting to enable first.
 
 ```sh
 paperclipai mcp login --device --url https://YOUR-PAPERCLIP-HOST/mcp/paperclip

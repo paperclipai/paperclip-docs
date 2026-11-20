@@ -194,6 +194,8 @@ paperclipai routine trigger:update <trigger-id> --payload-json '{"schedule": "0 
 |---|---|
 | `--payload-json <json>` | Fields to update as a JSON string. Required. |
 
+To test a live webhook again without starting the routine, send `{"setupPending": true}`. Deliveries are then only recorded as tests. Send `{"setupPending": false}` to go live again. See [Testing a live webhook again](../api/routines.md#testing-a-live-webhook-again).
+
 ### `routine trigger:delete`
 
 Remove a trigger from its routine.
