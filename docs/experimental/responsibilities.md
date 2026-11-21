@@ -16,7 +16,7 @@ You don't have to build it by hand. An agent can interview you, draft the whole 
 1. Go to **Settings → Experimental**.
 2. Turn on **Areas & Responsibilities dashboard**. Its card reads *"Replace the classic dashboard with one built around the areas you care about and the responsibilities you own in each. An agent can interview you to create it, and you can undo any change."*
 
-It's an instance-wide switch, and it gates the whole feature, not just the page. With it off, the responsibility pages send you to the classic dashboard and every responsibility API route answers `404 Not Found` with `Responsibilities are not enabled`. As the card says, *"Turning this off brings back the classic dashboard. Your areas and responsibilities are kept."*
+It's an instance-wide switch, and it gates the whole feature, not just the page. With it off, the responsibility pages send you to the classic dashboard and every responsibility API route answers `404 Not Found` with `Responsibilities are not enabled` and the code `responsibilities_disabled`. Agents can tell from that code that the feature is off, so they say so instead of telling you that you have no responsibilities. As the card says, *"Turning this off brings back the classic dashboard. Your areas and responsibilities are kept."*
 
 It's off by default on both Cloud and self-hosted instances. On a Cloud-managed instance the toggle can carry a **Managed by Paperclip Cloud** badge and be greyed out. See [If a toggle is locked](overview.md#if-a-toggle-is-locked).
 
@@ -54,7 +54,7 @@ Once your dashboard has something on it, the same place becomes a row below the 
 
 ### Reviewing proposed changes
 
-The agent never changes your dashboard itself. It sends a card headed *agent name* **proposes**, grouped by area: an area change (**New area**, **Rename area**, **Remove area**) sits next to the area's name as its heading, and the responsibility changes for that area are nested underneath, each labelled **New responsibility**, **Reword responsibility**, **Move responsibility**, or **Let go of responsibility**. A reworded line shows the old sentence struck through above the new one, and each change can carry the agent's reason. An area that already exists, with only responsibility changes, is marked **Existing area**.
+In these conversations the agent doesn't change your dashboard itself. It sends a card headed *agent name* **proposes**, grouped by area: an area change (**New area**, **Rename area**, **Remove area**) sits next to the area's name as its heading, and the responsibility changes for that area are nested underneath, each labelled **New responsibility**, **Reword responsibility**, **Move responsibility**, or **Let go of responsibility**. A reworded line shows the old sentence struck through above the new one, and each change can carry the agent's reason. An area that already exists, with only responsibility changes, is marked **Existing area**.
 
 - Click the **×** on any change to drop it. Dropping a new area drops everything filed under it, and choosing **Keep** on one of those brings the area back.
 - **Apply changes** applies what you kept.
@@ -64,7 +64,31 @@ The card shows up in the conversation and, while it waits, on your dashboard too
 
 ### Undo and versions
 
-Every applied change is saved as a version. Right after a change, the dashboard shows what changed with an **Undo** button. **Versions** opens **Previous versions**, newest first, with who made each one: you, the agent, or **Restored**. Click **Restore** on any earlier version to go back to it.
+Every applied change is saved as a version. Right after a change, the dashboard shows what changed with an **Undo** button. **Versions** opens **Previous versions**, newest first, with who made each one: you, the agent, or **Restored**. A change an agent made for you directly, without a card (see [Ask an agent to change it for you](#ask-an-agent-to-change-it-for-you)), reads *agent name*, **for you**. Click **Restore** on any earlier version to go back to it.
+
+## Agents that know your responsibilities
+
+When you chat with an agent about what you're responsible for, or ask it to map or check work against your responsibilities, it reads them from Paperclip first instead of asking you to list them. Agents on Paperclip Runner have three tools for this:
+
+| Tool | What it reads |
+| --- | --- |
+| `list_responsibilities` | Your areas, the responsibilities in each, and company work filed under no responsibility. |
+| `get_responsibility` | One responsibility in full: what's filed under it, its skills, and its latest status report. |
+| `find_responsibilities_for` | Where a project, task (such as `PAP-12`), routine, or skill is filed. |
+
+The agent reads the responsibilities of the person its run works for, which in your chat is you. It only asks you what you're responsible for when your list is empty.
+
+While this setting is off, the tools are hidden and the agent is told the feature is off. It tells you that rather than saying you have no responsibilities.
+
+### Ask an agent to change it for you
+
+You can also just ask: *"add a Hiring area"*, *"move the runway one under Fundraising"*, *"file the weekly report routine under it"*, *"let that one go"*. The agent makes the change with its change tools (`create_area`, `update_area`, `delete_area`, `create_responsibility`, `update_responsibility`, `delete_responsibility`, `file_under_responsibility`, and `remove_from_responsibility`), then tells you what it changed and that you can undo it.
+
+An agent acts for you this way only when you directed its run: it's your own chat or a task you made, or your message woke it. It can then do what you could: change your own responsibilities, or anyone's if you're a company owner or admin. In other runs, such as a task someone else made for you, a routine, or a subtask an agent made, it can only propose responsibilities and areas for you to confirm.
+
+- **Undo.** Each change is saved as a version in your dashboard history, so **Undo** and **Versions** work as they do for your own edits. Undo puts back titles, sentences, areas, order, status, what's filed, the description, and the agent that runs a responsibility. It puts back a bar's sentence, but not how the bar is measured or its readings; those stay in the metric history. Changes to responsibilities that are still proposed or that you let go aren't on your dashboard, so they can't be undone there, and neither can renaming an area that other people's responsibilities also use.
+- **Deleting needs your yes.** A delete is permanent, so the agent prefers archiving an area or letting a responsibility go. If it does need to delete, it first posts a confirmation card in the conversation and waits. It deletes only after you accept the card.
+- **Routines too.** The agent can list your routines with `list_routines` and change the ones you're responsible for with `update_routine`: the title, instructions, agent, project, status, priority, or schedule, which it sets in plain terms such as "every Monday at 9:00" rather than cron. Each routine change is saved as a revision you can restore from the routine's **Version history** (see [Routines](../guides/projects-workflow/routines.md#version-history-and-audit-log)). Changing who runs a routine needs you to be allowed to assign work, and so, on a routine the agent doesn't run itself, do turning it on and changing its schedule.
 
 ## A responsibility's page
 
@@ -82,6 +106,8 @@ Below the bar, the work is laid out in sections: **Routines**, **Skills**, **Pro
 
 You can only hand work to an agent under a responsibility you've confirmed. Ones an agent proposed for you need confirming first.
 
+**Skills** shows two kinds of skill together: company skills you filed here because the responsibility needs them, marked **Filed here**, and the skills held by the agents doing its work. Its **+** menu offers **Add existing skill**, **Remove from this responsibility** for the ones filed here, and **Give a skill to** an agent working on it, which opens that agent's skills. A skill an agent holds comes from that agent, so you can't remove it here.
+
 ## Routine offers on finished tasks
 
 With this setting on, an agent that finishes work that's likely to come round again, such as a weekly report or a daily check, can offer once to repeat it on a schedule. The offer appears in the task's conversation after the task is done, with the agent's message, the routine's title, and how often it would run. **Make it a routine** creates the routine with that agent running it, in the task's project and filed under the same responsibilities, on your local time zone. **No thanks** declines it. Agents don't make offers for tasks a routine created, for the onboarding task, or for work that was cancelled.
@@ -89,7 +115,7 @@ With this setting on, an agent that finishes work that's likely to come round ag
 ## Caveats
 
 - This is experimental. The page layout, labels, and how agents draft dashboards may change between releases.
-- Responsibilities belong to one person. You manage your own; company owners and admins, and instance admins, can manage anyone's. Areas have no owner, so any board user with write access to the company can rename or archive one.
+- Responsibilities belong to one person. You manage your own; company owners and admins, and instance admins, can manage anyone's. Areas have no owner, so any board user with write access to the company can rename or archive one. An agent acting for you can do the same.
 - Turning the setting off hides the feature but keeps your data, so turning it back on brings your dashboard back as you left it.
 
 ## Where to go next

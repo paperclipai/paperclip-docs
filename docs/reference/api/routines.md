@@ -42,7 +42,21 @@ You cannot have an `active` routine without an assignee agent. If you try to cre
 GET /api/companies/{companyId}/routines
 ```
 
-Returns all routines for the company, newest updates first.
+Returns the company's routines, newest updates first.
+
+You can narrow the list with these optional query parameters:
+
+| Parameter | What it keeps |
+|---|---|
+| `projectId` | Routines in this project. |
+| `q` | Routines whose title or description contains this text, ignoring case. |
+| `status` | Routines with this status, such as `active`. |
+| `assigneeAgentId` | Routines this agent runs. |
+| `responsibleUserId` | Routines this person is responsible for. |
+| `responsibilityId` | Routines filed under this responsibility, directly or through their project. |
+| `unfiled=true` | Routines filed under no proposed or active responsibility, directly or through their project. |
+
+`responsibilityId` and `unfiled` read filed work, which is part of the experimental [Areas & Responsibilities](../../experimental/responsibilities.md) dashboard. While that setting is off, they return `404` with code `responsibilities_disabled`.
 
 Each list item includes:
 
@@ -266,9 +280,8 @@ All create fields are updatable. You can also send `responsibleUserId` to change
 
 Agent access is narrower than board access:
 
-- an agent can only update routines assigned to itself
-- an agent cannot reassign a routine to a different agent
-- if an agent tries to enable a routine for someone else, the API rejects it
+- an agent can update routines assigned to itself, and routines the person its run acts for is responsible for (see [Agent Access Rules](#agent-access-rules))
+- changing who runs it needs that person to have `tasks:assign`, and so, on a routine it doesn't run, do turning it on and changing its schedule; otherwise the API returns `403`
 
 You can use this endpoint to:
 
@@ -278,6 +291,16 @@ You can use this endpoint to:
 - adjust variables or priority
 - turn the activity gate on or off
 - transfer the routine to another person with `responsibleUserId`
+
+### Replace the schedule in the same change
+
+Send `schedule` to change when the routine runs in the same update and revision as its other fields:
+
+```json
+{ "schedule": { "cronExpression": "0 9 * * 1", "timezone": "Europe/Berlin" }, "baseRevisionId": "<latest-revision-id>" }
+```
+
+The routine ends up with one enabled schedule trigger at that time; any other schedule triggers are turned off, and webhook and other triggers are left alone. `"schedule": null` turns every schedule off. Without a `timezone`, the routine keeps its current schedule's zone, or else uses the responsible person's saved time zone. If it has neither, the request fails with `422` (`Name a time zone for this schedule: the routine has no schedule yet and its person has no time zone saved`).
 
 ### Variables a plugin environment sets itself
 
@@ -890,20 +913,23 @@ In the UI, **History** on the routine page lists the execution issues the routin
 
 ## Agent Access Rules
 
-Agents can read routines in their company, but they can only manage routines assigned to themselves.
+Agents can read routines in their company. They can create routines assigned to themselves, and manage routines assigned to themselves or routines the person their run acts for is responsible for. An agent acts for a person when that person directed its run: it's their own chat or a task they made, or their message woke it. Managing any other routine gets `403` (`Agents can only manage routines assigned to themselves, or routines the person they work for is responsible for`).
 
 | Operation | Agent | Board |
 |---|---:|---:|
 | List routines | ✅ | ✅ |
 | Get routine details | ✅ | ✅ |
 | Create routine | ✅ own only | ✅ |
-| Update routine | ✅ own only | ✅ |
-| Add trigger | ✅ own only | ✅ |
-| Update trigger | ✅ own only | ✅ |
-| Delete trigger | ✅ own only | ✅ |
-| Rotate trigger secret | ✅ own only | ✅ |
-| Manual run | ✅ own only | ✅ |
+| Update routine | ✅ own, or its person's | ✅ |
+| Add trigger | ✅ own, or its person's | ✅ |
+| Update trigger | ✅ own, or its person's | ✅ |
+| Delete trigger | ✅ own, or its person's | ✅ |
+| Rotate trigger secret | ✅ own, or its person's | ✅ |
+| Restore revision | ✅ own, or its person's | ✅ |
+| Manual run | ✅ own, or its person's | ✅ |
 | Fire public trigger | ✅ if the HTTP signature matches | ✅ |
+
+Changing who runs a routine (taking it over or handing it on) always needs the person the agent acts for to have `tasks:assign`, as it would for a person. On a routine the agent doesn't run, so do turning it on, changing its schedule, adding, changing, or deleting a trigger, restoring a revision, and starting a run. Otherwise the agent gets `403` (`Agents can change who runs a routine, turn it on or change its schedule only on routines they run, unless the person they act for may assign tasks`). An agent can only restore a revision in which it runs the routine itself; any other gets `403` (`Agents can only restore routine revisions assigned to themselves`). An agent's change is a routine revision the person can restore, and the `routine.updated` activity entry records `onBehalfOfUserId`.
 
 Board operators need `tasks:assign` permission for actions that assign work to agents other than themselves.
 

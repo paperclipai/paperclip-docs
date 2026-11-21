@@ -1,13 +1,13 @@
 ---
 seo_title: GitHub Copilot Agents in Paperclip
-seo_description: Run agents on your GitHub Copilot plan. Save a Copilot token through the GitHub connector, pick a model, and test the runtime before you assign any work.
+seo_description: Run agents on your GitHub Copilot plan. Save a Copilot token on the GitHub Copilot connector, pick a model, and test the runtime before you assign work.
 ---
 
 # GitHub Copilot
 
 You can run Paperclip agents on your GitHub Copilot subscription. You save a GitHub token once as an AI connection, pick a Copilot model, and Paperclip runs the agent on **Paperclip Runner** with a packaged Copilot runtime.
 
-A Copilot connection is model access, not a set of tools. It lets an agent think and work with Copilot models. It does **not** give the agent your repositories. Repository and MCP access come from the regular [GitHub connector](github.md), which is a separate connection with its own grants.
+A Copilot connection is model access, not a set of tools. It lets an agent think and work with Copilot models. It does **not** give the agent your repositories. Repository and MCP access come from the regular [GitHub connector](github.md), which is a separate card on the **Connectors** page and a separate connection with its own grants.
 
 ## Before you connect
 
@@ -23,12 +23,14 @@ First-run setup doesn't offer Copilot. The **Model source** tiles there are only
 
 ### From Connectors
 
-1. Open **Connectors** and find **GitHub**.
-2. Select **Connect Copilot**. This is separate from the GitHub repository connection on the same row.
+1. Open **Connectors** and find **GitHub Copilot**. It's its own card, separate from **GitHub**.
+2. Select **Connect**. If you've already saved a Copilot account, the button reads **Add account**.
 3. Paste your token and choose the **Execution environment** Paperclip should use to check it.
 4. Save the connection.
 
 Paperclip stores the token in its encrypted credential store. It's never readable afterwards.
+
+Your saved Copilot accounts are listed on the **GitHub Copilot** card, including accounts you saved back when Copilot was set up from the **GitHub** card. An older setup link that still points at GitHub's Copilot method opens the GitHub Copilot setup instead.
 
 ### Who can use the connection
 

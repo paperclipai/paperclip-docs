@@ -5,13 +5,13 @@ seo_description: Routes behind the experimental Areas & Responsibilities dashboa
 
 # Responsibilities
 
-A **responsibility** is one thing a person owns, written as a sentence of what must be true ("Every customer question gets an answer within a day"). It can carry a **bar** (how success is measured), it sits in an **area** (Fundraising, Hiring), and the projects, tasks, and routines that keep it on track are **linked** under it. These routes power the experimental [Areas & Responsibilities](../../experimental/responsibilities.md) dashboard.
+A **responsibility** is one thing a person owns, written as a sentence of what must be true ("Every customer question gets an answer within a day"). It can carry a **bar** (how success is measured), it sits in an **area** (Fundraising, Hiring), and the projects, tasks, routines, and company skills that keep it on track are **linked** under it. These routes power the experimental [Areas & Responsibilities](../../experimental/responsibilities.md) dashboard.
 
-Much of the feature works through conversations. A person opens a task with an agent (to draft their dashboard, set a bar, or turn a task into an automation), the agent posts a proposal into that task, and the person accepts or declines it. Agents never apply these changes themselves.
+Much of the feature works through conversations. A person opens a task with an agent (to draft their dashboard, set a bar, or turn a task into an automation), the agent posts a proposal into that task, and the person accepts or declines it. An agent can also change a person's areas and responsibilities directly when it acts for that person (see [Agents acting for a person](#agents-acting-for-a-person)); most such changes are saved as a dashboard version the person can undo.
 
 If you're new to the API, read the [API Overview](./overview.md) first for the base URL, authentication, and error conventions.
 
-> **Experimental — off by default.** Every route on this page checks the instance setting `enableResponsibilities`. While it's off, they respond `404 Not Found` with `{ "error": "Responsibilities are not enabled" }` (the routine-offer routes say `Routine suggestions are not enabled`). It's an instance-wide switch that gates the API as well as the UI. Treat the shapes below as subject to change between releases.
+> **Experimental — off by default.** Every route on this page checks the instance setting `enableResponsibilities`. While it's off, they respond `404 Not Found` with `{ "error": "Responsibilities are not enabled", "code": "responsibilities_disabled", "remediation": "..." }` (the routine-offer routes say `Routine suggestions are not enabled`). The code tells "turned off" apart from "nothing there". It's an instance-wide switch that gates the API as well as the UI. Treat the shapes below as subject to change between releases.
 
 ---
 
@@ -19,9 +19,9 @@ If you're new to the API, read the [API Overview](./overview.md) first for the b
 
 - **Reading** needs company access, as a board user or an agent. Agents must also pass the company-scope read check; low-trust agents get `403` (`Responsibilities are outside this agent's authorization boundary`). Rollups and work lists only include projects and tasks the caller can read.
 - **Changing a responsibility**, for board users, is limited to the person who owns it, a company owner or admin, or an instance admin. Anyone else gets `403` (`Only the person who owns this responsibility, or a company admin, can change it`).
-- **Agents** can propose responsibilities and areas, file work under a responsibility that is `proposed` or `active`, record readings when they work under it, and write its status. They can't delete a responsibility or change an area.
+- **Agents** can propose responsibilities and areas, file work under a responsibility that is `proposed` or `active`, record readings when they work under it, and write its status. An agent acting for a person can do more: see [Agents acting for a person](#agents-acting-for-a-person).
 - **Handing work to an agent** (delegating, starting a conversation, accepting an automation or routine) also needs the `tasks:assign` permission.
-- **Whose data:** routes that read "a person's" responsibilities take `?ownerUserId=`. Board users default to themselves; agents must name the person or get `422` (`ownerUserId is required: name the person whose responsibilities to read`).
+- **Whose data:** routes that read "a person's" responsibilities take `?ownerUserId=`. Board users default to themselves. On the list, create, summary, automation, and dashboard routes, agents default to the person their run works for; a run that works for no person must name one or gets `422` (on the list, `ownerUserId is required: this run works for no person, so name the person whose responsibilities to read`). The status-report routes still need agents to name the person.
 
 ---
 
@@ -33,17 +33,19 @@ If you're new to the API, read the [API Overview](./overview.md) first for the b
 | `POST` | `/api/companies/{companyId}/responsibilities` | Create one. Returns `201`. |
 | `GET` | `/api/responsibilities/{id}` | One responsibility with the projects, tasks, routines, and artifacts under it. |
 | `PATCH` | `/api/responsibilities/{id}` | Update it: title, bar, area, status, health override, and so on. |
-| `DELETE` | `/api/responsibilities/{id}` | Delete it. Board only. The linked projects, tasks, and routines stay. |
-| `POST` | `/api/responsibilities/{id}/links` | File a project, task, or routine under it. Send exactly one of `projectId`, `issueId`, or `routineId`. `201` when a new link is made, `200` when it already existed. |
+| `DELETE` | `/api/responsibilities/{id}` | Delete it permanently. A board user who manages the owner, or an agent acting for one with `?confirmationId=` (see [Deleting needs a confirmation card](#deleting-needs-a-confirmation-card)). The linked items stay. |
+| `POST` | `/api/responsibilities/{id}/links` | File a project, task, routine, or company skill under it. Send exactly one of `projectId`, `issueId`, `routineId`, or `skillId` (a skill you can see). `201` when a new link is made, `200` when it already existed. |
 | `DELETE` | `/api/responsibilities/{id}/links/{linkId}` | Remove a link. |
+| `POST` | `/api/responsibilities/{id}/file` | File up to 50 items in one step: `{ "items": [{ "kind": "project" \| "task" \| "routine" \| "skill", "id": "..." }], "moveFrom"?: "<responsibility-id>" \| "all" }`. With `moveFrom` the items also leave that responsibility, or with `all` every other proposed or active one of the same owner. Returns `{ filed: [{ link, created }], unfiled: [...] }`. |
+| `POST` | `/api/responsibilities/{id}/unfile` | Unfile items by kind and id, with no link IDs needed: `{ "items": [...] }`. Items not filed here are skipped. Returns `{ unfiled: [...] }`. |
 | `POST` | `/api/responsibilities/{id}/delegate` | Create a task for an agent under this responsibility. Board only. |
-| `GET` | `/api/companies/{companyId}/responsibility-links/lookup` | Which responsibilities a project, task, or routine is filed under. Pass exactly one of `issueId`, `projectId`, or `routineId`. Returns `{ "responsibilities": [...] }`. |
+| `GET` | `/api/companies/{companyId}/responsibility-links/lookup` | Which responsibilities a project, task, routine, or skill is filed under. Pass exactly one of `issueId`, `projectId`, `routineId`, or `skillId`. Returns `{ "responsibilities": [...] }`. |
 
 ### Creating
 
-A person can send just a `title`; the responsibility is saved with no bar and reads as not measured until one is set. Once you send any metric field, the whole bar is required: `standard` (the bar as a sentence), `metricName` (what's measured), and the inputs its template needs. Other fields: `description`, `areaId`, `runByAgentId` (the agent that runs the work), `evidence`, `sortOrder`, and, for board callers, `status` and `source`.
+A person can send just a `title`; the responsibility is saved with no bar and reads as not measured until one is set. Once you send any metric field, the whole bar is required: `standard` (the bar as a sentence), `metricName` (what's measured), and the inputs its template needs. Other fields: `description`, `areaId` or `areaTitle` (not both; `areaTitle` reuses the area with that title or creates it), `runByAgentId` (the agent that runs the work), `evidence`, `sortOrder`, and, for board callers, `status` and `source`.
 
-`ownerUserId` defaults to you. Only a company admin can create one for someone else, who must be a company member. An agent always proposes: it must send `ownerUserId` and the full bar, and what it creates is `proposed` with source `onboarding`.
+`ownerUserId` defaults to you. Only a company admin can create one for someone else, who must be a company member. An agent acting for a person creates what that person could: a title is enough, and it's `active` by default. Any other agent only proposes: it must send the full bar, and what it creates is `proposed` with source `onboarding`. An agent's retry reuses a live responsibility with the same title instead of making a copy.
 
 | Field | Values |
 |---|---|
@@ -55,7 +57,7 @@ A person can send just a `title`; the responsibility is saved with no bar and re
 
 ### Updating
 
-`PATCH` takes the same fields (except `ownerUserId` and `source`) plus `healthOverride` (`behind`, `at_risk`, `on_track`, or `null` to clear it) and `healthNote`. Changing `metricKind` clears inputs the new template doesn't use. On an active responsibility, an agent may send `metricCurrent` on its own when it runs the responsibility or is assigned a task or routine under it.
+`PATCH` takes the same fields (except `ownerUserId` and `source`, and with `areaId` or `areaTitle`) plus `healthOverride` (`behind`, `at_risk`, `on_track`, or `null` to clear it) and `healthNote`. Changing `metricKind` clears inputs the new template doesn't use. An agent acting for a person may change every field, as that person could. Other agents may edit only responsibilities that are still proposed; on an active one they may send `metricCurrent` on its own when they run the responsibility or are assigned a task or routine under it.
 
 Health is worked out from the bar's reading, not from the work under it. For volume and percentage bars, Paperclip compares the reading with the target (inverted for `at_most`): `on_track` when it meets the target, `at_risk` from 75% of the way there, and `behind` below that. A responsibility with no metric, target, or reading yet is `not_measured`.
 
@@ -72,14 +74,28 @@ POST /api/responsibilities/{id}/delegate
 
 ## Areas
 
-Areas have no owner: any board user with access to the company manages them, and an agent can only propose one.
+Areas have no owner: any board user with access to the company manages them, and so can an agent acting for a member of the company. Any other agent can only propose one.
 
 | Method | Path | What it does |
 |---|---|---|
 | `GET` | `/api/companies/{companyId}/responsibility-areas` | List areas. Add `?includeArchived=true` to include archived ones. |
-| `POST` | `/api/companies/{companyId}/responsibility-areas` | Create one: `title`, optional `description` and `sortOrder`, and for board callers `status` (`proposed` or `active`) and `source`. `201` when created, `200` when an existing area is returned instead. Agents always create `proposed`. |
-| `PATCH` | `/api/responsibility-areas/{id}` | Rename, describe, reorder, or change `status` (`proposed`, `active`, `archived`). Board only. |
-| `DELETE` | `/api/responsibility-areas/{id}` | Delete it. Board only. |
+| `POST` | `/api/companies/{companyId}/responsibility-areas` | Create one: `title`, optional `description` and `sortOrder`, and for board callers `status` (`proposed` or `active`) and `source`. `201` when created, `200` when an existing area is returned instead. An agent acting for a member of the company creates what that person could; any other agent always creates `proposed`. |
+| `PATCH` | `/api/responsibility-areas/{id}` | Rename, describe, reorder, or change `status` (`proposed`, `active`, `archived`). A board user, or an agent acting for a member of the company. |
+| `DELETE` | `/api/responsibility-areas/{id}` | Delete it permanently. Its responsibilities move to `?moveResponsibilitiesTo=` (an area that isn't archived), or are left with no area. A board user, or an agent acting for a member with `?confirmationId=`. Returns the area with `movedResponsibilities`. |
+
+---
+
+## Agents acting for a person
+
+An agent's run can work for a person. When that person **directed** the run, the agent acts for them: the run is their own chat or a task they made, or their message woke it. A run that works for a person for another reason, such as a task someone else named them responsible for, a routine, the company default, or a subtask an agent made, doesn't borrow that person's rights.
+
+An agent acting for a person may do what that person could: manage their own responsibilities, or anyone's when they're a company owner or admin, and manage areas. Where a route needs this (unfiling, moving with `moveFrom`, deleting, and changing or deleting an area), an agent that doesn't act for such a person gets `403`, with a message ending `An agent acts for a person only in that person's own chat or task, or when their message woke the run.`
+
+Each change it makes, other than deleting a responsibility, is saved, in the same transaction, as a version of the dashboards it changes, under the agent's name. The response names the version in the `X-Paperclip-Dashboard-Version` header, and `X-Paperclip-Dashboard-Owner` says whose history holds it. The headers are only set when a version was saved. Only active responsibilities and their areas are on a dashboard, so changes to proposed or let-go ones save no version. Neither does a change Undo couldn't reverse on an area other people's responsibilities also use, such as renaming it. Restoring a version puts back a bar's `standard` sentence, but not its metric settings or readings. The activity entry records `onBehalfOfUserId`.
+
+### Deleting needs a confirmation card
+
+A delete can't be undone, so an agent first posts a `request_confirmation` card with a custom target key, `responsibility-delete:<id>` or `responsibility-area-delete:<id>`. Once it's accepted, on the card or by a reply in the chat, the agent sends the card's id as `confirmationId`. For a responsibility, the person who accepts must be able to manage its owner; for an area, any active member of the company. The card must be one this agent posted. Without an accepted card the delete fails with `403` and code `responsibility_delete_confirmation_required`.
 
 ---
 

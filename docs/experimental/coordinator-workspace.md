@@ -102,10 +102,11 @@ Documents an agent writes or links don't take over the thread. They show up as c
 **My work** — the same personal triage views described in [The Inbox](../guides/day-to-day/issues.md#the-inbox), with their bold unread titles, keyboard shortcuts, grouping, and saved columns:
 
 - **Mine** — tasks assigned to you or waiting on you. Archive and undo work here, including swipe-to-archive on a phone.
-- **Unread** — tasks you touched with new activity.
+- **Unread** — tasks you touched with new activity. You can archive and undo here too.
 - **Blocked** — blocked tasks, grouped by blocker. See [Blocked Inbox](../guides/day-to-day/blocked-inbox.md).
 - **Recent** — everything you touched lately.
 - **Everything** — tasks, approvals, failed runs, and join requests.
+- **Archived** — tasks you archived for yourself. Click **Restore from archive** on a row to bring one back.
 
 **Organization** — the company's task list:
 
@@ -120,6 +121,8 @@ The first time you open **Tasks**, you start on **All tasks**. After that, Paper
 A link can choose the view for you. A link that names a view opens that view, and a link that filters the company's tasks opens **All tasks** unless it names an organization view. Either way, that view becomes the one Paperclip remembers. An older link to the Inbox, such as `/inbox/mine` or `/inbox/blocked`, opens the matching view on Tasks and keeps the rest of its address.
 
 In the organization views you can search, filter, and switch between list and board. The list shows the most recently updated tasks first until you choose another sort, and no column header is highlighted until you do. Status, assignee, and label filters and your sort are kept in the page address, so you can reload or share a filtered list. In **All tasks**, a matching subtask also shows its parent tasks for context once they're loaded. **Needs attention** lists only the tasks with a decision waiting.
+
+Outside **Needs attention**, task rows in the list have an archive button too. It archives the task for you only: the task leaves your Mine and Unread views but stays in **All tasks** and its status views. A **Task archived** notice offers **Undo**, and **Archived** lists everything you've archived. See [Archive](../guides/day-to-day/issues.md#archive).
 
 The **Assignee** column shows each agent's avatar or person's profile picture beside the name, and unassigned rows have none. Your columns and their order are remembered per person and company.
 

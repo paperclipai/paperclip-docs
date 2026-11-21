@@ -6,14 +6,14 @@ seo_description: Two separate GitHub setups: repository tools for agents, or peo
 
 # GitHub
 
-GitHub supports repository tools, GitHub Copilot model access, and an experimental chat/review bot in Paperclip. Repository tools and Copilot share the **GitHub** entry on the **Connectors** page: the row's main button (**Connect** or **Add key**) for repositories, and **Connect Copilot** for Copilot. The bot is its own entry, **GitHub Code Review Bot**. Choose the one for the work you want to do.
+GitHub supports repository tools, GitHub Copilot model access, and an experimental chat/review bot in Paperclip. Each has its own entry on the **Connectors** page: **GitHub** for repositories, issues, and pull requests (its main button is **Connect** or **Add key**), **GitHub Copilot** for running agents on your Copilot plan, and **GitHub Code Review Bot** for the bot. Choose the one for the work you want to do.
 
 ## Which do you want?
 
 | If you want | Set up | What it gives you |
 | --- | --- | --- |
 | Agents to read and act on repositories as part of their own work | **GitHub** → **Connect** or **Add key** | GitHub actions an agent can call, and for a managed identity the credential the run's shell uses |
-| Agents to run on your GitHub Copilot plan | **GitHub** → **Connect Copilot** | An AI connection holding a Copilot token. It gives model access only, no repository access. See [GitHub Copilot](github-copilot.md) |
+| Agents to run on your GitHub Copilot plan | **GitHub Copilot** → **Connect** | An AI connection holding a Copilot token. It gives model access only, no repository access. See [GitHub Copilot](github-copilot.md) |
 | People to start work from GitHub, or an agent to review PRs | **GitHub Code Review Bot** | A bot App assigned to one agent, with task-bound review tools and PR checks when enabled |
 
 A personal GitHub connection does not create a bot App. Use [GitHub connector setup](github-setup.md) for regular repository tools, or [Set up a GitHub review bot](github-review-bot-setup.md) for the experimental chat journey. Read [Understanding GitHub PR review bots](understanding-github-review-bots.md) to distinguish installation, triggers, and merge requirements.

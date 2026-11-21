@@ -456,7 +456,9 @@ POST /api/companies/{companyId}/tools/apps/{connectionId}/finish
 GET  /api/companies/{companyId}/tools/apps/attention
 ```
 
-`preflight` returns the metadata Paperclip needs to render the connect screen for a gallery app before you commit to it — pass an optional `methodKey` query to preview one specific auth method. `connect` creates the application, the connection, and the catalog in one step, and responds `201 Created`. If the app authenticates with OAuth, the response's `auth` block comes back with a `startUrl` you send the person to. `finish` then decides `access` and, from it, builds the profile, its entries, its bindings, and the ask-first policies — the response tells you how many of each it made.
+`preflight` returns the metadata Paperclip needs to render the connect screen for a gallery app before you commit to it — pass an optional `methodKey` query to preview one specific auth method. `connect` creates the application, the connection, and the catalog in one step, and responds `201 Created`. If the app authenticates with OAuth, the response's `auth` block comes back with a `startUrl` you send the person to.
+
+Send `saveDraft: true` to `connect` to save the connection as a `draft` without contacting the provider yet. It's accepted for remote MCP connectors and for methods whose credentials Paperclip makes per connection, such as the AWS role method; any other method gets a validation error, *"Draft saving requires a remote MCP connector or a method with minted credentials"*. The response has an empty `catalog`. Call `connect` again with `resumeConnectionId` set to the draft's ID to finish it. For an AWS role draft, Paperclip drops any `roleArn` you send with the draft; send it in `configValues` on the resume call instead, so a role ARN is only kept once AWS has accepted it. `finish` then decides `access` and, from it, builds the profile, its entries, its bindings, and the ask-first policies — the response tells you how many of each it made.
 
 The `attention` route is the one to poll on a dashboard: it lists apps that need a human — a broken health check, an expired credential, newly appeared tools nobody has reviewed.
 
@@ -518,6 +520,7 @@ GET    /api/tool-connections/{connectionId}/profile-configuration
 GET    /api/tool-connections/{connectionId}/stored-content
 POST   /api/tool-connections/{connectionId}/stored-content/deletion
 GET    /api/tool-connections/{connectionId}/stored-content/deletion
+GET    /api/tool-connections/{connectionId}/aws-setup
 ```
 
 `POST .../tools/connections` creates tool connections only. A `connectionPurpose` other than `tool` returns `422` with `Only tool connections can be created here`, and a `transport` of `chat_sdk` or `voice` returns `422` with `Chat and voice connections cannot be created here`. Neither writes anything. If you leave out `transportConfig`, the connection stores `config` there.
@@ -540,6 +543,33 @@ PUT /api/tool-connections/{connectionId}/installs
 The `PUT` replaces the whole install set. If the company-wide install stays as it is, the check is `agents:configure` for each agent involved, and you must already have access to the connection. Adding or removing the company-wide install needs `tools:manage_profiles` and `tools:manage_connections` instead. An agent calling this route always needs both of those keys.
 
 Saving the install set gives the connection's app profile only to newly added targets. Targets that stay installed keep their current profile assignments, so a profile you removed from an agent stays removed. Removing a target and adding it back counts as a new install.
+
+#### AWS role setup
+
+An AWS role connection (method `aws-role`) needs a role in AWS that trusts that one connection. Once you've saved it as a draft (see `saveDraft` in [Wiring up an App](#wiring-up-an-app)), this route tells you what to create:
+
+```
+GET /api/tool-connections/{connectionId}/aws-setup
+GET /api/tool-connections/{connectionId}/aws-setup?accessLevel=full
+```
+
+It needs `connections:configure` for the connection and never returns a secret. The optional `accessLevel` query (`read_only` or `full`) sets up for an access level you haven't saved yet, such as one changed while reconnecting; without it, the saved access level is used.
+
+When the instance can serve the role method, the `200` response has `available: true` and:
+
+| Field | What it is |
+| --- | --- |
+| `issuer`, `audience`, `subject` | The company's identity provider address, `sts.amazonaws.com`, and `connection:<connectionId>` |
+| `providerHost` | The issuer without `https://`, as IAM uses it in the trust condition keys |
+| `roleName` | The role to create, `paperclip-<connectionId>` |
+| `savedRoleArn` | The saved role ARN on a finished connection when it's this connection's own `roleName` role, otherwise `null`. Drafts never have one |
+| `accessLevel` | `read_only` or `full` |
+| `trustPolicy` | The trust policy for setting it up by hand. `ACCOUNT_ID` stands for your AWS account ID |
+| `cloudFormationTemplate` | A JSON CloudFormation template that creates the identity provider (optional, through its `CreateIdentityProvider` parameter) and the role, with a `RoleArn` output. For `read_only`, its `AccessPolicyArn` parameter defaults to `ReadOnlyAccess`; for `full` it has no default |
+| `cloudFormationConsoleUrl` | The AWS console page for creating a stack |
+| `issuerPublished` | `true` once the company's signing key is published, so AWS can validate the issuer |
+
+Otherwise it answers `200` with `{ "available": false, "reason": "..." }`, where `reason` is `no_public_url`, `not_https`, `has_port`, `loopback`, or `address_changed` (the instance's address changed after the draft was saved; saving the draft again uses the current address). A connection that doesn't use an AWS role returns `422` with code `aws_role_setup_unavailable`. See [AWS](../../connectors/aws.md#connect-aws-with-a-role) for the setup in the app.
 
 #### Machine sign-in
 

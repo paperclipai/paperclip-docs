@@ -2,29 +2,29 @@
 
 _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the current cumulative manifest, not an append log._
 
-- **Window (cumulative):** base release tag `v2026.1117.0` (`c0f13289`, cut off master; merge-base with master `09e24dd1`) → parent master `70a43513` (@ 2026-11-19T09:50Z). 24h quarantine applied (cutoff 2026-11-19T11:00Z). Master HEAD at run time was `fe0c4aa9`.
-- **Increment:** `ca34aca7..70a43513`, 143 first-parent commits, 1,647 files (diffed in a fresh local bare clone, so no compare-API truncation).
-- **Already on nightly:** drafts for `d69631b0..ca34aca7` (through #202), re-anchored on the `v2026.1117.0` release by `eacf02e`.
+- **Window (cumulative):** base release tag `v2026.1117.0` (`c0f13289`, cut off master; merge-base with master `09e24dd1`) → parent master `fe0c4aa9` (@ 2026-11-20T10:34Z). 24h quarantine applied (cutoff 2026-11-20T11:00Z). Master HEAD at run time was `1b1861c2`.
+- **Increment:** `70a43513..fe0c4aa9`, 32 first-parent commits, 290 files (203 non-test), diffed in the local bare clone.
+- **Already on nightly:** drafts for `d69631b0..70a43513` (through #204), re-anchored on the `v2026.1117.0` release by `eacf02e`.
 - **Merge of `main` into `nightly`:** nothing to merge (`main` has no commits that `nightly` lacks).
-- **Authoring:** seven cluster agents, then one agent for the edits they needed in each other's files. All reads at the pin only (`/tmp/pc-70a43513`, a worktree detached at `70a43513`).
-- **Verification:** `verify-edit` at the pin: 0 unverified records on added lines (the env-var records on `environment-variables.md` and the adapter-config records are the known fragments on old lines). Three exhaustive review rounds then checked every added line against the pin: round 1 (four reviewers, ~725 claims) fixed 37 defects, round 2 (four fresh reviewers on reshuffled pages, ~710 claims) fixed 17 more, and round 3 (four fresh reviewers, ~780 claims) fixed 8 more (AWS key-error messages, Google Workspace Search **Change** wording, chat identifiers, responsibility version pruning, storage conversion scope, plugin agent-grant wording). Nothing was run against a live instance.
-- **Drift:** one item at the start of the run, now fixed: `connectors/circleback.md` linked `server/src/services/connectors/circleback/risk.ts`, which #22004 folded into `packages/shared/src/app-definitions/circleback.json` (`reviewedTools`). `check-drift` against `70a43513` now reports 0 (`source: snapshot`, no warnings).
-- **Auto-merge tier:** empty. The new environment variables are Cloud-fleet PostHog settings, documented as prose (PR tier) on the env-var page; the others in the diff are internal or TypeScript constants (see below).
-- **New pages:** `connectors/aws.md` (Connector Catalog), `experimental/responsibilities.md` (Experimental), `reference/api/responsibilities.md` (API Reference).
+- **Upcoming stable:** `ce8006de` (#22372) adds stable notes for `v2026.1123.0` (from the `2026.1120.0-beta.0` soak). It isn't tagged yet, so this is still a nightly run; the next run after the tag is release mode.
+- **Authoring:** three cluster agents (connectors, Areas & Responsibilities, tasks and GitHub), plus the plugin SDK restart path by hand. All reads at the pin only (`/tmp/pc-fe0c4aa9`, a worktree detached at `fe0c4aa9`).
+- **Verification:** `verify-edit` at the pin: 0 unverified records on added lines (the 10 `adapter-config` records on `paperclip-runner.md` are the known fragments on old lines). Exhaustive review: round 1 (three fresh reviewers, ~300 claims, every added line) fixed 12 defects; round 2 (one fresh reviewer on the responsibility and routine pages, where round 1 found 8 of the 12, ~110 claims) fixed 4 more (bar sentences restored by Undo, the routine 403 wording, agent revision restores limited to revisions that assign the agent itself). Nothing was run against a live instance.
+- **Drift:** `check-drift` against `fe0c4aa9` reports 0 (`source: snapshot`, no warnings).
+- **Auto-merge tier:** empty. No new environment variables, CLI commands or adapters in the increment.
+- **New pages:** none.
 
-## Applied this run (`ca34aca7..70a43513`)
+## Applied this run (`70a43513..fe0c4aa9`)
 
-- **Areas & Responsibilities dashboard** (#22069, #22180), experimental `enableResponsibilities`: new guide and API pages (45 routes), the dashboard callout, routine offers in the `paperclip` skill, and the new `heartbeat` ("standing check") routine trigger (`experimental/responsibilities.md`, `api/responsibilities.md`, `day-to-day/dashboard.md`, `reference/skills.md`, `api/routines.md`, `projects-workflow/routines.md`, `experimental/overview.md`).
-- **Onboarding starts in chat** (#22077, #22102): **Get started** opens the CEO chat, onboarding creates no task or project, the composer reads *Work with <agent>*, onboarding chat routes, chats keep their titles when an agent is renamed (`your-first-company.md`, `agent-chat.md`, `watching-agents-work.md`, `task-chat.md`, `hosted-beta.md`, `api/issues.md`, `org/skills.md`, `experimental/overview.md`).
-- **Redesigned routine page** (#22205, #22182, #22009, #22177): two-column page, Repeats/History/Edit dialog, list toolbar and saved views, testing a live webhook again, run rules now read-only in the UI (`projects-workflow/routines.md`, `create-a-daily-routine.md`, `api/routines.md`, `cli/routine.md`, `wire-slack-discord-notifications.md`).
-- **Sidebar Recents and pins** (#22219, #22251, #22264, #22024, #22055): Recents lists only your own tasks, pins, project task expander, no icon-rail collapse (`coordinator-workspace.md`, `command-palette.md`).
-- **Connectors:** AWS connector, experimental `enableAwsConnector` (#22195, #22083 workload identity issuer); Google managed sign-in limited to the 14 submitted scopes, data-use disclosure, removal ends access at Google (#22001, #21998, #22065, #22026); delete data read through a connection (#22010); plugin connectors (#22004, #22019, #22249, #22237, #22201); failed app sign-ins and GitHub app install (#22234); ChatGPT workspace (#22023); OpenRouter model search (#22034); Railway restricted environments (#22214); safe remote MCP errors and screened resource reads (#22025, 65eac248); identity across connection request handoffs (875e4d37).
-- **Assistant connections graduate** (#22015): always on, no toggle, removed as a prerequisite for Dot and Grok Bot; `paperclip_create_task` can assign a person or no one, new `paperclip_list_people`, 38 tools (#22011) (`assistant-connections.md`, `api/assistant-mcp.md`, `cli/mcp.md`, `settings.md`, `external-agents.md`, `paperclip-runner.md`).
-- **Tasks and recovery:** merged PR deliverables before Runner completion (#22244), cancel active subtasks (#22228), live usage-limit countdown in your time zone (#22225), held tasks show Blocked (#22215), Runner self-blockers (#22140), provider-outage waits with no Retry (#22139, #22194, #22128), rate limits with no reset (#22216), sandbox disk full (#22239, #22068), due automatic retries (#22306), low-trust monitor self-wake (#22212), bulk document reads (#22105), GitHub review steering and queued pushes (#22066, #22223), instruction history (#19515).
-- **Runner and adapters:** Claude Fable 5.2 and GPT-6.2 with CLI floors (#22222), Codex `0.170.0` and Agent SDK `0.3.328` pins (#22278), ACP refusals name fields (#22037), MCP bearer tokens out of process arguments (#22206), durable SSH task workspaces (#22078, #22063, #21957), Daytona retries (#22087), Runner restart on resume in the plugin SDK (#21976, #22288).
-- **Cloud analytics** (#22012, #22186, #22057, #22052, #22243, #22006, #22183, #22250, #22260): Cloud-only PostHog variables and proxy limits, consent banner and **Product analytics** switch, new lifecycle telemetry events and `failure_cause` (`environment-variables.md`, `hosted-beta.md`, `settings.md`).
+- **AWS role setup is guided** (#22233): the role method can now be finished in the app. **Connect** saves a draft, you hand the generated prompt to your own agent (or follow **Or do it by hand** with the per-connection CloudFormation template or IAM steps), paste back the role ARN, then **Test connection**. New `GET /tool-connections/{id}/aws-setup` route and `saveDraft` for credential-minting methods (`connectors/aws.md`, `api/tool-gateway.md`).
+- **GitHub Copilot is its own connector** (#22238): a separate **GitHub Copilot** card, the GitHub card keeps repository and MCP access only, saved Copilot accounts move to the new card, old setup links redirect (`connectors/github-copilot.md`, `github.md`, `github-setup.md`, `connectors.md`, `adapters/overview.md`, `adapters/paperclip-runner.md`).
+- **Agents work on your responsibilities** (#22253, #22261, #22274, #22275, migration `0499`), experimental `enableResponsibilities`: three read tools and eight change tools for the person a run works for, Undo from the dashboard versions (with its limits), a confirmation card before a permanent delete, `list_routines` / `update_routine` in plain terms, skills filed under a responsibility and `update_skill_details`; new `/file` and `/unfile` routes, `skillId` links, `areaTitle`, `moveResponsibilitiesTo`, the `responsibilities_disabled` code, and routine list filters and agent rules (`experimental/responsibilities.md`, `api/responsibilities.md`, `api/routines.md`, `projects-workflow/routines.md`, `reference/skills.md`).
+- **Tasks:** personal **Archive** / **Undo** on Unread and task rows and a new **Archived** view, `inboxArchive` and `isArchivedForMe` (#22358); agents can't move a recovery-held task out of Blocked (409) (#22245); recovery waits on a pending question, no per-task toast for provider-limit holds, the one-hour fallback no longer called a known reset (#22363) (`day-to-day/issues.md`, `coordinator-workspace.md`, `api/issues.md`, `org/agents.md`).
+- **GitHub:** merge checks for PR deliverables use the run's own GitHub identity, including a managed connection (#22357); a superseded automatic review ends with a clear stop (#22218) (`connect-agent-to-github.md`, `debug-stuck-heartbeat.md`, `understanding-github-review-bots.md`).
+- **Plugin SDK:** with `resumeIdentityVersion: 1`, a restart also relaunches a released task as the claiming run (#22343) (`plugins/sdk.md`).
 
 ## Applied in earlier runs (still on nightly, unreleased unless they shipped in `v2026.1117.0`)
+
+- `ca34aca7..70a43513` (#204): Areas & Responsibilities dashboard, onboarding starts in chat, redesigned routine page, sidebar Recents and pins, AWS connector, Google managed sign-in scopes, plugin connectors, assistant connections graduate, merged PR deliverables, usage-limit countdown, Fable 5.2 / GPT-6.2, Cloud analytics.
 
 - `27866014..ca34aca7` (#202): link status loading, DB session names, chat webhook allowlist, person-tier task trees, Coordinator Inbox badge, subtask fold arrow.
 
@@ -57,7 +57,6 @@ _Regenerated from scratch each run by `/sync-docs` (nightly mode). Reflects the 
 
 Everything after the `v2026.1106.0` tag is master-only, so release review must keep it off `main` until the matching stable release. Phase 5.7 handles that.
 
-
 Everything after the `v2026.1117.0` tag is master-only, so release review must keep it off `main` until the matching stable release. Phase 5.7 handles that.
 
 ## ↻ Reconcile
@@ -66,24 +65,24 @@ Everything after the `v2026.1117.0` tag is master-only, so release review must k
 
 ## Not documented this run
 
-- **Google Workspace REST tools** (#22000, #22014, #22016, #22017, #22027, #22028, #22029, 56023fe8): every service is set to `google_mcp` at the pin, so the REST transport, its result-size limit and the `update_event` destructive flag never apply yet.
-- **Cloud fleet internals:** online durable-data moves (#22051, #22240, #22263, #22270, #22294), tenant-sync request holds (#21997), customer-success inspection authority (#22005, `PAPERCLIP_CUSTOMER_SUCCESS_*`).
-- **Not operator settings:** `PAPERCLIP_LISTEN_PORT` (the server sets it itself), and `PAPERCLIP_CLOUD_GRANT_REVOCATION_OUTCOMES`, `PAPERCLIP_CORE_SKILL_KEYS`, `PAPERCLIP_PEER_MCP_PATH`, `PAPERCLIP_PEER_INSTRUCTIONS_TEMPLATE_ID` (TypeScript constants).
-- **GitHub star prompt** (#22031): not documented anywhere; this only narrows when it shows.
-- **Small fixes with nothing new to see:** unprefixed link forwarding (#22100), GitHub identity widgets in replies (#22217), responsive permission forms (#22008), Grok SSH skill copies (#22120), chat verification retry spacing (#22102).
-- **Internal recovery, native-runtime, Runner and wake-queue work** (#22046, #22096, #22101, #22118, #22248, #22106, #22043, #22213, #22207, #22209, #22267, #21584, #22210, #22235, #22088, #22064, #22091, #22190, #22054, #21947, #21887, #21499, #22039, #22266, #22268, #22272, #22273, #22276, #22277, #22279, #22280, #22282), plus restart-chaos, test, lockfile, CI, release-notes and plan docs.
-- **After the pin:** everything after 2026-11-19T11:00Z, including guided AWS role setup (#22233), responsibilities for a person (#22253, #22261, #22274, #22275) and the GitHub Copilot connector split (#22238).
+- **Telemetry `adapter_type`** (#22324): Runner agents now report their underlying harness; the docs don't list telemetry dimensions.
+- **Agent-facing error text:** closest-name hints for a mistyped assigned tool (#22327), a stable code for a failed Git context probe (#22093).
+- **Archive shortcuts** (#22358): the `e` / `u` keys in Tasks; no page lists inbox archive shortcuts.
+- **Internals:** plugin bundle description refresh (#22295), loop-limit continuation scheduling (#22312), Cloud run-evidence migration (#22337), tool-audit deadlock retry (#22329), runtime catalog scoping and cost measurement (#22356, #22347), OpenCode first-turn launch files (#22367), UI abort handling (#22090, #22380), late workspace hold settlement (#22387), wake-queue admission (#22289, #22290, #22292, #22332), plus CI, lockfile, release-notes and parent doc updates.
+- **After the pin:** everything after 2026-11-20T11:00Z.
 
 ## Open questions from this run
 
-- **AWS role method.** At the pin the setup screen can't finish a role connection (`saveDraft` is refused for non-remote-MCP connectors, and the role's trust has to name a connection that doesn't exist yet), so `connectors/aws.md` steers readers to **Access key**. #22233, after the pin, changes this; revisit next run.
+- **AWS access-key error message.** `mcp-credentials.ts` has *"AWS did not accept this connection's access key…"* (from the original AWS commit), but `connectors/aws.md` says a bad access key "doesn't get a message of its own". Which AWS step raises it wasn't confirmed; sentence left unchanged.
+- **`/file` and `/unfile` route descriptions** in the server's own API metadata list only `project | task | routine`, while the validator also accepts `skill`. The docs follow the validator.
+- **`reopen` on a blocked task.** `api/issues.md` says a `reopen` comment only has an effect on `done` or `cancelled` issues; the new hold check treats `reopen` / `resume` on a blocked task as a move to `todo`. The older line may be stale.
+- **Coordinator My work intro** says every view has inbox triage features; the new **Archived** view is a plain task list.
 - **Assistant connections page location.** The feature graduated, but the page still lives at `experimental/assistant-connections.md` under Experimental. Moving it needs a page move and a redirect; left for a human decision.
 - **Agents still told about old routine buttons.** The parent's agent guidance (`server/src/routes/openapi.ts` ~5610) still says **Generate new key** / **Edit webhook**, which the redesigned page no longer has; `routines.md` warns readers about it.
 - **Codex on remote Runner:** `codex-local/src/index.ts:129` falls back to `gpt-6.1-sol` / `gpt-6-astra` remotely because the Runner's pinned Codex CLI predates `0.169.1`. Not stated on the Codex page.
 - **`sync:check` screenshot gate fails** on six `connectors/paperclip-peer-*` screenshots (added with the release) that have no target in `scripts/screenshots/routes.mjs`. Pre-existing; the docs build and all `docs:test` gates pass.
 
 ## Follow-ups (pre-existing, not from this window)
-
 
 - `deploy/environment-variables.md` has no rows for the remote Runner variables (`PAPERCLIP_RUNNER_PUBLIC_URL`, `PAPERCLIP_RUNNER_CA_BUNDLE_PATH`, `PAPERCLIP_RUNNER_REMOTE_*`).
 - `deploy/environment-variables.md:28`: "`paperclip` otherwise" is loose; the private pools use their own names (explained on the database page).
