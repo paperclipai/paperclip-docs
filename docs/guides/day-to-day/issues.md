@@ -201,6 +201,8 @@ The issue is complete. Sending new work to an agent can reopen it; the completed
 **Blocked**
 The agent can't move forward. Something is preventing progress. Read the comment thread — the agent will have explained the blocker. Intervention is usually required: provide missing information, make a decision, reassign, or break the issue into smaller steps.
 
+When a recovery hold keeps a task in Blocked, for example because a failed run's work can't safely be replayed, the agent can't move it out of Blocked by itself until the hold is released. It can still cancel the task, or mark it done unless a review or approval step would send it to review instead, and it's told what has to happen first. You can still change the status or use **Retry**.
+
 **Cancelled**
 The issue is no longer needed and won't be completed. This is also a terminal state.
 
@@ -210,7 +212,7 @@ The issue is no longer needed and won't be completed. This is also a terminal st
 
 ## The Inbox
 
-Where you find these views depends on your workspace. In the standard [Coordinator workspace](../../experimental/coordinator-workspace.md#the-tasks-page), they're the **My work** views under **Tasks**: **Mine**, **Unread**, **Blocked**, **Recent**, and **Everything** (the **All** tab below). The **Inbox** entry in the Coordinator sidebar is something else: the decision feed.
+Where you find these views depends on your workspace. In the standard [Coordinator workspace](../../experimental/coordinator-workspace.md#the-tasks-page), they're the **My work** views under **Tasks**: **Mine**, **Unread**, **Blocked**, **Recent**, and **Everything** (the **All** tab below), plus **Archived** for tasks you've [archived](#archive). The **Inbox** entry in the Coordinator sidebar is something else: the decision feed.
 
 If you've opted in to the [Classic workspace](../../experimental/coordinator-workspace.md#use-the-classic-workspace-instead), they're tabs on a separate **Inbox** page. The experimental **Combined Inbox + Task List** option moves them into **Tasks → Views** there, and the unread badge moves to Tasks. See [An optional combined task list](../../experimental/task-chat.md#an-optional-combined-task-list).
 
@@ -237,7 +239,7 @@ The same rules decide your unread counts, the Inbox badge, and task notification
 
 Mine also shows failed agent runs — but only the ones you're responsible for, such as a run that started from your request. When an agent run fails for a teammate, it stays out of your Mine and out of the red failure count on the Inbox badge; you can still see it under **All** → **Failed runs** and in the run details. Only an agent's most recent run counts, so an old failure on a shared agent doesn't resurface once a newer run has gone through. On a local single-user board, older failed runs that aren't tied to anyone still show in Mine, since they can only be yours.
 
-A failed run that belongs to a task opens that task when you click it, and its row describes where the task stands now rather than the raw error: **Thinking** while a new attempt runs, *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* When the task is waiting on you, the row says what it needs instead, for example **Approval required**, **Reconnect account**, **Assign an agent**, **Choose a supported model**, **Work is paused**, or **Budget limit reached**. The **Retry** button only appears when retrying can help, and the row drops out once the task has recovered.
+A failed run that belongs to a task opens that task when you click it, and its row describes where the task stands now rather than the raw error: **Thinking** while a new attempt runs, *Trying again in …* while an automatic retry is lined up, or *Couldn’t finish this attempt. Your message is saved.* When the task is waiting on you, the row says what it needs instead, for example **Approval required**, **Respond to the pending question**, **Reconnect account**, **Assign an agent**, **Choose a supported model**, **Work is paused**, or **Budget limit reached**. While an agent's question is still waiting for your answer, the task itself reads *Respond to the pending question to continue.*, and recovery waits for your reply instead of repeatedly trying to continue the task. The **Retry** button only appears when retrying can help, and the row drops out once the task has recovered.
 
 **Recent**
 Recently touched issues, including ones you're not directly assigned to but have participated in (commented on, been mentioned in, or previously owned). Useful for keeping an eye on work that is adjacent to yours.
@@ -253,7 +255,14 @@ The firehose. Shows every inbox-eligible item in the company, with a **Category*
 
 ### Archive
 
-Items on the **Mine** tab can be archived inline via their archive button. Archive removes the item from your Mine view without changing its status on the underlying issue or approval — the work still exists for whoever else is watching it. Archive is only available on Mine; on other tabs the button is hidden.
+Archiving clears a task out of your personal lists. It's personal: it removes the item from your own **Mine** view, and in **Tasks** from **Unread** too, without changing its status on the underlying issue or approval, so the work still exists for whoever else is watching it.
+
+Where you can archive depends on your workspace:
+
+- **Coordinator workspace**, or Classic with **Combined Inbox + Task List**: use the archive button on a row in **Mine** or **Unread**, or on a task row in an organization view such as **All tasks**. Archived tasks still appear in **All tasks** and its status views. After you archive, a **Task archived** notice offers **Undo** for a few seconds.
+- **Classic Inbox**: archive is only available on **Mine**; on other tabs the button is hidden.
+
+To find a task you archived in the Coordinator workspace, or in Classic with **Combined Inbox + Task List**, open **Archived** from the **My work** views under **Tasks**. It lists only the tasks you've archived; in the Coordinator workspace, if there are none, it reads *No archived tasks*. Click a row's **Restore from archive** button to put the task back in your views. You don't always have to restore by hand: new activity on the task, such as a reply from someone else, can bring it back on its own.
 
 ### Mark all as read
 
@@ -283,7 +292,7 @@ All three controls persist per browser, so the view you set up stays the way you
 
 An unread task shows its title in bold, with no dot beside it. Approval, failed-run, and join-request rows use a small blue dot instead: click it to mark the row read, and it fades out.
 
-On Mine, a row that can be archived has an archive button.
+A row that can be archived has an archive button: on Mine in the Classic Inbox, and on Mine, Unread, and organization task rows (outside **Needs attention**) in the Coordinator or combined **Tasks** views. In **Archived**, the same slot holds **Restore from archive**.
 
 ---
 

@@ -132,6 +132,7 @@ Return all issues visible to a company, ordered by priority unless a search quer
 | `includeAgentCreatedTasks` | `true` or `false`. Send `false` to keep only tasks a person created through the normal task or onboarding flow; tasks created by an agent, with no creating user, or from another origin (including every chat-channel task) are left out. Omit it to keep the previous behaviour |
 | `includeParticipatedTasks` | `true` or `false`. Board users only. With `includeAgentCreatedTasks=false`, also keeps agent-created tasks the signed-in user has taken part in |
 | `includeReadState` | `true` or `false`. Board users only. Adds your own read state to each task, `isUnreadForMe`, `myLastTouchAt`, and `lastExternalCommentAt`, without filtering the list |
+| `inboxArchive` | `include` or `archived`. Board users only. `include` adds `isArchivedForMe` to each task without filtering the list; `archived` returns only the tasks you've currently archived. Can't be combined with `attention` |
 | `q` | Full-text search across title, identifier, description, and comments |
 | `limit` | Page size, a positive integer. Defaults to 500. A value above 1000 is treated as 1000 |
 | `offset` | How many tasks to skip, a non-negative integer. Defaults to `0` |
@@ -151,6 +152,7 @@ Notes:
 - `displayStatus` is matched against the computed display status, so `in_progress` matches only tasks currently displayed that way, leaving out agent tasks showing as `monitoring`, `blocked`, `in_review`, or `todo`, while `status=in_progress` still includes them. The `/issues/count` endpoint accepts `displayStatus` too.
 - `includeAgentCreatedTasks` and `includeParticipatedTasks` return `400` for any value other than `true` or `false`. `includeParticipatedTasks=true` from a non-board caller returns `403`. The agent-created filter is applied before `limit` and pagination. The board's **show agent-created tasks** checkbox drives it.
 - `includeReadState` returns `400` with `includeReadState must be true or false` for any other value, and `includeReadState=true` from a non-board caller returns `403` with `includeReadState requires board authentication`.
+- `inboxArchive` with any other value, or together with `attention`, returns `400` with `inboxArchive must be include or archived and cannot be used with attention`. From a caller that isn't a signed-in board user it returns `403` with `inboxArchive requires board authentication`. Whether a task still counts as archived for you follows the same activity rules as Mine, so new activity can bring an archived task back. The board's **Archived** view uses `inboxArchive=archived`.
 
 ### Page Through a Long List
 
@@ -439,6 +441,7 @@ Behavior to know:
 - Only board users can interrupt an active run from issue comments.
 - Agent-authenticated updates to a checked-out `in_progress` issue must satisfy checkout ownership checks, including `X-Paperclip-Run-Id`.
 - `hiddenAt` hides or unhides the issue from list responses.
+- An agent can't move a `blocked` task out of `blocked` while a recovery hold keeps it there. A status change, `reopen`, `resume`, or a `done` that a review or approval stage turns into `in_review` returns `409` with *"Issue stays blocked until its execution recovery hold is released."* followed by the hold's next action, and the task doesn't change. `details` carries `issueId`, `recoveryActionId`, `cause`, and `nextAction`. The agent can still move the task to `done` or `cancelled`, and board users aren't affected.
 - While a native Runner run holds the task, the assigned agent can't change the task's status itself. A status change from that run (keeping the same assignee) returns `409` with code `native_run_status_reported_by_finish`. The run reports its outcome with `paperclip_finish` or `paperclip_block` instead, and Paperclip sets the status from that report. The same check applies when the run resolves a recovery action with a `sourceIssueStatus`. Conversation tasks are exempt.
 - An agent's `parentId` change follows the [agent task depth limit](#agent-task-depth-limit), and the response reports any adjustment in `parentAdjusted`.
 - `visibility` switches the issue between `open` and `private`. An agent that can update the task may make it `private`; any other change needs someone who can manage the task's privacy (see [Privacy and access grants](#privacy-and-access-grants)). Making a task public fails with `422` while it inherits privacy from a parent or a shared private project (`A task cannot be made public while it inherits private access`, `Move this task out of its private project before making it public`). In a personal private project, making the task public moves it out of that project instead. Existing private children stay private.
@@ -573,6 +576,7 @@ Rules:
 - The issue must match one of the expected statuses, otherwise the server returns `409 Conflict`.
 - If the project is paused, checkout is rejected with `409 Conflict`.
 - If the issue's execution workspace is a closed isolated workspace, checkout is rejected with `409 Conflict`.
+- If `expectedStatuses` includes `blocked` and a recovery hold keeps the task blocked, an agent's checkout is rejected with `409 Conflict`, the same refusal described under [Update Issue](#update-issue).
 - If the same agent already owns the task, checkout is idempotent.
 - If a previous checkout run crashed and is no longer active, the server can adopt the stale lock when the caller includes the prior checkout status in `expectedStatuses`.
 
@@ -797,6 +801,7 @@ Behavior to know:
 
 - `interrupt` only works for board users.
 - `reopen` only has an effect when the issue is `done` or `cancelled`.
+- On a `blocked` task held by a recovery hold, an agent comment that would move the task to `todo`, for example with `reopen` or `resume`, returns `409` with the same refusal as [Update Issue](#update-issue), and the comment isn't saved. Post the comment without `reopen` or `resume` instead.
 - `@mentions` in the comment body are context only. They don't wake the mentioned agent.
 - Comments are accepted on open and closed issues.
 
@@ -1720,7 +1725,7 @@ Send the usual [Retry](#retry-a-task) body with `"retryAction": "move_forward"`.
 |---|---|
 | `state` | `working`, `retry_scheduled`, `failed`, `waiting_for_user`, or `resolved` |
 | `responsibility` | `system` when Paperclip owns the repair, `user` when a person needs to act |
-| `userAction` | For `waiting_for_user`: `approval`, `reconnect`, `assign_agent`, `choose_model`, `resume`, `budget`, `project_access`, `confirm_owner_stop`, or `confirm_run_stopped` (see [Confirm a run stopped](#confirm-a-run-stopped)). Otherwise `null`. |
+| `userAction` | For `waiting_for_user`: `approval`, `question`, `reconnect`, `assign_agent`, `choose_model`, `resume`, `budget`, `project_access`, `confirm_owner_stop`, `confirm_run_stopped` (see [Confirm a run stopped](#confirm-a-run-stopped)), or `unblock` when a blocked task's own blocker needs a person. Otherwise `null`. |
 | `rejectedModel` | With `userAction: "choose_model"`, the configured model ID the provider rejected. Left out for every other stop. |
 | `nextRetryAt` | When the next automatic attempt is due, for `retry_scheduled`. This includes a Paperclip Runner run that's resuming by itself after a restart. |
 | `retryAction` | `move_forward` when the task is continuing by itself but its next run has waited at least 15 minutes. `canRetry` is then `true` and the UI offers **Move it forward now** instead of **Retry**. Left out otherwise. |

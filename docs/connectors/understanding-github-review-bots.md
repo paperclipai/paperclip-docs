@@ -314,6 +314,15 @@ waits, and it starts the next turn, ahead of any automatic continuation of a
 review that stopped on a blocker. That way the next review is bound to the
 newest commit rather than to the one the stopped review started on.
 
+An automatic review is only allowed to review the commit it was started for. If
+the PR has moved on to a newer commit by the time the agent uses its review
+tools, the review is superseded and the tools refuse it. The refusal names both
+commits, says whether a newer automatic review for the new commit is already
+queued on the task, and tells the agent to stop: *"Stop this review: do not call
+review tools again and do not post the review as an ordinary comment."* When no
+newer review is queued, it adds that an authorized person can request a manual
+review. The refusal is final for that run, so retrying it won't help.
+
 A complete assessment has to cover every changed file in the PR that isn't
 excluded, not only the files that changed since the last review. If the agent
 leaves some out, Paperclip refuses the submission and names up to 20 of the
