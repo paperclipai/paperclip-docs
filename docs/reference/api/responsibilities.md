@@ -11,7 +11,7 @@ Much of the feature works through conversations. A person opens a task with an a
 
 If you're new to the API, read the [API Overview](./overview.md) first for the base URL, authentication, and error conventions.
 
-> **Experimental — off by default.** Every route on this page checks the instance setting `enableResponsibilities`. While it's off, they respond `404 Not Found` with `{ "error": "Responsibilities are not enabled", "code": "responsibilities_disabled", "remediation": "..." }` (the routine-offer routes say `Routine suggestions are not enabled`). The code tells "turned off" apart from "nothing there". It's an instance-wide switch that gates the API as well as the UI. Treat the shapes below as subject to change between releases.
+> **Experimental — off by default.** Every route on this page checks the instance setting `enableResponsibilities`. While it's off, they respond `404 Not Found` with `{ "error": "Responsibilities are not enabled", "code": "responsibilities_disabled", "remediation": "..." }` (the routine-offer routes say `Routine suggestions are not enabled`, with no `code`). The code tells "turned off" apart from "nothing there". It's an instance-wide switch that gates the API as well as the UI. Treat the shapes below as subject to change between releases.
 
 ---
 
@@ -45,7 +45,7 @@ If you're new to the API, read the [API Overview](./overview.md) first for the b
 
 A person can send just a `title`; the responsibility is saved with no bar and reads as not measured until one is set. Once you send any metric field, the whole bar is required: `standard` (the bar as a sentence), `metricName` (what's measured), and the inputs its template needs. Other fields: `description`, `areaId` or `areaTitle` (not both; `areaTitle` reuses the area with that title or creates it), `runByAgentId` (the agent that runs the work), `evidence`, `sortOrder`, and, for board callers, `status` and `source`.
 
-`ownerUserId` defaults to you. Only a company admin can create one for someone else, who must be a company member. An agent acting for a person creates what that person could: a title is enough, and it's `active` by default. Any other agent only proposes: it must send the full bar, and what it creates is `proposed` with source `onboarding`. An agent's retry reuses a live responsibility with the same title instead of making a copy.
+`ownerUserId` defaults to you. Only a company admin can create one for someone else, who must be a company member. An agent acting for a person creates what that person could: a title is enough, and it's `active` by default. Any other agent only proposes: it must send the full bar, and what it creates is `proposed` with source `onboarding`. An agent's retry reuses a live responsibility with the same title instead of making a copy, and returns it with `200`.
 
 | Field | Values |
 |---|---|
@@ -89,9 +89,9 @@ Areas have no owner: any board user with access to the company manages them, and
 
 An agent's run can work for a person. When that person **directed** the run, the agent acts for them: the run is their own chat or a task they made, or their message woke it. A run that works for a person for another reason, such as a task someone else named them responsible for, a routine, the company default, or a subtask an agent made, doesn't borrow that person's rights.
 
-An agent acting for a person may do what that person could: manage their own responsibilities, or anyone's when they're a company owner or admin, and manage areas. Where a route needs this (unfiling, moving with `moveFrom`, deleting, and changing or deleting an area), an agent that doesn't act for such a person gets `403`, with a message ending `An agent acts for a person only in that person's own chat or task, or when their message woke the run.`
+An agent acting for a person may do what that person could: manage their own responsibilities, or anyone's when they're a company owner or admin, and manage areas. Where a route needs this (`/unfile`, moving with `moveFrom`, deleting, and changing or deleting an area), an agent that doesn't act for such a person gets `403`, with a message ending `An agent acts for a person only in that person's own chat or task, or when their message woke the run.`
 
-Each change it makes, other than deleting a responsibility, is saved, in the same transaction, as a version of the dashboards it changes, under the agent's name. The response names the version in the `X-Paperclip-Dashboard-Version` header, and `X-Paperclip-Dashboard-Owner` says whose history holds it. The headers are only set when a version was saved. Only active responsibilities and their areas are on a dashboard, so changes to proposed or let-go ones save no version. Neither does a change Undo couldn't reverse on an area other people's responsibilities also use, such as renaming it. Restoring a version puts back a bar's `standard` sentence, but not its metric settings or readings. The activity entry records `onBehalfOfUserId`.
+Each change it makes through the responsibility and area routes above, other than deleting a responsibility, is saved, in the same transaction, as a version of the dashboards it changes, under the agent's name. The response names the version in the `X-Paperclip-Dashboard-Version` header, and `X-Paperclip-Dashboard-Owner` says whose history holds it. The headers are only set when a version was saved. Only active responsibilities and their areas are on a dashboard, so changes to proposed or let-go ones save no version. Neither does a change Undo couldn't reverse on an area other people's responsibilities also use, such as renaming it. Restoring a version puts back a bar's `standard` sentence, but not its metric settings or readings. The activity entry records `onBehalfOfUserId`.
 
 ### Deleting needs a confirmation card
 

@@ -201,7 +201,7 @@ The issue is complete. Sending new work to an agent can reopen it; the completed
 **Blocked**
 The agent can't move forward. Something is preventing progress. Read the comment thread — the agent will have explained the blocker. Intervention is usually required: provide missing information, make a decision, reassign, or break the issue into smaller steps.
 
-When a recovery hold keeps a task in Blocked, for example because a failed run's work can't safely be replayed, the agent can't move it out of Blocked by itself until the hold is released. It can still close the task as done or cancelled, and it's told what has to happen first. You can still change the status or use **Retry**.
+When a recovery hold keeps a task in Blocked, for example because a failed run's work can't safely be replayed, the agent can't move it out of Blocked by itself until the hold is released. It can still cancel the task, or mark it done unless a review or approval step would send it to review instead, and it's told what has to happen first. You can still change the status or use **Retry**.
 
 **Cancelled**
 The issue is no longer needed and won't be completed. This is also a terminal state.
@@ -262,7 +262,7 @@ Where you can archive depends on your workspace:
 - **Coordinator workspace**, or Classic with **Combined Inbox + Task List**: use the archive button on a row in **Mine** or **Unread**, or on a task row in an organization view such as **All tasks**. Archived tasks still appear in **All tasks** and its status views. After you archive, a **Task archived** notice offers **Undo** for a few seconds.
 - **Classic Inbox**: archive is only available on **Mine**; on other tabs the button is hidden.
 
-To find a task you archived, open **Archived** from the **My work** views under **Tasks**. It lists only the tasks you've archived; in the Coordinator workspace, if there are none, it reads *No archived tasks*. Click a row's **Restore from archive** button to put the task back in your views. You don't always have to restore by hand: new activity on the task, such as a reply from someone else, can bring it back on its own.
+To find a task you archived in the Coordinator workspace, or in Classic with **Combined Inbox + Task List**, open **Archived** from the **My work** views under **Tasks**. It lists only the tasks you've archived; in the Coordinator workspace, if there are none, it reads *No archived tasks*. Click a row's **Restore from archive** button to put the task back in your views. You don't always have to restore by hand: new activity on the task, such as a reply from someone else, can bring it back on its own.
 
 ### Mark all as read
 
@@ -292,7 +292,7 @@ All three controls persist per browser, so the view you set up stays the way you
 
 An unread task shows its title in bold, with no dot beside it. Approval, failed-run, and join-request rows use a small blue dot instead: click it to mark the row read, and it fades out.
 
-A row that can be archived has an archive button: on Mine in the Classic Inbox, and on Mine, Unread, and organization task rows in **Tasks**. In **Archived**, the same slot holds **Restore from archive**.
+A row that can be archived has an archive button: on Mine in the Classic Inbox, and on Mine, Unread, and organization task rows (outside **Needs attention**) in the Coordinator or combined **Tasks** views. In **Archived**, the same slot holds **Restore from archive**.
 
 ---
 
