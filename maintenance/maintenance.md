@@ -202,6 +202,9 @@ Key invariant: **`base_release_tag` in `.sync-state.json` only changes on a succ
 
 #### Per-run flow
 
+> **This diagram shows the original design (May 2026).** Since November 2026 a run starts with `npm run sync:prepare`, works on the increment since the last pin from a local parent clone, reviews every added line in rounds, and lands on `nightly` without asking. The current steps are in `skills/sync-docs/nightly.md` and `release.md`; the diagram is kept for the reasoning behind the branch model, drift and quarantine.
+
+
 ```mermaid
 flowchart TD
     Start(["/sync-docs invocation"]) --> Pre
@@ -358,7 +361,7 @@ Both modes use **cumulative diffs** — always from `base_release_tag` in `.sync
 /sync-docs --release --batched
 ```
 
-Recommended cadence: `/loop 24h /sync-docs` for nightly. Release mode is auto-detected on the next run after a parent tag drops.
+Cadence: a daily scheduled task with the prompt `/sync-docs`. Release mode is auto-detected on the next run after a parent tag drops.
 
 ### Config files
 

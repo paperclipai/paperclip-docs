@@ -9,9 +9,9 @@
   "last_run_outcome": null,
   "$field_notes": {
     "branch_mode": "release on `main` branch, nightly on `nightly` branch.",
-    "base_release_tag": "The parent release tag this branch builds atop. Same on both branches — main has shipped this version live, nightly is accumulating drafts on top of it.",
-    "base_release_sha": "Parent commit SHA at base_release_tag. Used as the diff base for ALL runs (cumulative diff). Both modes diff `base_release_sha → target`.",
-    "last_seen_parent_sha": "Informational only — the parent main HEAD at the last nightly run. Lets us tell the user how many new commits exist. NOT used as a diff base.",
-    "last_applied_manifest_hash": "Hash of the manifest from the last applied run. Lets us detect when entries have DISAPPEARED from the cumulative diff (i.e. a revert landed) so we can flag previously-applied doc edits for reconciliation."
+    "base_release_tag": "The parent release tag this branch builds atop. Same on both branches \u2014 main has shipped this version live, nightly is accumulating drafts on top of it.",
+    "base_release_sha": "Parent commit SHA at base_release_tag. The release both branches build on; prepare.mjs uses it for the cumulative figures in PENDING.md.",
+    "last_seen_parent_sha": "The parent commit (quarantine pin) the last nightly run documented. The next nightly window starts here, so it must be an ancestor of the next pin.",
+    "last_applied_manifest_hash": "Fingerprint (sha256) of the last window's commit list, written from prepare.json's next_state."
   }
 }
