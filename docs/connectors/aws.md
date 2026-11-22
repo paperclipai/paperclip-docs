@@ -58,7 +58,7 @@ AWS can only trust a connection that already exists, so this method has two part
 
 1. Open **Connectors** and select **AWS**.
 2. Read the access line above the main button. It says which agents can use the connection. To narrow the agents or pick another method, select **Change**.
-3. Under **How do you want to connect?**, choose **AWS role (no stored keys)**.
+3. Make sure the method is **AWS role (no stored keys)**. The methods are listed under **How do you want to connect?** once you've selected **Change**.
 4. Pick the **AWS MCP endpoint region** and the **Access level**. There's no role ARN to enter yet, because the role doesn't exist until the next step. Leave **Access level** on **Read only** unless agents genuinely need to make changes. See [Choose access](#choose-access).
 5. Select **Connect**. Paperclip saves the connection without contacting AWS, and the screen says *"Paperclip saved this connection. Now create a role in your AWS account that trusts this connection only."*
 6. Create the role. The easiest way is to let an agent do it:
@@ -171,7 +171,7 @@ While you set up the role method, the AWS step can show one of these banners:
 | **Use an access key instead** | AWS can't reach this instance. The banner says why: *"This Paperclip instance has no public address, so AWS cannot reach it."*, *"This Paperclip instance is not served over HTTPS, which AWS requires."*, *"This Paperclip instance's address includes a port, which AWS does not allow."*, or *"This Paperclip instance runs on this computer only, so AWS cannot reach it."* | Select **Back** and choose **Access key** |
 | **Save the connection again** | *"This Paperclip instance’s address changed after this connection was saved, so AWS would be set up for the old address."* | Select **Back**, then **Connect**, so the draft is saved with the current address |
 | **Couldn’t load the AWS setup** | Paperclip couldn't fetch this connection's setup. The banner says why | Fix what it says, then open the setup again |
-| **AWS didn’t accept the connection yet** | **Test connection** failed. The banner shows one of the messages below | Fix what the message says, then select **Test connection** again |
+| **AWS didn’t accept the connection yet** | **Test connection** failed. The banner shows the reason. When the server reports an AWS connection problem, that's a plain-language message such as the ones below; any other failure shows Paperclip's usual error text | Fix what the message says, then select **Test connection** again |
 
 Paperclip never shows AWS's own error text, because it can contain account IDs and ARNs. Instead, the connection reports one of these:
 
@@ -200,7 +200,7 @@ The role method relies on a per-company workload identity issuer. Outside clouds
 | `GET` | `/oidc/companies/{companyId}/.well-known/openid-configuration` | The OIDC discovery document |
 | `GET` | `/oidc/companies/{companyId}/jwks.json` | The public key set (`ES256`, P-256) |
 
-Both answer `404` until the company has a signing key, which Paperclip creates the first time it signs a token for one of the company's connections, or when an AWS role connection is saved as a draft, which the setup screen does when you select **Connect**. A token is only signed for a connection that's switched on, or a draft still being set up. The discovery document is also `404` while the instance has no public HTTPS address, or its address has a port or is a loopback host. Responses can be cached for five minutes.
+Both answer `404` until the company has a signing key, which Paperclip creates the first time it signs a token for one of the company's connections, or when an AWS role connection is saved as a draft, which the setup screen does when you select **Connect**. A token is only signed for a connection that's switched on, or a draft still being set up. The discovery document is also `404` while the instance has no public HTTPS address, or its address has a port or is a loopback host. A successful response can be cached for five minutes, a `404` for one minute.
 
 The guided setup reads `GET /api/tool-connections/{connectionId}/aws-setup`, which returns the issuer, audience, subject, role name, trust policy, and CloudFormation template for one AWS role connection, and never a secret. To save the draft it starts from, the connect call sends `saveDraft: true`. [Tool gateway API](../reference/api/tool-gateway.md#aws-role-setup) has the details.
 
