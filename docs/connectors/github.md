@@ -6,7 +6,7 @@ seo_description: Two separate GitHub setups: repository tools for agents, or peo
 
 # GitHub
 
-GitHub supports repository tools, GitHub Copilot model access, and an experimental chat/review bot in Paperclip. Each has its own entry on the **Connectors** page: **GitHub** for repositories, issues, and pull requests (its main button is **Connect** or **Add key**), **GitHub Copilot** for running agents on your Copilot plan, and **GitHub Code Review Bot** for the bot. Choose the one for the work you want to do.
+GitHub supports repository tools, GitHub Copilot model access, and an experimental chat/review bot in Paperclip. Each has its own entry on the **Connectors** page: **GitHub** for repositories, issues, and pull requests, **GitHub Copilot** for running agents on your Copilot plan, and, once the experimental **GitHub review bots** setting is on, **GitHub Code Review Bot** for the bot. Choose the one for the work you want to do.
 
 ## Which do you want?
 

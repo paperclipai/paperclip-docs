@@ -237,7 +237,7 @@ To hand a routine to someone else, or adopt it yourself, open **Edit**, search u
 
 When an agent creates a routine, the responsible user is the person the agent is acting for. If there's no such person, Paperclip uses the parent task's responsible user or creator, then the company's default. The agent is still recorded as the routine's creator.
 
-You can also ask an agent to change the routines you're responsible for, in your chat or a task you made: *"move the weekly report to Monday at 9"*, *"pause the pricing check"*. It can change the title, instructions, agent, project, status, priority, and schedule, and it sets the schedule in plain terms, not cron. Each change is a new revision, so you can put it back from [Version history](#version-history-and-audit-log). Changing which agent runs it needs you to have permission to assign tasks, and so, on a routine the agent doesn't run, do turning it on and changing its schedule.
+You can also ask an agent to change the routines you're responsible for, in your chat or a task you made: *"move the weekly report to Monday at 9"*, *"pause the pricing check"*. It can change the title, instructions, agent, project, status, priority, and schedule. Each change is a new revision, which you can put back from [Version history](#version-history-and-audit-log) if you have permission to assign tasks. Changing which agent runs it needs you to have permission to assign tasks, and so, on a routine the agent doesn't run, do turning it on and changing its schedule.
 
 ### Editing a routine
 
