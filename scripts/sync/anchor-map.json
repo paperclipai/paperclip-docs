@@ -108,8 +108,11 @@
         "ui/src/**"
       ],
       "docs_paths": [
-        "docs/user-guides/**",
-        "docs/guides/**"
+        "docs/guides/**",
+        "docs/how-to/**",
+        "docs/administration/**",
+        "docs/connectors/**",
+        "docs/user-guides/**"
       ],
       "tier": "pr",
       "detect": "UI component changes that may invalidate screenshots or end-user-facing guide flows. Cross-reference with screenshot registry depends_on entries before writing doc edits."
@@ -121,10 +124,31 @@
       ],
       "docs_paths": [
         "docs/administration/**",
-        "docs/reference/api/**"
+        "docs/reference/api/**",
+        "docs/reference/deploy/**",
+        "docs/reference/adapters/**",
+        "docs/reference/plugins/**",
+        "docs/how-to/**",
+        "docs/guides/**"
       ],
       "tier": "pr",
       "detect": "Business logic changes that surface behavioural shifts users will notice (e.g. how agents interact, how approvals flow). Only produce doc edits when the change has user-visible effects, not pure refactors."
+    },
+    {
+      "name": "server-core",
+      "parent_paths": [
+        "server/src/middleware/**",
+        "server/src/lib/**",
+        "server/src/storage/**",
+        "server/src/*.ts"
+      ],
+      "docs_paths": [
+        "docs/administration/**",
+        "docs/reference/deploy/**",
+        "docs/reference/api/**"
+      ],
+      "tier": "pr",
+      "detect": "Server code outside routes, services and adapters: error handling, storage backends, startup and shared libraries. Produce doc edits only for effects a reader meets: a changed status code or error body an API caller sees, a storage or startup requirement an operator must meet. Error text is user-visible only if the UI renders it."
     },
     {
       "name": "server-adapters",
@@ -188,7 +212,7 @@
     "sandbox-providers": ["packages/plugins/sandbox-providers"]
   },
   "screenshot_registry": "docs/user-guides/screenshots/registry.json",
-  "quarantine_hours": 24,
+  "quarantine_hours": 48,
   "auto_merge_safety": {
     "max_files_changed": 1,
     "max_lines_changed": 50,
@@ -198,6 +222,6 @@
   },
   "$notes": {
     "no_skip_patterns": "We deliberately do NOT filter commits by message regex (e.g. ^revert, ^[codex]). The diff window is cumulative (last_release_tag → HEAD) so reverts are already net-zero in the manifest. Filtering by message would HIDE the undo signal — if we processed an original commit and then skipped its revert, docs would stay wrong forever. The proper filter is surface impact via watcher path globs.",
-    "quarantine_still_needed": "Quarantine handles the race where a feature lands but its revert hasn't yet. Without it, we'd churn doc edits that get undone the next day."
+    "quarantine_still_needed": "Quarantine handles the race where a feature lands but its revert hasn't yet. Without it, we'd churn doc edits that get undone the next day. Raised from 24 to 48 hours in November 2026: at 24 hours a feature was twice documented and then removed upstream within two days ('Work paused', per-project environments)."
   }
 }

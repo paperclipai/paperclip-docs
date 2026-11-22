@@ -1194,3 +1194,18 @@ export const CAPTURE_TARGETS = [
 export const STATIC_DIAGRAMS = new Set([
   "secrets/secret-scope-dispatch-flow",
 ]);
+
+// Screenshots captured by hand because the pipeline cannot stage them: the
+// seeded instance is a single local Paperclip, and these need two instances
+// talking to each other. They are still indexed in registry.json with a
+// `depends_on`, so /sync-docs flags them stale when the UI behind them
+// changes; recapturing them is a manual job. Keep this list short: anything a
+// single seeded instance can show belongs in CAPTURE_TARGETS.
+export const MANUAL_CAPTURES = new Set([
+  "connectors/paperclip-peer-receiver-address",
+  "connectors/paperclip-peer-paste-address",
+  "connectors/paperclip-peer-check-link",
+  "connectors/paperclip-peer-approve",
+  "connectors/paperclip-peer-connection",
+  "connectors/paperclip-peer-task-arrived",
+]);

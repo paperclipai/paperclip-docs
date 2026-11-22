@@ -3,7 +3,8 @@
 //
 // Asserts that every screenshot REFERENCED in docs/**/*.md is also:
 //   1. a CAPTURE_TARGET in scripts/screenshots/routes.mjs (so it is recaptured
-//      automatically), and
+//      automatically) — or listed in MANUAL_CAPTURES there, for the few shots
+//      a single seeded instance cannot stage — and
 //   2. indexed in docs/user-guides/screenshots/registry.json with a non-empty
 //      depends_on (so /sync-docs flags it stale when the underlying UI changes).
 //
@@ -20,7 +21,7 @@
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve, relative } from "node:path";
-import { CAPTURE_TARGETS, STATIC_DIAGRAMS } from "../screenshots/routes.mjs";
+import { CAPTURE_TARGETS, MANUAL_CAPTURES, STATIC_DIAGRAMS } from "../screenshots/routes.mjs";
 
 const ROOT = resolve(new URL("../..", import.meta.url).pathname);
 const DOCS = join(ROOT, "docs");
@@ -73,8 +74,10 @@ for (const file of walk(DOCS)) {
 
 const untracked = []; // referenced but not a capture target
 const unindexed = []; // is a target but no registry entry with depends_on (either theme)
+const manual = []; // hand-captured: must be indexed, cannot be a capture target
 for (const [name, info] of refs) {
-  if (!targetNames.has(name)) {
+  if (MANUAL_CAPTURES.has(name)) manual.push(name);
+  else if (!targetNames.has(name)) {
     untracked.push({ name, ...info });
     continue;
   }
@@ -84,9 +87,10 @@ for (const [name, info] of refs) {
 }
 
 if (JSON_OUT) {
-  console.log(JSON.stringify({ referenced: refs.size, untracked, unindexed }, null, 2));
+  console.log(JSON.stringify({ referenced: refs.size, manual, untracked, unindexed }, null, 2));
 } else {
   console.log(`verify-screenshots: ${refs.size} screenshots referenced in guide docs.`);
+  if (manual.length) console.log(`  ${manual.length} are hand-captured (MANUAL_CAPTURES): staleness is tracked, recapture is manual.`);
   if (untracked.length) {
     console.log(`\n✗ ${untracked.length} referenced screenshot(s) are NOT capture targets (will go stale silently):`);
     for (const u of untracked) console.log(`   - ${u.name}  (in ${u.doc})  → add a target in scripts/screenshots/routes.mjs`);

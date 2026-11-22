@@ -83,88 +83,48 @@ The **first** nightly run after seeding produces a large manifest — it has to 
 
 ## Daily operation
 
-Once `nightly` is seeded, set the recurring cadence:
+The sync runs once a day from a scheduled task whose prompt is `/sync-docs`. The run is unattended: nobody answers questions in the thread.
 
-```sh
-/loop 24h /sync-docs
-```
+**What a nightly run does** (`skills/sync-docs/nightly.md`)
 
-Or, for stricter wall-clock timing:
+- `npm run sync:prepare`: fetches, finds the quarantine pin (parent `master`, 48 hours behind), extracts the parent code at that commit, diffs the window since the last run, checks drift, lists stale screenshots.
+- Merges `main` into `nightly` if `main` has hot-fixes, resolving conflicts against the pinned code, and pushes that merge.
+- Writes the doc changes on a `nightly-draft/<pin>-<slug>` branch.
+- Reviews every added line against the pinned code with fresh reviewer agents, in rounds, until a round finds nothing wrong (`skills/sync-docs/review.md`). A claim that cannot be proven is cut and logged in `PENDING.md`.
+- `npm run sync:gates`: build, every `docs:test` gate, links, nav, screenshots, duplicated blocks, identifiers on added lines, drift.
+- Pushes, opens the PR against `nightly`, waits for CI, squash-merges, deletes the branch.
 
-```sh
-/schedule "0 6 * * *" /sync-docs
-```
+**What to expect each day**
 
-`/loop` is an *interval* (24 hours from the last completion). `/schedule` is a *cron* (e.g. every day at 06:00). Pick one.
+- A merged PR on `nightly` titled `Nightly docs: … (paperclip <sha>)`, or a one-line "nothing to do".
+- A summary in the run's thread (and as a notification): pages changed, defects fixed per review round, claims cut, open questions.
+- If the run could not finish, the summary starts with `SYNC FAILED:` and says what a human has to do. See `skills/sync-docs/troubleshooting.md`.
 
-**What the skill does each run**
+A second scheduled task ("next-day audit") re-checks the previous day's merged diff against its pin and reports how many statements were wrong, overstated or unproven. That number is how to tell whether the review loop is holding up.
 
-- Self-checks preconditions: `gh auth`, working tree clean, JSON files parse, parent default branch resolves.
-- Auto-detects mode: nightly unless a parent release tag newer than `base_release_tag` exists.
-- Produces commits (auto-merge tier) or opens PRs (PR tier) per the [Per-run flow](#per-run-flow) diagram above.
-- Regenerates `PENDING.md` and `SCREENSHOTS_PENDING.md`.
-- **Always asks before pushing.** Per local convention, the skill never `git push`es without explicit confirmation.
-
-**What to expect each morning**
-
-- New commit or draft PR on `nightly` if the parent had user-facing changes overnight.
-- `PENDING.md` updated to reflect cumulative backlog from `base_release_tag` to parent HEAD.
-- `SCREENSHOTS_PENDING.md` updated if any `depends_on` parent paths moved.
-- Possibly drift / verification / reconcile flags in the run summary — see [Review workflow](#review-workflow--what-to-do-when-flags-fire).
-
-When the skill stops because something needs your attention, jump to that subsection.
+**What the run may do without asking** is listed in `skills/sync-docs/SKILL.md`. In short: everything on `nightly-draft/*` and `nightly`, nothing on `main`.
 
 ## Release ceremony
 
-When a new parent release tag drops (`v2026.X.Y`):
+When a new stable parent tag appears, the next daily run detects it and switches to release mode (`skills/sync-docs/release.md`). Or start it by hand: `/sync-docs --release`.
 
-1. Run `/sync-docs --release` (or wait — the next daily run auto-detects it).
-2. The skill diffs `base_release_tag → new_tag`, applies any still-missing edits, and opens a PR titled `Release docs for paperclip v2026.X.Y` that merges `nightly` → `main`.
-3. **Review the PR.** Pay particular attention to:
-   - Drift / verification / reconcile flags in the PR body.
-   - Voice quality of any newly-authored pages — these go live on `docs.paperclip.ing` the moment you merge.
-   - Frontmatter `paperclip_version` correctly stamped on changed pages.
-4. Merge to `main` when satisfied.
-5. **After merge — four follow-ups:**
-   - Confirm the merge commit was tagged. The `Tag docs release` workflow does this automatically on the push to `main`, reading the version from the squash commit's subject — so keep the PR title `Release docs for paperclip v2026.X.Y`:
-     ```sh
-     git checkout main && git pull --tags
-     git rev-parse --short docs/v2026.X.Y   # should print the squash commit
-     ```
-     If it's missing, check the workflow run, then tag by hand: `git tag docs/v2026.X.Y <squash-sha> && git push origin docs/v2026.X.Y`.
-   - Verify `.sync-state.json` on `main` now shows `base_release_tag: v2026.X.Y` and `base_release_sha` matches.
-   - **Confirm the site actually rebuilt — don't assume.** Cloudflare Pages is supposed to auto-deploy on push to `main`, but that hook has silently no-opped (v2026.824.0 merged with a correct changelog entry and production served the previous build for hours). Check the live site, not the Pages dashboard:
+1. The run cuts `release/<tag>` from the nightly commit `sync:prepare` names (never nightly HEAD), removes content that is not in the tag, ports corrections, reviews everything against the tag, stamps pages, writes the changelog entry, and opens a PR titled `Release docs for paperclip <tag>` against `main`.
+2. **It stops there and waits for you.** Review the PR: the "Post-tag content removed" and "Review" sections say what was taken out and how the review went.
+3. Approve (a message in the thread, or an approving review). The run then:
+   - squash-merges the PR;
+   - checks the `docs/<tag>` tag was created by the `Tag docs release` workflow, and tags by hand if not;
+   - runs `npm run sync:realign -- release/<tag>`, which ports the release's corrections to `nightly` and records `main` as merged, then resolves what the script lists and pushes `nightly`;
+   - checks `docs.paperclip.ing` is serving the release (a new page returns 200, the changelog's top entry is the new tag).
+4. If production is still on the previous release after 15 minutes, the run reports `SYNC FAILED: release merged but not live`. Republish by hand:
 
-     ```sh
-     curl -s https://docs.paperclip.ing/reference/changelog/ | grep -o 'Docs for v[0-9.]*' | head -1
-     curl -s -o /dev/null -w '%{http_code}\n' https://docs.paperclip.ing/<a-page-new-in-this-release>/
-     ```
+   ```sh
+   npm run docs:build
+   npx wrangler pages deploy .site --project-name paperclip-docs --branch main
+   ```
 
-     Expect the tag you just shipped, and `200`. If either is wrong, republish by hand:
+Release-branch commits carry a prefix (`quarantine:`, `port:`, `fix:`, `changelog:`, `stamp:`, `state:`). The realign reads it to decide what goes back to `nightly`; see the table in `skills/sync-docs/release.md`.
 
-     ```sh
-     npm run docs:build
-     npx wrangler pages deploy .site --project-name paperclip-docs --branch main
-     ```
-   - **Catch `nightly` back up.** After the release PR merges, `main` is ahead of `nightly` by the release commits and `nightly`'s `.sync-state.json` still reads `branch_mode: "nightly"` with the old `base_release_tag`. Merge `main` down and flip `branch_mode` back, otherwise the next `/sync-docs` run sees a stale state file:
-     ```sh
-     git checkout nightly && git pull
-     git merge main
-     # Edit .sync-state.json on nightly:
-     #   "branch_mode": "nightly"   (the merge inherited "release" from main)
-     # Leave base_release_tag at v2026.X.Y — that's now the correct cumulative-diff base.
-     git commit -am "nightly: catch up to v2026.X.Y release"
-     git push
-     ```
-     The skill's "merge main → nightly at start of each nightly run" rule (see [Daily operation](#daily-operation)) is what keeps subsequent runs aligned, but the **first** post-release merge-down has to be done by hand because the `branch_mode` flip is manual.
-
-**Large gaps (8+ release tags behind)**
-
-```sh
-/sync-docs --release --batched
-```
-
-Produces one PR per intermediate tag, which is far easier to review and lets you revert a single bad release without losing the others. The first commits of `feat/sync-docs-skill` used `--batched` to catch up `v2026.318.0 → v2026.512.0`.
+**More than two tags behind:** one release run per tag, oldest first.
 
 ## Review workflow — what to do when flags fire
 
@@ -242,9 +202,9 @@ node scripts/sync/detect-renames.mjs --base v2026.500.0 --head master
 node scripts/sync/verify-edit.mjs docs/reference/cli/setup-commands.md
 ```
 
-**Wired into the skill automatically:** `sync:check` (pre-commit), `sync:compare-window` (Phase 2), `sync:check-drift` (Phase 1.5), `sync:detect-renames` (Phase 3 manifest build), `sync:verify-edit` (post-edit pass).
+**Wired into the skill automatically:** `sync:prepare` (start of every run; runs the drift check), `sync:gates` (before every push; runs the build, every `docs:test` gate, links, nav, screenshots, `sync:lint-duplicates`, `sync:verify-edit` on added lines, and drift), `sync:realign` (after a release merge).
 
-**Manual only:** `sync:test`, `sync:backfill-screenshots`.
+**Manual only:** `sync:test`, `sync:backfill-screenshots`, `sync:check`, `sync:compare-window`, `sync:detect-renames`.
 
 ## follow-ups.md
 

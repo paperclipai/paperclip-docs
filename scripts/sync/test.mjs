@@ -12,6 +12,17 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { isPathInside, parseFollowLog, parseFrontmatter } from "../../site/build-release.mjs";
 import { instanceEnv } from "../screenshots/config.mjs";
+import {
+  addedLinesFromDiff,
+  classifyReleaseCommit,
+  compareCalver,
+  findDuplicates,
+  globToRegExp,
+  isStableTag,
+  latestStableTag,
+  matchWatchers,
+  parsePinFromSubject,
+} from "./lib/sync-util.mjs";
 
 const SELF_DIR = dirname(fileURLToPath(import.meta.url));
 const SCRIPTS = {
@@ -1559,6 +1570,213 @@ test("verify-edit snapshot: a git-archive extract (no .git) is fully scanned", (
   assert(JSON.stringify(un) === JSON.stringify(["MADE_UP_VAR"]), `got ${JSON.stringify(un)}`);
   rmSync(root, { recursive: true, force: true });
   rmSync(snap, { recursive: true, force: true });
+});
+
+// ----------------------------------------------------------------------------
+// sync-util: pure helpers behind prepare / gates / lint-duplicates / realign
+// ----------------------------------------------------------------------------
+
+test("sync-util: globs treat **/ as zero or more directories and * as one segment", () => {
+  assert(globToRegExp("cli/src/commands/**/*.ts").test("cli/src/commands/worktree.ts"), "**/ should match zero dirs");
+  assert(globToRegExp("cli/src/commands/**/*.ts").test("cli/src/commands/a/b/c.ts"), "**/ should match nested dirs");
+  assert(!globToRegExp("cli/src/commands/**/*.ts").test("cli/src/commands/a.tsx"), "extension is literal");
+  assert(globToRegExp("ui/src/**").test("ui/src/pages/Inbox.tsx"), "trailing ** matches deep paths");
+  assert(!globToRegExp("ui/src/**").test("ui/srcx/a.ts"), "prefix is literal");
+  assert(globToRegExp("packages/**/schema/*.ts").test("packages/db/src/schema/issues.ts"), "** in the middle");
+  assert(!globToRegExp("packages/**/schema/*.ts").test("packages/db/src/schema/x/issues.ts"), "* does not cross a slash");
+  assert(globToRegExp(".env.example").test(".env.example") && !globToRegExp(".env.example").test("xenv.example"), "dots are literal");
+});
+
+test("sync-util: matchWatchers buckets files, counts a rename under both names, lists the rest", () => {
+  const watchers = [
+    { name: "cli", tier: "pr", parent_paths: ["cli/src/**/*.ts"], docs_paths: ["docs/reference/cli/**"] },
+    { name: "ui", tier: "pr", parent_paths: ["ui/src/**"], docs_paths: ["docs/guides/**"] },
+  ];
+  const r = matchWatchers(
+    [
+      { status: "M", path: "cli/src/commands/run.ts" },
+      { status: "R", old_path: "ui/src/Old.tsx", path: "web/src/New.tsx" },
+      { status: "A", path: "server/src/unwatched.ts" },
+    ],
+    watchers,
+  );
+  assert(r.watchers.length === 2, `expected 2 watchers, got ${r.watchers.length}`);
+  assert(r.watchers.find((w) => w.name === "ui").files[0] === "web/src/New.tsx", "rename should match by its old path");
+  assert(JSON.stringify(r.unmatched) === JSON.stringify(["server/src/unwatched.ts"]), `unmatched: ${JSON.stringify(r.unmatched)}`);
+});
+
+test("sync-util: only clean CalVer is a release target, and tags sort numerically", () => {
+  assert(isStableTag("v2026.1117.0") && isStableTag("2026.318.1"), "clean CalVer");
+  assert(!isStableTag("v2026.1120.0-beta.0") && !isStableTag("@paperclipai/adapter-claude-local@0.2.2"), "prerelease and package tags");
+  assert(compareCalver("v2026.1117.0", "v2026.824.1") > 0, "1117 is after 824 numerically, not as text");
+  assert(compareCalver("v2026.824.1", "v2026.824.0") > 0, "patch");
+  assert(latestStableTag(["v2026.824.1", "v2026.1117.0", "v2026.1120.0-beta.0", "v2026.1106.0"]) === "v2026.1117.0", "latest");
+});
+
+test("sync-util: the parent pin is read from a nightly commit subject", () => {
+  assert(parsePinFromSubject("Nightly docs: a, b (paperclip fe0c4aa9) (#205)") === "fe0c4aa9", "squash subject");
+  assert(parsePinFromSubject("nightly: Grok Build's Runner default (paperclip 56517dd)") === "56517dd", "direct commit");
+  assert(parsePinFromSubject("Release docs for paperclip v2026.1117.0 (#203)") === null, "release subject has no pin");
+});
+
+test("sync-util: release commits are classified by prefix; no prefix means unclassified", () => {
+  assert(classifyReleaseCommit("quarantine: remove post-tag Kimi page") === "quarantine", "quarantine");
+  assert(classifyReleaseCommit("fix(api): scopes is a string") === "fix", "scoped fix");
+  assert(classifyReleaseCommit("port: corrections from nightly #201") === "port", "port");
+  assert(classifyReleaseCommit("stamp: paperclip_version v2026.1117.0") === "stamp", "stamp");
+  assert(classifyReleaseCommit("release v2026.1117.0: verification round 1 fixes") === "unclassified", "old-style subject");
+});
+
+test("sync-util: addedLinesFromDiff reads new-side line numbers from a -U0 diff", () => {
+  const diff = [
+    "diff --git a/docs/a.md b/docs/a.md",
+    "--- a/docs/a.md",
+    "+++ b/docs/a.md",
+    "@@ -3 +3,2 @@ heading",
+    "-old",
+    "+new one",
+    "+new two",
+    "@@ -10,2 +11,0 @@",
+    "-gone",
+    "-gone too",
+    "@@ -20,0 +20 @@",
+    "+single",
+    "diff --git a/docs/b.md b/docs/b.md",
+    "--- /dev/null",
+    "+++ b/docs/b.md",
+    "@@ -0,0 +1,3 @@",
+    "+x",
+    "+y",
+    "+z",
+  ].join("\n");
+  const added = addedLinesFromDiff(diff);
+  assert(JSON.stringify([...added["docs/a.md"]]) === "[3,4,20]", `a.md: ${JSON.stringify([...added["docs/a.md"]])}`);
+  assert(JSON.stringify([...added["docs/b.md"]]) === "[1,2,3]", `b.md: ${JSON.stringify([...added["docs/b.md"]])}`);
+});
+
+test("sync-util: findDuplicates flags a repeated section and paragraph, not same-named headings under different parents", () => {
+  const para = "Agents on the Runner pick up the lifecycle setting from the project, and a change takes effect on the next run, not the one already in flight.";
+  const md = [
+    "---",
+    "seo_title: X",
+    "---",
+    "# Page",
+    "",
+    "## Slack",
+    "",
+    "### Example",
+    "",
+    para,
+    "",
+    "## Discord",
+    "",
+    "### Example",
+    "",
+    "Short line.",
+    "",
+    "## Slack",
+    "",
+    para,
+    "",
+  ].join("\n");
+  const d = findDuplicates(md);
+  const kinds = d.map((x) => `${x.kind}:${x.key.slice(0, 20)}`);
+  assert(d.some((x) => x.kind === "heading" && x.key === "## Page > Slack"), `expected the Slack heading, got ${JSON.stringify(kinds)}`);
+  assert(d.some((x) => x.kind === "block" && x.lines.length === 2), "expected the repeated paragraph");
+  assert(!d.some((x) => x.key.includes("Example")), "Example under two different parents is not a duplicate");
+  assert(findDuplicates("# A\n\nShort.\n\nShort.\n").length === 0, "short repeated lines are ignored");
+});
+
+// ----------------------------------------------------------------------------
+// realign-nightly: port corrections by cherry-pick, record ancestry, keep drafts
+// ----------------------------------------------------------------------------
+
+test("realign-nightly: ports fix commits, keeps quarantined drafts, reports a conflict, leaves no duplicates", () => {
+  const dir = mkdtempSync(join(tmpdir(), "sync-realign-"));
+  const origin = join(dir, "origin.git");
+  const work = join(dir, "work");
+  const g = (cwd, ...args) => {
+    const r = spawnSync("git", args, { cwd, encoding: "utf8" });
+    if (r.status !== 0) throw new Error(`git ${args.join(" ")} failed: ${r.stderr}`);
+    return r.stdout.trim();
+  };
+  const put = (rel, text) => {
+    mkdirSync(dirname(join(work, rel)), { recursive: true });
+    writeFileSync(join(work, rel), text);
+  };
+  const commit = (msg) => {
+    g(work, "add", "-A");
+    g(work, "commit", "-q", "-m", msg);
+  };
+  const body = (n) => Array.from({ length: n }, (_, i) => `Line ${i + 1} of the page, long enough to be a real sentence in a doc.`).join("\n\n") + "\n";
+
+  spawnSync("git", ["init", "-q", "--bare", "-b", "main", origin]);
+  spawnSync("git", ["clone", "-q", origin, work]);
+  g(work, "config", "user.email", "t@example.com");
+  g(work, "config", "user.name", "t");
+  g(work, "checkout", "-q", "-b", "main");
+  // Previous release on main.
+  put(".sync-state.json", JSON.stringify({ branch_mode: "release", base_release_tag: "v2026.100.0", base_release_sha: "a".repeat(40), last_seen_parent_sha: "b".repeat(40) }) + "\n");
+  put("docs/old.md", "# Old\n\n" + body(6));
+  commit("Release docs for paperclip v2026.100.0");
+  g(work, "push", "-q", "origin", "main");
+  // Nightly: drafts a page with pre-tag and post-tag content, and a post-tag-only page.
+  g(work, "checkout", "-q", "-b", "nightly");
+  put(".sync-state.json", JSON.stringify({ branch_mode: "nightly", base_release_tag: "v2026.100.0", base_release_sha: "a".repeat(40), last_seen_parent_sha: "c".repeat(40) }) + "\n");
+  put("docs/feature.md", "# Feature\n\nThe button is called Save.\n\n" + body(8) + "\nPOST-TAG: the new Archive view.\n");
+  put("docs/contested.md", "# Contested\n\nThe limit is always ten.\n\n" + body(4));
+  put("docs/posttag.md", "# Post-tag page\n\n" + body(3));
+  commit("Nightly docs: feature (paperclip c0ffee1)");
+  g(work, "push", "-q", "origin", "nightly");
+  // Release branch, cut from nightly.
+  g(work, "checkout", "-q", "-b", "release/v2026.200.0");
+  g(work, "rm", "-q", "docs/posttag.md");
+  put("docs/feature.md", readFileSync(join(work, "docs/feature.md"), "utf8").replace("\nPOST-TAG: the new Archive view.\n", ""));
+  commit("quarantine: remove post-tag page and Archive line");
+  put("docs/feature.md", readFileSync(join(work, "docs/feature.md"), "utf8").replace("called Save", "called Save changes"));
+  commit("fix: the button label is Save changes");
+  put("docs/contested.md", readFileSync(join(work, "docs/contested.md"), "utf8").replace("always ten", "ten for agents"));
+  commit("fix: the limit applies to agents only");
+  put(".sync-state.json", JSON.stringify({ branch_mode: "release", base_release_tag: "v2026.200.0", base_release_sha: "d".repeat(40), last_seen_parent_sha: "c".repeat(40) }) + "\n");
+  commit("state: release v2026.200.0");
+  put("docs/feature.md", "---\npaperclip_version: v2026.200.0\n---\n" + readFileSync(join(work, "docs/feature.md"), "utf8"));
+  commit("release v2026.200.0: stamp without a prefix");
+  // Meanwhile nightly moved on and rewrote the contested line.
+  g(work, "checkout", "-q", "nightly");
+  put("docs/contested.md", readFileSync(join(work, "docs/contested.md"), "utf8").replace("always ten", "twenty since the redesign"));
+  commit("Nightly docs: limit raised (paperclip c0ffee2)");
+  g(work, "push", "-q", "origin", "nightly");
+  // Squash-merge the release into main: one commit, release tree, no shared history.
+  g(work, "checkout", "-q", "main");
+  g(work, "read-tree", "-u", "--reset", "release/v2026.200.0");
+  commit("Release docs for paperclip v2026.200.0 (#1)");
+  g(work, "push", "-q", "origin", "main");
+  g(work, "checkout", "-q", "nightly");
+
+  const r = spawnSync(process.execPath, [join(SELF_DIR, "realign-nightly.mjs"), "release/v2026.200.0", "--json"], {
+    cwd: work,
+    encoding: "utf8",
+    env: { ...process.env, PAPERCLIP_SYNC_CACHE_DIR: join(dir, "cache") },
+  });
+  assert(r.status === 0, `exit ${r.status}; stderr=${r.stderr}`);
+  const out = JSON.parse(r.stdout);
+  const feature = readFileSync(join(work, "docs/feature.md"), "utf8");
+  assert(feature.includes("called Save changes"), "the fix should be ported to nightly");
+  assert(feature.includes("POST-TAG: the new Archive view."), "the quarantined line must stay on nightly");
+  assert(existsSync(join(work, "docs/posttag.md")), "the quarantined page must stay on nightly");
+  assert(!feature.includes("paperclip_version"), "an unprefixed commit must not be ported");
+  assert(readFileSync(join(work, "docs/contested.md"), "utf8").includes("twenty since the redesign"), "a conflict keeps nightly's side");
+  assert(out.conflicts.length === 1 && out.conflicts[0].file === "docs/contested.md", `conflicts: ${JSON.stringify(out.conflicts)}`);
+  assert(existsSync(out.conflicts[0].patch), "the patch that did not apply is saved");
+  assert(out.unclassified.length === 1, `unclassified: ${JSON.stringify(out.unclassified)}`);
+  assert(out.skipped.map((s) => s.kind).sort().join(",") === "quarantine,state", `skipped: ${JSON.stringify(out.skipped)}`);
+  assert(out.duplicates.length === 0, `duplicates: ${JSON.stringify(out.duplicates)}`);
+  assert(out.needs_attention === true && out.pushed === false, "a conflict needs attention and blocks the push");
+  const state = JSON.parse(readFileSync(join(work, ".sync-state.json"), "utf8"));
+  assert(state.branch_mode === "nightly" && state.base_release_tag === "v2026.200.0", `state: ${JSON.stringify(state)}`);
+  assert(state.last_seen_parent_sha === "c".repeat(40), "nightly keeps its own last_seen_parent_sha");
+  assert(g(work, "merge-base", "origin/main", "nightly") === g(work, "rev-parse", "origin/main"), "main is an ancestor of nightly");
+  rmSync(dir, { recursive: true, force: true });
 });
 
 // ----------------------------------------------------------------------------
