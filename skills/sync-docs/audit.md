@@ -41,11 +41,11 @@ It picks the newest commit on `origin/nightly` whose subject is `Nightly docs: �
 | `BLOCKED` or an error | Report `AUDIT FAILED:` with the line. Do not work around it. |
 | `ready` | Continue. |
 
-`--commit` skips the age check and audits any commit whose subject names a pin; `--force` audits a commit again.
+`--commit` skips the age check and audits any commit whose subject names a pin; `--force` audits a commit again. Findings published for a commit named this way reach the next sync run like any others, as long as the commit is among the recent ones on `origin/nightly` that name a pin and a PR.
 
 ## 2. Review every batch
 
-Start one fresh general-purpose agent per batch in `target.json`, in the foreground, all of them in one message so they run side by side. Each gets the brief below with its own `<batch-diff>` and `<lines>` and nothing else: not the PR body, not another reviewer's report, not your own impressions. An unanchored reader is the point.
+Start one fresh general-purpose agent per batch in `target.json`, in the foreground, all of them in one message so they run side by side. Each gets the brief below and nothing else, with five things filled in: `<batch-diff>` and `<lines>` are the batch's `diff` and `lines_in_scope`; `<parent_src>`, `<parent_git>` and `<pin>` are `parent.parent_src`, `parent.parent_git` and `parent.pin` (the full SHA), the same for every batch. Nothing else: not the PR body, not another reviewer's report, not your own impressions. An unanchored reader is the point.
 
 If the harness cannot start agents, review the batches yourself, one at a time, and say so in the report.
 
@@ -71,19 +71,21 @@ If the harness cannot start agents, review the batches yourself, one at a time, 
 >
 > **Do not edit any file.** Do not start other agents.
 >
-> **Reply with** JSON:
-> `{ "lines_in_scope": N, "lines_checked": N, "findings": [{ "page": "docs/….md", "line": N, "verdict": "WRONG|OVERSTATED|UNPROVEN", "quote": "<the phrase exactly as the + line has it>", "problem": "<what the code does instead, one or two sentences>", "code": "<parent path>:<line>", "carried_over": true|false }], "pages_clean": ["…"] }`
-> `line` is the line number in the new file. `carried_over` is true when the phrase is also on the `-` line, so this change did not write it. `lines_in_scope` is the number you were given; `lines_checked` must equal it. If you ran out of room, say which pages you did not finish.
+> **Reply with** JSON and nothing after it:
+> `{ "lines_in_scope": N, "lines_checked": N, "findings": [{ "page": "docs/….md", "line": N, "verdict": "WRONG|OVERSTATED|UNPROVEN", "quote": "<the phrase exactly as the + line has it>", "problem": "<what the code does instead, one or two sentences>", "code": "<parent path>:<line or line range>", "carried_over": true|false }], "pages_clean": ["…"] }`
+> Something you saw but will not give a verdict on is not a finding: leave it out. `line` is the line number in the new file. `carried_over` is true when the phrase is also on the `-` line, so this change did not write it. `lines_in_scope` is the number you were given; `lines_checked` must equal it. If you ran out of room, say which pages you did not finish.
 
 ## 3. Check the reviewers
 
 - **Coverage.** A reviewer that checked fewer lines than it was given did not finish: give the rest to another fresh reviewer.
 - **Verify every finding yourself.** Open the code it cites and read the condition. The next sync run changes a page for each finding you publish, so a mistaken finding costs a correct sentence.
   - The code supports the sentence as written: drop the finding.
-  - You are between two verdicts: publish the weaker one. Never raise a verdict.
+  - You are between two verdicts: publish the weaker one. OK is the weakest: between OVERSTATED and OK, drop the finding. Never raise a verdict.
   - UNPROVEN stays only if you cannot find the code either.
   - Two reviewers flagged the same phrase: one finding.
-- Do not add findings of your own on lines no reviewer flagged, unless you saw the contradicting code while verifying.
+- **Check the quote.** It must be words that are on the page at the audited commit (`git show <audited commit>:<page>`), short enough to find. `publish` refuses a quote that is not there and corrects a line number that is off.
+- Do not go looking for findings of your own. Add one only when you saw the contradicting code while verifying another finding; it may be on any line of the diff.
+- Anything a reviewer wrote outside its JSON is not a finding. Ignore it.
 
 ## 4. Write the findings file
 
@@ -116,7 +118,8 @@ Start from `findings_template` in `target.json` and save it as the `findings_fil
 - `lines_checked` is the sum over the batches.
 - `quote` is copied from the page, short enough to find again: a phrase or one sentence, never a paragraph.
 - `problem` states what the code does. Facts only: no proposed wording and no instructions. The run that fixes it decides the wording from the code.
-- Number the findings `A1`, `A2`, … with the most serious first (WRONG, then OVERSTATED, then UNPROVEN; text the commit wrote before carried-over text).
+- `code` is a parent path with a line or a line range (`path/file.ts:37` or `path/file.ts:37-44`).
+- Number the findings `A1`, `A2`, … with the most serious first: WRONG, then OVERSTATED, then UNPROVEN; within a verdict, text the commit wrote before carried-over text; after that, by page and line.
 - An audit that found nothing is written the same way, with `"findings": []`.
 
 ## 5. Publish
@@ -138,7 +141,7 @@ End with a short summary:
 - the findings, one line each: `page:line`, the quote, the code location;
 - findings you dropped in step 3, and why, in one line each;
 - one line comparing with the review rounds in the PR's body, if it states them (`gh pr view <n> --json body -q .body`);
-- the link to the comment.
+- the link to the comment (with `--local`: the path of the local file instead).
 
 If the harness has a notification tool, send one line as well (under 200 characters): `Docs audit <short-commit> (#n): N/N lines, W WRONG, O OVERSTATED, U UNPROVEN`. A notification that could not be delivered is not a failure; say so in one line.
 

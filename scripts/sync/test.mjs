@@ -27,6 +27,7 @@ import {
   AUDIT_MARKER,
   AUDIT_SCHEMA,
   batchAuditFiles,
+  locateQuote,
   mergeAuditDocs,
   nextAuditsApplied,
   parseAuditComment,
@@ -1899,6 +1900,16 @@ test("audit: the docs diff is counted and batched like a review round", () => {
   assert(byChars[0].pages.join(",") === "docs/a.md,docs/c.md" && byChars[1].pages.join(",") === "docs/b.md", "small pages share the first batch with room");
   assert(batchAuditFiles(files, { maxPages: 1 }).length === 3, "page limit");
   assert(batchAuditFiles(files, { maxLines: 2 }).length === 2, "line limit");
+});
+
+test("audit: a quote is found on its page, across wrapped lines, nearest the line it was reported on", () => {
+  const page = ["# Title", "", "The banner shows one of", "the messages below. It waits one hour.", "", "Later: It waits one hour.", ""];
+  assert(locateQuote(page, "The banner shows one of the messages below", 9) === 3, "a quote may run over a hard wrap; the wrong line number is corrected");
+  assert(locateQuote(page, "It waits one hour", 4) === 4, "nearest occurrence to the reported line");
+  assert(locateQuote(page, "It waits one hour", 6) === 6, "the second occurrence when that is the one reported");
+  assert(locateQuote(page, "It  waits\tone hour", 1) === 4, "whitespace is compared loosely");
+  assert(locateQuote(page, "It waits two hours", 4) === null, "a quote that is not on the page is refused");
+  assert(locateQuote(null, "anything", 1) === null && locateQuote(page, "  ", 1) === null, "no page, or no quote");
 });
 
 // ----------------------------------------------------------------------------

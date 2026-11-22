@@ -28,6 +28,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, w
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
+  locateQuote,
   AUDIT_MARKER,
   AUDIT_SCHEMA,
   auditCounts,
@@ -47,7 +48,7 @@ const PARENT_GIT = process.env.PAPERCLIP_SYNC_PARENT_GIT || join(homedir(), ".ca
 const SNAPSHOT_MARKER = ".paperclip-sync-snapshot";
 const BIG = 1024 * 1024 * 512;
 const TRUSTED_ASSOCIATIONS = new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
-const SYNC_COMMITS_TO_SCAN = 6;
+const COMMITS_TO_SCAN = 8;
 
 function sh(cmd, args, opts = {}) {
   const r = spawnSync(cmd, args, { encoding: "utf8", maxBuffer: BIG, ...opts });
@@ -130,17 +131,30 @@ function ghLogin() {
   return r.ok && r.out ? r.out : null;
 }
 
-function syncCommits(git, limit) {
+/**
+ * Recent first-parent commits on origin/nightly that name a parent pin.
+ * `syncOnly` keeps the commits a nightly run landed ("Nightly docs: …"), which
+ * is what the audit picks from on its own; without it, a commit audited by
+ * hand with --commit (a fix PR, say) is found too, so its findings are not lost.
+ */
+function pinnedCommits(git, limit, { syncOnly }) {
   const log = lines(git("log", "--first-parent", "--format=%H%x09%cI%x09%s", "-200", "origin/nightly").out);
   const out = [];
   for (const l of log) {
     const [sha, date, ...rest] = l.split("\t");
     const subject = rest.join("\t");
-    const parsed = parseSyncCommitSubject(subject);
+    const parsed = syncOnly ? parseSyncCommitSubject(subject) : parsePinnedSubject(subject);
     if (parsed) out.push({ sha, date, subject, ...parsed });
     if (out.length >= limit) break;
   }
   return out;
+}
+
+function parsePinnedSubject(subject) {
+  const pin = /\(paperclip ([0-9a-f]{7,40})\)(?:\s*\(#\d+\))?\s*$/i.exec(subject || "");
+  if (!pin) return null;
+  const pr = /\(#(\d+)\)\s*$/.exec(subject);
+  return { pin: pin[1].toLowerCase(), pr: pr ? Number(pr[1]) : null };
 }
 
 // --- target ------------------------------------------------------------------
@@ -200,12 +214,11 @@ function cmdTarget(args) {
     if (!r.ok) fail(1, `--commit ${args.commit} is not a commit in this repository`);
     const [sha, date, ...rest] = r.out.split("\t");
     const subject = rest.join("\t");
-    const pin = /\(paperclip ([0-9a-f]{7,40})\)(?:\s*\(#\d+\))?\s*$/i.exec(subject);
-    const pr = /\(#(\d+)\)\s*$/.exec(subject);
-    if (!pin) fail(1, `the subject of ${sha.slice(0, 8)} names no parent pin "(paperclip <sha>)", so there is no code to audit it against`);
-    commit = { sha, date, subject, pin: pin[1].toLowerCase(), pr: pr ? Number(pr[1]) : null };
+    const parsed = parsePinnedSubject(subject);
+    if (!parsed) fail(1, `the subject of ${sha.slice(0, 8)} names no parent pin "(paperclip <sha>)", so there is no code to audit it against`);
+    commit = { sha, date, subject, ...parsed };
   } else {
-    commit = syncCommits(git, 1)[0];
+    commit = pinnedCommits(git, 1, { syncOnly: true })[0];
     if (!commit) return done("nothing to audit", 'no "Nightly docs: … (paperclip <pin>)" commit on origin/nightly');
   }
   const ageHours = (Date.now() - Date.parse(commit.date)) / 3600000;
@@ -295,12 +308,30 @@ function cmdPublish(args) {
   const { git } = docsRepo();
   if (!git("cat-file", "-e", `${doc.audited_commit}^{commit}`).ok) fail(1, `audited_commit ${doc.audited_commit.slice(0, 8)} is not a commit in this repository`);
 
+  // A quote the next run cannot find is a finding it cannot act on.
+  const notes = [];
+  const quoteErrors = [];
+  const pages = new Map();
+  for (const f of doc.findings) {
+    if (!pages.has(f.page)) {
+      const r = git("show", `${doc.audited_commit}:${f.page}`);
+      pages.set(f.page, r.ok ? r.raw.split("\n") : null);
+    }
+    const at = locateQuote(pages.get(f.page), f.quote, f.line);
+    if (at === null) quoteErrors.push(`${f.id}: ${pages.get(f.page) ? "the quote is not on" : "there is no page"} ${f.page} at ${doc.audited_commit.slice(0, 8)}: "${f.quote.slice(0, 80)}"`);
+    else if (at !== f.line) {
+      notes.push(`${f.id}: line ${f.line} corrected to ${at}`);
+      f.line = at;
+    }
+  }
+  if (quoteErrors.length) fail(1, `quotes must be copied from the page as the audited commit has it:\n  - ${quoteErrors.join("\n  - ")}`);
+
   const counts = auditCounts(doc.findings);
   const localDir = join(CACHE_ROOT, "audits");
   mkdirSync(localDir, { recursive: true });
   const localFile = join(localDir, `${doc.audited_commit.slice(0, 8)}.json`);
   writeFileSync(localFile, JSON.stringify(doc, null, 2) + "\n");
-  const result = { ok: true, audited_commit: doc.audited_commit, pr: doc.pr, counts, findings: doc.findings.length, local_file: localFile, published: false, comment_urls: [] };
+  const result = { ok: true, audited_commit: doc.audited_commit, pr: doc.pr, counts, findings: doc.findings.length, local_file: localFile, published: false, comment_urls: [], notes };
 
   if (!args.local) {
     const slug = docsSlug(git);
@@ -330,6 +361,7 @@ function cmdPublish(args) {
     const out = [`sync:audit publish — ${result.published ? "published" : "saved locally (not published)"}`];
     out.push(`audit of ${doc.audited_commit.slice(0, 8)} (#${doc.pr}): ${doc.lines_checked}/${doc.lines_in_scope} lines, ${counts.WRONG} WRONG, ${counts.OVERSTATED} OVERSTATED, ${counts.UNPROVEN} UNPROVEN`);
     for (const u of result.comment_urls) out.push(`comment: ${u}`);
+    for (const n of notes) out.push(`note: ${n}`);
     out.push(`local copy: ${localFile}`);
     process.stdout.write(out.join("\n") + "\n");
   }
@@ -366,7 +398,7 @@ function cmdPending(args) {
     if (!args.noFetch) git("fetch", "--quiet", "origin", "nightly");
     const slug = docsSlug(git);
     const login = ghLogin();
-    for (const c of syncCommits(git, SYNC_COMMITS_TO_SCAN)) {
+    for (const c of pinnedCommits(git, COMMITS_TO_SCAN, { syncOnly: false })) {
       if (!c.pr || applied.some((a) => a.startsWith(c.sha) || c.sha.startsWith(a))) continue;
       const r = auditCommentsOnPr(slug, c.pr, login);
       if (!r.ok) {

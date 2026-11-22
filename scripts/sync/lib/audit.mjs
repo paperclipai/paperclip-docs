@@ -221,3 +221,28 @@ export function batchAuditFiles(files, { maxLines = 40, maxChars = 10000, maxPag
   }
   return batches;
 }
+
+const squash = (t) => String(t).replace(/\s+/g, " ").trim();
+
+/**
+ * The 1-based line a quote starts on, in a page given as an array of lines, or
+ * null when the quote is not on the page. Whitespace is compared loosely, so a
+ * quote may run across hard-wrapped lines. When the quote occurs more than
+ * once, the occurrence nearest `hintLine` wins.
+ */
+export function locateQuote(pageLines, quote, hintLine = 1) {
+  if (!Array.isArray(pageLines)) return null;
+  const want = squash(quote);
+  if (!want) return null;
+  let best = null;
+  for (let i = 0; i < pageLines.length; i++) {
+    // A quote can start anywhere on line i and continue on the lines after it.
+    let text = squash(pageLines[i]);
+    if (!text) continue;
+    for (let j = i + 1; j < pageLines.length && text.length < squash(pageLines[i]).length + want.length + 2; j++) text = `${text} ${squash(pageLines[j])}`;
+    const idx = text.indexOf(want);
+    if (idx === -1 || idx >= squash(pageLines[i]).length) continue;
+    if (best === null || Math.abs(i + 1 - hintLine) < Math.abs(best - hintLine)) best = i + 1;
+  }
+  return best;
+}
