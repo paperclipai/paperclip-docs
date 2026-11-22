@@ -64,7 +64,7 @@ The next-day audit (`audit.md`) has one permission of its own: it posts, or repl
 
 `--pin` and `--audit-file` are passed on to `sync:prepare` as they are.
 
-`--rehearse` is for testing the skill itself: stay on whatever branch is checked out, skip the `main` merge, do every other step including review, gates and the commits, and stop before the first push. Pass `--base <the branch you started on>` to `sync:gates`, since the change is measured against that branch, not `origin/nightly`. Say in the summary what would have been pushed.
+`--rehearse` is for testing the skill itself: stay on whatever branch is checked out (create no branch), skip the `main` merge, do every other step including review, gates and the commits, and stop before the first push. Record the commit you start from (`git rev-parse HEAD`) before the first edit, and pass it as `--base <that commit>` to `sync:gates` and as the base of the reviewers' diffs: the change is measured against it, not `origin/nightly`. Not the branch name: you commit onto that branch, so afterwards it compares the run with itself and the gates check nothing. Say in the summary what would have been pushed; the one-line digest ends `not pushed (rehearsal)`.
 
 ## Every run starts the same way
 

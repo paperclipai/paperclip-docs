@@ -68,6 +68,8 @@ Rules for triage:
   - **UNPROVEN** — cut the sentence, unless you can now find the code; then it is settled or confirmed.
   - **Not applied** — the code supports the sentence as written, so the audit was mistaken. Leave the page alone and note the code location.
 
+  A finding's `problem` can be wrong in its detail as well: write the correction from the code you read, not from the finding's wording.
+
   Change only the sentence the finding is about. Do not rewrite the paragraph around it: every extra changed sentence is one more line the reviewers, and tomorrow's audit, have to clear. Each correction is new prose and goes through step 4 with everything else. Keep the outcome of every finding for `PENDING.md` and the PR body. Writing `next_state` in step 5 records these audits in `audits_applied`, so no later run takes them again; a run that fails before its commit leaves them pending.
 - **Open questions from the last run.** `PENDING.md` → "Open questions" and "Follow-ups" hold things earlier runs could not settle. Treat the two lists as one pool and take up to five, oldest first (same date: in file order), skipping entries already marked `needs decision:`. An entry that already says it waits on a person is marked `needs decision:` without spending a slot. An entry about a script or checker getting something wrong is not a question about the docs: move it to "Tooling" (step 5) without spending a slot on it. Try to answer each of the five from the code at the pin:
   - Answerable, and a page is wrong: it becomes a surface in this run, so the fix is written here and goes through review with everything else. Fix the statements the question is about. If the page turns out to be stale throughout (a how-to whose labels and steps have all moved), that is a rewrite: give it its own author, and take at most **one** such page per run. A second one is logged under "Follow-ups" as `rewrite: <page>` with today's date and waits its turn.
@@ -84,6 +86,8 @@ Rules for triage:
 ```sh
 git checkout -b nightly-draft/<short-pin>-<two-or-three-word-slug>     # audit-only: nightly-draft/<short-pin>-audit-<PR the audit was of>
 ```
+
+With `--rehearse`, create no branch: stay where you are, and note `git rev-parse HEAD` now as the base for the reviewers' diffs and the gates.
 
 - Small windows (a handful of pages), and corrections for audit findings: write the edits yourself.
 - Larger windows: one author agent per cluster of related surfaces, in parallel, each with the brief in `review.md` → "Author brief". Give every author the pin, both parent paths, its surfaces with the commit SHAs, and the pages it owns. No two authors own the same page.
@@ -167,8 +171,10 @@ If no page changed (an audit-only run where every finding was settled or not app
 ```sh
 git add <each changed path, by name>
 git commit -m "Nightly docs: <surfaces> (paperclip <short-pin>)"     # audit-only: "Nightly docs: audit corrections for #<PR> (paperclip <short-pin>)"
-npm run --silent sync:gates -- --against <pin>      # with --rehearse add: --base <the branch you started on>
+npm run --silent sync:gates -- --against <pin>      # with --rehearse add: --base <the commit you started from>
 ```
+
+If `sync:prepare` warned that `node_modules` is missing, run `npm ci` first. Check the gates' first line names the pages you changed: "0 changed page(s)" on a run that edited pages means the base is wrong.
 
 Commit before the gates: the sitemap test builds from a clone and cannot see uncommitted pages. Fix what fails, commit again (the PR is squashed, so extra commits cost nothing), re-run until it exits 0. If fixing a gate failure changed prose, that prose goes through the closing check in `review.md` before the push. (Review fixes were already covered there.)
 

@@ -444,6 +444,7 @@ function prepareNightly({ args, state, anchor, result, blocking, warnings, defau
     window.pin = last;
     window.pin_short = last.slice(0, 8);
     window.pin_date = parentGit("log", "-1", "--format=%cI", last).out;
+    cumulativeWindow(state, last, result, warnings);
     result.next_state = {
       branch_mode: "nightly",
       base_release_tag: state.base_release_tag,
@@ -510,7 +511,26 @@ function prepareNightly({ args, state, anchor, result, blocking, warnings, defau
     note: "Quarantined commits. Do not document them. A revert of, or heavy overlap with, a surface in this window is a reason to defer that surface to the next run.",
   };
 
-  // Cumulative window, for the record only (PENDING.md header).
+  cumulativeWindow(state, pin, result, warnings);
+
+  result.next_state = {
+    branch_mode: "nightly",
+    base_release_tag: state.base_release_tag,
+    base_release_sha: state.base_release_sha,
+    last_seen_parent_sha: pin,
+    last_applied_manifest_hash: createHash("sha256").update(commits.map((c) => c.sha).join("\n")).digest("hex"),
+    last_run_at: result.generated_at,
+    last_run_outcome: "applied",
+    // Kept out of the file until the first audit is applied, so a run without findings writes the state it always did.
+    ...(audit.audits.length || Array.isArray(state.audits_applied) ? { audits_applied: audit.next_audits_applied } : {}),
+  };
+  result._commits = commits;
+  result._files = files;
+  return pin;
+}
+
+/** Cumulative window since the base release, for the record only (PENDING.md header and its shipped ranges). */
+function cumulativeWindow(state, pin, result, warnings) {
   const baseSha = state.base_release_sha;
   if (baseSha && parentGit("cat-file", "-e", `${baseSha}^{commit}`).ok) {
     const mb = parentGit("merge-base", baseSha, pin).out;
@@ -536,21 +556,6 @@ function prepareNightly({ args, state, anchor, result, blocking, warnings, defau
   } else {
     warnings.push(`base_release_sha ${baseSha} is not in the parent clone; cumulative window not computed`);
   }
-
-  result.next_state = {
-    branch_mode: "nightly",
-    base_release_tag: state.base_release_tag,
-    base_release_sha: state.base_release_sha,
-    last_seen_parent_sha: pin,
-    last_applied_manifest_hash: createHash("sha256").update(commits.map((c) => c.sha).join("\n")).digest("hex"),
-    last_run_at: result.generated_at,
-    last_run_outcome: "applied",
-    // Kept out of the file until the first audit is applied, so a run without findings writes the state it always did.
-    ...(audit.audits.length || Array.isArray(state.audits_applied) ? { audits_applied: audit.next_audits_applied } : {}),
-  };
-  result._commits = commits;
-  result._files = files;
-  return pin;
 }
 
 function prepareRelease({ state, result, blocking, warnings, defaultBranch, latestTag }) {
