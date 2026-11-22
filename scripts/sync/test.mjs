@@ -23,6 +23,19 @@ import {
   matchWatchers,
   parsePinFromSubject,
 } from "./lib/sync-util.mjs";
+import {
+  AUDIT_MARKER,
+  AUDIT_SCHEMA,
+  batchAuditFiles,
+  mergeAuditDocs,
+  nextAuditsApplied,
+  parseAuditComment,
+  parseSyncCommitSubject,
+  pendingAudits,
+  renderAuditComments,
+  splitDiffByFile,
+  validateAuditDoc,
+} from "./lib/audit.mjs";
 
 const SELF_DIR = dirname(fileURLToPath(import.meta.url));
 const SCRIPTS = {
@@ -1777,6 +1790,115 @@ test("realign-nightly: ports fix commits, keeps quarantined drafts, reports a co
   assert(state.last_seen_parent_sha === "c".repeat(40), "nightly keeps its own last_seen_parent_sha");
   assert(g(work, "merge-base", "origin/main", "nightly") === g(work, "rev-parse", "origin/main"), "main is an ancestor of nightly");
   rmSync(dir, { recursive: true, force: true });
+});
+
+// ----------------------------------------------------------------------------
+// audit: the hand-off from the next-day audit to the next sync run
+// ----------------------------------------------------------------------------
+
+function auditDoc(over = {}) {
+  return {
+    schema: AUDIT_SCHEMA,
+    audited_commit: "a".repeat(40),
+    pr: 205,
+    parent_pin: "fe0c4aa95d8ef97c8058f3793e20bb7c1691d86b",
+    audited_at: "2026-11-22T08:00:00.000Z",
+    lines_in_scope: 192,
+    lines_checked: 192,
+    findings: [
+      { id: "A1", page: "docs/connectors/aws.md", line: 174, verdict: "OVERSTATED", quote: "The banner shows one of the messages below", problem: "Any failed connect call is shown; only aws_ codes use the server text.", code: "ui/src/features/connections/AwsRoleSetup.tsx:37", carried_over: false },
+      { id: "A2", page: "docs/guides/org/agents.md", line: 849, verdict: "OVERSTATED", quote: "It waits one hour", problem: "The hour runs from when the limit was observed.", code: "server/src/services/native-runtime/native-startup-retry.ts:27", carried_over: true },
+    ],
+    ...over,
+  };
+}
+
+test("audit: sync commit subjects — only nightly sync commits with a pin and a PR count", () => {
+  const ok = parseSyncCommitSubject("Nightly docs: guided AWS role setup (paperclip fe0c4aa9) (#205)");
+  assert(ok && ok.pin === "fe0c4aa9" && ok.pr === 205, JSON.stringify(ok));
+  assert(parseSyncCommitSubject("Nightly docs: audit corrections for #205 (paperclip fe0c4aa9) (#208)").pr === 208, "audit-only runs are sync commits too");
+  assert(parseSyncCommitSubject("Audit fixes: narrow 16 lines (paperclip fe0c4aa9) (#207)") === null, "a hand-made fix PR is not a sync commit");
+  assert(parseSyncCommitSubject("Nightly docs: something without a pin (#1)") === null, "no pin, no audit");
+  assert(parseSyncCommitSubject("Nightly docs: local commit (paperclip fe0c4aa9)").pr === null, "an unmerged commit has no PR");
+});
+
+test("audit: validation names what is wrong with a findings file", () => {
+  assert(validateAuditDoc(auditDoc()).length === 0, validateAuditDoc(auditDoc()).join("; "));
+  assert(validateAuditDoc(auditDoc({ findings: [] })).length === 0, "a clean audit is valid");
+  const bad = validateAuditDoc(auditDoc({ audited_commit: "abc1234", lines_checked: 500, findings: [{ id: "A1", page: "README.md", line: 0, verdict: "BAD", quote: "", problem: "x", code: "y" }, { id: "A1", page: "docs/a.md", line: 3, verdict: "WRONG", quote: "q", problem: "p", code: "c" }] }));
+  const all = bad.join("\n");
+  for (const needle of ["audited_commit", "lines_checked is larger", "findings[0].page", "findings[0].line", "findings[0].verdict", "findings[0].quote", 'findings[1].id "A1" is used twice']) {
+    assert(all.includes(needle), `expected an error about ${needle}; got:\n${all}`);
+  }
+  assert(validateAuditDoc(null).length === 1 && validateAuditDoc([]).length === 1, "non-objects are rejected");
+});
+
+test("audit: a comment round-trips, whatever the findings quote", () => {
+  const nasty = "```json\n</details> <!-- sync-docs-audit/1 --> | pipe `tick`";
+  const doc = auditDoc();
+  doc.findings[0].quote = nasty;
+  const bodies = renderAuditComments(doc);
+  assert(bodies.length === 1, `one comment expected, got ${bodies.length}`);
+  assert(bodies[0].startsWith(AUDIT_MARKER), "the marker opens the comment");
+  assert(bodies[0].includes("**0 WRONG, 2 OVERSTATED, 0 UNPROVEN** (1 in older text"), bodies[0].slice(0, 400));
+  const back = parseAuditComment(bodies[0]);
+  assert(back && back.findings.length === 2 && back.findings[0].quote === nasty, "the quote survives a fence, a comment marker and a pipe");
+  assert(back.audited_commit === doc.audited_commit && back.pr === 205, "identity fields survive");
+  assert(parseAuditComment("Looks good to me") === null, "an ordinary comment is not an audit");
+  assert(parseAuditComment(`${AUDIT_MARKER}\n\`\`\`json\n{"schema":"other/9","findings":[]}\n\`\`\``) === null, "another schema is ignored");
+  assert(parseAuditComment(`${AUDIT_MARKER}\n\`\`\`json\n{not json\n\`\`\``) === null, "broken JSON is ignored, not thrown");
+  const clean = renderAuditComments(auditDoc({ findings: [] }))[0];
+  assert(clean.includes("Nothing for the next sync run to correct"), "a clean audit says so");
+  assert(parseAuditComment(clean).findings.length === 0, "and parses to no findings");
+});
+
+test("audit: too many findings split into complete parts that merge back", () => {
+  const findings = Array.from({ length: 60 }, (_, i) => ({ id: `A${i + 1}`, page: "docs/a.md", line: i + 1, verdict: "OVERSTATED", quote: `sentence ${i} `.repeat(20), problem: `the code does something narrower ${i} `.repeat(10), code: `server/src/x.ts:${i}` }));
+  const doc = auditDoc({ findings });
+  const bodies = renderAuditComments(doc, { maxChars: 9000 });
+  assert(bodies.length > 1, "expected a split");
+  assert(bodies.every((b) => b.length <= 9000), `a part is too long: ${bodies.map((b) => b.length).join(",")}`);
+  const parts = bodies.map(parseAuditComment);
+  assert(parts.every((p) => p && p.parts === bodies.length), "every part is a complete document");
+  const merged = mergeAuditDocs(parts);
+  assert(merged.length === 1 && merged[0].findings.length === 60, `merged: ${merged.length} docs, ${merged[0]?.findings.length} findings`);
+  assert(merged[0].part === undefined, "part numbers do not leak into the merged audit");
+});
+
+test("audit: pending = audits with findings that no run has recorded; a re-audit replaces the older one", () => {
+  const older = auditDoc();
+  const newer = auditDoc({ audited_at: "2026-11-22T20:00:00.000Z", findings: [older.findings[0]] });
+  const other = auditDoc({ audited_commit: "b".repeat(40), pr: 208, audited_at: "2026-11-23T08:00:00.000Z" });
+  const clean = auditDoc({ audited_commit: "c".repeat(40), pr: 209, findings: [] });
+  const pending = pendingAudits([other, older, newer, clean], []);
+  assert(pending.length === 2, `clean audits are not pending: ${pending.length}`);
+  assert(pending[0].audited_commit === "a".repeat(40) && pending[0].findings.length === 1, "the newer audit of a commit wins, oldest audit first");
+  assert(pendingAudits([other, older], ["aaaaaaaa"]).length === 1, "an applied audit (short SHA) is not offered again");
+  assert(pendingAudits([other, older], ["a".repeat(40), "b".repeat(40)]).length === 0, "nothing left");
+  const next = nextAuditsApplied(["a".repeat(40)], ["a".repeat(40), "b".repeat(40)]);
+  assert(next.length === 2 && next[1] === "b".repeat(40), `next applied: ${JSON.stringify(next)}`);
+  assert(nextAuditsApplied(Array.from({ length: 30 }, (_, i) => String(i).padStart(40, "0")), []).length === 20, "the list is capped");
+});
+
+test("audit: the docs diff is counted and batched like a review round", () => {
+  const diff = [
+    "diff --git a/docs/a.md b/docs/a.md", "index 1..2 100644", "--- a/docs/a.md", "+++ b/docs/a.md", "@@ -1,3 +1,5 @@", " context", "-old line", "+new line one", "+", "+new line two",
+    "diff --git a/docs/b.md b/docs/b.md", "--- a/docs/b.md", "+++ b/docs/b.md", "@@ -1 +1 @@", "-x", `+${"y".repeat(500)}`,
+    "diff --git a/docs/gone.md b/docs/gone.md", "--- a/docs/gone.md", "+++ /dev/null", "@@ -1 +0,0 @@", "-bye",
+    "diff --git a/docs/c.md b/docs/c.md", "--- a/docs/c.md", "+++ b/docs/c.md", "@@ -1 +1,2 @@", " keep", "+c line",
+  ].join("\n");
+  const files = splitDiffByFile(diff);
+  assert(files.map((f) => f.path).join(",") === "docs/a.md,docs/b.md,docs/c.md", `files: ${files.map((f) => f.path)}`);
+  assert(files[0].added_lines === 2, "added blank lines are not counted");
+  assert(files[1].added_chars === 500, `chars: ${files[1].added_chars}`);
+  assert(files[0].text.startsWith("diff --git a/docs/a.md") && !files[0].text.includes("docs/b.md"), "each file keeps its own hunk");
+  const one = batchAuditFiles(files);
+  assert(one.length === 1 && one[0].lines_in_scope === 4 && one[0].pages.length === 3, JSON.stringify(one.map((b) => [b.pages, b.lines_in_scope])));
+  const byChars = batchAuditFiles(files, { maxChars: 400 });
+  assert(byChars.length === 2, `a page over the limit gets its own batch: ${byChars.length}`);
+  assert(byChars[0].pages.join(",") === "docs/a.md,docs/c.md" && byChars[1].pages.join(",") === "docs/b.md", "small pages share the first batch with room");
+  assert(batchAuditFiles(files, { maxPages: 1 }).length === 3, "page limit");
+  assert(batchAuditFiles(files, { maxLines: 2 }).length === 2, "line limit");
 });
 
 // ----------------------------------------------------------------------------

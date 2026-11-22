@@ -17,6 +17,7 @@ A run is expected to finish with nobody watching. Read this file, then the one f
 | [`release.md`](release.md) | `sync:prepare` says `mode: release` |
 | [`review.md`](review.md) | Before authoring or reviewing anything, in either mode |
 | [`troubleshooting.md`](troubleshooting.md) | Something failed, or a check disagrees with you |
+| [`audit.md`](audit.md) | You were asked for the next-day audit (`--audit`). It replaces everything below from "Every run starts the same way" on |
 
 ## The two modes
 
@@ -45,6 +46,8 @@ The maintainer granted this on 2026-11-21. It is the whole of the standing permi
 
 A nightly run must not end its turn on a question. When it cannot finish, it says so (see "The last message").
 
+The next-day audit (`audit.md`) has one permission of its own: it posts, or replaces, its one comment on the pull request it audited. It never commits, pushes or edits a page.
+
 ## Invocation
 
 ```
@@ -55,7 +58,11 @@ A nightly run must not end its turn on a question. When it cannot finish, it say
 /sync-docs --ask           # do the work, commit locally, then ask before pushing
 /sync-docs --rehearse      # full run on the current branch, committed locally, nothing pushed
 /sync-docs --pin <sha>     # nightly: use this parent commit instead of the quarantine pin
+/sync-docs --audit         # the next-day audit of the last sync commit: read-only, see audit.md
+/sync-docs --audit-file <f>  # nightly rehearsal: take audit findings from this file, not from the PR
 ```
+
+`--pin` and `--audit-file` are passed on to `sync:prepare` as they are.
 
 `--rehearse` is for testing the skill itself: stay on whatever branch is checked out, skip the `main` merge, do every other step including review, gates and the commits, and stop before the first push. Pass `--base <the branch you started on>` to `sync:gates`, since the change is measured against that branch, not `origin/nightly`. Say in the summary what would have been pushed.
 
@@ -72,6 +79,7 @@ It fetches, picks the mode, finds the pin (or the tag), extracts the parent code
 | `BLOCKED` | Do not work around it. Report `SYNC FAILED:` with the blocking line. |
 | `nothing to do` | Change nothing. Report that in one line and stop. |
 | `ready`, `mode: nightly` | Follow `nightly.md`. |
+| `ready (audit corrections only)` | Follow `nightly.md`. No parent commits are new, but the audit left findings to correct; each step says what such a run skips. |
 | `ready`, `mode: release` | Follow `release.md`. |
 
 Two paths from `prepare.json` are used for every read of parent code for the rest of the run:
@@ -99,7 +107,7 @@ Two paths from `prepare.json` are used for every read of parent code for the res
 
 ## Files a run reads and writes
 
-- `.sync-state.json` — written from `next_state` in `prepare.json`, once, in the commit that carries the docs. A run that changes nothing, or fails before that commit, leaves it alone.
+- `.sync-state.json` — written from `next_state` in `prepare.json`, once, in the commit that carries the docs. A run that changes nothing, or fails before that commit, leaves it alone. Its `audits_applied` list is how a run knows which audits an earlier run has already handled.
 - `PENDING.md` (nightly) — what this window applied, what it skipped, what was cut, open questions. Format in `nightly.md`.
 - `SCREENSHOTS_PENDING.md` (nightly) — copied from the generated file in the run directory.
 - `docs/reference/changelog.md` (release only) — one entry per release.
