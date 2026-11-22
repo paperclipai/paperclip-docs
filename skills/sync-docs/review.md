@@ -90,7 +90,7 @@ There is no check after the closing check, which is why it may only end in a cop
 
 ## Reviewer brief
 
-Give each reviewer its diff (`git diff <base> -- <pages>` saved to a file in the run directory, where `<base>` is the branch the draft branch was created from: `nightly`, `origin/main` for a release, or the starting branch with `--rehearse`), the number of lines in scope, the pin, `parent_src` and `parent_git`, and this text with `<parent_src>`, `<parent_git>` and `<pin>` filled in and nothing else changed:
+Give each reviewer its diff (`git diff <base> -- <pages>` saved to a file in the run directory, where `<base>` is the branch the draft branch was created from: `nightly`, `origin/main` for a release, or the commit you started from with `--rehearse`), the number of lines in scope, the pin, `parent_src` and `parent_git`, and this text with `<parent_src>`, `<parent_git>` and `<pin>` filled in and nothing else changed:
 
 > You are checking a documentation change against the code it describes. You did not write it, and you have not been told what the author intended. Your job is to find every statement on an added or rewritten line that the code at the pin does not support.
 >

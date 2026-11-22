@@ -9,6 +9,7 @@ Scripts, config and state for the **`/sync-docs`** skill (`skills/sync-docs/SKIL
 | `npm run sync:prepare` | `prepare.mjs` | Start of every run. Fetches, picks the mode, finds the quarantine pin (or the release tag and cut point), extracts the parent code at that commit, diffs the window, buckets changed files by watcher, runs drift, lists stale screenshots. Writes `/tmp/paperclip-sync/run-<short>/prepare.json`. Read-only for this repo. Exit 2 when blocked. |
 | `npm run sync:gates -- --against <sha>` | `gates.mjs` | Every pre-merge check in one call with one exit code: build, each `docs:test:*`, links, nav, screenshots, duplicated blocks, identifiers on added lines, drift. Logs in the run directory. |
 | `npm run sync:realign -- release/<tag>` | `realign-nightly.mjs` | After a release PR is squash-merged: ports the release's corrections to `nightly` by cherry-pick, records `main` as merged, resets nightly's state. Lists conflicts and unported commits. |
+| `node scripts/sync/audit.mjs target\|publish\|pending` | `audit.mjs` | The next-day audit's mechanics and its hand-off (see `skills/sync-docs/audit.md`). `target` finds the sync commit to audit, extracts the parent at its pin and writes the docs diff as reviewer batches. `publish` validates the findings and posts them as one marked comment on the audited PR (`--local`: a file only). `pending` lists findings no run has applied; `prepare.mjs` calls it and puts them in `prepare.json` under `audit`. Works on the repository it is run in, so the audit can run it from a copy extracted from `origin/nightly`. |
 
 ## Checkers the gates run (usable on their own)
 
@@ -32,6 +33,8 @@ Everything reads the parent at one pinned commit, from disk:
 | `~/.cache/paperclip-sync/paperclip.git` | Persistent bare clone (branches plus stable `v*` tags). Override with `PAPERCLIP_SYNC_PARENT_GIT`. | `prepare.mjs` |
 | `/tmp/paperclip-sync/src-<sha>/` | Plain extract of one commit. The four newest are kept. | `prepare.mjs` (from the clone) or the checkers (tarball download) |
 | `/tmp/paperclip-sync/run-<short>/` | One run's files: `prepare.json`, increment lists, generated `SCREENSHOTS_PENDING.md`, gate logs. | `prepare.mjs`, `gates.mjs` |
+| `/tmp/paperclip-sync/audit-<docs-short>/` | One audit's files: `target.json`, reviewer batch diffs, `findings.json`. | `audit.mjs target` |
+| `/tmp/paperclip-sync/audits/<docs-short>.json` | Local copy of each published audit; what a rehearsal passes to `--audit-file`. | `audit.mjs publish` |
 
 Checker environment switches:
 

@@ -12,6 +12,7 @@
     "base_release_tag": "The parent release tag this branch builds atop. Same on both branches \u2014 main has shipped this version live, nightly is accumulating drafts on top of it.",
     "base_release_sha": "Parent commit SHA at base_release_tag. The release both branches build on; prepare.mjs uses it for the cumulative figures in PENDING.md.",
     "last_seen_parent_sha": "The parent commit (quarantine pin) the last nightly run documented. The next nightly window starts here, so it must be an ancestor of the next pin.",
-    "last_applied_manifest_hash": "Fingerprint (sha256) of the last window's commit list, written from prepare.json's next_state."
+    "last_applied_manifest_hash": "Fingerprint (sha256) of the last window's commit list, written from prepare.json's next_state.",
+    "audits_applied": "Optional. Docs commit SHAs whose next-day audit findings a nightly run has already handled, written from prepare.json's next_state. Absent until the first audit is applied."
   }
 }

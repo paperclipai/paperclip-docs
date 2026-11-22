@@ -15,6 +15,10 @@
 //   node scripts/sync/prepare.mjs [--json] [--mode nightly|release]
 //                                 [--pin <parent-sha>] [--quarantine-hours N]
 //                                 [--no-fetch] [--skip-drift]
+//                                 [--audit-file FILE]...
+//
+//   --audit-file  read audit findings from this file instead of the audited
+//                 PR's comment (a rehearsal; see skills/sync-docs/audit.md)
 //
 // Output: a summary on stdout (or the full JSON with --json), and
 //   /tmp/paperclip-sync/run-<short-sha>/prepare.json
@@ -58,7 +62,7 @@ const parentGit = (...args) => sh("git", ["-C", PARENT_GIT, ...args]);
 const lines = (s) => (s ? s.split("\n").filter(Boolean) : []);
 
 function parseArgs(argv) {
-  const out = { json: false, mode: null, pin: null, quarantineHours: null, noFetch: false, skipDrift: false, help: false };
+  const out = { json: false, mode: null, pin: null, quarantineHours: null, noFetch: false, skipDrift: false, auditFiles: [], help: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--json") out.json = true;
@@ -67,6 +71,7 @@ function parseArgs(argv) {
     else if (a === "--quarantine-hours") out.quarantineHours = Number(argv[++i]);
     else if (a === "--no-fetch") out.noFetch = true;
     else if (a === "--skip-drift") out.skipDrift = true;
+    else if (a === "--audit-file") out.auditFiles.push(argv[++i]);
     else if (a === "-h" || a === "--help") out.help = true;
   }
   return out;
@@ -260,12 +265,34 @@ function renderScreenshotsPending(shots, ctx) {
   return out.join("\n");
 }
 
+// --- audit findings ----------------------------------------------------------
+
+/**
+ * Findings the next-day audit published that no run has applied yet (see
+ * audit.mjs). Reading them must never block a run: when GitHub cannot be
+ * reached they stay on the PR and the next run picks them up.
+ */
+function pendingAuditFindings(args, state, warnings) {
+  const applied = Array.isArray(state.audits_applied) ? state.audits_applied : [];
+  const none = { available: false, source: null, audits: [], findings: 0, next_audits_applied: applied };
+  const cli = ["pending", "--json", ...(args.noFetch ? ["--no-fetch"] : []), ...args.auditFiles.flatMap((f) => ["--audit-file", f])];
+  const r = sh(process.execPath, [join(SELF_DIR, "audit.mjs"), ...cli], { cwd: ROOT });
+  try {
+    const p = JSON.parse(r.out);
+    for (const w of p.warnings || []) warnings.push(w);
+    return { available: p.available, source: p.source, audits: p.audits || [], findings: p.findings || 0, next_audits_applied: p.next_audits_applied || applied };
+  } catch {
+    warnings.push(`audit findings could not be read (exit ${r.status}): ${(r.err || r.out).split("\n")[0]}`);
+    return none;
+  }
+}
+
 // --- main ------------------------------------------------------------------
 
 function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
-    process.stdout.write("usage: prepare.mjs [--json] [--mode nightly|release] [--pin SHA] [--quarantine-hours N] [--no-fetch] [--skip-drift]\n");
+    process.stdout.write("usage: prepare.mjs [--json] [--mode nightly|release] [--pin SHA] [--quarantine-hours N] [--no-fetch] [--skip-drift] [--audit-file FILE]...\n");
     process.exit(0);
   }
   const blocking = [];
@@ -405,12 +432,39 @@ function prepareNightly({ args, state, anchor, result, blocking, warnings, defau
     blocking.push(`last_seen_parent_sha (${last}) is not a commit in the parent clone`);
     return pin;
   }
+  const audit = pendingAuditFindings(args, state, warnings);
+  result.audit = audit;
+  // No new parent commits, but the audit left findings: the run still has
+  // work, on the pages as they are, checked against the commit they describe.
+  const auditOnly = (why) => {
+    result.nothing_to_do = false;
+    result.audit_only = true;
+    result.reason = `${why}; this run only applies ${audit.findings} audit finding(s)`;
+    window.quarantine_pin = pin;
+    window.pin = last;
+    window.pin_short = last.slice(0, 8);
+    window.pin_date = parentGit("log", "-1", "--format=%cI", last).out;
+    cumulativeWindow(state, last, result, warnings);
+    result.next_state = {
+      branch_mode: "nightly",
+      base_release_tag: state.base_release_tag,
+      base_release_sha: state.base_release_sha,
+      last_seen_parent_sha: last,
+      last_applied_manifest_hash: state.last_applied_manifest_hash ?? null,
+      last_run_at: result.generated_at,
+      last_run_outcome: "applied",
+      audits_applied: audit.next_audits_applied,
+    };
+    return last;
+  };
   if (pin === last) {
+    if (audit.findings) return auditOnly("no parent commits have left quarantine since the last run");
     result.nothing_to_do = true;
     result.reason = "the quarantine pin is the commit the last run already synced";
     return pin;
   }
   if (isAncestor(pin, last)) {
+    if (audit.findings) return auditOnly("the quarantine pin is older than the last synced commit");
     result.nothing_to_do = true;
     result.reason = "the quarantine pin is older than the last synced commit (the quarantine window was lengthened); wait for it to pass";
     return pin;
@@ -457,7 +511,26 @@ function prepareNightly({ args, state, anchor, result, blocking, warnings, defau
     note: "Quarantined commits. Do not document them. A revert of, or heavy overlap with, a surface in this window is a reason to defer that surface to the next run.",
   };
 
-  // Cumulative window, for the record only (PENDING.md header).
+  cumulativeWindow(state, pin, result, warnings);
+
+  result.next_state = {
+    branch_mode: "nightly",
+    base_release_tag: state.base_release_tag,
+    base_release_sha: state.base_release_sha,
+    last_seen_parent_sha: pin,
+    last_applied_manifest_hash: createHash("sha256").update(commits.map((c) => c.sha).join("\n")).digest("hex"),
+    last_run_at: result.generated_at,
+    last_run_outcome: "applied",
+    // Kept out of the file until the first audit is applied, so a run without findings writes the state it always did.
+    ...(audit.audits.length || Array.isArray(state.audits_applied) ? { audits_applied: audit.next_audits_applied } : {}),
+  };
+  result._commits = commits;
+  result._files = files;
+  return pin;
+}
+
+/** Cumulative window since the base release, for the record only (PENDING.md header and its shipped ranges). */
+function cumulativeWindow(state, pin, result, warnings) {
   const baseSha = state.base_release_sha;
   if (baseSha && parentGit("cat-file", "-e", `${baseSha}^{commit}`).ok) {
     const mb = parentGit("merge-base", baseSha, pin).out;
@@ -483,19 +556,6 @@ function prepareNightly({ args, state, anchor, result, blocking, warnings, defau
   } else {
     warnings.push(`base_release_sha ${baseSha} is not in the parent clone; cumulative window not computed`);
   }
-
-  result.next_state = {
-    branch_mode: "nightly",
-    base_release_tag: state.base_release_tag,
-    base_release_sha: state.base_release_sha,
-    last_seen_parent_sha: pin,
-    last_applied_manifest_hash: createHash("sha256").update(commits.map((c) => c.sha).join("\n")).digest("hex"),
-    last_run_at: result.generated_at,
-    last_run_outcome: "applied",
-  };
-  result._commits = commits;
-  result._files = files;
-  return pin;
 }
 
 function prepareRelease({ state, result, blocking, warnings, defaultBranch, latestTag }) {
@@ -632,8 +692,10 @@ function finish(result, args, target) {
       }
       writeFileSync(join(runDir, "increment-commits.tsv"), (result._commits || []).map((c) => [c.sha, c.date, c.pr ?? "", c.subject].join("\t")).join("\n") + "\n");
       writeFileSync(join(runDir, "increment-files.tsv"), (result._files || []).map((f) => [f.status, f.path, f.old_path ?? ""].join("\t")).join("\n") + "\n");
-      result.increment.commits_file = join(runDir, "increment-commits.tsv");
-      result.increment.files_file = join(runDir, "increment-files.tsv");
+      if (result.increment) {
+        result.increment.commits_file = join(runDir, "increment-commits.tsv");
+        result.increment.files_file = join(runDir, "increment-files.tsv");
+      }
     }
   }
   delete result._commits;
@@ -647,7 +709,7 @@ function finish(result, args, target) {
     process.stdout.write(JSON.stringify(result, null, 2) + "\n");
   } else {
     const out = [];
-    out.push(`sync:prepare — ${result.ok ? (result.nothing_to_do ? "nothing to do" : "ready") : "BLOCKED"}`);
+    out.push(`sync:prepare — ${result.ok ? (result.nothing_to_do ? "nothing to do" : result.audit_only ? "ready (audit corrections only)" : "ready") : "BLOCKED"}`);
     if (mode) out.push(`mode: ${mode} (base ${result.release.base_release_tag}, latest stable ${result.release.latest_stable_tag})`);
     if (result.window) {
       const w = result.window;
@@ -659,6 +721,9 @@ function finish(result, args, target) {
       out.push(`increment: ${i.range}, ${i.commits} commits, ${i.files} files (${i.non_test_files} non-test)`);
       for (const w of i.watchers) out.push(`  ${w.name} [${w.tier}]: ${w.file_count} files -> ${w.docs_paths.join(", ")}`);
       out.push(`  no watcher: ${i.unmatched_non_test.count} files`);
+    }
+    if (result.audit?.findings) {
+      out.push(`audit: ${result.audit.findings} finding(s) to correct, from ${result.audit.audits.map((a) => `the audit of #${a.pr}`).join(", ")}`);
     }
     if (result.post_pin) out.push(`after the pin (quarantined): ${result.post_pin.commits} commits, ${result.post_pin.reverts.length} reverts, ${result.post_pin.overlap_files} files overlap this window`);
     if (mode === "release" && result.release.tag) {
