@@ -636,6 +636,8 @@ When something changes on a task while you're looking at another page, a notific
 
 Each notification shows who made the change, with their name and avatar, whether it was a person or an agent. You don't get notifications for your own actions.
 
+The notification's heading is the task's title, and the line under it says what happened, for example *changed status from to do to in progress*, *set priority to high*, *reassigned the task*, or *changed the title*. For a comment, it shows the start of the comment as plain text. Click **View task** to open it. An update that changes none of the status, priority, assignee, title, or description doesn't pop up a notification.
+
 ---
 
 ## When an agent writes on another issue

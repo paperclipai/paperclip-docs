@@ -164,7 +164,7 @@ Requires `tools:admin`, and `companyId` in the body. Responds `201 Created`.
 |---|---|---|
 | `name` | yes | 1–160 characters. |
 | `clientLabel` | yes | 1–160 characters — which client this token is for. |
-| `ownerNote` | yes | 1–1,000 characters — who owns it and why it exists. |
+| `ownerNote` | no | Up to 1,000 characters — who owns it and why it exists. Defaults to an empty note. |
 | `subjectType` | no | Only `gateway_client` is accepted today. |
 | `subjectId` | no | 1–240 characters, or `null`. |
 | `allowedActions` | no | Any of `tools/list`, `tools/call`, `resources/list`, `resources/read`, `prompts/list`, and `prompts/get`. Defaults to `tools/list` and `tools/call`. |
@@ -471,6 +471,8 @@ GET  /api/tools/oauth/callback
 
 These need a public base URL configured; without one you get `422 Unprocessable Entity` with `OAuth connections require PAPERCLIP_PUBLIC_URL or an auth public base URL`.
 
+For a sign-in that runs through Paperclip's hosted sign-in service, `start` returns `429 Too Many Requests` when that service is rate-limiting requests. The message is *"<app> sign-in is busy right now. Try again in a moment."*, the code is `paperclip_cloud_connector_rate_limited`, and `retryAfterSeconds` says how long to wait when the service gave a time.
+
 You can also start from a config file you already have:
 
 ```
@@ -649,6 +651,7 @@ Profiles, entries, and bindings:
 
 ```
 GET    /api/companies/{companyId}/tools/profiles
+GET    /api/companies/{companyId}/tools/profiles/summary
 POST   /api/companies/{companyId}/tools/profiles
 PATCH  /api/tool-profiles/{profileId}
 DELETE /api/tool-profiles/{profileId}
@@ -661,7 +664,9 @@ POST   /api/companies/{companyId}/tools/profiles/{profileId}/unbind
 GET    /api/companies/{companyId}/tools/profiles/effective/agents/{agentId}
 ```
 
-That last one answers the question you'll actually ask most often: *given everything I have configured, what can this agent really use?*
+The `summary` route is the lighter list: it returns `profiles`, each with only its `id`, `name`, `status`, `updatedAt`, `summary`, and `newToolsPendingCount` (how many new tools wait for review), newest change first.
+
+The `effective` route answers the question you'll actually ask most often: *given everything I have configured, what can this agent really use?*
 
 When a connection's catalog refresh turns up tools your profile has never seen, they are held back rather than silently allowed:
 
