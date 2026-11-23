@@ -32,7 +32,7 @@ For most people getting started, **`claude_local`** is the right choice. It runs
 
 ![Step 2 of the new agent dialog, "Choose an adapter", with a card for each available adapter](../../user-guides/screenshots/light/agents/adapter-type-dropdown.png)
 
-> **Note:** On Paperclip Cloud, the new-agent picker offers Claude, Codex, OpenCode, and Grok. Grok agents connect with an xAI subscription or API key during setup.
+> **Note:** On Paperclip Cloud, the deployment can limit which harnesses you see when you add, import, or configure an agent, so your list may be shorter than the one on this page (see [`PAPERCLIP_AVAILABLE_HARNESSES`](../../reference/deploy/environment-variables.md#cloud-managed-instances)). Grok agents connect with an xAI subscription or API key during setup.
 
 > **Tip:** Grok Build can also run on the experimental **Paperclip Runner** adapter (`paperclip_runner`) — choose **Grok Build** as the provider. It needs Grok Build installed at a fixed path in the execution environment. See [Grok Build on Paperclip Runner](../../reference/adapters/grok-local.md#grok-build-on-paperclip-runner).
 

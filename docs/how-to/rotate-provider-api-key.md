@@ -18,34 +18,36 @@ Paperclip lets you bind a provider key into an agent's `adapterConfig.env` in on
 
 | Storage shape | What it looks like | Where you rotate it |
 |---|---|---|
-| **Plain value** | The key is pasted directly into the agent's Environment variables field. | On the agent itself — open the adapter form, paste the new value, save. |
-| **Secret reference** | The agent's env-var entry points at a secret in Paperclip's secret store, usually with `version: "latest"`. | In **Company Settings → Secrets** — rotate the secret once, every agent bound to it picks up the new value. |
+| **Text value** | The key is pasted directly into a row of the agent's **Environment variables** card. | On the agent itself — paste the new value into the row and save. |
+| **Organization secret** | The agent's env-var row points at a secret in Paperclip's secret store, usually on the `latest` version. | In **Company Settings → Secrets** — rotate the secret once, every agent bound to it picks up the new value. |
 
-> **Tip:** If you have more than one agent on the same provider, store the key as a secret reference. Rotation becomes a single edit instead of one trip per agent.
+> **Tip:** If you have more than one agent on the same provider, store the key as an organization secret. Rotation becomes a single edit instead of one trip per agent.
 
 ---
 
-## Path A — Rotate on the agent (plain value)
+## Path A — Rotate on the agent (text value)
 
-Use this when the key was pasted directly into the adapter form.
+Use this when the key was pasted directly into the agent's environment variables.
 
-1. Open **Agents → {agent}** and choose **Harness / Runtime** in the agent's sidebar.
-2. Scroll to the **Environment variables** card.
-3. Find the provider's key name (for example `ANTHROPIC_API_KEY`) and replace the value with the new key.
-4. Click **Save changes**.
-5. In the **Test your agent** card at the bottom, click **Run test**. The adapter spins up a check against the provider; **Connection successful** confirms the new key authenticates.
+1. Open **Agents → {agent}** and choose **Secrets & variables** in the agent's sidebar.
+2. In the **Environment variables** card, find the row for the provider's key (for example `ANTHROPIC_API_KEY`). A text value row shows a text icon in its **Value source** switch at the left of the value field.
+3. Replace the value with the new key.
+4. Click **Save changes** in the bar at the bottom of the page.
+5. Choose **Harness / Runtime** in the sidebar and click **Run test** in the **Test your agent** card. The test runs the adapter's checks on your runtime, and for many adapters also sends the model a short prompt; **Connection successful** means the checks passed.
 
-The next heartbeat picks up the new value. No restart needed.
+Your agent's next run picks up the new value. No restart needed.
+
+> **Tip:** When a value looks like a credential, the row offers **Store as secret**. Click it, name the secret, and click **Store & bind** to move the key into the secret store and bind the row to it in one step, so your next rotation can use Path B.
 
 ![The Environment variables card on an agent's Harness / Runtime page, with a GITHUB_TOKEN row bound to a secret and an Add variable link](../user-guides/screenshots/light/agents/test-environment-fail.png)
 
-> **Warning:** Plain values are stored on the agent record. If you're running with `PAPERCLIP_SECRETS_STRICT_MODE=true`, the server rejects new inline values for any env key whose name matches a sensitive-keyword regex (`api_key`, `token`, `auth`, `authorization`, `bearer`, `secret`, `password`, `credential`, `jwt`, `private_key`, `cookie`, `connectionstring`). Either turn strict mode off temporarily, or use Path B.
+> **Warning:** Text values are stored on the agent record. If you're running with `PAPERCLIP_SECRETS_STRICT_MODE=true`, the server rejects a non-empty text value for any env key whose name matches a sensitive-keyword pattern (`api_key`, `access_token`, `auth`, `authorization`, `bearer`, `secret`, `passwd`, `password`, `credential`, `jwt`, `private_key`, `cookie`, `connectionstring`). Either turn strict mode off temporarily, or use Path B.
 
 ---
 
-## Path B — Rotate the secret (secret reference)
+## Path B — Rotate the secret (organization secret)
 
-Use this when the env-var entry on the agent looks like:
+Use this when the key's row on the agent's **Secrets & variables** page shows a key icon in its **Value source** switch and a secret name in the value field. In the agent's config, the entry looks like:
 
 ```json
 {
@@ -63,9 +65,9 @@ Use this when the env-var entry on the agent looks like:
 2. Find the secret the agent is referencing — it's usually named after the provider (`anthropic-key`, `openai-key`, etc.). Type part of the name into **Search all secrets** if the list is long. A key Paperclip saved for you when you connected a model account sits under **Managed by Paperclip** at the bottom of the list, in the **Model sign-ins** group, where it's shown as **Model provider key**.
 3. Click the secret to open its detail panel. The **Agents that can use it** section shows which agents receive it.
 4. Click **Replace value**, paste the new key into **New value**, and click **Save new value**. Paperclip stores it as a new version and bumps `latestVersion`; the old value is kept as an earlier version.
-5. Open the agent and click **Test environment** to confirm the new value is being injected.
+5. Open the agent, choose **Harness / Runtime**, and click **Run test** in the **Test your agent** card to confirm the new value works.
 
-Every agent that references this secret with `version: "latest"` now resolves to the new value on its next heartbeat. Agents pinned to a numeric version (`"version": "3"`) stay on that historical value until you re-point them.
+Every agent that references this secret with `version: "latest"` now resolves to the new value on its next run. Agents pinned to a numeric version (`"version": 3`, shown as a `v3` tag on the row) stay on that historical value until you re-point them — click the version tag on the row and choose **latest**.
 
 > **Note:** Every rotation creates a new version automatically — there is no "edit value in place" option. The old version is still resolvable by any binding that pinned it; new bindings and `latest` consumers move forward.
 
@@ -102,14 +104,14 @@ Used by `codex_local` and by `opencode_local` when the configured model is an Op
 
 Used by `gemini_local`. The adapter also accepts Google account login or Gemini CLI auth, so on a developer machine you may not need the key at all. See [Gemini CLI](../reference/adapters/gemini-cli.md).
 
-> **Note:** Test Environment confirms the binary is installed and the env var is set. It does not detect quota exhaustion or a revoked Google account — a passing check is not a guarantee that runs will succeed.
+> **Note:** On the default ACP engine, the test checks that the Gemini ACP command resolves and whether `GEMINI_API_KEY` or `GOOGLE_API_KEY` is set, but it sends no prompt, so a passing test doesn't prove the new key is accepted. With the adapter's engine set to `cli`, the test also asks the model to respond with hello, and reports an over-quota account or key, or an auth error if the probe is rejected. On the CLI engine, if the adapter's command is not `gemini`, the hello probe is skipped.
 
 <!-- tab: xAI (Grok) -->
 
 **Env var:** `XAI_API_KEY`
 **Console:** [console.x.ai](https://console.x.ai) → **API Keys**
 
-Used by `grok_local`. Treat it the same as the other provider keys — generate, store as a secret reference, bind into the adapter's env. See [Grok Local](../reference/adapters/grok-local.md).
+Used by `grok_local`. Treat it the same as the other provider keys — generate, store as an organization secret, bind into the agent's environment variables. See [Grok Local](../reference/adapters/grok-local.md).
 
 <!-- tab: Cursor -->
 
@@ -134,7 +136,7 @@ If the agent uses two providers (for example a model and an embedding provider),
 
 ## Verify the new key works
 
-1. Open the agent and click **Test environment**. This confirms the binary is reachable, the env var resolves, and the provider accepts the credential.
+1. Open the agent, choose **Harness / Runtime**, and click **Run test** in the **Test your agent** card. The test runs the adapter's checks on your runtime, and for many adapters also sends the model a short prompt; **Connection successful** means it passed, while **Couldn't connect** or **Connection needs attention** lists the checks to review.
 2. Trigger a heartbeat — either toggle heartbeats on and wait for the next tick, or assign a small task to the agent. Watch the run log for a successful first turn.
 3. If you rotated a shared secret, repeat the check on a second agent that references it so you know the rotation flowed through.
 
@@ -142,19 +144,19 @@ If the agent uses two providers (for example a model and an embedding provider),
 
 ## Troubleshooting
 
-**"I added a new secret but the agent still 401s"** — Creating a secret in **Company Settings → Secrets** does *not* auto-rewire existing agents. The agent is still using whatever was wired into its `ANTHROPIC_API_KEY` (or equivalent) env-var row when you last saved it. Open the agent → **Edit** → **Environment variables**, change the row's source to **Secret**, pick the new secret, then click **Test environment**. If the row was already set to **Plain** with the old key, that plain value shadows any new secret you create elsewhere — switching it to **Secret** is the fix.
+**"I added a new secret but the agent still 401s"** — Creating a secret in **Company Settings → Secrets** does *not* auto-rewire existing agents. The agent is still using whatever was wired into its `ANTHROPIC_API_KEY` (or equivalent) env-var row when you last saved it. Open the agent → **Secrets & variables** → **Environment variables**. If the row already points at a secret, click the secret name in the value field and pick the new one. If it holds a text value, clear the value first, then open the row's **Value source** switch and choose **Organization secret** and pick the new secret from **Select secret…** (with a value still in the field, that choice opens **Store value as secret** instead). Click **Save changes**. Then run the test from **Harness / Runtime**. If the row was set to **Text value** with the old key, that text value is what the agent keeps using, whatever new secret you create elsewhere — switching the row to **Organization secret** is the fix.
 
-**A 401 from the provider after a rotation** — The provider (not Paperclip) is rejecting the credential, which means the request reached them with *some* key. Two common causes: (1) the key value itself is wrong — whitespace pasted around it, copied from the wrong account/workspace, or the new console account hasn't been funded yet; (2) the agent picked up an old plain value rather than the rotated secret. Re-copy the key from the provider console, paste it as a plain value temporarily to isolate which side is wrong, then move it back to a secret reference once Test environment passes.
+**A 401 from the provider after a rotation** — The provider (not Paperclip) is rejecting the credential, which means the request reached them with *some* key. Two common causes: (1) the key value itself is wrong — whitespace pasted around it, copied from the wrong account/workspace, or the new console account hasn't been funded yet; (2) the agent picked up an old text value rather than the rotated secret. Re-copy the key from the provider console, paste it as a text value temporarily to isolate which side is wrong, then move it back to an organization secret once the test passes.
 
 **"API key invalid"** — Compare the env-var *name* against the provider's expected name (`ANTHROPIC_API_KEY`, not `ANTHROPIC_KEY`). Check the key prefix matches what the provider issues (`sk-ant-`, `sk-`, etc.). Whitespace pasted in front of or after the key is a common culprit.
 
-**Test environment still fails after rotation** — The agent may be holding a cached process. Stop and re-enable heartbeats so the next run starts a fresh subprocess with the new environment. For long-running adapters like `cursor`, end the existing session so the resume cache doesn't reuse the old auth.
+**The test still fails after rotation** — The agent may be holding a cached process. Stop and re-enable heartbeats so the next run starts a fresh subprocess with the new environment. For long-running adapters like `cursor`, end the existing session so the resume cache doesn't reuse the old auth.
 
-**Strict mode rejects the inline value** — You're running with `PAPERCLIP_SECRETS_STRICT_MODE=true`, which blocks inline sensitive values on persisted env bindings. Use Path B (secret reference) instead. See [Secrets](../reference/deploy/secrets.md).
+**Strict mode rejects the text value** — You're running with `PAPERCLIP_SECRETS_STRICT_MODE=true`, and the server rejects the save with `Strict secret mode requires secret references for sensitive key: <KEY>`. Use Path B (organization secret) instead. See [Secrets](../reference/deploy/secrets.md).
 
 **The old subscription login keeps being used** — Claude Code, Codex CLI, and Gemini CLI each cache their own login state outside Paperclip. If you intend the API key to take precedence, log out of the CLI (`claude logout`, `codex logout`, etc.) on the host so the adapter falls back to the env var.
 
-**Multiple agents still failing** — If you rotated a secret and only some agents picked up the new value, check the failing ones' env binding. Agents pinned to a specific version (`"version": "3"`) don't follow `latest`; re-point them or update the binding.
+**Multiple agents still failing** — If you rotated a secret and only some agents picked up the new value, check the failing ones' env binding. Agents pinned to a specific version (`"version": 3`, a `v3` tag on the row) don't follow `latest`; re-point them to **latest** or update the binding.
 
 ---
 

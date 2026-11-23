@@ -941,7 +941,7 @@ The `permissionKey` field on a grant is one of:
 | `tasks:assign` | Assign any issue in the company to any active agent or human member. |
 | `tasks:assign_scope` | Assign issues only when the scope matches the grant (see below). Requires a structured scope on the grant. |
 | `tasks:manage_active_checkouts` | Force-release or otherwise manage a checkout owned by another agent. |
-| `environments:manage` | Reserved for managing execution environments. Roles carry it, but the environment routes don't check it yet: they need instance admin access. |
+| `environments:manage` | Reserved for managing execution environments. Roles carry it, but the environment routes don't check it yet. Reading the environment list or one environment needs a board user with company membership or instance admin access; full details and changes need instance admin access. |
 | `users:invite` | Invite new humans to the company. |
 | `users:manage_permissions` | Edit roles and grants for other members. |
 | `joins:approve` | Approve pending join requests. |
