@@ -104,7 +104,7 @@ Implementation reference: [Tasks page and live updates](https://github.com/paper
 
 6. **Click Create task**, or press **Enter**. If your instance has **Command/Ctrl+Enter to Submit** turned on, press **⌘+Enter** (**Ctrl+Enter** on Windows and Linux) instead.
 
-   The dialog closes straight away and the task saves in the background, so you can start the next one without waiting. If a save fails, Paperclip reopens the dialog with that task filled back in. If you've already started on another task, you see **A task could not be saved** instead. Open **New task** to find the failed request kept for you, with a **Retry saved task** button for it.
+   The dialog closes straight away and the task saves in the background, so you can start the next one without waiting. If a save fails, Paperclip reopens the dialog with that task filled back in. If you've already started on another task, you see **A task could not be saved** instead. Open **New task** to find the failed request kept for you, with a button for it that reads **Retry saved task:** and then the task's title.
 
    The task opens after creation. Its **Properties** panel lets you adjust status, parent, project, and the other task fields. Status, reviewers, approvers, and a [task watchdog](#task-watchdogs) aren't set in the new-task dialog — add them from **Properties** once the task exists. A paused assignee can receive the task, but won't start until you resume it.
 
@@ -622,6 +622,8 @@ From the same **More task actions** menu, choose **Make private** on a public ta
 
 Only the task's owner (the person responsible for it, its creator, or its assigned person), a company owner or admin, or an instance admin can change who sees a task. For everyone else these items are greyed out, with a tooltip explaining why.
 
+The private conversations behind someone's [Areas & Responsibilities](../../experimental/responsibilities.md) dashboard follow a stricter rule. Only that person and the agent working with them can open them. Nobody else can, admins included.
+
 ### Private projects
 
 A project can be private too. In the project's properties, turn on **Visibility**. **Private** means only access members can find the project. Members can see the project and read every task in it. Use **Manage access** to add or remove people and agents. To make a private project visible to the whole company again, turn **Visibility** off and confirm. Its private tasks stay private. Members who could only see them through the project lose access, so share those tasks directly first if they should keep it. See [Projects](../projects-workflow/projects.md).
@@ -702,11 +704,11 @@ An empty composer shows **Stop** while the task is running and you can manage ta
 
 ### Tasks waiting in an agent's line
 
-Each agent runs only so many tasks at once. Other work waits in that agent's line, and a task in line says so instead of looking busy. Its header shows **Waiting** rather than a live badge, and the conversation reads, for example, *Waiting for Codie · 20 slots max · 41 of 295 in line · Configure*. There's no spinner or ticking timer, because nothing is running yet. **Configure** opens the agent's **Advanced** settings, where you can raise how many runs it takes at once.
+Each agent runs only so many tasks at once. Other work waits in that agent's line, and a task in line says so instead of looking busy. Its header shows **Waiting** rather than a live badge, and the conversation reads, for example, *Waiting for Codie · 20 slots max · 41 of 295 in line · Configure*. Paperclip works out places in line for at most 8 busy agents each time it reads your tasks, so when tasks are waiting on more busy agents than that, some of them don't show their place. There's no spinner or ticking timer, because nothing is running yet. **Configure** opens the agent's **Advanced** settings, where you can raise how many runs it takes at once.
 
 Other waits are named too. A task created by a [routine](../projects-workflow/routines.md) that runs one task at a time reads *Waiting for PAP-5656 to finish* while an earlier task of the same routine is still open with its run. When that earlier task is private, it reads *Waiting for another task in this routine to finish*. If a turn has been queued for more than 30 seconds and Paperclip can't name a reason, it reads **Waiting to start** instead of **Working**. Each wait is named once, in the turn's header.
 
-To take a waiting task out of line, press **Stop**, which shows as soon as the task has a run, even one that hasn't started. The waiting run is cancelled, an **In Progress** task goes back to **Todo**, and nothing new starts for it. The agent moves on to the next task in its line, and the task's activity records the change.
+To take a waiting task out of line, press **Stop**, which shows as soon as the task has a run, even one that hasn't started. The waiting run is cancelled and nothing new starts for it. An **In Progress** task goes back to **Todo** when it's still assigned to that agent and has no other live run. The agent moves on to the next task in its line, and the task's activity records the change.
 
 Work people asked for goes first. When an agent's line is long, a run you asked for, such as a **Retry**, starts ahead of Paperclip's own recovery work, and a run that has waited a long time gets its turn. The same goes for any run on a task a person created, or on a subtask under it (up to 32 levels down), including the parent's turn once its subtasks are done. Those runs go ahead of other agent work, so a task tree a person started isn't left waiting behind newer agent work. Paperclip's own recovery runs on those tasks don't get this head start. Recovery work joins a busy agent's line a few runs at a time, so it can't flood the line.
 

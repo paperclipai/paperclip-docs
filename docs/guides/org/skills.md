@@ -346,7 +346,7 @@ After a version conflict, the agent rereads the skill and uses a new retry key f
 
 ## Skills from connected apps
 
-Some apps ship their own skills. When an MCP server you've connected publishes skills, Paperclip picks them up each time it refreshes the connection's actions, and lists them on the **Skills** page under **Skills from connected apps**. The section sits above the skill cards on the **Installed** and **Discover** tabs, and it only appears once a connected app has published a skill. See [Cards and skills from MCP servers](../../connectors/custom-mcp-servers.md#cards-and-skills-from-mcp-servers) for which servers can do this.
+Some apps ship their own skills. When an MCP server you've connected publishes skills, Paperclip picks them up each time it refreshes the connection's actions, and lists them on the **Skills** page under **Skills from connected apps**. The section sits above the skill cards on the **Installed** and **Discover** tabs. If **Streamlined UI** is turned off, the page's tabs are **All**, **Installed**, **Catalog**, and **Bundled** instead, and the section sits above the cards on each of them. It only appears once a connected app has published a skill. See [Cards and skills from MCP servers](../../connectors/custom-mcp-servers.md#cards-and-skills-from-mcp-servers) for which servers can do this.
 
 Nothing reaches your agents automatically. The section's header says it plainly: *"Agents that use an app get its skills only after you approve them."*
 

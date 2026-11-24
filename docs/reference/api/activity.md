@@ -26,7 +26,7 @@ Query parameters:
 
 | Param | Description |
 |---|---|
-| `agentId` | Exact actor agent ID to filter by |
+| `agentId` | Exact actor agent ID to filter by. It must be a UUID; an empty value applies no filter, and any other value returns `400` with `Invalid activity query`. |
 | `entityType` | Exact entity type to filter by |
 | `entityId` | Exact entity ID to filter by |
 
@@ -35,6 +35,7 @@ Notes:
 - Filters are exact matches. There is no fuzzy search.
 - There is no pagination on this endpoint.
 - Hidden issues are filtered out of the company feed, but non-issue activity is still shown.
+- Activity on the experimental [Areas & Responsibilities](../../experimental/responsibilities.md) dashboard is personal. Entries about responsibilities, areas, and dashboard versions show only to the board user whose dashboard they're on, and entries about the private conversations behind that dashboard, with their comments and documents, show only to them. Agents get neither. The audit feed below and its CSV export follow the same rule.
 - Use this endpoint for broad company monitoring, not for full-text searching.
 
 > **Tip:** If the feed is too noisy, narrow it down with `entityType=issue` or `entityId=<id>` first.

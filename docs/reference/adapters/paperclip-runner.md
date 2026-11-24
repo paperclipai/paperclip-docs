@@ -46,6 +46,13 @@ A few extra rules apply to Claude:
 - **A Mac reached over SSH defaults to Legacy.** You can still ask for the Runner on that host with `runner: "paperclip"` through the API or CLI, as long as it has the matching Runner assets installed.
 - **Linux SSH hosts can use a preinstalled provider pack.** Install the pack from the same Paperclip release at `/opt/paperclip-runner/provider-pack` or `$HOME/.local/share/paperclip-runner/provider-pack`. The Runner looks there, verifies the pack, and picks the Linux x64 or ARM64 build that matches the host.
 
+OpenCode works differently on a Mac reached over SSH: a new OpenCode agent gets the Runner there automatically, and the Runner files come from your Paperclip server rather than from an install on the Mac. When a run starts, Paperclip checks the host's operating system and architecture over SSH. On an Apple Silicon Mac, it sends the Mac build of the Runner and OpenCode from the Paperclip server to the host and verifies the files before launching them. Here's what that depends on:
+
+- **The Docker image Paperclip publishes includes it** at `/opt/paperclip-runner/remote-runtimes`. If you build your own image or run the server some other way, point `PAPERCLIP_RUNNER_REMOTE_RUNTIMES_PATH` at a directory that holds the verified `darwin-arm64` runtime. It has to be an absolute path. If the runtime is missing or doesn't verify, the run stops with `runner_remote_artifact_unavailable: install the Core image with its verified darwin-arm64 OpenCode runtime`.
+- **Only Apple Silicon is covered.** On an Intel Mac, the run stops with `runner_remote_artifact_unavailable: automatic macOS OpenCode SSH runtime requires Apple Silicon`. To keep OpenCode on an Intel Mac, choose the `legacy` runner through the API or CLI.
+- **Your own Runner files take precedence.** If the server sets `PAPERCLIP_RUNNER_REMOTE_BINARY_PATH`, or sets `PAPERCLIP_RUNNER_REMOTE_PROVIDER_PACK_PATH` to anything other than `/opt/paperclip-runner/provider-pack`, Paperclip skips this Mac build and uses what you configured.
+- **If Paperclip can't read the host's platform,** the run stops with `runner_remote_artifact_platform_mismatch: could not identify the SSH host platform`.
+
 Some environment plugins run Paperclip Runner themselves. On one of those [plugin environments](../../experimental/environments.md), a Codex, Claude Code, OpenCode, Pi, or Grok Build agent gets Paperclip Runner with no platform check, and the Legacy runner isn't available.
 
 ### Pick a runner yourself
@@ -214,7 +221,7 @@ Some model hosts drop tool arguments or send them in the wrong shape, and a mode
 
 ACP agents, such as Claude, also learn what was wrong with a refused call. Instead of a bare *Paperclip semantic operation failed*, the agent sees the error code and up to five failing fields with the rule each one broke, for example `Paperclip semantic operation failed: invalid input: payload.prompt: too_big, string max 1000`. It never sees the error's free text or the values it sent. Server errors (status `500` or higher), and refusals with no recognizable code or field, keep the short generic message.
 
-If the agent keeps sending the refused call anyway, Paperclip ends the turn for it. That happens on the 6th refusal of one exact call, or the 20th refusal across the run. The task then carries on by itself in a fresh session, with a hint to use a dedicated Paperclip tool such as `set_task_title`, `report_progress` or `write_document` instead of `call_api`. You don't get a **Retry** banner, because nothing needs you, and the agent stops holding a slot your other work is waiting for.
+If the agent keeps sending the refused call anyway, Paperclip ends the turn for it. That happens on the 6th refusal of one exact call, or the 20th refusal across the run. The task then carries on by itself in a fresh session, with a hint to use a dedicated Paperclip tool such as `set_task_title`, `report_progress` or `write_document` instead of `call_api`. You don't get a **Retry** banner, because nothing needs you, and the agent stops holding a slot your other work is waiting for. If Paperclip can't queue that fresh session, for example because a stop was already requested for the run, the agent still gets the refusal, but the turn isn't ended for it and no fresh session follows.
 
 Standard, planning, and ask tasks are supported. Cursor additionally has `acpxSessionMode`: `agent` (default), `plan`, or `ask`. Selecting Plan or Ask changes native Cursor session behavior, while Paperclip permissions and environment boundaries remain in force.
 

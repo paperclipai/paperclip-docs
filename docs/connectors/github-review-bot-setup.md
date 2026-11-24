@@ -182,6 +182,12 @@ responsible member"*. The check covers every sponsor and the responsible
 member in the configuration you save, so if they already name someone else,
 an ordinary member's save is refused even when only another setting changed.
 
+Saving these settings also needs you to be an active member of the company who
+isn't a viewer, and that includes instance admins. An instance admin who isn't a
+member of the company can't save a sponsor or **Responsible member**, not even
+themselves; the save is refused with *"An active company member with permission
+to start work is required"*.
+
 ## 6. Configure when it runs and what it publishes
 
 On **Settings**, set **When to run** and **Review results** as follows, then

@@ -53,10 +53,10 @@ You can narrow the list with these optional query parameters:
 | `status` | Routines with this status, such as `active`. |
 | `assigneeAgentId` | Routines this agent runs. |
 | `responsibleUserId` | Routines this person is responsible for. |
-| `responsibilityId` | Routines filed under this responsibility, directly or through their project. |
-| `unfiled=true` | Routines filed under no proposed or active responsibility, directly or through their project. |
+| `responsibilityId` | Routines filed under this responsibility of yours, directly or through their project. |
+| `unfiled=true` | Routines filed under none of your proposed or active responsibilities, directly or through their project. |
 
-`responsibilityId` and `unfiled` read filed work, which is part of the experimental [Areas & Responsibilities](../../experimental/responsibilities.md) dashboard. While that setting is off, they return `404` with code `responsibilities_disabled`.
+`responsibilityId` and `unfiled` read filed work, which is part of the experimental [Areas & Responsibilities](../../experimental/responsibilities.md) dashboard. While that setting is off, they return `404` with code `responsibilities_disabled`. They only look at your own responsibilities: a board user's, or for an agent, those of the person who directed its run. A `responsibilityId` that belongs to someone else matches no routines. An agent whose run no person directed gets `403` (`A personal dashboard requires a user or a run directed by that user`).
 
 Each list item includes:
 
