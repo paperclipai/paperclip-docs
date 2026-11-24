@@ -19,7 +19,7 @@ Paperclip lets you bind a provider key into an agent's `adapterConfig.env` in on
 | Storage shape | What it looks like | Where you rotate it |
 |---|---|---|
 | **Text value** | The key is pasted directly into a row of the agent's **Environment variables** card. | On the agent itself — paste the new value into the row and save. |
-| **Organization secret** | The agent's env-var row points at a secret in Paperclip's secret store, usually on the `latest` version. | In **Company Settings → Secrets** — rotate the secret once, every agent bound to it picks up the new value. |
+| **Organization secret** | The agent's env-var row points at a secret in Paperclip's secret store, usually on the `latest` version. | In **Company Settings → Secrets** — rotate the secret once, and every agent bound to its `latest` version picks up the new value. |
 
 > **Tip:** If you have more than one agent on the same provider, store the key as an organization secret. Rotation becomes a single edit instead of one trip per agent.
 
@@ -149,8 +149,6 @@ If the agent uses two providers (for example a model and an embedding provider),
 **A 401 from the provider after a rotation** — The provider (not Paperclip) is rejecting the credential, which means the request reached them with *some* key. Two common causes: (1) the key value itself is wrong — whitespace pasted around it, copied from the wrong account/workspace, or the new console account hasn't been funded yet; (2) the agent picked up an old text value rather than the rotated secret. Re-copy the key from the provider console, paste it as a text value temporarily to isolate which side is wrong, then move it back to an organization secret once the test passes.
 
 **"API key invalid"** — Compare the env-var *name* against the provider's expected name (`ANTHROPIC_API_KEY`, not `ANTHROPIC_KEY`). Check the key prefix matches what the provider issues (`sk-ant-`, `sk-`, etc.). Whitespace pasted in front of or after the key is a common culprit.
-
-**The test still fails after rotation** — The agent may be holding a cached process. Stop and re-enable heartbeats so the next run starts a fresh subprocess with the new environment. For long-running adapters like `cursor`, end the existing session so the resume cache doesn't reuse the old auth.
 
 **Strict mode rejects the text value** — You're running with `PAPERCLIP_SECRETS_STRICT_MODE=true`, and the server rejects the save with `Strict secret mode requires secret references for sensitive key: <KEY>`. Use Path B (organization secret) instead. See [Secrets](../reference/deploy/secrets.md).
 

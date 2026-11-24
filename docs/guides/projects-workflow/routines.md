@@ -145,7 +145,7 @@ Clicking **New routine** opens the same form you use to edit a routine, titled *
 - **Instructions** — a Markdown editor. Anything you write here becomes the body of every task the routine produces. Type `/` for skills and routines, `@` to mention, and `{{name}}` to ask for a value (see [Variable templates](#variable-templates)).
 - **Variables** — appears once your title or instructions contain a `{{name}}` placeholder.
 - **Repeats** — **Add schedule** to give the routine a schedule and a **Time zone**.
-- **Default agent**, **Project**, and **Default responsible user** pickers, plus **Responsibility** when the **Areas & Responsibilities dashboard** experimental setting is on.
+- **Default agent**, **Project**, and **Default responsible user** pickers, plus **Responsibility** (one of your own) when the **Areas & Responsibilities dashboard** experimental setting is on.
 - **Secrets** — **Add secret** to give the routine's tasks environment values.
 
 Only the title is required. Draft routines without a default agent are valid — they save and stay off until you assign one. A new routine goes into the folder the list is showing and gets the default priority and delivery settings. When you click **Create routine**, Paperclip opens the new routine's page, where you can add a webhook.
@@ -196,7 +196,7 @@ The left column answers "what is this, and when does it run?":
 - **Secrets** — shown when the routine has secrets. Only their names are listed.
 - **Run rules** — shown only when the routine's delivery settings differ from the defaults, in plain words. For example, "Queues every run, even while one is still working", "Skips a run while one is still working", "Catches up on runs missed while paused", or "Skips scheduled runs when nothing changed".
 
-With the **Areas & Responsibilities dashboard** experimental setting on, a **Responsibility** field also lists the responsibilities the routine falls under, whether directly or through its project.
+With the **Areas & Responsibilities dashboard** experimental setting on, a **Responsibility** field also lists the responsibilities of yours the routine falls under, whether directly or through its project. Responsibilities belong to one person, so teammates who open the same routine see their own.
 
 ### Instructions
 

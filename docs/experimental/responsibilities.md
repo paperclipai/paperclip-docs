@@ -30,9 +30,11 @@ The new dashboard becomes your company's home page, at `/responsibilities`, and 
 
 ## Your dashboard
 
-The page lists your areas as cards. Click an area's bar to fold or unfold it, and click the **+** on the bar to add a responsibility there. Under each area, every responsibility is one line: its bar sentence, or its name if it doesn't have a bar yet. Click a line to open that responsibility's page. Apart from one line beside the search counting your areas and responsibilities, the page deliberately leaves out status words and numbers, so you read what you own, not a scoreboard.
+Your dashboard is yours alone. Other people in the company have their own, and no other person can see or change yours, company admins included.
 
-Above the areas, **Search your dashboard** narrows the page to what matches, opening any folded area that has a match, and **New area** adds one. Areas are shared across the company, so renaming one renames it for everyone. The rename dialog says so: *"Everyone in the company sees the new name."*
+The page lists your areas as cards. Click an area's bar to fold or unfold it (this browser remembers which you folded, separately for each company and person), and click the **+** on the bar to add a responsibility there. Under each area, every responsibility is one line: its bar sentence, or its name if it doesn't have a bar yet. Click a line to open that responsibility's page. Apart from one line beside the search counting your areas and responsibilities, the page deliberately leaves out status words and numbers, so you read what you own, not a scoreboard.
+
+Above the areas, **Search your dashboard** narrows the page to what matches, opening any folded area that has a match, and **New area** adds one. Your areas are your own: renaming or archiving one changes only your dashboard, and a teammate can have an area with the same name. The **Rename area** dialog still reads *"Everyone in the company sees the new name."*, and the archive dialog *"It is archived for everyone in the company"*, but the change only reaches your own area.
 
 At the foot of the page there's a composer for starting a chat from the dashboard. Pick an agent, type, and press Enter: Paperclip opens your [chat](agent-chat.md) with that agent, with your text as the first message.
 
@@ -42,7 +44,7 @@ Click **+** on an area (or **Add a responsibility** in an empty one). The **New 
 
 ## Have an agent create it
 
-On an empty dashboard, the page shows a single card: **Create your custom dashboard** — *"Have an agent research and interview you to generate a custom dashboard of areas and responsibilities that matter to you."*
+While your dashboard has no areas and no responsibilities, the page shows a single card: **Create your custom dashboard** — *"Have an agent research and interview you to generate a custom dashboard of areas and responsibilities that matter to you."*
 
 1. Click **Start with** *agent name*. Paperclip picks an agent that can take work, preferring a top-level CEO, and opens a conversation titled **Create my dashboard**.
 2. The conversation opens with **A few quick questions**: your role, what you care about at work, where you're most behind, anything the agent should stay out of, and whether it may look you up on the public web. Only the first two are required. The last one offers **No, just use my answers** or **Yes, look me up**, and the question promises public pages only, nothing behind a login and no people-search sites. Click **Send answers**. Prefer to just type? A message works too.
@@ -72,11 +74,11 @@ When you chat with an agent about what you're responsible for, or ask it to map 
 
 | Tool | What it reads |
 | --- | --- |
-| `list_responsibilities` | Your areas, the responsibilities in each, and company work filed under no responsibility. |
+| `list_responsibilities` | Your areas, the responsibilities in each, and company work filed under none of your responsibilities. |
 | `get_responsibility` | One responsibility in full: what's filed under it, its skills, and its latest status report. |
 | `find_responsibilities_for` | Where a project, task (such as `PAP-12`), routine, or skill is filed. |
 
-The agent reads the responsibilities of the person its run works for, which in your chat is you. It only asks you what you're responsible for when your list is empty.
+The agent reads the responsibilities of the person who directed its run: your own chat, a task you made, or a run your message woke. In other runs, such as a routine's task or a task someone else made for you, it can't read anyone's dashboard. It only asks you what you're responsible for when your list is empty.
 
 While this setting is off, the tools are hidden and the agent is told the feature is off. It tells you that rather than saying you have no responsibilities.
 
@@ -84,9 +86,9 @@ While this setting is off, the tools are hidden and the agent is told the featur
 
 You can also just ask: *"add a Hiring area"*, *"move the runway one under Fundraising"*, *"file the weekly report routine under it"*, *"let that one go"*. The agent makes the change with its change tools (`create_area`, `update_area`, `delete_area`, `create_responsibility`, `update_responsibility`, `delete_responsibility`, `file_under_responsibility`, and `remove_from_responsibility`), then tells you what it changed and that you can undo it.
 
-An agent acts for you this way only when you directed its run: it's your own chat or a task you made, or your message woke it. It can then do what you could: change your own responsibilities, or anyone's if you're a company owner or admin. In other runs, such as a task someone else made for you, a routine, or a subtask an agent made, it can't change them directly: it can propose responsibilities and areas for you to confirm, and file work under a responsibility that's proposed or active.
+An agent acts for you this way only when you directed its run: it's your own chat or a task you made, or your message woke it. It can then change your areas and responsibilities, and only yours, even if you're a company owner or admin. In other runs, such as a task someone else made for you, a routine, or a subtask an agent made, it can't read or change your dashboard. An agent working under one of your active responsibilities can still record its readings and report its status, as long as its run isn't working for someone else.
 
-- **Undo.** Each change is saved as a version in your dashboard history, so **Undo** and **Versions** work as they do for your own edits. Undo puts back titles, sentences, areas, order, status, what's filed, the description, and the agent that runs a responsibility. It puts back a bar's sentence, but not how the bar is measured or its readings; those stay in the metric history. Changes to responsibilities that are still proposed or that you let go aren't on your dashboard, so they can't be undone there, and neither can renaming an area that other people's responsibilities also use.
+- **Undo.** Each change is saved as a version in your dashboard history, so **Undo** and **Versions** work as they do for your own edits. Undo puts back titles, sentences, areas, order, status, what's filed, the description, and the agent that runs a responsibility. It puts back a bar's sentence, but not how the bar is measured or its readings; those stay in the metric history. Changes to responsibilities that are still proposed or that you let go aren't on your dashboard, so they can't be undone there.
 - **Deleting needs your yes.** A delete is permanent, so the agent prefers archiving an area or letting a responsibility go. If it does need to delete, it first posts a confirmation card in the conversation and waits. It deletes only after you accept the card.
 - **Routines too.** The agent can list your routines with `list_routines` and change the ones you're responsible for with `update_routine`: the title, instructions, agent, project, status, priority, or schedule, which it sets in plain terms such as "every Monday at 9:00" rather than cron. Each routine change is saved as a revision you can restore from the routine's **Version history** (see [Routines](../guides/projects-workflow/routines.md#version-history-and-audit-log)). Changing who runs a routine needs you to be allowed to assign work, and so, on a routine the agent doesn't run itself, do turning it on and changing its schedule.
 
@@ -110,12 +112,14 @@ You can only hand work to an agent under a responsibility you've confirmed. Ones
 
 ## Routine offers on finished tasks
 
-With this setting on, an agent that finishes work that's likely to come round again, such as a weekly report or a daily check, can offer once to repeat it on a schedule. The offer appears in the task's conversation after the task is done, with the agent's message, the routine's title, and how often it would run. **Make it a routine** creates the routine with that agent running it, in the task's project and filed under the same responsibilities, on your local time zone. **No thanks** declines it. Agents don't make offers for tasks a routine created, for the onboarding task, or for work that was cancelled.
+With this setting on, an agent that finishes work that's likely to come round again, such as a weekly report or a daily check, can offer once to repeat it on a schedule. The offer appears in the task's conversation after the task is done, with the agent's message, the routine's title, and how often it would run. **Make it a routine** creates the routine with that agent running it, in the task's project and filed under the same responsibilities of yours as the task, on your local time zone. **No thanks** declines it. Agents don't make offers for tasks a routine created, for the onboarding task, or for work that was cancelled.
 
 ## Caveats
 
 - This is experimental. The page layout, labels, and how agents draft dashboards may change between releases.
-- Responsibilities belong to one person. You manage your own; company owners and admins, and instance admins, can manage anyone's. Areas have no owner, so any board user with write access to the company can rename or archive one. An agent acting for you can do the same.
+- Responsibilities and areas belong to one person. Only you, or an agent acting for you, can manage yours; company owners and admins, and instance admins, can't manage anyone else's.
+- The conversations behind your dashboard are private to you and the agent in them: **Create my dashboard** and **Edit my dashboard**, a bar conversation, a status-update request, and an automation conversation about a task. Nobody else can open them, admins included, and their activity is left out of everyone else's activity feed.
+- When an instance upgrades from company-wide areas, an area several people used is copied so each of them keeps their own. An area Paperclip can't tie to anyone, such as an empty one with no record of who made it, stops showing.
 - Turning the setting off hides the feature but keeps your data, so turning it back on brings your dashboard back as you left it.
 
 ## Where to go next
