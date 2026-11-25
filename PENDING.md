@@ -1,24 +1,16 @@
 # Pending — nightly sync
 
-- **Window:** `1b1861c2..7671e0cf`, 18 commits, pinned at `7671e0cf` (2026-11-22T01:17:29-08:00), 48h quarantine. Base release `v2026.1117.0`.
+- **Window:** `7671e0cf..cb4129a9`, 3 commits, pinned at `cb4129a9` (2026-11-23T04:14:58-06:00), 48h quarantine. Base release `v2026.1117.0`.
 - **Merge of `main`:** nothing to merge.
-- **Review:** round 1 (two reviewers, 86 lines): 2 WRONG and 3 OVERSTATED fixed. Round 2 (two reviewers, regrouped, 86 lines): 1 WRONG and 1 OVERSTATED fixed. Round 3 (one reviewer, `api/responsibilities.md` and `day-to-day/issues.md`, 42 lines): 1 OVERSTATED fixed. Closing check (2 statements): both OK. 1 claim cut (audit finding A5).
+- **Review:** round 1 (one reviewer, 5 lines): 2 OVERSTATED fixed. Round 2 (fresh reviewer, 5 lines): 1 OVERSTATED fixed. Closing check (1 statement): OK. 0 claims cut.
 - **Drift:** 0 (`source: snapshot`, no warnings).
 
-## Applied this run (`1b1861c2..7671e0cf`)
-- **Personal Areas & Responsibilities dashboards** (#22513): areas belong to one person, titles are unique per person, and every dashboard, responsibility, area and saved version is read and changed only by its owner (or an agent whose run that person directed); someone else's comes back `404` *Dashboard item not found*, and company admins no longer manage other people's. Agents with no directing person get `403` but can still report. The dashboard conversations are private to their owner and the assigned agent, admins and break-glass included, and the activity feeds hide them. The upgrade splits a shared area into one per person. Pages: `api/responsibilities.md`, `experimental/responsibilities.md`, `api/routines.md`, `projects-workflow/routines.md`, `api/activity.md`, `api/issues.md` (new "Personal dashboard conversations"), `day-to-day/issues.md`.
-- **Activity `agentId` is validated** (#22516): a non-UUID `agentId` on `GET /api/companies/{companyId}/activity` returns `400` *Invalid activity query*; an empty one is ignored (`api/activity.md`).
-- **No failure notice when an agent hands its blocker to a person** (#22325): the task moves to **Blocked** with no error notice or **Retry**; the attention item offers **Unblock** and **Reassign**, and your comment wakes the agent (`day-to-day/blocked-inbox.md`).
-- **Native OpenCode on Apple Silicon Macs over SSH** (#22534): the server sends its verified `darwin-arm64` Runner and OpenCode runtime, from the published image or `PAPERCLIP_RUNNER_REMOTE_RUNTIMES_PATH`; Intel Macs and unreadable hosts stop with named errors; your own Runner files take precedence (`adapters/paperclip-runner.md`, `adapters/opencode.md`, new row in `deploy/environment-variables.md`).
-- **Corrections outside the window:** `guides/org/skills.md`: with Streamlined UI off, connected-app skills sit above the grid on the **All**, **Installed**, **Catalog** and **Bundled** tabs (carried question). `deploy/environment-variables.md`: `PAPERCLIP_TAILSCALE_CLI` and `PAPERCLIP_TAILSCALED` accept a bare name looked up on `PATH`, not only an absolute path (carried question). `day-to-day/issues.md`: the button reads **Retry saved task:** and the title; **Stop** returns an **In Progress** task to **Todo** only while it's still assigned to that agent with no other live run; place in line is worked out for at most 8 busy agents per read (carried question). `connectors/github-review-bot-setup.md`: saving needs an active, non-viewer company member, instance admins included (carried question). `adapters/paperclip-runner.md`: when the loop guard's fresh session can't be queued, the turn isn't ended and no fresh session follows (carried question). `experimental/responsibilities.md`: `list_responsibilities` reads work filed under none of *your* responsibilities (author).
-- **Audit corrections (audit of #209):** 5 findings: 4 corrected, 1 cut, 0 already settled, 0 not applied.
-  - `adapters/overview.md`: said authorized Kimi Code and Google Antigravity agents skip `enableNativeRunner`; now only Antigravity, on an Apple Silicon macOS server with an authorization for that company and exact model.
-  - `api/issues.md`: the `403` *Agent cannot resolve another owner's recovery action* and the `recovery_source_*` refusals now apply only while the recovery action is `active` or `escalated`.
-  - `api/responsibilities.md`: said a version holds areas an earlier change created; at this pin it holds every non-archived area on that person's dashboard (the finding's pruning detail no longer applies).
-  - `how-to/rotate-provider-api-key.md`: said every agent bound to a rotated secret picks it up; now only bindings on its `latest` version.
-  - `how-to/rotate-provider-api-key.md`: the "test still fails after rotation" troubleshooting entry was cut (see below).
+## Applied this run (`7671e0cf..cb4129a9`)
+- No surface in this window needed a page change (see "Not documented this run").
+- **Corrections outside the window:** `deploy/environment-variables.md`: new rows for `PAPERCLIP_RUNNER_PUBLIC_URL`, `PAPERCLIP_RUNNER_CA_BUNDLE_PATH`, `PAPERCLIP_RUNNER_REMOTE_CODEX_PATH` and `PAPERCLIP_RUNNER_REMOTE_CODEX_NPM_SPEC` (carried follow-up). `DATABASE_APPLICATION_NAME`: the `paperclip` default applies to Paperclip pools that set no name of their own; setting the variable doesn't reach a few maintenance tools that pass their own pool settings, and the named private pools and dedicated lock connections keep their names (carried follow-up, narrowed in review).
 
 ## Applied in earlier runs (unreleased)
+- `1b1861c2..7671e0cf` (#210): personal Areas & Responsibilities dashboards, activity `agentId` validation, no failure notice when an agent hands its blocker to a person, native OpenCode on Apple Silicon Macs over SSH.
 - `fe0c4aa9..1b1861c2` (#209): Cloud harness choices, task notifications say what changed, plugin Runner credentials, Access Profiles summary route, managed sign-in rate limit.
 - `70a43513..fe0c4aa9` (#205): guided AWS role setup, GitHub Copilot connector, agents working on responsibilities, personal task archiving, recovery-held Blocked tasks, GitHub merge checks with the run's identity, plugin SDK restart of released tasks.
 - `ca34aca7..70a43513` (#204): Areas & Responsibilities dashboard, onboarding starts in chat, redesigned routine page, sidebar Recents and pins, AWS connector, Google managed sign-in scopes, plugin connectors, assistant connections graduate, merged PR deliverables, usage-limit countdown, Fable 5.2 / GPT-6.2, Cloud analytics.
@@ -31,17 +23,15 @@
 - `3963d385..37808f2a` (#181, #182): agent interaction permissions, agent grants, roster filters, sign-in computers, Retry says why, failure causes, model rejections, workspace storage waits, Codex/OpenCode legacy runner and plugin environments.
 - `2aac7d29..3963d385` (#180): confirm a held resource's server stopped, stalled children and blockers wake the parent, lost-wake backstop, CEO hiring denial, board-only budgets and denials, environment delete, GitHub default owner, skills `update-diff`.
 
-## Cut in review
-- `how-to/rotate-provider-api-key.md`: "The test still fails after rotation — The agent may be holding a cached process. Stop and re-enable heartbeats so the next run starts a fresh subprocess with the new environment. For long-running adapters like `cursor`, end the existing session so the resume cache doesn't reuse the old auth." — traced to `packages/adapter-utils/src/acpx-engine/execute.ts:2338` and `server/src/services/heartbeat.ts`, could not prove that toggling heartbeats or ending a session changes which process or auth a run reuses (audit finding A5).
-
 ## Not documented this run
-- **Agent key read without a row lock** (#21506): internal locking.
-- **Resume with an unprepared saved skill** (#22395): a server error message for resumed native runs; no page lists resume skill errors.
-- **Saved answer on a reviewed task with open blockers** (#22525), **Slack question answered in Paperclip continues** (#22524), **replacement Runner publishes its pack admission** (#21498), **recovered saved version attached once** (#22484): fixes that make documented behaviour work as described.
-- **Cloud portfolio rate limit** (#22488): `429` `cloud_portfolio_rate_limited` with `Retry-After`; no page documents the Cloud portfolio route.
-- **Translated pages and plugin browser errors** (#22463, #22487): crash guard and Sentry attribution.
-- **macOS Runner runtime build and CI** (#22534): workflows and scripts behind the image path the docs now name.
-- **Tests:** #22533, #22528, #22523, #22522, #22490.
+- **AWS setup refusals answer `422` instead of `502`** (#22581): the connection test and publication now return `422` for `aws_*` configuration failures other than `aws_unavailable`. The AWS step's banner text is unchanged, because the UI picks the message by the `aws_*` code, not the status (`ui/src/features/connections/AwsRoleSetup.tsx:37`), and no page documents the HTTP status of connection-test failures.
+- **Full-disk read-only save scans larger workspaces** (#22546): the entry budget for the read-only workspace inventory went from 100,000 to 2,000,000 entries (`server/src/services/remote-workspace-readonly-inventory.ts:27`). No page states the budget; this makes the documented full-disk save work on bigger workspaces.
+- **Tests:** #22611 (restart-chaos hosted diagnostics).
+
+## Answered this run
+- `circleback.md`: "The card restarts when it switches" to full screen. Confirmed: the view's frame is rendered in the inline slot or inside the full-screen dialog, never both, so switching mounts a new sandboxed iframe (`sandbox="allow-scripts"`, no `allow-same-origin`) and its in-frame state starts over (`ui/src/components/mcp-app/McpAppView.tsx:88`, `:121`, `:142`; `McpAppFrame.tsx:189`). No page change.
+- Agents still told about old routine buttons: at this pin the agent guidance still says **Generate new key** / **Edit webhook** (`server/src/routes/openapi.ts:5615`), and `routines.md` warns readers about it correctly. When the parent changes that guidance, the warning on `projects-workflow/routines.md:315` should go. No page change.
+- Codex on remote Runner falling back from GPT-6.2: the fallback is already documented on `adapters/paperclip-runner.md:418` (`server/src/services/heartbeat/runtime-selection.ts:816`, notice text at `:249`). The premise is stale: the Runner's Codex install pin is now `0.170.0`, which meets GPT-6.2's `0.169.1` floor. No page change.
 
 ## Open questions
 - **Inbox row for a handed-off Runner blocker.** `ui/src/pages/Inbox.tsx:423` still labels `userAction: "unblock"` as **The agent needs your help**, but Inbox rows come from an agent's latest `failed` or `timed_out` run and `unblock` is set only on a `succeeded` run (`server/src/services/task-interruption-presentation.ts:269`). `blocked-inbox.md` no longer mentions the row; whether it can show at all wasn't confirmed. (2026-11-24)
@@ -52,17 +42,13 @@
 - **`/file` and `/unfile` route descriptions** in the server's own API metadata list only `project | task | routine`, while the validator also accepts `skill`. The docs follow the validator. (2026-11-21)
 - **`reopen` on a blocked task.** `api/issues.md` says a `reopen` comment only has an effect on `done` or `cancelled` issues; the hold check treats `reopen` / `resume` on a blocked task as a move to `todo`. The older line may be stale. (2026-11-21)
 - **Coordinator My work intro** says every view has inbox triage features; the **Archived** view is a plain task list. (2026-11-21)
-- **Agents still told about old routine buttons.** The parent's agent guidance (`server/src/routes/openapi.ts` ~5610) still says **Generate new key** / **Edit webhook**, which the redesigned page no longer has; `routines.md` warns readers about it. (2026-11-20)
-- **Codex on remote Runner:** `codex-local/src/index.ts:129` falls back to `gpt-6.1-sol` / `gpt-6-astra` remotely because the Runner's pinned Codex CLI predates `0.169.1`. Not stated on the Codex page. (2026-11-20)
 - needs decision: **Assistant connections page location.** The feature graduated, but the page still lives at `experimental/assistant-connections.md`. Moving it needs a page move and a redirect: decide whether to move it out of Experimental. (2026-11-20)
 
 ## Follow-ups
 - `org/agent-adapters.md:47` and `adapters/paperclip-runner.md:10` list the `enableNativeRunner` exceptions without Grok Build (`grok_local` passes the check at `server/src/routes/agents.ts:1925`) and without an authorized Google Antigravity candidate (Apple Silicon macOS server only); same defect the audit found on `adapters/overview.md`. Kimi Code no longer qualifies: its profile isn't `pending`, so `resolveKimiCandidateAdmission` returns nothing (`server/src/services/native-runtime/acpx-qualification.ts:30`). (2026-11-23)
 - `how-to/rotate-provider-api-key.md:42`: the screenshot alt text puts the Environment variables card on **Harness / Runtime**; for an existing agent it's on **Secrets & variables** (`ui/src/components/AgentConfigForm.tsx:1599`). (2026-11-23)
 - `how-to/debug-stuck-heartbeat.md`: no entry yet for the run-detail text *"The agent's computer ran out of disk space, so its runner stopped…"* (#22448) or the **Workspace storage unavailable** notice when the project's workspace storage doesn't fit the agent's environment (#22398). (2026-11-23)
-- `deploy/environment-variables.md` has no rows for the remote Runner variables (`PAPERCLIP_RUNNER_PUBLIC_URL`, `PAPERCLIP_RUNNER_CA_BUNDLE_PATH`, `PAPERCLIP_RUNNER_REMOTE_*`). (2026-11-18)
-- `deploy/environment-variables.md:28`: "`paperclip` otherwise" is loose; the private pools use their own names (explained on the database page). (2026-11-18)
-- `circleback.md`: "The card restarts when it switches" to full screen is inferred from the frame remounting. (2026-11-16)
+- `deploy/environment-variables.md` has no rows yet for `PAPERCLIP_RUNNER_REMOTE_BINARY_PATH` and `PAPERCLIP_RUNNER_REMOTE_PROVIDER_PACK_PATH`. Each is read on several launch paths that check it differently (`server/src/services/native-runtime/native-session-executor.ts:16586`, `:17228`, `:17295`, `native-codex-runner.ts:276`), so a row needs those paths traced first. (2026-11-18)
 
 ## Tooling
 - gap: `check-drift` doesn't compare embedded `skill-source` blocks with the catalog. Worth adding a class.
