@@ -24,6 +24,18 @@ OpenRouter is API key only. There is no subscription sign-in for this provider, 
 
 Setup is a single screen with no separate access step. Once the account is saved, you change which people and agents may use it from the saved connection.
 
+Paperclip checks the key with OpenRouter before it saves anything. If the check fails, the key isn't saved and the setup tells you why:
+
+| Message | What to do |
+| --- | --- |
+| *"The provider rejected this API key."* | Copy the key again, or create a new one from [OpenRouter keys](https://openrouter.ai/keys) |
+| *"The provider account for this API key has no credit or billing set up. Add credit with the provider, then try again."* | Add credit or billing details to the OpenRouter account, then connect again |
+| *"The provider is limiting requests for this account right now. Wait a minute, then try again."* | Wait a minute, then select **Connect** again |
+| *"The provider is having problems right now. Try again in a few minutes."* | The provider is having an outage. Try again later |
+| *"The provider did not answer in time. Try again."* | Try again |
+| *"Paperclip could not reach the provider. Check this server's network connection, then try again."* | Check that the server running Paperclip can reach the internet |
+| *"The provider could not verify this account. Try again."* | Any other refusal. Try again |
+
 ## Assign the credential
 
 Select the named account in the agent's **Connection** selector and save. Routed OpenRouter connections require explicit selection; they cannot become the responsible user's provider default. You can select an eligible **Personal** account or a **Company shared** account.

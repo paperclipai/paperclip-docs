@@ -47,6 +47,25 @@ Each row in the feed reads like a sentence — the actor's name, what they did, 
 
 ![Rows in the Audit Activity feed, each showing the actor, a plain-language action, the linked task, the raw action name, and a relative timestamp](../../user-guides/screenshots/light/activity/activity-log-full.png)
 
+### Connector rows
+
+Rows about connectors name the action in words rather than as an internal tool ID. A row reads like *"used create issue on the connection"*, and Google Workspace actions carry their service, such as *"used Gmail: Create draft on the connection"*. When the call was for a task, the row links that task; otherwise **the connection** links to that connection's permissions.
+
+The row also says how a call went:
+
+| The row says | What happened |
+| --- | --- |
+| *used …* | The call ran |
+| *was allowed to use …* | The gateway let the call through |
+| *was blocked from using …* | A policy or permission refused it |
+| *asked to use …* | It's waiting for a person to answer the review |
+| *could not use …* | The call failed |
+| *could not finish using …* | The call was put off or ran out of time before it finished |
+
+Test calls read *tested*, *started a test of*, *could not test*, and *could not finish testing* instead.
+
+Some removals add a line underneath that says what happened next. When the last connection of an app is removed, the app's row names it and adds *"Its last connection was removed."* When you remove a Google connection, or revoke its credentials, and Paperclip Cloud tried to end its access at Google, the row reads *the Google Workspace connection* and adds what happened at Google, for example *"Paperclip's access to this Google account was also ended at Google."* or a note that Paperclip couldn't end its access there, so you can remove Paperclip from your Google account's third-party connections yourself. Rows about common items that don't link anywhere, such as an agent, a project or the company, use a plain label like *an agent* or *the organization* instead of the raw entity type.
+
 > **Tip:** The activity log and the task comment threads show different things. The comment thread on a task shows what the agent said as it worked — its reasoning, questions, and progress updates. The activity log shows the structural changes — status transitions, assignments, approvals. Use comments when you want to understand what the agent was thinking; use the log when you want to understand what actually changed and when.
 
 ---

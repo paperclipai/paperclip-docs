@@ -47,7 +47,7 @@ Usage checks tell you how much allowance is left; they don't tell you what the p
 
 ## Repair sign-in from a task
 
-When a task cannot start because its AI credential is missing or expired, it shows an authentication connection card. Open that card and connect your account or reconnect the existing one. After the card finishes successfully, the task resumes automatically through normal admission.
+When a task cannot start because its AI credential is missing, expired, or rejected by the provider, it shows an authentication connection card. Open that card and connect your account or reconnect the existing one. After the card finishes successfully, the task resumes automatically through normal admission.
 
 Only the account owner can reconnect it. If the task uses someone else's account, the card explains who must restore it. If that account is no longer available to you, ask its owner to restore access or choose another available connection in the agent's settings.
 

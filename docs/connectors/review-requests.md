@@ -43,6 +43,16 @@ The buttons on that task card are worded a little differently from the review qu
 
 Choose **Allow once** when you only intend to approve the specific request in front of you. **Always allow** is broader than remembering an identical set of arguments.
 
+### Who can answer
+
+Only a person can answer a review; an agent can't approve or decline one. When the request came from a task, the same rules apply whether you answer on the task card or from the review queue:
+
+- If the request is addressed to one person, only that person can answer it.
+- If it came from a chat with an agent, only the person who owns that conversation can answer: anyone else is told *"Only the conversation owner can respond to chat interactions"*.
+- If it came from someone's personal conversation, other people can't open it at all.
+
+A request with no review card on a task can be answered by any member who can make changes in the company, as long as it's still waiting.
+
 ## Trust rules
 
 A trust rule is a stored company tool policy created from one approval. It is not invisible: rules are listed under the company's tool policies with the selectors they match, and each one can be revoked.

@@ -14,7 +14,7 @@ Connecting Google with **your own** OAuth client follows the shared steps below,
 
 Read it once and reuse it. Choose the APIs and scopes for the services you plan to connect. Google Chat also needs a configured Chat app.
 
-> **Note:** You need this page only if you are bringing your own OAuth client. If **Connect with Paperclip** is offered on the connector and you are happy to use it, that path needs no Cloud console work — skip to [Check you can use the managed path first](#check-you-can-use-the-managed-path-first).
+> **Note:** You need this page only if you are bringing your own OAuth client. On Paperclip Cloud, if **Connect with Paperclip** is offered on the connector and you are happy to use it, that path needs no Cloud console work — skip to [Check you can use the managed path first](#check-you-can-use-the-managed-path-first). On your own Paperclip server, the built-in Google connectors need this page.
 
 ## Check you can use the managed path first
 
@@ -22,12 +22,16 @@ Two paths exist, and it is worth knowing which you are on before spending time i
 
 | Path | What it needs from you | When it is offered |
 | --- | --- | --- |
-| **Connect with Paperclip** | Nothing in the Cloud console. Paperclip owns the OAuth client | Only when the instance is enrolled with Paperclip Cloud *and* Cloud advertises that connector's profile. If it is missing, ask an administrator to check enrollment and profile availability |
+| **Connect with Paperclip** | Nothing in the Cloud console. Paperclip owns the OAuth client | Only on Paperclip Cloud, and only when Cloud advertises that connector's profile. A self-hosted instance never offers it for Google, enrolled or not |
 | **Use your own Google OAuth app** | Everything on this page | Where the connector is available, which for new Google Workspace setup means [the toggle is on](google-workspace.md#turn-on-the-built-in-connector); provider approval and instance restrictions still apply |
+
+On a self-hosted instance, Google setup goes straight to your own OAuth app and never asks you to enroll with Paperclip Cloud first. The step where you enter your client shows *"Connecting Google through Paperclip works only on Paperclip Cloud. On your own Paperclip server, connect Google with your own Google OAuth client."* and, where the connector has a setup guide, a **How to set up a Google OAuth client** link. If a **Connect with Paperclip** sign-in for Google is started on a self-hosted instance anyway, Paperclip refuses it with the same message and the code `google_sign_in_cloud_only`.
+
+**Connect with Paperclip** connections a self-hosted instance already saved keep working until Paperclip Cloud stops renewing their access. After that, Paperclip marks the connection for reconnection, and its error tells you to connect again with your own Google OAuth client.
 
 Either way, **Google's Developer Preview registration in step 1 applies.** On the managed path Google still has to have registered the Workspace account that signs in; only the Cloud project differs.
 
-**Connect with Paperclip** only covers the 14 Google permissions listed on the [Google Workspace](google-workspace.md#choose-services-and-access) page. Anything that needs more, namely Gmail's **Read & archive** group, [Google Chat](google-chat.md), [Google People](google-people.md), and [Google Workspace Search](google-workspace-search.md), is no longer offered through Paperclip for new setup. Saved connections of those kinds keep working, but they can't be signed in again through Paperclip: a reconnect is refused with a message naming the connector, such as *"Google Chat can no longer be connected through Paperclip with these permissions. Connect Google Workspace, or set up Google Chat with your own Google OAuth app."* Connections made with your own OAuth app are not affected.
+**Connect with Paperclip** only covers the 14 Google permissions listed on the [Google Workspace](google-workspace.md#choose-services-and-access) page. Anything that needs more, namely Gmail's **Read & archive** group, [Google Chat](google-chat.md), [Google People](google-people.md), and [Google Workspace Search](google-workspace-search.md), is no longer offered through Paperclip for new setup. Saved connections of those kinds keep working, but they can't be signed in again through Paperclip: a reconnect is refused with a message naming the connector, such as *"Google Chat can no longer be connected through Paperclip with these permissions. Connect Google Workspace, or set up Google Chat with your own Google OAuth app."* On a self-hosted instance the reconnect gets the Paperclip Cloud-only message above instead. Connections made with your own OAuth app are not affected.
 
 The two paths also differ when you remove a connection. Removing a **Connect with Paperclip** connection also asks Paperclip Cloud to end Paperclip's access at Google, when nothing else in Paperclip still relies on it, and the confirmation says whether that worked. Removing a connection made with your own OAuth app only removes it in Paperclip. [Google Workspace → Remove a connection](google-workspace.md#remove-a-connection) lists the messages.
 
@@ -108,7 +112,7 @@ Each connector page has a worked example for its own resource type.
 | `redirect_uri_mismatch` | The redirect URI on the OAuth client does not match the one Paperclip shows | Copy the URI from Paperclip's setup screen exactly |
 | Consent completes but the connection shows **Setup incomplete** | The final step was not finished | Select **Finish setup** |
 | An API-not-enabled error at first use | One of the APIs in step 2 is missing on the project — often the MCP API rather than the service API | Enable it and retry; no reconnect needed |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, Cloud is not advertising that profile, or the connector needs permissions outside the 14 Paperclip's Google app covers | Use your own OAuth client, or ask an administrator about enrollment |
+| **Connect with Paperclip** is not offered | The instance is self-hosted rather than on Paperclip Cloud, Cloud is not advertising that profile, or the connector needs permissions outside the 14 Paperclip's Google app covers | Use your own OAuth client |
 | A tool you expected is missing or disabled | It is outside the reviewed operation list for the capability group you connected | Check the connector page's action list; a preview tool outside the list is blocked and no switch enables it |
 | Google Chat authorization fails though the API is enabled | No Chat app is configured on the project | Complete [step 4](#4-google-chat-only-configure-a-chat-app) |
 

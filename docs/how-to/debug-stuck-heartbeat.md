@@ -110,7 +110,9 @@ Pull requests work the same way. When a Runner agent registers a pull request as
 
 **Cause.** The model provider reported a problem. The title gives the provider and one of these reasons: *Rate limit reached*, *Usage allowance exhausted*, *Authentication failed*, *Access denied*, *Model unavailable*, *Request rejected*, *Provider at capacity*, *Provider timed out*, or *Provider error*. Below that you get the provider's own message, *Failed before work started* or *Failed during work*, and the HTTP status, provider code, and request ID when they're available.
 
-**Fix.** Act on the message: wait out a rate limit, add allowance, reconnect the account, or pick another model. The notice itself only explains the failure. Separately, when a run fails during startup and the provider reported a rate limit or usage limit, Paperclip waits that out before its next attempt. If it says *Paperclip will retry automatically.*, you can leave it alone. If **Retry** is there, click it once you've fixed the cause.
+**Fix.** Act on the message: wait out a rate limit, add allowance, reconnect the account, or pick another model. The notice itself only explains the failure. Separately, when a run fails during startup and the provider reported a rate limit, or a usage limit with a reset time, Paperclip waits that out before its next attempt. If it says *Paperclip will retry automatically.*, you can leave it alone. If **Retry** is there, click it once you've fixed the cause.
+
+**When the allowance is used up and won't come back by itself.** If the notice reads *Usage allowance exhausted* and the provider didn't say when the allowance resets, there's nothing to wait for, so Paperclip doesn't count down to a retry. The task waits for you instead: the notice adds *Check your provider account’s billing and usage allowance, then retry.* with a **Review AI account** button that opens **Connectors**, and the task's Inbox row reads **Review provider billing and usage**. Add credit or raise the allowance with the provider, or switch the agent to another account, then click **Retry**.
 
 **When the usage limit runs out mid-task.** If the provider ends a Runner agent's turn because the account's usage allowance ran out or it hit a rate limit, the run shows **Usage limit reached** with *The model provider has reached its current usage limit. Try again after the limit resets.* You don't have to come back and click **Retry** yourself. Paperclip reads when the limit resets from the provider's message, including dated resets such as "resets Nov 12, 6pm (UTC)" that weekly limits use, and the task's recovery action tells you what happens next. A reported reset time is shown in your own time zone with a live countdown, such as *in 44 minutes (Nov 18, 2026, 12:17 PM PST)*; the rate-limit retry time is shown in UTC:
 
@@ -460,6 +462,16 @@ Other notices put the advice in the message itself. **Workspace validation faile
 **Cause.** The agent's work, such as installing dependencies or building, filled the sandbox's disk, and its runner stopped with an error like *No space left on device*. A fresh sandbox has the same disk size, so the same work would fill it again. Paperclip doesn't retry this by itself. The task is blocked and handed to the board with the recovery action *The agent filled the disk of its computer, so its runner stopped. Paperclip does not repeat this automatically: a new computer has the same disk size, and the same work would fill it again. Ask the agent to use less disk space, for example by deleting build output, caches or dependencies it no longer needs, then press Retry.*
 
 **Fix.** Leave a comment telling the agent how to use less space, for example to clean up build output, caches, or dependencies it no longer needs, then click **Retry**. Retry starts a new run. If the disk filled while Paperclip was saving the workspace after the agent finished, that's a different case: see [Run fails after the agent finished](#13-run-fails-after-the-agent-finished).
+
+---
+
+## 29. Run stops because its setup is too large to start
+
+**Symptom.** A [Paperclip Runner](../reference/adapters/paperclip-runner.md) run fails, Paperclip doesn't try it again by itself, and the run's failure code is `native_run_payload_too_large`.
+
+**Cause.** Everything the run has to carry, such as the agent's connected tools, its instructions, and its skills and context, adds up to more than one run can take. The same setup would fail the same way, so automatic retries stop. The recovery action reads *This agent's run setup is too large to start. Its connected tools, its instructions or its skills and context together exceed what one run can carry. Paperclip does not repeat this automatically, because the same setup would fail again. Turn off connectors or skills this agent does not need, or shorten its instructions, then press Retry.*
+
+**Fix.** Make the agent's setup smaller: turn off connectors or skills it doesn't need for this work, or shorten its instructions. Then click **Retry**.
 
 ---
 

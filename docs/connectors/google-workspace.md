@@ -46,7 +46,7 @@ Some things are only on the older connectors. Google Workspace does not offer Go
 - The [Google Workspace connector (Paperclip) toggle](#turn-on-the-built-in-connector) switched on for your instance.
 - A Google Workspace account that can already open the mail, files, and calendars you want agents to use.
 - Developer Preview registration for that account, confirmed by Google.
-- If your instance is not enrolled with Paperclip Cloud, your own Google OAuth client. [Set up your own Google OAuth app](google-setup.md) is the complete procedure; enable the APIs listed there for each service you plan to select.
+- On your own Paperclip server, your own Google OAuth client. Paperclip-managed Google sign-in is offered only on Paperclip Cloud. [Set up your own Google OAuth app](google-setup.md) is the complete procedure; enable the APIs listed there for each service you plan to select.
 
 ## Choose services and access
 
@@ -58,7 +58,7 @@ When you start the connection, Paperclip opens a **Connect Google Workspace** pi
 | **Drive** | Drive files, plus Docs, Sheets, and Slides | **Read only** or **Read & write** |
 | **Calendar** | Your calendars and events | **Read only** or **Read & write** |
 
-All three start switched on with **Read & write**. Switch a service off to leave it out entirely, or set it to **Read only**. You need at least one service on to continue. If you select **Cancel**, Paperclip creates nothing and remembers your choices for the next try.
+All three start switched on with **Read & write**. Switch a service off to leave it out entirely, or set it to **Read only**. You need at least one service on to continue. If you select **Cancel** in the picker, you go back to the previous step and Paperclip remembers your choices for the next try. To back out of setup completely, select **Cancel** at the top of the screen: the new connection, which never finished its first sign-in, is removed rather than left behind on the **Connectors** page.
 
 Your picks decide what Paperclip asks Google for:
 
@@ -86,7 +86,7 @@ With every service switched off, the picker shows *"Select at least one service 
 
 1. Open **Connectors** and select **Google Workspace**.
 2. Read the access line above the main button. It says who the connection signs in as and which agents can use it. Google Workspace connects as you or as an organization identity. To change the identity, narrow the agents, or pick another sign-in method, select **Change**.
-3. Choose how to sign in. Paperclip uses the Paperclip-managed sign-in when your instance offers it, and you have nothing to set up in Google Cloud. To use your own Google OAuth app instead, pick it under **Change** and supply the client ID and secret from [Set up your own Google OAuth app](google-setup.md).
+3. Choose how to sign in. On Paperclip Cloud, Paperclip uses the Paperclip-managed sign-in when it is offered, and you have nothing to set up in Google Cloud. To use your own Google OAuth app instead, pick it under **Change** and supply the client ID and secret from [Set up your own Google OAuth app](google-setup.md). On your own Paperclip server, your own OAuth app is the only choice, and setup explains why: *"Connecting Google through Paperclip works only on Paperclip Cloud. On your own Paperclip server, connect Google with your own Google OAuth client."*
 4. Start the connection. The service picker opens; choose services and access, then select **Continue**.
 5. Complete Google's consent screen with the registered Workspace account.
 
@@ -156,7 +156,7 @@ Expect your next event, which you can confirm in Google Calendar. This checks th
 | **Google Workspace** is not on the **Connectors** page | The [toggle](#turn-on-the-built-in-connector) is off | Turn it on, or use the Google apps offered through Composio or Arcade |
 | A saved connection stopped working, and **Reconnect** says *"Google Workspace is not available on this instance."* | The [toggle](#turn-on-the-built-in-connector) is off | Turn it on. The connection was not deleted |
 | Google refuses before the consent screen | Developer Preview registration is incomplete for the account or Cloud project | Finish registration and retry |
-| The Paperclip-managed sign-in is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not offering the Google Workspace profile | Use your own Google OAuth app, or ask an administrator about enrollment |
+| The Paperclip-managed sign-in is not offered | The instance is self-hosted, where Paperclip-managed Google sign-in isn't available, or Cloud is not offering the Google Workspace profile | Use your own Google OAuth app |
 | A new Paperclip-managed Google Workspace sign-in is rejected | New Google Workspace requests rely on an updated Paperclip-hosted OAuth broker, and an older broker may reject them | Try again later, or use your own Google OAuth app. Existing single-service Google connections keep working |
 | **Continue** is greyed out in the picker | Every service is switched off | Switch on at least one service |
 | A whole service's actions are missing | The service was switched off in the picker, or you declined its permissions at Google | Select **Add account** on the **Google Workspace** row, switch the service on, approve it at Google, then remove the old connection |

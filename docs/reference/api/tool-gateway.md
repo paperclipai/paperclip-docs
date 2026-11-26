@@ -269,6 +269,8 @@ POST /api/tool-gateway/sessions
 
 Board or agent callers. An agent's own `companyId`, `agentId`, and `runId` are taken from its token; a board caller supplies them in the body along with optional `issueId`, `projectId`, and `ttlMs`. Missing any of the three required ids gives `400 Bad Request` with `{ "error": "companyId, agentId, and runId are required" }`.
 
+A board caller must also be allowed to wake that agent (the same `agent:wake` check as waking it directly), or the request is refused `403`. A session a signed-in person opens remembers them as its opener (a local implicit board actor isn't recorded). Calls in that session then use the opener's personal connection grants rather than those of the run's responsible user. A call that would use someone else's personal connection is refused `403` with the reason code `personal_grant_owner_required` and *"Only the person who owns this personal connection can use it from a session they open."* Retries and idempotency keys are kept apart per opener, so the same request from a session someone else opened runs as a separate operation. In such a session, if a matching earlier operation can't be tied to a person, the call is refused `409` with `legacy_tool_idempotency_unverifiable` until you reconcile it; use a new explicit `idempotencyKey` only for an intentional new operation.
+
 The `201 Created` response hands back everything the agent needs:
 
 ```json
@@ -311,6 +313,15 @@ The call body takes:
 | `idempotencyKey` | no | Makes a retry safe — the same key won't run the tool twice. |
 
 When a remote MCP server answers a call, or a read of its context, with a JSON-RPC error, the gateway returns `502` with the reason code `remote_mcp_error`. The details keep the server's numeric error `code` and the connection's identifiers. If the server sent a message with the error, the gateway adds it after the generic text as `Upstream message (untrusted): …`, so you can see what actually went wrong. Treat it as the provider's words, not an instruction or a Paperclip decision. Before the message reaches you, Paperclip removes credentials, sensitive header and query values, and sensitive arguments, strips control characters, and cuts it to 1,000 characters. It also runs the same prompt-injection screen used on tool results. A message that fails the screen is dropped, only the generic text comes back, and Paperclip writes a `tool_gateway.call_failed` audit event without the provider's text. The server's `error.data`, stack traces, and raw response body are never returned.
+
+When the connected tool itself answers with an error result, the gateway returns its `tool_error` response, and the body can also carry what the tool said about the error:
+
+| Field | When it's there |
+|---|---|
+| `toolCode` | The tool gave a stable error code: a `code` field on the result, its `structuredContent`, or its `data`; a `(code: …)` marker or a JSON `"code"` in its text; or a first line that starts with a code containing `_`, `.` or `-`, such as `rate_limited:`. A code starts with a lowercase letter and uses lowercase letters, digits, `_`, `.` and `-` |
+| `retryable` | `true` when the tool marked the error as worth retrying later, through `retryable: true`, `retryability: "later"`, or a `(code: …, retryable)` marker |
+
+Branch on `toolCode` rather than on the message text, and only retry on your own when `retryable` is `true`.
 
 #### When an app pauses a call
 
@@ -357,6 +368,16 @@ POST /api/tool-gateway/action-requests/{id}/decline
 ```
 
 The list route takes a `status` query parameter and defaults to `pending`. Approve and decline both need `companyId`, either in the body or as a query parameter, and both require an active non-viewer membership.
+
+Only a person can decide: a caller with no user ID is refused `403` with `human_review_required`. When the request is tied to a task's review card, these routes apply the same rules as answering the card on the task:
+
+| Status | Code | When |
+| --- | --- | --- |
+| `404` | `interaction_not_found` | The task is someone else's personal conversation |
+| `403` | `interaction_conversation_owner_required` | The task is a chat with an agent and you aren't the person who owns it (*"Only the conversation owner can respond to chat interactions"*) |
+| `403` | `interaction_addressee_mismatch` | The card is addressed to another person |
+
+The card's other resolver rules apply too, such as a card that asks for someone other than its creator. A request with no task card can be decided by any of those members while it's `pending`. Once it's decided, approving or declining it again answers `404` with `action_request_not_found`, unless you requested or decided it.
 
 Each action request stores a `canonicalArgumentsHash` and a redacted `canonicalArgumentsSummary`, so what a person approves is exactly what later runs — approving one call doesn't quietly bless a different set of arguments. Many requests also carry `previewMarkdown`, a readable summary of what the tool is about to do.
 
@@ -572,6 +593,51 @@ When the instance can serve the role method, the `200` response has `available: 
 | `issuerPublished` | `true` once the company's signing key is published, so AWS can validate the issuer |
 
 Otherwise it answers `200` with `{ "available": false, "reason": "..." }`, where `reason` is `no_public_url`, `not_https`, `has_port`, `loopback`, or `address_changed` (the instance's address changed after the draft was saved; saving the draft again uses the current address). A connection that doesn't use an AWS role returns `422` with code `aws_role_setup_unavailable`. See [AWS](../../connectors/aws.md#connect-aws-with-a-role) for the setup in the app.
+
+#### Agent setup progress
+
+The AWS setup prompt can carry a checklist for an agent you run yourself, such as Claude Code on your own machine, to fill in as it works. The setup page makes the checklist and polls it with your sign-in; the agent sends its updates with a bearer token from the prompt.
+
+```
+POST /api/companies/{companyId}/agent-setup-progress
+GET  /api/agent-setup-progress/{id}
+```
+
+Both are board-only. The create body is `{ "purpose": "aws_connection", "subjectId": "<connectionId>" }`; `aws_connection` is the only `purpose`. For it, `subjectId` is required (`422` with code `agent_setup_progress_subject_required` without it) and must be a connection in this company (otherwise `404`, *"Tool connection not found"*), and the caller needs `connections:configure` for that connection. The `201` response is sent with `Cache-Control: no-store` and holds:
+
+| Field | What it is |
+| --- | --- |
+| `progress` | The checklist: `id`, `companyId`, `purpose`, `subjectId`, `status` (`waiting`, `in_progress`, `done`, or `failed`), `items`, `summary`, `expiresAt`, `createdAt`, `updatedAt` |
+| `token` | The agent's bearer token. This response is the only place you see it, because the server stores just its SHA-256 digest. It stops working six hours after creation, and it can't change anything except this checklist |
+| `urls` | `checklist`, `item` (with a `{key}` placeholder), and `finish`: the three URLs the agent calls, on the instance's public address when it has one |
+
+`GET` returns the same checklist object. Only the person who created it can read it, apart from a local implicit board actor or an instance admin; anyone else, and any other company's checklist, gets `404` with *"Setup progress not found"*. Each change also goes out as an `agent_setup_progress.updated` live event.
+
+The agent's routes don't take a Paperclip session; they authenticate with `Authorization: Bearer <token>` alone:
+
+```
+PUT  /api/agent-setup-progress/{id}/checklist
+POST /api/agent-setup-progress/{id}/items/{key}
+POST /api/agent-setup-progress/{id}/finish
+```
+
+| Route | Body |
+| --- | --- |
+| `checklist` | `{ "items": [{ "key", "title", "status"?, "detail"? }] }`. Replaces the whole checklist: 1 to 20 items, each with its own `key` (lowercase letters, numbers, `-` and `_`, up to 40 characters), a `title` up to 120 characters, and an optional `detail` up to 500. `status` defaults to `pending` |
+| `items/{key}` | `{ "status", "detail"? }`. `status` is `pending`, `in_progress`, `done`, or `failed`. Leave `detail` out to keep it, or send `null` to clear it. A key that isn't on the checklist returns `404` |
+| `finish` | `{ "status": "done" \| "failed", "summary"? }`. `done` marks every item done; `failed` leaves them as they are. Finishing as `done` before setting a checklist returns `422` with `agent_setup_progress_empty` |
+
+The agent's routes can answer:
+
+| Status | Code | When |
+| --- | --- | --- |
+| `401` | `agent_setup_progress_unauthorized` | The token is missing or doesn't open this checklist |
+| `410` | `agent_setup_progress_expired` | The token's six hours are up |
+| `409` | `agent_setup_progress_finished` | The checklist already finished, and it refuses any further change |
+| `409` | `agent_setup_progress_conflict` | Another update changed the checklist at the same time. Send it again |
+| `429` | `agent_setup_progress_update_limit` | The checklist has had 300 updates |
+
+Creating a checklist and each change the agent makes write `agent_setup_progress.*` activity entries (`created`, `started`, `checklist_replaced`, `item_updated`, `finished`); the token is never logged.
 
 #### Machine sign-in
 

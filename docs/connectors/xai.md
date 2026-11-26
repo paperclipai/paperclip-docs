@@ -36,6 +36,20 @@ Setup is a single screen with no separate access step. Once the account is saved
 
 Paste the key. Paperclip stores it as a secret and it is not readable afterwards.
 
+Paperclip checks the key with xAI before it saves anything. If the check fails, the key isn't saved and the setup tells you why:
+
+| Message | What to do |
+| --- | --- |
+| *"The provider rejected this API key."* | Copy the key again, or create a new one |
+| *"The provider account for this API key has no credit or billing set up. Add credit with the provider, then try again."* | Add credit or billing details to the xAI account, then connect again |
+| *"The provider is limiting requests for this account right now. Wait a minute, then try again."* | Wait a minute, then select **Connect** again |
+| *"The provider is having problems right now. Try again in a few minutes."* | The provider is having an outage. Try again later |
+| *"The provider did not answer in time. Try again."* | Try again |
+| *"Paperclip could not reach the provider. Check this server's network connection, then try again."* | Check that the server running Paperclip can reach the internet |
+| *"The provider could not verify this account. Try again."* | Any other refusal. Try again |
+
+On a **Paperclip Runner** agent whose **Harness** is **Grok Build**, with a key pasted into its `XAI_API_KEY` environment variable instead of a connection, **Run test** checks the key the same way. A failure reads *Could not verify the xAI API key.* followed by the same reason, or by *Check the connection and try again.* when the provider gives no more specific one. The check is skipped when the agent's environment also sets a custom base URL or routing variable for that provider.
+
 ### With a subscription
 
 Sign-in runs in a **sign-in environment**, and there are two kinds. Which ones your instance offers is a configuration matter:
@@ -53,6 +67,8 @@ When both exist Paperclip shows a **Sign-in environment** selector. The sign-in 
 2. Run it in a terminal on that host and complete xAI's device sign-in.
 3. Paperclip detects the credential and finishes the connection. The attempt stays open for 30 minutes before it expires.
 
+If an attempt can't continue, select **Start sign-in again**. Paperclip says why it ended: *"This sign-in attempt expired. Start sign-in again."*, *"This sign-in attempt was cancelled or replaced by a newer one. Start sign-in again."*, or *"This sign-in already connected the account."* if that attempt already finished.
+
 > **Note:** The sign-in uses its own `GROK_HOME`, so it neither reads nor disturbs your personal `grok` login on that machine.
 
 > **Note:** The 30-minute limit is documented for the server-host attempt; we have not established an equivalent figure for sandbox sign-in.
@@ -68,7 +84,7 @@ If server-host sign-in is unavailable you will see *"Server-host subscription si
 
 ## Assign the credential
 
-The **Connectors** page marks your personal default with a crown. Hover or tap it to read *Your default for Grok*. To choose a different account, open the **…** menu on its row and select **Set as default for Grok**, or open the saved connection and use the **Set as default for Grok** button there. Both appear only on your own personal account, not on one that goes through a router, and they aren't available to viewers. The action is disabled while the account can't be used, and the **…** menu gives a reason such as *Reconnect this account before making it your default.* On the connection's page, the current default reads **Default for Grok**, or **Default unavailable** if it needs attention. In the agent's **Connection** selector, choose **Responsible user’s default** to use each responsible person's account, or select a named compatible personal or company-shared account. Save the agent configuration. Each account in the selector shows its name, sign-in method, **Personal** or **Company shared**, and the account or owner name when Paperclip knows it, so two accounts with the same name are easy to tell apart.
+The **Connectors** page marks your personal default with a crown. Hover or tap it to read *Your default for Grok*. To choose a different account, open the **…** menu on its row and select **Set as default for Grok**, or open the saved connection and use the **Set as default for Grok** button there. Both appear only on your own personal account, not on one that goes through a router, and they aren't available to viewers. The action is disabled while the account can't be used, and the **…** menu gives a reason such as *Reconnect this account before making it your default.* On the connection's page, the current default reads **Default for Grok**, or **Default unavailable** if it needs attention. In the agent's **Connection** selector, choose **Responsible user’s default** to use each responsible person's account, or select a named compatible personal or company-shared account. Save the agent configuration. Each account in the selector shows its name, sign-in method, **Personal** or **Company shared**, and the account or owner name when Paperclip knows it, so two accounts with the same name are easy to tell apart. The selector only offers accounts that work with the agent's harness and model. If your default doesn’t, **Responsible user’s default** isn’t offered; if the agent already uses it, it stays in the list greyed out and marked *Incompatible with this harness and model*. If you switch an existing agent to a harness its selected connection doesn't support, Paperclip clears that selection, so pick a compatible connection before you save.
 
 - **Set it as your default** for the provider, and agents configured to use the responsible user's connection draw on each person's own account.
 - **Select a specific compatible connection** for the agent so eligible runs use that account.

@@ -27,7 +27,7 @@ Subscription plans carry their own usage limits, and those limits are Anthropic'
 
 ## Connect Anthropic
 
-1. Open **Connectors** and select **Anthropic**.
+1. Open **Connectors** and select **Anthropic (Claude)**. Searching for *Claude* finds it too.
 2. Choose the sign-in method.
 
 Setup is a single screen with no separate access step. Once the account is saved, you change which people and agents may use it from the saved connection.
@@ -35,6 +35,20 @@ Setup is a single screen with no separate access step. Once the account is saved
 ### With an API key
 
 Paste the key. Paperclip stores it as a secret and it is not readable afterwards.
+
+Paperclip checks the key with Anthropic before it saves anything. If the check fails, the key isn't saved and the setup tells you why:
+
+| Message | What to do |
+| --- | --- |
+| *"The provider rejected this API key."* | Copy the key again, or create a new one in the [Anthropic console](https://console.anthropic.com/settings/keys) |
+| *"The provider account for this API key has no credit or billing set up. Add credit with the provider, then try again."* | Add credit or billing details to the Anthropic organization, then connect again |
+| *"The provider is limiting requests for this account right now. Wait a minute, then try again."* | Wait a minute, then select **Connect** again |
+| *"The provider is having problems right now. Try again in a few minutes."* | The provider is having an outage. Try again later |
+| *"The provider did not answer in time. Try again."* | Try again |
+| *"Paperclip could not reach the provider. Check this server's network connection, then try again."* | Check that the server running Paperclip can reach the internet |
+| *"The provider could not verify this account. Try again."* | Any other refusal. Try again |
+
+On a **Paperclip Runner → ACP agents → Claude** agent with a key pasted into its `ANTHROPIC_API_KEY` environment variable instead of a connection, **Run test** checks the key the same way. A failure reads *Could not verify the Anthropic API key.* followed by the same reason, or by *Check the connection and try again.* when the provider gives no more specific one. The check is skipped when the agent's environment also sets a custom base URL or routing variable for that provider.
 
 ### With a Claude subscription
 
@@ -56,7 +70,7 @@ If more than one is available, Paperclip shows a **Sign-in environment** selecto
 3. Anthropic shows you an authorization code. Paste it into the **Authorization code** field in Paperclip and select **Submit code**. Don't paste it into a task or chat.
 4. When Paperclip says *"Claude Code is signed in. Click Connect to use this account."*, select **Connect**. The attempt stays open for 30 minutes before it expires.
 
-If you want to sign in with a different Claude account before connecting, select **Use a different account**. If the attempt expires or fails, select **Start sign-in again**.
+If you want to sign in with a different Claude account before connecting, select **Use a different account**. If the attempt expires or fails, select **Start sign-in again**. When an attempt can't continue, Paperclip says why: *"This sign-in attempt expired. Start sign-in again."*, *"This sign-in attempt was cancelled or replaced by a newer one. Start sign-in again."*, or *"This sign-in already connected the account."* if that attempt already finished.
 
 > **Note:** Behind the scenes Paperclip runs `claude setup-token` with `CLAUDE_CONFIG_DIR` pointing at a directory for this attempt only, so it neither reads nor disturbs your personal `claude` CLI login on that machine.
 
@@ -73,7 +87,7 @@ If server-host sign-in is unavailable you will see *"Server-host subscription si
 
 ## Assign the credential
 
-The **Connectors** page marks your personal default with a crown. Hover or tap it to read *Your default for Claude*. To choose a different account, open the **…** menu on its row and select **Set as default for Claude**, or open the saved connection and use the **Set as default for Claude** button there. Both appear only on your own personal account, not on one that goes through a router, and they aren't available to viewers. The action is disabled while the account can't be used, and the **…** menu gives a reason such as *Reconnect this account before making it your default.* On the connection's page, the current default reads **Default for Claude**, or **Default unavailable** if it needs attention. In the agent's **Connection** selector, choose **Responsible user’s default** to use each responsible person's account, or select a named compatible personal or company-shared account. Save the agent configuration. Each account in the selector shows its name, sign-in method, **Personal** or **Company shared**, and the account or owner name when Paperclip knows it, so two accounts with the same name are easy to tell apart.
+The **Connectors** page marks your personal default with a crown. Hover or tap it to read *Your default for Claude*. To choose a different account, open the **…** menu on its row and select **Set as default for Claude**, or open the saved connection and use the **Set as default for Claude** button there. Both appear only on your own personal account, not on one that goes through a router, and they aren't available to viewers. The action is disabled while the account can't be used, and the **…** menu gives a reason such as *Reconnect this account before making it your default.* On the connection's page, the current default reads **Default for Claude**, or **Default unavailable** if it needs attention. In the agent's **Connection** selector, choose **Responsible user’s default** to use each responsible person's account, or select a named compatible personal or company-shared account. Save the agent configuration. Each account in the selector shows its name, sign-in method, **Personal** or **Company shared**, and the account or owner name when Paperclip knows it, so two accounts with the same name are easy to tell apart. The selector only offers accounts that work with the agent's harness and model. If your default doesn’t, **Responsible user’s default** isn’t offered; if the agent already uses it, it stays in the list greyed out and marked *Incompatible with this harness and model*. If you switch an existing agent to a harness its selected connection doesn't support, Paperclip clears that selection, so pick a compatible connection before you save.
 
 A connected account is not yet the account a run uses. Two ways to bind it:
 
