@@ -175,11 +175,13 @@ for (const sample of interiorSamples) {
         + `starting with ${missing[0]}`,
     );
   }
-  if (sidebarHrefs.size !== manifestRoutes.length) {
-    fail(
-      `${sample}: sidebar link count (${sidebarHrefs.size}) does not match the manifest `
-        + `(${manifestRoutes.length})`,
-    );
+  const extras = [...sidebarHrefs].filter((href) => !manifestRoutes.includes(href));
+  for (const href of extras) {
+    const rel = `${href.replace(/^\//, "")}index.html`;
+    const pageHtml = existsSync(join(outDir, rel)) ? readFileSync(join(outDir, rel), "utf8") : "";
+    if (!pageHtml.includes('content="noindex, follow"')) {
+      fail(`${sample}: sidebar link ${href} is outside the sitemap and is not noindex`);
+    }
   }
 }
 

@@ -499,7 +499,10 @@ Skip in nightly mode (Cloudflare branch previews are best-effort, not reader-fac
    ```sh
    npm run docs:build
    npx wrangler pages deploy .site --project-name paperclip-docs --branch main
+   node scripts/ping-indexnow.mjs
    ```
+
+   A local build does not ping IndexNow. Run the script only after this production republish. Do not run it for a preview deploy. No secret is required.
 
    Re-run step 2 afterwards. If the manual deploy also fails (no Cloudflare
    credentials, project missing, GitHub connection dropped), that needs a human:

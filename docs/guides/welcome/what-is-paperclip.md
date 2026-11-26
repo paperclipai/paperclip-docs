@@ -5,7 +5,7 @@ seo_description: Paperclip is an operating system for running an AI company: you
 
 # What is Paperclip?
 
-Paperclip is the operating system for your AI company. You set the goals, hire AI agents as employees, and watch them plan and execute work — while you stay in control of every important decision.
+Paperclip is software for running a team of AI agents as a company, with an org chart, a task board, and an audit trail. You set the goals and hire AI agents as employees; they plan and execute the work, and you sign off on big calls like the CEO's strategy and, if you turn on hiring approval, new hires.
 
 ---
 

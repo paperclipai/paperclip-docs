@@ -267,7 +267,7 @@ If you're coming from an older release, a few toggles you may remember are gone:
 
 - **[Coordinator workspace](../experimental/coordinator-workspace.md)** — no toggle any more. It's the standard workspace for everyone, and an earlier "off" setting no longer counts. Choose **Classic workspace** if you want the previous interface.
 - **[Agent Chat](../experimental/agent-chat.md)** — no toggle any more. It's available to everyone, even on instances that had it off. `enableAgentChat` remains as a compatibility key, and stored or managed values are ignored.
-- **[Task Watchdogs](../experimental/task-watchdogs.md)** — no flag any more. Watchdog controls are always available on tasks.
+- **[Task Watchdogs](../guides/projects-workflow/task-watchdogs.md)** — no flag any more. Watchdog controls are always available on tasks.
 - **[Artifacts V1](../guides/day-to-day/artifacts.md)** — no toggle any more. Stacks, tiles, and compact rows are how artifacts look on every instance. A hosting operator can still [hold the older cards in place](../guides/day-to-day/artifacts.md#if-your-instance-shows-the-older-cards).
 - **[Auto-Create Recovery Tasks](../experimental/auto-create-recovery-tasks.md)** — retired, along with its preview and run actions.
 - **[Cloud Sync](../experimental/cloud-sync.md)** — retired, toggle included. To move a company between instances, use [company Import/Export](../how-to/back-up-and-restore-a-company.md).

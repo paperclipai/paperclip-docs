@@ -2,6 +2,7 @@
 paperclip_version: v2026.1012.0
 seo_title: Cloud Sync (Retired)
 seo_description: Cloud Sync, which pushed a local company into a Paperclip Cloud stack, is gone in this release. Here is what replaced it and where old links now go.
+robots: noindex, follow
 ---
 
 # Cloud Sync (retired)

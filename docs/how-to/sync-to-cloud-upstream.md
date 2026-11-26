@@ -2,6 +2,7 @@
 paperclip_version: v2026.609.0
 seo_title: Sync a Local Company to Cloud Upstream
 seo_description: Move a company's agents, projects, issues, skills, and portability files into a connected Cloud stack: preview, resolve conflicts, push, then verify.
+robots: noindex, follow
 ---
 
 # Sync a local company to a Paperclip Cloud upstream

@@ -13,7 +13,7 @@
 // over .git/shallow.lock and shipped a dateless sitemap. That reproduces on a
 // shallow clone and nowhere else.
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, symlinkSync, copyFileSync, existsSync, readFileSync } from "node:fs";
+import { mkdtempSync, rmSync, symlinkSync, copyFileSync, existsSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -62,6 +62,18 @@ function buildShallowClone({ label, reachableOrigin }) {
     // git *history* needs to come from the clone; the builder under test should
     // be the one on disk. No-op in CI, where the two are the same.
     copyFileSync(join(repoRoot, "site", "build-release.mjs"), join(clone, "site", "build-release.mjs"));
+    // The builder on disk may import helpers and a public IndexNow key that
+    // are not in HEAD yet. Copy those too, or the shallow build tests an
+    // incomplete tree.
+    const indexNowScript = join(repoRoot, "scripts", "ping-indexnow.mjs");
+    if (existsSync(indexNowScript)) {
+      copyFileSync(indexNowScript, join(clone, "scripts", "ping-indexnow.mjs"));
+    }
+    for (const name of readdirSync(join(repoRoot, "site"))) {
+      if (/^[0-9a-f]{32}\.txt$/.test(name)) {
+        copyFileSync(join(repoRoot, "site", name), join(clone, "site", name));
+      }
+    }
 
     execFileSync("node", ["site/build-release.mjs", "--base-path", "/", "--out-dir", ".site"], {
       cwd: clone,

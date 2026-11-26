@@ -2,6 +2,7 @@
 paperclip_version: v2026.722.0
 seo_title: ACPX Local Adapter (Retired)
 seo_description: ACPX has been retired. It treated ACP as a separate agent choice when it is really an execution detail — this page explains what to use instead.
+robots: noindex, follow
 ---
 
 # ACPX Local (retired)
