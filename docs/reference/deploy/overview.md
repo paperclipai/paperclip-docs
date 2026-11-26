@@ -7,7 +7,7 @@ seo_description: Three supported configurations, from zero-friction local use to
 
 Paperclip supports three deployment configurations, from zero-friction local use to login-protected private and public deployments.
 
-Use this section when you need to choose a mode, understand the storage and secrets defaults, or move from local development into a more durable setup.
+Use this section when you need dto choose a mode, understand the storage and secrets defaults, or move from local development into a more durable setup.
 
 ---
 
