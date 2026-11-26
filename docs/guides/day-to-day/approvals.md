@@ -6,7 +6,7 @@ seo_description: Agents pause for your sign-off before consequential actions. Re
 
 # Approvals
 
-Approvals are how you stay in control even as your agents work autonomously. Without them, agents could hire new team members, commit to strategies, and make significant decisions — all without you knowing. Approvals are the governance layer that prevents that: before any agent takes a consequential action, Paperclip pauses and asks for your sign-off.
+An approval in Paperclip is a request an agent files for your sign-off before it takes a consequential action, such as committing to the CEO's strategy or, if you turn on hiring approval, hiring a new agent. You review each one on the Approvals page and approve it, reject it, or send it back for revision. Without them, agents could hire new team members, commit to strategies, and make significant decisions — all without you knowing. Approvals are the governance layer that prevents that: before any agent takes a consequential action, Paperclip pauses and asks for your sign-off.
 
 Think of it like a board seat. The agents run the day-to-day company. But the big calls — who gets hired, what the strategy is — still come to you.
 

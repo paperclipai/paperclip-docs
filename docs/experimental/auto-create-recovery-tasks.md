@@ -2,6 +2,7 @@
 paperclip_version: v2026.1012.0
 seo_title: Auto-Create Recovery Tasks
 seo_description: Dependency chains die quietly behind paused agents, missing reviewers, and cancelled blockers. Recovery tasks wake that work instead of letting it wait.
+robots: noindex, follow
 ---
 
 # Auto-Create Recovery Tasks
@@ -51,6 +52,6 @@ Liveness detection still runs and stale recovery tasks are still cleaned up — 
 
 ## Where to go next
 
-- [Task Watchdogs](task-watchdogs.md) — per-task verification of stopped subtrees, a complement to instance-wide liveness recovery.
+- [Task Watchdogs](../guides/projects-workflow/task-watchdogs.md) — per-task verification of stopped subtrees, a complement to instance-wide liveness recovery.
 - [Blocked Inbox](../guides/day-to-day/blocked-inbox.md) — the human view of blocked work.
 - [Experimental features overview](overview.md)

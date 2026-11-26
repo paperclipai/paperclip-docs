@@ -54,3 +54,11 @@ jobs:
       - name: Skill source blocks
         if: always()
         run: npm run docs:test:skill-source-blocks
+
+      - name: IndexNow
+        if: always()
+        run: npm run docs:test:indexnow
+
+      - name: Preview host noindex
+        if: always()
+        run: npm run docs:test:pages-dev-noindex

@@ -245,7 +245,20 @@ function setHeadElement(selector, tagName, attrs) {
   return el;
 }
 
-function setSeoMetadata({ title, description, url, type = 'website' }) {
+const INDEXABLE_ROBOTS = 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1';
+
+// Keep in step with robotsMetaContent() in site/build-release.mjs. A retired
+// page's static HTML is noindex; client navigation must not flip it back.
+function robotsDirectiveForPage(page) {
+  const tokens = String(page?.frontmatter?.robots || '')
+    .split(',')
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean);
+  if (tokens.includes('noindex')) return 'noindex, follow';
+  return INDEXABLE_ROBOTS;
+}
+
+function setSeoMetadata({ title, description, url, type = 'website', robots = INDEXABLE_ROBOTS }) {
   const cleanTitle = title || SEO_DEFAULT_TITLE;
   const cleanDescription = description || SEO_DEFAULT_DESCRIPTION;
   const cleanUrl = url || getAbsolutePageUrl(null);
@@ -253,7 +266,7 @@ function setSeoMetadata({ title, description, url, type = 'website' }) {
   setHeadElement('meta[name="description"]', 'meta', { name: 'description', content: cleanDescription });
   setHeadElement('meta[name="robots"]', 'meta', {
     name: 'robots',
-    content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+    content: robots,
   });
   setHeadElement('link[rel="canonical"]', 'link', { rel: 'canonical', href: cleanUrl });
   setHeadElement('meta[property="og:type"]', 'meta', { property: 'og:type', content: type });
@@ -328,6 +341,7 @@ function updatePageSeo(page, md) {
     description: authoredDescription || markdownToDescription(md),
     url: getAbsolutePageUrl(page),
     type: 'article',
+    robots: robotsDirectiveForPage(page),
   });
 }
 

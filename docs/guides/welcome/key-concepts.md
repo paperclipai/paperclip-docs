@@ -6,7 +6,7 @@ seo_description: The seven ideas behind Paperclip — company, agent, task, hear
 
 # Key Concepts
 
-Before you start clicking around, it's worth spending five minutes here. Paperclip introduces a handful of ideas that don't have perfect equivalents in other software — and if you misunderstand them early, the product will seem confusing in ways that are hard to untangle later.
+Paperclip is built on seven concepts: company, agent, task, heartbeat, adapter, budget, and approval. A company holds a team of agents, the agents work on tasks in short wake-ups called heartbeats, and you make the big calls through approvals.
 
 This guide explains seven concepts that underpin everything in Paperclip. Analogies come first; technical detail follows.
 

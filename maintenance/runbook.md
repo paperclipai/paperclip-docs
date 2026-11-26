@@ -145,7 +145,10 @@ When a new parent release tag drops (`v2026.X.Y`):
      ```sh
      npm run docs:build
      npx wrangler pages deploy .site --project-name paperclip-docs --branch main
+     node scripts/ping-indexnow.mjs
      ```
+
+     The IndexNow ping is not part of a local build. Run it after the manual production deploy so Bing hears about the new sitemap. Preview deploys must not run it. There is no secret to set; the public key file is already in the repo. See the IndexNow section in the README.
    - **Catch `nightly` back up.** After the release PR merges, `main` is ahead of `nightly` by the release commits and `nightly`'s `.sync-state.json` still reads `branch_mode: "nightly"` with the old `base_release_tag`. Merge `main` down and flip `branch_mode` back, otherwise the next `/sync-docs` run sees a stale state file:
      ```sh
      git checkout nightly && git pull
