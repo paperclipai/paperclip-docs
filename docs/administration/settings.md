@@ -26,7 +26,9 @@ This guide walks through both, section by section.
 
 To get here, click your avatar at the bottom of the sidebar to open the account menu, then click your picture and name at the top of the menu. That opens your public profile page; click **Edit profile** there to land on this page. It's scoped to you — nobody else's profile changes when you edit yours.
 
-> **Tip:** The account menu also has an **Invite** row when you're allowed to invite people. On a self-hosted instance it opens the **Members** page on its **Invites** tab, and it shows for company owners and admins, instance admins, and local boards. On Paperclip Cloud it opens the People settings for your stack instead, and shows only to the stack's owner or admins.
+> **Tip:** The account menu also has an **Invite** row when you're allowed to invite people. On a self-hosted instance it opens the **Members** page on its **Invites** tab, and it shows for company owners, admins, and operators, instance admins, and local boards. On Paperclip Cloud it opens the People settings for your stack instead, and shows only to the stack's owner or admins.
+>
+> On Paperclip Cloud you may also see a Slack button next to your avatar in the sidebar footer, when Cloud has a private Slack channel with the Paperclip team set up for your organization. Hover it for **Slack the Paperclip team**, and click it to open **Your private Slack channel**. If Cloud has a link to the channel, click **Open Slack channel** to go there. Otherwise the dialog shows a message from Cloud instead, and **Got it** closes it.
 
 The profile form has three fields:
 

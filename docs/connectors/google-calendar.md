@@ -18,7 +18,7 @@ Agents can read the calendars on your Google account, look up events, and check 
 
 - A Google Workspace account that can already see the calendars you want agents to use.
 - Developer Preview registration for that account, completed and confirmed by Google. Register every additional account before it connects; an unregistered account fails at authorization, not at connect time.
-- If your instance is not enrolled with Paperclip Cloud, **Connect with Paperclip** is not offered and you will need your own Google OAuth client with the **Calendar API** and **Calendar MCP API** enabled. [Set up your own Google OAuth app](google-setup.md) is the complete procedure — do it before you start here.
+- On your own Paperclip server, **Connect with Paperclip** is not offered, because Paperclip-managed Google sign-in works only on Paperclip Cloud. You will need your own Google OAuth client with the **Calendar API** and **Calendar MCP API** enabled. [Set up your own Google OAuth app](google-setup.md) is the complete procedure — do it before you start here.
 
 ## Pick a capability group
 
@@ -73,7 +73,7 @@ Do not verify with a test event on a shared calendar — attendees get notified.
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
 | Google refuses before the consent screen | Developer Preview registration is incomplete for the signing-in account | Finish registration and retry |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Calendar profile | Use your own Google OAuth app, or ask an administrator |
+| **Connect with Paperclip** is not offered | The instance is self-hosted rather than on Paperclip Cloud, or Cloud is not advertising the Calendar profile | Use your own Google OAuth app |
 | A calendar is missing | It is not on the authorizing account's calendar list | Subscribe to or share the calendar in Google Calendar; no reconnect needed |
 | Event writes are absent | The connection was made with **Read only** | Make a connection with **Read & manage** |
 | Times look wrong by a fixed offset | The event's timezone differs from the one you are reading in | Compare against the calendar's timezone |

@@ -101,6 +101,8 @@ Paperclip doesn't touch a run that is still working. The confirmation tells you 
 
 Deleted data can't be recovered.
 
+Deleting a task does some of this for you. When you delete a task, Paperclip also starts deleting, in the background, what it saved from tool calls made on that task and the transcripts of the task's runs that used connected apps, along with files attached to the task. Deleting a company removes its saved run transcripts and stored files too.
+
 The routes behind the dialog:
 
 ```http

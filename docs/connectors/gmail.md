@@ -93,7 +93,7 @@ Do not verify with a draft. A draft is a write and it puts something in a real m
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
 | Google refuses before the consent screen | The signing-in Workspace account, or the Cloud project on a self-managed client, is not registered for Developer Preview | Complete registration, including every additional tester email, then retry |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Gmail profile | Use **Use your own Google OAuth app**, or ask an administrator about enrollment |
+| **Connect with Paperclip** is not offered | The instance is self-hosted rather than on Paperclip Cloud, or Cloud is not advertising the Gmail profile | Use **Use your own Google OAuth app** |
 | `create_draft` is absent | The connection was made with **Read only** or **Read & archive** | Create a connection with the draft group |
 | Archiving is refused with *"requires an explicit Read & archive connection"* | The connection is a read or draft connection | Create a separate **Read & archive** connection |
 | Archiving is refused with *"accepts only threadId and labelIds"* | The agent tried to remove a label other than Inbox, or passed extra arguments | Expected — only Inbox removal is allowed. Other label changes are not available |

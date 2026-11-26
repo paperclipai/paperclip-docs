@@ -63,16 +63,36 @@ AWS can only trust a connection that already exists, so this method has two part
 5. Select **Connect**. Paperclip saves the connection without contacting AWS, and the screen says *"Paperclip saved this connection. Now create a role in your AWS account that trusts this connection only."*
 6. Create the role. The easiest way is to let an agent do it:
    - Select **Set it up with your agent**. This copies a prompt and shows a preview.
-   - Paste the prompt into an agent such as Claude Code or Codex, on a computer signed in to the AWS account agents should use.
+   - Paste the prompt into your own agent, such as Claude Code or Codex, on a computer signed in to the AWS account agents should use.
    - The agent tells you which AWS account the CLI is signed in to, and stops to ask which profile to use if that might be the wrong account. It then deploys a CloudFormation template made for this connection with the AWS CLI, and tells you the role ARN. On **Everything the role allows**, it asks you which managed policy agents should have instead of picking one itself.
 
-   The prompt contains no secret, so it's safe to paste anywhere. Prefer to do it yourself? See [Create the role by hand](#create-the-role-by-hand).
-7. Paste the ARN into the field under **Paste the role ARN your agent reports.** It looks like `arn:aws:iam::123456789012:role/paperclip-<connection ID>`. **Test connection** stays unavailable until the field holds a full role ARN.
-8. Select **Test connection**. Paperclip saves the role ARN, makes its first AWS token, and lists the tools.
+   The prompt holds no AWS credential. When live progress is available, it also includes a short-lived link that lets your agent report its progress on this setup, so keep it to yourself rather than sharing it. Prefer to do it yourself? See [Create the role by hand](#create-the-role-by-hand).
+7. Watch your agent work. A panel under the prompt shows the checklist your agent reports as it goes. See [Follow your agent's progress](#follow-your-agents-progress).
+8. Paste the ARN into the **Role ARN** field. It looks like `arn:aws:iam::123456789012:role/paperclip-<connection ID>`. The prompt also asks your agent to include it in its finishing summary, as `Role ARN: <arn>`, so you can copy it from the panel. **Test connection** stays unavailable until the field holds a full role ARN.
+9. Select **Test connection**. Paperclip saves the role ARN, makes its first AWS token, and lists the tools.
 
 If AWS refuses, the screen shows *"AWS didn’t accept the connection yet"* with the reason in place, so you can fix the role and select **Test connection** again. Select **Back** to change the region or access level, then **Connect** again; Paperclip updates the same draft rather than making a new one. If you leave and come back to an unfinished AWS draft, setup opens on this step again.
 
 The role is named after the connection, `paperclip-<connection ID>`, so each connection has its own role, and CloudFormation fills in your account ID for you.
+
+### Follow your agent's progress
+
+You don't have to switch windows to see how the setup is going. When Paperclip prepares the prompt, it also makes a progress checklist for this setup, and the prompt tells your agent how to report to it. The panel under the prompt then updates as the agent works:
+
+- Before the agent reports anything, the panel reads **Your agent is setting up AWS** with *"Paste the prompt into your agent. Its steps appear here as it works."*
+- Once the agent sets its checklist, each step appears in order. A step the agent has started is marked **In progress**, **Done** or **Failed** (one it hasn't started yet has no label), sometimes with a short note from the agent, and the panel shows when the **Last update** came in. The prompt suggests four steps (*Check the AWS account*, *Check the identity provider*, *Create the role with CloudFormation*, *Report the role ARN*), but the agent may change them to fit what it actually does.
+- When the agent finishes, the heading changes to **Your agent set up AWS**, or **Your agent couldn’t finish setting up AWS** if it failed, and the agent's one-line summary, if it sent one, appears below it.
+
+The checklist belongs to the person who started the setup, so other members of the company can't read it (instance admins can). The browser tab remembers it for this connection, so you can leave the step, or reload the page, and come back while the agent is still working. A few things can interrupt it:
+
+| What you see | What it means | What to do |
+| --- | --- | --- |
+| **This setup prompt expired** | The prompt's progress link works for six hours, and it ran out before the agent finished | Select **Start again**, then give the new prompt to your agent |
+| **Your agent couldn’t finish setting up AWS** | The agent reported that the setup failed | Fix what stopped it, then select **Start again** for a new prompt |
+| **Live progress isn’t available** | Paperclip couldn't make the checklist. The prompt still works; your agent just won't show its steps here | Select **Try again**, or carry on without the panel |
+| *Couldn’t refresh your agent’s progress* | The page couldn't fetch the latest steps. The last ones stay on screen | Select **Retry** |
+
+Reporting progress is optional for the agent. If its updates fail, the prompt tells it to keep going with the setup, and you can still paste the role ARN yourself.
 
 ### Create the role by hand
 
@@ -202,7 +222,7 @@ The role method relies on a per-company workload identity issuer. Outside clouds
 
 Both answer `404` until the company has a signing key, which Paperclip creates the first time it signs a token for one of the company's connections, or when an AWS role connection is saved as a draft, which the setup screen does when you select **Connect**. A token is only signed for a connection that's switched on, or a draft still being set up. The discovery document is also `404` while the instance has no public HTTPS address, or its address has a port or is a loopback host. A successful response can be cached for five minutes, a `404` for one minute.
 
-The guided setup reads `GET /api/tool-connections/{connectionId}/aws-setup`, which returns the issuer, audience, subject, role name, trust policy, and CloudFormation template for one AWS role connection, and never a secret. To save the draft it starts from, the connect call sends `saveDraft: true`. [Tool gateway API](../reference/api/tool-gateway.md#aws-role-setup) has the details.
+The guided setup reads `GET /api/tool-connections/{connectionId}/aws-setup`, which returns the issuer, audience, subject, role name, trust policy, and CloudFormation template for one AWS role connection, and never a secret. To save the draft it starts from, the connect call sends `saveDraft: true`. [Tool gateway API](../reference/api/tool-gateway.md#aws-role-setup) has the details. The progress panel creates its checklist with `POST /api/companies/{companyId}/agent-setup-progress` and reads it back with `GET /api/agent-setup-progress/{id}`; your agent writes to it with the token in the prompt; see [Agent setup progress](../reference/api/tool-gateway.md#agent-setup-progress).
 
 Two board-only routes show and rotate the keys. Agent credentials are rejected.
 

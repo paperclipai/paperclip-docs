@@ -99,7 +99,7 @@ Documents an agent writes or links don't take over the thread. They show up as c
 
 **Tasks** is one place for your own work and the company's. The view menu at the start of the toolbar switches between two groups of views.
 
-**My work** — the same personal triage views described in [The Inbox](../guides/day-to-day/issues.md#the-inbox), with their bold unread titles, keyboard shortcuts, grouping, and saved columns:
+**My work** — your personal views. All but **Archived** are the same triage views described in [The Inbox](../guides/day-to-day/issues.md#the-inbox), with their bold unread titles, keyboard shortcuts, grouping, and saved columns. **Archived** uses the same task list as the organization views instead:
 
 - **Mine** — tasks assigned to you or waiting on you. Archive and undo work here, including swipe-to-archive on a phone.
 - **Unread** — tasks you touched with new activity. You can archive and undo here too.

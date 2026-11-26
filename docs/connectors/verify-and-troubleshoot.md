@@ -84,6 +84,12 @@ The sign-in or key does not cover what the action needs. Reconnect and approve t
 
 Checking the grant's recorded scopes can help, but read them with care: some providers never say which scopes they granted, and then the list only shows what Paperclip asked for. [Scopes recorded on a sign-in grant](access-model.md#scopes-recorded-on-a-sign-in-grant) explains how to tell the two apart.
 
+### You cancelled a sign-in partway
+
+If you select **Cancel** at the top of the setup screen before the provider's sign-in finishes, Paperclip removes the new connection instead of leaving a half-made one behind. A connection that is still waiting for its first sign-in doesn't appear on the **Connectors** page either. If the provider's sign-in window finishes after you cancelled, Paperclip doesn't complete it; start the connection again.
+
+If removing it fails, you see **Couldn’t cancel sign-in** and setup stays open; select **Cancel** again. A connection that already holds a credential from the provider is kept when you cancel. The [activity log](../guides/day-to-day/activity-log.md) records a cancelled sign-in as *cancelled sign-in for* the connection.
+
 ### Authorization never completes
 
 *"Authorization did not complete. Finish setup in the sign-in window or try again."* usually means the sign-in was declined or failed at the provider, or the provider is waiting on an administrator. For providers whose authorization needs tenant approval, the warning on the provider page says so.
@@ -128,7 +134,18 @@ For a custom endpoint, check the API format against the harness, the model ID, a
 
 ### The managed sign-in option is missing
 
-**Connect with Paperclip** appears only when your instance is enrolled with Paperclip Cloud and Cloud advertises that connector profile. If it is absent, the connector list offers **Enable Paperclip-managed sign-in** or **Continue enrollment**, and the customer-owned OAuth path stays available in the meantime.
+**Connect with Paperclip** appears only when your instance is enrolled with Paperclip Cloud and Cloud advertises that connector profile. If your instance is not enrolled, the **Connections** page shows an **Enable Paperclip-managed sign-in** banner with an **Enable** button, or **Finish Paperclip Cloud enrollment** with **Continue enrollment** while enrollment is under way. The customer-owned OAuth path stays available in the meantime.
+
+Google is the exception. Paperclip-managed Google sign-in works only on Paperclip Cloud, so on your own Paperclip server Google connectors don't offer **Connect with Paperclip**, and enrolling doesn't change that. Use your own Google OAuth app instead. See [Set up your own Google OAuth app](google-setup.md).
+
+When Paperclip can't reach Paperclip Cloud, or the instance's Paperclip Cloud settings are incomplete, the banner says so instead of asking you to enroll:
+
+| Banner | What it means |
+| --- | --- |
+| *"Paperclip couldn’t reach Paperclip Cloud. Managed sign-in will be checked again shortly."* | Cloud was busy or unreachable. Paperclip checks again every 15 seconds while the page is open, and keeps offering the managed sign-ins Cloud last confirmed. Nothing for you to do |
+| *"Paperclip Cloud settings on this instance are incomplete. Ask your instance administrator to finish them."* | The instance's Paperclip Cloud settings are missing a piece, and enrolling from here can't fix it. An administrator has to finish them |
+
+If you open setup for a connector whose managed sign-in isn't currently offered while in either state, the screen reads **{App} sign-in is unavailable**. Its message is *"Paperclip couldn’t reach Paperclip Cloud to start {App} sign-in. Try again in a moment."* or *"{App} sign-in through Paperclip Cloud isn’t set up on this instance. Ask your instance administrator to finish the Paperclip Cloud settings."* Select **Try again** to check again, or **Use your own {App} OAuth app** where the connector offers one.
 
 ### Nothing in the list looks like the provider you want
 

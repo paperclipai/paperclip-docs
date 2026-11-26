@@ -17,7 +17,7 @@ Agents can read the slides and content of a Google Slides presentation, and on a
 ## Before you connect
 
 - A Google Workspace account that can already open the presentations you want agents to use, with Developer Preview registration confirmed.
-- Without Paperclip Cloud enrollment, your own Google OAuth client with the **Drive API**, **Slides API**, and **Slides MCP API** enabled. [Set up your own Google OAuth app](google-setup.md) is the complete procedure — do it before you start here.
+- On your own Paperclip server, your own Google OAuth client, because Paperclip-managed Google sign-in works only on Paperclip Cloud. Enable the **Drive API**, **Slides API**, and **Slides MCP API** on its Cloud project. [Set up your own Google OAuth app](google-setup.md) is the complete procedure — do it before you start here.
 
 ## Pick a capability group
 
@@ -77,7 +77,7 @@ If you want to confirm editing, do it on a copy rather than the deck someone is 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
 | Google refuses before the consent screen | Developer Preview registration is incomplete | Finish registration and retry |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Slides profile | Use your own Google OAuth app |
+| **Connect with Paperclip** is not offered | The instance is self-hosted rather than on Paperclip Cloud, or Cloud is not advertising the Slides profile | Use your own Google OAuth app |
 | A presentation cannot be found | It is not shared with the authorizing account | Share it in Google Drive; no reconnect needed |
 | `update_presentation` is missing | The connection was made with **Read only** | Make a connection with **Read & edit** |
 | An edit landed but looks wrong | The Slides API does not cover every layout and design feature | Adjust it in Google Slides |

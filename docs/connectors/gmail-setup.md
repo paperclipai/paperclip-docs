@@ -26,7 +26,7 @@ If you plan to use **Connect with Paperclip** rather than your own OAuth client,
 
 ## 2. If you are bringing your own OAuth client
 
-Skip this section if your instance is enrolled with Paperclip Cloud, **Connect with Paperclip** is offered, and you don't need the **Read & archive** group.
+Skip this section if you are on Paperclip Cloud, **Connect with Paperclip** is offered, and you don't need the **Read & archive** group. On your own Paperclip server you always need it: Paperclip-managed Google sign-in works only on Paperclip Cloud.
 
 In the [Google Cloud console](https://console.cloud.google.com/auth/clients):
 
@@ -63,7 +63,7 @@ Setup is one screen. Paperclip fills in a default for who the connection belongs
    - Under **Which agents can use this connection**, choose **Just agents I pick** and name them. A mailbox is not something to hand to every agent by default.
    - Under **What should Paperclip be able to do?**, pick the capability group from step 3.
 4. Choose the setup path:
-   - **Connect with Paperclip** — Paperclip's managed Google client. Offered only when the instance is enrolled with Paperclip Cloud and Cloud advertises the Gmail profile. Setup uses it by default when it is offered.
+   - **Connect with Paperclip** — Paperclip's managed Google client. Offered only on Paperclip Cloud, and only when Cloud advertises the Gmail profile. Setup uses it by default when it is offered.
    - **Use your own Google OAuth app** — select it to supply the client ID and secret from step 2. **Use Paperclip instead** switches back.
 5. Complete Google's consent screen with the registered Workspace account.
 
@@ -88,7 +88,7 @@ Do not verify by creating a draft.
 | Symptom | Cause |
 | --- | --- |
 | Google refuses before the consent screen | The signing-in Workspace account or the Cloud project is not registered for Developer Preview. |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Gmail profile. On **Read & archive** it is never offered: that group needs your own OAuth app. |
+| **Connect with Paperclip** is not offered | The instance is self-hosted rather than on Paperclip Cloud, or Cloud is not advertising the Gmail profile. On **Read & archive** it is never offered: that group needs your own OAuth app. |
 | Consent completes but the connection shows **Setup incomplete** | The final step was not finished. Select **Finish setup**. |
 | Redirect URI mismatch | The callback URI registered on your Google OAuth client does not match the one Paperclip displays. |
 

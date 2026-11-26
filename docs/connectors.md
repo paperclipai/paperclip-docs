@@ -39,14 +39,14 @@ Every row in the catalog lists the methods that connector supports. The names me
 
 | Method | What it means |
 | --- | --- |
-| Connect with Paperclip | Paperclip holds the OAuth client and you approve access in the provider's own consent screen. Offered only on instances enrolled with Paperclip Cloud. |
+| Connect with Paperclip | Paperclip holds the OAuth client and you approve access in the provider's own consent screen. Offered only on instances enrolled with Paperclip Cloud; for Google, only on Paperclip Cloud itself. |
 | Sign in with the provider | Paperclip registers itself with the provider's authorization server at connect time, then you approve access there. Nothing to create first. |
 | Your own OAuth app | You register an OAuth client with the provider and add Paperclip's callback URI before connecting. Use this when the provider does not support automatic registration, or when you want the client to be yours. |
 | API key | You generate a key or token in the provider's console and paste it into Paperclip. |
 | Provider app registration | You create an app or bot in the provider's developer console, give it the documented permissions and events, and connect its credentials. Provider-specific channel guides describe exceptions, such as managed inboxes. |
 | No credential | Nothing to sign in to. You identify the target — a store domain, a generated URL, a shared file — and that is the whole setup. |
 
-Which methods you actually see depends on your instance. **Connect with Paperclip** is hidden unless your instance is enrolled with Paperclip Cloud and Cloud advertises a profile for that connector. Every chat channel is behind the **Chat connectors** instance setting, which is off by default, except the GitHub Code Review Bot, which has its own **GitHub review bots** setting, also off by default. AgentMail is not: its email inboxes are available on every instance. The [memory providers](#memory-experimental) are behind a separate **Memory connectors** setting, also off by default. Each connector page lists its own prerequisites.
+Which methods you actually see depends on your instance. **Connect with Paperclip** is hidden unless your instance is enrolled with Paperclip Cloud and Cloud advertises a profile for that connector. Google connectors offer it only on Paperclip Cloud: on your own Paperclip server, you connect Google with your own Google OAuth app. Every chat channel is behind the **Chat connectors** instance setting, which is off by default, except the GitHub Code Review Bot, which has its own **GitHub review bots** setting, also off by default. AgentMail is not: its email inboxes are available on every instance. The [memory providers](#memory-experimental) are behind a separate **Memory connectors** setting, also off by default. Each connector page lists its own prerequisites.
 
 ### What setup looks like
 

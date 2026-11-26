@@ -18,7 +18,7 @@ Agents can read the text and structure of Google Docs documents, and on an editi
 
 - A Google Workspace account that can already open the documents you want agents to use.
 - Developer Preview registration for that account, confirmed by Google.
-- Without Paperclip Cloud enrollment, you need your own Google OAuth client with the **Drive API**, **Docs API**, and **Docs MCP API** enabled. [Set up your own Google OAuth app](google-setup.md) is the complete procedure — do it before you start here.
+- On your own Paperclip server, you need your own Google OAuth client, because Paperclip-managed Google sign-in works only on Paperclip Cloud. Enable the **Drive API**, **Docs API**, and **Docs MCP API** on its Cloud project. [Set up your own Google OAuth app](google-setup.md) is the complete procedure — do it before you start here.
 
 ## Pick a capability group
 
@@ -77,7 +77,7 @@ If you want to confirm editing, do it on a scratch document you created for the 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
 | Google refuses before the consent screen | Developer Preview registration is incomplete | Finish registration and retry |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Docs profile | Use your own Google OAuth app |
+| **Connect with Paperclip** is not offered | The instance is self-hosted rather than on Paperclip Cloud, or Cloud is not advertising the Docs profile | Use your own Google OAuth app |
 | A document cannot be found | It is not shared with the authorizing account | Share it in Google Drive; no reconnect needed |
 | `update_doc` is missing | The connection was made with **Read only** | Make a connection with **Read & edit** |
 | An edit did not produce the formatting you expected | The update goes through the Docs API, which does not cover every editor feature | Finish the formatting in Google Docs |

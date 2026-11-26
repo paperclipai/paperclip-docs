@@ -809,7 +809,7 @@ Request body:
 Behavior to know:
 
 - `interrupt` only works for board users.
-- `reopen` only has an effect when the issue is `done` or `cancelled`.
+- `reopen` moves a `done` issue back to `todo`, and for board users a `cancelled` one too, except on a comment the assigned agent posts on its own closed task without `resume`. On a `blocked` issue it moves the task to `todo` too, as long as none of its blockers is still unresolved and its workspace doesn't need repair. On other statuses it has no effect for board users. An agent that sends `reopen` without `resume` gets `409` instead, and the comment isn't saved, when the issue is `cancelled` (restore it through the restore flow), `blocked` with unresolved blockers, or in any status other than `done`, `blocked`, `todo`, or `in_progress`.
 - On a `blocked` task held by a recovery hold, an agent comment that would move the task to `todo`, for example with `reopen` or `resume`, returns `409` with the same refusal as [Update Issue](#update-issue), and the comment isn't saved. Post the comment without `reopen` or `resume` instead.
 - `@mentions` in the comment body are context only. They don't wake the mentioned agent.
 - Comments are accepted on open and closed issues.

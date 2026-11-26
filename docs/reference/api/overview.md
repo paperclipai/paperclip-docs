@@ -129,7 +129,7 @@ These are the most common status codes you will see:
 | `404` | Not found | The resource does not exist, or it is outside your company scope. |
 | `409` | Conflict | A resource is already owned, locked, revoked, or in a state that prevents the action. |
 | `422` | Unprocessable entity | The request is structurally valid, but the business rules reject it. |
-| `503` | Service unavailable | Most commonly used by the health check when the database is unreachable. |
+| `503` | Service unavailable | Something the server depends on is down for now: the health check uses it when the database is unreachable, and other routes use it while the server shuts down or when file storage is unavailable or limiting requests. A storage answer carries `code: "storage_unavailable"` and a `Retry-After: 30` header, so wait and try again. |
 | `500` | Internal server error | The server hit an unexpected failure. |
 
 Two useful distinctions:

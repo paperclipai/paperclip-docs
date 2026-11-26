@@ -20,7 +20,7 @@ Deleting, moving, renaming, and changing who a file is shared with are **not** e
 
 - A Google Workspace account that can already open the files you want agents to use.
 - Developer Preview registration for that account, confirmed by Google.
-- If your instance is not enrolled with Paperclip Cloud, you will need your own Google OAuth client with the **Drive API** and **Drive MCP API** enabled. [Set up your own Google OAuth app](google-setup.md) is the complete procedure — do it before you start here.
+- On your own Paperclip server, you will need your own Google OAuth client, because Paperclip-managed Google sign-in works only on Paperclip Cloud. Enable the **Drive API** and **Drive MCP API** on its Cloud project. [Set up your own Google OAuth app](google-setup.md) is the complete procedure — do it before you start here.
 
 ## Pick a capability group
 
@@ -72,7 +72,7 @@ Expect metadata for a file you can find yourself in Drive. This confirms the cre
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
 | Google refuses before the consent screen | Developer Preview registration is incomplete | Finish registration and retry |
-| **Connect with Paperclip** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the Drive profile | Use your own Google OAuth app |
+| **Connect with Paperclip** is not offered | The instance is self-hosted rather than on Paperclip Cloud, or Cloud is not advertising the Drive profile | Use your own Google OAuth app |
 | Search finds nothing you expected | The file is not shared with the authorizing account, or is on a shared drive it does not belong to | Share the file or add the account to the shared drive |
 | A file is listed but its content will not read | The file type has no extractable text, or it is a link to an external item | Check the file type; metadata and content are separate capabilities |
 | Create or copy is missing | The connection was made with **Read only** | Make a connection with **Read & create** |
