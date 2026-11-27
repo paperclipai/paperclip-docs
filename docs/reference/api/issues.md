@@ -1023,6 +1023,8 @@ Concurrency rules:
 - A stale `baseRevisionId` returns `409 Conflict` with the current revision id.
 - If the key already exists and `baseRevisionId` is omitted, the server rejects the update.
 
+The response is the saved document, in the same shape as `GET /api/issues/{issueId}/documents/{key}`: `body` holds the text you just saved, next to the new `latestRevisionId` and `latestRevisionNumber`. You get `201` when the call created the document and `200` when it added a revision.
+
 #### Writing to a locked document
 
 If the target document is locked, the behavior depends on who is writing:
@@ -1087,6 +1089,8 @@ POST /api/issues/{issueId}/documents/{key}/revisions/{revisionId}/restore
 Restore a prior revision by creating a new latest revision from it.
 
 This does not overwrite history. It creates a new revision that becomes the latest body.
+
+The response is the document after the restore, in the same shape as a document read, with the restored text in `body`.
 
 ### Delete Document
 
@@ -1514,7 +1518,7 @@ POST /api/issues/{issueId}/interactions/{interactionId}/reject
 POST /api/issues/{issueId}/interactions/{interactionId}/respond
 ```
 
-`accept` and `reject` are used for `request_confirmation`. `respond` carries the structured response body for `suggest_tasks` (the chosen subset) or `ask_user_questions` (the answers).
+`accept` and `reject` are used for `request_confirmation`. `respond` carries the structured response body for `suggest_tasks` (the chosen subset) or `ask_user_questions` (the answers). For `ask_user_questions`, `answers` takes one entry per question (`questionId`, `optionIds`, and optional `otherText`). A card holds up to 64 questions, and `answers` accepts up to 64 entries, so you can answer every question on the card.
 
 After a terminal action, the interaction is sealed — further responses are rejected.
 
@@ -1678,6 +1682,19 @@ The request body is empty. The response always includes `outcome`, `message`, an
 In the UI, every outcome now shows a toast with its headline and `message`: **Retry promoted**, **Retry already running**, **Retry waiting**, **No scheduled retry**, or **Couldn't retry now**.
 
 Activity is logged as `issue.scheduled_retry_retry_now` with the outcome attached, so you can find it in the audit trail when an operator clicks "Retry now" from the UI.
+
+### Check now on a waiting task
+
+`POST /api/issues/{issueId}/monitor/check-now` also works on a task with no monitor check scheduled (`monitorNextCheckAt` is empty) that does have a waiting scheduled retry, such as one held for a provider usage limit. In that case the call starts the waiting retry immediately, using the same path as `scheduled-retry/retry-now`, so a usage-limit hold is checked again before the agent does any work. This path also needs board access and permission to read and change the task. The response is `{ ok: true, outcome, message }`, and the activity entry is `issue.scheduled_retry_retry_now` with `source: "monitor_check_now"`.
+
+If the check can't start, you get `409` with `code: "issue_monitor_check_deferred"` and a `details.reason`:
+
+| `details.reason` | `error` |
+|---|---|
+| `no_scheduled_check` | `Nothing is waiting to be checked on this task anymore. Refresh the task to see its current state.` |
+| `gate_suppressed` | `The check could not start because the task changed. Refresh the task to see its current state.` |
+
+A task with a monitor check scheduled keeps its ordinary monitor check.
 
 ---
 

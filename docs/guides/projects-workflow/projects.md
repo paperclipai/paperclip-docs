@@ -33,7 +33,7 @@ Each row is a single project entry. Reading left to right you see:
 - **Budget** and **Target date** — shown in muted text only when the project has a budget or a target date set.
 - **Status badge** — the current project status, such as `planned` or `in progress`. The badge color is consistent with issue status badges used elsewhere in the app.
 - **Lock** — a private project shows a lock on the right of its row, and also in the sidebar and the composer's project picker.
-- **Join / Leave** and a **star** — personal controls for your sidebar (see [Keeping projects (and agents) in your sidebar](#keeping-projects-and-agents-in-your-sidebar)).
+- **Pin**, or **Join / Leave** and a **star** — personal controls for your sidebar. In the [Coordinator workspace](../../experimental/coordinator-workspace.md) each row has a pin button; in the Classic workspace you get **Join / Leave** and a star instead (see [Keeping projects (and agents) in your sidebar](#keeping-projects-and-agents-in-your-sidebar)).
 
 Archived projects are filtered out of this list. You can still reach them by following a direct link, and you can unarchive them from the project's Configuration tab.
 
@@ -53,7 +53,9 @@ If the company has no projects yet, the list is replaced with a large illustrati
 
 ### Keeping projects (and agents) in your sidebar
 
-As a company grows, the **Projects** and **Agents** groups in the left sidebar can get crowded. To keep yours focused, you can **join** or **leave** individual projects and agents — a personal setting that only affects your own navigation.
+**In the Coordinator workspace**, pin the projects you want close at hand. On the **Projects** page, click the pin button on a project's row (its tooltip reads *Pin <project> to sidebar*). The project joins your pinned links in the sidebar, where you can drag it into the order you like. Click its name there to expand it and see up to 12 of its most recently updated tasks; click again to collapse it. To remove it, click the pin button on the **Projects** page again, or hover the pinned row and click its **Unpin** button. Pins are stored in your browser, so they don't follow you to another device.
+
+**In the Classic workspace**, the **Projects** and **Agents** groups in the left sidebar can get crowded as a company grows. To keep yours focused, you can **join** or **leave** individual projects and agents — a personal setting that only affects your own navigation.
 
 - Hover a project or agent in the sidebar and use the **Join** / **Leave** control. Leaving hides it from your sidebar; joining brings it back.
 - Everything is **joined by default**, so a brand-new project shows up for everyone until they choose to leave it.
@@ -69,7 +71,7 @@ Open a project and the top of the page gives you its identity at a glance:
 
 - **Icon and color** — click the tile next to the name to pick a different icon or color.
 - **Name** — click it to rename the project inline.
-- **Star** — the star button in the top right pins the project for quick access.
+- **Star** — in the Classic workspace, the star button in the top right pins the project for quick access. In the Coordinator workspace, pin the project from the **Projects** page instead.
 - **Project summary** — a card where Paperclip's built-in Summarizer agent keeps the latest project status, next step, and operator-needed items. Until the Summarizer is configured, the card shows a **Set up Summarizer** button instead.
 
 Below the header sit the tabs. There's no separate Overview tab any more: the project's description lives on the Configuration tab, and its day-to-day progress lives on the Tasks tab.

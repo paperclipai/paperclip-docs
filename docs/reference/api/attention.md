@@ -37,14 +37,14 @@ curl -s \
 | Param | Description |
 |---|---|
 | `includeDismissed` | `true` to include rows the current user has dismissed or snoozed. |
-| `view` | `mine` (cards for you), `unassigned` (ownerless cards anyone can claim), `company` (company-wide alerts), `archived` (open cards you archived or snoozed for yourself), or `all` (default). See [Audience and views](#audience-and-views). |
+| `view` | `mine` (cards for you), `unassigned` (ownerless cards anyone can claim), `company` (company-wide alerts), `archived` (open cards you archived or snoozed for yourself), `waiting` (cards Paperclip is retrying on its own that aren't addressed to someone else, plus cards you snoozed), or `all` (default). See [Audience and views](#audience-and-views) and [Provider usage-limit cards](#provider-usage-limit-cards). |
 | `activitySince` / `activityUntil` | ISO timestamps bounding each item's `activityAt`. |
 | `queue` | Only items belonging to the [decision queue](./decisions.md) with this key. |
 | `sort` | `activity` (default) or `decide`. |
 | `cursor` | Continue from a previous page's `nextCursor`. |
 | `limit` | Integer between 1 and 100. Defaults to 50. |
 
-A bad boundary returns `400 Bad Request` with `"activitySince must be an ISO timestamp"` (or the same for `activityUntil`), and a reversed pair returns `"activitySince must be before or equal to activityUntil"`. An unknown view returns `"view must be one of mine, unassigned, company, archived, all"`. Other validation messages are `"sort must be 'activity' or 'decide'"`, `"limit must be an integer between 1 and 100"`, and — for a cursor that is malformed or was minted under a different sort — `"Invalid attention cursor"`.
+A bad boundary returns `400 Bad Request` with `"activitySince must be an ISO timestamp"` (or the same for `activityUntil`), and a reversed pair returns `"activitySince must be before or equal to activityUntil"`. An unknown view returns `"view must be one of mine, unassigned, company, archived, all, waiting"`. Other validation messages are `"sort must be 'activity' or 'decide'"`, `"limit must be an integer between 1 and 100"`, and — for a cursor that is malformed or was minted under a different sort — `"Invalid attention cursor"`.
 
 The response is an `AttentionFeed` with these top-level fields:
 
@@ -54,7 +54,9 @@ The response is an `AttentionFeed` with these top-level fields:
 | `generatedAt` | When Paperclip generated this view. |
 | `totalCount` | The number of items in the whole filtered feed, before paging. |
 | `deskBadgeCount` | Your current **For you** cards, the same number as `viewCounts.mine`. This is the number behind the sidebar badge. A card stays in it until someone answers it. |
-| `viewCounts` | Cards in each view for you: `{ mine, unassigned, company, archived, all }`. Counted before the view, date, and queue filters and paging, so every surface shows the same numbers. Cards you archived or snoozed count only under `archived`, and a group of related cards counts once. |
+| `viewCounts` | Cards in each view for you: `{ mine, unassigned, company, archived, all }`. Counted before the view, date, and queue filters and paging, so every surface shows the same numbers. Cards you archived or snoozed count only under `archived`, cards waiting on an automatic retry aren't counted in the other views, and a group of related cards counts once. |
+| `waitingCount` | How many cards are in your `waiting` view. Present only when there's at least one. |
+| `nextSnoozeAt` | The earliest time one of the cards you snoozed comes back. Present only when you have a snoozed card. |
 | `nextCursor` | Pass this back as `cursor` for the next page, or `null` when you have reached the end. |
 | `countsBySourceKind` | Counts grouped by each attention source. |
 | `items` | The ranked `AttentionItem` records for this page. |
@@ -83,6 +85,7 @@ Items also carry their sidecar state and a little provenance:
 | `closeModes` | The [close](#close-a-card) modes this card supports: some of `withdraw`, `archive`, and `snooze`. |
 | `changeFingerprint` | An opaque value for the card's important content. Send it when you archive or snooze, and the card returns only when this changes. |
 | `obligationKey` / `obligationLeadId` | Set when several cards are one obligation, such as a pending approval and the in-review state of its task, or a blocked task and the failed run that caused it. The UI shows the lead card and folds the others into it. `null` when the card stands alone. |
+| `providerLimit` | Present on a card caused by a provider usage limit. See [Provider usage-limit cards](#provider-usage-limit-cards). |
 
 ### Sources and severity
 
@@ -105,6 +108,26 @@ Items also carry their sidecar state and a little provenance:
 Paperclip deduplicates the underlying signals, then ranks the feed. With the default `sort=activity` that means recent activity first, then severity, then source priority, then a stable deduplication key. With `sort=decide` the feed leads with items that have a real deadline — soonest first — then items marked `whenever`, then everything untriaged, breaking ties on `expiresAt`, severity, and the activity order above.
 
 Treat it as a decision queue, not as a complete history of every event in your company.
+
+### Provider usage-limit cards
+
+When an agent's provider account runs out of allowance, the run that hit the limit shows up as a `recovery_action` or `failed_run` card with a `providerLimit` block. These cards aren't company-wide alerts: they follow the ordinary audience rules, so they go to a person or the claimable pool, and like any unclaimed card, one left in the pool for 7 days moves to Company. Paperclip also groups the repeats so you see one card per episode instead of one per attempt:
+
+| Field | What you get |
+|---|---|
+| `episode` | An opaque key for the group this card belongs to. |
+| `grouping` | `account_window` when the run's account is known and the provider reported a reset, so every limited run on that account and reset joins one group. Otherwise `retry_chain`, which groups the repeated attempts of one task's retry chain. |
+| `attempts` | In a `retry_chain` group, how many limited attempts the task's retry chain holds. Always `1` in an `account_window` group, where each card is one run. |
+| `state` | `scheduled` (Paperclip will retry automatically), `retry_requested` (the retry is queued), or `needs_retry` (nothing will retry on its own, so someone has to). |
+| `retryAt` | When the automatic retry is due, or `null`. |
+| `resetAt` | The reset the provider reported, or `null` when it didn't report one. |
+| `runId`, `agentId`, `agentName` | The run behind the card and its agent. |
+
+Cards in one group with the same audience share an `obligationKey` (starting with `provider-limit:`) and one `dismissalKey`, so archiving or snoozing the lead hides the whole group. In an `account_window` group the lead is a `needs_retry` card when there is one. In a `retry_chain` group it's the card with the most attempts, or the most recent one on a tie. An archived or snoozed group comes back when it changes between waiting on an automatic retry and needing a manual one.
+
+A card whose `state` isn't `needs_retry` is waiting on Paperclip, not on you. It's left out of `mine`, `unassigned`, `company`, and `all` (pass `includeDismissed=true` to see it there) and isn't counted under them in `viewCounts`. Instead it shows in your `waiting` view when it's meant for you or isn't addressed to one person. If you archived it, it moves to `archived` instead; if you snoozed it, it shows in both `waiting` and `archived` and counts under `archived`.
+
+The cards clear themselves once the task recovers: when a later run for the same task is running or has succeeded, or the task is `done` or `cancelled`. A failed-run card for a task that's `done` or `cancelled` leaves the feed too, whatever caused it. While a usage-limit card is open for a task, that task's ordinary blocker card is left out of the feed, and an agent error alert is left out when it only repeats the error of the agent's last run and that run is behind a usage-limit card or hit a usage limit on a task that has since recovered.
 
 ### Decisions in the feed
 
@@ -162,7 +185,7 @@ GET /api/companies/{companyId}/attention/tasks
 
 Both need company access, board access, and a board user context. Without a user context they return `403` with `"Board user context required"`. They take no query parameters and always cover the whole queue as the feed's defaults would show it to you: items you've dismissed or snoozed and archived items are left out.
 
-`/attention/summary` returns an `AttentionSummary`: the same `companyId`, `generatedAt`, `totalCount`, `deskBadgeCount`, `viewCounts`, and `countsBySourceKind` you get at the top of the feed, with no `items` and no `nextCursor`.
+`/attention/summary` returns an `AttentionSummary`: the same `companyId`, `generatedAt`, `totalCount`, `deskBadgeCount`, `viewCounts`, `countsBySourceKind`, and (when set) `waitingCount` and `nextSnoozeAt` you get at the top of the feed, with no `items` and no `nextCursor`.
 
 ```bash
 curl -s \
@@ -171,6 +194,25 @@ curl -s \
 ```
 
 `/attention/tasks` returns an `AttentionTaskIndex`: those same summary fields plus `taskIds`, the IDs of every issue with something waiting on it, without duplicates. An item counts toward its `relatedIssue`, or toward its subject when the subject is itself an issue. Items that aren't tied to an issue, such as a budget alert, add to the counts but not to `taskIds`. The [Coordinator workspace](../../experimental/coordinator-workspace.md) uses this to filter its task list down to the tasks that need you.
+
+---
+
+## Read recent failed runs
+
+```
+GET /api/companies/{companyId}/attention/run-history
+```
+
+This lists recent failed runs, newest first, whether or not they ever got a card, so you can see what happened even after a card was grouped or cleared. It needs company access, board access, and a board user context (`403` with `"Board user context required"` without one). Each call returns up to 100 runs that failed, timed out, or were held for a provider usage limit, and only on tasks you can read.
+
+Each entry has `runId`, `agentId`, `agentName`, `taskId`, `taskTitle`, `identifier`, `recordedAt`, and two readable labels:
+
+| Field | Values |
+|---|---|
+| `reason` | `Provider usage limit` or `Failed run`. |
+| `outcome` | `Task completed`, `Task cancelled`, `Work resumed`, `Recovery resolved`, or `Run recorded`. |
+
+The response is a plain array with no cursor. To read the next page, pass the last entry's `recordedAt` as `at` and its `runId` as `id`. Send both or neither; anything else returns `400` with `"Invalid run history cursor"`. The route allows 60 requests a minute for each person in a company and reports `X-RateLimit-Limit` and `X-RateLimit-Remaining`. Past that it returns `429` with a `Retry-After` header and `{ "error": "Run history rate limit exceeded", "retryAfterSeconds": … }`.
 
 ---
 

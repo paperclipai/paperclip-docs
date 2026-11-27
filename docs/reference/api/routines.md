@@ -734,7 +734,7 @@ What the code checks:
 
 Accepted headers depend on signing mode:
 
-- `app_webhook` uses either `Authorization: Bearer <secret>`, or `X-Hub-Signature` / `X-Hub-Signature-256` carrying `sha256=<hex>` — HMAC-SHA256 of the exact request body. If a signature header is present it must be valid; the server does not fall back to the bearer check.
+- `app_webhook` uses either `Authorization: Bearer <secret>`, or `X-Hub-Signature` / `X-Hub-Signature-256` carrying `sha256=<hex>` — HMAC-SHA256 of the exact request body. When a request carries both headers, the server checks `X-Hub-Signature-256` and ignores `X-Hub-Signature`, so a sender like GitHub that adds a SHA-1 `X-Hub-Signature` alongside it still verifies. A `sha1=` value is never accepted. If a signature header is present it must be valid; the server does not fall back to the bearer check.
 - `bearer` uses `Authorization: Bearer <secret>`
 - `hmac_sha256` uses `X-Paperclip-Signature` plus `X-Paperclip-Timestamp`, signing the timestamp, a dot, and the exact body
 - `github_hmac` uses `X-Hub-Signature-256`, falling back to `X-Paperclip-Signature`, over the exact body with no timestamp

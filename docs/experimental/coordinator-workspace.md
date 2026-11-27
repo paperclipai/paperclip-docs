@@ -60,7 +60,9 @@ Each task, subtask included, has its own row. A task with something new for you 
 
 To keep something from Recents close at hand, pin it. Hover a task, chat, or project row (or move to it with the keyboard) and click its pin button; the button also shows on the row for the page you're on. Pinned items join your pinned links above **More**, in the same draggable order as pinned pages and agents, and stay there even after they drop out of Recents.
 
-A project link, in Recents or pinned, opens the project's **Tasks** tab. Click the arrow at the right of the project's row to see up to 12 of its most recently updated tasks without leaving the page, each with its status and unread marker.
+A project, in Recents or pinned, shows as a folder. Click it to open the folder and see up to 12 of the project's most recently updated tasks without leaving the page, each with its status and unread marker. Click it again to close it. To open the project itself, go through **More → Projects**.
+
+You can pin a project from the **Projects** page too: click the pin button on its row. Click it again to unpin.
 
 On a phone, the bottom bar carries **Chat**, **Tasks**, **Inbox**, and **New task**.
 
@@ -138,23 +140,40 @@ Most items can be resolved right on the card. A task stuck in review with no one
 
 If an agent asks for confirmation more than once on a task, even about different things, you only see the newest ask. Once you answer it, or it expires, the older ones stay hidden, so a card you already approved in chat doesn't come back here. If the newest ask is cancelled or fails instead, the earlier one returns, because nothing was settled. Quality-review confirmations are listed separately.
 
+Three buttons under the toolbar switch what Inbox shows:
+
+- **Needs you** (where you start) — open requests that are waiting on you.
+- **Waiting** — cards you snoozed, and tasks Paperclip will retry on its own after a provider usage limit. Its button shows a count when there's something in it. If **Needs you** is empty in the default **Assigned to you** view but something is waiting, you'll see *"You're caught up."* with how many items are waiting.
+- **History** — your [decision history](#decision-history), plus a table of recent failed runs.
+
 Use the toolbar above the queue to narrow it down:
 
 - **Search** your cards.
 - Filter by agent (**All agents**) or project (**All projects**).
-- Choose whose cards you see. **Assigned to you** is the default. **No owner yet** shows cards nobody has claimed, and **Company alerts** shows company-wide problems. If you can act in the company, you also get **All assignees** and each person by name.
+- Choose whose cards you see (not in **Waiting**). **Assigned to you** is the default. **No owner yet** shows cards nobody has claimed, and **Company alerts** shows company-wide problems. If you can act in the company, you also get **All assignees** and each person by name.
 - Group the cards **By type** (the default, which splits them into **Decisions** and **Problems**), **By task**, **By agent**, or **By project**, or pick **No grouping**.
 - The **View** menu opens **Archived**, the cards you hid for yourself, and **Decision history**.
 
 An ownerless request has a **Claim** button, and each card has a **Close…** menu (**⋯**) for transferring, withdrawing, archiving, or snoozing it. See [Claim, hand off, or withdraw a card](../guides/day-to-day/decisions.md#claim-hand-off-or-withdraw-a-card). When a card points at a document, you can open it beside the queue in a side panel tab.
 
-When you answer a card, it briefly turns into a receipt in place, then leaves the queue. When someone else handles a card that was meant for you, a note about it shows under **Updates**. When the queue is empty you'll see *"You're caught up."*
+When you answer a card, it briefly turns into a receipt in place, then leaves the queue. When someone else handles a card that was meant for you, a note about it shows under **Updates** in **History**. When the queue is empty you'll see *"You're caught up."*
+
+### Usage-limit cards
+
+When an agent's provider account hits its usage limit, the repeated attempts don't each get their own card. Paperclip groups them, and the card is labelled **Provider usage limit**:
+
+- Runs on the same account that share a reported reset become one card, such as *"3 tasks paused by the provider usage limit"*. It shows the provider's reset time when one was reported, and when retries are scheduled. Click **View 3 tasks** to see each task, its agent, its retry status, and a **Run log** link.
+- Otherwise each task gets one card for its chain of attempts, with its retry status (**Retry scheduled**, **Retry requested**, or **Needs retry**), the number of attempts, and the provider's reset time or *"Reset time unknown"*. When two or more tasks in the same group of the queue have one of these, they're folded under *"N tasks hit usage limits"*. Click it to expand.
+
+While Paperclip still has a retry coming, the card sits in **Waiting**. Once nobody will retry it automatically, it moves to **Needs you** (a grouped card's title changes to say how many tasks need a retry, such as *"2 tasks need a retry after the usage limit"*). Open the task to retry it; when exactly one task on the card needs a retry, **Open task to retry** takes you there. A usage-limit card clears on its own once its task recovers: a later run for it is running or succeeds, or the task is done or cancelled. Archiving or snoozing the card hides the whole group.
 
 ### Decision history
 
-Choose **Decision history** from the **View** menu to see every closed card, approvals included. It replaces the queue in the main pane, and **Needs You** takes you back. It opens on **Handled by me or for me**; switch to **Everyone** for every person's history. You can search it, filter by outcome (**Approved**, **Answered**, **Changes requested**, **Decided**, **Withdrawn**, **Expired**, **Closed with task**, **Cancelled**, or **Handled for me**), agent, or project, group it, and sort it. Each entry links back to its task or approval. Scroll down and click **Load more decisions** to go further back.
+Click **History**, or choose **Decision history** from the **View** menu, to see every closed card, approvals included. It replaces the queue in the main pane, and **Needs you** takes you back. It opens on **Handled by me or for me**; switch to **Everyone** for every person's history. You can search it, filter by outcome (**Approved**, **Answered**, **Changes requested**, **Decided**, **Withdrawn**, **Expired**, **Closed with task**, **Cancelled**, or **Handled for me**), agent, or project, group it, and sort it. Each entry links back to its task or approval. Scroll down and click **Load more decisions** to go further back.
 
 History only includes records you're allowed to read. The [Attention API](../reference/api/attention.md#read-decision-history) serves the same list.
+
+Below it, **Recent run history** lists failed runs on tasks you can see, newest first: the task, its ID, what happened afterwards (such as **Task completed** or **Work resumed**) with the reason (**Provider usage limit** or **Failed run**), the agent's run log, and when it was recorded. Click **Show older runs** to go further back. The [Attention API](../reference/api/attention.md#read-recent-failed-runs) serves this list too.
 
 ## Caveats
 
