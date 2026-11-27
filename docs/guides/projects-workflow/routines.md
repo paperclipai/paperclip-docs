@@ -323,7 +323,7 @@ For a custom app or a script, the setup is:
 - Add a webhook pointing at the **Webhook URL**, using the **POST** method.
 - Send a **JSON object** as the body — not an array or a bare string — with **`Content-Type: application/json`**.
 - Authenticate in whichever way your app supports:
-  - **Signing secret** — if the app has a "signing secret" field, paste the **Secret key** there. Paperclip accepts an HMAC-SHA256 signature over the exact request body in either the **`X-Hub-Signature`** or **`X-Hub-Signature-256`** header, formatted `sha256=<hex digest>`. This is how most SaaS tools sign their webhooks.
+  - **Signing secret** — if the app has a "signing secret" field, paste the **Secret key** there. Paperclip accepts an HMAC-SHA256 signature over the exact request body in either the **`X-Hub-Signature`** or **`X-Hub-Signature-256`** header, formatted `sha256=<hex digest>`. If the app sends both headers, Paperclip checks `X-Hub-Signature-256`, so an extra SHA-1 `X-Hub-Signature` doesn't get the request rejected. This is how most SaaS tools sign their webhooks.
   - **Custom header** — if the app lets you set your own headers instead, add one named **`Authorization`** whose value is **`Bearer`** followed by a space and the secret key.
 - Subscribe only to the events that should actually start the routine.
 - Send a unique **`Idempotency-Key`** header for each event and reuse it on retries. That way a retried setup test can never start the routine once the webhook is live. If your app can't send that header, Paperclip treats a signed retry with an identical body as the same event.

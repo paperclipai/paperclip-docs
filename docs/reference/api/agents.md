@@ -1284,7 +1284,32 @@ Once a Codex or Claude agent on Paperclip Runner has reported its provider's lim
 | `limitReached` | `windowId`, `reason`, and `resetsAt` while the provider is refusing work, or `null`. |
 | `observedAt` | When this snapshot was reported. |
 
-While the provider's limit is active, a queued automatic run for the agent is cancelled with `errorCode: "provider_limit_wait"` and retried at the reset. See [When a provider usage limit is reached](../../guides/org/agents.md#when-a-provider-usage-limit-is-reached). To compact an agent's context from a task, see [Context Window and Compaction](./issues.md#context-window-and-compaction).
+While the provider's limit is active, a queued automatic run for the agent is cancelled with `errorCode: "provider_limit_wait"` and retried at the reset. The hold only counts limits recorded on the account this run would use: a run set to use a different account starts normally, and a limit recorded on an account that is no longer active is ignored. The cancelled run's `resultJson.providerLimitWait.grantId` names the limited connection grant, or is `null` when no single grant is recorded, as with the host's own account.
+
+Waiting work rechecks right away, instead of at the reset, when:
+
+- the agent's AI connection (`runtimeConfig.aiConnection`) changes,
+- the limited account is revoked or removed,
+- you change your default personal connection away from the limited account, or
+- a person wakes the agent on the waiting task, for example by replying on it.
+
+Each recheck is logged as `issue.scheduled_retry_retry_now` with `source: "provider_limit_recheck"`. The recheck looks only at the limit Paperclip already recorded, before any work begins, so if the same account is still limited the run goes straight back to waiting. See [When a provider usage limit is reached](../../guides/org/agents.md#when-a-provider-usage-limit-is-reached). To compact an agent's context from a task, see [Context Window and Compaction](./issues.md#context-window-and-compaction).
+
+---
+
+## Reset a Runtime Session
+
+When an agent is stuck on stale session state, reset it:
+
+`POST /api/agents/{agentId}/runtime-state/reset-session`
+
+It's board-only and needs permission to manage agents in the company. The body takes one optional field:
+
+| Field | Meaning |
+|---|---|
+| `taskKey` | Reset only the task sessions for this key. Leave it out or send `null` to clear all of the agent's task sessions. The key is trimmed, and a blank or whitespace-only key returns `400` (`Validation error`) instead of resetting everything. |
+
+Either way, the agent's current session ID and last error are cleared. The response is the updated runtime state plus `clearedTaskSessions`, and the reset is recorded as an `agent.runtime_session_reset` activity entry with the `taskKey` it used. From the CLI, use [`agent runtime-state:reset-session`](../cli/agent.md#runtime-state-and-task-sessions).
 
 ---
 

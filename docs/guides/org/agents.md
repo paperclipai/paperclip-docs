@@ -628,7 +628,7 @@ Open the actions menu (`⋯`) in the header and choose **Agent history**. A dial
 - **Date configured** — when the change was saved.
 - **Restore** — puts the agent back to that version.
 
-When you click **Restore**, Paperclip asks **Restore this version?** and shows the date, who made it, and what it changed. Click **Restore version** to go ahead, or **Cancel**. Anything changed since then is replaced, but the current version stays in Agent history, so you can always undo an undo. If the restore fails, the reason shows inside the confirmation.
+When you click **Restore**, Paperclip asks **Restore this version?** and shows the date, who made it, and what it changed. Click **Restore version** to go ahead, or **Cancel**. Anything changed since then is replaced, including the agent's icon and appearance, but the current version stays in Agent history, so you can always undo an undo. If the restore fails, the reason shows inside the confirmation. If the version you restore didn't record an icon or appearance, the agent keeps its current ones.
 
 > **Tip:** Use restore when a change breaks an agent and you don't have time to debug. Pause the agent, restore the last known-good version, resume, and investigate the bad change later.
 
@@ -847,11 +847,21 @@ The status badge on every row and on the agent header reflects one of these valu
 Claude and Codex accounts come with usage allowances. When an agent's provider says its allowance has run out, Paperclip holds the agent's new work and checks the limit again later, so you don't get a string of runs that all fail the same way.
 
 - **The work waits.** Before any workspace or provider work starts, the run is cancelled with the code `provider_limit_wait` and a retry of the same wake is scheduled (if the retry can't be scheduled, the task is released instead of held). Since no provider work started, you don't get a cancelled-run notice for every task that's held. When the provider reported a reset time, the run's record says so: *This agent's provider usage limit has a reported reset at …. Work is held; a retry must recheck availability before starting work.* When it didn't, Paperclip doesn't treat its fallback as a known reset. It holds the work until one hour after the limit was recorded and says *This agent's provider usage limit has no reported reset time. Work is held; a retry can recheck availability after …; the limit may still apply then.* On the run, the time in this message reads as a countdown with the exact time in your own time zone, for example *in 44 minutes (Nov 18, 2026, 12:17 PM PST)*, and the run's log and the task's run list show the time of the recheck the same way. The countdown keeps ticking while the tab is in view.
+- **The hold belongs to the account that hit the limit.** Paperclip checks the account the agent's next run would use. A limit reported on one connected account doesn't hold a run that would use a different account, and a limit reported on an account that has since been revoked or removed doesn't hold anything.
 - **The retry is a recheck, not a promised start.** When the retry comes due, Paperclip checks the limit again before starting work, and the provider may still refuse it. A wake that's still limited waits again.
 - **A used-up allowance with no reset isn't held.** When the provider says the usage allowance is exhausted and doesn't report when it resets, waiting won't help, so Paperclip doesn't hold the agent's work for it. Add credit or raise the allowance with the provider, or change the agent's AI connection. See [Run fails with a red provider notice](../../how-to/debug-stuck-heartbeat.md#8-run-fails-with-a-red-provider-notice).
 - **Some runs still start.** Manual runs, runs that are recovering, chat turns, and agents on a connection pool aren't held, so you can test a fix straight away.
 
-To continue sooner, restore the provider allowance or change the agent's AI connection, then start a manual run. The [**Usage limit** row](../day-to-day/issues.md#the-issue-detail-sidebar) on a task shows how close the assigned agent is to its limit.
+While work waits, the task shows a **Pool exhausted** banner with the time of the next usage recheck and *Tasks with a selected account keep it while waiting. Work resumes when usage permits or the agent uses a different account.*
+
+To continue sooner, you don't have to wait for the scheduled recheck. Each of these rechecks the waiting work right away:
+
+- Change the agent's AI connection.
+- Revoke or remove the account that hit the limit, or make a different account the default in place of it.
+- Reply on the task. The banner tells you: *Sending a reply checks usage again now. The agent starts as soon as usage is available.*
+- Click **Check now** on the banner.
+
+A recheck reads the limits Paperclip already recorded and doesn't call the provider, so while the agent still uses the same limited account, the work simply waits again. You can also restore the provider allowance and start a manual run. The [**Usage limit** row](../day-to-day/issues.md#the-issue-detail-sidebar) on a task shows how close the assigned agent is to its limit.
 
 ### Why this matters day-to-day
 

@@ -184,7 +184,7 @@ paperclipai issue interaction:create <issue-id> --payload-json '{ ... }'
 paperclipai issue interaction:accept <issue-id> <interaction-id> --selected-client-keys a,b
 paperclipai issue interaction:reject <issue-id> <interaction-id> --reason "Out of scope"
 paperclipai issue interaction:cancel <issue-id> <interaction-id> --reason "No longer needed"
-paperclipai issue interaction:respond <issue-id> <interaction-id> --answers-json '[{"key":"q1","value":"yes"}]' --summary-markdown "Confirmed scope"
+paperclipai issue interaction:respond <issue-id> <interaction-id> --answers-json '[{"questionId":"q1","optionIds":["yes"]}]' --summary-markdown "Confirmed scope"
 ```
 
 | Command | Use |
@@ -194,7 +194,7 @@ paperclipai issue interaction:respond <issue-id> <interaction-id> --answers-json
 | `interaction:accept <issueId> <interactionId>` | Accept an interaction. `--selected-client-keys <csv>` narrows which client keys are accepted. |
 | `interaction:reject <issueId> <interactionId>` | Reject an interaction. Optional `--reason <text>`. |
 | `interaction:cancel <issueId> <interactionId>` | Cancel an `ask_user_questions` interaction. Optional `--reason <text>`. |
-| `interaction:respond <issueId> <interactionId>` | Answer a question interaction. `--answers-json <json>` is the answers array (required); `--summary-markdown <markdown>` is an optional summary. |
+| `interaction:respond <issueId> <interactionId>` | Answer a question interaction. `--answers-json <json>` is the answers array (required): one entry per question, each with `questionId`, `optionIds`, and optional `otherText`, up to 64 entries. `--summary-markdown <markdown>` is an optional summary. |
 
 ---
 

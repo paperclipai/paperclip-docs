@@ -95,6 +95,7 @@ paperclipai agent pause <agent-id>
 paperclipai agent resume <agent-id>
 paperclipai agent approve <agent-id>
 paperclipai agent terminate <agent-id>
+paperclipai agent clear-error <agent-id>
 ```
 
 | Command | Use |
@@ -103,6 +104,7 @@ paperclipai agent terminate <agent-id>
 | `agent resume` | Resume a paused agent. |
 | `agent approve` | Approve a pending agent — for example one created by a hire request awaiting board sign-off. |
 | `agent terminate` | Terminate an agent. Use this to retire a worker rather than deleting its record. |
+| `agent clear-error` | Clear an agent's error status so it goes back to `idle`. It only works on an agent in `error` status; the server answers `409` for any other status, including a terminated or pending-approval agent, and for an agent whose reporting chain needs repair. Clearing the status doesn't fix whatever caused the error. |
 
 ---
 
@@ -233,7 +235,7 @@ paperclipai agent task-sessions <agent-id>
 | Command | Use |
 |---|---|
 | `agent runtime-state` | Get the agent's current runtime state. |
-| `agent runtime-state:reset-session` | Reset the agent's runtime session. Pass `--task-key <key>` to reset one specific task session; omit it to reset the agent's session broadly. Use this when an agent is wedged on stale session state. |
+| `agent runtime-state:reset-session` | Reset the agent's runtime session. Pass `--task-key <key>` to reset one specific task session; omit it to reset the agent's session broadly. The key is trimmed, and a blank key (such as `--task-key " "`) is rejected instead of being treated as a full reset. Use this when an agent is wedged on stale session state. |
 | `agent task-sessions` | List the agent's task sessions. |
 
 ---

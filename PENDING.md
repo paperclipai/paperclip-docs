@@ -1,31 +1,25 @@
 # Pending — nightly sync
 
-- **Window:** `cb4129a9..28aa32e7`, 86 commits, pinned at `28aa32e7` (2026-11-24T00:32:12-06:00), 48h quarantine. Base release `v2026.1117.0`.
-- **Merge of `main`:** nothing to merge.
-- **Review:** round 1 (4 reviewers, 191 lines): 6 WRONG, 14 OVERSTATED, 1 COPIED fixed. Round 2 (4 reviewers, regrouped, 191 lines): 1 WRONG, 3 OVERSTATED, 3 COPIED fixed. Round 3 (1 reviewer, 6 pages, 94 lines): 2 COPIED reworded. Closing check (2 statements): both OK. 0 claims cut.
+- **Window:** `28aa32e7..10cd186a`, 68 commits, pinned at `10cd186a` (2026-11-25T04:52:11-06:00), 48h quarantine. Base release `v2026.1117.0`.
+- **Merge of `main`:** merged #214 (docs indexing fixes, answer-first openings), 2 conflicting files resolved plus one test constant (see PR).
+- **Review:** round 1 (2 reviewers, 97 lines): 1 WRONG, 2 OVERSTATED fixed. Round 2 (2 reviewers, regrouped, 97 lines): 2 WRONG, 2 OVERSTATED, 3 COPIED fixed. Round 3 (1 reviewer, 4 pages, 75 lines): 1 WRONG, 3 OVERSTATED, 1 COPIED fixed. Round 4 (1 reviewer, 3 pages, 60 lines): 1 WRONG, 1 OVERSTATED fixed. Closing check (2 statements): both OK. 1 claim cut.
 - **Drift:** 0 (`source: snapshot`, no warnings).
 
-## Applied this run (`cb4129a9..28aa32e7`)
-- **API key checks say why** (#22666): the Anthropic, OpenAI, xAI and OpenRouter pages list the seven reasons a key check can fail when you save a key, and the Runner **Run test** wording for ACP Claude and Grok Build keys.
-- **Sign-in attempts say why they ended** (#22668): the Anthropic, OpenAI and xAI pages quote the server-host sign-in end messages.
-- **AI accounts and harness compatibility** (#22691): the Anthropic, OpenAI and xAI pages describe *Incompatible with this harness and model* entries in the Connection selector, and that switching harness clears an incompatible connection.
-- **Typed auth failures and used-up allowances** (#22692): `debug-stuck-heartbeat.md` section 8 and `org/agents.md` say an allowance with no reset time isn't counted down, and describe the **Review AI account** button and the **Review provider billing and usage** Inbox row. `connectors/ai-usage.md`: the reconnect card also shows when the provider rejects the credential.
-- **Onboarding without browser sign-in** (#22695): `your-first-company.md`.
-- **Anthropic (Claude)** (#22631): the catalog name on `connectors/anthropic.md`.
-- **Run setup too large to start** (#22707): new `debug-stuck-heartbeat.md` section 29, `native_run_payload_too_large`.
-- **Paperclip's Google sign-in is Cloud-only** (#22699): `google-setup.md`, `google-workspace.md`, `gmail.md`, `gmail-setup.md`, `google-calendar.md`, `google-docs.md`, `google-drive.md`, `google-slides.md`, `verify-and-troubleshoot.md`, `connectors.md`. Self-hosted instances connect Google with their own OAuth client, and a self-hosted reconnect of a managed Google connection is refused with `google_sign_in_cloud_only`.
-- **Managed sign-in when Paperclip Cloud is unreachable** (#22662): `verify-and-troubleshoot.md` quotes the unreachable and incomplete-settings banners, the 15-second recheck, and when **{App} sign-in is unavailable** shows.
-- **Cancelling a first sign-in** (#22714): `verify-and-troubleshoot.md`, `first-connector.md`, `google-workspace.md`. The draft connection is removed; the activity log reads *cancelled sign-in for*.
-- **Connection content removed with its task or company** (#22636): `reauthorize-and-disconnect.md`.
-- **Live AWS setup progress** (#22626): `connectors/aws.md` (progress panel, **Role ARN** field, the prompt's short-lived link) and the five `agent-setup-progress` routes on `api/tool-gateway.md`.
-- **Person-opened gateway sessions act as their opener** (#22643), **review decisions follow the task card's rules** (#22656), **a connected tool's own error code** (#22723): `api/tool-gateway.md`, `connectors/review-requests.md`, `adapters/paperclip-runner.md`.
-- **Readable connector actions in Activity** (#22659): `activity-log.md`.
-- **Plan review card on settle** (#22732): `work-modes.md`, `experimental/task-chat.md`.
-- **Cloud sidebar Slack button** (#22702): `administration/settings.md`.
-- **Storage throttling answers `503`** (#22664): `api/overview.md`.
-- **Corrections outside the window:** `api/issues.md`: `reopen` on a `blocked` task moves it to `todo` when no blocker is unresolved, and an agent's `reopen` without `resume` gets `409` in the listed cases (carried question). `experimental/coordinator-workspace.md`: **Archived** under My work is the plain task list, not an Inbox triage view (carried question). `administration/settings.md`: the self-hosted Invite row also shows for operators. `google-workspace.md`: the two **Cancel** buttons do different things. `verify-and-troubleshoot.md`: the enrollment banner is on the **Connections** page. `aws.md`: the prompt's link and the **Role ARN** label.
+## Applied this run (`28aa32e7..10cd186a`)
+- **`agent clear-error`** (#19382): `cli/agent.md`.
+- **A blank `taskKey` on reset-session is rejected** (#19282): `cli/agent.md`, and a new **Reset a Runtime Session** section on `api/agents.md`.
+- **One answer per `ask_user_questions` question, up to 64** (#16702): `api/issues.md`, `cli/issue.md`.
+- **Document update and restore return the new body** (#21036): `api/issues.md`.
+- **Plugin SDK resume result has no `archivedState`; the provider decides whether a released Runner relaunches** (#22443, #22442): `plugins/sdk.md`.
+- **Usage-limit cards grouped, recovered tasks cleared, Waiting and History views** (#22846): `api/attention.md` (`waiting` view, `waitingCount`, `providerLimit`, `GET /attention/run-history`), `experimental/coordinator-workspace.md` (Inbox views, usage-limit cards, Recent run history).
+- **A usage-limit hold applies only to the account that reported it** (#22800): `api/agents.md`, `api/issues.md` (**Check now** on a waiting retry), `guides/org/agents.md` (Pool exhausted banner).
+- **Routines prefer `X-Hub-Signature-256`** (#18581): `routines.md`, `api/routines.md`, `create-a-daily-routine.md`.
+- **Pin projects in the Coordinator sidebar** (#22805): `projects.md`, `experimental/coordinator-workspace.md`.
+- **Restoring an agent version restores its icon and appearance** (#19244): `guides/org/agents.md`.
+- **Corrections outside the window:** `cli/issue.md`: the `interaction:respond` example used `key`/`value`; answers take `questionId` and `optionIds` (`packages/shared/src/validators/issue.ts:1648`). `api/attention.md`: the unknown-view error text lists `waiting`. `experimental/coordinator-workspace.md`: a sidebar project row is a folder toggle, not a link to the project's Tasks tab; Updates show under **History**.
 
 ## Applied in earlier runs (unreleased)
+- `cb4129a9..28aa32e7` (#212): API key check reasons, sign-in end messages, harness-incompatible AI accounts, typed auth failures, onboarding without browser sign-in, Cloud-only Google sign-in, managed sign-in when Cloud is unreachable, cancelled first sign-in, live AWS setup progress, gateway session identity, readable connector actions, plan review card, Cloud sidebar Slack button, storage `503`.
 - `7671e0cf..cb4129a9` (#211): Runner public URL, CA bundle and remote Codex variables, `DATABASE_APPLICATION_NAME` scope.
 - `1b1861c2..7671e0cf` (#210): personal Areas & Responsibilities dashboards, activity `agentId` validation, no failure notice when an agent hands its blocker to a person, native OpenCode on Apple Silicon Macs over SSH.
 - `fe0c4aa9..1b1861c2` (#209): Cloud harness choices, task notifications say what changed, plugin Runner credentials, Access Profiles summary route, managed sign-in rate limit.
@@ -40,27 +34,25 @@
 - `3963d385..37808f2a` (#181, #182): agent interaction permissions, agent grants, roster filters, sign-in computers, Retry says why, failure causes, model rejections, workspace storage waits, Codex/OpenCode legacy runner and plugin environments.
 - `2aac7d29..3963d385` (#180): confirm a held resource's server stopped, stalled children and blockers wake the parent, lost-wake backstop, CEO hiring denial, board-only budgets and denials, environment delete, GitHub default owner, skills `update-diff`.
 
+## Cut in review
+- `reference/plugins/sdk.md`: "Paperclip doesn't check the parked state itself, so your own park record decides. Relaunch only from a source that had settled (`suspended`, or `ready` with nothing waiting to be sent, every event acknowledged, and no command in progress)" — traced to `packages/plugins/sdk/src/environment-tasks.ts:308` and `server/src/services/native-runtime/plugin-runner-task.ts:256`; the settled-cut check was removed in #22442 and nothing at the pin defines that rule.
+
 ## Deferred
-- **Google Antigravity** (#22591, #22655, #22673, #22701, #22727, #22728, #22731; the `paperclipai` CLI provisioner change in `cli/src/commands/runtime.ts` from #22728): after the pin the Antigravity profile is flipped to qualified (#22939), the connector is re-keyed and rebranded (#23012), and its sign-in and swarm paths are reworked (#22930–#22990). Document from the next pin that contains those. This includes the API-key failure reasons on the Google AI connector (#22666 also checks Google keys) once that connector's page settles.
-- **Google Workspace on Paperclip's REST tools** (#22634, #22706, #22630): reversed after the pin by #22815 (*run the six launch services on Google's MCP servers again*). Check next run whether anything from these survives.
-- **Google revoked-grant retries** (#22669): Google access removal is reworked after the pin (#22836, #22937). Revisit with those.
+- **Google Antigravity** (#22591, #22655, #22673, #22701, #22727, #22728, #22731 from earlier windows; this window's trusted `/swarm` behind an experimental flag and its follow-ups #22733, #22865, #22875, #22886, #22893, #22905, #22803): after the pin the profile is flipped to qualified (#22939), the connector is re-keyed and rebranded (#23012), and sign-in and swarm paths are reworked (#22930–#22990). Document from a pin that contains those, including the Google AI key check reasons (#22666).
+- **Google access ending and retention** (#22836 content read from Google deleted when access ends, #22842 Google Technical Information kept at most 30 days and kept out of training exports, #22669 revoked-grant retries): reworked after the pin by #22937 (*clear run answer copies and show reconnect state when Google access ends*). Revisit with it.
+- **Connection setup screens** (#22793 MCP wording dropped from Google Workspace setup, #22795 only the privacy policy link in the Google Workspace picker, #22877 saving action choices when the provider drops actions, #22715 finished setup checklist kept, #22790 Connectors announcement on a return visit): the connection page is redesigned after the pin (#22869 *Connectors into a Plugins marketplace*, #23029). Document from the new design.
 
 ## Not documented this run
-- **Cloud workspace moves** (#22641, #22644, #22646, #22647, #22648, #22650, #22696, #22697, #22716, #22717, #22718, #22721, #22722, #22724): the offline/online storage move names more blockers and settles more cases. No page describes the move at this level.
-- **Recovery and runs internals:** #22262 (no hold for a retry cancelled before it started), #22676 (accepted finish kept after a transient refusal), #22709 (finalized log archived), #22705 (tool catalogs fit a run attachment), #22241 (provider pack bytes stored once), #22627 (read cache order).
-- **GitHub review comments** (#22672, #22710): internal settling of status comments and parked requests.
-- **Claude setup-token parsing and cleanup** (#19211, #22652, #22653, #19446, #22667): parser and reaper fixes; no page shows the parser's inputs.
-- **Plugins:** #16327 (`issues.list` no longer applies `offset`/`limit` twice; the SDK page doesn't describe paging for it), #19286 (`WORKER_UNAVAILABLE` for a missing worker; no page lists bridge error codes), #19936 (Slack task tools route allowlist).
-- **Safe link targets** (#22639): which URL schemes open from task, chat and artifact content. Ordinary markdown links keep react-markdown's own filter, so no one-line rule holds across them.
-- **Telemetry** (#22665, #22637): no page lists telemetry events.
-- **Smaller fixes:** #20075 (Daytona regional toolbox hosts), #22649 (OAuth client secrets sent only to their own token endpoint), #22635 (tool arguments kept out of failed request logs), #22719 (company delete racing a late activity entry), #22698 (unreachable remote skill sources), #22658 (connection audit traces), #22625 (customer-success inspection), #21024 (OpenAPI access metadata), #12987 (one log transport per process), #20130 (budget lock reads).
-- **Cosmetic:** #22720, #22675 (toolbar alignment).
-- **CI, tests and parent docs:** #22679, #22690, #22677, #22628, #22678, #22624, #22663, #22629, #22686, #22700, #22725.
+- **Google Workspace back on Google's MCP servers** (#22815, #22874, #22881): the pages never described the interim REST transport and already say the tools run on Google's Workspace MCP servers; #22881's refusal text is agent-facing only.
+- **Workspaces and storage internals:** #22849, #22848, #22847, #22844, #22837, #22817.
+- **Runner and native-runtime internals:** #22850, #22835, #22813, #22807, #22734, #22851 (deferred issue monitors parked), #22899 (follow-up prompt wording).
+- **Recovery** (#22818): a blocked task's dependency wake stops after repeated failures; no page describes the dependency-wake backstop, and nothing on screen changes.
+- **Smaller fixes:** #22798 (GitHub response comments), #22801 (offline migration refusal text), #19197 (origin-kind prefix matching), #20955 (ACP usage rows labelled from the run's AI connection), #22811 (current connector tool schema for plugins), #22781 (customer-success inspection).
+- **Telemetry and analytics** (#22856, #22814): no page lists them.
+- **CI, tests and parent docs:** #22880, #22872, #22870, #22819, #22854, #22838, #22831, #22830, #22834, #22832, #22826, #22825, #22821, #22802, #22804, #22729, #22833, #22784.
 
 ## Answered this run
-- **AWS access-key error message** (2026-11-21): `aws.md` is right. *"AWS did not accept this connection's access key…"* is only produced for the step name `access_key` (`server/src/services/mcp-credentials.ts:262`), and no production step uses that name: `step()` is called with `identity`, `role`, `federation` and `signin` only (`:330`–`:353`). A bad key surfaces as one of those steps' messages. No page change.
-- **`/file` and `/unfile` kinds** (2026-11-21): `api/responsibilities.md` is right. The validator accepts `project | task | routine | skill` (`packages/shared/src/validators/responsibility.ts:243`) and the routes pass every kind through (`server/src/routes/responsibilities.ts:61`). The stale three-kind descriptions are in `server/src/routes/experimental-api-paths.ts:119`, not `openapi.ts`. No page change.
-- **`rotate-provider-api-key.md:42` alt text** (2026-11-23): accurate. On **Harness / Runtime**, `AgentDetail.tsx:1744` passes `environmentVariablesPlacement: "configuration"`, so the Environment variables card renders there for local adapters (`AgentConfigForm.tsx:2234`) as well as on **Secrets & variables**. No page change.
+- **Google Workspace on Paperclip's REST tools** (deferred 2026-11-26): reversed in this window. `GOOGLE_WORKSPACE_TOOL_TRANSPORT` maps every service to `google_mcp` (`packages/shared/src/google-workspace-connectors.ts:138`), and the pages describe Google's MCP servers. Nothing from #22634, #22706, #22630 needs documenting. No page change.
 
 ## Open questions
 - **Inbox row for a handed-off Runner blocker.** `ui/src/pages/Inbox.tsx:423` still labels `userAction: "unblock"` as **The agent needs your help**, but Inbox rows come from an agent's latest `failed` or `timed_out` run and `unblock` is set only on a `succeeded` run (`server/src/services/task-interruption-presentation.ts:269`). `blocked-inbox.md` no longer mentions the row; whether it can show at all wasn't confirmed. (2026-11-24)
@@ -74,6 +66,8 @@
 - `org/agent-adapters.md:47` and `adapters/paperclip-runner.md:10` list the `enableNativeRunner` exceptions without Grok Build (`grok_local` passes the check at `server/src/routes/agents.ts:1925`) and without an authorized Google Antigravity candidate (Apple Silicon macOS server only); same defect the audit found on `adapters/overview.md`. Kimi Code no longer qualifies: its profile isn't `pending`, so `resolveKimiCandidateAdmission` returns nothing (`server/src/services/native-runtime/acpx-qualification.ts:30`). (2026-11-23)
 - `how-to/debug-stuck-heartbeat.md`: no entry yet for the run-detail text *"The agent's computer ran out of disk space, so its runner stopped…"* (#22448) or the **Workspace storage unavailable** notice when the project's workspace storage doesn't fit the agent's environment (#22398). (2026-11-23)
 - `deploy/environment-variables.md` has no rows yet for `PAPERCLIP_RUNNER_REMOTE_BINARY_PATH` and `PAPERCLIP_RUNNER_REMOTE_PROVIDER_PACK_PATH`. They're read on many launch paths that each treat them differently: `heartbeat/runtime-execution.ts:770`, the OpenCode, Claude, Pi and Codex branches of `native-session-executor.ts` (around `:17206`–`:17283`), `native-codex-runner.ts:276` (absolute path and target platform checked), `setup-readiness.ts:122` and `kimi-connection-probe.ts:42`. A row needs each path traced first. (2026-11-18)
+- `api/agents.md` doesn't list `POST /api/agents/{agentId}/clear-error` (#19382 added `paperclipai agent clear-error`, now on `cli/agent.md`). (2026-11-27)
+- `plugins/sdk.md`: the restart-recovery paragraph next to `resumeIdentityVersion` (recorded build, unchanged process configuration, saved warm checkpoint, session not moving) wasn't re-checked after #22442 changed the relaunch path (`server/src/services/native-runtime/plugin-runner-task.ts:242`). (2026-11-27)
 
 ## Tooling
 - gap: `check-drift` doesn't compare embedded `skill-source` blocks with the catalog. Worth adding a class.
