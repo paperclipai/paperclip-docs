@@ -135,5 +135,9 @@
   "vps": "how-to/deploy-to-vps-or-fly",
   "deployment/vps": "how-to/deploy-to-vps-or-fly",
   "deploy/reference/https": "reference/deploy/https",
+  "quickstart": "guides/getting-started/five-minute-path",
+  "api": "reference/api/overview",
+  "governance": "guides/day-to-day/approvals",
+  "experimental/task-watchdogs": "guides/projects-workflow/task-watchdogs",
   "adapters/*": "reference/adapters/overview"
 }

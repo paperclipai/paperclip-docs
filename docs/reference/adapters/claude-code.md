@@ -6,7 +6,7 @@ seo_description: Run Anthropic's Claude Code CLI on the Paperclip host, with ses
 
 # Claude Code
 
-`claude_local` runs Anthropic's Claude Code CLI on the same machine as Paperclip. Use it when you want a local coding agent with session persistence, skills injection, and full access to the configured working directory.
+The Claude Code adapter, `claude_local`, runs Anthropic's Claude Code CLI on the same machine as Paperclip, so a Paperclip agent can work as a local coding agent. Use it when you already use Claude Code on that machine and want the agent to pick up the same Claude session on each heartbeat, and to read and write files in its working directory.
 
 > **Heads-up:** New Claude Code agents now run on [Paperclip Runner](paperclip-runner.md#new-codex-and-claude-agents-use-the-runner) by default when the execution environment is macOS or Linux x64/ARM64 with GNU libc `2.39` or newer (a Mac reached over SSH stays on the Legacy runner unless you ask for the Runner through the API or CLI). Those agents are saved as `paperclip_runner` with `provider: "acpx"` and `acpxAgent: "claude"`, and a blank model resolves to `claude-opus-5-5`. To keep the classic adapter described on this page, create or hire the agent with `runner: "legacy"` through the API, or `--runner legacy` in the CLI. The agent form no longer has a **Runner** setting. Existing agents keep the runner they already have.
 

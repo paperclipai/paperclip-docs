@@ -14,6 +14,8 @@ Think of it as a second pass on stopped work, without re-running the original as
 
 > **Heads up:** Watchdogs are opt-in, per issue. There's no global "watch everything" switch — you decide which trees are worth the extra pass.
 
+Task watchdogs used to sit behind a **Task Watchdogs** toggle on **Settings → Experimental**. That flag has been removed, and the controls are always available on every task.
+
 ---
 
 ## Three things called "watchdog"

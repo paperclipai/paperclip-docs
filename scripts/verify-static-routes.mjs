@@ -79,7 +79,7 @@ const REPRESENTATIVE_ROUTES = [
     route: "/guides/welcome/what-is-paperclip/",
     file: "guides/welcome/what-is-paperclip/index.html",
     h1: '<h1 id="what-is-paperclip">What is Paperclip?</h1>',
-    contentMarker: "Paperclip is the operating system for your AI company",
+    contentMarker: "Paperclip is software for running a team of AI agents as a company",
   },
   {
     route: "/reference/api/overview/",
@@ -261,8 +261,96 @@ try {
     redirects.includes("/start/quickstart/ /guides/getting-started/five-minute-path/ 301"),
     "Search Console legacy quickstart URL should redirect to the current quickstart",
   );
+  for (const [source, target] of [
+    ["/quickstart", "/guides/getting-started/five-minute-path/"],
+    ["/quickstart/", "/guides/getting-started/five-minute-path/"],
+    ["/api", "/reference/api/overview/"],
+    ["/api/", "/reference/api/overview/"],
+    ["/governance", "/guides/day-to-day/approvals/"],
+    ["/governance/", "/guides/day-to-day/approvals/"],
+    ["/experimental/task-watchdogs", "/guides/projects-workflow/task-watchdogs/"],
+    ["/experimental/task-watchdogs/", "/guides/projects-workflow/task-watchdogs/"],
+  ]) {
+    assert(redirects.includes(`${source} ${target} 301`), `missing one-hop redirect ${source} -> ${target}`);
+    assert(existsSync(join(outDir, target.replace(/^\//, ""), "index.html")), `redirect target is not a built page: ${target}`);
+  }
+  assert(
+    !existsSync(join(outDir, "experimental/task-watchdogs/index.html")),
+    "merged experimental task-watchdogs page must not still be served",
+  );
 
   const headers = read("_headers");
+  const RETIRED_ROUTES = [
+    "experimental/cloud-sync",
+    "experimental/auto-create-recovery-tasks",
+    "how-to/sync-to-cloud-upstream",
+    "reference/cli/cloud",
+    "reference/adapters/acpx-local",
+  ];
+  for (const route of RETIRED_ROUTES) {
+    const html = read(`${route}/index.html`);
+    assert(
+      html.includes('<meta name="robots" data-seo-managed content="noindex, follow" />'),
+      `${route} must be noindex and still reachable`,
+    );
+    assert(
+      !html.includes('content="index, follow'),
+      `${route} must not also publish an index directive`,
+    );
+    assert(!sitemap.includes(`https://docs.paperclip.ing/${route}`), `${route} must leave the sitemap`);
+    assert(headers.includes(`/${route}/\n  X-Robots-Tag: noindex, follow`), `${route} is missing a noindex header rule`);
+  }
+  assert(
+    sitemap.includes("https://docs.paperclip.ing/guides/projects-workflow/task-watchdogs/"),
+    "the task-watchdogs guide must stay in the sitemap",
+  );
+  assert(
+    !sitemap.includes("https://docs.paperclip.ing/experimental/task-watchdogs"),
+    "the merged experimental task-watchdogs URL must leave the sitemap",
+  );
+  assert(
+    sitemap.includes("https://docs.paperclip.ing/guides/day-to-day/costs/"),
+    "the held costs page must stay in the sitemap",
+  );
+  const costsHtml = read("guides/day-to-day/costs/index.html");
+  assert(
+    costsHtml.includes('content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"'),
+    "the held costs page must stay indexable",
+  );
+  const sitemapLocs = sitemap.match(/<loc>/g) || [];
+  assert(sitemapLocs.length === 317, `sitemap URL count should be 317 after the cleanup, found ${sitemapLocs.length}`);
+
+  const indexNowKey = "2448bd8ce3ff800337f23df7b82191f0";
+  assert(read(`${indexNowKey}.txt`).trim() === indexNowKey, "IndexNow key file must be copied to the site root");
+
+  const OPENING_CHECKS = [
+    ["guides/welcome/what-is-paperclip/index.html", "if you turn on hiring approval, new hires.", "operating system for your AI company"],
+    ["guides/welcome/key-concepts/index.html", "Paperclip is built on seven concepts:", "Before you start clicking around"],
+    ["guides/org/agents/index.html", "An agent in Paperclip is an AI employee with a role", "Agents are the AI employees that make up your Paperclip company"],
+    ["reference/adapters/claude-code/index.html", "The Claude Code adapter, <code>claude_local</code>", "full access to the configured working directory"],
+    ["guides/day-to-day/approvals/index.html", "if you turn on hiring approval, hiring a new agent.", "Approvals are how you stay in control"],
+    ["guides/getting-started/your-first-agent/index.html", "To hire your first agent in Paperclip", "It's a configuration"],
+    ["guides/getting-started/installation/index.html", "npx paperclipai onboard --yes", "There are two ways to install Paperclip"],
+    ["reference/adapters/overview/index.html", "An adapter connects Paperclip", "the runtime that actually does the work"],
+  ];
+  for (const [file, present, absent] of OPENING_CHECKS) {
+    const html = read(file);
+    assert(html.includes(present), `${file} is missing the approved opening`);
+    assert(!html.includes(absent), `${file} still contains the replaced opening`);
+  }
+  const agentsHtml = read("guides/org/agents/index.html");
+  assert(
+    agentsHtml.includes("Hire agents, browse the agent list, and work the agent page"),
+    "Agents SEO description must stay as it is on main",
+  );
+  assert(
+    readFileSync(join(root, "docs/guides/org/agents.md"), "utf8").includes("paperclip_version: v2026.1117.0"),
+    "Agents version stamp must stay",
+  );
+  assert(!headers.includes("pages.dev"), "_headers must not name a host; a host rule would also cover production");
+  const catchAllBlock = headers.split("\n/*\n")[1]?.split("\n/")[0] ?? "";
+  assert(!catchAllBlock.includes("X-Robots-Tag"), "the /* header rule must not set X-Robots-Tag");
+
   assert(!headers.includes("X-Robots-Tag: index, follow"), "headers must not globally mark every static file indexable");
   assert(
     headers.includes("/*.css\n  X-Robots-Tag: noindex, nofollow"),

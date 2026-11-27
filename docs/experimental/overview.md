@@ -132,7 +132,7 @@ These have pages in this section but no toggle in this release:
 | [Coordinator workspace](coordinator-workspace.md) | **No toggle any more.** The standard workspace for everyone. An earlier "off" setting no longer counts; choose **Classic workspace** above if you want the previous interface. |
 | [Assistant connections (MCP)](assistant-connections.md) | **No toggle any more.** Always on for every authenticated instance with a public URL, Cloud included. `enablePublicMcp` remains as a compatibility key, and stored or managed values are ignored. |
 | [Agent Chat](agent-chat.md) | **No toggle any more.** Available to everyone, even on instances that had it off. `enableAgentChat` remains as a compatibility key, and stored or managed values are ignored. |
-| [Task Watchdogs](task-watchdogs.md) | **No flag any more.** Watchdog controls are always available on tasks. |
+| [Task Watchdogs](../guides/projects-workflow/task-watchdogs.md) | **No flag any more.** Watchdog controls are always available on tasks. |
 | [Artifacts V1](../guides/day-to-day/artifacts.md) | **No toggle any more.** Stacks, tiles, and compact rows are how artifacts look on every instance. A hosting operator can still [hold the older cards in place](../guides/day-to-day/artifacts.md#if-your-instance-shows-the-older-cards). |
 | [Auto-Create Recovery Tasks](auto-create-recovery-tasks.md) | **Retired**, along with its toggle and its preview and run actions. |
 | [Cloud Sync](cloud-sync.md) | **Retired**, toggle included. Use [company Import/Export](../how-to/back-up-and-restore-a-company.md) to move a company between instances. |

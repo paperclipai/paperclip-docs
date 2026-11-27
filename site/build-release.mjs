@@ -8,6 +8,11 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { transform } from "esbuild";
 import { marked } from "marked";
+import {
+  loadIndexNowKey,
+  runCli as runIndexNowCli,
+  shouldPingIndexNow,
+} from "../scripts/ping-indexnow.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -269,6 +274,24 @@ export function parseFrontmatter(source) {
     frontmatter[match[1]] = value;
   }
   return { body, frontmatter };
+}
+
+const INDEXABLE_ROBOTS = "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1";
+const NOINDEX_ROBOTS = "noindex, follow";
+
+// `robots: noindex` in frontmatter keeps the page on the site and out of the
+// sitemap. The same string is set in site/app.js for client-side transitions.
+export function robotsMetaContent(frontmatter) {
+  const tokens = String(frontmatter?.robots || "")
+    .split(",")
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean);
+  if (tokens.includes("noindex")) return NOINDEX_ROBOTS;
+  return INDEXABLE_ROBOTS;
+}
+
+export function isNoindexFrontmatter(frontmatter) {
+  return robotsMetaContent(frontmatter) === NOINDEX_ROBOTS;
 }
 
 function isLocalDocHref(href) {
@@ -643,7 +666,7 @@ function injectSeo(html, metadata, { baseHref = null } = {}) {
   const tags = [
     ...(baseHref ? [`<base data-seo-base href="${escapeHtml(baseHref)}" />`] : []),
     `<meta name="description" data-seo-managed content="${escapeHtml(metadata.description)}" />`,
-    `<meta name="robots" data-seo-managed content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />`,
+    `<meta name="robots" data-seo-managed content="${escapeHtml(metadata.robots || INDEXABLE_ROBOTS)}" />`,
     `<link rel="canonical" data-seo-managed href="${escapeHtml(metadata.url)}" />`,
     `<meta property="og:type" data-seo-managed content="${metadata.page ? "article" : "website"}" />`,
     `<meta property="og:site_name" data-seo-managed content="Paperclip Docs" />`,
@@ -690,6 +713,7 @@ async function pageMetadataForNav(nav, outDir, siteUrl, basePath) {
       description: authoredDescription || markdownDescription(markdown),
       url: routeUrlForPage(siteUrl, basePath, page),
       lastmod: lastmods.get(page.file),
+      robots: robotsMetaContent(page.frontmatter),
       siteUrl,
       basePath,
     });
@@ -928,7 +952,21 @@ ${legacyRouteRedirects}
 `;
 }
 
-function buildCloudflareHeaders() {
+function buildCloudflareHeaders({ noindexRoutes = [] } = {}) {
+  const retiredRules = [...noindexRoutes]
+    .map((route) => String(route).replace(/^\/+|\/+$/g, ""))
+    .filter(Boolean)
+    .sort()
+    .map((route) => `# Retired page: still served, omitted from the sitemap.
+/${route}
+  X-Robots-Tag: noindex, follow
+
+/${route}/
+  X-Robots-Tag: noindex, follow
+
+/${route}/*
+  X-Robots-Tag: noindex, follow`)
+    .join("\n\n");
   return `# GA4 gtag.js. script-src loads the async tag from googletagmanager.com.
 # connect-src allows collect beacons on google-analytics.com, including regional
 # hosts, plus analytics.google.com and googletagmanager.com. img-src already
@@ -999,7 +1037,7 @@ function buildCloudflareHeaders() {
 
 /*.txt
   X-Robots-Tag: noindex, nofollow
-`;
+${retiredRules ? `\n${retiredRules}\n` : ""}`;
 }
 
 const GA_MEASUREMENT_ID = "G-1RQ1KXLQXP";
@@ -1791,7 +1829,6 @@ async function main() {
   await fs.writeFile(path.join(options.outDir, ".htaccess"), buildHtaccess(options.basePath));
   await fs.writeFile(path.join(options.outDir, "nginx.conf.example"), buildNginxConfig(options.basePath));
   await fs.writeFile(path.join(options.outDir, "DEPLOY.md"), buildDeployGuide(options.basePath));
-  await fs.writeFile(path.join(options.outDir, "_headers"), buildCloudflareHeaders());
   await fs.writeFile(path.join(options.outDir, "404.html"), buildNotFoundPage(options.siteUrl, options.basePath));
 
   // Copy markdown files, stripping YAML frontmatter, and collect per-file
@@ -1816,6 +1853,13 @@ async function main() {
     const fm = frontmatterByFile.get(page.file);
     if (fm) page.frontmatter = fm;
   }
+  const noindexRoutes = [...flattenNavPages(releaseNav)]
+    .filter(({ page }) => isNoindexFrontmatter(page.frontmatter))
+    .map(({ page }) => page.slug);
+  await fs.writeFile(
+    path.join(options.outDir, "_headers"),
+    buildCloudflareHeaders({ noindexRoutes }),
+  );
   await fs.writeFile(path.join(options.outDir, "content.json"), `${JSON.stringify(releaseNav)}\n`);
   // app.js fetches this at boot to resolve legacy hash/?page= routes. It was
   // never copied into the bundle, so every visit spent a request on a 404.
@@ -1875,11 +1919,14 @@ async function main() {
     );
   }
 
+  const sitemapPages = pageMetadata.filter((entry) => !isNoindexFrontmatter(entry.page.frontmatter));
   await fs.writeFile(path.join(options.outDir, "sitemap.xml"), buildSitemap({
     siteUrl: options.siteUrl,
     basePath: options.basePath,
-    pages: pageMetadata,
+    pages: sitemapPages,
   }));
+  const indexNowKey = loadIndexNowKey(repoRoot);
+  await fs.copyFile(indexNowKey.filePath, path.join(options.outDir, `${indexNowKey.key}.txt`));
   await fs.writeFile(path.join(options.outDir, "robots.txt"), buildRobots({
     siteUrl: options.siteUrl,
     basePath: options.basePath,
@@ -1920,7 +1967,21 @@ async function main() {
   console.log(`Base path: ${options.basePath}`);
   console.log(`Site URL: ${options.siteUrl}`);
   console.log(`Copied ${sortedMarkdownFiles.length} markdown files.`);
-  console.log(`Generated ${pageMetadata.length} crawlable route pages plus sitemap.xml and robots.txt.`);
+  console.log(`Generated ${pageMetadata.length} route pages (${sitemapPages.length} in the sitemap) plus sitemap.xml and robots.txt.`);
+  if (shouldPingIndexNow(process.env)) {
+    try {
+      await runIndexNowCli([], {
+        rootDir: repoRoot,
+        sitemapPath: path.join(options.outDir, "sitemap.xml"),
+      });
+    } catch (error) {
+      console.warn(
+        `IndexNow ping failed; the docs build will still publish. ${error instanceof Error ? error.message : error}`,
+      );
+    }
+  } else if (process.env.CF_PAGES === "1") {
+    console.log(`IndexNow ping skipped for Cloudflare Pages branch ${process.env.CF_PAGES_BRANCH || "(unset)"}.`);
+  }
   if (await pathExists(screenshotsSourceDir)) {
     console.log("Copied screenshot assets.");
   }

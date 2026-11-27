@@ -33,7 +33,16 @@ That auto-deploy is not guaranteed — it has silently failed to fire on a push 
 ```sh
 npm run docs:build
 npx wrangler pages deploy .site --project-name paperclip-docs --branch main
+node scripts/ping-indexnow.mjs
 ```
+
+### IndexNow
+
+A production deploy of `main` tells IndexNow (Bing and partner engines; not Google) about the sitemap URLs and the legacy redirect sources. `site/build-release.mjs` sends that ping only when Cloudflare Pages sets `CF_PAGES=1` and `CF_PAGES_BRANCH=main`. Preview branches, pull requests, and a local `npm run docs:build` do not ping.
+
+The verification file is `site/2448bd8ce3ff800337f23df7b82191f0.txt`. IndexNow keys are public; there is no secret to add in Cloudflare or GitHub. The build copies that file to the site root. After a manual production republish, run `node scripts/ping-indexnow.mjs` once the new files are live, because a local build does not set `CF_PAGES`. `node scripts/ping-indexnow.mjs --dry-run` prints the payload and does not call the API.
+
+Preview and deploy hosts on `pages.dev` are marked `noindex` by `functions/_middleware.js`. That file has to stay at the repository root: Cloudflare compiles Pages Functions from there, not from the static output. The rule checks the request hostname, so `docs.paperclip.ing` is not affected. `_headers` cannot do that; a path rule would apply on every host.
 
 ## Contributing
 

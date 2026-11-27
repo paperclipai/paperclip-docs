@@ -6,7 +6,7 @@ seo_description: Two supported install paths: a local Node.js 24 setup via pnpm,
 
 # Installation
 
-There are two ways to install Paperclip. Choose the one that fits how you work:
+To install Paperclip on your own machine, install Node.js 24 or later and pnpm, then run `npx paperclipai onboard --yes` in your terminal, which downloads Paperclip and starts it at `http://localhost:3100`. There are two install paths: a Terminal setup on your own machine, and a Server / VPS deployment for teams, which you host yourself on a cloud server:
 
 - **Terminal** — install and run Paperclip locally with a single command. This is the standard way to run Paperclip on your own machine.
 - **Server / VPS** — deploy Paperclip to a cloud server (AWS, GCP, DigitalOcean, Hetzner, etc.) behind a custom domain with HTTPS. For teams and anyone who wants their instance reachable from anywhere.

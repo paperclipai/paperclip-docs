@@ -120,7 +120,10 @@ When a new stable parent tag appears, the next daily run detects it and switches
    ```sh
    npm run docs:build
    npx wrangler pages deploy .site --project-name paperclip-docs --branch main
+   node scripts/ping-indexnow.mjs
    ```
+
+   The IndexNow ping is not part of a local build. Run it after the manual production deploy so Bing hears about the new sitemap. Preview deploys must not run it. There is no secret to set; the public key file is already in the repo. See the IndexNow section in the README.
 
 Release-branch commits carry a prefix (`quarantine:`, `port:`, `fix:`, `changelog:`, `stamp:`, `state:`). The realign reads it to decide what goes back to `nightly`; see the table in `skills/sync-docs/release.md`.
 
