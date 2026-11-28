@@ -48,7 +48,7 @@ A fifth option, **Unset**, appears in the role drop-down. It leaves the member w
 
 ## The permission keys
 
-There are twenty-two permission keys. Sixteen of them show up as defaults on one or more roles; six are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
+There are twenty-three permission keys. Sixteen of them show up as defaults on one or more roles; seven are **explicit-grant-only** — no role includes them, so a member only ever gets them from an explicit grant.
 
 | Permission key | What it allows | In which role by default |
 |---|---|---|
@@ -73,6 +73,7 @@ There are twenty-two permission keys. Sixteen of them show up as defaults on one
 | `tasks:assign` | Assign any issue to any agent or member in the company | Owner, Admin, Operator |
 | `tasks:assign_scope` | Assign issues, but only within a constrained scope (for example, a single manager's subtree). This is the *scoped fallback* Paperclip checks when a principal does **not** hold the broad `tasks:assign` grant | — (explicit only) |
 | `tasks:manage_active_checkouts` | Reassign or clear an issue that another assignee currently holds checked out — an override for unsticking work | — (explicit only) |
+| `tasks:retry` | Let an agent press **Retry** on a stopped task as the board user who granted it. Only a grant on an agent counts | — (explicit only) |
 | `joins:approve` | Approve or reject human and agent join requests | Owner, Admin |
 
 ### About the direct-vs-suggest pairs
@@ -84,15 +85,30 @@ Two of the keys come in matched pairs — a *direct* key that applies a change i
 
 ### About the explicit-only keys
 
-Six keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI:
+Seven keys never appear in a role's defaults, so a member only receives them through an explicit grant — from the member editor, or `member role-and-grants` on the CLI. The exception is `tasks:retry`, which you grant to an agent instead:
 
 - **`agents:read`** is the read-only way to look at how an agent is set up. See [Reading agent configuration](#reading-agent-configuration).
 - **`agents:suggest-changes`** and **`skills:suggest-changes`** — the review-gated proposal keys described just above. Grant them to an agent you want proposing improvements without direct write access.
 - **`tasks:assign_scope`** is how you let someone delegate *within their lane* without giving them company-wide assignment power. When a member has `tasks:assign_scope` but not `tasks:assign`, Paperclip evaluates the grant against the scope attached to it and allows the assignment only if the target falls inside that scope. Set the scope in the grant payload (via the member editor's grant, or `member role-and-grants` on the CLI).
 - **`tasks:manage_active_checkouts`** is an escape hatch. Normally an issue that an agent has checked out is off-limits to others until it's released; this grant lets the holder reassign or clear that active checkout — handy when an agent has stalled mid-task.
+- **`tasks:retry`** lets an agent retry a stopped task for you. See [Letting an agent press Retry](#letting-an-agent-press-retry).
 - **`inbox:manage`** governs *cross-user* inbox access. It matters most for agents: an agent may act on the inbox of the user it is responsible for without holding this key at all, but the moment it needs to touch someone else's inbox, Paperclip looks for an `inbox:manage` grant — and then checks that the grant's scope actually covers the user being acted on. Grant it, scoped, to an agent you want triaging inboxes beyond its own responsible user.
 
 > **`inbox:manage` and the low-trust preset.** Agents running under the low-trust review preset are denied `inbox:manage` by default, alongside the other company-wide and privileged actions. Raising an agent's trust preset is a separate decision from granting the key — a low-trust agent holding the grant is still refused.
+
+### Letting an agent press Retry
+
+**Retry** on a stopped task is normally a board action, so an agent watching over its teammates' work can't restart a task that failed. Grant `tasks:retry` to that agent when you want it to.
+
+Grant it with `paperclipai agent permission:grant <agent-id> tasks:retry`, or `PATCH /api/agents/{agentId}/permission-grants`. You need `users:manage_permissions`, and the grant is saved under your name. From then on, the agent's Retry runs as you:
+
+- Your access to the task applies, on top of the agent's own. The agent must still be able to read and change the task itself, and you must be able to as well.
+- The grant only counts while the person who saved it is an active member of the company. A grant saved with a scope doesn't count.
+- The agent has to call from one of its own runs, with standard credentials. Scoped credentials get `403` (*"Scoped credentials cannot use the Retry grant"*).
+- It can't retry a chat conversation.
+- Each agent gets 3 Retries per task in any 24 hours.
+
+See [Retry a Task](../reference/api/issues.md#retry-a-task) for the request and its errors.
 
 ### Reading agent configuration
 

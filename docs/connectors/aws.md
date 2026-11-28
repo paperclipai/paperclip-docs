@@ -11,15 +11,9 @@ What an agent can actually do in your account is decided by AWS: the IAM role or
 
 > **Warning:** Use a sandbox or development account, or a role with tightly scoped permissions. On **Everything the role allows** or **Everything the key allows**, an agent can change or delete real resources with whatever permissions you gave the role or user. Paperclip cannot undo a change made in AWS.
 
-## Turn on the connector
+## Where to find it
 
-The AWS connector is experimental and stays hidden until someone turns it on.
-
-- **Where it is:** open **Settings → Experimental** and find the **AWS connector** card.
-- **Default:** off, on self-hosted instances and on Paperclip Cloud.
-- **Who can turn it on:** on a self-hosted instance, an instance admin. If the card shows **Managed by Paperclip Cloud**, Cloud sets the value and the toggle is locked. [Experimental features](../experimental/overview.md#if-a-toggle-is-locked) explains the badge.
-
-While it's off, AWS isn't listed on the **Connectors** page, and an AWS connection can't be set up or run.
+The AWS connector is available on every instance, self-hosted and Paperclip Cloud alike: open **Connectors** and select **AWS**. It used to sit behind an **AWS connector** card under **Settings → Experimental**; that card is gone, and an older saved "off" value no longer hides it.
 
 ## Choose a method
 
@@ -36,7 +30,6 @@ Pick **AWS role (no stored keys)** when your Paperclip instance has a public HTT
 
 For either method you need:
 
-- The [AWS connector toggle](#turn-on-the-connector) switched on.
 - An AWS account you're willing to let agents work in.
 
 For **AWS role (no stored keys)**, you also need:
@@ -54,7 +47,7 @@ For **Access key**, you also need:
 
 ## Connect AWS with a role
 
-AWS can only trust a connection that already exists, so this method has two parts. First Paperclip saves the connection as a draft. Then you create a role in AWS that trusts that one connection, paste its ARN back, and test it.
+AWS can only trust a connection that already exists, so this method has two parts. First Paperclip saves the connection as a draft. Then you create a role in AWS that trusts that one connection, give Paperclip its ARN, and test it. When your agent creates the role and live progress is available, it hands the ARN back for you.
 
 1. Open **Connectors** and select **AWS**.
 2. Read the access line above the main button. It says which agents can use the connection. To narrow the agents or pick another method, select **Change**.
@@ -64,14 +57,16 @@ AWS can only trust a connection that already exists, so this method has two part
 6. Create the role. The easiest way is to let an agent do it:
    - Select **Set it up with your agent**. This copies a prompt and shows a preview.
    - Paste the prompt into your own agent, such as Claude Code or Codex, on a computer signed in to the AWS account agents should use.
-   - The agent tells you which AWS account the CLI is signed in to, and stops to ask which profile to use if that might be the wrong account. It then deploys a CloudFormation template made for this connection with the AWS CLI, and tells you the role ARN. On **Everything the role allows**, it asks you which managed policy agents should have instead of picking one itself.
+   - The agent tells you which AWS account the CLI is signed in to, and stops to ask which profile to use if that might be the wrong account. It then deploys a CloudFormation template made for this connection with the AWS CLI. On **Everything the role allows**, it asks you which managed policy agents should have instead of picking one itself.
 
    The prompt holds no AWS credential. When live progress is available, it also includes a short-lived link that lets your agent report its progress on this setup, so keep it to yourself rather than sharing it. Prefer to do it yourself? See [Create the role by hand](#create-the-role-by-hand).
 7. Watch your agent work. A panel under the prompt shows the checklist your agent reports as it goes. See [Follow your agent's progress](#follow-your-agents-progress).
-8. Paste the ARN into the **Role ARN** field. It looks like `arn:aws:iam::123456789012:role/paperclip-<connection ID>`. The prompt also asks your agent to include it in its finishing summary, as `Role ARN: <arn>`, so you can copy it from the panel. **Test connection** stays unavailable until the field holds a full role ARN.
+8. Let the agent hand back the role ARN. When live progress is available, the prompt asks your agent to put the ARN in its finish summary, as `Role ARN: <arn>`. Once the agent reports it's done, Paperclip fills in the **Role ARN** field from that summary and says *"Your agent’s role is ready. Test the connection to finish."* There's nothing to paste.
+
+   Paperclip only picks up an IAM role ARN that names this connection's own role, `paperclip-<connection ID>`, so a summary can't point the connection at a different role. If the agent finishes without one Paperclip can use, the screen says *"Your agent finished without a role ARN Paperclip could use. Paste it under Or do it by hand."* and opens that section for you. Without live progress, the agent tells you the ARN instead, and you paste it into the **Role ARN** field at the end of **Or do it by hand**. If you've already typed in the field yourself, Paperclip leaves your value alone. **Test connection** stays unavailable until the field holds a full role ARN.
 9. Select **Test connection**. Paperclip saves the role ARN, makes its first AWS token, and lists the tools.
 
-If AWS refuses, the screen shows *"AWS didn’t accept the connection yet"* with the reason in place, so you can fix the role and select **Test connection** again. Select **Back** to change the region or access level, then **Connect** again; Paperclip updates the same draft rather than making a new one. If you leave and come back to an unfinished AWS draft, setup opens on this step again.
+If AWS refuses, the screen shows *"AWS didn’t accept the connection yet"* with the reason in place and opens **Or do it by hand**, so you can check the **Role ARN** field, fix the role, and select **Test connection** again. Select **Back** to change the region or access level, then **Connect** again; Paperclip updates the same draft rather than making a new one. If you leave and come back to an unfinished AWS draft, setup opens on this step again.
 
 The role is named after the connection, `paperclip-<connection ID>`, so each connection has its own role, and CloudFormation fills in your account ID for you.
 
@@ -92,11 +87,11 @@ The checklist belongs to the person who started the setup, so other members of t
 | **Live progress isn’t available** | Paperclip couldn't make the checklist. The prompt still works; your agent just won't show its steps here | Select **Try again**, or carry on without the panel |
 | *Couldn’t refresh your agent’s progress* | The page couldn't fetch the latest steps. The last ones stay on screen | Select **Retry** |
 
-Reporting progress is optional for the agent. If its updates fail, the prompt tells it to keep going with the setup, and you can still paste the role ARN yourself.
+Reporting progress is optional for the agent. If its updates fail, the prompt tells it to keep going with the setup, and you can still paste the role ARN yourself under **Or do it by hand**.
 
 ### Create the role by hand
 
-Open **Or do it by hand** on the same step. It offers two routes.
+Open **Or do it by hand** on the same step. It offers two routes, and ends with the **Role ARN** field where either route's ARN goes.
 
 **With CloudFormation:**
 
@@ -106,19 +101,19 @@ Open **Or do it by hand** on the same step. It offers two routes.
    - `AccessPolicyArn` decides what agents can do. On a **Read only** connection it starts on `ReadOnlyAccess`, so keep it. On **Everything the role allows** it has no default, so enter the managed policy agents should have.
    - Set `CreateIdentityProvider` to `false` if the AWS account already has an identity provider for this Paperclip address.
    - On the last page, tick the box that acknowledges the stack creates IAM resources.
-4. When the stack finishes, copy `RoleArn` from its **Outputs** tab into the role ARN field, then select **Test connection**.
+4. When the stack finishes, copy `RoleArn` from its **Outputs** tab into the **Role ARN** field below, then select **Test connection**.
 
 **In the IAM console or AWS CLI:** the screen lists the **Provider URL**, **Audience**, **Role name**, **Connection subject**, and **Trust policy**, each with a **Copy** button.
 
 1. Add an OpenID Connect identity provider with that provider URL and audience, unless the account already has one for it.
 2. Create the role with that name and trust policy, replacing `ACCOUNT_ID` with your AWS account ID.
-3. Attach `AWSMCPSignInOAuthAccessPolicy` and the permissions agents should have, then paste the role ARN into the field and select **Test connection**.
+3. Attach `AWSMCPSignInOAuthAccessPolicy` and the permissions agents should have, then paste the role ARN into the **Role ARN** field below and select **Test connection**.
 
 The **AWS CLI commands** box does all three in one go: it reads your account ID, reuses an identity provider that already exists, creates or updates the role, and prints the role ARN. On a **Read only** connection it attaches `ReadOnlyAccess`; on full access, replace `REPLACE_WITH_POLICY_ARN` with the policy you want first.
 
 ### Reconnect a role connection
 
-Reconnecting an AWS role connection opens the same step. If the connection already uses its own `paperclip-<connection ID>` role, the field starts with that role ARN, and the prompt and CLI commands update that role instead of creating another. If the role came from the template before, update that stack with the new template rather than creating a second one.
+Reconnecting an AWS role connection opens the same step. If the connection already uses its own `paperclip-<connection ID>` role, the **Role ARN** field starts with that role ARN, and the prompt and CLI commands update that role instead of creating another. If the role came from the template before, update that stack with the new template rather than creating a second one.
 
 ## Connect AWS with an access key
 

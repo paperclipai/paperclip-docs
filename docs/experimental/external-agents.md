@@ -58,6 +58,8 @@ Open the agent's configuration to find the **Dot connection** panel. It shows th
 - **Test event delivery** to check the round trip again.
 - **Refresh connection** or **Revoke connection**.
 
+A Dot's event subscription lasts up to 24 hours. When it runs out, the panel shows **Event subscription: expired** with the hint *"Event subscriptions last up to 24 hours. Ask the Dot to subscribe again to paperclip.dot.mailbox_updated. You do not need to pair it again."* Your pairing is still valid, so ask your Dot in ChatGPT to subscribe again instead of starting over.
+
 Three settings sit under the panel. They are all off by default:
 
 | Setting | What it does |
@@ -71,6 +73,8 @@ Three settings sit under the panel. They are all off by default:
 Assign a task to the Dot agent as usual. Normal scheduling, budgets, and approval rules still decide when it starts. Dot works on one assignment at a time; other tasks wait in the queue.
 
 If Dot reports no useful activity for 15 minutes, the panel flags it. Check the Dot in ChatGPT before you assign replacement work.
+
+If a task reaches Dot after its event subscription expired, Paperclip stops before starting the run and posts a red notice on the task titled **Dot event subscription expired**. Its **Next action** reads *"Ask the Dot to subscribe to paperclip.dot.mailbox_updated again (no new pairing is needed), then press Retry."* Do that, then click **Retry** on the task.
 
 ---
 

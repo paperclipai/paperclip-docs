@@ -561,6 +561,12 @@ Versioning rules:
 - a numeric version stays pinned to that exact historical value
 - if you omit `version`, Paperclip treats it as `latest`
 
+Name rules:
+
+- Environment variable names, and the aliases in `access.<alias>` keys, must match `^[A-Za-z_][A-Za-z0-9_]*$`.
+- A name or alias that looks like a credential token (for example a GitHub token, `ghp_` followed by 16 or more characters, or an AWS key ID, `AKIA` followed by 16 capital letters and digits) is rejected with `422`. The error is *"Environment variable name looks like a secret or API token. Put the variable name (for example GH_TOKEN) in Name and store the token in Value as a secret."*, or for an alias, *"Secret access alias looks like a secret or API token. Put an alias name (for example GH_TOKEN) in Alias, not the token itself."* Neither message includes the name you sent.
+- An agent config saved before this check that already holds such a name comes back with that key replaced by `***REDACTED***` when you read the agent. At run time Paperclip skips the variable and logs a warning, and saving its adapter config is rejected until you rename or remove it.
+
 Sensitive inline values are still accepted in some configs for backward compatibility, but the secret reference form is the preferred pattern for anything sensitive.
 
 > **Tip:** Use `version: "latest"` for credentials you expect to rotate. Use a pinned numeric version only when you need the agent to keep using a known historical value.
@@ -654,6 +660,8 @@ There is more than one way for a secret to reach an agent, and the difference ma
 - **Environment injection (`env`)** is the classic path described above. Paperclip resolves the secret at launch and injects the plaintext into the agent process environment. The value is present for the whole run.
 - **Run-bound access (`api`)** exposes the secret through an API the running agent calls on demand, instead of pre-loading it into the environment. Nothing is injected up front; the agent fetches the value only when it needs it.
 - **`both`** means the same secret is available through environment injection *and* the run-bound access API.
+
+An `api` grant doesn't set an environment variable, so the agent's processes and shell scripts don't see it as `$NAME`. If they need it, bind the same secret under `env` as well.
 
 When you list an agent's granted secrets (see below), each entry reports its `delivery` as `env`, `api`, or `both`, so an agent can tell how a given credential will be delivered before it reaches for it.
 

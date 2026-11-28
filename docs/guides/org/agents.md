@@ -110,7 +110,7 @@ Paperclip saves the agent as soon as you submit its name, so your setup has a pl
 
 ### Step 2: Adapter
 
-The dialog switches to **Choose an adapter** and asks how your agent should work. Pick one of the adapter cards — this decides which AI runtime powers the agent (Claude Code, Codex, OpenCode, a remote gateway, and so on). Paperclip Runner isn't a card of its own: the Claude, Codex, OpenCode and Pi cards start on the Runner on supported hosts. When the **Paperclip Runner** experimental setting is on, **Advanced** adds an **Experimental harness** picker with Grok Build and OpenCode on the Runner.
+The dialog switches to **Choose an adapter** and asks how your agent should work. Pick one of the adapter cards — this decides which AI runtime powers the agent (Claude Code, Codex, OpenCode, a remote gateway, and so on). Paperclip Runner isn't a card of its own: the Claude, Codex, OpenCode, Pi and Grok Build cards start on the Runner on supported hosts.
 
 Click **Configure agent** to move on, or **Back** to change the name.
 
@@ -595,6 +595,23 @@ These pages cover what the agent can reach:
 - **Tools** — the connected apps and tools this agent can use, and its effective access. It isn't in the side menu; open it by ending the agent's address with `/tools`. For a quick look at which connectors the agent may use, see **Allowed connectors** on [Permissions / Trust](#permissions-trust).
 - **Channels** — the chat channels this agent takes part in. It isn't in the side menu either; end the agent's address with `/channels`.
 
+### Names, not tokens
+
+A common slip is pasting the token itself into a variable's **Name**. When a name looks like a credential (for example one starting with `ghp_`, `github_pat_` or `sk-`), the field masks it and shows *"Looks like a secret value — put the variable name here (e.g. GH_TOKEN) and store the token in Value"*. Paperclip won't save the variables until you fix it. Put `GH_TOKEN` in **Name** and the token in **Value**, then store it as a secret. An alias under **Secret access** gets the same check: *"Looks like a secret value — enter an alias name (e.g. GH_TOKEN), not the token itself"*.
+
+### When the secret name is already taken
+
+When you store a value as a secret, or create one from a row, and a secret with that name already exists (Paperclip ignores capitalisation here), the popover doesn't stop you. It says *"`<name>` already exists (v`<n>`)."* and offers:
+
+- **Use existing secret** — binds the row to the secret you already have.
+- **Save as new version** — saves the value you typed as the secret's next version and binds the row to it. It isn't offered for a secret that points at an external vault value.
+
+If several secrets match with different capitalisation, pick the one you mean first. If the existing secret is disabled or archived, re-enable it in Secrets before you reuse it, or choose another name.
+
+### API access is not an environment variable
+
+A secret under **API access (no env var)** is fetched by the agent through Paperclip's API while it runs. Its processes and shell scripts don't see it as `$NAME`. To have both, click **Also bind as env var** on that secret's summary under **Secret access**. Paperclip adds the matching variable under **Environment variables**, named after the alias. If a variable with that name already exists, you choose: **Bind as `<NAME>_2`** (or the next free number) keeps the existing variable, **Replace `<NAME>`** overwrites it, or **Cancel**.
+
 ---
 
 ## Permissions / Trust
@@ -628,7 +645,7 @@ Open the actions menu (`⋯`) in the header and choose **Agent history**. A dial
 - **Date configured** — when the change was saved.
 - **Restore** — puts the agent back to that version.
 
-When you click **Restore**, Paperclip asks **Restore this version?** and shows the date, who made it, and what it changed. Click **Restore version** to go ahead, or **Cancel**. Anything changed since then is replaced, including the agent's icon and appearance, but the current version stays in Agent history, so you can always undo an undo. If the restore fails, the reason shows inside the confirmation. If the version you restore didn't record an icon or appearance, the agent keeps its current ones.
+When you click **Restore**, Paperclip asks **Restore this version?** and shows the date, who made it, and what it changed. Click **Restore version** to go ahead, or **Cancel**. The settings that version recorded replace the current ones, including the agent's icon and appearance (permission changes made since then stay as they are), but the current version stays in Agent history, so you can always undo an undo. If the restore fails, the reason shows inside the confirmation. If the version you restore didn't record an icon or appearance, the agent keeps its current ones.
 
 > **Tip:** Use restore when a change breaks an agent and you don't have time to debug. Pause the agent, restore the last known-good version, resume, and investigate the bad change later.
 
@@ -858,7 +875,7 @@ To continue sooner, you don't have to wait for the scheduled recheck. Each of th
 
 - Change the agent's AI connection.
 - Revoke or remove the account that hit the limit, or make a different account the default in place of it.
-- Reply on the task. The banner tells you: *Sending a reply checks usage again now. The agent starts as soon as usage is available.*
+- Reply on the task. The note shown with the reply box tells you: *Sending a reply checks usage again now. The agent starts as soon as usage is available.*
 - Click **Check now** on the banner.
 
 A recheck reads the limits Paperclip already recorded and doesn't call the provider, so while the agent still uses the same limited account, the work simply waits again. You can also restore the provider allowance and start a manual run. The [**Usage limit** row](../day-to-day/issues.md#the-issue-detail-sidebar) on a task shows how close the assigned agent is to its limit.

@@ -91,6 +91,7 @@ What gets deleted:
 - Approval previews, arguments, and results for those calls.
 - Interactive app views from those calls.
 - The whole transcript of every run that called the connection or received an approved action's result. That includes the run's other steps.
+- The copies of those runs' final answers and the evidence references they reported. Their text is replaced with *"Removed because the connection data was deleted."*, except for a few structural values such as statuses, kinds and reason codes, which are kept, and a few IDs and keys, which are swapped for a fingerprint. Numbers and yes/no values aren't touched, and the run record itself isn't removed. The task description the run was given isn't touched either.
 
 What stays:
 

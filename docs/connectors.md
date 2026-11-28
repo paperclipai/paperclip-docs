@@ -31,7 +31,7 @@ Some app integrations give you more than an action list. An app can draw its res
 
 **Chat channels — Experimental** let people talk to your agents from a messaging app. An administrator must enable **Chat connectors**, which is off by default. Setup connects a provider app or bot to Paperclip; eligible messages can start or continue agent tasks.
 
-One service can do more than one of these. Slack offers an app integration and an experimental chat channel, configured separately with separate credentials. Google Chat is an app integration: agents read and post in it, but people cannot use it to talk to an agent. GitHub has two entries: **GitHub** for repository tools under Developer tools, and **GitHub Code Review Bot** for the experimental review bot under chat channels. The review bot has its own experimental setting, **GitHub review bots**, separate from **Chat connectors**.
+One service can do more than one of these. Slack offers an app integration and an experimental chat channel, configured separately with separate credentials. Google Chat is an app integration: agents read and post in it, but people cannot use it to talk to an agent. GitHub has two entries: **GitHub** for repository tools under Developer tools, and **GitHub Code Review Bot** for the review bot under chat channels. The review bot is not experimental and needs no setting: it's available on every instance, whether **Chat connectors** is on or off.
 
 ## Connection methods
 
@@ -46,7 +46,7 @@ Every row in the catalog lists the methods that connector supports. The names me
 | Provider app registration | You create an app or bot in the provider's developer console, give it the documented permissions and events, and connect its credentials. Provider-specific channel guides describe exceptions, such as managed inboxes. |
 | No credential | Nothing to sign in to. You identify the target — a store domain, a generated URL, a shared file — and that is the whole setup. |
 
-Which methods you actually see depends on your instance. **Connect with Paperclip** is hidden unless your instance is enrolled with Paperclip Cloud and Cloud advertises a profile for that connector. Google connectors offer it only on Paperclip Cloud: on your own Paperclip server, you connect Google with your own Google OAuth app. Every chat channel is behind the **Chat connectors** instance setting, which is off by default, except the GitHub Code Review Bot, which has its own **GitHub review bots** setting, also off by default. AgentMail is not: its email inboxes are available on every instance. The [memory providers](#memory-experimental) are behind a separate **Memory connectors** setting, also off by default. Each connector page lists its own prerequisites.
+Which methods you actually see depends on your instance. **Connect with Paperclip** is hidden unless your instance is enrolled with Paperclip Cloud and Cloud advertises a profile for that connector. Google connectors offer it only on Paperclip Cloud: on your own Paperclip server, you connect Google with your own Google OAuth app. Every chat channel is behind the **Chat connectors** instance setting, which is off by default, except two that are available on every instance: the GitHub Code Review Bot and AgentMail's email inboxes. The [memory providers](#memory-experimental) are behind a separate **Memory connectors** setting, also off by default. Each connector page lists its own prerequisites.
 
 ### What setup looks like
 
@@ -122,7 +122,7 @@ Services that connect to many apps for you and hand them to Paperclip through on
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
 | [1Password](connectors/1password.md) | Read and manage items and secrets in the vaults a service account can reach. Item reads return secret values to the agent; archive and delete are destructive. | API key |
-| [AWS](connectors/aws.md) | Work in an AWS account through AWS's hosted server, with short-lived credentials made for each connection. **Read only** by default. Experimental: hidden until an administrator turns on **AWS connector**, which is off by default. | Access key · AWS role (no stored keys) |
+| [AWS](connectors/aws.md) | Work in an AWS account through AWS's hosted server, with short-lived credentials made for each connection. **Read only** by default. | Access key · AWS role (no stored keys) |
 | [Braintrust](connectors/braintrust.md) | AI evaluation and observability. Agents query traces, manage datasets and scorers, and run evaluations, in the US or EU region. Dataset row edits and automation activation are destructive, and evaluations can use credits. | Sign in with Braintrust · API key |
 | [Browser Use Cloud](connectors/browser-use-cloud.md) | Run browser tasks in Browser Use Cloud, open a live browser session from the task, and reuse a browser profile. | API key |
 | [Cloudflare](connectors/cloudflare.md) | DNS, CDN, and edge compute. Agents work with the account your Cloudflare sign-in can reach. | Sign in with Cloudflare · API key |
@@ -223,11 +223,11 @@ These hold the credential Paperclip uses to run models. They publish no actions 
 
 ### Chat channels — Experimental
 
-These give people a place to talk to an agent. They require an administrator to enable **Chat connectors** in the instance's experimental settings; the setting is off by default. The GitHub Code Review Bot is the exception: it has its own **GitHub review bots** setting, also off by default. Setup registers an app or bot with the provider and points it at a Paperclip webhook; one connection carries one agent.
+These give people a place to talk to an agent. They require an administrator to enable **Chat connectors** in the instance's experimental settings; the setting is off by default. The GitHub Code Review Bot is the exception: it's no longer experimental, so it's listed on every instance with no setting to turn on. Setup registers an app or bot with the provider and points it at a Paperclip webhook; one connection carries one agent.
 
 | Connector | What you can do | Connection methods |
 | --- | --- | --- |
-| [GitHub Code Review Bot](connectors/github-review-bot-setup.md) | Have an agent review pull requests and answer mentions in GitHub under its own App identity. Choose the agent, then GitHub creates and installs the App for you. Needs the separate **GitHub review bots** setting. | Provider app registration |
+| [GitHub Code Review Bot](connectors/github-review-bot-setup.md) | Have an agent review pull requests and answer mentions in GitHub under its own App identity. Choose the agent, then GitHub creates and installs the App for you. Available on every instance, without **Chat connectors**. | Provider app registration |
 | [Discord](connectors/discord.md) | Mention the agent in a server channel and Paperclip opens a thread, keeping it tied to one task. | Provider app registration |
 | [iMessage Photon](connectors/imessage-photon.md) | Message the agent from Apple Messages through a Photon Cloud project. Shared Pro lines carry direct messages; a dedicated line also carries groups you enable. | Provider app registration |
 | [Microsoft Teams](connectors/microsoft-teams.md) | Message the agent in a chat, a team channel, or a group chat. Needs a work or school Microsoft 365 organization; personal Teams accounts cannot complete the setup. | Provider app registration |

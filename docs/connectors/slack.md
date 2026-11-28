@@ -10,7 +10,7 @@ Slack gives your team a way to work with an agent without leaving the conversati
 
 There are two separate Slack connections in Paperclip, with separate credentials. For most teams, **Chat with an agent** is the one you want.
 
-> **Warning:** Slack is available, but it is not yet fully functional. Follow-up fixes are planned. The chat route is behind an experimental setting, and the separate agent-tool route has known compatibility limitations. Review both sections before relying on Slack for production work.
+> **Warning:** Slack is available, but it is not yet fully functional. Follow-up fixes are planned. The chat route is behind an experimental setting, and the separate agent-tool route needs a Slack app you set up for Slack's MCP server. Review both sections before relying on Slack for production work.
 
 ## Which do you want?
 
@@ -218,13 +218,17 @@ On Paperclip Cloud, this route needs a Slack OAuth app you create yourself, so n
 
 If what you want is an agent that reads and posts in Slack, the chat connection above already gives its agent governed Slack tools. You don't need this route as well for that.
 
-### Agent-tool compatibility notice
+### Set up your Slack app for the tool route
 
-**The Slack agent-tool route is available but has known compatibility limitations in v2026.1001.0.** That release still configures OAuth endpoints and scopes that differ from Slack's current hosted MCP requirements. A successful bot installation does not verify an MCP connection.
+Slack's hosted MCP server signs in a person, not a bot, so this route uses Slack's user-token OAuth endpoints (`https://slack.com/oauth/v2_user/authorize` and `https://slack.com/api/oauth.v2.user.access`). Earlier releases sent this route through Slack's bot install endpoints instead. You need an OAuth app of your own, created in [Slack app settings](https://api.slack.com/apps). Slack MCP also needs that app to be an internal or marketplace-published app; see [Slack's MCP authentication requirements](https://docs.slack.dev/ai/slack-mcp-server/).
 
-Slack MCP requires a registered internal or marketplace-published app, user-token OAuth endpoints, and the user scopes for the intended tools. See [Slack's MCP authentication requirements](https://docs.slack.dev/ai/slack-mcp-server/).
+Before you sign in, set up the app in Slack:
 
-Wait for a release with verified Slack MCP compatibility, or contact [support@paperclip.ing](mailto:support@paperclip.ing) before attempting this route. The access notes below explain the intended tool behavior; they are not a record of successful setup on this release.
+1. Under **OAuth & Permissions**, add the **Paperclip callback URL** that the setup screen shows. It must match exactly.
+2. Add the scopes Paperclip requests under **User Token Scopes**, not Bot Token Scopes.
+3. Under **Features → Agents & AI Apps**, turn on **Model Context Protocol**.
+
+The setup screen repeats these steps next to the **Client ID** and **Client secret** fields. If Slack refuses the sign-in, the screen says why, for example *"The provider rejected the requested permissions. Check your OAuth app’s configured scopes and try again."* when the scopes are in the wrong place. If MCP access is off for the app, you see *"Slack MCP access is disabled for this app. Ask the Slack app owner to enable Model Context Protocol under Features → Agents & AI Apps, then try again."* See [Authorization never completes](verify-and-troubleshoot.md#authorization-never-completes) for the other messages.
 
 ### Access and actions
 
@@ -263,7 +267,8 @@ A read confirms the credential without putting a message in front of colleagues.
 | A question card only offers **Open in Paperclip** | The request needs Paperclip's full review screen, such as a rejection reason, an approval with side effects, or a very long request | Click **Open in Paperclip** and answer there. The Slack card updates and the result still arrives in the thread |
 | A scheduled or requested DM doesn't arrive | The responsible person has no linked Slack account, or the app lacks `im:write` | Link the account from **Access**, or reinstall with the updated manifest |
 | Signature verification failures | The signing secret does not match the installed app | Copy the current signing secret and reconnect |
-| Agent-tool route: "Slack MCP access is disabled for this app" | MCP access is switched off in the Slack app's settings; signing in doesn't turn it on | Ask the Slack app owner to enable MCP access, then refresh the connection |
+| Agent-tool route: "Slack MCP access is disabled for this app" | **Model Context Protocol** is switched off in the Slack app's settings; signing in doesn't turn it on | Ask the Slack app owner to enable it under **Features → Agents & AI Apps**, then try again |
+| Agent-tool route: *"The provider rejected the requested permissions."* | The app's scopes are under Bot Token Scopes instead of User Token Scopes | Move them to **User Token Scopes** in Slack, then sign in again |
 | The tool route asks for a client ID and secret | Expected — Slack requires your own OAuth app on this route | Register the app in Slack's console |
 
 ## Limitations

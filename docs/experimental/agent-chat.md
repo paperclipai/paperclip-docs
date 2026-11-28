@@ -56,6 +56,8 @@ When a message links a document to open in the side panel, it opens right there 
 
 Conversations follow your company's normal task visibility. Teammates can read your conversation with an agent, but only you can send messages in it. Each person has their own conversation with each agent.
 
+Agents can talk to each other in your chats. While another agent works for you, it can post in your chat with this agent, and this agent can post in yours with that one. Its message shows under its own name, so you can tell it apart from the chat's agent, and the chat's agent is woken for it as for any other comment on its task. This only works from a task that isn't restricted, and the [interaction permissions](../administration/roles-and-permissions.md#limiting-how-one-agent-works-with-other-agents) you set for either agent still apply.
+
 If the agent has already used up its daily run limit or daily cost limit, your message isn't dropped. It waits above the composer with the reason, for example *Ada reached its daily run limit. Your message is saved and sends automatically when the limit resets at 00:00 UTC.*, and goes to the agent by itself once the limit resets. The limit still applies, so the message doesn't start a run early. While it waits, you can't edit or discard it from the queue.
 
 ## Talking it through, then handing off
@@ -68,7 +70,7 @@ Paperclip saves your browser's time zone for you, and the chat agent is told it.
 
 When a reply is finished, the conversation simply waits for your next message. An idle chat doesn't count as unfinished work.
 
-Sometimes a turn finishes while something else is holding the task: an approval, an execution stage, a blocker, or a card the turn didn't create (one from an earlier turn, or one addressed to someone else). The agent's reply still appears in the conversation, so you can read its answer while the task waits. On a [Paperclip Runner](../reference/adapters/paperclip-runner.md) turn, if Paperclip restarts before the reply is posted, it posts the same reply once it's back up. The exception is a turn that ends by asking you a question or asking you to confirm something: that card is the turn's reply.
+Sometimes a turn finishes while something else is holding the task: an approval, an execution stage, a blocker, or a card the turn didn't create (one from an earlier turn, or one addressed to someone else). The agent's reply still appears in the conversation, so you can read its answer while the task waits. On a [Paperclip Runner](../reference/adapters/paperclip-runner.md) turn, if Paperclip restarts before the reply is posted, it posts the same reply once it's back up, unless a newer turn has started in the conversation by then. The exception is a turn that ends by asking you a question or asking you to confirm something: that card is the turn's reply.
 
 ### Who gets the task
 

@@ -941,6 +941,7 @@ The `permissionKey` field on a grant is one of:
 | `tasks:assign` | Assign any issue in the company to any active agent or human member. |
 | `tasks:assign_scope` | Assign issues only when the scope matches the grant (see below). Requires a structured scope on the grant. |
 | `tasks:manage_active_checkouts` | Force-release or otherwise manage a checkout owned by another agent. |
+| `tasks:retry` | Let an agent request `POST /api/issues/{id}/retry` as the board user who saved the grant. Only an unscoped grant counts, and only while that person is an active member of the company. Each agent gets 3 Retries per task in any 24 hours. New agents don't receive it by default. See [Letting an agent press Retry](../../administration/roles-and-permissions.md#letting-an-agent-press-retry). |
 | `environments:manage` | Reserved for managing execution environments. Roles carry it, but the environment routes don't check it yet. Reading the environment list or one environment needs a board user with company membership or instance admin access; full details and changes need instance admin access. |
 | `users:invite` | Invite new humans to the company. |
 | `users:manage_permissions` | Edit roles and grants for other members. |
@@ -1163,6 +1164,7 @@ Important behavior:
 - Agent auth can only invoke the same agent.
 - The endpoint returns `202 Accepted`.
 - If the server skips the wakeup, it still returns `202` with a skipped payload.
+- A `paperclip_runner` agent only runs on a task. A wakeup with no task, such as one without `payload.issueId`, is skipped with `reason: "task_required"` and *"Paperclip Runner requires a task to run. Assign or open a task for this agent instead of starting a standalone heartbeat."* See [Paperclip Runner](../adapters/paperclip-runner.md#before-you-start).
 - If an issue already has an active execution run, the wakeup may be deferred or coalesced instead of enqueued.
 - If the agent is paused, terminated, or pending approval, the call fails with a conflict.
 - Timer wakes can be disabled by heartbeat policy.
@@ -1244,6 +1246,7 @@ result = res.json()
 The exact skip reason depends on why the wakeup could not be queued. Common examples include:
 
 - `wakeup_skipped`
+- `task_required` (Paperclip Runner agents, when the wakeup has no task)
 - `issue_execution_deferred`
 - `heartbeat.disabled`
 - `heartbeat.wakeOnDemand.disabled`
@@ -1284,7 +1287,7 @@ Once a Codex or Claude agent on Paperclip Runner has reported its provider's lim
 | `limitReached` | `windowId`, `reason`, and `resetsAt` while the provider is refusing work, or `null`. |
 | `observedAt` | When this snapshot was reported. |
 
-While the provider's limit is active, a queued automatic run for the agent is cancelled with `errorCode: "provider_limit_wait"` and retried at the reset. The hold only counts limits recorded on the account this run would use: a run set to use a different account starts normally, and a limit recorded on an account that is no longer active is ignored. The cancelled run's `resultJson.providerLimitWait.grantId` names the limited connection grant, or is `null` when no single grant is recorded, as with the host's own account.
+While the provider's limit is active, a queued automatic run for the agent is cancelled with `errorCode: "provider_limit_wait"` and retried at the reset. The hold counts limits recorded on the account this run would use: a run set to use a different account starts normally, and a limit recorded on an account that is no longer active is ignored. When Paperclip can't tell which connected account the run would use, a limit recorded on any connected account that's still active holds it. A limit on the host's own account doesn't count in that case. The cancelled run's `resultJson.providerLimitWait.grantId` names the limited connection grant, or is `null` when no single grant is recorded, as with the host's own account.
 
 Waiting work rechecks right away, instead of at the reset, when:
 

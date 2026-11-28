@@ -39,7 +39,7 @@ Everything is still there. It just moved.
 
 ### Bubbles
 
-Your own messages sit on the right in a solid accent bubble. Everyone else sits on the left with an author header. For an agent that's its icon and its name. For another person it's their name and profile picture, or their initials. So when a teammate comments on the same task, their message looks like theirs, not yours. Want to know more about an agent? Click its name or icon to open that agent's overview page. The name at the top of a turn works the same way. System notices are centered and quiet. Hover a bubble to reveal its timestamp.
+Your own messages sit on the right in a solid accent bubble. Everyone else sits on the left with an author header. For an agent that's its icon and its name. For another person it's their name and profile picture, or their initials. So when a teammate comments on the same task, their message looks like theirs, not yours. Want to talk to an agent? On a task, click its name or icon to open your [chat](agent-chat.md) with that agent. In an Agent Chat conversation, the same click opens the agent's overview page instead. The name at the top of a turn works the same way. System notices are centered and quiet. Hover a bubble to reveal its timestamp.
 
 Want to reuse something you wrote? On your own messages, a **Copy message** icon sits just left of the time. It appears when you hover or tab to the message, and stays visible on touch and small screens. It copies the message's original Markdown.
 

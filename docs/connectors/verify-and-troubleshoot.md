@@ -62,7 +62,9 @@ Neither **Connected** nor **Healthy** is proof that a particular agent's call wi
 
 ### Sign-in expired or was revoked
 
-*"Your authorization expired or was revoked. Reconnect to continue."* or *"Reconnect required — sign in again to restore access."*
+*"Your authorization expired or was revoked. Reconnect to continue."*, *"Reconnect required — sign in again to restore access."*, or *"Access to this app ended. Reconnect to continue."*
+
+The last one appears when Paperclip tried to refresh a sign-in and the provider refused because access had ended, for example because someone removed Paperclip from their Google account. If several people or agents sign in to the connection separately, it shows **Needs attention** with that message once none of their sign-ins still works. A connection with a single sign-in also shows the message, and Paperclip pauses it. Either way, agents can't use its tools until someone reconnects.
 
 Select **Reconnect** and sign in again. The connection, its agent access, and its action settings survive; only the credential is replaced. See [Reauthorize, revoke, or disconnect](reauthorize-and-disconnect.md).
 
@@ -94,7 +96,7 @@ If removing it fails, you see **Couldn’t cancel sign-in** and setup stays open
 
 *"Authorization did not complete. Finish setup in the sign-in window or try again."* usually means the sign-in was declined or failed at the provider, or the provider is waiting on an administrator. For providers whose authorization needs tenant approval, the warning on the provider page says so.
 
-When you sign in from a connection request an agent made on a task, Paperclip tells you why the sign-in failed when it can:
+When a sign-in fails, the setup screen tells you why when it can. That works whether you signed in from **Connectors** or from a connection request an agent made on a task. When the provider sends back a standard OAuth error code, Paperclip shows its own message for that code rather than the provider's error text.
 
 | Message | What to do |
 | --- | --- |
@@ -103,9 +105,15 @@ When you sign in from a connection request an agent made on a task, Paperclip te
 | *"Sign-in returned to a different Paperclip address than the one you started from. Open Paperclip at its usual address and try again."* | Open Paperclip at the address you normally use, not an alias or another port. |
 | *"The provider accepted your sign-in but didn’t give Paperclip access. Try again; if it keeps happening, check that your account or organization allows this app."* | Check that your account or organization allows the app. |
 | *"The provider didn’t grant the access Paperclip asked for. Try again and approve every requested permission."* | Approve every permission on the provider's screen. |
+| *"The provider rejected the requested permissions. Check your OAuth app’s configured scopes and try again."* | On your own OAuth app, check the scopes it's set up with. For Slack as an agent tool, they must be **User Token Scopes**, not Bot Token Scopes. |
+| *"The provider rejected Paperclip’s callback URL. Check that the callback URL in your OAuth app matches Paperclip and try again."* | Copy the **Paperclip callback URL** from the setup screen into your OAuth app exactly. |
+| *"The provider rejected this OAuth app’s client credentials. Check your client ID and secret and try again."* | Re-copy the **Client ID** and **Client secret** from your OAuth app. |
+| *"The provider refused to authorize this OAuth app. Check your OAuth app configuration and try again."* | Check the OAuth app's configuration in the provider's console. |
+| *"The provider reported an internal error. Try again shortly."* or *"The provider is temporarily unavailable. Try again shortly."* | Wait a moment and try again. |
+| *"Slack MCP access is disabled for this app. Ask the Slack app owner to enable Model Context Protocol under Features → Agents & AI Apps, then try again."* | Do what it says. See [Slack as an agent tool](slack.md#slack-as-an-agent-tool). |
 | *"You signed in, but the Paperclip for GitHub app isn’t installed on any account you can use. Install it and choose at least one repository, then try again. An organization owner may need to approve the install."* | Select **Install Paperclip on GitHub** or **Manage repositories on GitHub**, then try again. See [Set up GitHub](github-setup.md#3a-managed-path--authorize-and-choose-repositories-in-github). |
 
-Any other cause still shows *"Authorization did not complete. Try again when you’re ready."*
+If you declined at the provider, the screen says *"Authorization was cancelled or declined. Your saved connection was not changed."*, or *"Authorization was cancelled. You can try again."* on a connection request. Any other cause still shows a general message, such as *"Authorization did not complete. Try again when you’re ready."*
 
 Provider sign-in opens in its own tab or window. If you close it early, Paperclip usually tells you the sign-in window closed, and you can try again. If your browser blocks it, Paperclip offers a sign-in link instead, usually **Open sign-in in a new tab**, sometimes with a message such as *"Paperclip couldn’t open the sign-in window. Open sign-in in a new tab to continue."* Click the link, or allow pop-ups for your Paperclip address and try again.
 

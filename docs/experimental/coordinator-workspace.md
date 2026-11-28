@@ -143,16 +143,18 @@ If an agent asks for confirmation more than once on a task, even about different
 Three buttons under the toolbar switch what Inbox shows:
 
 - **Needs you** (where you start) — open requests that are waiting on you.
-- **Waiting** — cards you snoozed, and tasks Paperclip will retry on its own after a provider usage limit. Its button shows a count when there's something in it. If **Needs you** is empty in the default **Assigned to you** view but something is waiting, you'll see *"You're caught up."* with how many items are waiting.
+- **Waiting** — cards you snoozed, and tasks Paperclip will retry on its own after a provider usage limit. Its button shows a count when there's something in it. If **Needs you** is empty in the **Assigned to you** view but something is waiting, you'll see *"You're caught up."* with how many items are waiting.
 - **History** — your [decision history](#decision-history), plus a table of recent failed runs.
 
 Use the toolbar above the queue to narrow it down:
 
 - **Search** your cards.
 - Filter by agent (**All agents**) or project (**All projects**).
-- Choose whose cards you see (not in **Waiting**). **Assigned to you** is the default. **No owner yet** shows cards nobody has claimed, and **Company alerts** shows company-wide problems. If you can act in the company, you also get **All assignees** and each person by name.
+- Choose whose cards you see (not in **Waiting**). **Assigned to you** shows your own cards, **No owner yet** shows cards nobody has claimed, and **Company alerts** shows company-wide problems. If you can act in the company, you also get **All assignees** and each person by name, and Inbox opens on **All assignees** until you pick something else. Otherwise it opens on **Assigned to you**.
 - Group the cards **By type** (the default, which splits them into **Decisions** and **Problems**), **By task**, **By agent**, or **By project**, or pick **No grouping**.
 - The **View** menu opens **Archived**, the cards you hid for yourself, and **Decision history**.
+
+Inbox remembers your assignee, agent, project, and grouping choices in this browser, for each company, and opens with them next time. A link that names a view still opens that view. Filters you set in **Waiting** reset when you leave it.
 
 An ownerless request has a **Claim** button, and each card has a **Close…** menu (**⋯**) for transferring, withdrawing, archiving, or snoozing it. See [Claim, hand off, or withdraw a card](../guides/day-to-day/decisions.md#claim-hand-off-or-withdraw-a-card). When a card points at a document, you can open it beside the queue in a side panel tab.
 
