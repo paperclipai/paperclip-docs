@@ -53,6 +53,8 @@ Open **Tasks** to see the work across your company. The API calls these records 
 
    On the main Tasks list, **Visibility** also has a **Routine tasks** checkbox. Tick it to show only the tasks your [routines](../projects-workflow/routines.md) created, agent-created or not. The filter lives in the URL as `originKind=routine_execution`, so you can bookmark or share it. The **View all tasks** button on the Routines page opens this view with the newest-created tasks first.
 
+   **Updated** narrows the list to tasks with recent activity. Pick **Last 24 hours**, **Last 3 days**, **Last 7 days**, or **Last 30 days**, or **Custom range** to choose **From** and **To** days in your browser's time zone. **Any time** turns it off. The filter goes by the same time the row shows as its last update, and sorting by last updated uses that time too. With a rolling window, a task leaves the list once it ages past it, without a reload. On the main Tasks list the choice is saved in the URL as `updated`, `updatedFrom`, and `updatedTo`, so a shared link opens with the same filter.
+
    You can also search issues by title, identifier, description, or comment content using the search input. The URL `?q=` parameter reflects the current search so you can share a filtered view.
 
 3. **Group and arrange the list**
@@ -273,7 +275,7 @@ When the current tab contains unread items, a **Mark all as read** button appear
 The Inbox toolbar mirrors the Issues page:
 
 - A search input with URL-bound `q` parameter.
-- A filters popover covering assignees, creators, projects, labels, and **Visibility**, which includes **show agent-created tasks**. Agent-created tasks stay hidden unless you tick it, but a task you've taken part in still shows, for example one you commented on or that's assigned to you. Workspace is no longer a filter here; group by **Workspace** instead.
+- A filters popover covering assignees, creators, projects, labels, **Updated**, and **Visibility**, which includes **show agent-created tasks**. Agent-created tasks stay hidden unless you tick it, but a task you've taken part in still shows, for example one you commented on or that's assigned to you. Workspace is no longer a filter here; group by **Workspace** instead.
 - A group-by control (**None**, **Type**, **Responsible**, **Project**, or — when isolated workspaces are enabled — **Workspace**).
 - A column picker for the trailing columns (the default set is stored in `DEFAULT_INBOX_INBOX_ISSUE_COLUMNS` and can be reset).
 - A nesting toggle to collapse parent/child issue groups.

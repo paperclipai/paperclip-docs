@@ -80,7 +80,16 @@ An unblock owner also only makes sense on a blocked task. Try to attach one to a
 
 ### What agents are allowed to name
 
-An agent can only name **itself** as the unblock owner. It can't hand a block to you, to another person, or to the board — that would give any agent a way to drop items into your attention feed at will. If an agent tries, Paperclip refuses with *"Agents may only name themselves as an unblock owner"*.
+When an agent blocks a task by updating it through the API (`PATCH /api/issues/{id}`), it can only name **itself** as the unblock owner. It can't hand a block to you, to another person, or to the board that way — that would give any agent a way to drop items into your attention feed at will. If an agent tries, Paperclip refuses with *"Agents may only name themselves as an unblock owner"*.
+
+A [Paperclip Runner](../../reference/adapters/paperclip-runner.md) agent that reports a blocker at the end of its run is handled differently. Its report can name a person, the board, or another agent. When it names another agent, Paperclip hands the task to that agent and wakes it, so the agent who can clear the block gets the task. If the task is also waiting on other tasks, that agent is woken once they finish instead. The handoff happens only when all of these hold:
+
+- the reporting agent is the task's current assignee,
+- the task isn't a chat conversation or bound to an external chat channel,
+- the named agent is available and can be assigned the task,
+- the reporting agent's run is allowed to assign the task to that agent, and the agents' interaction settings allow it.
+
+If one of these fails when the run finishes, the block goes to the board instead.
 
 When you block a task from the board side, you can name anyone, within two sanity checks:
 
@@ -116,7 +125,7 @@ So if you have long-stalled rows in the Blocked tab with no owner to show, that'
 The Blocked tab reuses the same filter and search machinery as the rest of the Issues UI, so anything you've learned about the [Issues page](./issues.md) carries over.
 
 - **Search** — the toolbar search input matches against issue title, identifier, owner label, action label and detail, reason label, and any linked leaf or recovery issue. If nothing matches, you'll see *"No stopped items match your search."*
-- **Filters popover** — narrow by assignee, creator, project, and labels. Agent-created tasks stay out of this tab until you tick **Show agent-created tasks**.
+- **Filters popover** — narrow by assignee, creator, project, labels, and when the task was last **Updated**. Agent-created tasks stay out of this tab until you tick **Show agent-created tasks**.
 - **Column picker** — the trailing columns (status, identifier, updated time) can be toggled the same way as elsewhere.
 
 ---

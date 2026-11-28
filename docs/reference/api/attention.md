@@ -37,7 +37,7 @@ curl -s \
 | Param | Description |
 |---|---|
 | `includeDismissed` | `true` to include rows the current user has dismissed or snoozed. |
-| `view` | `mine` (cards for you), `unassigned` (ownerless cards anyone can claim), `company` (company-wide alerts), `archived` (open cards you archived or snoozed for yourself), `waiting` (cards Paperclip is retrying on its own that aren't addressed to someone else, plus cards you snoozed), or `all` (default). See [Audience and views](#audience-and-views) and [Provider usage-limit cards](#provider-usage-limit-cards). |
+| `view` | `mine` (cards for you), `unassigned` (ownerless cards in the pool; only `issue_thread_interaction` cards can be claimed), `company` (company-wide alerts), `archived` (open cards you archived or snoozed for yourself), `waiting` (cards Paperclip is retrying on its own that aren't addressed to someone else, plus cards you snoozed), or `all` (default). See [Audience and views](#audience-and-views) and [Provider usage-limit cards](#provider-usage-limit-cards). |
 | `activitySince` / `activityUntil` | ISO timestamps bounding each item's `activityAt`. |
 | `queue` | Only items belonging to the [decision queue](./decisions.md) with this key. |
 | `sort` | `activity` (default) or `decide`. |
@@ -55,7 +55,7 @@ The response is an `AttentionFeed` with these top-level fields:
 | `totalCount` | The number of items in the whole filtered feed, before paging. |
 | `deskBadgeCount` | Your current **For you** cards, the same number as `viewCounts.mine`. This is the number behind the sidebar badge. A card stays in it until someone answers it. |
 | `viewCounts` | Cards in each view for you: `{ mine, unassigned, company, archived, all }`. Counted before the view, date, and queue filters and paging, so every surface shows the same numbers. Cards you archived or snoozed count only under `archived`, cards waiting on an automatic retry aren't counted in the other views, and a group of related cards counts once. |
-| `waitingCount` | How many cards are in your `waiting` view. Present only when there's at least one. |
+| `waitingCount` | How many groups of cards your `waiting` view holds, counting each group once and ignoring the date and queue filters. Present only when there's at least one. |
 | `nextSnoozeAt` | The earliest time one of the cards you snoozed comes back. Present only when you have a snoozed card. |
 | `nextCursor` | Pass this back as `cursor` for the next page, or `null` when you have reached the end. |
 | `countsBySourceKind` | Counts grouped by each attention source. |
@@ -111,13 +111,13 @@ Treat it as a decision queue, not as a complete history of every event in your c
 
 ### Provider usage-limit cards
 
-When an agent's provider account runs out of allowance, the run that hit the limit shows up as a `recovery_action` or `failed_run` card with a `providerLimit` block. These cards aren't company-wide alerts: they follow the ordinary audience rules, so they go to a person or the claimable pool, and like any unclaimed card, one left in the pool for 7 days moves to Company. Paperclip also groups the repeats so you see one card per episode instead of one per attempt:
+When an agent's provider account runs out of allowance, the run that hit the limit shows up as a `recovery_action` or `failed_run` card with a `providerLimit` block. These cards aren't company-wide alerts: they follow the ordinary audience rules, so they go to a person or the pool (where they can't be claimed: open the card to act on it), and like any unclaimed card, one left in the pool for 7 days moves to Company. Paperclip also groups the repeats so you see one card per episode instead of one per attempt:
 
 | Field | What you get |
 |---|---|
 | `episode` | An opaque key for the group this card belongs to. |
 | `grouping` | `account_window` when the run's account is known and the provider reported a reset, so every limited run on that account and reset joins one group. Otherwise `retry_chain`, which groups the repeated attempts of one task's retry chain. |
-| `attempts` | In a `retry_chain` group, how many limited attempts the task's retry chain holds. Always `1` in an `account_window` group, where each card is one run. |
+| `attempts` | In a `retry_chain` group, how many limited attempts lead up to and include this card's run, so the card for the latest attempt carries the count for the whole chain. Always `1` in an `account_window` group, where each card is one run. |
 | `state` | `scheduled` (Paperclip will retry automatically), `retry_requested` (the retry is queued), or `needs_retry` (nothing will retry on its own, so someone has to). |
 | `retryAt` | When the automatic retry is due, or `null`. |
 | `resetAt` | The reset the provider reported, or `null` when it didn't report one. |
@@ -125,7 +125,7 @@ When an agent's provider account runs out of allowance, the run that hit the lim
 
 Cards in one group with the same audience share an `obligationKey` (starting with `provider-limit:`) and one `dismissalKey`, so archiving or snoozing the lead hides the whole group. In an `account_window` group the lead is a `needs_retry` card when there is one. In a `retry_chain` group it's the card with the most attempts, or the most recent one on a tie. An archived or snoozed group comes back when it changes between waiting on an automatic retry and needing a manual one.
 
-A card whose `state` isn't `needs_retry` is waiting on Paperclip, not on you. It's left out of `mine`, `unassigned`, `company`, and `all` (pass `includeDismissed=true` to see it there) and isn't counted under them in `viewCounts`. Instead it shows in your `waiting` view when it's meant for you or isn't addressed to one person. If you archived it, it moves to `archived` instead; if you snoozed it, it shows in both `waiting` and `archived` and counts under `archived`.
+A card whose `state` isn't `needs_retry` is waiting on Paperclip, not on you. Views follow a group's lead: when the lead is such a card, the whole group is left out of `mine`, `unassigned`, `company`, and `all` (pass `includeDismissed=true` to see it there) and isn't counted under them in `viewCounts`. Instead it shows in your `waiting` view when it's meant for you or isn't addressed to one person. If you archived it, it moves to `archived` instead; if you snoozed it, it shows in both `waiting` and `archived` and counts under `archived`.
 
 The cards clear themselves once the task recovers: when a later run for the same task is running or has succeeded, or the task is `done` or `cancelled`. A failed-run card for a task that's `done` or `cancelled` leaves the feed too, whatever caused it. While a usage-limit card is open for a task, that task's ordinary blocker card is left out of the feed, and an agent error alert is left out when it only repeats the error of the agent's last run and that run is behind a usage-limit card or hit a usage limit on a task that has since recovered.
 

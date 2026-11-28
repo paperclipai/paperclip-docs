@@ -38,6 +38,8 @@ Use this when the key was pasted directly into the agent's environment variables
 Your agent's next run picks up the new value. No restart needed.
 
 > **Tip:** When a value looks like a credential, the row offers **Store as secret**. Click it, name the secret, and click **Store & bind** to move the key into the secret store and bind the row to it in one step, so your next rotation can use Path B.
+>
+> If a secret with that name already exists, the popover tells you so and offers choices instead of a dead end. **Use existing secret** binds the row to that secret as it is. **Save as new version** saves your new key as the secret's next version and binds the row to it, which rotates the secret in the same step. It only appears when the existing secret is active and stored in Paperclip, not referenced from an external store. Or type a different name and click **Store & bind**.
 
 ![The Environment variables card on an agent's Harness / Runtime page, with a GITHUB_TOKEN row bound to a secret and an Add variable link](../user-guides/screenshots/light/agents/test-environment-fail.png)
 

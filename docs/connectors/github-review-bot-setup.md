@@ -1,12 +1,12 @@
 ---
 paperclip_version: v2026.1106.0
 seo_title: Set Up a GitHub Review Bot
-seo_description: Build an experimental agent-powered Storybook reviewer, connect its GitHub App, configure mentions and push events, and verify failing-to-passing PR checks.
+seo_description: Build an agent-powered Storybook reviewer, connect its GitHub App, configure mentions and push events, and verify failing-to-passing PR checks.
 ---
 
 # Set up a GitHub review bot
 
-> **Experimental feature:** This tutorial uses Paperclip's experimental **GitHub review bots** setting. An instance administrator must turn it on under experimental settings; it is off by default and independent of **Chat connectors**. Turning it off later hides setup and management, but existing bots keep running and GitHub tool connections stay available. The setup and behavior may change.
+> **No setting to turn on:** GitHub review bots used to sit behind an experimental **GitHub review bots** setting. They're now a standard feature on every instance, self-hosted and Paperclip Cloud alike, and work whether **Chat connectors** is on or off. An older saved "off" value is ignored.
 
 Let's build a bot that does something easy to verify: for each eligible pull
 request, it generates Storybook stories, builds them, opens the rendered pages,
@@ -30,7 +30,7 @@ Paperclip.
 
 ## What you need
 
-- An instance with **GitHub review bots** turned on. GitHub must be able to reach it: either through a **public HTTPS address**, or, for a local instance, through Paperclip Cloud, which setup offers to connect for you.
+- An instance GitHub can reach: either through a **public HTTPS address**, or, for a local instance, through Paperclip Cloud, which setup offers to connect for you.
 - Permission to manage connections in your Paperclip company, create a GitHub App, and install it on the chosen account or organization.
 - A disposable GitHub repository you can open PRs in. A private repository is fine. Requiring checks in a private repository depends on your GitHub plan.
 - A working React/Storybook project in that repository, with its dependencies committed through the normal package manifest and lockfile. For the example below, `npm ci` and `npm run build-storybook` must work. Use your repository's equivalent commands if it uses another package manager.

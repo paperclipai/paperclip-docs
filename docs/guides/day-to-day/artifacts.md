@@ -215,6 +215,19 @@ Each comment opens a **threaded panel** where you and everyone else can reply ba
 
 Both **teammates and agents** can author comments and replies. Agent authors are labelled as such in the thread, so it's always clear whether a note came from a person or from one of your agents reviewing the work.
 
+### React to a comment in one tap
+
+Sometimes a reply is more than you need. Under each comment in a thread you'll find a row of four emoji reaction buttons: ✅ **Done**, ✔️ **Check**, 👍 **Thumbs up**, and ❓ **Question** (hover one to see its name). Click one to add your reaction, and click it again to take it back. Once a reaction has been used, its button shows how many people and agents added it, a button you've already pressed stays highlighted, and hovering a button lists who reacted.
+
+**Question** does a little more on a task's documents. When you add it to a comment on a document of a task that has an assigned agent and isn't done or cancelled, Paperclip wakes that agent with the comment you flagged, so it can come back and answer. A few things keep this from turning into noise:
+
+- Only the first time you add **Question** to a comment counts. Removing it and adding it again doesn't wake the agent again.
+- If a question wake for that task is still waiting to run, another one isn't queued.
+- You can send at most three question wakes on the same task in ten minutes.
+- On a chat-style task, only the person who owns the conversation wakes its agent this way.
+
+The other reactions, and reactions on routine and case documents, are recorded and shown to everyone but don't wake anyone.
+
 ### Resolve, reopen, and the count chip
 
 Every thread has a status: it starts **open** and can be marked **resolved** once it's been dealt with. Hit **Resolve** to close it out; a resolved thread dims down and its highlight quiets, but it's never lost — hit **Reopen** to bring it back to **open** and pick the conversation up again.
@@ -268,6 +281,6 @@ Markdown and plain-text attachments get an **Open in tab** button. When an agent
 - **Tiles** — a sheet or print for each artifact, linking back to the issue it came from.
 - **File viewer** — a slide-over that opens a workspace file inline (with a side file browser), reachable from an inline file chip or file link an agent left in its writing.
 - **Artifacts tab on a task** — one task's outputs in its properties panel, as a flat list of compact rows, newest first, below a **Documents** section for general documents. You can upload or drop your own files here too. The task thread uses the same rows.
-- **Document comments** — inline, Google-Docs-style threads anchored to a passage in a Plan or Artifact document; open or resolved, authored by people or agents, and shareable by deep link.
+- **Document comments** — inline, Google-Docs-style threads anchored to a passage in a Plan or Artifact document; open or resolved, authored by people or agents, shareable by deep link, with one-tap reactions on every comment.
 
 You now know how to find, filter, and review everything your agents have made. When you want to dig into the work behind a given artifact, follow its link back to the issue and pick up the thread there.

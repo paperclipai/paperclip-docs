@@ -363,6 +363,17 @@ PATCH /api/cases/{id}/documents/{key}/annotations/{threadId}
 
 Change a thread's status — `resolved` to close the conversation, or `open` to reopen it.
 
+### React to a Comment
+
+```
+PUT    /api/cases/{id}/documents/{key}/annotations/{threadId}/comments/{commentId}/reactions/{reaction}
+DELETE /api/cases/{id}/documents/{key}/annotations/{threadId}/comments/{commentId}/reactions/{reaction}
+```
+
+Add (`PUT`) or remove (`DELETE`) your reaction on one comment in a thread. No request body is needed. `{reaction}` is one of `done`, `check`, `thumbs_up`, or `question`; anything else returns `400 Bad Request` with `{ "error": "Invalid reaction" }`. Each user or agent holds at most one of each reaction per comment, so repeating a `PUT` or a `DELETE` is harmless. An unknown thread or comment returns `404` (`"Annotation thread not found"` or `"Annotation comment not found"`). Both routes are experimental and need the cases feature turned on.
+
+The response is the comment, including its `reactions` array. Comments returned by the list and get routes carry the same array: one entry per reaction in use, each with `reaction`, `count`, `reactedByMe` (whether the caller is one of the reactors), and `actors` (each with `actorType`, `agentId`, and `userId`). A change is recorded in the case's activity as `case.document_annotation_comment_reaction_added` or `case.document_annotation_comment_reaction_removed`. Reactions on case documents don't wake an agent.
+
 ---
 
 ## Attachments

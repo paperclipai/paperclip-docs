@@ -146,6 +146,10 @@ A high reconnect rate usually means the SSE stream drops frequently — often a 
 
 The adapter polls `GET /v1/runs/{run_id}` as a fallback when the SSE stream is lost. If both the stream and the poll fail, verify that `apiBaseUrl` resolves correctly and that the Hermes API server is healthy. Check the Paperclip run log for the last error from the adapter.
 
+**A run fails because Hermes is rate limited or overloaded**
+
+When a Hermes run fails with a temporary provider problem, Paperclip treats it as temporary and retries it with the task's automatic retries. That covers a reported HTTP status of 429, 529, or any 5xx, and errors that read as rate limiting, overload, or an unavailable service. If Hermes says when to try again (`retry_not_before` or `retry_after`), the retry waits until then. A run that Hermes reports as stopped because the gateway shut down or restarted is recorded as interrupted and retried the same way.
+
 **Cross-task memory bleed between issues**
 
 Switch `sessionKeyStrategy` to `issue` (the default). If it is already set to `issue`, confirm that the Hermes instance is correctly scoping sessions by key. Setting the strategy to `run` gives fully isolated sessions if you need a harder guarantee.

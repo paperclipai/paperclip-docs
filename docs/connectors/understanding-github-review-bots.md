@@ -6,7 +6,7 @@ seo_description: Learn why installing a review bot, choosing when it runs, and r
 
 # Understanding GitHub PR review bots
 
-> **Experimental feature:** GitHub review bots have their own experimental setting, **GitHub review bots**, which an instance administrator must turn on. It is off by default and independent of **Chat connectors**. Turning it off hides setup and management; existing bots keep running. The setup and behavior may change. Existing GitHub tool connections do not enable it automatically.
+> **Available everywhere:** GitHub review bots are a standard feature on every instance. The experimental **GitHub review bots** setting they used to need is gone, and they don't depend on **Chat connectors**. A bot is still separate from a GitHub tool connection: connecting GitHub for repository tools doesn't create one.
 
 A bot can review your PR, leave comments, and give it a 3/5 without preventing
 anyone from merging it. That can feel surprising: if the review failed, why

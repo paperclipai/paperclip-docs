@@ -77,7 +77,7 @@ POST /runtime-tools/connections/request
 }
 ```
 
-Each method can carry a `purpose` of `tool`, `channel`, or `ai`. Channel and AI methods also carry a company-scoped `setupPath` pointing at their own setup flow, which the agent shares with the user. Tool methods and AgentMail use `connection_request` instead. Chat channel methods appear only when the instance's **Chat connectors** setting is on; AgentMail always appears. While the setting is off, a search that matches a chat service offering nothing else can still list it, with `state: "unavailable"`, empty `methods`, and a `reason` explaining that an instance admin turns on **Chat connectors** in Experimental settings. A search match is not proof that an account is authorized or that a tool is installed.
+Each method can carry a `purpose` of `tool`, `channel`, or `ai`. Channel and AI methods also carry a company-scoped `setupPath` pointing at their own setup flow, which the agent shares with the user. Tool methods and AgentMail use `connection_request` instead. Chat channel methods appear only when the instance's **Chat connectors** setting is on; AgentMail and the GitHub Code Review Bot always appear. While the setting is off, a search that matches a chat service offering nothing else can still list it, with `state: "unavailable"`, empty `methods`, and a `reason` explaining that an instance admin turns on **Chat connectors** in Experimental settings. A search match is not proof that an account is authorized or that a tool is installed.
 
 When a result's `state` is `needs_user_action` because a saved connection's sign-in has expired, the `reason` names that connection, for example `"Sentry" must be signed in again. A person who manages this connection must reconnect it on its app page`. That way the agent can tell the person exactly what to do instead of passing on a general *"Connection needs attention"*. Paperclip names a connection only when the expired sign-in belongs to this agent's audience: an organization sign-in, the agent's own sign-in, or the sign-in of the person responsible for the run. Another person's private connection is never named.
 
@@ -127,6 +127,20 @@ If the service is already connected, `state` is `ready`, `connectionId` is set, 
 An agent can already hold some of a connection's tools, for example when someone else connected the account and shared only part of it. A request without `toolNames` then comes back `ready`, because it only asks whether the agent can use the service at all. To get more, the agent passes `connectionId` and the exact `toolNames` it needs.
 
 An agent with no access yet can send a request without `toolNames` on a catalog of up to 500 indexed tools, and the person reviews them on one access card. Above 500, the request returns `422` with `Specify the tools needed for this task (up to 20).`, followed by the `connectionId` to reuse and the first 100 indexed tool names. No access is granted until the card is accepted, and tools on the card that aren't read-only start as **Ask first**.
+
+
+#### A GitHub request Paperclip opens itself
+
+An agent doesn't have to ask for GitHub. When a run fails or succeeds (not when it's cancelled or times out) after `git` or `gh` failed to authenticate against `github.com`, such as cloning a private repository, pushing, or running `gh` while signed out, or after the task's workspace clone failed for that reason, Paperclip opens a `github` connection request for the agent. It's the same card, addressed to the run's responsible person, and the run's liveness reads **Waiting for GitHub connection** with *"Complete the connection request to continue this task"*.
+
+For a command, Paperclip only counts one that failed with a recognisable GitHub sign-in error, such as *"could not read Username"* or *"Authentication failed"* for a `github.com` remote, or `gh` saying you're not logged in. A command that exited `0`, or one against another host, doesn't count, and if a later command in the same run reaches GitHub with access, such as a push or a signed-in `gh` call, no card is opened. It also skips the card when:
+
+- the run had no responsible person, or wasn't the task's latest run;
+- the run's GitHub authentication mode was `host`;
+- the same failed run already opened a card to repair the agent's AI provider sign-in;
+- a GitHub card is already pending on the task;
+- the agent already has a usable GitHub connection, or its managed GitHub identity is active and healthy;
+- the task can't take a card any more, for example because it's closed or the agent no longer owns it.
 
 ---
 

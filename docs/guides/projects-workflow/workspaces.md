@@ -506,6 +506,8 @@ A task in a project with no repository doesn't get a Git worktree. Its agent wor
 
 Turn it on with `PAPERCLIP_TASK_DIRECTORY_RETENTION_ENABLED=true`. It doesn't need Git expiration, but saving and removing finished directories needs restore points (`PAPERCLIP_GIT_RESTORE_POINTS_ENABLED=true`, plus `PAPERCLIP_SECRETS_MASTER_KEY` on S3 storage). It starts in dry-run mode, where it only logs each directory it inspects (look for `Isolated task directory retention inspected` and `Isolated task directory inspected`, with an outcome of `dry_run` and the bytes it would free). Set `PAPERCLIP_TASK_DIRECTORY_RETENTION_DRY_RUN=false` when you're happy with what it reports.
 
+**Tasks with no project.** A task with no project at all can also run in an isolated workspace without a repository, as long as neither the agent nor the task sets its own workspace strategy. On the Paperclip host, in a sandbox, or in a plugin environment, its agent gets its own task directory instead of the task being stopped for having no project. A [low-trust](../../administration/trust-and-low-trust-review.md) task gets one only in a sandbox. On an SSH environment, an isolated task still needs a project.
+
 ---
 
 ## Troubleshooting checklist

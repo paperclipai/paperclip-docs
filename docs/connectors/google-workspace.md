@@ -162,7 +162,7 @@ Expect your next event, which you can confirm in Google Calendar. This checks th
 | A whole service's actions are missing | The service was switched off in the picker, or you declined its permissions at Google | Select **Add account** on the **Google Workspace** row, switch the service on, approve it at Google, then remove the old connection |
 | Read actions work but write actions are missing | The service is on **Read only** | Select **Add account** on the **Google Workspace** row, choose **Read & write**, approve the new permissions at Google, then remove the old connection |
 | You need Google Chat, contacts, or cross-service search | Not offered by Google Workspace | Use an existing [Google Chat](google-chat.md), [Google People](google-people.md), or [Google Workspace Search](google-workspace-search.md) connection |
-| **Needs attention** | The Google token expired or was revoked | Select **Reconnect** |
+| **Needs attention** | The Google token expired or was revoked. If someone removed Paperclip from their Google account, the message reads *"Access to this app ended. Reconnect to continue."*, and agents aren't offered the connection's tools until it's reconnected | Select **Reconnect** |
 
 Limitations: one connection covers one Google account. No sending mail, no deleting or re-sharing Drive files, and no editing of arbitrary existing Drive files outside Docs, Sheets, and Slides. Google's Workspace MCP servers remain in Developer Preview, so treat the surface as subject to change.
 

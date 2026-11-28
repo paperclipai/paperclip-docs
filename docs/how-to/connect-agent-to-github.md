@@ -278,6 +278,9 @@ The worktree's remote is HTTPS, but the agent's environment doesn't have `GITHUB
 **The run never started — it's blocked with `push_write_credential_missing`.**
 The preflight decided this run needs push credentials and couldn't find `GH_TOKEN` or `GITHUB_TOKEN` bound at agent or project scope. Bind one (Step 3) and the run dispatches. If the task genuinely doesn't need to push, check whether its title or description reads like a PR deliverable — that's the second trigger.
 
+**A GitHub connection card appeared in the task after a clone, push, or `gh` call failed.**
+The run hit a GitHub sign-in error, and the agent had no usable GitHub connection, so Paperclip asked the task's responsible person to connect GitHub. The run is marked **Waiting for GitHub connection**. Connect GitHub from the card (Option C), or decline it and bind a token instead (Option A). See [Connection Intents](../reference/api/connection-intents.md#a-github-request-paperclip-opens-itself).
+
 **`gh: command not found`.**
 The agent host doesn't have the GitHub CLI installed. `brew install gh` or pull it from the [official releases](https://github.com/cli/cli/releases). The Claude Code adapter does not bundle `gh` — it has to be on `PATH` for the heartbeat process.
 

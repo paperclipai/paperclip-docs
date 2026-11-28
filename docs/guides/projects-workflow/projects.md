@@ -205,6 +205,7 @@ Each project can define environment variables that are injected into agent runs 
 
 - Use **Add variable** to add one, and rename or delete variables inline.
 - Secret-valued variables are stored via the secrets store and rendered masked.
+- A token pasted into a variable's name is caught before you can save, and storing a value under a secret name that's already taken lets you **Use existing secret** or **Save as new version**. See [Names, not tokens](../org/agents.md#names-not-tokens).
 - Project variables extend the environment an agent sees when it runs inside this project; they don't change anything at the company level.
 
 ### Project storage

@@ -6,7 +6,7 @@ seo_description: Two separate GitHub setups: repository tools for agents, or peo
 
 # GitHub
 
-GitHub supports repository tools, GitHub Copilot model access, and an experimental chat/review bot in Paperclip. Each has its own entry on the **Connectors** page: **GitHub** for repositories, issues, and pull requests, **GitHub Copilot** for running agents on your Copilot plan, and, once the experimental **GitHub review bots** setting is on, **GitHub Code Review Bot** for the bot. Choose the one for the work you want to do.
+GitHub supports repository tools, GitHub Copilot model access, and a chat/review bot in Paperclip. Each has its own entry on the **Connectors** page: **GitHub** for repositories, issues, and pull requests, **GitHub Copilot** for running agents on your Copilot plan, and **GitHub Code Review Bot** for the bot. Choose the one for the work you want to do.
 
 ## Which do you want?
 
@@ -16,7 +16,7 @@ GitHub supports repository tools, GitHub Copilot model access, and an experiment
 | Agents to run on your GitHub Copilot plan | **GitHub Copilot** → **Connect** | An AI connection holding a Copilot token. It gives model access only, no repository access. See [GitHub Copilot](github-copilot.md) |
 | People to start work from GitHub, or an agent to review PRs | **GitHub Code Review Bot** | A bot App assigned to one agent, with task-bound review tools and PR checks when enabled |
 
-A personal GitHub connection does not create a bot App. Use [GitHub connector setup](github-setup.md) for regular repository tools, or [Set up a GitHub review bot](github-review-bot-setup.md) for the experimental chat journey. Read [Understanding GitHub PR review bots](understanding-github-review-bots.md) to distinguish installation, triggers, and merge requirements.
+A personal GitHub connection does not create a bot App. Use [GitHub connector setup](github-setup.md) for regular repository tools, or [Set up a GitHub review bot](github-review-bot-setup.md) for the review bot. Read [Understanding GitHub PR review bots](understanding-github-review-bots.md) to distinguish installation, triggers, and merge requirements.
 
 Before you give an agent a GitHub identity, read the shell exception — it is the boundary most often misread.
 
@@ -100,14 +100,13 @@ People comment in an issue or pull request, mentioning the agent, and Paperclip 
 
 ### Before you connect
 
-- **GitHub review bots** must be switched on for the instance. It is its own experimental setting, off by default and independent of **Chat connectors**, enabled by an instance administrator under experimental settings.
 - Permission to create a GitHub App in the organization, and to install it.
 - The agent that will answer.
 
 ### Set up the bot
 
 [Set up a GitHub review bot](github-review-bot-setup.md) walks through the
-experimental setup with a Storybook example. Setup is two steps — **Choose
+setup with a Storybook example. Setup is two steps — **Choose
 agent** and **Connect GitHub** — after which GitHub asks you to approve creating
 and installing the App. Paperclip then imports the repositories you granted,
 waits for signed webhook delivery, links your account, and opens the bot's
@@ -146,10 +145,11 @@ Your own GitHub connection also helps you read tasks. When you hover or focus a 
 | Problem | Likely cause | Fix |
 | --- | --- | --- |
 | **Connect GitHub** is not offered | The instance is not enrolled with Paperclip Cloud, or Cloud is not advertising the GitHub profile | Use **Personal access token (advanced)** |
-| **GitHub Code Review Bot** is not listed | **GitHub review bots** is off for the instance | Ask an administrator to enable it |
 | The agent sees fewer repositories than expected | The installation does not include them | **Add More Repos on GitHub**, then **Refresh access** |
 | *"The Paperclip GitHub installation is suspended. Unsuspend it on GitHub before refreshing access."* | Someone suspended the Paperclip installation on GitHub. GitHub still lists its repositories, but the connection can't use them while it's suspended | Select **Open installation settings on GitHub**, unsuspend it there, then select **Retry access** |
 | **GitHub access needed** appears on an action you approved | GitHub refused because this connection can't reach that account or repository. Connecting a GitHub user doesn't give the App access to their personal account, and an organization installation doesn't reach personal repositories | Select **Manage GitHub access** to open the connection's **Permissions** tab. For the App, use **Add More Repos on GitHub** to pick the right account, then **Refresh access**. For a token, update or replace it. Then ask the agent to continue; Paperclip never replays the approved action on its own. **Error details** shows GitHub's own message |
+| **Repository outside GitHub App access** appears on an action you approved, or the agent reports the App isn't installed on that organization | On the managed path, the Paperclip GitHub App isn't installed on that repository's organization or account, so refreshing access can't give it write permission there. When Paperclip already knows where the App is installed, it refuses a write that needs approval before posting an approval card, and tells the agent why | Post on GitHub directly, use a **Personal access token (advanced)** connection, or ask an administrator of that organization to install the Paperclip GitHub App, refresh access on the **Permissions** tab, and then ask the agent to try again. **Error details** shows GitHub's own message when there is one |
+| **GitHub App installation suspended** appears on an action you approved | The Paperclip GitHub App installation for that account or organization is suspended | Ask an administrator to unsuspend it on GitHub, then select **Manage GitHub access** and **Refresh access** on the **Permissions** tab, and ask the agent to continue |
 | *"You don't have permission to reconnect this identity."* | The identity belongs to another person or agent | Ask its owner, or use your own |
 | Tool calls succeed but shell `git push` fails | The account's repository permissions, or branch protection | Check both on GitHub |
 | Comments do not create tasks | The App is not installed on that repository, or the events are not selected | Install it there and confirm the two comment events |
@@ -159,7 +159,7 @@ Your own GitHub connection also helps you read tasks. When you hover or focus a 
 
 ## Limitations
 
-The managed repository-tool path depends on Cloud enrollment. The review-bot path depends on the experimental **GitHub review bots** setting and uses its own App. Both require appropriate GitHub repository access; review bots also have an enabled-repository subset in Paperclip. Paperclip cannot constrain shell Git or `gh` with per-action settings.
+The managed repository-tool path depends on Cloud enrollment. The review-bot path is available on every instance and uses its own App. Both require appropriate GitHub repository access; review bots also have an enabled-repository subset in Paperclip. Paperclip cannot constrain shell Git or `gh` with per-action settings.
 
 ## Related guides
 

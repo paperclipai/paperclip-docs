@@ -203,6 +203,8 @@ Two related failures stop at once and point you straight to **Retry**, instead o
 | `native_provider_state_incompatible` | *The current runner cannot restore this task's saved provider session, so retrying this run cannot succeed. Retry the task to continue in a fresh provider session with the same workspace. The earlier provider conversation is not carried over.* You can see this when a run in a new sandbox finds no saved Runner state for the session it was meant to continue. |
 | `native_provider_session_closed` | *The provider session closed after a turn start that may have reached the provider, and this run cannot reopen it. Retry starts a new run with a fresh provider conversation and the saved task context.* |
 
+On a warm Runner session in a [plugin environment](../experimental/environments.md), Paperclip can sometimes confirm that the environment's saved Runner checkpoint is gone for good. If no turn or request from the run was still in progress and the session has no unfinished goal, the run then continues in a fresh provider session by itself instead of stopping with `native_provider_state_incompatible`. The earlier provider conversation isn't carried over.
+
 Click **Retry**. It continues in a fresh provider session, so check that the agent still has what it needs from the task.
 
 ---
@@ -346,6 +348,8 @@ The rest need a change first, because another try fails the same way:
 - *Saved workspace storage no longer matches this workspace; retrying the same workspace will not help*
 - *The selected runtime's saved connection is invalid; reprovision the runtime before retrying*
 
+If automatic recovery gives up after one of these failures, the task's **Task could not continue** notice includes the reason, so you can see why without opening the run. When the reason is *Saved workspace storage no longer matches this workspace; retrying the same workspace will not help*, a fresh continuation of the task doesn't reuse that workspace.
+
 ---
 
 ## 22. Messages sent during a pause
@@ -423,7 +427,7 @@ When Paperclip can't continue these two by itself, the last sentence reads *Pres
 | **Workspace base ref unavailable** | *Set a starting branch that exists in the repository, then press Retry.* |
 | **Shared workspace still held** | *Stop the other run on this task, or choose a separate workspace for this task, then press Retry.* |
 
-Other notices put the advice in the message itself. **Workspace validation failed** reads *The task's workspace could not be used, so the agent did not start. Press Retry to start it again.* A **Configuration incomplete** notice about a missing secret reads *The agent did not start because a secret it needs is not set. Add the secret in the agent's settings, then press Retry.* When a reviewer doesn't finish, **Review recovery stalled** asks you to choose a reviewer or press **Retry** to ask the same one again. When there's no more specific advice and no agent owns the recovery, the **Recovery owner** row says **Waiting for you** and the **Next action** row reads *This attempt could not be finished. Press Retry to start it again from the saved work.* When an agent owns the recovery, the **Next action** row says *The assigned agent continues the task from the saved work* instead.
+Other notices put the advice in the message itself. **Workspace validation failed** reads *The task's workspace could not be used, so the agent did not start. Press Retry to start it again.* **Workspace storage unavailable** means the project that stores the task's files uses [workspace storage](../guides/projects-workflow/workspaces.md#when-a-plugin-stores-the-project) that the agent's environment can't use. Its **Next action** reads *Assign the task to an agent whose environment can use this project's workspace storage, or choose a workspace from a project for this agent's environment, then press Retry.* A **Configuration incomplete** notice about a missing secret reads *The agent did not start because a secret it needs is not set. Add the secret in the agent's settings, then press Retry.* When a reviewer doesn't finish, **Review recovery stalled** asks you to choose a reviewer or press **Retry** to ask the same one again. When there's no more specific advice and no agent owns the recovery, the **Recovery owner** row says **Waiting for you** and the **Next action** row reads *This attempt could not be finished. Press Retry to start it again from the saved work.* When an agent owns the recovery, the **Next action** row says *The assigned agent continues the task from the saved work* instead.
 
 ---
 
@@ -457,11 +461,11 @@ Other notices put the advice in the message itself. **Workspace validation faile
 
 ## 28. Run stops because the sandbox disk is full
 
-**Symptom.** A [Paperclip Runner](../reference/adapters/paperclip-runner.md) run in a sandbox fails while the agent is working, and the task's chat shows **Disk full**: *The agent filled the disk of its computer, so the run stopped. Ask the agent to use less disk space, then retry.* The run's failure code is `sandbox_disk_full`.
+**Symptom.** A [Paperclip Runner](../reference/adapters/paperclip-runner.md) run in a sandbox fails while the agent is working, and the task's chat shows **Disk full**: *The agent filled the disk of its computer, so the run stopped. Ask the agent to use less disk space, then retry.* The run's failure code is `sandbox_disk_full`. On the agent's page, the run's details read *The agent's computer ran out of disk space, so its runner stopped. Ask the agent to use less disk space, then select Retry. Saved task updates remain available.*
 
 **Cause.** The agent's work, such as installing dependencies or building, filled the sandbox's disk, and its runner stopped with an error like *No space left on device*. A fresh sandbox has the same disk size, so the same work would fill it again. Paperclip doesn't retry this by itself. The task is blocked and handed to the board with the recovery action *The agent filled the disk of its computer, so its runner stopped. Paperclip does not repeat this automatically: a new computer has the same disk size, and the same work would fill it again. Ask the agent to use less disk space, for example by deleting build output, caches or dependencies it no longer needs, then press Retry.*
 
-**Fix.** Leave a comment telling the agent how to use less space, for example to clean up build output, caches, or dependencies it no longer needs, then click **Retry**. Retry starts a new run. If the disk filled while Paperclip was saving the workspace after the agent finished, that's a different case: see [Run fails after the agent finished](#13-run-fails-after-the-agent-finished).
+**Fix.** Leave a comment telling the agent how to use less space, for example to clean up build output, caches, or dependencies it no longer needs, then click **Retry**. Retry starts a new run. If the work genuinely needs more room, give the environment a bigger disk where its provider allows it; for Daytona, see [Resource overrides need an image](../reference/adapters/sandbox-providers.md#resource-overrides-need-an-image). If the disk filled while Paperclip was saving the workspace after the agent finished, that's a different case: see [Run fails after the agent finished](#13-run-fails-after-the-agent-finished).
 
 ---
 

@@ -94,6 +94,8 @@ A grant's `scope` decides what it covers, and it is enforced exactly as written:
 
 For an agent calling a connection's tool, a broad grant doesn't override that connection's own access settings. When a profile that applies to the call governs the connection — the connection's own access profile, even one with every action turned off, or any entry in those profiles that names this connection or matches this call (conditions included) by action, application, or risk level — only a grant whose `scope` names what it covers still counts: one with an `allow` list, or a `toolName`, `catalogEntryId`, `connectionId`, `applicationId`, or `applicationKey` key (or its plural). A `null` scope, or one with only context keys such as `agentId` or `projectId`, doesn't turn on an action the connection leaves off. This includes the unscoped `tools:use` grant new standard agents receive. The rule applies to agents only, not to grants people hold.
 
+Which agents a connection is installed for counts on every transport, not only for plugin connections. Once a connection has installs, its agent access has been set, or it has its own access profile that isn't assigned to anyone yet, an agent it isn't installed for is denied with `deny_connection_not_installed` (*"This connection is not installed for this agent."*), and an **Ask first** rule doesn't turn that into an approval request. An explicit block or allow policy, or a grant whose `scope` names the tool or connection, still decides the call. Effective Access and the policy test use the same rule. An older shared connection with none of these isn't limited this way.
+
 A grant that doesn't cover a call never widens into a broader allow. The call simply carries on to the profile check, and if no profile permits it either, it ends as `deny_default`. The same rules apply to discovery, so a tool outside the grant doesn't show up in the tool list. If an agent loses a tool it used before upgrading, check its grant's `scope` first.
 
 ### What a decision looks like
@@ -249,7 +251,15 @@ Listing, calling, and the resource and prompt methods each need the matching act
 
 The `initialize` result's `_meta` also carries `"paperclip/mcp-app-ui": "host_rendered"`. Interactive `ui://` views from connected apps are shown in Paperclip's task chat, and the gateway doesn't pass them on to your client.
 
-A failure inside the provider is different: `tools/call` returns a normal result with `isError: true` and the message as text. That covers `tool_error` and `github_access_denied`, which is what you get when GitHub refuses a repository or account this connection can't reach. For GitHub, the text includes steps for repairing the connection's access. Don't retry the same call until that's done.
+A failure inside the provider is different: `tools/call` returns a normal result with `isError: true` and the message as text. That covers `tool_error` and three GitHub access codes:
+
+- `github_access_denied`: GitHub refused a repository or account this connection can't reach.
+- `github_app_installation_suspended`: the Paperclip GitHub App installation for the target account or organization is suspended.
+- `github_repo_outside_app_installations`: on a managed GitHub App connection, the target account or organization isn't one the Paperclip GitHub App is installed on (and isn't the connected user's own account), so refreshing access can't fix it.
+
+For GitHub, the text says how to recover: repair the connection's access, unsuspend the installation, or, for a repository outside the App's installations, post on GitHub directly, use a personal access token connection, or have an administrator of that organization install the App. Don't retry the same call until that's done.
+
+Paperclip checks the last case before asking anyone. When a write on a managed GitHub connection would need approval, and Paperclip already knows which accounts the App is installed on, a target outside them is refused straight away with `github_repo_outside_app_installations`, so nobody approves a call GitHub would reject. The refusal doesn't hold on to the call's idempotency key, so the same call can run once the App is installed there and access is refreshed.
 
 Connectors behind an experimental setting that's off are refused with `403` and `connector_unavailable` (*"This connector is unavailable on this instance."*), and their tools don't appear in `tools/list`.
 

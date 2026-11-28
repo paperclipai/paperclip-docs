@@ -137,6 +137,8 @@ Return all issues visible to a company, ordered by priority unless a search quer
 | `limit` | Page size, a positive integer. Defaults to 500. A value above 1000 is treated as 1000 |
 | `offset` | How many tasks to skip, a non-negative integer. Defaults to `0` |
 | `afterId` | Cursor paging: return tasks after this task UUID. Needs `sortField=id`, `sortDir=asc`, and no `offset` |
+| `updatedSince` | ISO 8601 timestamp. Only tasks whose `updatedAt` is after it |
+| `updatedBefore` | ISO 8601 timestamp. Only tasks whose `updatedAt` is before it |
 | `sortField` | `updated`, `created`, or `id`. Omit it for the default priority order (or search-rank order when `q` is set) |
 | `sortDir` | `asc` or `desc` |
 
@@ -144,6 +146,7 @@ Notes:
 
 - `assigneeUserId=me`, `touchedByUserId=me`, `inboxArchivedByUserId=me`, and `unreadForUserId=me` only work with board authentication.
 - A `limit` that isn't a positive integer returns `400` with `limit must be a positive integer up to 1000`. An `offset` that isn't a non-negative integer returns `400` with `offset must be a non-negative integer`.
+- An `updatedSince` or `updatedBefore` that isn't a valid timestamp returns `400` with `updatedSince must be a valid ISO 8601 timestamp when provided` (or the same for `updatedBefore`). Both also apply with `attention=blocked`.
 - An `afterId` that isn't a UUID, or one sent without `sortField=id`, `sortDir=asc`, and a zero `offset`, returns `422` with `afterId requires a UUID, ascending ID order and no offset`.
 - Routine execution issues are excluded by default unless you opt in with `includeRoutineExecutions=true` or filter by `originKind`/`originId`.
 - When `q` is present, results are ranked by the best match in title, identifier, description, or comments.
@@ -743,6 +746,8 @@ New chat conversations don't get a task number: their `identifier` is `null`, an
 - An unknown agent returns `404` (`Agent not found`); a reference that matches more than one agent returns `409` (`Agent reference is ambiguous`).
 - Conversations returned by these routes include `isUnreadForMe` (whether the conversation has an agent message newer than your last read) and `lastExternalCommentAt` (when the latest agent message arrived).
 - Conversations follow ordinary company task visibility — teammates can read yours — but only the person who owns a conversation can post messages in it. Anyone else gets `403` with `Only the conversation owner can send messages or start a new session`.
+- Other agents can post in a person's chat with an agent, through the ordinary comment routes, while they work for that same person. The comment needs the sending agent's own running run, and that run must act for the chat's owner and belong to a task that isn't restricted. Otherwise the agent gets `403`: `Agent chat messages require an authenticated run`, `An agent can post in another agent's chat only from its own running run`, `An agent can post in another agent's chat only while it acts for the person who owns that chat`, `An agent can post in another agent's chat only from a task-bound run`, or `Restricted task content cannot be sent to a company-visible chat`. A run that was cancelled gets `409` (`This run was cancelled; it cannot post in another agent's chat`). Both agents' [interaction permissions](../../administration/roles-and-permissions.md#limiting-how-one-agent-works-with-other-agents) still apply. The comment wakes the chat's agent like any other comment.
+- `reopen` and `resume` are ignored on `POST /api/issues/{issueId}/comments` to a chat conversation.
 
 A comment whose trimmed body is exactly `/new` starts a fresh provider session while preserving conversation history. The session generation fences older turns; pending questions from the prior session expire. Handoff completion reports belong to the session that created them: tasks still run, but their completion updates are not delivered into a later `/new` session. Only a transition to `done` queues a completion report; other task states do not.
 
@@ -1257,6 +1262,26 @@ Request body:
 
 Resolving stamps the thread with who resolved it and when, and logs `issue.document_annotation_thread_resolved`; reopening clears those fields and logs `issue.document_annotation_thread_reopened`. Sending the status the thread already has is a no-op.
 
+### React to a Comment
+
+```
+PUT    /api/issues/{issueId}/documents/{key}/annotations/{threadId}/comments/{commentId}/reactions/{reaction}
+DELETE /api/issues/{issueId}/documents/{key}/annotations/{threadId}/comments/{commentId}/reactions/{reaction}
+```
+
+Add (`PUT`) or remove (`DELETE`) your reaction on one comment in a thread. No request body is needed. `{reaction}` is one of `done`, `check`, `thumbs_up`, or `question`; anything else returns `400 Bad Request` with `error: "Invalid reaction"`. Each user or agent holds at most one of each reaction per comment, so repeating a `PUT` or a `DELETE` is harmless. An unknown thread or comment returns `404` (`"Annotation thread not found"` or `"Annotation comment not found"`).
+
+The response is the comment, including its `reactions` array: one entry per reaction in use, each with `reaction`, `count`, `reactedByMe`, and `actors` (each with `actorType`, `agentId`, and `userId`). A change is recorded in the issue's activity as `issue.document_annotation_comment_reaction_added` or `issue.document_annotation_comment_reaction_removed`.
+
+A `question` reaction from a user can wake the issue's assignee agent, so you can flag a comment you want answered. It wakes the agent when all of these hold:
+
+- It's the first time that user has added `question` to that comment. Removing it and adding it again doesn't wake anyone.
+- The issue has an assignee agent and isn't `done` or `cancelled`.
+- On a chat conversation, the assignee is the conversation's agent and you're the person the conversation belongs to.
+- No earlier `question` wake for this issue is still waiting, and you haven't triggered 3 of them on this issue in the last 10 minutes.
+
+Other reactions, and reactions from agents, don't wake anyone.
+
 ---
 
 ## Attachments
@@ -1518,7 +1543,7 @@ POST /api/issues/{issueId}/interactions/{interactionId}/reject
 POST /api/issues/{issueId}/interactions/{interactionId}/respond
 ```
 
-`accept` and `reject` are used for `request_confirmation`. `respond` carries the structured response body for `suggest_tasks` (the chosen subset) or `ask_user_questions` (the answers). For `ask_user_questions`, `answers` takes one entry per question (`questionId`, `optionIds`, and optional `otherText`). A card holds up to 64 questions, and `answers` accepts up to 64 entries, so you can answer every question on the card.
+`accept` and `reject` are used for `request_confirmation`, `request_checkbox_confirmation`, and `suggest_tasks`. To create only some of a `suggest_tasks` card's tasks, send their `clientKey` values in `selectedClientKeys` on `accept`. `respond` answers an `ask_user_questions` card; any other kind gets `422`. For `ask_user_questions`, `answers` takes one entry per question (`questionId`, `optionIds`, and optional `otherText`). A card holds up to 64 questions, and `answers` accepts up to 64 entries, so you can answer every question on the card.
 
 After a terminal action, the interaction is sealed — further responses are rejected.
 
@@ -1685,9 +1710,9 @@ Activity is logged as `issue.scheduled_retry_retry_now` with the outcome attache
 
 ### Check now on a waiting task
 
-`POST /api/issues/{issueId}/monitor/check-now` also works on a task with no monitor check scheduled (`monitorNextCheckAt` is empty) that does have a waiting scheduled retry, such as one held for a provider usage limit. In that case the call starts the waiting retry immediately, using the same path as `scheduled-retry/retry-now`, so a usage-limit hold is checked again before the agent does any work. This path also needs board access and permission to read and change the task. The response is `{ ok: true, outcome, message }`, and the activity entry is `issue.scheduled_retry_retry_now` with `source: "monitor_check_now"`.
+`POST /api/issues/{issueId}/monitor/check-now` also works on a task with no monitor check scheduled (`monitorNextCheckAt` is empty) that does have a waiting scheduled retry, such as one held for a provider usage limit. In that case the call asks Paperclip to start the waiting retry now, using the same path as `scheduled-retry/retry-now`, so a usage-limit hold is checked again before the agent does any work. The retry can also stay scheduled, for example while an earlier run is still being cleaned up: `outcome` is then `waiting` and `message` says why. This path also needs board access and permission to read and change the task. The response is `{ ok: true, outcome, message }`, and the activity entry is `issue.scheduled_retry_retry_now` with `source: "monitor_check_now"`.
 
-If the check can't start, you get `409` with `code: "issue_monitor_check_deferred"` and a `details.reason`:
+If nothing is waiting anymore, or the task changed, you get `409` with `code: "issue_monitor_check_deferred"` and a `details.reason`:
 
 | `details.reason` | `error` |
 |---|---|
@@ -1702,7 +1727,7 @@ A task with a monitor check scheduled keeps its ordinary monitor check.
 
 `POST /api/issues/{issueId}/retry`
 
-Use this to ask Paperclip to try a stopped task again. It's what the **Retry** button on the task page and on failed-run rows in the Inbox calls. The route is board-only and needs permission to change the task. Paperclip reuses the task's saved messages and preserved work, so you don't pick a run or a recovery record yourself.
+Use this to ask Paperclip to try a stopped task again. It's what the **Retry** button on the task page and on failed-run rows in the Inbox calls. The route is for board users and needs permission to change the task. An agent can call it only with a `tasks:retry` grant (see [Retry as an agent](#retry-as-an-agent)). Paperclip reuses the task's saved messages and preserved work, so you don't pick a run or a recovery record yourself.
 
 Request body:
 
@@ -1736,6 +1761,20 @@ Clicking **Retry** while a scheduled retry counts down starts that retry right a
 Each time the reason a saved retry waits changes, the task gets an `issue.execution_waiting` activity entry from the system, with the `requestId` and `reason` in its details. Its live event refreshes an open task page, so the wait shows up without a reload.
 
 A retry is a new, durable request. If automatic repair had used up its attempts, a retry gives it a fresh set. A request that's waiting on shared work, such as cleanup or a running turn, absorbs later clicks. A request that was declined for its requester's access (`retry_authority_denied`) is replaced by the next click with a new key, so that retry runs with the new requester's access. On a task bound to an [Agent Chat conversation](#agent-chat-conversations), only the conversation owner can retry (`403`, *"Only the conversation owner can retry a chat run"*). Reusing an `idempotencyKey` for a different task or user returns `409` with *"This retry request belongs to a different task or user."*
+
+### Retry as an agent
+
+An agent holding a `tasks:retry` grant from a board user can send the same request. Paperclip then handles the Retry as if that person had pressed it, so the person's access and every Retry rule above apply. See [Letting an agent press Retry](../../administration/roles-and-permissions.md#letting-an-agent-press-retry) for how to grant it.
+
+The grant only counts when a board user saved it without a scope and is still an active member of the company. Without one, the agent gets the usual board-only refusal. With one, the agent's own checks come first:
+
+| Status | When |
+|---|---|
+| `401` | No run id on the request (`Agent run id required`). Send `X-Paperclip-Run-Id`. |
+| `403` | Scoped credentials (`Scoped credentials cannot use the Retry grant`), a run that isn't the agent's own (`Run does not belong to this agent`), the agent can't change the task itself, or the task is a chat conversation (`Only the conversation owner can retry a chat run`). |
+| `429` | The agent has already asked for 3 Retries on this task in the last 24 hours. `code` is `agent_task_retry_cap_reached`, and the message is *"An agent can request at most 3 Retries on a task per day"*. |
+
+Every attempt that gets past these checks, and the person's own access and chat checks, counts toward the cap, including ones Paperclip refuses after that, and is logged as `issue.retry_requested_by_agent` with the agent as the actor and `grantedByUserId` in its details. Resending the same `idempotencyKey` counts once, as long as the first attempt saved a Retry or was made in the last 24 hours.
 
 ### Move a waiting continuation forward
 
